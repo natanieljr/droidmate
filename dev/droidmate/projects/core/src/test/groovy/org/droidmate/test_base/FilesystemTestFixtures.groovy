@@ -67,15 +67,18 @@ class FilesystemTestFixtures
   {
 
     public final Apk gui
-    public final Apk monitoredInlined
+    public final Apk monitoredInlined_api19
+    public final Apk monitoredInlined_api23
 
     ApkFixtures(IAaptWrapper aapt)
     {
       gui = Apk.build(aapt,
         new ResourcePath("${BuildConstants.apk_fixtures}/GuiApkFixture-debug.apk").path)
 
-      monitoredInlined = Apk.build(aapt,
-        new ResourcePath("${BuildConstants.apk_fixtures}/${BuildConstants.monitored_inlined_apk_fixture_name}").path)
+      monitoredInlined_api19 = Apk.build(aapt,
+        new ResourcePath("${BuildConstants.apk_fixtures}/${BuildConstants.monitored_inlined_apk_fixture_api19_name}").path)
+      monitoredInlined_api23 = Apk.build(aapt,
+        new ResourcePath("${BuildConstants.apk_fixtures}/${BuildConstants.monitored_inlined_apk_fixture_api23_name}").path)
     }
   }
 

@@ -28,6 +28,8 @@ libsDirFileTree.setBuiltBy(['pullLibCommonAndroidJar'])
 */
 
 apply plugin: 'java'
+apply from: project(":projects").file("debug.gradle")
+
 
 /* The tasks below are pruned and/or disabled as they come from Gradle's java plugin which is applied
   only to make IntelliJ happy and is not fully configured.
@@ -43,7 +45,9 @@ tasks.jar.enabled = false
 
 /* "antBuild" and "antClean" tasks are defined below */
 tasks.build.dependsOn("antBuild")
-tasks.clean.dependsOn("cleanLibCommonAndroidJar", "antClean")
+tasks.clean.dependsOn("cleanLibCommonAndroidJar", "cleanAntOutput")
+
+buildDir = "bin"
 
 sourceSets {
   main.java.srcDirs = ["src"]
@@ -61,9 +65,9 @@ dependencies {
   compile projectUiautomatorDaemonLib
 
   // Required by IntelliJ; when building with Gradle, the underlying ant script knows this dependency.
-  compileOnly files(BuildKt.uiautomator_jar.toString())
+  compileOnly files(BuildKt.uiautomator_jar_api19.toString())
 
-  compileOnly files(BuildKt.android_jar.toString())
+  compileOnly files(BuildKt.android_jar_api19.toString())
 }
 
 /* --- end of MAKE INTELLIJ IDEA HAPPY ZONE --- */
@@ -102,14 +106,4 @@ task antBuild(dependsOn: "pullLibCommonAndroidJar") {
   }
 }
 
-task antClean {
-  group = "build"
-  description = "Runs 'ant clean'."
-
-  doLast {
-    BuildKt.executeCommand(
-      "${project.name} ant clean",
-      "ant -f $projectDir/$antBuildFileName clean"
-    )
-  }
-}
+task cleanAntOutput(type: Delete) { group = "build"; delete buildDir }

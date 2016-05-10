@@ -27,7 +27,7 @@ public class MonitorGeneratorFrontend
   {
     try
     {
-      MonitorGeneratorResources res = new MonitorGeneratorResources()
+      MonitorGeneratorResources res = new MonitorGeneratorResources(args)
 
       if (!computeAndPrintApiListsStats(args, res))
         generateMonitorSrc(res)
@@ -67,8 +67,8 @@ public class MonitorGeneratorFrontend
   private static void generateMonitorSrc(MonitorGeneratorResources res)
   {
     def monitorGenerator = new MonitorGenerator(
-      new RedirectionsGenerator(),
-      new MonitorSrcTemplate(res.monitorSrcTemplatePath)
+      new RedirectionsGenerator(res.androidApi),
+      new MonitorSrcTemplate(res.monitorSrcTemplatePath, res.androidApi)
     )
 
 
@@ -83,8 +83,17 @@ public class MonitorGeneratorFrontend
   public static List<ApiMethodSignature> getMethodSignatures(MonitorGeneratorResources res)
   {
     List<ApiMethodSignature> signatures = readAllLines(res.appguardApis)
-      .findAll {it.size() > 0 && !(it.startsWith("#")) && !(it.startsWith(" "))}
-      .collect {ApiMethodSignature.fromDescriptor(it)}
+      .findAll {
+      it.size() > 0 && !(it.startsWith("#")) && !(it.startsWith(" ")) &&
+        !((res.androidApi == AndroidAPI.API_19) && (it.startsWith("!API19"))) &&
+        !((res.androidApi == AndroidAPI.API_23) && (it.startsWith("!API23")))
+    }.collect {
+      it.startsWith("!API") ?
+        ApiMethodSignature.fromDescriptor(it["!APIXX ".size()..-1]) :
+        ApiMethodSignature.fromDescriptor(it)
+    }
+
+
     return signatures
   }
 

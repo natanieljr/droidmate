@@ -14,7 +14,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
 /**
  * Please see {@link DeviceModel#build(java.lang.String)}.
- * 
+ *
  * @author Nataniel Borges Jr. (inception)
  * @author Konrad Jamrozik (refactoring)
  */
@@ -25,10 +25,10 @@ public class DeviceModel
   /**
    * <p>
    * Create an {@link IDeviceModel} based on the string obtained from <pre>org.droidmate.uiautomator_daemon.UiAutomatorDaemonDriver#getDeviceModel()</pre>
-   * 
+   *
    * </p><p>
    * @param deviceModel Device manufacturer + model as returned by {@link org.droidmate.uiautomator_daemon.UiAutomatorDaemonDriver#getDeviceModel()}
-   * 
+   *
    * </p>
    */
   public static IDeviceModel build(String deviceModel) throws UnknownDeviceException
@@ -51,10 +51,10 @@ public class DeviceModel
         hw.gpu.enabled: yes
      */
       case "unknown-Android SDK built for x86":
-        result = new Nexus7_2013_AVD_Model()
+        result = new Nexus7_API19_Model()
         break
       case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_7:
-        result = new Nexus7Model()
+        result = new Nexus7_API19_Model()
         break
       case "samsung-Nexus 10":
         result = new Nexus10Model()
@@ -69,9 +69,9 @@ public class DeviceModel
 
     return result
   }
-  
+
   public static IDeviceModel buildDefault()
   {
-    return new Nexus7Model()
+    return new Nexus7_API19_Model()
   }
 }

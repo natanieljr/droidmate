@@ -1,0 +1,34 @@
+import com.konradjamrozik.IterableExtensions
+
+// Ensure BuildKt.appguard_apis_txt is available at runtime as a resource.
+processResources.configure { Copy copy -> copy.from(project(":projects").file("resources"))}
+
+processResources.dependsOn(
+  "pullMonitorApk_api19",
+  "pullMonitorApk_api23", 
+  "pullUiaDaemonJar", 
+  "pullUia2DaemonApk", 
+  "pullUia2DaemonTestApk"
+)
+
+processTestResources.dependsOn(
+  "pullApkFixtures", 
+  "inlineMonitoredApkFixture_api19",
+  "inlineMonitoredApkFixture_api23"
+)
+
+clean.dependsOn(
+  "cleanMonitorApk_api19",
+  "cleanMonitorApk_api23",
+  "cleanUiaDaemon", 
+  "cleanUia2Daemon",
+  "cleanApkFixtures"
+)
+
+ext.coreResDir = IterableExtensions.findSingle(
+  sourceSets.main.resources.srcDirs.findAll {it.path.contains(project.name)} as Set<File>)
+apply from: file("monitor.gradle")
+apply from: file("uiaDaemon.gradle")
+apply from: file("uia2daemon.gradle")
+apply from: file("apkFixtures.gradle")
+

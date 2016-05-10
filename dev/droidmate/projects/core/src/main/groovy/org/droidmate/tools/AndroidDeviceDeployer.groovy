@@ -15,14 +15,18 @@ import org.droidmate.android_sdk.ApkExplorationException
 import org.droidmate.android_sdk.ExplorationException
 import org.droidmate.android_sdk.IAdbWrapper
 import org.droidmate.common.Assert
+import org.droidmate.common.BuildConstants
 import org.droidmate.common.DroidmateException
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.IDeployableAndroidDevice
 import org.droidmate.exceptions.DeviceException
+import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+
+import java.nio.file.Paths
 
 @Slf4j
 public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
@@ -74,9 +78,18 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
     // KNOWN BUG on emulator, device offline when trying to remove logcat log file. Possible quickfix: on emulators, add a wait.
     device.removeLogcatLogFile()
     device.clearLogcat()
-    device.installApk(this.cfg.uiautomatorDaemonApk)
-    device.installApk(this.cfg.uiautomatorDaemonTestApk)
-    device.pushJar(this.cfg.monitorApk)
+    if (cfg.androidApi == "api19")
+    {
+      device.pushJar(this.cfg.uiautomatorDaemonJar)
+      device.pushJar(this.cfg.monitorApkApi19, BuildConstants.monitor_on_avd_apk_name)
+    }
+    else if (cfg.androidApi == "api23")
+    {
+      device.installApk(this.cfg.uiautomator2DaemonApk)
+      device.installApk(this.cfg.uiautomator2DaemonTestApk)
+      device.pushJar(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
+    } else throw new UnexpectedIfElseFallthroughError()
+    
     device.setupConnection()
     device.initModel()
 
@@ -102,9 +115,15 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
       log.trace("Tearing down.")
       device.pullLogcatLogFile()
       device.closeConnection()
-      device.uninstallApk(UiautomatorDaemonConstants.uiaDaemon_testPackageName, true)
-      device.uninstallApk(UiautomatorDaemonConstants.uiaDaemon_packageName, true)
-      device.removeJar(cfg.monitorApk)
+      if (cfg.androidApi == "api19")
+      {
+        device.removeJar(cfg.uiautomatorDaemonJar)
+      } else if (cfg.androidApi == "api23")
+      {
+        device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, true)
+        device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, true)
+      } else throw new UnexpectedIfElseFallthroughError()
+      device.removeJar(Paths.get(BuildConstants.monitor_on_avd_apk_name))
     }
     else
       log.trace("Device is not available. Skipping tear down.")

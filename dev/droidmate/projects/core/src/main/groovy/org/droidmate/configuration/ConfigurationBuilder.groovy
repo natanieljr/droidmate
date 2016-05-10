@@ -18,6 +18,7 @@ import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.apache.commons.lang3.builder.StandardToStringStyle
+import org.droidmate.apis.ApiMethodSignature
 import org.droidmate.common.BuildConstants
 import org.droidmate.exceptions.ConfigurationException
 import org.slf4j.Logger
@@ -189,13 +190,24 @@ class ConfigurationBuilder implements IConfigurationBuilder
   private static void setupResourcesAndPaths(Configuration cfg, FileSystem fs) throws ConfigurationException
   {
     cfg.appGuardApisList = new Resource(BuildConstants.appguard_apis_txt).text.readLines().findAll {it.size() > 0 && !it.startsWith("#")}
-    cfg.uiautomatorDaemonApk = new Resource("uiautomator2-daemon.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
-    log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomatorDaemonApk.toAbsolutePath().toString())
-    cfg.uiautomatorDaemonTestApk = new Resource("uiautomator2-daemon-test.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
-    log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomatorDaemonTestApk.toAbsolutePath().toString())
-    cfg.monitorApk = new Resource("monitor.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
-    log.info("Using monitor.apk located at "+cfg.monitorApk.toAbsolutePath().toString())
+      .collect { it.startsWith("!API") ? it["!APIXX ".size()..-1] : it }
 
+    cfg.uiautomatorDaemonJar = new Resource("uiautomator-daemon.jar").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    log.info("Using uiautomator-daemon.jar located at "+cfg.uiautomatorDaemonJar.toAbsolutePath().toString())
+
+    cfg.uiautomator2DaemonApk = new Resource("uiautomator2-daemon.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomator2DaemonApk.toAbsolutePath().toString())
+
+    cfg.uiautomator2DaemonTestApk = new Resource("uiautomator2-daemon-test.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomator2DaemonTestApk.toAbsolutePath().toString())
+
+    cfg.monitorApkApi19 = new Resource(BuildConstants.monitor_api19_apk_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    log.info("Using $BuildConstants.monitor_api19_apk_name located at "+cfg.monitorApkApi19.toAbsolutePath().toString())
+
+    cfg.monitorApkApi23 = new Resource(BuildConstants.monitor_api23_apk_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    log.info("Using $BuildConstants.monitor_api23_apk_name located at "+cfg.monitorApkApi23.toAbsolutePath().toString())
+
+    
     cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir)
     cfg.reportInputDirPath = fs.getPath(cfg.reportInputDir)
     cfg.reportOutputDirPath = fs.getPath(cfg.reportOutputDir)

@@ -18,6 +18,7 @@ import org.droidmate.common.SysCmdExecutorException
 import org.droidmate.configuration.Configuration
 import org.droidmate.exceptions.AdbWrapperException
 import org.droidmate.exceptions.NoAndroidDevicesAvailableException
+import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
 import java.nio.file.Files
@@ -70,7 +71,7 @@ public class AdbWrapper implements IAdbWrapper
 
     List<AndroidDeviceDescriptor> deviceDescriptors = parseDeviceInformation(stdStreams[0])
 
-    if (deviceDescriptors.isEmpty())
+    if (deviceDescriptors.empty)
       throw new NoAndroidDevicesAvailableException()
 
     assert deviceDescriptors.size() > 0
@@ -113,27 +114,32 @@ public class AdbWrapper implements IAdbWrapper
   public void installApk(String deviceSerialNumber, Path apkToInstall)
     throws AdbWrapperException
   {
+    assert cfg.adbCommand != null
+
+    String commandDescription = String
+      .format("Executing adb (Android Debug Bridge) to install %s on Android (Virtual) Device.",
+      apkToInstall.fileName)
+
+    String[] stdStreams
     try
     {
-      assert (cfg.adbCommand != null)
-
-      String commandDescription = String
-        .format("Executing adb (Android Debug Bridge) to install %s on Android (Virtual) Device.",
-        apkToInstall.fileName)
-
-      def stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s", deviceSerialNumber, "install -r",
+      stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s", deviceSerialNumber, "install -r",
         apkToInstall.toAbsolutePath().toString())
-
-      if (stdStreams[0].contains("[INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES]"))
-        throw new AdbWrapperException("Execution of 'adb -s $deviceSerialNumber install -r ${apkToInstall.toAbsolutePath().toString()}' " +
-          "resulted in [INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES] being output to stdout. Thus, no app was actually " +
-          "installed. Likely reason for the problem: you are trying to install a built in Google app that cannot be uninstalled" +
-          "or reinstalled. DroidMate doesn't support such apps.")
 
     } catch (SysCmdExecutorException e)
     {
       throw new AdbWrapperException("Executing 'adb install' failed. Oh my.", e)
     }
+
+    if (stdStreams[0].contains("[INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES]"))
+      throw new AdbWrapperException("Execution of 'adb -s $deviceSerialNumber install -r ${apkToInstall.toAbsolutePath().toString()}' " +
+        "resulted in [INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES] being output to stdout. Thus, no app was actually " +
+        "installed. Likely reason for the problem: you are trying to install a built in Google app that cannot be uninstalled" +
+        "or reinstalled. DroidMate doesn't support such apps.")
+
+    if (stdStreams[0].contains("Failure"))
+      throw new AdbWrapperException("Execution of 'adb -s $deviceSerialNumber install -r ${apkToInstall.toAbsolutePath().toString()}' " +
+        "resulted in stdout containing 'Failure'. The full stdout:\n$stdStreams[0]")
   }
 
   @Override
@@ -446,7 +452,7 @@ public class AdbWrapper implements IAdbWrapper
 
 
   @Override
-  public void pushJar(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
+  public void pushJar(String deviceSerialNumber, Path jarFile, String targetFileName = null) throws AdbWrapperException
   {
     assert cfg.adbCommand != null
     assert deviceSerialNumber != null
@@ -467,7 +473,7 @@ public class AdbWrapper implements IAdbWrapper
       // http://developer.android.com/tools/testing/testing_ui.html#builddeploy
       sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
         "-s", deviceSerialNumber,
-        "push", jarFile.toAbsolutePath().toString(), BuildConstants.AVD_dir_for_temp_files)
+        "push", jarFile.toAbsolutePath().toString(), BuildConstants.AVD_dir_for_temp_files + (targetFileName ?: "") )
 
     } catch (SysCmdExecutorException e)
     {
@@ -577,56 +583,101 @@ public class AdbWrapper implements IAdbWrapper
   @Override
   public void startUiautomatorDaemon(String deviceSerialNumber, int port) throws AdbWrapperException
   {
+    if (cfg.androidApi == "api19")
+      startUiautomatorDaemon_api19(deviceSerialNumber, port)
+    else if (cfg.androidApi == "api23")
+      startUiautomatorDaemon_api23(deviceSerialNumber, port)
+    else throw new UnexpectedIfElseFallthroughError()
+  }
+
+  private void startUiautomatorDaemon_api23(String deviceSerialNumber, int port) throws AdbWrapperException
+  {
+    String commandDescription = String
+      .format(
+      "Executing adb to start UiAutomatorDaemon service on Android Device with " +
+        "s/n %s.",
+      deviceSerialNumber)
+
+    String uiaDaemonCmdLine = String.format("-e %s %s -e %s %s -e %s %s",
+      UiautomatorDaemonConstants.uiaDaemonParam_waitForGuiToStabilize, cfg.uiautomatorDaemonWaitForGuiToStabilize,
+      UiautomatorDaemonConstants.uiaDaemonParam_waitForWindowUpdateTimeout, cfg.uiautomatorDaemonWaitForWindowUpdateTimeout,
+      UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
+
+    def testRunner = UiautomatorDaemonConstants.uia2Daemon_testPackageName + "/" + UiautomatorDaemonConstants.uia2Daemon_testRunner
+    def failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
+    String[] stdStreams
     try
     {
-      String commandDescription = String
-        .format(
-        "Executing adb to start UiAutomatorDaemon service on Android Device with " +
-          "s/n %s.",
-        deviceSerialNumber)
-
-      String uiaDaemonCmdLine = String.format("-e %s %s -e %s %s -e %s %s",
-        UiautomatorDaemonConstants.uiaDaemonParam_waitForGuiToStabilize, cfg.uiautomatorDaemonWaitForGuiToStabilize,
-        UiautomatorDaemonConstants.uiaDaemonParam_waitForWindowUpdateTimeout, cfg.uiautomatorDaemonWaitForWindowUpdateTimeout,
-        UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
-
-      this.sysCmdExecutor.executeWithoutTimeout(commandDescription, cfg.adbCommand,
+      stdStreams = this.sysCmdExecutor.executeWithoutTimeout(commandDescription, cfg.adbCommand,
         "-s", deviceSerialNumber,
         "shell am instrument",
         "--user 0",
         uiaDaemonCmdLine,
         "-w",
-        UiautomatorDaemonConstants.uiaDaemon_testPackageName + "/" + UiautomatorDaemonConstants.uiaDaemon_testRunner)
+        testRunner)
 
     } catch (SysCmdExecutorException e)
     {
-      throw new AdbWrapperException("Executing 'adb shell instrument --user 0 -w org.droidmate.uiautomator2daemon ...' failed. Oh my.", e)
+      throw new AdbWrapperException(failureString, e)
+    }
+
+    validateInstrumentation(stdStreams, failureString)
+  }
+
+  private void startUiautomatorDaemon_api19(String deviceSerialNumber, int port) throws AdbWrapperException
+  {
+
+    String commandDescription = String
+      .format(
+      "Executing adb to start UiAutomatorDaemon.init() method on Android Device with " +
+        "s/n %s.",
+      deviceSerialNumber)
+
+    String uiaDaemonCmdLine = String.format("-c %s -e %s %s -e %s %s -e %s %s",
+      UiautomatorDaemonConstants.uiaDaemon_initMethodName,
+      UiautomatorDaemonConstants.uiaDaemonParam_waitForGuiToStabilize, cfg.uiautomatorDaemonWaitForGuiToStabilize,
+      UiautomatorDaemonConstants.uiaDaemonParam_waitForWindowUpdateTimeout, cfg.uiautomatorDaemonWaitForWindowUpdateTimeout,
+      UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
+
+    def failureString = "Executing 'adb -s $deviceSerialNumber shell uiautomator runtest ${cfg.uiautomatorDaemonJar.fileName.toString()} $uiaDaemonCmdLine' failed. Oh my."
+    String[] stdStreams
+    try
+    {
+      stdStreams = this.sysCmdExecutor.executeWithoutTimeout(commandDescription, cfg.adbCommand,
+        "-s", deviceSerialNumber,
+        "shell uiautomator runtest",
+        cfg.uiautomatorDaemonJar.fileName.toString(),
+        uiaDaemonCmdLine)
+
+    } catch (SysCmdExecutorException e)
+    {
+      throw new AdbWrapperException(failureString, e)
+    }
+
+    validateInstrumentation(stdStreams, failureString)
+  }
+
+
+  private void validateInstrumentation(String[] stdStreams, GString failureString)
+  {
+    if (stdStreams[0].contains("INSTRUMENTATION_FAILED"))
+    {
+      throw new AdbWrapperException("Executing " +
+        failureString +
+        "Reason: stdout contains 'INSTRUMENTATION_FAILED' line. The full stdout:\n${stdStreams[0]}")
     }
   }
 
   @Override
-  /**
-   * Pull file from the device
-   *
-   * Due to Android 6 enhanced security it is necessary to run the software as
-   * a specific package to extract a file
-   *
-   * The command to do that is: adb exec-out run-as <APPLICATION> cat <SOURCE> <DESTINATION>
-   * More information:
-   *   http://stackoverflow.com/questions/18471780/android-adb-retrieve-database-using-run-as
-   */
-  void pullFile(String deviceSerialNumber, String pulledFileName, String destinationFilePath, String shellPackageName) throws AdbWrapperException
+  void pullFile_api19(String deviceSerialNumber, String pulledFileName, String destinationFilePath) throws AdbWrapperException
   {
     assert deviceSerialNumber != null
     assert pulledFileName?.size() > 0
     assert destinationFilePath?.size() > 0
-    assert shellPackageName != null
 
-    // WISH make it stubbable by taking filesystem from configuration. But then also logback logs should take filesystem from
-    // configuration, but they do not as of 15 Jan 2016
     assert Files.notExists(Paths.get(destinationFilePath))
 
-    String pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir + pulledFileName
+    String pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api19 + pulledFileName
     String commandDescription = String
       .format(
       "Executing adb to pull file %s from Android Device with s/n %s.",
@@ -634,26 +685,9 @@ public class AdbWrapper implements IAdbWrapper
 
     try
     {
-
-      if (shellPackageName == null)
-        sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
-          "-s", deviceSerialNumber,
-          "pull", pulledFilePath, destinationFilePath)
-      else
-      {
-        String[] executionOutput = sysCmdExecutor.execute(
-          commandDescription, cfg.adbCommand,
-          "-s", deviceSerialNumber,
-          "exec-out",
-          "run-as", shellPackageName,
-          "cat", pulledFilePath)
-
-        // Output was acquired with CAT not with PULL,
-        // create the output file and save file content
-        FileWriter writer = new FileWriter(destinationFilePath)
-        writer.write(executionOutput[0])
-        writer.close()
-      }
+      sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
+        "-s", deviceSerialNumber,
+        "pull", pulledFilePath, destinationFilePath)
 
     } catch (SysCmdExecutorException e)
     {
@@ -663,18 +697,56 @@ public class AdbWrapper implements IAdbWrapper
 
   @Override
   /**
-   * Remove a file from the device
+   * Pull file from the device.
    *
-   * See explanation about the shellPackageName parameter in {@link org.droidmate.android_sdk.AdbWrapper#pullFile}
+   * Due to Android 6 enhanced security it is necessary to run the software as
+   * a specific package to extract a file
+   *
+   * The command to do that is: adb exec-out run-as <APPLICATION> cat <SOURCE> <DESTINATION>
+   * More information:
+   *   http://stackoverflow.com/questions/18471780/android-adb-retrieve-database-using-run-as
    */
-  void removeFile(String deviceSerialNumber, String fileName, String shellPackageName) throws AdbWrapperException
+  void pullFile_api23(String deviceSerialNumber, String pulledFileName, String destinationFilePath, String shellPackageName) throws AdbWrapperException
+  {
+    assert deviceSerialNumber != null
+    assert pulledFileName?.size() > 0
+    assert destinationFilePath?.size() > 0
+    assert !shellPackageName?.empty
+
+    assert Files.notExists(Paths.get(destinationFilePath))
+
+    String pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + pulledFileName
+    String commandDescription = String
+      .format(
+      "Executing adb to pull file %s from Android Device with s/n %s.",
+      pulledFilePath, deviceSerialNumber)
+
+    try
+    {
+      String[] stdStreams = sysCmdExecutor.execute(
+        commandDescription, cfg.adbCommand,
+        "-s", deviceSerialNumber,
+        "exec-out",
+        "run-as", shellPackageName,
+        "cat", pulledFilePath)
+
+      FileWriter writer = new FileWriter(destinationFilePath)
+      writer.write(stdStreams[0])
+      writer.close()
+
+    } catch (SysCmdExecutorException e)
+    {
+      throw new AdbWrapperException("Executing 'adb pull ...' failed. Oh my.", e)
+    }
+  }
+
+  void removeFile_api19(String deviceSerialNumber, String fileName) throws AdbWrapperException
   {
     assert deviceSerialNumber != null
     assert fileName != null
     assert fileName.size() > 0
-    assert shellPackageName != null
 
-    String filePath = UiautomatorDaemonConstants.deviceLogcatLogDir + fileName
+    String filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api19 + fileName
     String commandDescription = String
       .format(
       "Executing adb to delete file %s from Android Device with s/n %s.",
@@ -682,19 +754,59 @@ public class AdbWrapper implements IAdbWrapper
 
     try
     {
-      if (shellPackageName == null)
-        sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
-          "-s", deviceSerialNumber,
-          "shell rm", filePath)
-      else
-        sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
-          "-s", deviceSerialNumber,
-          "shell run-as", shellPackageName,
-          "rm", filePath)
+      sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
+        "-s", deviceSerialNumber,
+        "shell rm", filePath)
 
     } catch (SysCmdExecutorException e)
     {
       throw new AdbWrapperException("Executing 'adb shell rm ...' failed. Oh my.", e)
     }
+  }
+
+  @Override
+  /**
+   * Remove a file from the device
+   *
+   * See explanation about the shellPackageName parameter in {@link org.droidmate.android_sdk.AdbWrapper#pullFile_api23}
+   */
+  void removeFile_api23(String deviceSerialNumber, String fileName, String shellPackageName) throws AdbWrapperException
+  {
+    assert deviceSerialNumber != null
+    assert fileName != null
+    assert fileName.size() > 0
+    assert !shellPackageName?.empty
+
+    String filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + fileName
+    String commandDescription = String
+      .format(
+      "Executing adb to delete file %s from Android Device with s/n %s.",
+      filePath, deviceSerialNumber)
+
+    try
+    {
+      sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
+        "-s", deviceSerialNumber,
+        "shell run-as", shellPackageName,
+        "rm", filePath)
+
+    } catch (SysCmdExecutorException e)
+    {
+      throw new AdbWrapperException("Executing 'adb shell rm ...' failed. Oh my.", e)
+    }
+  }
+
+  @SuppressWarnings("GroovyUnusedDeclaration")
+  private debugStdStreams(String[] stdStreams)
+  {
+    String stdout = stdStreams[0]
+    String stderr = stdStreams[1]
+    println "=========="
+    println "DEBUG STD STREAMS"
+    println "===== STD OUT ====="
+    println stdout
+    println "===== STD ERR ====="
+    println stderr
+    println "=========="
   }
 }

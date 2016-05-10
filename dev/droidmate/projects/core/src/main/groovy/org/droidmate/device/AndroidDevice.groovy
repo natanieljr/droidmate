@@ -27,7 +27,6 @@ import org.droidmate.logcat.ITimeFormattedLogcatMessage
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import org.droidmate.uiautomator_daemon.UiautomatorWindowHierarchyDumpDeviceResponse
 
 import java.awt.*
@@ -38,7 +37,6 @@ import java.util.List
 
 import static org.droidmate.device.datatypes.AndroidDeviceAction.newLaunchAppDeviceAction
 import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
-
 /**
  * <p>
  * <i> --- This doc was last reviewed on 21 Dec 2013.</i>
@@ -81,11 +79,12 @@ public class AndroidDevice implements IAndroidDevice
   }
 
   @Override
-  void pushJar(Path jar) throws DeviceException
+  void pushJar(Path jar, String targetFileName = null) throws DeviceException
   {
-    log.debug("pushJar(${jar.toString()})")
-    adbWrapper.pushJar(serialNumber, jar)
+    log.debug("pushJar(${jar.toString()}, $targetFileName)")
+    adbWrapper.pushJar(serialNumber, jar, targetFileName)
   }
+
 
   @Override
   boolean hasPackageInstalled(String packageName) throws DeviceException
@@ -243,14 +242,25 @@ public class AndroidDevice implements IAndroidDevice
   void removeLogcatLogFile() throws DeviceException
   {
     log.debug("removeLogcatLogFile()")
-    this.adbWrapper.removeFile(this.serialNumber, logcatLogFileName, UiautomatorDaemonConstants.uiaDaemon_packageName)
+    if (cfg.androidApi == "api19")
+      this.adbWrapper.removeFile_api19(this.serialNumber, logcatLogFileName)
+    else if (cfg.androidApi == "api23")
+      this.adbWrapper.removeFile_api23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
+    else throw new UnexpectedIfElseFallthroughError()
+
+
   }
 
   @Override
   void pullLogcatLogFile() throws DeviceException
   {
     log.debug("pullLogcatLogFile()")
-    this.adbWrapper.pullFile(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), UiautomatorDaemonConstants.uiaDaemon_packageName)
+    if (cfg.androidApi == "api19")
+      this.adbWrapper.pullFile_api19(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"))
+    else if (cfg.androidApi == "api23")
+      this.adbWrapper.pullFile_api23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
+    else throw new UnexpectedIfElseFallthroughError()
+
   }
 
   @Override
@@ -371,8 +381,7 @@ public class AndroidDevice implements IAndroidDevice
   void removeJar(Path jar) throws DeviceException
   {
     log.debug("removeJar($jar)")
-    adbWrapper.removeJar(serialNumber, cfg.uiautomatorDaemonApk)
-    adbWrapper.removeJar(serialNumber, cfg.uiautomatorDaemonTestApk)
+    adbWrapper.removeJar(serialNumber, jar)
   }
 
   @Override
