@@ -24,6 +24,9 @@ android:
     - extra-android-support
     - extra-android-m2repository
 
+    # DroidMate currently supports Android 5.0 (API 21).
+    - android-21
+
     # DroidMate currently supports Android 5.1 (API 22).
     - android-22
 

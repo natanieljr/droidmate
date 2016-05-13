@@ -67,13 +67,14 @@ public class InstrumentedActivity extends Activity
     // The call below requires permission: android.permission.CAMERA
     i(LOG_TAG, "Application requested permission " + permission);
     int hasPermission = this.checkSelfPermission(permission);
-    return hasPermission == PackageManager.PERMISSION_GRANTED;
-  }
+    if (hasPermission != PackageManager.PERMISSION_GRANTED)
+    {
+      i(LOG_TAG, "Missing runtime permission " + permission + ", requesting and finishing method");
+      this.requestPermissions(new String[] {permission}, 1);
+      return false;
+    }
 
-  private void requestPermission(String permission)
-  {
-    i(LOG_TAG, "Requesting runtime permission " + permission);
-    this.requestPermissions(new String[] {permission}, 1);
+    return true;
   }
 
   public void callAndroidAPIs(View view)
@@ -83,19 +84,11 @@ public class InstrumentedActivity extends Activity
     // The calls below require the following permissions:
     //    android.permission.CAMERA
     //    android.permission.ACCESS_NETWORK_STATE
-    // WISH Borges: Requires API 23 (Android 6)
-    // In order to make it compatible with API 22 (Android 5.1) comment the lines bellow and the methods hasPermission and requestPermission
     if (!hasPermission(Manifest.permission.CAMERA))
-    {
-      requestPermission(Manifest.permission.CAMERA);
       return;
-    }
 
     if (!hasPermission(Manifest.permission.ACCESS_COARSE_LOCATION))
-    {
-      requestPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
       return;
-    }
 
     try
     {

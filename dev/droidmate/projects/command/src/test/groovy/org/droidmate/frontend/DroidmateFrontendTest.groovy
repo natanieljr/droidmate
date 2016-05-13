@@ -86,14 +86,14 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       "mock_1_noThrow_outputOk",
       "mock_2_throwBeforeLoop_outputNone",
       "mock_3_throwInLoop_outputPartial",
-      "mock_4_throwsOUndeps_outputOk",
+      "mock_4_throwsOnUndeps_outputOk",
       "mock_5_neverExplored_outputNone",
     ])
     def apks = mockedFs.apks
     def apk1 = apks.findSingle {it.fileName == "mock_1_noThrow_outputOk.apk"}
     def apk2 = apks.findSingle {it.fileName == "mock_2_throwBeforeLoop_outputNone.apk"}
     def apk3 = apks.findSingle {it.fileName == "mock_3_throwInLoop_outputPartial.apk"}
-    def apk4 = apks.findSingle {it.fileName == "mock_4_throwsOUndeps_outputOk.apk"}
+    def apk4 = apks.findSingle {it.fileName == "mock_4_throwsOnUndeps_outputOk.apk"}
 
     def exceptionSpecs = [
 
@@ -212,7 +212,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
   @Category([RequiresDevice])
   @Test
-  public void "Explores monitored apk on a real device api 19"()
+  public void "Explores monitored apk on a real device api19"()
   {
     String[] args = new ConfigurationForTests().forDevice().setArgs([
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api19_name]",
@@ -225,7 +225,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
   @Category([RequiresDevice])
   @Test
-  public void "Explores monitored apk on a real device api 23"()
+  public void "Explores monitored apk on a real device api23"()
   {
     String[] args = new ConfigurationForTests().forDevice().setArgs([
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",

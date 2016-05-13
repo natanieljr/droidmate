@@ -34,9 +34,6 @@ android {
     // In order to make it compatible with API 22 (Android 5.1) uncomment the lines bellow
     //minSdkVersion 22
     //targetSdkVersion 22
-    // In order to make it compatible with API 19 (Android 4.4) uncomment the lines bellow
-    //minSdkVersion 18
-    //targetSdkVersion 19
     minSdkVersion 23
     targetSdkVersion 23
     versionCode 1

@@ -9,7 +9,6 @@
 
 package org.droidmate.test_base
 
-import com.konradjamrozik.Resource
 import com.konradjamrozik.ResourcePath
 import org.droidmate.android_sdk.AaptWrapper
 import org.droidmate.android_sdk.Apk
