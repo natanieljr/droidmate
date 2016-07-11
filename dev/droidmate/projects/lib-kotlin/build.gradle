@@ -50,7 +50,25 @@ dependencies {
   testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
   testCompile 'junit:junit:4.12'
   testCompile 'org.hamcrest:hamcrest-core:1.3'
+  testCompile 'org.hamcrest:hamcrest-library:1.3'
   testCompile 'org.xmlunit:xmlunit-core:2.1.1'
+
+  compile project(":projects:lib-common")
+}
+
+test.configure {
+
+  /* The tests have to be run from root project dir (droidmate) for the classpaths to be properly resolved.
+
+   API reference:
+   workingDir  http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.testing.Test.html
+   rootDir     http://www.gradle.org/docs/current/dsl/org.gradle.api.Project.html
+   */
+  workingDir rootDir
+
+  /* Lurking bug: GRADLE-1682. */
+  includes = ['**/LibKotlinTestSuite.class']
+
 }
 
 apply from: project(":projects").file("maven.gradle")

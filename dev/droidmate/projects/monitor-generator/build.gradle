@@ -23,8 +23,13 @@ sourceSets.test.compileClasspath = configurations.forceJunitPriority + sourceSet
 dependencies {
 
   compile project(":projects:lib-common")
+  compile project(":projects:lib-kotlin")
 
   compile 'org.codehaus.groovy:groovy-all:2.4.6'
+
+  compile 'ch.qos.logback:logback-classic:1.0.13'
+  compile 'ch.qos.logback:logback-core:1.0.13'
+  compile 'org.slf4j:slf4j-api:1.7.6'
 
   forceJunitPriority 'junit:junit:4.12'
   testCompile 'junit:junit:4.12'
@@ -32,123 +37,123 @@ dependencies {
   compile project(":projects:monitor-template")
 }
 
-evaluationDependsOn(":projects:monitor-template")
-// !!! DUPLICATION WARNING !!! with the file name and file location of class org.droidmate.monitor_template_src.MonitorJavaTemplate
-File monitorJavaTemplateSource = findProject(":projects:monitor-template").sourceSets.main.java.find { it.name == "MonitorJavaTemplate.java" } as File
-assert monitorJavaTemplateSource.file
-
-SourceDirectorySet resDirs = sourceSets.main.resources
-assert resDirs.srcDirs.size() == 1
-File resDir = resDirs.srcDirs[0]
-
-apply plugin: 'application'
-mainClassName = "org.droidmate.monitor_generator.MonitorGeneratorFrontend"
-
-processResources.dependsOn "pullMonitorJavaTemplateSource"
+//region Tasks to setup resources necessary for a call to MonitorGeneratorFrontend
 
 // Ensure BuildKt.appguard_apis_txt is available at runtime as a resource. 
-processResources.configure { Copy copy -> copy.from(project(":projects").file("resources")) }
+processResources.configure { Copy copy ->
 
-task pullMonitorJavaTemplateSource(type: Copy) { Copy copy ->
+  File appguardApisTxt = project(":projects").file("resources/${BuildKt.appguard_apis_txt}")
+  assert appguardApisTxt.file
 
-  copy.from monitorJavaTemplateSource 
-  copy.into resDir
-  copy.rename { BuildKt.monitor_generator_res_name_monitor_template }
+  evaluationDependsOn(":projects:monitor-template")
+  // !!! DUPLICATION WARNING !!! with the file name and file location of class org.droidmate.monitor.MonitorJavaTemplate
+  File monitorJavaTemplateSource = findProject(":projects:monitor-template").sourceSets.main.java.find { it.name == "MonitorJavaTemplate.java" } as File
+  assert monitorJavaTemplateSource.file
+
+  copy.from(appguardApisTxt, monitorJavaTemplateSource).rename(monitorJavaTemplateSource.name, BuildKt.monitor_generator_res_name_monitor_template)
 }
 
+//endregion
+
+//region Tasks calling MonitorGeneratorFrontend, outputting generatedMonitor_apiXX
+apply plugin: 'application'
+mainClassName = "org.droidmate.monitor.MonitorGeneratorFrontend"
 JavaExec runTask = tasks.run as JavaExec
-File generatedMonitor_api19 = new File(runTask.workingDir, BuildKt.monitor_generator_output_relative_path_api19)
-File generatedMonitor_api23 = new File(runTask.workingDir, BuildKt.monitor_generator_output_relative_path_api23)
 def generateMonitor = { JavaExec je, List<String> args, File generatedMonitor ->
   je.group = "build"
   ["main", "classpath", "standardOutput"].each {je."$it" = runTask."$it"}
 
   je.args = args
-  je.standardOutput = new ByteArrayOutputStream() // Mute the task stdout
+  // Output is not muted as we want to see in Gradle build log output of org.droidmate.monitor.MonitorGeneratorFrontend.loadMonitorHookIfAvailableElseNull
+  //je.standardOutput = new ByteArrayOutputStream() // Mute the task stdout
   je.outputs.file generatedMonitor
 
   je.doLast { assert generatedMonitor.file }
 }
 
-task generateMonitor_api19(type: JavaExec) {JavaExec je -> generateMonitor(je, ["api19"], generatedMonitor_api19) }
-task generateMonitor_api23(type: JavaExec) {JavaExec je -> generateMonitor(je, ["api23"], generatedMonitor_api23) }
+def generatedMonitor = {int apiLevel -> new File(runTask.workingDir, BuildKt.generated_monitor(apiLevel))}
+task generateMonitor_api19(type: JavaExec) {generateMonitor(it as JavaExec, ["api19"], generatedMonitor(19)) }
+task generateMonitor_api23(type: JavaExec) {generateMonitor(it as JavaExec, ["api23"], generatedMonitor(23)) }
 
-File monitorApkScaffoldingDir = file "monitor-apk-scaffolding"
+//endregion
+
+evaluationDependsOn(":projects:monitor-hook")
+Jar monitorHookJarTask = findProject(":projects:monitor-hook").jar as Jar
+
+evaluationDependsOn(":projects:lib-common")
+Jar libCommonJarTask = findProject(":projects:lib-common").jar as Jar
+
+File monitorApkScaffoldingDir = project(":projects").file("monitor-apk-scaffolding")
 assert monitorApkScaffoldingDir.directory
 
-File libsDir = new File(monitorApkScaffoldingDir, "libs")
-File libs_api19_dir = new File(monitorApkScaffoldingDir, "libs_api19")
-File libs_api23_dir = new File(monitorApkScaffoldingDir, "libs_api23")
 
-File monitorJava = new File(monitorApkScaffoldingDir, "src/org/droidmate/monitor_generator/generated/Monitor.java")
-assert monitorJava.parentFile.directory
-File antOutput = file("${monitorApkScaffoldingDir.path}/bin")
-File monitorApkOutputByAnt = file(new File(antOutput,"monitor-apk-debug.apk"))
-def antBuildMonitorApk = { Task task ->
-  task.doLast {
-    assert monitorJava.file
-    int exitValue = BuildKt.executeCommand(
-      "${monitorApkScaffoldingDir.name} ant debug",
-      "ant -f ${monitorApkScaffoldingDir.path}/build.xml debug"
-    )
-    if (exitValue != 0)
-      throw new GradleException("Failed to build ${monitorApkScaffoldingDir.name}.")
+def copyFileWithRename = {File copiedFile, File targetFile ->
+  assert targetFile.parentFile.directory
+  copy { it.from(copiedFile).into(targetFile.parent).rename { targetFile.name }}
+}
+
+def assembleApk = {GradleBuild gradleBuildTask, int apiLevel ->
+  File monitorApkScaffoldingBuildGradle = new File(monitorApkScaffoldingDir, "build.gradle")
+  assert monitorApkScaffoldingBuildGradle.file
+  gradleBuildTask.buildFile = monitorApkScaffoldingBuildGradle
+  gradleBuildTask.tasks = ["assembleApi$apiLevel".toString()]
+}
+
+def monitorJava = { int apiLevel -> new File(monitorApkScaffoldingDir, "src/api$apiLevel/java/org/droidmate/monitor/Monitor.java") }
+File apkScaffoldingOutput = new File(monitorApkScaffoldingDir, "build")
+def apkScaffoldingOutputApk = { int apiLevel -> new File(apkScaffoldingOutput, "outputs/apk/monitor-apk-scaffolding-api$apiLevel-release-unsigned.apk") }
+def monitorApk = { int apiLevel -> new File(buildDir, "monitor_api${apiLevel}.apk") }
+
+File libsBuilt = new File(monitorApkScaffoldingDir, "libs_built")
+
+def buildMonitorApk = { GradleBuild task, int apiLevel ->
+
+  task.dependsOn([libCommonJarTask, monitorHookJarTask, tasks.getByName("generateMonitor_api$apiLevel")])
+  
+  task.group = "build"
+
+  task.inputs.files libCommonJarTask
+  task.inputs.files monitorHookJarTask
+  task.inputs.files tasks.getByName("generateMonitor_api$apiLevel")
+  
+  File libsApi = new File(monitorApkScaffoldingDir, "libs_api$apiLevel")
+  assert libsApi.directory
+  task.inputs.files fileTree(dir: libsApi, include: '**')
+
+  task.outputs.file monitorApk(apiLevel)
+
+  task.doFirst {
+    delete libsBuilt
+    copy {it.from monitorHookJarTask.archivePath into libsBuilt}
+    copy {it.from libCommonJarTask.archivePath into libsBuilt}
+    copyFileWithRename(generatedMonitor(apiLevel), monitorJava(apiLevel))
+    assert monitorJava(apiLevel).file
   }
+  assembleApk(task, apiLevel)
+  task.doLast { copyFileWithRename(apkScaffoldingOutputApk(apiLevel), monitorApk(apiLevel)) }
 }
 
-File projectPropertiesFile = new File(monitorApkScaffoldingDir, "project.properties")
-Jar libCommonJarTask = findProject(":projects:lib-common").jar as Jar
-def prepareAntBuild = { int apiLevel, File apiLibsDir, File monitor -> 
-  projectPropertiesFile.text = "target=android-" + apiLevel
-  delete libsDir
-  copy { it.from apiLibsDir into libsDir }
-  copy { it.from libCommonJarTask.archivePath into libsDir }
-  copy { it.from monitor into monitorJava.parent rename monitor.name, monitorJava.name }
-}
+task buildMonitorApk_api19(type: GradleBuild) {buildMonitorApk(it as GradleBuild, 19) }
+task buildMonitorApk_api23(type: GradleBuild) {buildMonitorApk(it as GradleBuild, 23) }
 
-File monitor_apk_api19 = new File(buildDir, "monitor_api19.apk")
-File monitor_apk_api23 = new File(buildDir, "monitor_api23.apk")
-task antBuildMonitorApk_api19(dependsOn: ["generateMonitor_api19", libCommonJarTask]) {Task task ->
-  task.group = "build"
+clean.configure {
   
-  task.inputs.files libCommonJarTask
-  task.inputs.files tasks.generateMonitor_api19
-  task.inputs.files fileTree(dir: libs_api19_dir, include: '**')
-  task.outputs.file monitor_apk_api19
-  
-  task.doFirst { prepareAntBuild(19, libs_api19_dir, generatedMonitor_api19) }
-  antBuildMonitorApk(task)
-  task.doLast { copy { it.from(monitorApkOutputByAnt).into(monitor_apk_api19.parent).rename { monitor_apk_api19.name }}}
+  delete generatedMonitor(19)
+  delete generatedMonitor(23)
+  assert generatedMonitor(19).parent ==  generatedMonitor(23).parent
+  delete generatedMonitor(19).parent
+
+  delete monitorJava(19)
+  delete monitorJava(23)
+
+  delete libsBuilt
+  delete apkScaffoldingOutput
+
+  delete monitorApk(19)
+  delete monitorApk(23)
 }
 
-task antBuildMonitorApk_api23(dependsOn: ["generateMonitor_api23", libCommonJarTask]) {Task task ->
-  task.group = "build"
-  
-  task.inputs.files libCommonJarTask
-  task.inputs.files tasks."generateMonitor_api23"
-  task.inputs.files fileTree(dir: libs_api23_dir, include: '**')
-  task.outputs.file monitor_apk_api23
-  
-  task.doFirst { prepareAntBuild(23, libs_api23_dir, generatedMonitor_api23) }
-  antBuildMonitorApk(task)
-  task.doLast { copy { it.from(monitorApkOutputByAnt).into(monitor_apk_api23.parent).rename { monitor_apk_api23.name }}}
-}
-
-task cleanRun(type: Delete) {
-  group = "build"
-  delete generatedMonitor_api19
-  delete generatedMonitor_api23
-  delete monitor_apk_api19
-  delete monitor_apk_api23
-  assert generatedMonitor_api19.parent == generatedMonitor_api23.parent
-  delete generatedMonitor_api19.parent
-  delete monitorJava
-}
-task cleanAntOutput(type: Delete) { group = "build"; delete antOutput }
-task cleanLibsDir(type: Delete) {group = "build"; delete libsDir }
-
-clean.dependsOn "cleanRun", "cleanAntOutput", "cleanLibsDir"
-build.dependsOn "antBuildMonitorApk_api19", "antBuildMonitorApk_api23"
+build.dependsOn "buildMonitorApk_api19", "buildMonitorApk_api23"
 
 test.configure {
 

@@ -21,7 +21,9 @@ Or to make your life easier, open in IntelliJ IDEA:
 
 Note that to run any tests first you will have to deploy the code to local Maven repository, as described in `repo/BUILDING.md`.
 
-# Running DroidMate from sources
+# Running DroidMate from sources (not recommended!)
+
+**!!! Please note: this method of running DroidMate is not recommended. Instead, use the API from your Java app as described above.**
 
 Ensure you have built DroidMate as described in `repo/BUILDING.md`.
 
@@ -34,6 +36,8 @@ DroidMate will read command line arguments from the first line of
 
 Most likely, the input apks will be taken from `repo/dev/droidmate/apks` (as determined by the first line of `args.txt`)
 
+**!!! Please note: DroidMate by default runs with Android 4.4.2 compatibility mode. To run it instead with Android 6 
+compatibility mode, add to the `args.txt` the following: `-apiLevel=23`** 
 
 # DroidMate input
 

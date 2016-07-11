@@ -22,11 +22,11 @@ import org.droidmate.exceptions.ITestException
 import org.droidmate.exceptions.ThrowablesCollection
 import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
-import org.droidmate.exploration.output.DroidmateOutputDir
 import org.droidmate.exploration.strategy.ExplorationStrategy
 import org.droidmate.filesystem.MockFileSystem
 import org.droidmate.logcat.IApiLogcatMessage
 import org.droidmate.misc.TimeGenerator
+import org.droidmate.report.OutputDir
 import org.droidmate.storage.Storage2
 import org.droidmate.test_base.DroidmateGroovyTestCase
 import org.droidmate.test_helpers.configuration.ConfigurationForTests
@@ -167,7 +167,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
     assert spy.throwables.size() == exceptionSpecs.size()
     assert spy.throwables.collect {Throwables.getRootCause(it) as ITestException}*.exceptionSpec == exceptionSpecs
 
-    Path outputDir = new DroidmateOutputDir(cfg.droidmateOutputDirPath).path
+    Path outputDir = new OutputDir(cfg.droidmateOutputDirPath).dir
 
     assertSer2FilesInDirAre(outputDir, expectedApkPackageNamesOfSer2FilesInOutputDir)
   }
@@ -230,6 +230,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
     String[] args = new ConfigurationForTests().forDevice().setArgs([
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
       Configuration.pn_widgetIndexes, "[0, 1, 2, 2, 2]",
+      Configuration.pn_androidApi, "api23",
     ]).get().args
 
     exploreOnRealDevice(args, "api23")
@@ -253,7 +254,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
    */
   private void exploreOnRealDevice(String[] args, String api)
   {
-    DroidmateOutputDir outputDir = new DroidmateOutputDir(new ConfigurationBuilder().build(args).droidmateOutputDirPath)
+    OutputDir outputDir = new OutputDir(new ConfigurationBuilder().build(args).droidmateOutputDirPath)
     outputDir.clearContents()
 
     // Act
@@ -261,7 +262,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
     
     assert exitStatus == 0, "Exit status != 0. Please inspect the run logs for details, including exception thrown"
 
-    IApkExplorationOutput2 apkOut = outputDir.readOutput().findSingle()
+    IApkExplorationOutput2 apkOut = outputDir.explorationOutput2.findSingle()
 
     List<List<IApiLogcatMessage>> apiLogs = apkOut?.apiLogs
     if (api == "api19")
@@ -299,11 +300,11 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       def terminateAppApiLogs = apiLogs[6]
 
       assert resetAppApiLogs*.methodName == ["onResume"]
-      assert clickApiLogs*.methodName == ["openConnection"]
-      assert openPermissionDialogApiLogs.empty
+      assert clickApiLogs*.methodName == ["i", "openConnection", "i"]
+      assert openPermissionDialogApiLogs.methodName == ["i", "i"]
       assert onResumeApiLogs*.methodName == ["onResume"]
-      assert cameraApiLogs*.methodName == ["open"]
-      assert launchActivity2Logs*.methodName == ["startActivityForResult", "onResume"]
+      assert cameraApiLogs*.methodName == ["i", "open"]
+      assert launchActivity2Logs*.methodName == ["i", "startActivityForResult", "onResume"]
       assert terminateAppApiLogs.empty
     }
     else throw new UnexpectedIfElseFallthroughError()
@@ -311,7 +312,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
   private IDeviceSimulation getDeviceSimulation(Path outputDirPath)
   {
-    IApkExplorationOutput2 apkOut = new DroidmateOutputDir(outputDirPath).readOutput().findSingle()
+    IApkExplorationOutput2 apkOut = new OutputDir(outputDirPath).notEmptyExplorationOutput2.findSingle()
     def deviceSimulation = new DeviceSimulation(apkOut)
     return deviceSimulation
   }

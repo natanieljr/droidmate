@@ -21,6 +21,7 @@ import org.zeroturnaround.exec.ProcessExecutor
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Paths
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val exeExt = if (OS.isWindows) ".exe" else ""
@@ -59,8 +60,11 @@ val android_extras_m2repo = android_sdk_dir.resolveDir("extras/android/m2reposit
 
 val monitor_generator_res_name_monitor_template = "monitorTemplate.txt"
 private val monitor_generator_output_dir = "temp"
-val monitor_generator_output_relative_path_api19 = monitor_generator_output_dir + "/generated_Monitor_api19.java"
-val monitor_generator_output_relative_path_api23 = monitor_generator_output_dir + "/generated_Monitor_api23.java"
+fun generated_monitor(apiLevel: Int) : String {
+  return "$monitor_generator_output_dir/generated_Monitor_api$apiLevel.java"
+}
+val monitor_generator_output_relative_path_api19 = generated_monitor(19)
+val monitor_generator_output_relative_path_api23 = generated_monitor(23)
 
 val apk_inliner_param_input_default = Paths.get("input-apks")
 val apk_inliner_param_output_dir_default = Paths.get("output-apks")
@@ -89,7 +93,7 @@ val monitor_on_avd_apk_name = "monitor.apk"
  *
  * From compiled source code:
  *
- *   Paths.get(ClassLoader.getSystemResource(<this_var_reference>).toUri())
+ *   new Resource("<this_var_reference>").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
  */
 val apk_fixtures = "fixtures/apks"
 
@@ -104,6 +108,9 @@ val appguard_apis_txt = "appguard_apis.txt"
  * to a device.
  */
 val dir_name_temp_extracted_resources = "temp_extracted_resources"
+
+// !!! DUPLICATION WARNING !!! with org.droidmate.MonitorConstants.monitor_time_formatter_locale 
+val locale = Locale.US
 
 fun executeCommand(commandName: String, commandContent: String): Int {
 

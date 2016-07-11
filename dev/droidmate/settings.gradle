@@ -23,6 +23,7 @@ include(
   "projects:uiautomator-daemon",
   "projects:uiautomator2-daemon-proxy",
   "projects:monitor-template",
+  "projects:monitor-hook",
   "projects:monitor-generator",
   "projects:core",
   "projects:reporter",
