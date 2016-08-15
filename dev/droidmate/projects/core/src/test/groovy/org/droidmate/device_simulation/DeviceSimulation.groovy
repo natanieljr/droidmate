@@ -1,14 +1,24 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.device_simulation
 
-import org.droidmate.deprecated_still_used.IApkExplorationOutput
+
 import org.droidmate.device.datatypes.AdbClearPackageAction
 import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
@@ -31,12 +41,6 @@ class DeviceSimulation implements IDeviceSimulation
   DeviceSimulation(ITimeGenerator timeGenerator, String packageName, String specString)
   {
     this(new GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
-  }
-
-  @Deprecated
-  DeviceSimulation(IApkExplorationOutput out)
-  {
-    this(new GuiScreensBuilderFromApkExplorationOutput(out), out.appPackageName)
   }
 
   DeviceSimulation(IApkExplorationOutput2 out)

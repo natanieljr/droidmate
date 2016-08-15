@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 
 package org.droidmate.test_base
 
@@ -37,8 +47,6 @@ class FilesystemTestFixtures
   // end of DUPLICATION WARNING
 
   public String f_aaptBadgingDump
-  public Path   f_uiaTestCaseLog
-  public Path   f_legacySer
   /**
    * The metadata to the run used for this fixture is located in directory located in the same dir as this fixture.
    * In addition, the run configuration is codified in IntelliJ run config of "Explore fixture: f_monitoredSer2"
@@ -57,8 +65,11 @@ class FilesystemTestFixtures
   {
     apks = new ApkFixtures(aapt)
     f_aaptBadgingDump = new ResourcePath("fixtures/f_aaptBadgingDump.txt").path.text
-    f_uiaTestCaseLog = new ResourcePath("fixtures/f_uia_test_case_log.txt").path
-    f_legacySer = new ResourcePath("fixtures/serialized_results/2015 Oct 01 1723 com.antivirus.ser").path
+    // WISH this fixture still contains the old package name of monitor having "monitor_generator.generated" in it, for example,
+    // in a stack trace of a device log:
+    // org.droidmate.monitor_generator.generated.Monitor.redir_android_app_Activity_onResume0(Monitor.java:733)
+    // Instead it should have prefix "org.droidmate.monitor.Monitor.redir" as given by 
+    // org.droidmate.common.logcat.Api.monitorRedirectionPrefix
     f_monitoredSer2 = new ResourcePath("fixtures/serialized_results/2016 May 05 2257 org.droidmate.fixtures.apks.monitored.ser2").path
   }
 

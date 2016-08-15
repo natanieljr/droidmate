@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.report
 
 import org.hamcrest.MatcherAssert.assertThat
@@ -16,54 +26,19 @@ class extensions_miscKtTest {
 
   @Test
   fun zeroDigitsTest() {
-
-    println(1299.zeroLeastSignificantDigits(2))
-  }
-
-  @Test
-  fun frequenciesTest() {
-    assertThat(
-      listOf(
-        "a", "a", "b", "a", "x", "x", "x", "e", "f", "e", "x")
-        .frequencies,
-      equalTo(
-        mapOf(
-          Pair("a", 3),
-          Pair("b", 1),
-          Pair("x", 4),
-          Pair("e", 2),
-          Pair("f", 1))
-      )
-    )
-  }
-
-  @Test
-  fun transposeTest() {
-    assertThat(
-      mapOf(
-        Pair("abc", 4),
-        Pair("def", 4),
-        Pair("x", 1)
-      ).transpose,
-      equalTo(
-        mapOf(
-          Pair(4, setOf("abc", "def")),
-          Pair(1, setOf("x"))
-        )
-      )
-    )
+    assertThat(1299.zeroLeastSignificantDigits(2), equalTo(1200L))
   }
 
   @Test
   fun replaceVariableTest() {
-
     assertThat(
       StringBuilder(
         "Value of var_1 is \$var_1, value of xyz is \$xyz, and again, \$var_1 is the value of var_1.")
-        .replaceVariable("var_1", "7")
-        .replaceVariable("xyz", "magic").toString(),
+        .replaceVariable("var_1", "777")
+        .replaceVariable("xyz", "magic")
+        .toString(),
       equalTo(
-        "Value of var_1 is 7, value of xyz is magic, and again, 7 is the value of var_1."
+        "Value of var_1 is 777, value of xyz is magic, and again, 777 is the value of var_1."
       ))
   }
 }

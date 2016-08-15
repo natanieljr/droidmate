@@ -1,17 +1,26 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.test_helpers.configuration
 
 import org.droidmate.common.BuildConstants
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
-import org.droidmate.filesystem.MockFileSystem
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -56,15 +65,13 @@ class ConfigurationForTests
     new ConfigurationBuilder().build(this.argsList as String[], this.fs)
   }
 
-  public ConfigurationForTests withMockFileSystem()
-  {
-    this.withFileSystem(new MockFileSystem([]).fs)
-    return this
-  }
-
   ConfigurationForTests withFileSystem(FileSystem fs)
   {
     this.fs = fs
+    // false, because plots require gnuplot, which does not work on non-default file system
+    // For details, see org.droidmate.report.plot
+    this.setArg([Configuration.pn_reportIncludePlots, "false"])
+    
     return this
   }
 
@@ -90,8 +97,10 @@ class ConfigurationForTests
   {
     assert argNameAndVal.size() == 2
 
+    // Index of arg name
     int index = this.argsList.findIndexOf { it == argNameAndVal[0] }
 
+    // if arg with given name is already present in argsList
     if (index != -1)
     {
       this.argsList.remove(index) // arg name

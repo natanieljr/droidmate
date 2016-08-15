@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.frontend
 
 import com.google.common.base.Throwables
@@ -276,9 +286,9 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       def launchActivity2Logs = apiLogs[2]
       def terminateAppApiLogs = apiLogs[3]
 
-      assert resetAppApiLogs*.methodName == ["onResume"]
+      assert resetAppApiLogs*.methodName == []
       assert clickApiLogs*.methodName == ["openConnection"]
-      assert launchActivity2Logs*.methodName == ["startActivityForResult", "onResume"]
+      assert launchActivity2Logs*.methodName == []
       assert terminateAppApiLogs.empty
     }
     else if (api == "api23")
@@ -301,13 +311,13 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       def launchActivity2Logs = apiLogs[5]
       def terminateAppApiLogs = apiLogs[6]
 
-      assert resetAppApiLogs*.methodName == ["onResume"]
-      assert clickApiLogs*.methodName == ["i", "openConnection", "i"]
-      assert openPermissionDialogApiLogs.methodName == ["i", "i"]
-      assert onResumeApiLogs*.methodName == ["onResume"]
-      assert cameraApiLogs*.methodName == ["i", "open"]
-      assert launchActivity2Logs*.methodName == ["i", "startActivityForResult", "onResume"]
-      assert terminateAppApiLogs.empty
+      assert resetAppApiLogs*.methodName == []
+      assert clickApiLogs*.methodName == ["openConnection"]
+      assert openPermissionDialogApiLogs.methodName == []
+      assert onResumeApiLogs*.methodName == []
+      assert cameraApiLogs*.methodName == ["open"]
+      assert launchActivity2Logs*.methodName == []
+      assert terminateAppApiLogs*.methodName == []
     }
     else throw new UnexpectedIfElseFallthroughError()
   }

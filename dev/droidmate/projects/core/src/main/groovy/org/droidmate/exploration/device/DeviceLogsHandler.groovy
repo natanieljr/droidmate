@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.exploration.device
 
 import groovy.util.logging.Slf4j
@@ -39,7 +49,7 @@ class DeviceLogsHandler implements IDeviceLogsHandler
   void readClearAndAssertOnlyBackgroundApiLogsIfAny() throws DeviceException
   {
     List<IApiLogcatMessage> apiLogs = _readAndClearApiLogs()
-    assert this.logs.apiLogs.every {it.threadId != uiThreadId}
+    assert this.logs.apiLogsOrNull.every {it.threadId != uiThreadId}
 
     addApiLogs(apiLogs)
   }
@@ -48,13 +58,13 @@ class DeviceLogsHandler implements IDeviceLogsHandler
   {
     assert apiLogs != null
 
-    if (this.logs.apiLogs == null)
+    if (this.logs.apiLogsOrNull == null)
       this.logs.apiLogs = []
 
-    if (!this.logs.apiLogs.empty && !apiLogs.empty)
-      assert this.logs.apiLogs.last().time <= apiLogs.first().time
+    if (!this.logs.apiLogsOrNull.empty && !apiLogs.empty)
+      assert this.logs.apiLogsOrNull.last().time <= apiLogs.first().time
 
-    this.logs.apiLogs.addAll(apiLogs)
+    this.logs.apiLogsOrNull.addAll(apiLogs)
   }
 
   boolean gotLogs = false

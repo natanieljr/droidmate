@@ -1,21 +1,26 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 
 package org.droidmate.monitor
 
 import groovy.util.logging.Slf4j
-import org.droidmate.apis.ApiMapping
 import org.droidmate.apis.ApiMethodSignature
-
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 import static java.nio.file.Files.readAllLines
 
@@ -29,39 +34,12 @@ public class MonitorGeneratorFrontend
     {
       MonitorGeneratorResources res = new MonitorGeneratorResources(args)
 
-      if (!computeAndPrintApiListsStats(args, res))
-        generateMonitorSrc(res)
+      generateMonitorSrc(res)
 
     } catch (Exception e)
     {
       handleException(e)
     }
-  }
-
-  private static boolean computeAndPrintApiListsStats(String[] args, MonitorGeneratorResources res)
-  {
-    List<String> jellybeanPublishedApiMapping = readAllLines(res.jellybeanPublishedApiMapping)
-    List<String> jellybeanStaticMethods = readAllLines(res.jellybeanStaticMethods)
-    List<String> appguardLegacyApis = readAllLines(res.appguardLegacyApis)
-    def apiListsStatsArg = "apiListsStats"
-    if (args.any {it.startsWith(apiListsStatsArg)})
-    {
-      def stats = new ApiListsStats(jellybeanPublishedApiMapping, jellybeanStaticMethods, appguardLegacyApis)
-
-      String outFilePath = args.find {it.startsWith(apiListsStatsArg + "=")}
-      if (outFilePath == null)
-        stats.print()
-      else
-      {
-        Path apiListOutFile = Paths.get(outFilePath - (apiListsStatsArg + "="))
-        assert Files.isWritable(apiListOutFile)
-        stats.print(apiListOutFile)
-      }
-
-      return true
-
-    } else
-      return false
   }
 
   private static void generateMonitorSrc(MonitorGeneratorResources res)
@@ -94,21 +72,6 @@ public class MonitorGeneratorFrontend
     }
 
 
-    return signatures
-  }
-
-  @Deprecated
-  public static List<ApiMethodSignature> getLegacyMethodSignatures(MonitorGeneratorResources res)
-  {
-    // Legacy code, left here as reference, in case I will ever have to run DroidMate again with the old APIs. As of 9 Oct 2015
-    // the BoxMate ICSE 2015 submission uses the old APIs, with filtering on the host side done by
-    // org.droidmate.exploration.output.ExplorationOutputDataExtractor.filterApiLogs(java.util.List<java.util.List<org.droidmate.logcat.IApiLogcatMessage>>, java.lang.String, boolean)
-    ApiMapping mapping = new ApiMapping(
-      readAllLines(res.jellybeanPublishedApiMapping),
-      readAllLines(res.jellybeanStaticMethods),
-      readAllLines(res.appguardLegacyApis)
-    )
-    List<ApiMethodSignature> signatures = mapping.apis
     return signatures
   }
 

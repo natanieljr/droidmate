@@ -1,13 +1,23 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 
-// WISH move to org.droidmate.apis. Now it is not done as it would break deserialization. See also: org.droidmate.deprecated_still_used.DeprecatedClassesDeserializer
+// KJA2 move to org.droidmate.apis. Now it is not done as it would break deserialization. See also: org.droidmate.deprecated_still_used.DeprecatedClassesDeserializer
 package org.droidmate.common.logcat
 
 import groovy.transform.Canonical
@@ -22,13 +32,15 @@ import static org.droidmate.common.Assert.assertRegexMatches
 /**
  * See {@link IApi}
  */
-// WISH Api should be a decorator to ApiMethodSignature. WATCH OUT FOR SERIALIZATION ISSUES!
-// WISH Api should be renamed to ApiCall. WATCH OUT FOR SERIALIZATION ISSUES!
+// KJA2 Api should be a decorator to ApiMethodSignature. WATCH OUT FOR SERIALIZATION ISSUES!
+// KJA2 Api should be renamed to ApiCall. WATCH OUT FOR SERIALIZATION ISSUES!
 @Canonical
 class Api implements IApi, Serializable
 {
 
   public static final String monitorRedirectionPrefix = "org.droidmate.monitor.Monitor.redir"
+  // Kept to maintain compatibility with legacy fixtures, like org.droidmate.test_base.FilesystemTestFixtures.f_monitoredSer2
+  public static final String monitorRedirectionPrefixLegacy = "org.droidmate.monitor_generator.generated.Monitor.redir"
 
   // !!! DUPLICATION WARNING !!! org.droidmate.lib_android.MonitorJavaTemplate.stack_trace_frame_delimiter
   public static final String stack_trace_frame_delimiter = "->";
@@ -215,22 +227,6 @@ class Api implements IApi, Serializable
       componentPackage = matchedParts[1]
     }
     return componentPackage
-  }
-
-  // WISH would be nice to have this in one of the output files, but first its caller, org.droidmate.exploration.output.DataExtractor.filterApiLogs,
-  // has to be refactored out so it is called only once, avoiding duplicate logging.
-  @Override
-  boolean isCallToStartInternalActivity(String appPackageName)
-  {
-    if ((paramTypes.findIndexOf {it == "android.content.Intent"} != -1) &&
-      (methodName.startsWith("startActivit") || methodName == "startIntentSender"))
-    {
-      def (String _, String targetPackage) = parseIntent()
-      if (targetPackage == appPackageName)
-        return true
-    }
-    return false
-
   }
 
   // Implementation based on android.content.Intent#toUriInner

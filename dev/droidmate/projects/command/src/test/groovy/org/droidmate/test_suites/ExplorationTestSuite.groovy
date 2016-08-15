@@ -1,21 +1,27 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.test_suites
 
 import org.droidmate.command.exploration.ExplorationTest
 import org.droidmate.common.logcat.TimeFormattedLogcatMessageTest
-import org.droidmate.deprecated_still_used.ApkExplorationOutputTest
-import org.droidmate.deprecated_still_used.DataExtractorTest
-import org.droidmate.deprecated_still_used.DeprecatedClassesDeserializerTest
 import org.droidmate.device.datatypes.UiautomatorWindowDumpFunctionsTest
 import org.droidmate.device.datatypes.UiautomatorWindowDumpTest
-import org.droidmate.exploration.output.WritableExplorationOutput2AnalysisTest
 import org.droidmate.exploration.strategy.ExplorationStrategyTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
@@ -26,10 +32,6 @@ import org.junit.runners.Suite
   UiautomatorWindowDumpFunctionsTest,
   UiautomatorWindowDumpTest,
   ExplorationStrategyTest,
-  DeprecatedClassesDeserializerTest,
-  ApkExplorationOutputTest,
-  WritableExplorationOutput2AnalysisTest,
-  DataExtractorTest,
   ExplorationTest
 ])
 class ExplorationTestSuite

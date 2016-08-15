@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 
 package org.droidmate.monitor
 
@@ -16,18 +26,31 @@ import org.droidmate.common.logcat.Api
 import org.droidmate.common.logcat.ApiLogcatMessage
 
 /**
+ * <p>
  * Class that add the instrumentation code to {@link MonitorJavaTemplate}
+ * 
+ * </p><p>
+ * To diagnose method signatures here that cannot be handled by ArtHook (which is used for Android 6), observe logcat output 
+ * during launch of main activity of an inlined app containing monitor generated using this class.
  *
- * <p> Informatin about update to Android 6.0: </p>
- *
- * Using AAR on ANT Script:
+ * A log similar to the following one will appear on it:
+ * <pre>
+ * 06-29 19:17:21.637 16375-16375/org.droidmate.fixtures.apks.monitored W/ArtHook: java.lang.RuntimeException: Can't find original method (redir_android_net_wifi_WifiManager_startScan1)
+ * </pre>
+ * 
+ * </p><p>
+ * Information about update to Android 6.0:
+ * 
+ * </p><p>
+ * Using AAR on ANT Script:<br/>
  *    http://community.openfl.org/t/integrating-aar-files/6837/2
  *    http://stackoverflow.com/questions/23777423/aar-in-eclipse-ant-project
  *
- * Using legacy org.apache.http package on Android 6.0
+ * Using legacy org.apache.http package on Android 6.0<br/>
  *    http://stackoverflow.com/questions/33357561/compiling-google-download-library-targing-api-23-android-marshmallow
  *    http://stackoverflow.com/questions/32064633/how-to-include-http-library-in-android-project-using-m-preview-in-eclipse-ant-bu
  *    (Not working, just for information) http://stackoverflow.com/questions/31653002/how-to-use-the-legacy-apache-http-client-on-android-marshmallow
+ * </p>
  *
  */
 @Slf4j
@@ -42,6 +65,7 @@ class RedirectionsGenerator implements IRedirectionsGenerator
   private static final String monitorHookBeforeCallPrefix = monitorHookInstanceName + ".hookBeforeApiCall("
   private static final String monitorHookAfterCallPrefix = monitorHookInstanceName + ".hookAfterApiCall("
 
+  // !!! DUPLICATION WARNING !!! with org.droidmate.report.FilteredDeviceLogs.Companion.apisManuallyCheckedForRedundancy
   private static String redirMethodNamePrefix = "redir_";
   private static String redirMethodDefPrefix = "Lorg/droidmate/monitor/Monitor;->$redirMethodNamePrefix";
 
@@ -188,11 +212,22 @@ class RedirectionsGenerator implements IRedirectionsGenerator
         
         out << ind4 + "public static $returnClass $redirMethodName($thisParam$formalParams)" + nl
         out << ind4 + "{" + nl
-        
-        if (objectClass == "android.util.Log" && methodName == "i" && paramClasses.size() == 2)
+
+        /**
+         * MonitorJavaTemplate and MonitorTCPServer have calls to Log.i() and Log.v() in them, whose tag starts with 
+         * MonitorConstants.tag_prefix. This conditional ensures
+         * such calls are not being monitored, 
+         * as they are DroidMate's monitor internal code, not the behavior of the app under exploration.
+         */
+        if (objectClass == "android.util.Log" && (methodName in ["v", "d", "i", "w", "e"]) && paramClasses.size() in [2, 3])
         {
           out << ind4 + ind4 + "if (p0.startsWith(\"${MonitorConstants.tag_prefix}\"))" + nl
-          out << ind4 + ind4 + "  return OriginalMethod.by(new \$() {}).invokeStatic(p0, p1);" + nl
+          if (paramClasses.size() == 2)
+            out << ind4 + ind4 + "  return OriginalMethod.by(new \$() {}).invokeStatic(p0, p1);" + nl
+          else if (paramClasses.size() == 3)
+            out << ind4 + ind4 + "  return OriginalMethod.by(new \$() {}).invokeStatic(p0, p1, p2);" + nl
+          else
+            assert false: "paramClasses.size() is not in [2,3]. It is ${paramClasses.size()}"
         }
         
         out << ind4 + ind4 + "String $stackTraceVarName = getStackTrace();" + nl

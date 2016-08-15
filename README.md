@@ -1,15 +1,18 @@
-# DroidMate [![Build Status](https://travis-ci.org/konrad-jamrozik/droidmate.svg?branch=master)](https://travis-ci.org/konrad-jamrozik/droidmate)
-  
-  Copyright (c) 2012-2016 Saarland University  
-  All rights reserved.
+# DroidMate ![GNU GPL v3](https://www.gnu.org/graphics/gplv3-88x31.png)[![Build Status](https://travis-ci.org/konrad-jamrozik/droidmate.svg?branch=master)](https://travis-ci.org/konrad-jamrozik/droidmate)
 
-  Author: Konrad Jamrozik, github.com/konrad-jamrozik
-  
-  This file is part of the "DroidMate" project.
+DroidMate, an automated execution generator for Android apps.  
+Copyright (C) 2012-2016 Konrad Jamrozik
 
-  www.droidmate.org
+This program is free software. 
 
-  Date of last full review of this document: 13 Jun 2016
+Contact: jamrozik@st.cs.uni-saarland.de  
+
+* www.droidmate.org  
+* [DroidMate publication](http://www.boxmate.org/files/DroidMate_MOBILESoft_2016.pdf)  
+* ["Mining Sandboxes" publication](http://www.boxmate.org/files/boxmate-preprint.pdf)  
+* ["Guarantees from Testing" talk by Andreas Zeller](https://www.youtube.com/watch?v=eJyIKt7xuw4)
+
+Date of last full review of this document: 13 Jun 2016
 
 # Introduction #
 
@@ -81,6 +84,3 @@ If DroidMate doesn't recognize a device it defaults to Nexus 7. You can change t
 * select running device. If device is running, `adb devices` will show it;
 * click on `Dump View Hierarchy for UI Automator`;
 * click on the top level `FrameLayout` and look at `package`.
-
-
-DroidMate also has an experimental support Android for 6.0 (API 23). However, when running 

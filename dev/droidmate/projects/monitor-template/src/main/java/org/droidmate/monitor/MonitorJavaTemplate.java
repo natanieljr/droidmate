@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 
 // org.droidmate.monitor.MonitorSrcTemplate:REMOVE_LINES
 package org.droidmate.monitor;
@@ -23,6 +33,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -194,8 +205,7 @@ public class MonitorJavaTemplate
       {
         Log.v(MonitorConstants.tag_srv, "OnServerRequest(" + input + ")");
 
-        removeSocketInitLogFromMonitorTCPServer(currentLogs);
-
+        removeSocketInitLogFromMonitorTCPServerAndValidateLogsAreNotFromTCPServer(currentLogs);
 
         if (MonitorConstants.srvCmd_connCheck.equals(input))
         {
@@ -247,8 +257,12 @@ public class MonitorJavaTemplate
 
     /**
      * <p>
-     * Removes calls to {@code Socket.<init>} made by the DroidMate monitor from current set of recorded api logs
-     * {@code currentLogs}.
+     * This method removes calls to {@code Socket.<init>} made by the DroidMate monitor from current set of recorded api logs
+     * {@code currentLogs}. In addition, it ensures the logs do not come from messages logged by the MonitorTCPServer or 
+     * MonitorJavaTemplate itself. This would be a bug and thus it will cause an assertion failure in this method.
+     *
+     * </p><p>
+     * Regarding the {@code Socket.<init> removal}:
      *
      * </p><p>
      * One of the monitored APIs is {@code Socket.<init>}, and so it is being added to {@code currentLogs} on each invocation.
@@ -257,23 +271,21 @@ public class MonitorJavaTemplate
      *
      * </p>
      * @param currentLogs
-     * Currently recorded set of monitored logs, that will have the {@code Socket.<init>} logs caused by monitor removed from it.
+     * Currently recorded set of monitored logs, that will have the {@code Socket.<init>} logs caused by monitor removed from it
+     * and that will cause an assertion failure if the logs come from MonitorTCPServer or MonitorJavaTemplate.
      */
-    private void removeSocketInitLogFromMonitorTCPServer(List<ArrayList<String>> currentLogs)
+    private void removeSocketInitLogFromMonitorTCPServerAndValidateLogsAreNotFromTCPServer(List<ArrayList<String>> currentLogs)
     {
       ArrayList<ArrayList<String>> logsToRemove = new ArrayList<ArrayList<String>>();
       for (ArrayList<String> log : currentLogs)
       {
+        // ".get(2)" gets the payload. For details, see the doc of the param passed to this method.
         String msgPayload = log.get(2);
-        // !!! DUPLICATION WARNING !!! with org.droidmate.common.logcat.ApiLogcatMessage.ApiLogcatMessagePayload.keyword_stacktrace
-        int stacktraceIndex = msgPayload.lastIndexOf("stacktrace: ");
 
-        if (stacktraceIndex == -1)
-          throw new AssertionError("The message payload was expected to have a 'stacktrace: ' substring in it");
+        failOnLogsFromMonitorTCPServerOrMonitorJavaTemplate(msgPayload);
 
-        String stackTrace = msgPayload.substring(stacktraceIndex);
+        String[] frames = extractStackTraceFrames(msgPayload);
 
-        String[] frames = stackTrace.split(Api.stack_trace_frame_delimiter);
         if (frames.length >= 2)
         {
           String secondLastFrame = frames[frames.length - 2];
@@ -295,6 +307,28 @@ public class MonitorJavaTemplate
       if (logsToRemove.size() == 1)
         currentLogs.remove(logsToRemove.get(0));
 
+    }
+
+    private void failOnLogsFromMonitorTCPServerOrMonitorJavaTemplate(String msgPayload)
+    {
+      if (msgPayload.contains(MonitorConstants.tag_srv) || msgPayload.contains(MonitorConstants.tag_init))
+        throw new AssertionError(
+          "Attempt to log a message whose payload contains " +
+            MonitorConstants.tag_srv + " or " + MonitorConstants.tag_init + ". The message payload: " + msgPayload);
+    }
+
+    private String[] extractStackTraceFrames(String msgPayload)
+    {
+
+      // !!! DUPLICATION WARNING !!! with org.droidmate.common.logcat.ApiLogcatMessage.ApiLogcatMessagePayload.keyword_stacktrace
+      int stacktraceIndex = msgPayload.lastIndexOf("stacktrace: ");
+
+      if (stacktraceIndex == -1)
+        throw new AssertionError("The message payload was expected to have a 'stacktrace: ' substring in it");
+
+      String stackTrace = msgPayload.substring(stacktraceIndex);
+
+      return stackTrace.split(Api.stack_trace_frame_delimiter);
     }
 
     private boolean anyContains(String[] strings, String s)
@@ -419,7 +453,7 @@ public class MonitorJavaTemplate
             return;
           }
 
-          // KNOWN BUG undiagnosed. Got here a set of null pointer in a row on com.audible.application_v1.7.0.apk when running using default settings.
+          // KNOWN BUG undiagnosed. Got here a null pointer on com.audible.application_v1.7.0.apk when running using default settings. It happened on every run.
           while (!serverSocket.isClosed())
           {
             Log.v(MonitorConstants.tag_srv, String.format("Accepting socket from client on port %s...", port));
@@ -505,7 +539,7 @@ public class MonitorJavaTemplate
     return Thread.currentThread().getId();
   }
 
-  private static String convert(Object param)
+  static String convert(Object param)
   {
     if (param == null)
       return "null";
@@ -516,14 +550,16 @@ public class MonitorJavaTemplate
       StringBuilder sb = new StringBuilder("[");
       boolean first = true;
 
-      for (Object item : (Object[]) param)
-      {
-        if (first)
-          first = false;
-        else
-          sb.append(", ");
+      Object[] objects = convertToObjectArray(param);
 
-        sb.append(String.format("%s", item));
+      for (Object obj : objects)
+      {
+
+        if (!first)
+          sb.append(",");
+        first = false;
+
+        sb.append(String.format("%s", obj));
       }
       sb.append("]");
 
@@ -561,6 +597,25 @@ public class MonitorJavaTemplate
     // solution would be to provide this method with an generated code injection point.
     // end of duplication warning
     return paramStr.replace(" ", "_");
+  }
+
+  // Copied from http://stackoverflow.com/a/16428065/986533
+  private static Object[] convertToObjectArray(Object array)
+  {
+    Class ofArray = array.getClass().getComponentType();
+    if (ofArray.isPrimitive())
+    {
+      List<Object> ar = new ArrayList<>();
+      int length = Array.getLength(array);
+      for (int i = 0; i < length; i++)
+      {
+        ar.add(Array.get(array, i));
+      }
+      return ar.toArray();
+    } else
+    {
+      return (Object[]) array;
+    }
   }
 
   private static final SimpleDateFormat monitor_time_formatter = new SimpleDateFormat(MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale);

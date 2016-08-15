@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.command
 
 import groovy.io.FileType
@@ -17,7 +27,6 @@ import org.droidmate.android_sdk.IApk
 import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
-import org.droidmate.deprecated_still_used.*
 import org.droidmate.exceptions.DeviceException
 import org.droidmate.exceptions.ThrowablesCollection
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
@@ -28,6 +37,7 @@ import org.droidmate.exploration.strategy.IExplorationStrategyProvider
 import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
+import org.droidmate.report.ExplorationOutput2Report
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
@@ -42,23 +52,19 @@ class ExploreCommand extends DroidmateCommand
   private final IApksProvider                       apksProvider
   private final IAndroidDeviceDeployer              deviceDeployer
   private final IApkDeployer                        apkDeployer
-  private final IExplorationOutputAnalysisPersister explorationOutputAnalysisPersister
   private final IExploration                        exploration
   private final IStorage2                           storage2
 
-
   ExploreCommand(
-    IApksProvider apksProvider,
-    IAndroidDeviceDeployer deviceDeployer,
-    IApkDeployer apkDeployer,
-    IExplorationOutputAnalysisPersister explorationOutputAnalysisPersister,
-    IExploration exploration,
+    IApksProvider apksProvider, 
+    IAndroidDeviceDeployer deviceDeployer, 
+    IApkDeployer apkDeployer, 
+    IExploration exploration, 
     IStorage2 storage2)
   {
     this.apksProvider = apksProvider
     this.deviceDeployer = deviceDeployer
     this.apkDeployer = apkDeployer
-    this.explorationOutputAnalysisPersister = explorationOutputAnalysisPersister
     this.exploration = exploration
     this.storage2 = storage2
   }
@@ -68,14 +74,11 @@ class ExploreCommand extends DroidmateCommand
                                      ITimeProvider timeProvider = new TimeProvider(),
                                      IDeviceTools deviceTools = new DeviceTools(cfg))
   {
-    def storage = new Storage(cfg.droidmateOutputDirPath)
     IApksProvider apksProvider = new ApksProvider(deviceTools.aapt)
-    IExplorationOutputDataExtractor extractor = new ExplorationOutputDataExtractor(cfg.compareRuns, cfg)
-    IExplorationOutputAnalysisPersister analysisPersister = new ExplorationOutputAnalysisPersister(cfg, extractor, storage)
 
     def storage2 = new Storage2(cfg.droidmateOutputDirPath)
     IExploration exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-    return new ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, analysisPersister, exploration, storage2)
+    return new ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
   }
 
   @Override
@@ -146,17 +149,8 @@ class ExploreCommand extends DroidmateCommand
       throw deployExploreSerializeThrowable
     }
 
-    try
-    {
-      def deprecatedOut = new ExplorationOutput()
-      deprecatedOut.addAll(out.collect {ApkExplorationOutput.from(it)})
-      // KJA2 (reporting) implement this in ReportCommand
-      this.explorationOutputAnalysisPersister.persist(deprecatedOut)
-    } catch (Throwable persistingThrowable)
-    {
-      explorationExceptions << new ExplorationException(persistingThrowable)
-    }
-
+    new ExplorationOutput2Report(out, cfg.droidmateOutputDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
+    
     return explorationExceptions
   }
 

@@ -1,17 +1,25 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.report
 
-import com.google.common.collect.Table
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.nio.file.Path
 import java.time.Duration
 
 /**
@@ -22,31 +30,6 @@ fun Int.zeroLeastSignificantDigits(digitsToZero: Int): Long {
   return BigDecimal(this.toString()).setScale(-digitsToZero, RoundingMode.DOWN).toBigInteger().toLong()
 }
 
-/**
- * Map of counts of how many times given elements appears in this [Iterable].
- */
-val <T> Iterable<T>.frequencies: Map<T, Int> get() {
-  val grouped: Map<T, List<T>> = this.groupBy { it }
-  val frequencies: Map<T, Int> = grouped.mapValues { it.value.size }
-  return frequencies
-}
-
-val <K, V> Map<K, V>.transpose: Map<V, Set<K>> get() {
-  val pairs: List<Pair<V, K>> = this.map { Pair(it.value, it.key) }
-  return pairs.fold(
-    initial = mutableMapOf(),
-    operation = { acc: MutableMap<V, MutableSet<K>>, pair: Pair<V, K> ->
-      if (!acc.containsKey(pair.first))
-        acc.put(pair.first, mutableSetOf())
-      acc[pair.first]!!.add(pair.second)
-      acc
-    }
-  )
-}
-
-fun <R, C, V> Table<R, C, V>.dataFile(file: Path): TableDataFile<R, C, V> {
-  return TableDataFile(this, file)
-}
 
 /**
  * Given a string builder over a string containing variables in form of "$var_name" (without ""), it will replace
@@ -62,7 +45,6 @@ fun StringBuilder.replaceVariable(varName: String, value: String) : StringBuilde
   }
   return this
 }
-
 
 val Duration.minutesAndSeconds: String get() {
   val m = this.toMinutes()

@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 package org.droidmate.configuration
 
 import com.beust.jcommander.Parameter
@@ -67,15 +77,15 @@ public class Configuration implements IConfiguration
   //endregion
 
   //region Cmd line parameters names and defaults
-
+  
   // @formatter:off
+  // "pn" stands for "parameter name"
   public static final String pn_actionsLimit                                 = "-actionsLimit"
   public static final String pn_alwaysClickFirstWidget                       = "-alwaysClickFirstWidget"
   public static final String pn_androidApi                                   = "-androidApi"
   public static final String pn_apksNames                                    = "-apksNames"
   public static final String pn_apksDir                                      = "-apksDir"
   public static final String pn_apksLimit                                    = "-apksLimit"
-  public static final String pn_appGuardOnlyApis                             = "-appGuardOnlyApis"
   public static final String pn_checkAppIsRunningRetryAttempts               = "-checkAppIsRunningRetryAttempts"
   public static final String pn_checkAppIsRunningRetryDelay                  = "-checkAppIsRunningRetryDelay"
   public static final String pn_checkDeviceAvailableAfterRebootAttempts      = "-checkDeviceAvailableAfterRebootAttempts"
@@ -85,7 +95,6 @@ public class Configuration implements IConfiguration
   public static final String pn_clearPackageRetryDelay                       = "-clearPackageRetryDelay"
   public static final String pn_closeANRAttempts                             = "-closeANRAttempts"
   public static final String pn_closeANRDelay                                = "-closeANRDelay"
-  public static final String pn_compareRuns                                  = "-compare"
   public static final String pn_deployRawApks                                = "-deployRawApks"
   public static final String pn_device                                       = "-device"
   public static final String pn_droidmateOutputDir                           = "-droidmateOutputDirPath"
@@ -99,6 +108,7 @@ public class Configuration implements IConfiguration
   public static final String pn_monitorServerStartQueryDelay                 = "-monitorServerStartQueryDelay"
   public static final String pn_monitorServerStartTimeout                    = "-monitorServerStartTimeout"
   public static final String pn_randomSeed                                   = "-randomSeed"
+  public static final String pn_reportIncludePlots                           = "-reportIncludePlots"
   public static final String pn_reportInputDir                               = "-reportInputDir"
   public static final String pn_reportOutputDir                              = "-reportOutputDir"
   public static final String pn_resetEveryNthExplorationForward              = "-resetEvery"
@@ -159,9 +169,6 @@ public class Configuration implements IConfiguration
     description = "Directory containing the apks to be processed by DroidMate.")
   public String apksDirName = defaultApksDir
 
-  @Parameter(names = [Configuration.pn_appGuardOnlyApis], arity = 1)
-  public boolean appGuardOnlyApis = true
-
   @Parameter(names = [Configuration.pn_checkAppIsRunningRetryAttempts])
   public int checkAppIsRunningRetryAttempts = 4
 
@@ -189,9 +196,6 @@ public class Configuration implements IConfiguration
   @Parameter(names = [Configuration.pn_closeANRDelay])
   public int closeANRDelay = 1000
 
-  @Parameter(names = [Configuration.pn_compareRuns], arity = 1)
-  public boolean compareRuns = false
-
   @Parameter(names = [Configuration.pn_droidmateOutputDir, "-outputDir"], description =
     "Path to the directory that will contain DroidMate exploration output.")
   public String droidmateOutputDir = defaultDroidmateOutputDir
@@ -210,14 +214,6 @@ public class Configuration implements IConfiguration
   @Parameter(names = [Configuration.pn_exploreInteractively], description =
     "Determines if the user should be asked for confirmation before the exploration driver conducts next action on the Android device. If yes, the information about the action about to be taken will be also displayed.")
   public boolean exploreInteractively = false
-
-  @Parameter(names = ["-extractAdditionalData", "-ead"], arity = 1)
-  public boolean extractAdditionalData = false
-
-  @Parameter(names = ["-extractData"], description =
-    "(Deprecated! Use -report instead) If present, instead of normal run, DroidMate will deserialize previous exploration output and extract data from it, for example it will extract input data for pgfplots charting tool.")
-  @Deprecated
-  public Boolean extractData = false
 
   @Parameter(names = ["-extractSaturationCharts", "-esc"], arity = 1)
   public boolean extractSaturationCharts = false
@@ -262,15 +258,15 @@ public class Configuration implements IConfiguration
   @Parameter(names = [Configuration.pn_uninstallApk], arity = 1)
   public boolean uninstallApk = true
 
-  @Parameter(names = ["-processUiaLogs"])
-  public boolean processUiaTestCasesLogs = false
-
   @Parameter(names = [Configuration.pn_randomSeed, "-seed"], description =
     "The seed for a random generator used by a random-clicking GUI exploration strategy. If null, a seed will be randomized.")
   public Long randomSeed = null
 
   @Parameter(names = ["-removeHardCodedApis"], arity = 1)
   public boolean removeHardCodedApis = true
+
+  @Parameter(names = [Configuration.pn_reportIncludePlots], arity = 1)
+  public Boolean reportIncludePlots = true
 
   @Parameter(names = [Configuration.pn_reportInputDir], description =
     "Path to the directory that will be expected to have DroidMate exploration output for reporting purposes.")

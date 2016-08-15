@@ -1,11 +1,21 @@
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
 
 package org.droidmate.command.exploration
 
@@ -78,11 +88,11 @@ class Exploration implements IExploration
 
     output.verify()
 
-    if (!output.noException)
+    if (output.exceptionIsPresent)
       log.warn("! Encountered ${output.exception.class.simpleName} during the exploration of ${app.packageName} " +
         "after already obtaining some exploration output.")
 
-    return new Failable<IApkExplorationOutput2, DeviceException>(output, output.noException ? null : output.exception)
+    return new Failable<IApkExplorationOutput2, DeviceException>(output, output.exceptionIsPresent ? output.exception : null)
   }
 
   public IApkExplorationOutput2 explorationLoop(IApk app, IRobustDevice device)
