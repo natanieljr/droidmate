@@ -28,10 +28,10 @@ public interface IAdbWrapper {
 
   void reverseForwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
 
-  void pushJar(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
-  void pushJar(String deviceSerialNumber, Path jarFile, String targetFileName) throws AdbWrapperException
+  void pushFile(String deviceSerialNumber, Path sourceFile) throws AdbWrapperException
+  void pushFile(String deviceSerialNumber, Path sourceFile, String targetFileName, String targetDirectory) throws AdbWrapperException
 
-  void removeJar(String deviceSerialNumber, Path  jarFile) throws AdbWrapperException
+  void removeFile(String deviceSerialNumber, Path  file) throws AdbWrapperException
 
   void installApk(String deviceSerialNumber, Path apkToInstall) throws AdbWrapperException
 

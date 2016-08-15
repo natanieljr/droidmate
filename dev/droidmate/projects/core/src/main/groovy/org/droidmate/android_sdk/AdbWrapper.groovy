@@ -172,7 +172,7 @@ public class AdbWrapper implements IAdbWrapper
       // "Failure" is what the adb's "uninstall" command outputs when it fails.
       if (!ignoreFailure && stdout.contains("Failure"))
         throw new AdbWrapperException("Failed to uninstall the apk package $apkPackageName.")
-      
+
       if (ignoreFailure && stdout.contains("Failure"))
         log.trace("Ignored failure of uninstalling of $apkPackageName.")
 
@@ -476,28 +476,30 @@ public class AdbWrapper implements IAdbWrapper
 
 
   @Override
-  public void pushJar(String deviceSerialNumber, Path jarFile, String targetFileName = null) throws AdbWrapperException
+  public void pushFile(String deviceSerialNumber, Path sourceFile, String targetFileName = null, String targetDirectory = null) throws AdbWrapperException
   {
     assert cfg.adbCommand != null
     assert deviceSerialNumber != null
     // A new path must be created, otherwise this will result in a ProviderMismatchException
     // More information here: http://stackoverflow.com/questions/22611919/why-do-i-get-providermismatchexception-when-i-try-to-relativize-a-path-agains
-    assert jarFile != null
-    Path path = Paths.get(jarFile.toUri())
+    assert sourceFile != null
+    Path path = Paths.get(sourceFile.toUri())
     assert Files.exists(path) && !Files.isDirectory(path)
 
     String commandDescription = String
       .format(
       "Executing adb to push %s on Android Device with s/n %s.",
-      jarFile.fileName.toString(), deviceSerialNumber)
+      sourceFile.fileName.toString(), deviceSerialNumber)
 
+    if (targetDirectory == null)
+      targetDirectory = BuildConstants.AVD_dir_for_temp_files
     try
     {
       // Executed command based on step 4 from:
       // http://developer.android.com/tools/testing/testing_ui.html#builddeploy
       sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
         "-s", deviceSerialNumber,
-        "push", jarFile.toAbsolutePath().toString(), BuildConstants.AVD_dir_for_temp_files + (targetFileName ?: "") )
+        "push", sourceFile.toAbsolutePath().toString(), targetDirectory + (targetFileName ?: "") )
 
     } catch (SysCmdExecutorException e)
     {
@@ -506,7 +508,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void removeJar(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
+  public void removeFile(String deviceSerialNumber, Path file) throws AdbWrapperException
   {
     assert cfg.adbCommand != null
     assert deviceSerialNumber != null
@@ -514,7 +516,7 @@ public class AdbWrapper implements IAdbWrapper
     String commandDescription = String
       .format(
       "Executing adb to remove %s from Android Device with s/n %s.",
-      jarFile.fileName.toString(), deviceSerialNumber)
+      file.fileName.toString(), deviceSerialNumber)
 
     try
     {
@@ -524,7 +526,7 @@ public class AdbWrapper implements IAdbWrapper
       // Hint: to list files to manually check if the file was deleted, use: adb shell ls
       sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
         "-s", deviceSerialNumber,
-        "shell", "rm", BuildConstants.AVD_dir_for_temp_files + jarFile.fileName.toString())
+        "shell", "rm", BuildConstants.AVD_dir_for_temp_files + file.fileName.toString())
 
     } catch (SysCmdExecutorException e)
     {

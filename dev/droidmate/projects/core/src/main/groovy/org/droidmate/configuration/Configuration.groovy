@@ -119,6 +119,7 @@ public class Configuration implements IConfiguration
   public static final String pn_stopAppSuccessCheckDelay                     = "-stopAppSuccessCheckDelay"
   public static final String pn_waitForCanRebootDelay                        = "-waitForCanRebootDelay"
   public static final String pn_widgetIndexes                                = "-widgetIndexes"
+  public static final String pn_xPrivacyConfigurationFile                    = "-xPrivacyConfigurationFile"
   // @formatter:on
   //endregion
 
@@ -128,7 +129,7 @@ public class Configuration implements IConfiguration
   // !!! DUPLICATION WARNING !!! repo\dev\droidmate\.gitignore
   public static final String defaultDroidmateOutputDir              = "output_device1"
   public static final int    defaultResetEveryNthExplorationForward = 0
-  
+
   public static final String api19 = "api19"
   public static final String api23 = "api23"
 
@@ -145,7 +146,7 @@ public class Configuration implements IConfiguration
   @Parameter(names = [Configuration.pn_androidApi, "-api", "-apiLevel"],
     description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported value: 'api19'")
   public String androidApi = api19
-  
+
   @Parameter(names = [Configuration.pn_apksLimit, "-limit"],
     description = "Limits the number of apks on which DroidMate will run. 0 means no limit.")
   public int apksLimit = 0
@@ -348,6 +349,9 @@ public class Configuration implements IConfiguration
 
   @Parameter(names = ["-widgetUniqueStringWithFieldPrecedence"], arity = 1)
   public boolean widgetUniqueStringWithFieldPrecedence = true
+
+  @Parameter(names = [org.droidmate.configuration.Configuration.pn_xPrivacyConfigurationFile])
+  public String xPrivacyConfigurationFile = ""
 
   //endregion
 

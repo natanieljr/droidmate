@@ -81,16 +81,16 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
     device.clearLogcat()
     if (cfg.androidApi == "api19")
     {
-      device.pushJar(this.cfg.uiautomatorDaemonJar)
-      device.pushJar(this.cfg.monitorApkApi19, BuildConstants.monitor_on_avd_apk_name)
+      device.pushFile(this.cfg.uiautomatorDaemonJar)
+      device.pushFile(this.cfg.monitorApkApi19, BuildConstants.monitor_on_avd_apk_name, null)
     }
     else if (cfg.androidApi == "api23")
     {
       device.installApk(this.cfg.uiautomator2DaemonApk)
       device.installApk(this.cfg.uiautomator2DaemonTestApk)
-      device.pushJar(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
+      device.pushFile(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name, null)
     } else throw new UnexpectedIfElseFallthroughError()
-    
+
     device.setupConnection()
     device.initModel()
 
@@ -118,14 +118,14 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
       device.closeConnection()
       if (cfg.androidApi == "api19")
       {
-        device.removeJar(cfg.uiautomatorDaemonJar)
+        device.removeFile(cfg.uiautomatorDaemonJar)
       } else if (cfg.androidApi == "api23")
       {
         // WISH why failure is ignored here? Ask Borges
         device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, /* ignoreFailure = */ true)
         device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, /* ignoreFailure = */ true)
       } else throw new UnexpectedIfElseFallthroughError()
-      device.removeJar(Paths.get(BuildConstants.monitor_on_avd_apk_name))
+      device.removeFile(Paths.get(BuildConstants.monitor_on_avd_apk_name))
     }
     else
       log.trace("Device is not available. Skipping tear down.")

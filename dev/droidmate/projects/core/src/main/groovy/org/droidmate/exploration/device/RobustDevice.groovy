@@ -54,6 +54,8 @@ class RobustDevice implements IRobustDevice
 
   private final int waitForCanRebootDelay
 
+  private final XPrivacyWrapper xPrivacyWrapper
+
   RobustDevice(IAndroidDevice device, Configuration cfg)
   {
     this(device,
@@ -72,7 +74,8 @@ class RobustDevice implements IRobustDevice
       cfg.checkDeviceAvailableAfterRebootAttempts,
       cfg.checkDeviceAvailableAfterRebootFirstDelay,
       cfg.checkDeviceAvailableAfterRebootLaterDelays,
-      cfg.waitForCanRebootDelay)
+      cfg.waitForCanRebootDelay,
+      cfg.xPrivacyConfigurationFile)
   }
 
   RobustDevice(IAndroidDevice device,
@@ -91,7 +94,8 @@ class RobustDevice implements IRobustDevice
                int checkDeviceAvailableAfterRebootAttempts,
                int checkDeviceAvailableAfterRebootFirstDelay,
                int checkDeviceAvailableAfterRebootLaterDelays,
-               int waitForCanRebootDelay)
+               int waitForCanRebootDelay,
+               String xPrivacyConfigurationFile)
   {
     this.device = device
     this.messagesReader = new DeviceMessagesReader(device, monitorServerStartTimeout, monitorServerStartQueryDelay)
@@ -116,6 +120,8 @@ class RobustDevice implements IRobustDevice
     this.checkDeviceAvailableAfterRebootLaterDelays = checkDeviceAvailableAfterRebootLaterDelays
 
     this.waitForCanRebootDelay = waitForCanRebootDelay
+
+    this.xPrivacyWrapper = new XPrivacyWrapper(this.device, xPrivacyConfigurationFile);
 
     assert clearPackageRetryAttempts >= 1
     assert checkAppIsRunningRetryAttempts >= 1
@@ -151,7 +157,7 @@ class RobustDevice implements IRobustDevice
       } catch (DeviceException e)
       {
         boolean appIsInstalled
-        try 
+        try
         {
           appIsInstalled = device.hasPackageInstalled(apkPackageName)
         } catch (DeviceException e2)
@@ -160,7 +166,7 @@ class RobustDevice implements IRobustDevice
             "Tried to check if the app that was to be uninstalled is still installed, but that also resulted in exception, E2. " +
             "Discarding E1 and throwing an exception having as a cause E2", e2)
         }
-        
+
         if (appIsInstalled)
           throw new DeviceException("Uninstallation of $apkPackageName threw an exception (given as cause of this exception) and the app is indeed still installed.", e)
         else
@@ -478,5 +484,17 @@ class RobustDevice implements IRobustDevice
   {
     this.device.initModel()
     //rebootIfNecessary {this.device.initModel()}
+  }
+
+  @Override
+  XPrivacyWrapper getXPrivacyWrapper()
+  {
+    return this.xPrivacyWrapper
+  }
+
+  @Override
+  boolean isUsingXPrivacy()
+  {
+    return this.xPrivacyWrapper.usingXPrivacy
   }
 }

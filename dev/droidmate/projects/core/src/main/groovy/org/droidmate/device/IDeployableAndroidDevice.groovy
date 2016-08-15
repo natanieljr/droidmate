@@ -17,11 +17,13 @@ import java.nio.file.Path
 
 public interface IDeployableAndroidDevice
 {
-  void pushJar(Path jar) throws DeviceException
+  void pushFile(Path sourceFile) throws DeviceException
 
-  void pushJar(Path jar, String targetFileName) throws DeviceException
+  void pushFile(Path sourceFile, String targetFileName, String targetDirectory) throws DeviceException
 
-  void removeJar(Path jar) throws DeviceException
+  void pullFile(String sourceFileName, String targetFileName) throws DeviceException
+
+  void removeFile(Path file) throws DeviceException
 
   void installApk(Path apk) throws DeviceException
 

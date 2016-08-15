@@ -47,15 +47,17 @@ public class UiautomatorDaemonConstants
   public static final String uia2Daemon_testPackageName = uia2Daemon_packageName + ".test";
   public static final String uia2Daemon_testRunner      = "android.support.test.runner.AndroidJUnitRunner";
 
-  public static final String guiActionCommand_pressBack  = "press_back";
-  public static final String guiActionCommand_pressHome  = "press_home";
-  public static final String guiActionCommand_turnWifiOn = "turn_wifi_on";
-  public static final String guiActionCommand_launchApp  = "launch_app";
+  public static final String guiActionCommand_pressBack          = "press_back";
+  public static final String guiActionCommand_pressHome          = "press_home";
+  public static final String guiActionCommand_turnWifiOn         = "turn_wifi_on";
+  public static final String guiActionCommand_launchApp          = "launch_app";
+  public static final String guiActionCommand_loadXPrivacyConfig = "load_xprivacy_config";
 
   public static final String uiaDaemonParam_waitForGuiToStabilize      = "wait_for_gui_to_stabilize";
   public static final String uiaDaemonParam_waitForWindowUpdateTimeout = "wait_for_window_update_timeout";
   public static final String uiaDaemonParam_tcpPort                    = "uiadaemon_server_tcp_port";
 
+  public static final String xPrivacyDirectory = "/storage/emulated/0/.xprivacy/";
   public static final String deviceLogcatLogDir_api19 = "data/local/tmp/";
   public static final String deviceLogcatLogDir_api23 = "/data/user/0/" + uia2Daemon_packageName + "/files/";
 

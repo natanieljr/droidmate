@@ -54,13 +54,13 @@ class AdbWrapperStub implements IAdbWrapper
   }
 
   @Override
-  void pushJar(String deviceSerialNumber, Path jarFile, String targetFileName = null) throws AdbWrapperException
+  void pushFile(String deviceSerialNumber, Path sourceFile, String targetFileName = null, String targetDirectory = null) throws AdbWrapperException
   {
     assert false: "Not yet implemented!"
   }
 
   @Override
-  void removeJar(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
+  void removeFile(String deviceSerialNumber, Path file) throws AdbWrapperException
   {
     assert false: "Not yet implemented!"
   }
@@ -143,7 +143,7 @@ class AdbWrapperStub implements IAdbWrapper
   {
   }
 
-  
+
   @Override
   void removeFile_api23(String deviceSerialNumber, String fileName, String shellPackageName) throws AdbWrapperException
   {
@@ -153,7 +153,7 @@ class AdbWrapperStub implements IAdbWrapper
   void pullFile_api19(String deviceSerialNumber, String pulledFileName, String destinationFilePath) throws AdbWrapperException
   {
   }
-  
+
   @Override
   void pullFile_api23(String deviceSerialNumber, String pulledFileName, String destinationFilePath, String shellPackageName) throws AdbWrapperException
   {

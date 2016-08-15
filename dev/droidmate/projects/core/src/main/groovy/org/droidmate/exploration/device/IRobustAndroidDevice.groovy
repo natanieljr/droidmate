@@ -20,4 +20,8 @@ public interface IRobustDevice extends IAndroidDevice, IDeviceMessagesReader
   Boolean appIsNotRunning(IApk apk) throws DeviceException
 
   void launchApp(IApk apk) throws DeviceException
+
+  boolean isUsingXPrivacy()
+
+  XPrivacyWrapper getXPrivacyWrapper()
 }

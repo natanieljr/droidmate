@@ -116,21 +116,22 @@ class GuiScreen implements IGuiScreen
     IScreenTransitionResult out = null
     if (guiAction.guiActionCommand != null)
     {
-      switch (guiAction.guiActionCommand)
-      {
-        case UiautomatorDaemonConstants.guiActionCommand_pressHome:
+      if (guiAction.guiActionCommand.equals(UiautomatorDaemonConstants.guiActionCommand_pressHome))
           out = new ScreenTransitionResult(home, [])
-          break
-        case UiautomatorDaemonConstants.guiActionCommand_turnWifiOn:
-          assert this.is(home)
-          out = new ScreenTransitionResult(this, [])
-          break
-        case UiautomatorDaemonConstants.guiActionCommand_pressBack:
-          assert false: "Not yet implemented!"
-          break
-        default:
-          throw new UnexpectedIfElseFallthroughError()
+      else if (guiAction.guiActionCommand.equals(UiautomatorDaemonConstants.guiActionCommand_turnWifiOn))
+      {
+        assert this.is(home)
+        out = new ScreenTransitionResult(this, [])
       }
+      else if (guiAction.guiActionCommand.startsWith(UiautomatorDaemonConstants.guiActionCommand_loadXPrivacyConfig))
+      {
+        assert this.is(home)
+        out = new ScreenTransitionResult(this, [])
+      }
+      else if (guiAction.guiActionCommand.startsWith(UiautomatorDaemonConstants.guiActionCommand_pressBack))
+        assert false: "Not yet implemented!"
+      else
+        throw new UnexpectedIfElseFallthroughError()
     } else
     {
 

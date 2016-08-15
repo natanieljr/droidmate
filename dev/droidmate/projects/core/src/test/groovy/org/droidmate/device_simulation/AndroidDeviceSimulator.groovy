@@ -214,12 +214,17 @@ public class AndroidDeviceSimulator implements IAndroidDevice
   }
 
   @Override
-  void pushJar(Path jar, String targetFileName = null) throws DroidmateException
+  void pullFile(String sourceFileName, String targetFileName) throws DeviceException
   {
   }
 
   @Override
-  void removeJar(Path jar) throws DroidmateException
+  void pushFile(Path sourceFile, String targetFileName = null, String targetDirectory = null) throws DroidmateException
+  {
+  }
+
+  @Override
+  void removeFile(Path jar) throws DroidmateException
   {
   }
 
@@ -245,7 +250,7 @@ public class AndroidDeviceSimulator implements IAndroidDevice
   void closeMonitorServers() throws DeviceException
   {
   }
-  
+
   @Override
   void clearPackage(String apkPackageName)
   {

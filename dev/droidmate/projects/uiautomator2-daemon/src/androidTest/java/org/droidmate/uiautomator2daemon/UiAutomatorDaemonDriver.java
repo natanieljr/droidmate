@@ -26,6 +26,8 @@ import org.droidmate.uiautomator_daemon.guimodel.GuiAction;
 import java.io.File;
 import java.io.IOException;
 
+import static android.R.attr.id;
+import static android.util.Log.d;
 import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*;
 
 // KJA2 (refactoring) dry up common code with uiad-1. Put the shared code in uiautomator-daemon-lib
@@ -49,10 +51,10 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
 
     this.context = InstrumentationRegistry.getTargetContext();
     if (context == null) throw new AssertionError();
-    
+
     this.device = UiDevice.getInstance(instr);
     if (device == null) throw new AssertionError();
-    
+
     this.waitForGuiToStabilize = waitForGuiToStabilize;
     this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
   }
@@ -88,33 +90,18 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
 
   private DeviceResponse getDeviceModel()
   {
-    Log.d(uiaDaemon_logcatTag, "getDeviceModel()");
+    d(uiaDaemon_logcatTag, "getDeviceModel()");
     String model = Build.MODEL;
     String manufacturer = Build.MANUFACTURER;
     DeviceResponse deviceResponse = new DeviceResponse();
     deviceResponse.model = manufacturer + "-" + model;
-    Log.d(uiaDaemon_logcatTag, "Device model: "+deviceResponse.model);
+    d(uiaDaemon_logcatTag, "Device model: "+deviceResponse.model);
     return deviceResponse;
-  }
-
-  private String getWifiSwitchWidgetName()
-  {
-    String deviceModel = this.getDeviceModel().model;
-
-    String switchWidgetName;
-    if (deviceModel.equals(DEVICE_SAMSUNG_GALAXY_S3_GT_I9300))
-      switchWidgetName = "android:id/switchWidget";
-    else if (deviceModel.equals(DEVICE_GOOGLE_NEXUS_7) || deviceModel.equals(DEVICE_GOOGLE_NEXUS_5X))
-      switchWidgetName = "com.android.settings:id/switch_widget";
-    else
-      switchWidgetName = "com.android.settings:id/switchWidget";
-
-    return switchWidgetName;
   }
 
   private DeviceResponse getIsNaturalOrientation()
   {
-    Log.d(uiaDaemon_logcatTag, "Getting 'isNaturalOrientation'");
+    d(uiaDaemon_logcatTag, "Getting 'isNaturalOrientation'");
     this.device.waitForIdle();
     DeviceResponse deviceResponse = new DeviceResponse();
     deviceResponse.isNaturalOrientation = device.isNaturalOrientation();
@@ -129,6 +116,10 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
 
     GuiAction action = deviceCommand.guiAction;
 
+    Log.e(uiaDaemon_logcatTag, "===========");
+    Log.e(uiaDaemon_logcatTag, action.guiActionCommand);
+    Log.e(uiaDaemon_logcatTag, "===========");
+
     if (action.guiActionCommand != null)
     {
 
@@ -137,17 +128,20 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       //noinspection IfCanBeSwitch
       if (action.guiActionCommand.equals(guiActionCommand_pressBack))
       {
-        Log.d(uiaDaemon_logcatTag, "Pressing 'back' button.");
+        d(uiaDaemon_logcatTag, "Pressing 'back' button.");
         this.device.pressBack();
         waitForGuiToStabilize();
       } else if (action.guiActionCommand.equals(guiActionCommand_pressHome))
       {
-        Log.d(uiaDaemon_logcatTag, "Pressing 'home' button.");
+        d(uiaDaemon_logcatTag, "Pressing 'home' button.");
         this.device.pressHome();
         waitForGuiToStabilize();
       } else if (action.guiActionCommand.equals(guiActionCommand_turnWifiOn))
       {
         turnWifiOn();
+      } else if (action.guiActionCommand.startsWith(guiActionCommand_loadXPrivacyConfig))
+      {
+        loadXPrivacyConfig(action.guiActionCommand);
       } else if (action.guiActionCommand.equals(guiActionCommand_launchApp))
       {
         launchApp(action.resourceId);
@@ -160,7 +154,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
 
     } else if (deviceCommand.guiAction.resourceId != null)
     {
-      Log.d(uiaDaemon_logcatTag, String.format("Setting text of widget with resource ID %s to %s.", deviceCommand.guiAction.resourceId, deviceCommand.guiAction.textToEnter));
+      d(uiaDaemon_logcatTag, String.format("Setting text of widget with resource ID %s to %s.", deviceCommand.guiAction.resourceId, deviceCommand.guiAction.textToEnter));
       try
       {
         boolean enterResult = this.device.findObject(
@@ -183,7 +177,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       int clickXCoor = deviceCommand.guiAction.clickXCoor;
       int clickYCoor = deviceCommand.guiAction.clickYCoor;
 
-      Log.d(uiaDaemon_logcatTag, String.format("Clicking on (x,y) coordinates of (%d,%d)", clickXCoor, clickYCoor));
+      d(uiaDaemon_logcatTag, String.format("Clicking on (x,y) coordinates of (%d,%d)", clickXCoor, clickYCoor));
 
       if (clickXCoor < 0) throw new AssertionError("assert clickXCoor >= 0");
       if (clickYCoor < 0) throw new AssertionError("assert clickYCoor >= 0");
@@ -198,7 +192,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       clickResult = click(deviceCommand, clickXCoor, clickYCoor);
       if (!clickResult)
       {
-        Log.d(uiaDaemon_logcatTag, (String.format("The operation device.click(%d, %d) failed (the 'click' method returned 'false'). Retrying after 2 seconds.", clickXCoor, clickYCoor)));
+        d(uiaDaemon_logcatTag, (String.format("The operation device.click(%d, %d) failed (the 'click' method returned 'false'). Retrying after 2 seconds.", clickXCoor, clickYCoor)));
 
         try
         {
@@ -216,7 +210,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
           Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().click(%d, %d) failed for the second time. Giving up.", clickXCoor, clickYCoor)));
         }
         else
-          Log.d(uiaDaemon_logcatTag, "The click retry attempt succeeded.");
+          d(uiaDaemon_logcatTag, "The click retry attempt succeeded.");
       }
     }
 
@@ -226,15 +220,96 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
     return deviceResponse;
   }
 
+  private void loadXPrivacyConfig(String actionCommand)
+  {
+    // There is an intent to open the import configuration screen,
+    // however there is a bug on XPrivacy, when that intent is called,
+    // after a file is selected its contents are not displayed and no
+    // operation is performed
+    Log.d(uiaDaemon_logcatTag, "Loading XPrivacy configuration file.");
+
+    // Extract the configuration file name
+    String fileName = actionCommand.split("=")[1];
+    Log.d(uiaDaemon_logcatTag, "Filename = " + fileName);
+
+    try
+    {
+      //launchApp("XPrivacy");
+
+      String XPrivacy = "biz.bokhorst.xprivacy";
+      String XPrivacyToolbar = XPrivacy + ":id/widgetToolbar";
+      String XPrivacyOkButton = XPrivacy + ":id/btnOk";
+      UiObject toolbar = this.device.findObject(new UiSelector().resourceId(XPrivacyToolbar));
+
+      // Locate the toolbar
+      UiObject buttonSet = toolbar.getChild(new UiSelector().index(2));
+      UiObject menuButton = buttonSet.getChild(new UiSelector().index(1));
+      // Click to open the menu
+      menuButton.click();
+      waitForGuiToStabilize();
+
+      // Select "Operations …" item from menu
+      UiObject operationsButton = this.device.findObject(new UiSelector().text("Operations …"));
+      operationsButton.click();
+      waitForGuiToStabilize();
+
+      // Select "Import"
+      UiObject importButton = this.device.findObject(new UiSelector().text("Import"));
+      importButton.click();
+      waitForGuiToStabilize();
+
+      // Select configuration file
+      UiObject fileManagerButton = this.device.findObject(new UiSelector().text("OI File Manager"));
+      fileManagerButton.click();
+      waitForGuiToStabilize();
+
+      UiObject textInput = this.device.findObject(new UiSelector().text("File name"));
+      textInput.setText(fileName);
+
+      UiObject pickFileButton = this.device.findObject(new UiSelector().text("Pick file"));
+      pickFileButton.click();
+      waitForGuiToStabilize();
+
+      UiObject okButton = this.device.findObject(new UiSelector().resourceId(XPrivacyOkButton));
+      okButton.click();
+
+      do
+      {
+        okButton = this.device.findObject(new UiSelector().resourceId(XPrivacyOkButton));
+        waitForGuiToStabilize();
+      }
+      while (!okButton.isEnabled());
+
+      waitForGuiToStabilize();
+
+      okButton.click();
+      this.device.waitForIdle();
+      waitForGuiToStabilize();
+
+      // Return to home
+      this.device.pressHome();
+      this.device.waitForIdle();
+    }
+    catch (UiObjectNotFoundException ex)
+    {
+      Log.e(uiaDaemon_logcatTag, "Failed to import XPrivacy configuration.");
+    }
+    //catch (UiAutomatorDaemonException ex)
+    //{
+    //  Log.e(uiaDaemon_logcatTag, "Failed to start XPrivacy.");
+    //}
+
+    Log.d(uiaDaemon_logcatTag, "XPrivacy configuration file loaded.");
+  }
 
   /**
    * Based on: http://stackoverflow.com/a/12420590/986533
    */
   private void turnWifiOn()
   {
-    Log.d(uiaDaemon_logcatTag, "Ensuring WiFi is turned on.");
+    d(uiaDaemon_logcatTag, "Ensuring WiFi is turned on.");
     WifiManager wfm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-    
+
     boolean wifiEnabled = wfm.setWifiEnabled(true);
 
     if (!wifiEnabled)
@@ -336,7 +411,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       if (guiStabilizationAttemptsExhausted(iteration, maxIterations))
         Log.w(uiaDaemon_logcatTag, "GUI failed to stabilize. Continuing nonetheless.");
       else
-        Log.d(uiaDaemon_logcatTag, "GUI stabilized after " + iteration + " iterations / " + (System.currentTimeMillis() - initialWaitForIdleStartTime) + "ms");
+        d(uiaDaemon_logcatTag, "GUI stabilized after " + iteration + " iterations / " + (System.currentTimeMillis() - initialWaitForIdleStartTime) + "ms");
 
     } else
     {
@@ -388,7 +463,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
    */
   private UiautomatorWindowHierarchyDumpDeviceResponse getWindowHierarchyDump() throws UiAutomatorDaemonException
   {
-    Log.d(uiaDaemon_logcatTag, "Getting window hierarchy dump");
+    d(uiaDaemon_logcatTag, "Getting window hierarchy dump");
 
     String windowDumpFileName = "window_hierarchy_dump.xml";
     File windowDumpFile = prepareWindowDumpFile(windowDumpFileName);
@@ -521,10 +596,10 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
   {
     try
     {
-      Log.d(uiaDaemon_logcatTag, String.format("Trying to create dump file '%s'", windowDumpFile.toString()));
-      Log.d(uiaDaemon_logcatTag, "Executing dump");
+      d(uiaDaemon_logcatTag, String.format("Trying to create dump file '%s'", windowDumpFile.toString()));
+      d(uiaDaemon_logcatTag, "Executing dump");
       this.device.dumpWindowHierarchy(windowDumpFile);
-      Log.d(uiaDaemon_logcatTag, "Dump executed");
+      d(uiaDaemon_logcatTag, "Dump executed");
 
       if (windowDumpFile.exists())
       {
@@ -560,8 +635,8 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
     final File dir = context.getFilesDir();
     File file = new File(dir, fileName);
 
-    Log.d(uiaDaemon_logcatTag, String.format("Dump data directory: %s", dir.toString()));
-    Log.d(uiaDaemon_logcatTag, String.format("Dump data file: %s", file.toString()));
+    d(uiaDaemon_logcatTag, String.format("Dump data directory: %s", dir.toString()));
+    d(uiaDaemon_logcatTag, String.format("Dump data file: %s", file.toString()));
 
     // Here we ensure the directory of the target file exists.
     if (!dir.isDirectory())
@@ -591,7 +666,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
   //region Launching app
   private void launchApp(String appLaunchIconText) throws UiAutomatorDaemonException
   {
-    Log.d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text "+appLaunchIconText);
+    d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text "+appLaunchIconText);
 
     boolean clickResult;
     try
@@ -599,13 +674,13 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       UiObject app = navigateToAppLaunchIcon(appLaunchIconText);
       Log.v(uiaDaemon_logcatTag, "Pressing the " + appLaunchIconText + " app icon to launch it.");
       clickResult = app.clickAndWaitForNewWindow();
-
+      waitForGuiToStabilize();
     } catch (UiObjectNotFoundException e)
     {
       Log.w(uiaDaemon_logcatTag,
         String.format("Attempt to navigate to and click on the icon labeled '%s' to launch the app threw an exception: %s: %s",
           appLaunchIconText, e.getClass().getSimpleName(), e.getLocalizedMessage()));
-      Log.d(uiaDaemon_logcatTag, "Pressing 'home' button after failed app launch.");
+      d(uiaDaemon_logcatTag, "Pressing 'home' button after failed app launch.");
       this.device.pressHome();
       waitForGuiToStabilize();
       return;
@@ -630,33 +705,22 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
     // content-description property has the value "Apps".  We can
     // use this property to create a UiSelector to find the button.
     UiObject allAppsButton = this.device.findObject(new UiSelector().description("Apps"));
-
     // Simulate a click to bring up the All Apps screen.
     allAppsButton.clickAndWaitForNewWindow();
 
+    // In Android 6 default apps menu (Nexus 5X) there is a search box to locate the application
+    // Use it to search for the application
+    UiObject searchTextbox = this.device.findObject(new UiSelector().resourceId("com.google.android.googlequicksearchbox:id/search_box_proxy"));
+    searchTextbox.setText(appLaunchIconName);
+    waitForGuiToStabilize();
 
-    // In the All Apps screen, the app launch icon is located in
-    // the Apps tab. To simulate the user bringing up the Apps tab,
-    // we create a UiSelector to find a tab with the text
-    // label "Apps".
-    UiObject appsTab = this.device.findObject(new UiSelector().text("Apps"));
+    // The application (if found), will be the first item in the application list container
+    // Type: com.google.android.googlequicksearchbox:id/icon
+    UiObject appListview = this.device.findObject(new UiSelector().resourceId("com.google.android.googlequicksearchbox:id/apps_list_view"));
 
-    // Simulate a click to enter the Apps tab.
-    appsTab.click();
-
-    // Next, in the apps tabs, we can simulate a user swiping until
-    // they come to the app launch icon. Since the container view
-    // is scrollable, we can use a UiScrollable object.
-    UiScrollable appViews = new UiScrollable(new UiSelector().scrollable(true));
-
-    // Set the swiping mode to horizontal (the default is vertical)
-    appViews.setAsHorizontalList();
-
-    // Create a UiSelector to find the app launch icon and simulate
-    // a user click to launch the app.
-    return appViews.getChildByText(
-      new UiSelector().className(android.widget.TextView.class.getName()),
-      appLaunchIconName);
+    UiObject selectedItem = appListview.getChild(new UiSelector().index(0));
+    d(uiaDaemon_logcatTag, selectedItem.getContentDescription());
+    return selectedItem;
   }
 
   //endregion

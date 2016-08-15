@@ -227,10 +227,12 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
   @Test
   public void "Explores monitored apk on a real device api23"()
   {
+    // WISH Borges: Testing
     String[] args = new ConfigurationForTests().forDevice().setArgs([
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
       Configuration.pn_widgetIndexes, "[0, 1, 2, 2, 2]",
       Configuration.pn_androidApi, "api23",
+      Configuration.pn_xPrivacyConfigurationFile, "20160801_154831_XPrivacy_3.6.19_bullhead.xml"
     ]).get().args
 
     exploreOnRealDevice(args, "api23")
@@ -259,7 +261,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
     // Act
     int exitStatus = DroidmateFrontend.main(args, /* commandProvider = */ null)
-    
+
     assert exitStatus == 0, "Exit status != 0. Please inspect the run logs for details, including exception thrown"
 
     IApkExplorationOutput2 apkOut = outputDir.explorationOutput2.findSingle()

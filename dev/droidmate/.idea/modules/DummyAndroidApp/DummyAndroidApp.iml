@@ -14,9 +14,12 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" inherit-compiler-output="true">
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file:///production/DummyAndroidApp" />
+    <output-test url="file:///test/DummyAndroidApp" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../../DummyAndroidApp">
+      <sourceFolder url="file://$MODULE_DIR$/../../../DummyAndroidApp/gen" isTestSource="false" generated="true" />
       <excludeFolder url="file://$MODULE_DIR$/../../../DummyAndroidApp/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/../../../DummyAndroidApp/build" />
     </content>

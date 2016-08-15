@@ -9,6 +9,9 @@
 package org.droidmate.exploration.actions
 
 import groovy.util.logging.Slf4j
+import org.droidmate.android_sdk.AaptWrapper
+import org.droidmate.android_sdk.AdbWrapper
+import org.droidmate.android_sdk.Apk
 import org.droidmate.android_sdk.IApk
 import org.droidmate.exceptions.DeviceException
 import org.droidmate.exploration.device.DeviceLogsHandler
@@ -17,6 +20,7 @@ import org.droidmate.exploration.device.IRobustDevice
 
 import java.time.LocalDateTime
 
+import static org.droidmate.device.datatypes.AndroidDeviceAction.newLoadXPrivacyConfigDeviceAction
 import static org.droidmate.device.datatypes.AndroidDeviceAction.newTurnWifiOnDeviceAction
 
 @Slf4j
@@ -52,6 +56,14 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
 
     log.debug("4. Turn wifi on.")
     device.perform(newTurnWifiOnDeviceAction())
+
+    // WISH Borges Replace test ile name
+    if (device.usingXPrivacy)
+    {
+      log.debug("4.1. XPrivacy configuration file specified, loading XPrivacy configuration file.")
+      device.getXPrivacyWrapper().loadConfiguration()
+      device.ensureHomeScreenIsDisplayed()
+    }
 
     log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
     device.getGuiSnapshot()

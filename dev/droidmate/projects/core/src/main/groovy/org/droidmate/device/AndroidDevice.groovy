@@ -79,10 +79,21 @@ public class AndroidDevice implements IAndroidDevice
   }
 
   @Override
-  void pushJar(Path jar, String targetFileName = null) throws DeviceException
+  void pullFile(String sourceFileName, String targetFileName) throws DeviceException
   {
-    log.debug("pushJar(${jar.toString()}, $targetFileName)")
-    adbWrapper.pushJar(serialNumber, jar, targetFileName)
+    log.debug("pullFile()")
+    if (cfg.androidApi == "api19")
+      this.adbWrapper.pullFile_api19(this.serialNumber, targetFileName, sourceFileName)
+    else if (cfg.androidApi == "api23")
+      this.adbWrapper.pullFile_api23(this.serialNumber, targetFileName, sourceFileName, uia2Daemon_packageName)
+    else throw new UnexpectedIfElseFallthroughError()
+  }
+
+  @Override
+  void pushFile(Path sourceFile, String targetFileName = null, String targetDirectory = null) throws DeviceException
+  {
+    log.debug("pushFile(${sourceFile.toString()}, $targetFileName, $targetDirectory)")
+    adbWrapper.pushFile(serialNumber, sourceFile, targetFileName, targetDirectory)
   }
 
 
@@ -246,8 +257,6 @@ public class AndroidDevice implements IAndroidDevice
     else if (cfg.androidApi == "api23")
       this.adbWrapper.removeFile_api23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
     else throw new UnexpectedIfElseFallthroughError()
-
-
   }
 
   @Override
@@ -259,7 +268,6 @@ public class AndroidDevice implements IAndroidDevice
     else if (cfg.androidApi == "api23")
       this.adbWrapper.pullFile_api23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
     else throw new UnexpectedIfElseFallthroughError()
-
   }
 
   @Override
@@ -385,10 +393,10 @@ public class AndroidDevice implements IAndroidDevice
   }
 
   @Override
-  void removeJar(Path jar) throws DeviceException
+  void removeFile(Path file) throws DeviceException
   {
-    log.debug("removeJar($jar)")
-    adbWrapper.removeJar(serialNumber, jar)
+    log.debug("removeFile($file)")
+    adbWrapper.removeFile(serialNumber, file)
   }
 
   @Override

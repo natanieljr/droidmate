@@ -63,6 +63,11 @@ abstract class AndroidDeviceAction implements IAndroidDeviceAction
     return new ClickGuiAction(GuiAction.createTurnWifiOnGuiAction())
   }
 
+  public static ClickGuiAction newLoadXPrivacyConfigDeviceAction(String fileName)
+  {
+    return new ClickGuiAction(GuiAction.createLoadXPrivacyConfigGuiAction(fileName))
+  }
+
   public static ClickGuiAction newLaunchAppDeviceAction(String iconLabel)
   {
     return new ClickGuiAction(GuiAction.createLaunchAppGuiAction(iconLabel))
