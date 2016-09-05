@@ -40,7 +40,7 @@ import static android.R.attr.id;
 import static android.util.Log.d;
 import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*;
 
-// WISH there is code duplication between uiad-1 and uiad-2. When DM no longer needs to work with Android 4, remove uiad-1. 
+// WISH there is code duplication between uiad-1 and uiad-2. When DM no longer needs to work with Android 4, remove uiad-1.
 class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
 {
   private final UiDevice device;
@@ -126,9 +126,9 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
 
     GuiAction action = deviceCommand.guiAction;
 
-    Log.e(uiaDaemon_logcatTag, "===========");
-    Log.e(uiaDaemon_logcatTag, action.guiActionCommand);
-    Log.e(uiaDaemon_logcatTag, "===========");
+    //Log.e(uiaDaemon_logcatTag, "===========");
+    //Log.e(uiaDaemon_logcatTag, action.guiActionCommand);
+    //Log.e(uiaDaemon_logcatTag, "===========");
 
     if (action.guiActionCommand != null)
     {
