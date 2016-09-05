@@ -24,9 +24,6 @@ import org.droidmate.android_sdk.AndroidDeviceDescriptor
 import org.droidmate.android_sdk.ApkExplorationException
 import org.droidmate.android_sdk.ExplorationException
 import org.droidmate.android_sdk.IAdbWrapper
-import org.droidmate.common.Assert
-import org.droidmate.common.BuildConstants
-import org.droidmate.common.DroidmateException
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.IDeployableAndroidDevice
@@ -34,6 +31,9 @@ import org.droidmate.exceptions.DeviceException
 import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.RobustDevice
+import org.droidmate.misc.Assert
+import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.DroidmateException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
 import java.nio.file.Paths
@@ -89,12 +89,12 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
     // KNOWN BUG on emulator, device offline when trying to remove logcat log file. Possible quickfix: on emulators, add a wait.
     device.removeLogcatLogFile()
     device.clearLogcat()
-    if (cfg.androidApi == "api19")
+    if (cfg.androidApi == Configuration.api19)
     {
       device.pushFile(this.cfg.uiautomatorDaemonJar)
       device.pushFile(this.cfg.monitorApkApi19, BuildConstants.monitor_on_avd_apk_name, null)
     }
-    else if (cfg.androidApi == "api23")
+    else if (cfg.androidApi == Configuration.api23)
     {
       device.installApk(this.cfg.uiautomator2DaemonApk)
       device.installApk(this.cfg.uiautomator2DaemonTestApk)
@@ -126,10 +126,10 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
       log.trace("Tearing down.")
       device.pullLogcatLogFile()
       device.closeConnection()
-      if (cfg.androidApi == "api19")
+      if (cfg.androidApi == Configuration.api19)
       {
         device.removeFile(cfg.uiautomatorDaemonJar)
-      } else if (cfg.androidApi == "api23")
+      } else if (cfg.androidApi == Configuration.api23)
       {
         // WISH why failure is ignored here? Ask Borges
         device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, /* ignoreFailure = */ true)

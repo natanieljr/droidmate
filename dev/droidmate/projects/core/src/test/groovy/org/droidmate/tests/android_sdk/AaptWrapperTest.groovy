@@ -22,9 +22,11 @@ package org.droidmate.tests.android_sdk
 import groovy.transform.TypeChecked
 import org.droidmate.android_sdk.AaptWrapper
 import org.droidmate.android_sdk.Apk
-import org.droidmate.common.SysCmdExecutor
+import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.configuration.Configuration
-import org.droidmate.test_base.DroidmateGroovyTestCase
+import org.droidmate.tests.ApkFixtures
+import org.droidmate.tests.DroidmateGroovyTestCase
+import org.droidmate.tests.FixturesKt
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -60,7 +62,7 @@ public class AaptWrapperTest extends DroidmateGroovyTestCase
     AaptWrapper sut = new AaptWrapper(Configuration.default, new SysCmdExecutor())
     sut.metaClass.aaptDumpBadging = {Path _ -> aaptBadgingDump}
 
-    Apk ignoredApk = fixtures.apks.monitoredInlined_api19
+    Apk ignoredApk = ApkFixtures.build().monitoredInlined_api19
 
     // Act
     String launchableActivityName = sut.getLaunchableActivityComponentName(Paths.get(ignoredApk.absolutePath))
@@ -71,7 +73,7 @@ public class AaptWrapperTest extends DroidmateGroovyTestCase
   //region Helper methods
   private static String getAaptBadgingDump()
   {
-    String aaptBadgingDump = fixtures.f_aaptBadgingDump
+    String aaptBadgingDump = FixturesKt.fixture_aaptBadgingDump
     assert aaptBadgingDump.contains("package: name='com.box.android'")
     assert aaptBadgingDump.contains("launchable-activity: name='com.box.android.activities.SplashScreenActivity'")
     return aaptBadgingDump

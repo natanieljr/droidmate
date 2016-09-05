@@ -23,16 +23,14 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
-import org.droidmate.common.exceptions.InvalidWidgetBoundsException
-import org.droidmate.common.exploration.datatypes.Widget
-import org.droidmate.common.logging.LogbackConstants
 import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.logging.LogbackConstants
 
 import java.awt.*
 import java.util.List
 
 import static groovy.transform.TypeCheckingMode.SKIP
-import static org.droidmate.common.logging.Markers.exceptions
+import static org.droidmate.logging.Markers.exceptions
 
 /**
  * <p>
@@ -92,16 +90,22 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
   {
     this.id = id
     this.deviceDisplayBounds = new Rectangle(displayDimensions)
-
-    this.wellFormedness = checkWellFormedness(windowHierarchyDump)
-
     this.androidLauncherPackageName = androidLauncherPackageName
 
-    if (this.wellFormedness == WellFormedness.OK)
+    def wellFormedness = checkWellFormedness(windowHierarchyDump)
+    if (wellFormedness == WellFormedness.OK)
     {
-      this.windowHierarchyDump = stripAVDframe(windowHierarchyDump)
-      this.guiState = computeGuiState(this.windowHierarchyDump)
+      this.windowHierarchyDump = removeSystemuiNodes(windowHierarchyDump)
+      this.wellFormedness = checkWellFormedness(this.windowHierarchyDump)
     }
+    else
+    {
+      this.wellFormedness = wellFormedness
+      this.windowHierarchyDump = windowHierarchyDump
+    }
+
+    if (this.wellFormedness == WellFormedness.OK)
+      this.guiState = computeGuiState(this.windowHierarchyDump)
     else
       this.guiState = null
 
@@ -141,11 +145,17 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
   private GuiState computeGuiState(String windowHierarchyDump)
   {
     assert wellFormedness == WellFormedness.OK
-
+    
     GPathResult hierarchy = new XmlSlurper().parseText(windowHierarchyDump)
     assert hierarchy.name() == "hierarchy"
 
     String topNodePackage = hierarchy.node[0]?.@package?.text()
+    // KJA bug assert fail after on fixture droidmate clicked "Crash activity"
+    // KJA DEBUG
+    if (topNodePackage.empty)
+    {
+      log.warn("window hierarchy dump: \n"+windowHierarchyDump)
+    }
     assert !topNodePackage.empty
 
 
@@ -240,12 +250,25 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
   {
     if (windowHierarchyDump == null)
       return WellFormedness.is_null
-    else if (windowHierarchyDump.length() == 0)
+    else if (windowHierarchyDump.length() == 0 || isEmptyStub(windowHierarchyDump))
       return WellFormedness.is_empty
     else if (!windowHierarchyDump.contains(rootXmlNodePrefix))
       return WellFormedness.missing_root_xml_node_prefix
     else
       return WellFormedness.OK
+  }
+
+  /**
+   * This covers a case when the dump looks as follows:
+   * 
+   * <?xml version="1.0" encoding="UTF-8"?><hierarchy rotation="0">
+   *
+   *
+   * </hierarchy>
+   */
+  private boolean isEmptyStub(String windowHierarchyDump)
+  {
+    return windowHierarchyDump.count("<") <= 3 && windowHierarchyDump.count("\n") <= 5
   }
 
   private enum WellFormedness {
@@ -317,8 +340,9 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
     return returnString
   }
 
-  private String stripAVDframe(String windowHierarchyDump){
-    return UiautomatorWindowDump_functionsKt.stripAVDframe(windowHierarchyDump)
+  private String removeSystemuiNodes(String windowHierarchyDump)
+  {
+    return UiautomatorWindowDump_functionsKt.removeSystemuiNodes(windowHierarchyDump)
 }
 }
 

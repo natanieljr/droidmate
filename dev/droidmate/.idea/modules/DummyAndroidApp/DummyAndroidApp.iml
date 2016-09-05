@@ -19,6 +19,7 @@
     <output-test url="file:///test/DummyAndroidApp" />
     <exclude-output />
     <content url="file://$DM_REPO$/dev/droidmate/DummyAndroidApp">
+      <sourceFolder url="file://$DM_REPO$/dev/droidmate/DummyAndroidApp/gen" isTestSource="false" generated="true" />
       <excludeFolder url="file://$DM_REPO$/dev/droidmate/DummyAndroidApp/.gradle" />
       <excludeFolder url="file://$DM_REPO$/dev/droidmate/DummyAndroidApp/build" />
     </content>

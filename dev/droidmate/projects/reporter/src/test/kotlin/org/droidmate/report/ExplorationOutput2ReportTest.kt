@@ -18,11 +18,11 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.common.BuildConstants
 import org.droidmate.configuration.Configuration
 import org.droidmate.dir
 import org.droidmate.fileNames
-import org.droidmate.test_base.FilesystemTestFixtures
+import org.droidmate.misc.BuildConstants
+import org.droidmate.tests.fixture_monitoredSer2
 import org.droidmate.text
 import org.droidmate.withFiles
 import org.hamcrest.MatcherAssert.assertThat
@@ -35,13 +35,13 @@ import java.nio.file.Paths
 class ExplorationOutput2ReportTest {
 
   val printToStdout = true
-  
+
   @Test
   fun reports() {
 
     val mockFs: FileSystem = mockFs()
     val cfg = Configuration.getDefault()
-    val serExplOutput: Path = FilesystemTestFixtures.build().f_monitoredSer2
+    val serExplOutput: Path = fixture_monitoredSer2
     val mockFsDirWithOutput: Path = mockFs.dir(cfg.droidmateOutputDir).withFiles(serExplOutput)
     
     val report = ExplorationOutput2Report(
@@ -52,9 +52,6 @@ class ExplorationOutput2ReportTest {
     // Act
     // "includePlots" is set to false because plots require gnuplot, which does not work on mock file system used in this test.
     report.writeOut(includePlots = false) 
-    
-    // KJA2 (reporting) produce table that can be readily imported to Excel that has columns:
-    // apk_name	run_time_in_seconds	actions#	in_that_resets# actionable_views_seen# views_clicked_or_long_clicked_at_least_once# unique_apis# unique_event_apis# ANRs_seen# terminated_with_exception(give exception name: launch timeout, uninstall failure, other)
 
     assertOnDataStructure(report)
     assertOnFiles(report)
@@ -62,7 +59,26 @@ class ExplorationOutput2ReportTest {
   }
 
   private fun assertOnDataStructure(report: ExplorationOutput2Report) {
-    report.tabularReports.forEach {
+    
+    assertThat(report.aggregateStatsFile.table.rowKeySet().size, greaterThan(0))
+    assertThat(report.aggregateStatsFile.table.columnKeySet(),
+      with(AggregateStatsTable) {
+        hasItems(
+          headerApkName,
+          headerPackageName,
+          headerExplorationTimeInSeconds,
+          headerActionsCount,
+          headerResetActionsCount,
+          headerViewsSeenCount,
+          headerViewsClickedCount,
+          headerApisSeenCount,
+          headerEventApiPairsSeenCount,
+          headerException
+        )  
+      }
+      
+    )
+    report.apksTabularReports.forEach {
       assertThat(it.viewCountTable.rowKeySet().size, greaterThan(0))
       assertThat(it.viewCountTable.columnKeySet(),
         hasItems(
@@ -91,10 +107,12 @@ class ExplorationOutput2ReportTest {
 
   private fun assertOnFiles(report: ExplorationOutput2Report) {
     assertThat(report.dir.fileNames, hasItems(
-      containsString(TabularDataReport.fileNameSuffixViewCount),
-      containsString(TabularDataReport.fileNameSuffixClickFrequency),
-      containsString(TabularDataReport.fileNameSuffixApiCount),
-      equalTo(ExplorationOutput2Report.fileNameSummary)
+      containsString(ApkTabularDataReport.fileNameSuffixViewCount),
+      containsString(ApkTabularDataReport.fileNameSuffixClickFrequency),
+      containsString(ApkTabularDataReport.fileNameSuffixApiCount),
+      containsString(ApkViewsFile.fileNameSuffix),
+      equalTo(ExplorationOutput2Report.fileNameSummary),
+      equalTo(ExplorationOutput2Report.fileNameAggregateStats)
     )
     )
   }
@@ -112,7 +130,7 @@ class ExplorationOutput2ReportTest {
   @Test
   fun `reports to file system`()
   {
-    val serExplOutput: Path = FilesystemTestFixtures.build().f_monitoredSer2
+    val serExplOutput: Path = fixture_monitoredSer2
     val report = ExplorationOutput2Report(
       rawData = OutputDir(serExplOutput.parent).notEmptyExplorationOutput2,
       dir = Paths.get(BuildConstants.getTest_temp_dir_name())

@@ -19,12 +19,11 @@
 
 package org.droidmate.device.datatypes
 
-import org.droidmate.common.exploration.datatypes.Widget
 import org.droidmate.device.model.DeviceModel
 
 import static WidgetTestHelper.newTopLevelWidget
 import static org.droidmate.device.datatypes.UiautomatorWindowDumpTestHelper.*
-import static org.droidmate.test_base.FilesystemTestFixtures.apkFixture_simple_packageName
+import static org.droidmate.tests.ApkFixtures.apkFixture_simple_packageName
 
 class GuiStateTestHelper
 {

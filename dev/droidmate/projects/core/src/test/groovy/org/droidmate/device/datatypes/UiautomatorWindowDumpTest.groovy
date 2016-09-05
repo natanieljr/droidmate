@@ -20,8 +20,7 @@
 package org.droidmate.device.datatypes
 
 import groovy.transform.TypeChecked
-import org.droidmate.common.exploration.datatypes.Widget
-import org.droidmate.test_base.DroidmateGroovyTestCase
+import org.droidmate.tests.DroidmateGroovyTestCase
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith

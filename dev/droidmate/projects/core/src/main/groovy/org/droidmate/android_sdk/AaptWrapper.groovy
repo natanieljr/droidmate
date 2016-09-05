@@ -21,12 +21,12 @@ package org.droidmate.android_sdk
 
 import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
-import org.droidmate.common.DroidmateException
-import org.droidmate.common.ISysCmdExecutor
-import org.droidmate.common.SysCmdExecutorException
 import org.droidmate.configuration.Configuration
 import org.droidmate.exceptions.LaunchableActivityNameProblemException
 import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.misc.DroidmateException
+import org.droidmate.misc.ISysCmdExecutor
+import org.droidmate.misc.SysCmdExecutorException
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -188,9 +188,9 @@ public class AaptWrapper implements IAaptWrapper
     try
     {
       String aaptCommand
-      if (cfg.androidApi == "api19")
+      if (cfg.androidApi == Configuration.api19)
         aaptCommand = cfg.aaptCommandApi19
-      else if (cfg.androidApi == "api23")
+      else if (cfg.androidApi == Configuration.api23)
         aaptCommand = cfg.aaptCommandApi23
       else 
         throw new UnexpectedIfElseFallthroughError()

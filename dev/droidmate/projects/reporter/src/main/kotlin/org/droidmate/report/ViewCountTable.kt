@@ -18,11 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.common.exploration.datatypes.Widget
-import org.droidmate.device.datatypes.MissingGuiSnapshot
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
-import org.droidmate.exploration.strategy.WidgetStrategy
 
 class ViewCountTable : CountsPartitionedByTimeTable {
 
@@ -47,12 +45,7 @@ class ViewCountTable : CountsPartitionedByTimeTable {
 
     private val IApkExplorationOutput2.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>> get() {
       return this.uniqueViewCountByPartitionedTime(
-        extractItems = {
-          when (it.result.guiSnapshot) {
-            is MissingGuiSnapshot -> emptyList()
-            else -> it.result.guiSnapshot.guiState.widgets.filter { it.canBeActedUpon() }
-          }
-        }
+        extractItems = { it.actionableWidgets }
       )
     }
 
@@ -70,7 +63,7 @@ class ViewCountTable : CountsPartitionedByTimeTable {
         extractItems = extractItems
       ).mapValues {
         val widgets = it.value
-        widgets.map { WidgetStrategy.WidgetInfo(it).uniqueString }
+        widgets.map { it.uniqueString }
       }
     }
   }

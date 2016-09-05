@@ -22,13 +22,13 @@ package org.droidmate.android_sdk
 import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
 import groovy.util.logging.Slf4j
-import org.droidmate.common.BuildConstants
-import org.droidmate.common.ISysCmdExecutor
-import org.droidmate.common.SysCmdExecutorException
 import org.droidmate.configuration.Configuration
 import org.droidmate.exceptions.AdbWrapperException
 import org.droidmate.exceptions.NoAndroidDevicesAvailableException
 import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.ISysCmdExecutor
+import org.droidmate.misc.SysCmdExecutorException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
 import java.nio.file.Files
@@ -619,9 +619,9 @@ public class AdbWrapper implements IAdbWrapper
   @Override
   public void startUiautomatorDaemon(String deviceSerialNumber, int port) throws AdbWrapperException
   {
-    if (cfg.androidApi == "api19")
+    if (cfg.androidApi == Configuration.api19)
       startUiautomatorDaemon_api19(deviceSerialNumber, port)
-    else if (cfg.androidApi == "api23")
+    else if (cfg.androidApi == Configuration.api23)
       startUiautomatorDaemon_api23(deviceSerialNumber, port)
     else throw new UnexpectedIfElseFallthroughError()
   }

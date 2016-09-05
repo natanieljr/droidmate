@@ -36,53 +36,23 @@ apply plugin: "kotlin"
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-// Why these lines? See explanation for equivalent lines in ":projects:command:build.gradle"
-configurations {forceJunitPriority}
-sourceSets.test.runtimeClasspath = configurations.forceJunitPriority + sourceSets.test.runtimeClasspath
-sourceSets.test.compileClasspath = configurations.forceJunitPriority + sourceSets.test.compileClasspath
-
-/*
- This project uses test artifacts of core project.
- WISH this is a hack. Correct solution is described here: http://stackoverflow.com/a/15361666/986533
- */
-evaluationDependsOn(":projects:core")
+dependOnJunit(project)
+dependWithTest(project, ":projects:lib-kotlin", "kotlin")
+dependWithTest(project, ":projects:core", "groovy")
 
 dependencies {
 
-  compile project(":projects:lib-kotlin")
-  
-  forceJunitPriority 'junit:junit:4.12'
-  testCompile 'junit:junit:4.12'
   testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
   testCompile 'org.hamcrest:hamcrest-library:1.3'
-  testCompile project(":projects:core").sourceSets.test.output
-  
 
   compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-  compile project(":projects:core")
   
   compile 'com.google.jimfs:jimfs:1.0'
   compile 'org.zeroturnaround:zt-exec:1.9'
-
-
-
 }
 
-test.configure {
-
-  /* The tests have to be run from root project dir (droidmate) for the classpaths to be properly resolved.
-
-   API reference:
-   workingDir  http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.testing.Test.html
-   rootDir     http://www.gradle.org/docs/current/dsl/org.gradle.api.Project.html
-   */
-  workingDir rootDir
-
-  /* Lurking bug: GRADLE-1682. */
-  includes = ['**/ReporterTestSuite.class']
-
-}
+configureTest(project, ['**/ReporterTestSuite.class'])
 
 apply from: project(":projects").file("maven.gradle")
 

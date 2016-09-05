@@ -21,16 +21,16 @@ package org.droidmate.device_simulation
 
 import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.IApk
-import org.droidmate.common.Boolean3
-import org.droidmate.common.DroidmateException
+import org.droidmate.misc.Boolean3
+import org.droidmate.misc.DroidmateException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.datatypes.*
 import org.droidmate.exceptions.*
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.logcat.ITimeFormattedLogcatMessage
+import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.misc.ITimeGenerator
 import org.droidmate.misc.TimeGenerator
-import org.droidmate.test_base.FilesystemTestFixtures
+import org.droidmate.tests.ApkFixtures
 
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -57,7 +57,7 @@ public class AndroidDeviceSimulator implements IAndroidDevice
    */
   AndroidDeviceSimulator(
     ITimeGenerator timeGenerator,
-    List<String> pkgNames = [FilesystemTestFixtures.apkFixture_simple_packageName],
+    List<String> pkgNames = [ApkFixtures.apkFixture_simple_packageName],
     String spec,
     List<IExceptionSpec> exceptionSpecs = [],
     boolean unreliableSimulation = false)

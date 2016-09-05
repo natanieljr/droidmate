@@ -20,7 +20,7 @@ package org.droidmate.device_simulation
 
 import com.google.common.base.MoreObjects
 import groovy.transform.Canonical
-import org.droidmate.logcat.ITimeFormattedLogcatMessage
+import org.droidmate.apis.ITimeFormattedLogcatMessage
 
 @Canonical
 class ScreenTransitionResult implements IScreenTransitionResult

@@ -18,18 +18,17 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import org.droidmate.apis.Api
 import org.droidmate.apis.IApi
-import org.droidmate.common.logcat.Api
+import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IDeviceLogs
-import org.droidmate.logcat.IApiLogcatMessage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by logs {
 
-  constructor(apiLogs: List<IApiLogcatMessage>) :
-  this(DeviceLogs(filterApiLogs(apiLogs)))
+  constructor(apiLogs: List<IApiLogcatMessage>) : this(DeviceLogs(filterApiLogs(apiLogs)))
 
   companion object {
 
@@ -53,15 +52,11 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
     }
 
     /**
-     * <p>
      * Checks if given stack trace was obtained from a log to a call to socket &lt;init> made by Monitor TCP server
      * ({@code org.droidmate.uiautomator_daemon.MonitorJavaTemplate.MonitorTCPServer}).
      *
-     * </p><p>
      * Here is an example of a log of monitored API call to such method (with line breaks added for clarity):
      *
-     * </p><p>
-     * <pre><code>
      * 2015-07-31 16:55:17.132 TRACE from monitor - 07-31 16:55:14.782 I/Adapted_Monitored_API_method_call(817):
      * TId: 1941
      * objCls: java.net.Socket
@@ -80,9 +75,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
      * java.net.ServerSocket.accept(ServerSocket.java:126)->
      * org.droidmate.monitor.Monitor$SerializableTCPServerBase$MonitorServerRunnable.run(Monitor.java:228)->
      * java.lang.Thread.run(Thread.java:841)
-     * </code></pre>
      *
-     * </p>
      */
     fun isStackTraceOfMonitorTcpServerSocketInit(stackTrace: List<String>): Boolean {
       val secondLastFrame = stackTrace.takeLast(2).first()
@@ -99,33 +92,37 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
     }    
     
     /**
-     * <p>
-     * Logs warning about presence of possibly redundant API calls. An API call is redundant if it always calls
-     * (delegates to) another API call which is also monitored. Thus, the redundant monitored API call shouldn't be monitored.
-     * </p><p>
+     * Logs warnings about presence of possibly redundant API calls. 
+     * An API call is redundant if it always calls another API call which is also monitored.
+     * Monitoring redundant API calls results in pairs of API calls being logged, skewing the results. 
+     * One call should be sufficient. Thus, the redundant monitored API call shouldn't be monitored.
      *
-     * This is checked by examining stack traces. Consider stack trace of a monitored API call of method C, looking
-     * like that: A->B->C. In this stack trace A calls B, B calls C. If C always calls D, which is also monitored, we will have
-     * another log with a stack trace of A->B->C->D. In such case C is redundant. We have to monitor only D.
-     * </p><p>
+     * API call redundancy is checked by examining stack traces. If given API call does appear inside a stack trace, i.e. not
+     * at its end, then given API call is possibly redundant.
+     *
+     * Consider stack trace of a monitored API call of method C, looking like that: A->B->C.
+     * In this stack trace A calls B and B calls C. If API call B is also monitored, the monitoring might be redundant. 
+     * It indeed is redundant if B always calls C, which is monitored. In such case monitoring B in addition to C will result in  
+     * two API calls always being logged, with stack traces: A->B (for B) and A->B->C (for C). This is redundant. 
+     * It is not redundant if B does not always call C. In such cases sometimes there will be only log for B 
+     * (with stack trace A->B), without log for C.
      *
      * To determine monitored API calls which are possibly redundant, we look at the internal calls (i.e. all but the last one)
-     * in the stack trace which are monitored. In the given example, this is C. Such method calls are logged,
-     * to be assessed manually for redundancy and added to
+     * in the stack trace which are monitored. In the given example, we look at A and B (C is the last one).
+     * Such method calls are logged as warning, to be assessed manually for redundancy and added to
      * org.droidmate.report.FilteredDeviceLogs.Companion.apisManuallyConfirmedToBeRedundant
      * or org.droidmate.report.FilteredDeviceLogs.Companion.apisManuallyConfirmedToBeNotRedundant.
-     * </p><p>
      *
      * If the call was manually determined to be redundant, the org.droidmate.monitor.MonitorGeneratorResources.appguardApis
      * file should have such call removed and DroidMate should be recompiled with the new monitor. Otherwise, a warning will be
      * issued that a redundant APIs are still being logged.
-     * </p>
      */
     private fun IApi.warnWhenPossiblyRedundant() {
-      // KJA2 write a test for it.
-      // KJA this seems to be broken, as it will basically mark any non-manually-checked api to be possibly redundant. Only APIs that never end up being at the end of stack trace should be considered possibly redundant.
       this.stackTraceFrames
         .filter { it.startsWith(Api.monitorRedirectionPrefix) && (it !in apisManuallyCheckedForRedundancy) }
+        // We drop the first frame as it is the end of stack trace and thus not a candidate for redundancy in this particular
+        // stack trace.
+        .drop(1) 
         .forEach { log.warn("Possibly redundant API call discovered: " + it) }
     }
 
@@ -136,19 +133,18 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
      * monitor. Thus, if such call is encountered, a warning is issued.
      * </p><p>
      *
-     * Note that the redundant API calls might appear in data that was obtained before they have been removed from the API list.
+     * Note that the redundant API calls might appear in data that was obtained before they have been removed from the API list
+     * that was used to obtain that data.
      * </p>
      */
     private val IApi.warnAndReturnIsRedundant: Boolean get() {
 
-      val monitoredFrames = stackTraceFrames.filter {
-        it.startsWith(Api.monitorRedirectionPrefix) || it.startsWith(Api.monitorRedirectionPrefixLegacy)
-      }
+      val monitoredFrames = stackTraceFrames.filter { it.startsWith(Api.monitorRedirectionPrefix) }
       check(monitoredFrames.isNotEmpty())
       /* 
-        We take only first monitored call, as this is the bottom of stack trace, i.e. this method doesn't call any other 
+        We take only the first monitored call, as this is the bottom of the stack trace, i.e. this method doesn't call any other 
         monitored methods. All other monitored calls in the stack trace will be present again in the logs, at the bottom of their
-        own stack trace. They will be checked for redundancy then, so they don't have to be checked here.
+        own stack traces. They will be checked for redundancy then, so they don't have to be checked here.
        */
       val monitoredCall = monitoredFrames.first()
       return if (monitoredCall in apisManuallyConfirmedToBeRedundant) {
@@ -161,7 +157,12 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
     // For now empty lists. Will update them as the warnings are observed, while comparing to the legacy lists 
     // (present in this file).
     private val apisManuallyConfirmedToBeRedundant: List<String> = emptyList()
-    private val apisManuallyConfirmedToBeNotRedundant: List<String> = emptyList()
+    private val apisManuallyConfirmedToBeNotRedundant: List<String> = listOf(
+      // WISH Observed possible redundancy once. Waiting to see it again, to investigate the stack trace.
+      // https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/AbstractHttpClient.java#514
+      // https://android.googlesource.com/platform/external/apache-http/+/android-6.0.1_r63/src/org/apache/http/impl/client/AbstractHttpClient.java#519
+//      "redir_org_apache_http_impl_client_AbstractHttpClient_execute3"
+    )
     /// !!! DUPLICATION WARNING !!! with org.droidmate.monitor.RedirectionsGenerator.redirMethodNamePrefix and related code.
     private val apisManuallyCheckedForRedundancy: List<String> = apisManuallyConfirmedToBeRedundant + apisManuallyConfirmedToBeNotRedundant
     
@@ -192,8 +193,8 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
       // ----- Methods whose modified version is present in appguard_apis.txt -----
       // Now present as redir_5_java_net_Socket_ctor4  
       // It calls ctor0 but then it calls java.net.Socket#tryAllAddresses which has a lot of logic.
-      // Android 6 source: https://android.googlesource.com/platform/libcore/+/android-6.0.1_r46/luni/src/main/java/java/net/Socket.java
-      // KJA2 investigate if new socket calls have to be added on Android 6
+      // https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/Socket.java
+      // https://android.googlesource.com/platform/libcore/+/android-6.0.1_r63/luni/src/main/java/java/net/Socket.java
       "redir_13_java_net_Socket_ctor4",
       
       // ----- Methods not present in appguard_apis.txt, but which were present in jellybean_publishedapimapping_modified.txt ----- 
@@ -210,10 +211,6 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
       // ----- Methods present in appguard_apis.txt -----
       // Android 6 source: https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r46/core/java/android/os/PowerManager.java#1127
       "redir_android_os_PowerManager_WakeLock_release0",
-      // KJA2 looks like openFileDescriptor3 should be monitored instead. 
-      // KJA2 Same story with query5/query6 
-      // See C:\my\local\repos\googlesource\platform_frameworks_base_v601_r46\core\java\android\content\ContentResolver.java
-      // Then update and comment C:\my\local\repos\github\droidmate\dev\droidmate\projects\resources\appguard_apis.txt
       "redir_android_content_ContentResolver_openFileDescriptor2",
       "redir_android_content_ContentResolver_query5",
       

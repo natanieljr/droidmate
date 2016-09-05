@@ -1,37 +1,55 @@
-# Copyright (c) 2012-2016 Saarland University
-# All rights reserved.
+# DroidMate, an automated execution generator for Android apps.
+# Copyright (C) 2012-2016 Konrad Jamrozik
 #
-# Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# This file is part of the "DroidMate" project.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# www.droidmate.org
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# -----
-#
+# email: jamrozik@st.cs.uni-saarland.de
+# web: www.droidmate.org
+
 # This file defines list of Android SDK APIs monitored during DroidMate run.
 #
-# The list was originally adapted from AppGuard. Details are explained in a private repository:
+# The methods are written in the "class" file format
+# http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3
+# with the optional " static" word appended at the end. Please note the space at the beginning.
+#
+# ------
+#
+# The list was originally adapted from AppGuard from MonitorInitializer.java. 
+# Details of that .java file are explained in a private repository:
 # https://hg.st.cs.uni-saarland.de/projects/droidmate-private/repository/revisions/master/entry/resources/from_Philipp/appguard_apis_list_origin.txt
 #
-# The manual adaptations of this list were made to make it compatible with Android 4.4.4-r2.0.1 [1] and Android 6.
-# [1] https://github.com/android/platform_frameworks_base/tree/android-4.4.4_r2.0.1/core/java/android
+# The manual adaptations of this list were made to make it compatible with 
+# API19 / Android 4.4.4-r2.0.1 [1] and API2 / Android 6.0.1_r63 [2]
+# [1] https://android.googlesource.com/platform/frameworks/base.git/+/android-4.4.4_r2.0.1
+# [2] https://android.googlesource.com/platform/frameworks/base.git/+/android-6.0.1_r63
 #
-# The modification were done by
+# The first set of modifications, to make sure the methods work on API 19, were done by
 # 1. deploying the instrumented monitored app on the device,
 # 2. observing the logcat messages with "Instrumentation" tag,
 # 3. diagnosing any failures and comparing the list definitions with the official source,
 # 4. fixing the list and writing down the findings in comments in this file.
+#
+# The second of set of modifications was done in similar way, but with API23 which uses ArtHook.
+# To understand how to diagnose method signatures here that cannot be handled by ArtHook (which is used for Android 6), 
+# read the class comment of org.droidmate.monitor.RedirectionsGenerator
 #
 # ------
 #
 # Entries starting with !API19 will be skipped when running on Android 4 (API 19) because they do not exist there.
 # Entries starting with !API23 will be skipped when running on Android 6 (API 23) because they do not exist there.
 #
-# ------
-# 
-# To understand how to diagnose method signatures here that cannot be handled by ArtHook (which is used for Android 6), 
-# read the class comment of org.droidmate.monitor.RedirectionsGenerator
+
 
 Landroid/app/ActivityThread;->installContentProviders(Landroid/content/Context;Ljava/util/List;)V
 Landroid/app/ActivityManager;->getRecentTasks(II)Ljava/util/List;
@@ -69,21 +87,6 @@ Landroid/bluetooth/BluetoothHeadset;->stopVoiceRecognition(Landroid/bluetooth/Bl
 #
 #Landroid/bluetooth/HeadsetBase;->acquireWakeLock()V
 #Landroid/bluetooth/HeadsetBase;->releaseWakeLock()V
-
-Landroid/content/ContentProviderClient;->bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I
-Landroid/content/ContentProviderClient;->delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I
-Landroid/content/ContentProviderClient;->insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;
-Landroid/content/ContentProviderClient;->openFile(Landroid/net/Uri;Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;
-Landroid/content/ContentProviderClient;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;
-Landroid/content/ContentProviderClient;->update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I
-Landroid/content/ContentResolver;->bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I
-Landroid/content/ContentResolver;->delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I
-Landroid/content/ContentResolver;->insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;
-Landroid/content/ContentResolver;->openFileDescriptor(Landroid/net/Uri;Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;
-Landroid/content/ContentResolver;->openInputStream(Landroid/net/Uri;)Ljava/io/InputStream;
-Landroid/content/ContentResolver;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;
-Landroid/content/ContentResolver;->registerContentObserver(Landroid/net/Uri;ZLandroid/database/ContentObserver;)V
-Landroid/content/ContentResolver;->update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I
 
 # Just delegates to the call below. See:
 # https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/hardware/Camera.java#L319
@@ -330,57 +333,6 @@ Landroid/telephony/TelephonyManager;->listen(Landroid/telephony/PhoneStateListen
 Landroid/webkit/WebView;->loadDataWithBaseURL(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V
 Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;Ljava/util/Map;)V
-Ljava/net/DatagramSocket;->connect(Ljava/net/InetAddress;I)V
-Ljava/net/DatagramSocket;->connect(Ljava/net/SocketAddress;)V
-
-# Instrumentation fails:
-# 10-09 19:35:44.456  10187-10187/? W/Instrumentation? Failed to redirect method java.net.HttpURLConnection->connect
-#
-# Failure reason: the method doesn't actually exist in the class [1]; instead, it is inherited from [2].
-# However [2] also cannot be monitored due to:
-# 10-09 19:53:46.226  10965-10965/org.droidmate.fixtures.apks.monitored W/Instrumentation? Skipping abstract method: connect V
-# 10-09 19:53:46.226  10965-10965/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method java.net.URLConnection->connect to org.droidmate.monitor_generator.generated.Monitor->redir_java_net_URLConnection_connect0
-#
-# [1] https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/HttpURLConnection.java
-# [2] https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/URLConnection.java#167
-#     Ljava/net/URLConnection;->connect()V
-#
-#Ljava/net/HttpURLConnection;->connect()V
-
-Ljava/net/MulticastSocket;->joinGroup(Ljava/net/InetAddress;)V
-Ljava/net/MulticastSocket;->joinGroup(Ljava/net/SocketAddress;Ljava/net/NetworkInterface;)V
-Ljava/net/Socket;-><init>(Ljava/lang/String;I)V
-Ljava/net/Socket;-><init>(Ljava/lang/String;ILjava/net/InetAddress;I)V
-Ljava/net/Socket;-><init>(Ljava/lang/String;IZ)V
-Ljava/net/Socket;-><init>(Ljava/net/InetAddress;I)V
-Ljava/net/Socket;-><init>(Ljava/net/InetAddress;ILjava/net/InetAddress;I)V
-Ljava/net/Socket;-><init>(Ljava/net/InetAddress;IZ)V
-Ljava/net/Socket;->connect(Ljava/net/SocketAddress;)V
-Ljava/net/Socket;->connect(Ljava/net/SocketAddress;I)V
-Ljava/net/URL;->openConnection()Ljava/net/URLConnection;
-
-# Instrumentation fails, but workaround is applied.
-# // forgot to copy-paste here the instrumentation failure log
-#
-# DefaultHttpClient doesn't actually contain the execute() method [1]. It inherits it from AbstractHttpClient [2].
-#
-# Furthermore, all the execute() methods are really just delegates to AbstractHttpClient.execute(HttpHost, HttpRequest, HttpContext) [2]
-#
-# [1] https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/DefaultHttpClient.java
-# [2] https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/AbstractHttpClient.java#514
-#
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;)Lorg/apache/http/HttpResponse;
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;Lorg/apache/http/client/ResponseHandler;)Ljava/lang/Object;
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;Lorg/apache/http/client/ResponseHandler;Lorg/apache/http/protocol/HttpContext;)Ljava/lang/Object;
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/client/methods/HttpUriRequest;)Lorg/apache/http/HttpResponse;
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/client/methods/HttpUriRequest;Lorg/apache/http/client/ResponseHandler;)Ljava/lang/Object;
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/client/methods/HttpUriRequest;Lorg/apache/http/client/ResponseHandler;Lorg/apache/http/protocol/HttpContext;)Ljava/lang/Object;
-#Lorg/apache/http/impl/client/DefaultHttpClient;->execute(Lorg/apache/http/client/methods/HttpUriRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;
-#
-# Workaround below:
-# Here is the method that actually needs to be monitored [2], as all the others delegate to it:
-Lorg/apache/http/impl/client/AbstractHttpClient;->execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;
 
 # APIs added on 9 Jun 2016 to enable sensitive dataflow leaks. Obtained from Vitalii. 
 # Taken from "apis_art.txt" that should be located in the same dir as this file.
@@ -390,7 +342,7 @@ Lorg/apache/http/impl/client/AbstractHttpClient;->execute(Lorg/apache/http/HttpH
 # ! If this method call is commented out, asserts for api23 in method org.droidmate.frontend.DroidmateFrontendTest#exploreOnRealDevice will have to be changed.
 # !API19 Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I static
 
-# While these methods were present in the original MonitorInitalizer.java in AppGuard, 
+# While these methods were present in the original MonitorInitializer.java in AppGuard, 
 # they pertain to activity lifecycle and thus are very common and not security-critical. 
 # For this reason they are not monitored.
 # ! If this method call is commented out, asserts for api23 in method org.droidmate.frontend.DroidmateFrontendTest#exploreOnRealDevice will have to be changed.
@@ -406,3 +358,226 @@ Lorg/apache/http/impl/client/AbstractHttpClient;->execute(Lorg/apache/http/HttpH
 # !API19 Ljava/io/FileOutputStream;->write([BII)V
 # !API19 Ljava/io/FileOutputStream;->write(I)V
 # !API19 Ljava/io/FileOutputStream;->write([B)V
+
+# ========================================
+# NETWORKING APIs
+# ========================================
+# 
+# Reviewed on 22 Aug 2016 for Android 6.0.1_r63.
+# Might break on Android 4.4.4_r2.0.1, although developer.android.com doc is the same.
+# API comments pertain to 6.0.1_r63
+
+# ========== java.net.Socket documentation
+# https://developer.android.com/reference/java/net/Socket.html
+# https://android.googlesource.com/platform/libcore/+/android-6.0.1_r63/luni/src/main/java/java/net/Socket.java
+# https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/Socket.java
+
+# ========== java.net.Socket constructors
+
+# SECURITY-IRRELEVANT: it doesn't actually connect anywhere, and doesn't contain any server address.
+## Ljava/net/Socket;-><init>()V
+
+# Similar to no-arg constructor, but takes as param SocketAddress which might contain server address.
+Ljava/net/Socket;-><init>(Ljava/net/Proxy;)V
+
+# REDUNDANT: delegates to <init>(Ljava/lang/String;ILjava/net/InetAddress;I)V
+## Ljava/net/Socket;-><init>(Ljava/lang/String;I)V
+
+# Calls no-arg constructor and then tryAllAddresses(dstName, dstPort, localAddress, localPort, streaming=true)
+Ljava/net/Socket;-><init>(Ljava/lang/String;ILjava/net/InetAddress;I)V
+
+# @Deprecated. Calls no-arg constructor and then tryAllAddresses(hostName, port, null, 0, streaming)
+Ljava/net/Socket;-><init>(Ljava/lang/String;IZ)V
+
+# Calls: no-arg constructor, checkDestination, startupSocket
+Ljava/net/Socket;-><init>(Ljava/net/InetAddress;I)V
+
+# Calls: no-arg constructor, checkDestination, startupSocket
+Ljava/net/Socket;-><init>(Ljava/net/InetAddress;ILjava/net/InetAddress;I)V
+
+# @Deprecated. Calls: no-arg constructor, checkDestination, startupSocket
+Ljava/net/Socket;-><init>(Ljava/net/InetAddress;IZ)V
+
+# SECURITY-IRRELEVANT: protected, used only in private or test code.
+## Ljava/net/Socket;-><init>(Ljava/net/SocketImpl;)V
+
+# ========== java.net.Socket methods
+
+# REDUNDANT: delegates to Ljava/net/Socket;->connect(Ljava/net/SocketAddress;I)V
+## Ljava/net/Socket;->connect(Ljava/net/SocketAddress;)V
+
+Ljava/net/Socket;->connect(Ljava/net/SocketAddress;I)V
+
+# ========== java.net.DatagramSocket constructors
+
+# Calls: checkPort, createSocket
+Ljava/net/DatagramSocket;-><init>(I)V
+
+# Calls: checkPort, createSocket
+Ljava/net/DatagramSocket;-><init>(ILjava/net/InetAddress;)V
+
+Ljava/net/DatagramSocket;-><init>(Ljava/net/SocketAddress;)V
+
+# Note that there are other constructors. They have been manually inspected and determined to be redundant.
+
+# ========== java.net.DatagramSocket methods
+
+Ljava/net/DatagramSocket;->connect(Ljava/net/SocketAddress;)V
+
+# REDUNDANT: delegates to the Ljava/net/DatagramSocket;->connect(Ljava/net/SocketAddress;)V
+## Ljava/net/DatagramSocket;->connect(Ljava/net/InetAddress;I)V
+
+# ========== java.net.MulticastSocket constructors
+
+# All MulticastSocket constructors call super, which is DatagramSocket constructor, which should be monitored.
+
+# ========== java.net.MulticastSocket methods
+
+# From method javadoc: "A socket must join a group before data may be received". Thus these methods are monitored.
+Ljava/net/MulticastSocket;->joinGroup(Ljava/net/InetAddress;)V
+Ljava/net/MulticastSocket;->joinGroup(Ljava/net/SocketAddress;Ljava/net/NetworkInterface;)V
+
+# ========== java.net.URL constructors
+
+# REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;Ljava/net/URLStreamHandler;)V
+## Ljava/net/URL;-><init>(Ljava/lang/String;)V
+
+# REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;Ljava/net/URLStreamHandler;)V
+## Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;)V
+
+Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;Ljava/net/URLStreamHandler;)V
+
+# REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/net/URLStreamHandler;)V
+##Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+
+# REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/net/URLStreamHandler;)V
+##Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V
+
+Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/net/URLStreamHandler;)V
+
+# ========== java.net.URL methods
+
+# Fundamental methods for establishing connections, as described here: https://developer.android.com/reference/java/net/HttpURLConnection.html
+Ljava/net/URL;->openConnection()Ljava/net/URLConnection;
+Ljava/net/URL;->openConnection(Ljava/net/Proxy;)Ljava/net/URLConnection;
+
+# ========== java.net.URLConnection documentation
+# https://developer.android.com/reference/java/net/URLConnection.html
+
+# ========== java.net.URLConnection constructors
+
+# API23 (ArtHook) error: "Can't find original method (redir_9_java_net_URLConnection_ctor1)" 
+# Possibly because the method is "protected".
+## Ljava/net/URLConnection;-><init>(Ljava/net/URL;)V
+
+# ========== java.net.URLConnection methods
+
+!API19 Ljava/net/URLConnection;->connect()V
+# This method is part of a general connection lifecycle as described in the doc (see above)
+# Note that the http implementation of URLConnection, the HttpURLConnection doesn't actually use connect() method. 
+# Instead of connection, one writes to OutputStream, as described here: 
+# https://developer.android.com/reference/java/net/HttpURLConnection.html
+#
+# In the AppGuard's MonitorInitializer.java following method is defined to be monitored:
+# Ljava/net/HttpURLConnection;->connect()V
+# But its instrumentation fails:
+# 10-09 19:35:44.456  10187-10187/? W/Instrumentation? Failed to redirect method java.net.HttpURLConnection->connect
+#
+# Failure reason: the method doesn't actually exist in the class HttpURLConnection [1];
+# instead, it is inherited from URLConnection [2]. However URLConnection also cannot be monitored in API 19 due to:
+# 10-09 19:53:46.226  10965-10965/org.droidmate.fixtures.apks.monitored W/Instrumentation? Skipping abstract method: connect V
+# 10-09 19:53:46.226  10965-10965/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method java.net.URLConnection->connect to org.droidmate.monitor_generator.generated.Monitor->redir_java_net_URLConnection_connect0
+#
+# Nevertheless, it works on API23, so it is monitored on it.
+#
+# [1] https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/HttpURLConnection.java
+# [2] https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/URLConnection.java#167
+
+# ========== org.apache.http.impl.client.AbstractHttpClient
+
+# Note: this class as well as its implementation, DefaultHttpClient, are deprecated and HttpURLConnection should be used instead.
+# This is explained here: https://developer.android.com/reference/org/apache/http/impl/client/DefaultHttpClient.html
+
+# Note: AppGuard's MonitorInitializer.java monitors a set of "execute" methods of DefaultHttpClient, but it doesn't work on API19:
+#
+# DefaultHttpClient doesn't actually contain the execute() method [1]. It inherits it from AbstractHttpClient [2].
+#
+# Furthermore, all the execute() methods are really just delegates to AbstractHttpClient.execute(HttpHost, HttpRequest, HttpContext) [2]
+#
+# [1] https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/DefaultHttpClient.java
+# [2] https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/AbstractHttpClient.java#514
+
+# API23 sources:
+# https://android.googlesource.com/platform/external/apache-http/+/android-6.0.1_r63/src/org/apache/http/impl/client/DefaultHttpClient.java
+# https://android.googlesource.com/platform/external/apache-http/+/android-6.0.1_r63/src/org/apache/http/impl/client/AbstractHttpClient.java
+
+# Here is the method that actually needs to be monitored [2], as all the other execute() methods delegate to it:
+Lorg/apache/http/impl/client/AbstractHttpClient;->execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;
+
+# ========================================
+# End of NETWORKING APIs
+# ========================================
+
+# ========================================
+# CONTENT PROVIDER APIs  
+# ========================================
+#
+# Reviewed on 23 Aug 2016 for Android 6.0.1_r63.
+# Might break on Android 4.4.4_r2.0.1.
+# API comments pertain to 6.0.1_r63
+#
+# Intro to content APIs from official doc: 
+# https://developer.android.com/guide/topics/providers/content-providers.html
+# On class difference
+# http://stackoverflow.com/questions/5084896/using-contentproviderclient-vs-contentresolver-to-access-content-provider
+
+# ========== android.content.ContentResolver documentation
+# https://developer.android.com/reference/android/content/ContentResolver.html
+# https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r63/core/java/android/content/ContentResolver.java
+# https://android.googlesource.com/platform/frameworks/base/+/android-4.4.4_r2.0.1/core/java/android/content/ContentResolver.java
+
+# ========== android.content.ContentResolver 
+
+# APIs unchanged from AppGuard's MonitorInitializer.java
+Landroid/content/ContentResolver;->bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I
+Landroid/content/ContentResolver;->delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I
+Landroid/content/ContentResolver;->insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;
+Landroid/content/ContentResolver;->update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I
+Landroid/content/ContentResolver;->openInputStream(Landroid/net/Uri;)Ljava/io/InputStream;
+# Note: openOutputStream methods are not monitored as they ultimately are redundant: they call openAssetFileDescriptor, which should be monitored.
+
+# REDUNDANT: originally present in AppGuard's MonitorInitializer.java, but it delegates to 3-param openFileDescriptor, which in turn just delegates to openAssetFileDescriptor.
+## Landroid/content/ContentResolver;->openFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/os/ParcelFileDescriptor;
+# REDUNDANT: delegates to 3-param openAssetFileDescriptor
+## Landroid/content/ContentResolver;->openFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/os/ParcelFileDescriptor;
+# Note: there are also openTypedAssertFileDescriptor() methods that ultimately delegate to this one.
+Landroid/content/ContentResolver;->openAssetFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;
+
+# Note: there is a 2-arg query() method that just delegates to this one.
+Landroid/content/ContentResolver;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;
+
+# Note: there is a 3-arg registerContentObserver() method that just delegates to this one.
+Landroid/content/ContentResolver;->registerContentObserver(Landroid/net/Uri;ZLandroid/database/ContentObserver;I)V
+
+# ========== android.content.ContentProviderClient
+
+# APIs unchanged from AppGuard's MonitorInitializer.java
+Landroid/content/ContentProviderClient;->bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I
+Landroid/content/ContentProviderClient;->delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I
+Landroid/content/ContentProviderClient;->insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;
+Landroid/content/ContentProviderClient;->update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I
+
+# REDUNDANT: delegates to 3-arg openFile
+# Landroid/content/ContentProviderClient;->openFile(Landroid/net/Uri;Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;
+Landroid/content/ContentProviderClient;->openFile(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/os/ParcelFileDescriptor;
+# Note: there is a 2-arg openAssetFile() that just delegates to this one.
+Landroid/content/ContentProviderClient;->openAssetFile(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;
+Landroid/content/ContentProviderClient;->openTypedAssetFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;
+
+# REDUNDANT: delegates to the  6-arg query() method.
+## Landroid/content/ContentProviderClient;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;
+Landroid/content/ContentProviderClient;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;
+
+# ========================================
+# End of CONTENT PROVIDER APIs 
+# ========================================

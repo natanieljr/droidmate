@@ -41,5 +41,16 @@ class extensions_miscKtTest {
         "Value of var_1 is 777, value of xyz is magic, and again, 777 is the value of var_1."
       ))
   }
+
+  @Test
+  fun setByUniqueStringTest() {
+    assertThat(
+      listOf(5, 6, 9, 10, 13, 29, 50, 60).setByUniqueString(
+        extractItems = { listOf(it, it + 1) },
+        uniqueString = { it.toString().dropLast(1) }
+      ),
+      equalTo(setOf(5, 10, 29, 30, 50, 60))
+    )
+  }
 }
 

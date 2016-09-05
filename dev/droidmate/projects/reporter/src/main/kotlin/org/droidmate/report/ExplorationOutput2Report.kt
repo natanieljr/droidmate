@@ -19,30 +19,49 @@
 package org.droidmate.report
 
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
 class ExplorationOutput2Report(rawData: List<IApkExplorationOutput2>, val dir: Path) {
 
-  companion object { val fileNameSummary = "summary.txt" }
-
+  private val log: Logger = LoggerFactory.getLogger(ExplorationOutput2Report::class.java)
+  
   val data: List<IApkExplorationOutput2>
 
   init { data = rawData.withFilteredApiLogs }
-
-  val summaryFile: IDataFile by lazy { Summary(data, dir.resolve(fileNameSummary)) }
-
-  val tabularReports: List<TabularDataReport> by lazy { data.map { TabularDataReport(it, dir) } }
-
-  val txtReportFiles: List<Path> by lazy {
-    listOf(summaryFile.path) + tabularReports.flatMap { it.paths }
-  }
-
+  
   fun writeOut(includePlots : Boolean = true, includeSummary: Boolean = true) {
+
+    log.info("Writing out exploration report to $dir")
     
     if (includeSummary)
       summaryFile.writeOut()
     
-    tabularReports.forEach { it.writeOut(includePlots) }
+    aggregateStatsFile.writeOut()
+
+    apksTabularReports.forEach { it.writeOut(includePlots) }
+
+    apksViewsFiles.forEach { it.writeOut() }
+  }
+
+  val summaryFile: IDataFile by lazy { Summary(data, dir.resolve(fileNameSummary)) }
+
+  val aggregateStatsFile: TableDataFile<Int, String, String> by lazy {
+    TableDataFile(AggregateStatsTable(data), dir.resolve(fileNameAggregateStats))
+  }
+  
+  val apksTabularReports: List<ApkTabularDataReport> by lazy { data.map { ApkTabularDataReport(it, dir) } }
+  val apksViewsFiles: List<ApkViewsFile> by lazy { data.map {ApkViewsFile(it, dir) } }
+
+  companion object { 
+    val fileNameSummary = "summary.txt"
+    val fileNameAggregateStats = "aggregate_stats.txt"
+  }
+
+  val txtReportFiles: List<Path> by lazy {
+    listOf(summaryFile.path, aggregateStatsFile.path) +
+      apksTabularReports.flatMap { it.paths } +
+      apksViewsFiles.map { it.path }
   }
 }
-

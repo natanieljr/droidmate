@@ -18,6 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import org.droidmate.device.datatypes.Widget
+import org.droidmate.exploration.strategy.WidgetStrategy
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Duration
@@ -50,4 +52,21 @@ val Duration.minutesAndSeconds: String get() {
   val m = this.toMinutes()
   val s = this.seconds - m * 60
   return "$m".padStart(4, ' ') + "m " + "$s".padStart(2, ' ') + "s"
+}
+
+val Widget.uniqueString: String get() {
+  return WidgetStrategy.WidgetInfo(this).uniqueString
+}
+
+fun <T, TItem> Iterable<T>.setByUniqueString(
+  extractItems: (T) -> Iterable<TItem>,
+  uniqueString: (TItem) -> String
+): Set<TItem> {
+
+  val grouped: Map<String, List<TItem>> = this.flatMap { extractItems(it) }.groupBy { uniqueString(it) }
+  val uniquesByString: Map<String, TItem> = grouped.mapValues { it.value.first() }
+  val uniques: Collection<TItem> = uniquesByString.values
+  val uniquesSet = uniques.toSet()
+  check(uniques.size == uniquesSet.size)
+  return uniquesSet
 }

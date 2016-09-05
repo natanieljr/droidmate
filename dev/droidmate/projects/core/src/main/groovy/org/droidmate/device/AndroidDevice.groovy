@@ -20,11 +20,10 @@
 package org.droidmate.device
 
 import groovy.util.logging.Slf4j
-import org.droidmate.MonitorConstants
 import org.droidmate.android_sdk.IAdbWrapper
 import org.droidmate.android_sdk.IApk
-import org.droidmate.common.Boolean3
-import org.droidmate.common.logcat.TimeFormattedLogcatMessage
+import org.droidmate.apis.ITimeFormattedLogcatMessage
+import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.*
 import org.droidmate.device.model.DeviceModel
@@ -33,8 +32,9 @@ import org.droidmate.exceptions.DeviceException
 import org.droidmate.exceptions.DeviceNeedsRebootException
 import org.droidmate.exceptions.NoAndroidDevicesAvailableException
 import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
-import org.droidmate.logcat.ITimeFormattedLogcatMessage
 import org.droidmate.logging.LogbackUtils
+import org.droidmate.misc.Boolean3
+import org.droidmate.misc.MonitorConstants
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiautomatorWindowHierarchyDumpDeviceResponse
@@ -47,6 +47,7 @@ import java.util.List
 
 import static org.droidmate.device.datatypes.AndroidDeviceAction.newLaunchAppDeviceAction
 import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
+
 /**
  * <p>
  * <i> --- This doc was last reviewed on 21 Dec 2013.</i>
@@ -262,9 +263,9 @@ public class AndroidDevice implements IAndroidDevice
   void removeLogcatLogFile() throws DeviceException
   {
     log.debug("removeLogcatLogFile()")
-    if (cfg.androidApi == "api19")
+    if (cfg.androidApi == Configuration.api19)
       this.adbWrapper.removeFile_api19(this.serialNumber, logcatLogFileName)
-    else if (cfg.androidApi == "api23")
+    else if (cfg.androidApi == Configuration.api23)
       this.adbWrapper.removeFile_api23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
     else throw new UnexpectedIfElseFallthroughError()
   }
@@ -273,9 +274,9 @@ public class AndroidDevice implements IAndroidDevice
   void pullLogcatLogFile() throws DeviceException
   {
     log.debug("pullLogcatLogFile()")
-    if (cfg.androidApi == "api19")
+    if (cfg.androidApi == Configuration.api19)
       this.adbWrapper.pullFile_api19(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"))
-    else if (cfg.androidApi == "api23")
+    else if (cfg.androidApi == Configuration.api23)
       this.adbWrapper.pullFile_api23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
     else throw new UnexpectedIfElseFallthroughError()
   }

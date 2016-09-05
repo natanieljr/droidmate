@@ -23,18 +23,18 @@ import groovy.time.TimeCategory
 import groovy.time.TimeDuration
 import groovy.util.logging.Slf4j
 import org.droidmate.command.DroidmateCommand
-import org.droidmate.common.DroidmateException
-import org.droidmate.common.logging.LogbackConstants
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
+import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
+import org.droidmate.misc.DroidmateException
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.time.LocalDate
 
 import static LogbackConstants.system_prop_stdout_loglevel
-import static org.droidmate.common.logging.Markers.runData
+import static org.droidmate.logging.Markers.runData
 
 /**
  * <p>
@@ -56,9 +56,15 @@ public class DroidmateFrontend
 
   public static int main(String[] args, ICommandProvider commandProvider, FileSystem fs = FileSystems.getDefault(), IExceptionHandler exceptionHandler = new ExceptionHandler())
   {
-    println "DroidMate"
-    println "Copyright (c) 2012 - ${LocalDate.now().year} Saarland University"
-    println "All rights reserved."
+    println "DroidMate, an automated execution generator for Android apps."
+    println "Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik"
+    println "This program is free software licensed under GNU GPL v3."
+    println ""
+    println "You should have received a copy of the GNU General Public License"
+    println "along with this program.  If not, see <http://www.gnu.org/licenses/>."
+    println ""
+    println "email: jamrozik@st.cs.uni-saarland.de"
+    println "web: www.droidmate.org"
 
     int exitStatus = 0
     Date runStart = new Date()

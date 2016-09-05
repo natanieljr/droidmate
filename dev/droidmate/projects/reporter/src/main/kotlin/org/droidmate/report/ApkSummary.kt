@@ -20,13 +20,12 @@ package org.droidmate.report
 
 import com.konradjamrozik.Resource
 import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
-import org.droidmate.common.logging.LogbackConstants
+import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exceptions.DeviceException
 import org.droidmate.exceptions.DeviceExceptionMissing
-import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
-import org.droidmate.logcat.IApiLogcatMessage
+import org.droidmate.logging.LogbackConstants
 import java.time.Duration
 
 class ApkSummary() {
@@ -100,7 +99,7 @@ class ApkSummary() {
       appPackageName = data.packageName,
       totalRunTime = data.explorationDuration,
       totalActionsCount = data.actRess.size,
-      totalResetsCount = data.actions.count { it.base is ResetAppExplorationAction },
+      totalResetsCount = data.resetActionsCount,
       exception = data.exception,
       uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
       apiEntries = uniqueApiLogsWithFirstTriggeringActionIndex.map {
@@ -176,4 +175,3 @@ class ApkSummary() {
     }
   }
 }
-

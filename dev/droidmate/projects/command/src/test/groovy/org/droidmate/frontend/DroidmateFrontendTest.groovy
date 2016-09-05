@@ -20,8 +20,8 @@ package org.droidmate.frontend
 
 import com.google.common.base.Throwables
 import org.droidmate.android_sdk.AaptWrapperStub
+import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.command.ExploreCommand
-import org.droidmate.common.BuildConstants
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.device_simulation.AndroidDeviceSimulator
@@ -34,14 +34,14 @@ import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.exploration.strategy.ExplorationStrategy
 import org.droidmate.filesystem.MockFileSystem
-import org.droidmate.logcat.IApiLogcatMessage
+import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.TimeGenerator
 import org.droidmate.report.OutputDir
 import org.droidmate.storage.Storage2
-import org.droidmate.test_base.DroidmateGroovyTestCase
 import org.droidmate.test_helpers.configuration.ConfigurationForTests
 import org.droidmate.test_suite_categories.RequiresDevice
 import org.droidmate.test_suite_categories.RequiresSimulator
+import org.droidmate.tests.DroidmateGroovyTestCase
 import org.droidmate.tools.DeviceToolsMock
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -173,6 +173,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
     assert exitStatus != 0
 
+    // KJA test failure. Probably because I call "belongsToApp" on a null Widget. See IApkExplActAndResult extensions in reporter project.
     assert spy.handledThrowable instanceof ThrowablesCollection
     assert spy.throwables.size() == exceptionSpecs.size()
     assert spy.throwables.collect {Throwables.getRootCause(it) as ITestException}*.exceptionSpec == exceptionSpecs
@@ -227,9 +228,10 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
     String[] args = new ConfigurationForTests().forDevice().setArgs([
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api19_name]",
       Configuration.pn_widgetIndexes, "[0, 1]",
+      Configuration.pn_androidApi, Configuration.api19,
     ]).get().args
 
-    exploreOnRealDevice(args, "api19")
+    exploreOnRealDevice(args, Configuration.api19)
   }
 
 
@@ -241,11 +243,11 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
     String[] args = new ConfigurationForTests().forDevice().setArgs([
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
       Configuration.pn_widgetIndexes, "[0, 1, 2, 2, 2]",
-      Configuration.pn_androidApi, "api23",
+      Configuration.pn_androidApi, Configuration.api23,
       Configuration.pn_xPrivacyConfigurationFile, "20160801_154831_XPrivacy_3.6.19_bullhead.xml"
     ]).get().args
 
-    exploreOnRealDevice(args, "api23")
+    exploreOnRealDevice(args, Configuration.api23)
   }
 
   /**
@@ -260,7 +262,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
    * </p><p>
    * The test will make DroidMate output results to {@code BuildConstants.test_temp_dir_name}.
    * To ensure logs are also output there, run this test with VM arg of {@code -DlogsDir="temp_dir_for_tests/logs"}.
-   * Note that {@code logsDir} is defined in {@code org.droidmate.common.logging.LogbackConstants.getLogsDirPath}.
+   * Note that {@code logsDir} is defined in {@code org.droidmate.logging.LogbackConstants.getLogsDirPath}.
    *
    * </p>
    */
@@ -277,7 +279,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
     IApkExplorationOutput2 apkOut = outputDir.explorationOutput2.findSingle()
 
     List<List<IApiLogcatMessage>> apiLogs = apkOut?.apiLogs
-    if (api == "api19")
+    if (api == Configuration.api19)
     {
       assert apiLogs.size() == 4
 
@@ -287,11 +289,11 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       def terminateAppApiLogs = apiLogs[3]
 
       assert resetAppApiLogs*.methodName == []
-      assert clickApiLogs*.methodName == ["openConnection"]
+      assert clickApiLogs*.methodName == ["<init>", "openConnection"]
       assert launchActivity2Logs*.methodName == []
       assert terminateAppApiLogs.empty
     }
-    else if (api == "api23")
+    else if (api == Configuration.api23)
     {
       // Api logs' structure (Android 6):
       //  [0] Reset
@@ -312,7 +314,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       def terminateAppApiLogs = apiLogs[6]
 
       assert resetAppApiLogs*.methodName == []
-      assert clickApiLogs*.methodName == ["openConnection"]
+      assert clickApiLogs*.methodName == ["<init>", "openConnection"]
       assert openPermissionDialogApiLogs.methodName == []
       assert onResumeApiLogs*.methodName == []
       assert cameraApiLogs*.methodName == ["open"]

@@ -22,10 +22,9 @@ apply from: project(":projects").file("debug.gradle")
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-// See explanation for equivalent lines in ":projects:command:build.gradle"
-configurations {forceJunitPriority}
-sourceSets.test.runtimeClasspath = configurations.forceJunitPriority + sourceSets.test.runtimeClasspath
-sourceSets.test.compileClasspath = configurations.forceJunitPriority + sourceSets.test.compileClasspath
+dependOnJunit(project)
+dependWithTest(project, ":projects:lib-kotlin", "kotlin")
+dependWithTest(project, ":projects:lib-common", "groovy")
 
 dependencies {
 
@@ -33,12 +32,8 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-simple"
   }
 
-  forceJunitPriority 'junit:junit:4.12'
-  testCompile 'junit:junit:4.12'
   testCompile 'org.hamcrest:hamcrest-core:1.3'
 
-  compile project(":projects:lib-common")
-  compile project(":projects:lib-kotlin")
   compile project(":projects:uiautomator-daemon-lib")
 
   compile 'com.beust:jcommander:1.35'
@@ -60,25 +55,13 @@ dependencies {
 
   // Only for org.droidmate.tests_misc.JavaReprosTest.BBoxError
   testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
-
 }
 
 apply from: file("resources.gradle")
 
+configureTest(project, ['**/LibKotlinTestSuite.class'])
 test.configure {
-
   inputs.dir apkFixturesDir.absolutePath
-
-  /* The tests have to be run from root project dir (droidmate) for the classpaths to be properly resolved.
-
-  API reference:
-  workingDir  http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.testing.Test.html
-  rootDir     http://www.gradle.org/docs/current/dsl/org.gradle.api.Project.html
-  */
-  workingDir rootDir
-
-   /* Lurking bug: GRADLE-1682. See :projects:command:test doc for more.*/
-   includes = ['']
 }
 //endregion Testing tasks
 
