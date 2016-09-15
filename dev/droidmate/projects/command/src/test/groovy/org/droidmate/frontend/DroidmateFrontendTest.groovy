@@ -50,6 +50,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
+import groovy.io.FileType
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -244,10 +246,68 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
       Configuration.pn_widgetIndexes, "[0, 1, 2, 2, 2]",
       Configuration.pn_androidApi, Configuration.api23,
-      Configuration.pn_xPrivacyConfigurationFile, "20160801_154831_XPrivacy_3.6.19_bullhead.xml"
+      Configuration.pn_xPrivacyConfigurationFile, "proof_of_concept_allow.xml"
     ]).get().args
 
     exploreOnRealDevice(args, Configuration.api23)
+
+    assert true
+  }
+
+  @Category([RequiresDevice])
+  @Test
+  public void "Unpack .SER files"()
+  {
+    // Parameters
+    //def dirStr = 'output_device1'
+    def dirStr = 'C:/Users/natan_000/Desktop/Saarland/Courses/Thesis/data/first_run/output_device1'
+    def outputStr = 'raw_data'
+    def fs = FileSystems.default
+
+    // Setup output dir
+    def outputDir = fs.getPath(dirStr, outputStr)
+    outputDir.createDirIfNotExists()
+
+    // Initialize storage
+    def droidmateOutputDirPath = fs.getPath(dirStr)
+    def storage2 = new Storage2(droidmateOutputDirPath)
+
+    // Process files
+    droidmateOutputDirPath.eachFileRecurse (FileType.FILES) {file ->
+      System.out.println(file + "")
+      //if (((String)(file + "")).contains('de.wortundbildverlag.mobil.apotheke.ser2'))
+      if (((String)(file + "")).contains('.ser2'))
+      {
+        // Get data
+        IApkExplorationOutput2 obj = storage2.deserialize(file)
+        String packageName = obj.apk.packageName
+
+        // Create new output dir
+        def newDir = fs.getPath(dirStr, outputStr, packageName)
+        newDir.deleteDir()
+        newDir.createDirIfNotExists()
+
+        // For each action
+        //for (int i = 15; i < obj.actRess.size(); ++i)
+        for (int i = 0; i < obj.actRess.size(); ++i)
+        {
+          def newActionFile = fs.getPath(dirStr, outputStr, packageName, "A" + i)
+          def action = obj.actRess[i].action.toString()
+          Files.write(newActionFile, action.getBytes())
+
+          def newResultFile = fs.getPath(dirStr, outputStr, packageName, "R" + i)
+          String result
+          if (obj.actRess[i].result.successful)
+            result = obj.actRess[i].result.guiSnapshot.windowHierarchyDump
+          else
+            result = ""
+
+          Files.write(newResultFile, result.getBytes());
+        }
+      }
+    }
+
+    assert true
   }
 
   /**
