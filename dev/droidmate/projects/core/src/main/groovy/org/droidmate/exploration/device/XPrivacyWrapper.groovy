@@ -25,7 +25,7 @@ import static org.droidmate.device.datatypes.AndroidDeviceAction.newLoadXPrivacy
  * Current implementation was developed with XPrivacy 3.6.19
  * Reference: https://github.com/M66B/XPrivacy#frequently-asked-questions
  *
- * @author Konrad Jamrozik
+ * @author Nataniel Borges Jr.
  */
 class XPrivacyWrapper
 {

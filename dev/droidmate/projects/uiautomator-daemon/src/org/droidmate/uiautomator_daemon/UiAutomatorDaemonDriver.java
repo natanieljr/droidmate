@@ -152,13 +152,6 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       } else if (action.guiActionCommand.equals(guiActionCommand_turnWifiOn))
       {
         turnWifiOnAndGoHome();
-      } else if (action.guiActionCommand.startsWith(guiActionCommand_loadXPrivacyConfig))
-      {
-        loadXPrivacyConfig(action.guiActionCommand);
-      } else if (action.guiActionCommand.equals(guiActionCommand_launchApp))
-      {
-        launchApp(action.resourceId);
-
       } else
       {
         throw new UiAutomatorDaemonException(String.format("Unrecognized GUI action command: %s",
@@ -231,87 +224,6 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
     deviceResponse.isNaturalOrientation = ui.getUiDevice().isNaturalOrientation();
 
     return deviceResponse;
-  }
-
-  private void loadXPrivacyConfig(String actionCommand)
-  {
-    Log.d(uiaDaemon_logcatTag, "Loading XPrivacy configuration file.");
-
-    // Extract the configuration file name
-    String fileName = actionCommand.split("=")[1];
-    Log.d(uiaDaemon_logcatTag, "Filename = " + fileName);
-
-    try
-    {
-      launchApp("XPrivacy");
-
-      String XPrivacy = "biz.bokhorst.xprivacy";
-      String XPrivacyToolbar = XPrivacy + ":id/widgetToolbar";
-      String XPrivacyOkButton = XPrivacy + ":id/btnOk";
-      UiObject toolbar = new UiObject(new UiSelector().resourceId(XPrivacyToolbar));
-      Log.e(uiaDaemon_logcatTag, "1");
-      // Locate the toolbar
-      UiObject buttonSet = toolbar.getChild(new UiSelector().index(2));
-      Log.e(uiaDaemon_logcatTag, "2");
-      UiObject menuButton = buttonSet.getChild(new UiSelector().index(1));
-      Log.e(uiaDaemon_logcatTag, "3");
-      // Click to open the menu
-      menuButton.click();
-      waitForGuiToStabilize();
-      Log.e(uiaDaemon_logcatTag, "4");
-
-      // Select "Operations …" item from menu
-      UiObject operationsButton = new UiObject(new UiSelector().text("Operations …"));
-      waitForGuiToStabilize();
-      Log.e(uiaDaemon_logcatTag, "5");
-      // Select "Import"
-      UiObject importButton = new UiObject(new UiSelector().text("Import"));
-      Log.e(uiaDaemon_logcatTag, "6");
-      importButton.click();
-      waitForGuiToStabilize();
-      Log.e(uiaDaemon_logcatTag, "7");
-
-      // Select configuration file
-      UiObject fileManagerButton = new UiObject(new UiSelector().text("OI File Manager"));
-      Log.e(uiaDaemon_logcatTag, "8");
-      fileManagerButton.click();
-      waitForGuiToStabilize();
-      Log.e(uiaDaemon_logcatTag, "9");
-
-      UiObject textInput = new UiObject(new UiSelector().text("File name"));
-      textInput.setText(fileName);
-      Log.e(uiaDaemon_logcatTag, "10");
-
-      UiObject pickFileButton = new UiObject(new UiSelector().text("Pick file"));
-      Log.e(uiaDaemon_logcatTag, "11");
-      pickFileButton.click();
-      waitForGuiToStabilize();
-      Log.e(uiaDaemon_logcatTag, "12");
-
-      UiObject okButton = new UiObject(new UiSelector().resourceId(XPrivacyOkButton));
-      Log.e(uiaDaemon_logcatTag, "13");
-      okButton.click();
-      waitForGuiToStabilize();
-      Log.e(uiaDaemon_logcatTag, "14");
-
-      okButton.click();
-      waitForGuiToStabilize();
-      Log.e(uiaDaemon_logcatTag, "15");
-
-      // Return to home
-      ui.getUiDevice().pressHome();
-      waitForGuiToStabilize();
-    }
-    catch (UiObjectNotFoundException ex)
-    {
-      Log.e(uiaDaemon_logcatTag, "Failed to import XPrivacy configuration.");
-    }
-    catch (UiAutomatorDaemonException ex)
-    {
-      Log.e(uiaDaemon_logcatTag, "Failed to start XPrivacy.");
-    }
-
-    Log.d(uiaDaemon_logcatTag, "XPrivacy configuration file loaded.");
   }
 
   private void turnWifiOnAndGoHome()
