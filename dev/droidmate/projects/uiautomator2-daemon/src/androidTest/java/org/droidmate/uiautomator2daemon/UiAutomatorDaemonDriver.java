@@ -372,7 +372,7 @@ class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
    * -----<br/>
    * </p>
    * [wfi]: {@link android.support.test.uiautomator.UiDevice#waitForIdle()}<br/>
-   * [wfi2]: {@code android.support.test.uiautomator.UiAutomatorBridge#waitForIdle(long)}<br/>
+   * [wfi2] {@code android.support.test.uiautomator.UiAutomatorBridge#waitForIdle(long)}<br/>
    * [wfi3]: {@link android.app.UiAutomation#waitForIdle(long, long)}<br/>
    * [qti]: {@code android.support.test.uiautomator.UiAutomatorBridge#QUIET_TIME_TO_BE_CONSIDERD_IDLE_STATE}<br/>
    * [wfwu]: {@link android.support.test.uiautomator.UiDevice#waitForWindowUpdate(String, long)}<br/>

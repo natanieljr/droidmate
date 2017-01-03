@@ -29,6 +29,7 @@ import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
 import org.droidmate.exceptions.DeviceException
 import org.droidmate.exceptions.ThrowablesCollection
+import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.exploration.device.IRobustDevice
@@ -56,10 +57,10 @@ class ExploreCommand extends DroidmateCommand
   private final IStorage2                           storage2
 
   ExploreCommand(
-    IApksProvider apksProvider, 
-    IAndroidDeviceDeployer deviceDeployer, 
-    IApkDeployer apkDeployer, 
-    IExploration exploration, 
+    IApksProvider apksProvider,
+    IAndroidDeviceDeployer deviceDeployer,
+    IApkDeployer apkDeployer,
+    IExploration exploration,
     IStorage2 storage2)
   {
     this.apksProvider = apksProvider
@@ -150,7 +151,22 @@ class ExploreCommand extends DroidmateCommand
     }
 
     new ExplorationOutput2Report(out, cfg.droidmateOutputDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
-    
+
+    int i = 0;
+    for (IApkExplorationOutput2 expl : out)
+      for (RunnableExplorationActionWithResult actWRes : expl.getActRess())
+      {
+        actWRes.result.guiSnapshot.windowHierarchyDump
+        PrintWriter output = new PrintWriter( "windowHierarchyDump" + i + ".xml" )
+        output.println( actWRes.result.guiSnapshot.windowHierarchyDump );
+        output.close()
+        output = new PrintWriter( "action" + i + ".txt" )
+        output.println( actWRes.action.toString() );
+        output.close()
+
+        ++i;
+      }
+
     return explorationExceptions
   }
 

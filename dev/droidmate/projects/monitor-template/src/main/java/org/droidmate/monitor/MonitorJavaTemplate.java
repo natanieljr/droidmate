@@ -131,9 +131,10 @@ public class MonitorJavaTemplate
     // org.droidmate.monitor.MonitorSrcTemplate:API_19_UNCOMMENT_LINES
     // Instrumentation.processClass(Monitor.class);
     // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-    
-    // org.droidmate.monitor.MonitorSrcTemplate:API_23_UNCOMMENT_LINES
+
     // ArtHook.hook(Monitor.class);
+    // org.droidmate.monitor.MonitorSrcTemplate:API_23_UNCOMMENT_LINES
+    // Log.d(MonitorConstants.tag_srv, "Disabling ArtHook...");
     // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
 
     redirectConstructors();
@@ -233,10 +234,10 @@ public class MonitorJavaTemplate
           // org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
           // monitorHook.finalizeMonitorHook();
           // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-          
-          // In addition to the logic above, this command is handled in 
+
+          // In addition to the logic above, this command is handled in
           // org.droidmate.monitor.MonitorJavaTemplate.MonitorTCPServer.shouldCloseServerSocket
-          
+
           return new ArrayList<ArrayList<String>>();
 
         } else
@@ -258,7 +259,7 @@ public class MonitorJavaTemplate
     /**
      * <p>
      * This method removes calls to {@code Socket.<init>} made by the DroidMate monitor from current set of recorded api logs
-     * {@code currentLogs}. In addition, it ensures the logs do not come from messages logged by the MonitorTCPServer or 
+     * {@code currentLogs}. In addition, it ensures the logs do not come from messages logged by the MonitorTCPServer or
      * MonitorJavaTemplate itself. This would be a bug and thus it will cause an assertion failure in this method.
      *
      * </p><p>
@@ -408,7 +409,7 @@ public class MonitorJavaTemplate
       {
         serverSocket.close();
         Log.d(thisClassName, "Closed server socket with port: "+port);
-        
+
       } catch (IOException e)
       {
         Log.e(thisClassName, "Failed to close server socket.");
@@ -727,7 +728,7 @@ public class MonitorJavaTemplate
   // public static IMonitorHook monitorHook = new MonitorHook();
   // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
   //endregion
-  
+
   //region Generated code
 
   private static void redirectConstructors()

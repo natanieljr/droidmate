@@ -260,7 +260,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
   {
     // Parameters
     //def dirStr = 'output_device1'
-    def dirStr = 'C:/Users/natan_000/Desktop/Saarland/Courses/Thesis/data/first_run/output_device1'
+    def dirStr = 'C:/Users/natan_000/Desktop/Saarland/repositories/automatic-permission-tightening/data/exploration/1-api-blocked'
     def outputStr = 'raw_data'
     def fs = FileSystems.default
 
@@ -278,24 +278,27 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
       //if (((String)(file + "")).contains('de.wortundbildverlag.mobil.apotheke.ser2'))
       if (((String)(file + "")).contains('.ser2'))
       {
+        outputDir = fs.getPath((String)file.getParent(), outputStr)
+        outputDir.createDirIfNotExists()
+
         // Get data
         IApkExplorationOutput2 obj = storage2.deserialize(file)
         String packageName = obj.apk.packageName
 
         // Create new output dir
-        def newDir = fs.getPath(dirStr, outputStr, packageName)
-        newDir.deleteDir()
-        newDir.createDirIfNotExists()
+        //def newDir = fs.getPath(dirStr, outputStr, packageName)
+        //newDir.deleteDir()
+        //newDir.createDirIfNotExists()
 
         // For each action
         //for (int i = 15; i < obj.actRess.size(); ++i)
         for (int i = 0; i < obj.actRess.size(); ++i)
         {
-          def newActionFile = fs.getPath(dirStr, outputStr, packageName, "A" + i)
+          def newActionFile = fs.getPath((String)file.getParent(), outputStr, "action" + i + ".txt")
           def action = obj.actRess[i].action.toString()
           Files.write(newActionFile, action.getBytes())
 
-          def newResultFile = fs.getPath(dirStr, outputStr, packageName, "R" + i)
+          def newResultFile = fs.getPath((String)file.getParent(), outputStr, "windowHierarchyDump" + i + ".xml")
           String result
           if (obj.actRess[i].result.successful)
             result = obj.actRess[i].result.guiSnapshot.windowHierarchyDump

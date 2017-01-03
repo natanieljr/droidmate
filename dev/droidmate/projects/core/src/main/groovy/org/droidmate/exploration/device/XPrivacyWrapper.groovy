@@ -46,11 +46,11 @@ class XPrivacyWrapper
     return this.configurationFileName.length() > 0
   }
 
-  public void pullConfigurationFile(String targetFileName)
+  /*public void pullConfigurationFile(String targetFileName)
   {
     String sourceFile = UiautomatorDaemonConstants.xPrivacyDirectory + this.configurationFileName
     this.device.pullFile(sourceFile, targetFileName)
-  }
+  }*/
 
   private void pushConfigurationFile()
   {
@@ -60,7 +60,7 @@ class XPrivacyWrapper
     this.device.pushFile(path, this.targetFileName, UiautomatorDaemonConstants.xPrivacyDirectory)
   }
 
-  public File loadConfiguration()
+  public void loadConfiguration()
   {
     this.pushConfigurationFile()
     device.clickAppIcon("XPrivacy")
