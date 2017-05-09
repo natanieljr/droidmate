@@ -18,10 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.device
 
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IAdbWrapper
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
-import org.droidmate.exceptions.TcpServerUnreachableException
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
@@ -29,7 +27,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 class UiautomatorDaemonClient implements IUiautomatorDaemonClient
 {
 
-  private final ISerializableTCPClient<DeviceCommand, DeviceResponse> client
+  private final ITcpClientBase<DeviceCommand, DeviceResponse> client
 
   private final IAdbWrapper adbWrapper
   private final String      deviceSerialNumber
@@ -47,11 +45,11 @@ class UiautomatorDaemonClient implements IUiautomatorDaemonClient
     this.serverStartTimeout = serverStartTimeout
     this.serverStartQueryDelay = serverStartQueryDelay
 
-    this.client = new SerializableTCPClient<DeviceCommand, DeviceResponse>(socketTimeout)
+    this.client = new TcpClientBase<DeviceCommand, DeviceResponse>(socketTimeout)
   }
 
   @Override
-  DeviceResponse sendCommandToUiautomatorDaemon(DeviceCommand deviceCommand) throws DeviceNeedsRebootException, TcpServerUnreachableException, DeviceException
+  DeviceResponse sendCommandToUiautomatorDaemon(DeviceCommand deviceCommand) throws DeviceException
   {
     this.client.queryServer(deviceCommand, this.port)
   }
@@ -69,7 +67,7 @@ class UiautomatorDaemonClient implements IUiautomatorDaemonClient
 
     validateUiaDaemonServerStartLogcatMessages()
 
-    assert getUiaDaemonThreadIsAlive()
+    assert uiaDaemonThreadIsAlive
 
   }
 
@@ -90,7 +88,14 @@ class UiautomatorDaemonClient implements IUiautomatorDaemonClient
   }
 
   @Override
-  public boolean getUiaDaemonThreadIsAlive()
+  boolean getUiaDaemonThreadIsNull()
+  {
+    return this.uiaDaemonThread == null
+  }
+
+
+  @Override
+  boolean getUiaDaemonThreadIsAlive()
   {
     assert this.uiaDaemonThread != null
     return this.uiaDaemonThread.alive
@@ -102,12 +107,13 @@ class UiautomatorDaemonClient implements IUiautomatorDaemonClient
   }
 
   @Override
-  public void waitForUiaDaemonToClose() throws DeviceException
+  void waitForUiaDaemonToClose() throws DeviceException
   {
     assert (uiaDaemonThread != null)
     try
     {
       uiaDaemonThread.join()
+      assert !uiaDaemonThreadIsAlive
     } catch (InterruptedException e)
     {
       throw new DeviceException(e)

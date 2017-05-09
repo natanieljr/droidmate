@@ -18,20 +18,12 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.device
 
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
-
-import java.time.LocalDateTime
 
 interface IDeviceMessagesReader
 {
-  LocalDateTime readMonitorMessages() throws DeviceException
-
-  List<ITimeFormattedLogcatMessage> readInstrumentationMessages() throws DeviceException
-
-  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer() throws DeviceNeedsRebootException, DeviceException
+  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer() throws DeviceException
 
   void resetTimeSync()
 }

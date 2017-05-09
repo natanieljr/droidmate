@@ -23,12 +23,11 @@ import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
 import groovy.util.logging.Slf4j
 import org.droidmate.configuration.Configuration
-import org.droidmate.exceptions.AdbWrapperException
-import org.droidmate.exceptions.NoAndroidDevicesAvailableException
-import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
+import org.droidmate.misc.Utils
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
 import java.nio.file.Files
@@ -44,8 +43,9 @@ import java.nio.file.Paths
  *
  * @author Konrad Jamrozik
  */
+// WISH for commands using sysCmdExecutor.execute, use instead this.executeCommand
 @Slf4j
-public class AdbWrapper implements IAdbWrapper
+class AdbWrapper implements IAdbWrapper
 {
 
   private final Configuration   cfg
@@ -60,7 +60,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public List<AndroidDeviceDescriptor> getAndroidDevicesDescriptors() throws AdbWrapperException
+  List<AndroidDeviceDescriptor> getAndroidDevicesDescriptors() throws AdbWrapperException
   {
     assert cfg.adbCommand != null
 
@@ -121,7 +121,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void installApk(String deviceSerialNumber, Path apkToInstall)
+  void installApk(String deviceSerialNumber, Path apkToInstall)
     throws AdbWrapperException
   {
     assert cfg.adbCommand != null
@@ -153,7 +153,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void installApk(String deviceSerialNumber, IApk apkToInstall)
+  void installApk(String deviceSerialNumber, IApk apkToInstall)
     throws AdbWrapperException
   {
     Path apkFile = Paths.get(apkToInstall.absolutePath)
@@ -161,7 +161,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void uninstallApk(String deviceSerialNumber, String apkPackageName, boolean ignoreFailure)
+  void uninstallApk(String deviceSerialNumber, String apkPackageName, boolean ignoreFailure)
     throws AdbWrapperException
   {
     assert deviceSerialNumber != null
@@ -182,7 +182,7 @@ public class AdbWrapper implements IAdbWrapper
       // "Failure" is what the adb's "uninstall" command outputs when it fails.
       if (!ignoreFailure && stdout.contains("Failure"))
         throw new AdbWrapperException("Failed to uninstall the apk package $apkPackageName.")
-
+      
       if (ignoreFailure && stdout.contains("Failure"))
         log.trace("Ignored failure of uninstalling of $apkPackageName.")
 
@@ -193,9 +193,9 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void forwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
+  void forwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
   {
-    log.trace("forwardPort($deviceSerialNumber, $port)")
+//    log.trace("forwardPort(deviceSerialNumber:$deviceSerialNumber, port:$port)")
     assert deviceSerialNumber != null
 
     try
@@ -252,7 +252,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void reboot(String deviceSerialNumber) throws AdbWrapperException
+  void reboot(String deviceSerialNumber) throws AdbWrapperException
   {
     assert deviceSerialNumber != null
 
@@ -271,7 +271,7 @@ public class AdbWrapper implements IAdbWrapper
 
 
   @Override
-  public List<String> readMessagesFromLogcat(String deviceSerialNumber, String messageTag) throws AdbWrapperException
+   List<String> readMessagesFromLogcat(String deviceSerialNumber, String messageTag) throws AdbWrapperException
   {
     try
     {
@@ -370,7 +370,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void clearLogcat(String deviceSerialNumber) throws AdbWrapperException
+  void clearLogcat(String deviceSerialNumber) throws AdbWrapperException
   {
     try
     {
@@ -389,7 +389,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public List<String> waitForMessagesOnLogcat(
+   List<String> waitForMessagesOnLogcat(
     String deviceSerialNumber, String messageTag, int minMessagesCount, int waitTimeout, int queryDelay)
     throws AdbWrapperException
   {
@@ -432,7 +432,7 @@ public class AdbWrapper implements IAdbWrapper
 
 
   @Override
-  public void killAdbServer() throws AdbWrapperException
+  void killAdbServer() throws AdbWrapperException
   {
     try
     {
@@ -450,7 +450,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void startAdbServer() throws AdbWrapperException
+  void startAdbServer() throws AdbWrapperException
   {
     Process p
     try
@@ -486,30 +486,28 @@ public class AdbWrapper implements IAdbWrapper
 
 
   @Override
-  public void pushFile(String deviceSerialNumber, Path sourceFile, String targetFileName = null, String targetDirectory = null) throws AdbWrapperException
+  void pushJar(String deviceSerialNumber, Path jarFile, String targetFileName = null) throws AdbWrapperException
   {
     assert cfg.adbCommand != null
     assert deviceSerialNumber != null
     // A new path must be created, otherwise this will result in a ProviderMismatchException
     // More information here: http://stackoverflow.com/questions/22611919/why-do-i-get-providermismatchexception-when-i-try-to-relativize-a-path-agains
-    assert sourceFile != null
-    Path path = Paths.get(sourceFile.toUri())
+    assert jarFile != null
+    Path path = Paths.get(jarFile.toUri())
     assert Files.exists(path) && !Files.isDirectory(path)
 
     String commandDescription = String
       .format(
       "Executing adb to push %s on Android Device with s/n %s.",
-      sourceFile.fileName.toString(), deviceSerialNumber)
+      jarFile.fileName.toString(), deviceSerialNumber)
 
-    if (targetDirectory == null)
-      targetDirectory = BuildConstants.AVD_dir_for_temp_files
     try
     {
       // Executed command based on step 4 from:
       // http://developer.android.com/tools/testing/testing_ui.html#builddeploy
       sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
         "-s", deviceSerialNumber,
-        "push", sourceFile.toAbsolutePath().toString(), targetDirectory + (targetFileName ?: "") )
+        "push", jarFile.toAbsolutePath().toString(), BuildConstants.AVD_dir_for_temp_files + (targetFileName ?: "") )
 
     } catch (SysCmdExecutorException e)
     {
@@ -518,7 +516,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void removeFile(String deviceSerialNumber, Path file) throws AdbWrapperException
+  void removeJar(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
   {
     assert cfg.adbCommand != null
     assert deviceSerialNumber != null
@@ -526,7 +524,7 @@ public class AdbWrapper implements IAdbWrapper
     String commandDescription = String
       .format(
       "Executing adb to remove %s from Android Device with s/n %s.",
-      file.fileName.toString(), deviceSerialNumber)
+      jarFile.fileName.toString(), deviceSerialNumber)
 
     try
     {
@@ -536,7 +534,7 @@ public class AdbWrapper implements IAdbWrapper
       // Hint: to list files to manually check if the file was deleted, use: adb shell ls
       sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
         "-s", deviceSerialNumber,
-        "shell", "rm", BuildConstants.AVD_dir_for_temp_files + file.fileName.toString())
+        "shell", "rm", BuildConstants.AVD_dir_for_temp_files + jarFile.fileName.toString())
 
     } catch (SysCmdExecutorException e)
     {
@@ -545,7 +543,7 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void launchMainActivity(String deviceSerialNumber, String launchableActivityComponentName) throws AdbWrapperException
+  void launchMainActivity(String deviceSerialNumber, String launchableActivityComponentName) throws AdbWrapperException
   {
     try
     {
@@ -578,7 +576,7 @@ public class AdbWrapper implements IAdbWrapper
 
     } catch (SysCmdExecutorException e)
     {
-      throw new AdbWrapperException("Executing 'adb shell am start <INTENT>' failed. Oh my.", e)
+      throw new AdbWrapperException("Executing 'adb shell am start' of '$launchableActivityComponentName' failed. Oh my.", e)
     }
   }
 
@@ -588,7 +586,7 @@ public class AdbWrapper implements IAdbWrapper
    * @param apkPackageName
    */
   @Override
-  public boolean clearPackage(String deviceSerialNumber, String apkPackageName) throws AdbWrapperException
+  boolean clearPackage(String deviceSerialNumber, String apkPackageName) throws AdbWrapperException
   {
     try
     {
@@ -617,11 +615,9 @@ public class AdbWrapper implements IAdbWrapper
   }
 
   @Override
-  public void startUiautomatorDaemon(String deviceSerialNumber, int port) throws AdbWrapperException
+  void startUiautomatorDaemon(String deviceSerialNumber, int port) throws AdbWrapperException
   {
-    if (cfg.androidApi == Configuration.api19)
-      startUiautomatorDaemon_api19(deviceSerialNumber, port)
-    else if (cfg.androidApi == Configuration.api23)
+    if (cfg.androidApi == Configuration.api23)
       startUiautomatorDaemon_api23(deviceSerialNumber, port)
     else throw new UnexpectedIfElseFallthroughError()
   }
@@ -660,40 +656,6 @@ public class AdbWrapper implements IAdbWrapper
     validateInstrumentation(stdStreams, failureString)
   }
 
-  private void startUiautomatorDaemon_api19(String deviceSerialNumber, int port) throws AdbWrapperException
-  {
-
-    String commandDescription = String
-      .format(
-      "Executing adb to start UiAutomatorDaemon.init() method on Android Device with " +
-        "s/n %s.",
-      deviceSerialNumber)
-
-    String uiaDaemonCmdLine = String.format("-c %s -e %s %s -e %s %s -e %s %s",
-      UiautomatorDaemonConstants.uiaDaemon_initMethodName,
-      UiautomatorDaemonConstants.uiaDaemonParam_waitForGuiToStabilize, cfg.uiautomatorDaemonWaitForGuiToStabilize,
-      UiautomatorDaemonConstants.uiaDaemonParam_waitForWindowUpdateTimeout, cfg.uiautomatorDaemonWaitForWindowUpdateTimeout,
-      UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
-
-    def failureString = "Executing 'adb -s $deviceSerialNumber shell uiautomator runtest ${cfg.uiautomatorDaemonJar.fileName.toString()} $uiaDaemonCmdLine' failed. Oh my."
-    String[] stdStreams
-    try
-    {
-      stdStreams = this.sysCmdExecutor.executeWithoutTimeout(commandDescription, cfg.adbCommand,
-        "-s", deviceSerialNumber,
-        "shell uiautomator runtest",
-        cfg.uiautomatorDaemonJar.fileName.toString(),
-        uiaDaemonCmdLine)
-
-    } catch (SysCmdExecutorException e)
-    {
-      throw new AdbWrapperException(failureString, e)
-    }
-
-    validateInstrumentation(stdStreams, failureString)
-  }
-
-
   private void validateInstrumentation(String[] stdStreams, GString failureString)
   {
     if (stdStreams[0].contains("INSTRUMENTATION_FAILED"))
@@ -704,34 +666,6 @@ public class AdbWrapper implements IAdbWrapper
     }
   }
 
-  @Override
-  void pullFile_api19(String deviceSerialNumber, String pulledFileName, String destinationFilePath) throws AdbWrapperException
-  {
-    assert deviceSerialNumber != null
-    assert pulledFileName?.size() > 0
-    assert destinationFilePath?.size() > 0
-
-    assert Files.notExists(Paths.get(destinationFilePath))
-
-    String pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api19 + pulledFileName
-    String commandDescription = String
-      .format(
-      "Executing adb to pull file %s from Android Device with s/n %s.",
-      pulledFilePath, deviceSerialNumber)
-
-    try
-    {
-      sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
-        "-s", deviceSerialNumber,
-        "pull", pulledFilePath, destinationFilePath)
-
-    } catch (SysCmdExecutorException e)
-    {
-      throw new AdbWrapperException("Executing 'adb pull ...' failed. Oh my.", e)
-    }
-  }
-
-  @Override
   /**
    * Pull file from the device.
    *
@@ -742,6 +676,7 @@ public class AdbWrapper implements IAdbWrapper
    * More information:
    *   http://stackoverflow.com/questions/18471780/android-adb-retrieve-database-using-run-as
    */
+  @Override
   void pullFile_api23(String deviceSerialNumber, String pulledFileName, String destinationFilePath, String shellPackageName) throws AdbWrapperException
   {
     assert deviceSerialNumber != null
@@ -752,60 +687,21 @@ public class AdbWrapper implements IAdbWrapper
     assert Files.notExists(Paths.get(destinationFilePath))
 
     String pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + pulledFileName
-    String commandDescription = String
-      .format(
-      "Executing adb to pull file %s from Android Device with s/n %s.",
-      pulledFilePath, deviceSerialNumber)
 
-    try
-    {
-      String[] stdStreams = sysCmdExecutor.execute(
-        commandDescription, cfg.adbCommand,
-        "-s", deviceSerialNumber,
-        "exec-out",
-        "run-as", shellPackageName,
-        "cat", pulledFilePath)
+    String stdout = this.executeCommand(deviceSerialNumber, "", "Pull file (API23 compatibility)", 
+    "exec-out run-as", shellPackageName, "cat", pulledFilePath)
 
-      FileWriter writer = new FileWriter(destinationFilePath)
-      writer.write(stdStreams[0])
-      writer.close()
-
-    } catch (SysCmdExecutorException e)
-    {
-      throw new AdbWrapperException("Executing 'adb pull ...' failed. Oh my.", e)
-    }
+    FileWriter writer = new FileWriter(destinationFilePath)
+    writer.write(stdout)
+    writer.close()
   }
 
-  void removeFile_api19(String deviceSerialNumber, String fileName) throws AdbWrapperException
-  {
-    assert deviceSerialNumber != null
-    assert fileName != null
-    assert fileName.size() > 0
-
-    String filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api19 + fileName
-    String commandDescription = String
-      .format(
-      "Executing adb to delete file %s from Android Device with s/n %s.",
-      filePath, deviceSerialNumber)
-
-    try
-    {
-      sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
-        "-s", deviceSerialNumber,
-        "shell rm", filePath)
-
-    } catch (SysCmdExecutorException e)
-    {
-      throw new AdbWrapperException("Executing 'adb shell rm ...' failed. Oh my.", e)
-    }
-  }
-
-  @Override
   /**
    * Remove a file from the device
    *
    * See explanation about the shellPackageName parameter in {@link org.droidmate.android_sdk.AdbWrapper#pullFile_api23}
    */
+  @Override
   void removeFile_api23(String deviceSerialNumber, String fileName, String shellPackageName) throws AdbWrapperException
   {
     assert deviceSerialNumber != null
@@ -813,23 +709,64 @@ public class AdbWrapper implements IAdbWrapper
     assert fileName.size() > 0
     assert !shellPackageName?.empty
 
-    String filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + fileName
-    String commandDescription = String
-      .format(
-      "Executing adb to delete file %s from Android Device with s/n %s.",
-      filePath, deviceSerialNumber)
+    try {
+      String filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + fileName
+      this.executeCommand(deviceSerialNumber, "", "Delete file (API23 compatibility).",
+              "shell run-as", shellPackageName, "rm", filePath)
+    }
+    catch(Exception e)
+    {
+      // Logcat file does not exist on new devices, therefore it crashes on the first attempt
+      if (!fileName.contains("droidmate_logcat"))
+        throw e;
+    }
+  }
 
+
+  // adb instructions to take screenshot learned from: 
+  // http://blog.shvetsov.com/2013/02/grab-android-screenshot-to-computer-via.html
+  @Override
+  void takeScreenshot(String deviceSerialNumber, String targetPath) throws AdbWrapperException
+  {
+    assert deviceSerialNumber != null
+    assert !targetPath?.empty
+    
+    String devicePath = "sdcard/temp_screenshot.png"
+    
+    this.executeCommand(deviceSerialNumber, "", "Take screenshot step 1: take screenshot.", "shell screencap -p", devicePath)
+    this.executeCommand(deviceSerialNumber, "", "Take screenshot step 2: pull screenshot.", "pull", devicePath, targetPath)
+    this.executeCommand(deviceSerialNumber, "", "Take screenshot step 3: remove screenshot on device.", "shell rm", devicePath)
+  }
+
+  @Override
+  void reconnect(String deviceSerialNumber) throws AdbWrapperException
+  {
+    // Sometimes (roughly 50% of cases) instead of "done" it prints out "error: no devices/emulators found"
+    this.executeCommand(deviceSerialNumber, "", "reconnect", "reconnect")
+    this.executeCommand(deviceSerialNumber, "", "wait-for-device", "wait-for-device")
+  }
+
+  @Override
+  String executeCommand(String deviceSerialNumber, String successfulOutput, String commandDescription, String... cmdLineParams) 
+    throws AdbWrapperException
+  {
+    String[] allCmdLineParams = ([cfg.adbCommand, "-s", deviceSerialNumber] as String[]) + cmdLineParams
+    String[] stdStreams
     try
     {
-      sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
-        "-s", deviceSerialNumber,
-        "shell run-as", shellPackageName,
-        "rm", filePath)
-
+      stdStreams = sysCmdExecutor.execute(commandDescription, allCmdLineParams)
     } catch (SysCmdExecutorException e)
     {
-      throw new AdbWrapperException("Executing 'adb shell rm ...' failed. Oh my.", e)
+      throw new AdbWrapperException("Executing adb command '${allCmdLineParams.join(" ")}' failed", e)
     }
+
+    assert stdStreams.size() == 2
+    if (!stdStreams[0].startsWith(successfulOutput))
+      throw new AdbWrapperException("After executing adb command of '${allCmdLineParams.join(" ")}', " +
+        "expected stdout to have '$successfulOutput'. " +
+        "Instead, stdout had '${stdStreams[0].trim()}' and stderr had '${stdStreams[1].trim()}'.")
+    
+    return stdStreams[0]
   }
 
   @SuppressWarnings("GroovyUnusedDeclaration")

@@ -18,16 +18,15 @@
 // web: www.droidmate.org
 package org.droidmate.device
 
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
+import org.droidmate.android_sdk.DeviceException
 
 interface IMonitorsClient
 {
-  boolean anyMonitorIsReachable() throws DeviceNeedsRebootException, DeviceException
+  boolean anyMonitorIsReachable() throws DeviceException
 
-  ArrayList<ArrayList<String>> getCurrentTime() throws DeviceNeedsRebootException, DeviceException
+  ArrayList<ArrayList<String>> getCurrentTime() throws DeviceException
 
-  ArrayList<ArrayList<String>> getLogs() throws DeviceNeedsRebootException, DeviceException
+  ArrayList<ArrayList<String>> getLogs() throws DeviceException
 
   void closeMonitorServers() throws DeviceException
 

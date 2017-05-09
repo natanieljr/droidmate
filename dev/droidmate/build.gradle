@@ -17,16 +17,9 @@
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
 
-allprojects {
-  group = "org.droidmate"
-  version = "dev"
-}
-
-ext.kotlin_version = '1.0.3'
-
 buildscript {
 
-  ext.utilities_version = 'f7e0d5d163'
+  ext.utilities_version = '69e2f87ea6'
 
   repositories {
     mavenLocal()
@@ -37,6 +30,15 @@ buildscript {
   dependencies {
     classpath "com.github.konrad-jamrozik:utilities:$utilities_version"
   }
+}
+plugins {
+  id "org.jetbrains.kotlin.jvm" version "1.1.1"
+}
+ext.kotlin_version = '1.1.1'
+
+allprojects {
+  group = "org.droidmate"
+  version = "dev"
 }
 
 subprojects {

@@ -20,7 +20,7 @@
 package org.droidmate.logging
 
 
-public class LogbackConstants
+class LogbackConstants
 {
 
   public static final String LOGS_DIR_PATH = getLogsDirPath()
@@ -42,21 +42,12 @@ public class LogbackConstants
     appender_name_stdStreams,
     appender_name_runData
   ]
-
-  @Deprecated
-  /**
-   * Denotes name of logger for logs that have been obtained from logcat from uiautomator-daemon classes during exploration.
-   */
-  public static final String logger_name_uiad = "From uiautomator-daemon logcat"
-
+  
   /**
    * Denotes name of logger for logs that have been obtained from logcat from the loaded monitor class during exploration.
    */
   public static final String logger_name_monitor = "from monitor"
-
-  @Deprecated
-  public static final String appender_name_uiad = "uiad.txt"
-
+  
   public static final String appender_name_monitor = "monitor.txt"
 
   public static final String system_prop_stdout_loglevel = "loglevel"
@@ -68,6 +59,8 @@ public class LogbackConstants
   public static final String appender_name_warnings = "warnings.txt"
 
   public static final String appender_name_runData = "run_data.txt"
+
+  public static final String appender_name_health = "app_health.txt"
 
   // WISH More exception hierarchy in the file: which exceptions came together, for which apk. E.g. Apk XYZ, Expl. Act. 150, EX1 attempt failed EX2 attempt failed E3 complete failure.
   public static final String appender_name_exceptions = "exceptions.txt"

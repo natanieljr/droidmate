@@ -20,7 +20,7 @@
 /*
  * The settings.gradle file is used to specify which projects to include in your build.
  * In a single module build this file can be empty or even removed.
- *
+ * 
  * Detailed information about configuring a multiproject build in Gradle can be found at
  * http://www.gradle.org/docs/current/userguide/multi_project_builds.html
  */
@@ -30,7 +30,6 @@ include(
   "projects:lib-kotlin",
   "projects:apk-inliner",
   "projects:uiautomator-daemon-lib",
-  "projects:uiautomator-daemon",
   "projects:uiautomator2-daemon-proxy",
   "projects:monitor-template",
   "projects:monitor-hook",
@@ -40,3 +39,14 @@ include(
   "projects:command",
   "DummyAndroidApp"
 )
+
+/* The path navigates from github/droidmate/dev/droidmate to github/utilities
+
+   Konrad Jamrozik's note to self: 
+   Commented out, as it will fail if the path is invalid, thus forcing anyone to also clone my utilities repository.
+   Instead, just configure IntelliJ to do composite build, but remember to actually publish any changes made to utilities and update
+   the version in dev/droidmate/buildSrc/build.gradle and dev/droidmate/build.gradle.
+   
+   Reference: https://docs.gradle.org/3.2.1/userguide/composite_builds.html
+*/
+// includeBuild('../../../utilities')

@@ -21,11 +21,11 @@ package org.droidmate.command.exploration
 
 import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.exceptions.DeviceException
 import org.droidmate.exploration.actions.IExplorationActionRunResult
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationAction
@@ -36,6 +36,7 @@ import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.strategy.ExplorationStrategy
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.IExplorationStrategyProvider
+import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
@@ -59,7 +60,7 @@ class Exploration implements IExploration
     this.strategyProvider = strategyProvider
   }
 
-  public static Exploration build(Configuration cfg,
+   static Exploration build(Configuration cfg,
                                   ITimeProvider timeProvider = new TimeProvider(),
                                   IExplorationStrategyProvider strategyProvider = {ExplorationStrategy.build(cfg)})
   {
@@ -89,13 +90,13 @@ class Exploration implements IExploration
     output.verify()
 
     if (output.exceptionIsPresent)
-      log.warn("! Encountered ${output.exception.class.simpleName} during the exploration of ${app.packageName} " +
+      log.warn(Markers.appHealth, "! Encountered ${output.exception.class.simpleName} during the exploration of ${app.packageName} " +
         "after already obtaining some exploration output.")
 
     return new Failable<IApkExplorationOutput2, DeviceException>(output, output.exceptionIsPresent ? output.exception : null)
   }
 
-  public IApkExplorationOutput2 explorationLoop(IApk app, IRobustDevice device)
+  IApkExplorationOutput2 explorationLoop(IApk app, IRobustDevice device)
   {
     // Construct initial action and run it on the device to obtain initial result.
     IRunnableExplorationAction action = RunnableExplorationAction.from(
@@ -151,7 +152,8 @@ class Exploration implements IExploration
     IDeviceGuiSnapshot initialGuiSnapshot = device.guiSnapshot
 
     if (!initialGuiSnapshot.guiState.isHomeScreen())
-      log.warn("An exploration process for $fileName is about to start but the device doesn't display home screen. " +
+      log.warn(Markers.appHealth, 
+        "An exploration process for $fileName is about to start but the device doesn't display home screen. " +
         "Instead, its GUI state is: $initialGuiSnapshot.guiState. " +
         "Continuing the exploration nevertheless, hoping that the first \"reset app\" " +
         "exploration action will force the device into the home screen.")

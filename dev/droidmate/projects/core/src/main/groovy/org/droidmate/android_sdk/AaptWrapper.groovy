@@ -19,11 +19,10 @@
 
 package org.droidmate.android_sdk
 
+import com.konradjamrozik.FirstMatchFirstGroup
 import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import org.droidmate.configuration.Configuration
-import org.droidmate.exceptions.LaunchableActivityNameProblemException
-import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
@@ -32,13 +31,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Matcher
 
-import static org.droidmate.android_sdk.Utils.getAndValidateFirstMatch
-
 /**
  * Wrapper for the {@code aapt} tool from Android SDK.
  */
 @Slf4j
-public class AaptWrapper implements IAaptWrapper
+ class AaptWrapper implements IAaptWrapper
 {
 
   private final Configuration   cfg
@@ -99,8 +96,8 @@ public class AaptWrapper implements IAaptWrapper
     String aaptBadgingDump = aaptDumpBadging(apk)
     String packageName = tryGetPackageNameFromBadgingDump(aaptBadgingDump)
 
-    assert packageName?.length() > 0;
-    return packageName;
+    assert packageName?.length() > 0
+    return packageName
   }
 
   @Override
@@ -138,16 +135,20 @@ public class AaptWrapper implements IAaptWrapper
   {
     assert aaptBadgingDump?.length() > 0
 
-    Matcher matcher = aaptBadgingDump =~ /(?:.*)application-label:'(.*)'.*/
-
-    if (matcher.size() == 0)
-      throw new DroidmateException("No application label found in 'aapt dump badging'")
-    else if (matcher.size() > 1)
-      throw new DroidmateException("More than one application label found in 'aapt dump badging'")
-    else
+    try
     {
-      String applicationLabel = getAndValidateFirstMatch(matcher)
-      return applicationLabel
+      def labelMatch = new FirstMatchFirstGroup(
+        aaptBadgingDump,
+        /application-label-en(?:.*):'(.*)'/,
+        /application-label-de(?:.*):'(.*)'/,
+        /application-label(?:.*):'(.*)'/,
+        /.*launchable-activity: name='(?:.*)'  label='(.*)' .*/,
+        
+      )
+      return labelMatch.value
+    } catch (Exception e)
+    {
+      throw new DroidmateException("No non-empty application label found in 'aapt dump badging'", e)
     }
   }
 
@@ -165,14 +166,26 @@ public class AaptWrapper implements IAaptWrapper
         throw e
       } else
       {
-        log.trace("While getting metadata for ${apk.toString()}, got an: $e Substituting null for the launchable activity (component) name.")
+        log.trace("While getting metadata for ${apk.toString()}, got an: $e " +
+          "Substituting null for the launchable activity (component) name.")
         activity = [null, null]
       }
-
-
     }
-
-    return [getPackageName(apk)] + activity + getApplicationLabel(apk)
+    
+    String applicationLabel
+    try
+    {
+      applicationLabel = getApplicationLabel(apk)
+    } catch (DroidmateException e)
+    {
+      if (activity == [null, null])
+        throw new NotEnoughDataToStartAppException("No launchable activity name is present and no non-empty application label is present, " +
+          "so the app cannot be launched by intent neither by clicking on its app icon (because it won't be there, due to " +
+          "missing label. Thus, the app is unworkable for DroidMate")
+      else
+        applicationLabel = null
+    }
+    return [getPackageName(apk)] + activity + applicationLabel
   }
 
   @Memoized
@@ -187,16 +200,8 @@ public class AaptWrapper implements IAaptWrapper
 
     try
     {
-      String aaptCommand
-      if (cfg.androidApi == Configuration.api19)
-        aaptCommand = cfg.aaptCommandApi19
-      else if (cfg.androidApi == Configuration.api23)
-        aaptCommand = cfg.aaptCommandApi23
-      else 
-        throw new UnexpectedIfElseFallthroughError()
-        
       outputStreams = sysCmdExecutor.execute(
-        commandDescription, aaptCommand, "dump badging", instrumentedApk.toAbsolutePath().toString())
+        commandDescription, cfg.aaptCommand, "dump badging", instrumentedApk.toAbsolutePath().toString())
 
     } catch (SysCmdExecutorException e)
     {
@@ -207,5 +212,13 @@ public class AaptWrapper implements IAaptWrapper
 
     assert aaptBadgingDump?.length() > 0
     return aaptBadgingDump
+  }
+
+  private static String getAndValidateFirstMatch(Matcher matcher)
+  {
+    String firstMatch = matcher[0][1]
+    assert firstMatch?.length() > 0
+    return firstMatch
+
   }
 }

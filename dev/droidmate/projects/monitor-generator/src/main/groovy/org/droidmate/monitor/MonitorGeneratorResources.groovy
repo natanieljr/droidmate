@@ -35,25 +35,20 @@ class MonitorGeneratorResources implements IConfiguration
 
   final Path monitorSrcTemplatePath
   final Path monitorSrcOutPath
-  final Path appguardApis
+  final Path monitoredApis
 
   final AndroidAPI androidApi
 
   MonitorGeneratorResources(String[] args)
   {
-    if (args.contains("api19"))
-      this.androidApi = AndroidAPI.API_19
-    else if (args.contains("api23"))
+    if (args.contains("api23"))
       this.androidApi = AndroidAPI.API_23
     else
       throw new IllegalStateException()
 
     Path monitorSrcOut
 
-    if (this.androidApi == AndroidAPI.API_19)
-    {
-      monitorSrcOut = Paths.get(BuildConstants.monitor_generator_output_relative_path_api19)
-    } else if (this.androidApi == AndroidAPI.API_23)
+    if (this.androidApi == AndroidAPI.API_23)
     {
       monitorSrcOut = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
     } else
@@ -66,7 +61,7 @@ class MonitorGeneratorResources implements IConfiguration
     Path monitorSrcTemplatePath = new ResourcePath(BuildConstants.monitor_generator_res_name_monitor_template).path
     this.monitorSrcTemplatePath = monitorSrcTemplatePath
 
-    Path appguardApis = new ResourcePath("appguard_apis.txt").path
-    this.appguardApis = appguardApis
+    Path monitoredApis = new ResourcePath("monitored_apis.txt").path
+    this.monitoredApis = monitoredApis
   }
 }

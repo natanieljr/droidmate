@@ -18,31 +18,31 @@
 // web: www.droidmate.org
 package org.droidmate.command.exploration
 
-import org.droidmate.android_sdk.ApkTestHelper
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.MonitoredInlinedApkFixtureApiLogs
 import org.droidmate.configuration.Configuration
-import org.droidmate.device_simulation.AndroidDeviceSimulator
-import org.droidmate.device_simulation.DeviceSimulation
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.ExceptionSpec
-import org.droidmate.exceptions.IExceptionSpec
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.Failable
-import org.droidmate.misc.ITimeGenerator
-import org.droidmate.misc.TimeGenerator
-import org.droidmate.test_helpers.configuration.ConfigurationForTests
 import org.droidmate.test_suite_categories.RequiresDevice
 import org.droidmate.test_suite_categories.RequiresSimulator
-import org.droidmate.tests.DroidmateGroovyTestCase
+import org.droidmate.test_tools.DroidmateGroovyTestCase
+import org.droidmate.test_tools.SingleApkFixture
+import org.droidmate.test_tools.android_sdk.ApkTestHelper
+import org.droidmate.test_tools.configuration.ConfigurationForTests
+import org.droidmate.test_tools.device_simulation.AndroidDeviceSimulator
+import org.droidmate.test_tools.device_simulation.DeviceSimulation
+import org.droidmate.test_tools.device_simulation.ITimeGenerator
+import org.droidmate.test_tools.device_simulation.TimeGenerator
+import org.droidmate.test_tools.exceptions.ExceptionSpec
+import org.droidmate.test_tools.exceptions.IExceptionSpec
 import org.droidmate.tools.DeviceTools
 import org.droidmate.tools.IDeviceTools
-import org.droidmate.tools.SingleApkFixture
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -52,7 +52,7 @@ import org.junit.runners.MethodSorters
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4)
-public class ExplorationTest extends DroidmateGroovyTestCase
+ class ExplorationTest extends DroidmateGroovyTestCase
 {
 
   // it fails because the device simulator now always uses UnreliableGuiSnapshot and the code doesn't handle it yet.
@@ -86,8 +86,9 @@ public class ExplorationTest extends DroidmateGroovyTestCase
   @Test
   void "Collects monitored API calls logs during device exploration"()
   {
+    // TODO: REVIEW
     Configuration cfg = new ConfigurationForTests().forDevice().setArgs([
-      Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api19_name]",
+      Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
       Configuration.pn_widgetIndexes, "[0]",
     ]).get()
 

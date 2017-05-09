@@ -20,13 +20,12 @@
 package org.droidmate.exploration.device
 
 import groovy.util.logging.Slf4j
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.ApiLogcatMessage
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.MonitorConstants
@@ -53,8 +52,9 @@ class ApiLogsReader implements IApiLogsReader
 
   /**
    * <p>
-   * The same remarks apply as for {@link org.droidmate.exploration.device.InitMsgsReader#monitorLogger}. Empirical observation
-   * shows up to 5 seconds delay for API logs.
+   * The logs logged with the monitor logger will have different timestamps than the logged monitor logs, even though
+   * {@link IDeviceTimeDiff} is applied. This is because the method that logs is executed a couple of seconds after the monitor
+   * logs were logged on the device. Empirical observation shows up to 5 seconds delay for API logs.
    *
    * </p>
    */
@@ -70,7 +70,7 @@ class ApiLogsReader implements IApiLogsReader
   }
 
   @Override
-  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer(IDeviceTimeDiff deviceTimeDiff) throws DeviceNeedsRebootException, DeviceException
+  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer(IDeviceTimeDiff deviceTimeDiff) throws DeviceException
   {
     log.debug("getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)")
     assert deviceTimeDiff != null
@@ -111,14 +111,14 @@ class ApiLogsReader implements IApiLogsReader
     return deviceTimeDiff.syncMessages(messages)
   }
 
-  private List<ITimeFormattedLogcatMessage> getAndClearMessagesFromMonitorTcpServer(IDeviceTimeDiff deviceTimeDiff) throws DeviceNeedsRebootException, DeviceException
+  private List<ITimeFormattedLogcatMessage> getAndClearMessagesFromMonitorTcpServer(IDeviceTimeDiff deviceTimeDiff) throws DeviceException
   {
     List<List<String>> messages = device.readAndClearMonitorTcpMessages()
 
     return extractLogcatMessagesFromTcpMessages(messages, deviceTimeDiff)
   }
 
-  private List<ITimeFormattedLogcatMessage> extractLogcatMessagesFromTcpMessages(List<List<String>> messages, IDeviceTimeDiff deviceTimeDiff) throws DeviceNeedsRebootException, DeviceException
+  private List<ITimeFormattedLogcatMessage> extractLogcatMessagesFromTcpMessages(List<List<String>> messages, IDeviceTimeDiff deviceTimeDiff) throws DeviceException
   {
     return deviceTimeDiff.syncMessages(messages.collect {List<String> msg ->
 

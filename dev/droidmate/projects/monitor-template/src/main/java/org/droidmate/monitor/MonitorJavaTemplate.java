@@ -97,19 +97,20 @@ public class MonitorJavaTemplate
   // public Monitor()
   // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
   {
+    Log.v(MonitorConstants.tag_mjt, MonitorConstants.msg_ctor_start);
     try
     {
       server = startMonitorTCPServer();
-      Log.i(MonitorConstants.tag_init, MonitorConstants.msg_ctor_success);
+      Log.i(MonitorConstants.tag_mjt, MonitorConstants.msg_ctor_success + server.port);
 
     } catch (Throwable e)
     {
-      Log.i(MonitorConstants.tag_init, MonitorConstants.msg_ctor_failure);
+      Log.e(MonitorConstants.tag_mjt, MonitorConstants.msg_ctor_failure, e);
     }
   }
 
-  private static MonitorTCPServer server;
-  private static Context context;
+  private static MonitorTcpServer server;
+  private static Context          context;
 
   /**
    * Called by the inlined Application class when the inlined AUE launches activity, as done by
@@ -118,10 +119,11 @@ public class MonitorJavaTemplate
   @SuppressWarnings("unused")
   public void init(android.content.Context initContext)
   {
+    Log.v(MonitorConstants.tag_mjt, "init(): entering");
     context = initContext;
     if (server == null)
     {
-      Log.i(MonitorConstants.tag_srv, "Init: Didn't set context for MonitorTCPServer, as the server is null.");
+      Log.w(MonitorConstants.tag_mjt, "init(): didn't set context for MonitorTcpServer, as the server is null.");
     }
     else
     {
@@ -131,10 +133,9 @@ public class MonitorJavaTemplate
     // org.droidmate.monitor.MonitorSrcTemplate:API_19_UNCOMMENT_LINES
     // Instrumentation.processClass(Monitor.class);
     // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
-    // ArtHook.hook(Monitor.class);
+    
     // org.droidmate.monitor.MonitorSrcTemplate:API_23_UNCOMMENT_LINES
-    // Log.d(MonitorConstants.tag_srv, "Disabling ArtHook...");
+    // ArtHook.hook(Monitor.class);
     // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
 
     redirectConstructors();
@@ -143,58 +144,51 @@ public class MonitorJavaTemplate
     // monitorHook.init(context);
     // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
 
-    Log.i(MonitorConstants.tag_init, MonitorConstants.msgPrefix_init_success + context.getPackageName());
+    Log.d(MonitorConstants.tag_mjt, MonitorConstants.msgPrefix_init_success + context.getPackageName());
   }
   //endregion
 
   //region TCP server code
 
   @SuppressWarnings("ConstantConditions")
-  private static MonitorTCPServer startMonitorTCPServer() throws Throwable
+  private static MonitorTcpServer startMonitorTCPServer() throws Throwable
   {
-    Log.d(MonitorConstants.tag_srv, "Starting monitor TCP server...");
+    Log.v(MonitorConstants.tag_mjt, "startMonitorTCPServer(): entering");
 
-    MonitorTCPServer tcpServer = new MonitorTCPServer();
+    MonitorTcpServer tcpServer = new MonitorTcpServer();
 
     Thread serverThread = null;
     Integer portUsed = null;
 
     final Iterator<Integer> portsIterator = MonitorConstants.serverPorts.iterator();
-    try
+    
+    while (portsIterator.hasNext() && serverThread == null)
     {
-      while (portsIterator.hasNext() && serverThread == null)
-      {
-        int port = portsIterator.next();
-        serverThread = tcpServer.start(port);
-        if (serverThread != null)
-          portUsed = port;
-      }
-      if (serverThread == null)
-      {
-        if (portsIterator.hasNext()) throw new AssertionError();
-        throw new Exception("Tried to start TCP server using all available ports. None worked.");
-      }
-
-    } catch (Throwable t)
+      int port = portsIterator.next();
+      serverThread = tcpServer.tryStart(port);
+      if (serverThread != null)
+        portUsed = port;
+    }
+    if (serverThread == null)
     {
-      Log.e(MonitorConstants.tag_srv, "Starting monitor TCP server failed.", t);
-      throw t;
+      if (portsIterator.hasNext()) throw new AssertionError();
+      throw new Exception("startMonitorTCPServer(): no available ports.");
     }
 
     if (serverThread == null) throw new AssertionError();
     if (portUsed == null) throw new AssertionError();
     if (tcpServer.isClosed()) throw new AssertionError();
 
-    Log.d(MonitorConstants.tag_srv, "Starting monitor TCP server succeeded. Port used: " + portUsed + " PID: " + getPid());
+    Log.d(MonitorConstants.tag_mjt, "startMonitorTCPServer(): SUCCESS portUsed: " + portUsed + " PID: " + getPid());
     return tcpServer;
   }
 
-  static class MonitorTCPServer extends SerializableTCPServerBase<String, ArrayList<ArrayList<String>>>
+  static class MonitorTcpServer extends TcpServerBase<String, ArrayList<ArrayList<String>>>
   {
 
     public Context context;
 
-    protected MonitorTCPServer()
+    protected MonitorTcpServer()
     {
       super();
     }
@@ -204,9 +198,7 @@ public class MonitorJavaTemplate
     {
       synchronized (currentLogs)
       {
-        Log.v(MonitorConstants.tag_srv, "OnServerRequest(" + input + ")");
-
-        removeSocketInitLogFromMonitorTCPServerAndValidateLogsAreNotFromTCPServer(currentLogs);
+        validateLogsAreNotFromMonitor(currentLogs);
 
         if (MonitorConstants.srvCmd_connCheck.equals(input))
         {
@@ -226,7 +218,7 @@ public class MonitorJavaTemplate
 
           final ArrayList<String> payload = new ArrayList<String>(Arrays.asList(time, null, null));
 
-          Log.d(MonitorConstants.tag_srv, "Sending time: " + time);
+          Log.d(MonitorConstants.tag_srv, "getTime: " + time);
           return new ArrayList<ArrayList<String>>(Collections.singletonList(payload));
 
         } else if (MonitorConstants.srvCmd_close.equals(input))
@@ -234,15 +226,15 @@ public class MonitorJavaTemplate
           // org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
           // monitorHook.finalizeMonitorHook();
           // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
-          // In addition to the logic above, this command is handled in
-          // org.droidmate.monitor.MonitorJavaTemplate.MonitorTCPServer.shouldCloseServerSocket
-
+          
+          // In addition to the logic above, this command is handled in 
+          // org.droidmate.monitor.MonitorJavaTemplate.MonitorTcpServer.shouldCloseServerSocket
+          
           return new ArrayList<ArrayList<String>>();
 
         } else
         {
-          Log.e(MonitorConstants.tag_srv, "Unexpected command from DroidMate TCP client. The command: " + input);
+          Log.e(MonitorConstants.tag_srv, "! Unexpected command from DroidMate TCP client. The command: " + input);
           return new ArrayList<ArrayList<String>>();
         }
       }
@@ -258,88 +250,30 @@ public class MonitorJavaTemplate
 
     /**
      * <p>
-     * This method removes calls to {@code Socket.<init>} made by the DroidMate monitor from current set of recorded api logs
-     * {@code currentLogs}. In addition, it ensures the logs do not come from messages logged by the MonitorTCPServer or
+     * This method ensures the logs do not come from messages logged by the MonitorTcpServer or 
      * MonitorJavaTemplate itself. This would be a bug and thus it will cause an assertion failure in this method.
-     *
-     * </p><p>
-     * Regarding the {@code Socket.<init> removal}:
-     *
-     * </p><p>
-     * One of the monitored APIs is {@code Socket.<init>}, and so it is being added to {@code currentLogs} on each invocation.
-     * However, this API is also used every time a TCP socket is established when monitor communicates with the host machine.
-     * Such socket usage does not belong to the app under monitoring so it should be discarded, which is done in this method.
      *
      * </p>
      * @param currentLogs
-     * Currently recorded set of monitored logs, that will have the {@code Socket.<init>} logs caused by monitor removed from it
-     * and that will cause an assertion failure if the logs come from MonitorTCPServer or MonitorJavaTemplate.
+     * Currently recorded set of monitored logs that will be validated, causing AssertionError if validation fails.
      */
-    private void removeSocketInitLogFromMonitorTCPServerAndValidateLogsAreNotFromTCPServer(List<ArrayList<String>> currentLogs)
+    private void validateLogsAreNotFromMonitor(List<ArrayList<String>> currentLogs)
     {
-      ArrayList<ArrayList<String>> logsToRemove = new ArrayList<ArrayList<String>>();
       for (ArrayList<String> log : currentLogs)
       {
         // ".get(2)" gets the payload. For details, see the doc of the param passed to this method.
         String msgPayload = log.get(2);
-
         failOnLogsFromMonitorTCPServerOrMonitorJavaTemplate(msgPayload);
 
-        String[] frames = extractStackTraceFrames(msgPayload);
-
-        if (frames.length >= 2)
-        {
-          String secondLastFrame = frames[frames.length - 2];
-          if (secondLastFrame.startsWith("org.droidmate"))
-          {
-            if (!secondLastFrame.startsWith("org.droidmate.monitor.Monitor")) throw new AssertionError();
-            if (!anyContains(frames, "Socket.<init>")) throw new AssertionError();
-            logsToRemove.add(log);
-          }
-        }
       }
-
-      // Zero logs to remove can happen when the TCP server started to accept socket from client before monitor finished initing.
-      // In all other cases there should be one log.
-      if (logsToRemove.size() > 1) throw new AssertionError(
-        "Expected to remove zero or one logs of Socket.<init>, caused by monitor TCP server. Instead, removed "
-          + logsToRemove.size() + " logs.");
-
-      if (logsToRemove.size() == 1)
-        currentLogs.remove(logsToRemove.get(0));
-
     }
 
     private void failOnLogsFromMonitorTCPServerOrMonitorJavaTemplate(String msgPayload)
     {
-      if (msgPayload.contains(MonitorConstants.tag_srv) || msgPayload.contains(MonitorConstants.tag_init))
+      if (msgPayload.contains(MonitorConstants.tag_srv) || msgPayload.contains(MonitorConstants.tag_mjt))
         throw new AssertionError(
           "Attempt to log a message whose payload contains " +
-            MonitorConstants.tag_srv + " or " + MonitorConstants.tag_init + ". The message payload: " + msgPayload);
-    }
-
-    private String[] extractStackTraceFrames(String msgPayload)
-    {
-
-      // !!! DUPLICATION WARNING !!! with org.droidmate.apis.ApiLogcatMessage.ApiLogcatMessagePayload.keyword_stacktrace
-      int stacktraceIndex = msgPayload.lastIndexOf("stacktrace: ");
-
-      if (stacktraceIndex == -1)
-        throw new AssertionError("The message payload was expected to have a 'stacktrace: ' substring in it");
-
-      String stackTrace = msgPayload.substring(stacktraceIndex);
-
-      return stackTrace.split(Api.stack_trace_frame_delimiter);
-    }
-
-    private boolean anyContains(String[] strings, String s)
-    {
-      for (String string : strings)
-      {
-        if (string.contains(s))
-          return true;
-      }
-      return false;
+            MonitorConstants.tag_srv + " or " + MonitorConstants.tag_mjt + ". The message payload: " + msgPayload);
     }
 
     @Override
@@ -349,16 +283,14 @@ public class MonitorJavaTemplate
     }
   }
 
-  // !!! DUPLICATION WARNING !!! with org.droidmate.uiautomator_daemon.SerializableTCPServerBase
-  static abstract class SerializableTCPServerBase<ServerInputT extends Serializable, ServerOutputT extends Serializable>
+  // !!! DUPLICATION WARNING !!! with org.droidmate.uiautomator_daemon.UiautomatorDaemonTcpServerBase
+  static abstract class TcpServerBase<ServerInputT extends Serializable, ServerOutputT extends Serializable>
   {
-    private int port;
+    int port;
     private ServerSocket    serverSocket          = null;
     private SocketException serverSocketException = null;
 
-    private final static String thisClassName = SerializableTCPServerBase.class.getSimpleName();
-
-    protected SerializableTCPServerBase()
+    protected TcpServerBase()
     {
       super();
     }
@@ -367,19 +299,22 @@ public class MonitorJavaTemplate
 
     protected abstract boolean shouldCloseServerSocket(ServerInputT serverInput);
 
-    public Thread start(int port) throws Exception
+    public Thread tryStart(int port) throws Exception
     {
+      Log.v(MonitorConstants.tag_srv, String.format("tryStart(port:%d): entering", port));
       this.serverSocket = null;
       this.serverSocketException = null;
       this.port = port;
 
       MonitorServerRunnable monitorServerRunnable = new MonitorServerRunnable();
       Thread serverThread = new Thread(monitorServerRunnable);
+      // For explanation why this synchronization is necessary, see MonitorServerRunnable.run() method synchronized {} block.
       synchronized (monitorServerRunnable)
       {
         if (!(serverSocket == null && serverSocketException == null)) throw new AssertionError();
         serverThread.start();
         monitorServerRunnable.wait();
+        // Either a serverSocket has been established, or an exception was thrown, but not both.
         //noinspection SimplifiableBooleanExpression
         if (!(serverSocket != null ^ serverSocketException != null)) throw new AssertionError();
       }
@@ -388,7 +323,8 @@ public class MonitorJavaTemplate
 
         if ("bind failed: EADDRINUSE (Address already in use)".equals(serverSocketException.getCause().getMessage()))
         {
-          Log.d(MonitorConstants.tag_srv, "Failed to start TCP server because 'bind failed: EADDRINUSE (Address already in use)'. " +
+          Log.v(MonitorConstants.tag_srv, "tryStart(port:"+port+"): FAILURE Failed to start TCP server because " +
+            "'bind failed: EADDRINUSE (Address already in use)'. " +
             "Returning null Thread.");
 
           return null;
@@ -400,6 +336,8 @@ public class MonitorJavaTemplate
             serverSocketException);
         }
       }
+      
+      Log.d(MonitorConstants.tag_srv, "tryStart(port:"+port+"): SUCCESS");
       return serverThread;
     }
 
@@ -408,11 +346,11 @@ public class MonitorJavaTemplate
       try
       {
         serverSocket.close();
-        Log.d(thisClassName, "Closed server socket with port: "+port);
-
+        Log.d(MonitorConstants.tag_srv, String.format("serverSocket.close(): SUCCESS port %s", port));
+        
       } catch (IOException e)
       {
-        Log.e(thisClassName, "Failed to close server socket.");
+        Log.e(MonitorConstants.tag_srv, String.format("serverSocket.close(): FAILURE port %s", port));
       }
     }
 
@@ -428,40 +366,47 @@ public class MonitorJavaTemplate
       public void run()
       {
 
-        Log.v(MonitorConstants.tag_srv, "MonitorServerRunnable.run() using " + port);
+        Log.v(MonitorConstants.tag_run, String.format("run(): entering port:%d", port));
         try
         {
 
-          // Synchronize to ensure the parent thread (the one which started this one) will continue only after the
-          // serverSocket is initialized.
+          // Synchronize to ensure the parent thread (the one which started this one) will continue only after one of these two
+          // is true:
+          // - serverSocket was successfully initialized 
+          // - exception was thrown and assigned to a field and  this thread exitted
           synchronized (this)
           {
-            Log.d(MonitorConstants.tag_srv, String.format("Creating server socket bound to port %s...", port));
-
             try
             {
+              Log.v(MonitorConstants.tag_run, String.format("serverSocket = new ServerSocket(%d)", port));
               serverSocket = new ServerSocket(port);
+              Log.v(MonitorConstants.tag_run, String.format("serverSocket = new ServerSocket(%d): SUCCESS", port));
             } catch (SocketException e)
             {
               serverSocketException = e;
             }
-            this.notify();
+
+            if (serverSocketException != null)
+            {
+              Log.d(MonitorConstants.tag_run, "serverSocket = new ServerSocket("+port+"): FAILURE " +
+                "aborting further thread execution.");
+              this.notify();
+              return;
+            } else
+            {
+              this.notify();
+            }
           }
 
-          if (serverSocketException != null)
-          {
-            Log.e(MonitorConstants.tag_srv, String.format("! Failed during startup to bind server socket on port %s. Stopping thread.", port));
-            return;
-          }
+          if (serverSocket == null) throw new AssertionError();
+          if (serverSocketException != null) throw new AssertionError();
 
-          // KNOWN BUG undiagnosed. Got here a null pointer on com.audible.application_v1.7.0.apk when running using default settings. It happened on every run.
           while (!serverSocket.isClosed())
           {
-            Log.v(MonitorConstants.tag_srv, String.format("Accepting socket from client on port %s...", port));
+            Log.v(MonitorConstants.tag_run, String.format("clientSocket = serverSocket.accept() / port:%d", port));
             Socket clientSocket = serverSocket.accept();
-            Log.v(MonitorConstants.tag_srv, "Socket accepted.");
+            Log.v(MonitorConstants.tag_run, String.format("clientSocket = serverSocket.accept(): SUCCESS / port:%d", port));
 
-//            Log.v(runnableClassName, "ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());");
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
 
           /*
@@ -486,32 +431,36 @@ public class MonitorJavaTemplate
 
             } catch (Exception e)
             {
-              Log.e(MonitorConstants.tag_srv, "Exception was thrown while reading input sent to monitor TCP server from " +
-                "client through socket.", e);
+              Log.e(MonitorConstants.tag_run, "! serverInput = input.readObject(): FAILURE " +
+                "while reading from clientSocket on port "+port +". Closing server socket.", e);
               closeServerSocket();
               break;
             }
 
             ServerOutputT serverOutput;
+            Log.d(MonitorConstants.tag_run, String.format("OnServerRequest(%s) / port:%d", serverInput, port));
             serverOutput = OnServerRequest(serverInput);
-//            Log.v(runnableClassName, "output.writeObject(serverOutput);");
             output.writeObject(serverOutput);
-//            Log.v(runnableClassName, "clientSocket.close();");
             clientSocket.close();
 
             if (shouldCloseServerSocket(serverInput))
+            {
+              Log.v(MonitorConstants.tag_run, String.format("shouldCloseServerSocket(): true / port:%d", port));
               closeServerSocket();
+            }
           }
+          
+          if (!serverSocket.isClosed()) throw new AssertionError();
 
-          Log.d(MonitorConstants.tag_srv, "Closed monitor TCP server.");
+          Log.v(MonitorConstants.tag_run, String.format("serverSocket.isClosed() / port:%d", port));
 
         } catch (SocketTimeoutException e)
         {
-          Log.e(MonitorConstants.tag_srv, "Closing monitor TCP server due to a timeout.", e);
+          Log.e(MonitorConstants.tag_run, "! Closing monitor TCP server due to a timeout.", e);
           closeServerSocket();
         } catch (IOException e)
         {
-          Log.e(MonitorConstants.tag_srv, "Exception was thrown while operating monitor TCP server.", e);
+          Log.e(MonitorConstants.tag_run, "! Exception was thrown while operating monitor TCP server.", e);
         }
       }
 
@@ -657,13 +606,13 @@ public class MonitorJavaTemplate
   {
     synchronized (currentLogs)
     {
-//      Log.v(tag_srv, "addCurrentLogs(" + payload + ")");
+//      Log.v(tag_mjt, "addCurrentLogs(" + payload + ")");
       String now = getNowDate();
 
-//      Log.v(tag_srv, "currentLogs.add(new ArrayList<String>(Arrays.asList(getPid(), now, payload)));");
+//      Log.v(tag_mjt, "currentLogs.add(new ArrayList<String>(Arrays.asList(getPid(), now, payload)));");
       currentLogs.add(new ArrayList<String>(Arrays.asList(getPid(), now, payload)));
 
-//      Log.v(tag_srv, "addCurrentLogs(" + payload + "): DONE");
+//      Log.v(tag_mjt, "addCurrentLogs(" + payload + "): DONE");
     }
   }
 
@@ -691,13 +640,13 @@ public class MonitorJavaTemplate
    */
   private static String getNowDate()
   {
-//    Log.v(tag_srv, "final Date nowDate = new Date(startDate.getTime() + (System.nanoTime() - startNanoTime) / 1000000);");
+//    Log.v(tag_mjt, "final Date nowDate = new Date(startDate.getTime() + (System.nanoTime() - startNanoTime) / 1000000);");
     final Date nowDate = new Date(startDate.getTime() + (System.nanoTime() - startNanoTime) / 1000000);
 
-//    Log.v(tag_srv, "final String formattedDate = monitor_time_formatter.format(nowDate);");
+//    Log.v(tag_mjt, "final String formattedDate = monitor_time_formatter.format(nowDate);");
     final String formattedDate = monitor_time_formatter.format(nowDate);
 
-//    Log.v(tag_srv, "return formattedDate;");
+//    Log.v(tag_mjt, "return formattedDate;");
     return formattedDate;
   }
 
@@ -728,7 +677,7 @@ public class MonitorJavaTemplate
   // public static IMonitorHook monitorHook = new MonitorHook();
   // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
   //endregion
-
+  
   //region Generated code
 
   private static void redirectConstructors()

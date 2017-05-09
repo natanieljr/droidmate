@@ -19,29 +19,29 @@
 package org.droidmate.device.model
 
 import groovy.util.logging.Slf4j
-import org.droidmate.exceptions.UnknownDeviceException
+import org.droidmate.logging.Markers
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
 /**
  * Please see {@link DeviceModel#build(java.lang.String)}.
- *
+ * 
  * @author Nataniel Borges Jr. (inception)
  * @author Konrad Jamrozik (refactoring)
  */
 @Slf4j
-public class DeviceModel
+ class DeviceModel
 {
 
   /**
    * <p>
    * Create an {@link IDeviceModel} based on the string obtained from <pre>org.droidmate.uiautomator_daemon.UiAutomatorDaemonDriver#getDeviceModel()</pre>
-   *
+   * 
    * </p><p>
    * @param deviceModel Device manufacturer + model as returned by {@link org.droidmate.uiautomator_daemon.UiAutomatorDaemonDriver#getDeviceModel()}
-   *
+   * 
    * </p>
    */
-  public static IDeviceModel build(String deviceModel) throws UnknownDeviceException
+   static IDeviceModel build(String deviceModel) throws UnknownDeviceException
   {
     IDeviceModel result
 
@@ -61,7 +61,7 @@ public class DeviceModel
         hw.gpu.enabled: yes
      */
       case "unknown-Android SDK built for x86":
-        result = new Nexus7_API19_Model()
+        result = new Nexus7_2013_AVD_API23_Model()
         break
       case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_7:
         result = new Nexus7_API19_Model()
@@ -77,13 +77,14 @@ public class DeviceModel
         break
       default:
         result = buildDefault()
-        log.warn("Unrecognized device model of $deviceModel. Using the default ${result.class.simpleName}.")
+        log.warn(Markers.appHealth, 
+          "Unrecognized device model of $deviceModel. Using the default ${result.class.simpleName}.")
     }
 
     return result
   }
-
-  public static IDeviceModel buildDefault()
+  
+   static IDeviceModel buildDefault()
   {
     return new Nexus7_API19_Model()
   }

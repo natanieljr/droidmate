@@ -19,22 +19,21 @@
 
 package org.droidmate.device
 
+import org.droidmate.android_sdk.DeviceException
+import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
-import org.droidmate.misc.Boolean3
 
 import java.time.LocalDateTime
 
-public interface IExplorableAndroidDevice
+interface IExplorableAndroidDevice
 {
   boolean hasPackageInstalled(String packageName) throws DeviceException
 
-  IDeviceGuiSnapshot getGuiSnapshot() throws DeviceNeedsRebootException, DeviceException
+  IDeviceGuiSnapshot getGuiSnapshot() throws DeviceException
 
-  void perform(IAndroidDeviceAction action) throws DeviceNeedsRebootException, DeviceException
+  void perform(IAndroidDeviceAction action) throws DeviceException
 
   List<ITimeFormattedLogcatMessage> readLogcatMessages(String messageTag) throws DeviceException
 
@@ -42,16 +41,18 @@ public interface IExplorableAndroidDevice
 
   void clearLogcat() throws DeviceException
 
-  List<List<String>> readAndClearMonitorTcpMessages() throws DeviceNeedsRebootException, DeviceException
+  List<List<String>> readAndClearMonitorTcpMessages() throws DeviceException
 
-  LocalDateTime getCurrentTime() throws DeviceNeedsRebootException, DeviceException
+  LocalDateTime getCurrentTime() throws DeviceException
 
-  Boolean anyMonitorIsReachable() throws DeviceNeedsRebootException, DeviceException
+  Boolean anyMonitorIsReachable() throws DeviceException
 
-  Boolean3 launchMainActivity(String launchableActivityComponentName) throws DeviceException
+  void launchMainActivity(String launchableActivityComponentName) throws DeviceException
 
-  Boolean appIsRunning(String appPackageName) throws DeviceNeedsRebootException, DeviceException
+  Boolean appIsRunning(String appPackageName) throws DeviceException
 
-  void clickAppIcon(String iconLabel) throws DeviceNeedsRebootException, DeviceException
+  void clickAppIcon(String iconLabel) throws DeviceException
+  
+  void takeScreenshot(IApk app, String suffix) throws DeviceException
 }
 

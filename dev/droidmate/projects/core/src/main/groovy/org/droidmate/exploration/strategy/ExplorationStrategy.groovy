@@ -23,11 +23,11 @@ import com.google.common.base.Ticker
 import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import org.droidmate.configuration.Configuration
-import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
+import org.droidmate.logging.Markers
 
 import static groovy.transform.TypeCheckingMode.SKIP
 import static org.droidmate.exploration.actions.ExplorationAction.*
@@ -56,28 +56,7 @@ class ExplorationStrategy implements IExplorationStrategy
   // org.droidmate.exploration.strategy.ExplorationStrategy.explorationCanMoveForwardOn,
   // which also takes WidgetStrategy as input, and then is asked.
   private boolean allWidgetsBlackListed = false
-
-  //SE TEAM Hook 1
-  ///Holds all guiStates seen so far ehile exploring
-  private List<IGuiState> guiStatesSeen = new LinkedList<>();
-  //--------------
-
-  @Deprecated
-  ExplorationStrategy(IWidgetStrategy widgetStrategy, Configuration config, ITerminationCriterion terminationCriterion, IForwardExplorationSpecialCases specialCases)
-  {
-
-    assertConfigurationDenotesNoMoreThanOneWidgetClickingMethod(config)
-
-    this.widgetStrategy = widgetStrategy
-    this.terminationCriterion = terminationCriterion
-    this.specialCases = specialCases
-
-    this.resetEveryNthExplorationForward = config.resetEveryNthExplorationForward
-    assert this.resetEveryNthExplorationForward >= 0
-    this.forwardExplorationResetCounter = resetEveryNthExplorationForward
-
-  }
-
+  
   ExplorationStrategy(
     int resetEveryNthExplorationForward, IWidgetStrategy widgetStrategy, ITerminationCriterion terminationCriterion, IForwardExplorationSpecialCases specialCases)
   {
@@ -91,12 +70,6 @@ class ExplorationStrategy implements IExplorationStrategy
 
   }
 
-  private static void assertConfigurationDenotesNoMoreThanOneWidgetClickingMethod(Configuration cfg)
-  {
-    int settingsCount = ConfigurationBuilder.widgetClickingStrategySettingsCount(cfg)
-    assert settingsCount <= 1
-  }
-
   ExplorationAction decide(IExplorationActionRunResult result)
   {
     log.debug("decide($result)")
@@ -105,7 +78,7 @@ class ExplorationStrategy implements IExplorationStrategy
     def guiState = result.guiSnapshot.guiState
     def exploredAppPackageName = result.exploredAppPackageName
 
-    terminationCriterion.initDecideCall(!firstCallToDecideFinished)
+    terminationCriterion.initDecideCall(firstDecisionIsBeingMade())
 
     ExplorationAction outExplAction
 
@@ -225,10 +198,20 @@ class ExplorationStrategy implements IExplorationStrategy
     return false
   }
 
+  /**
+   * Determines if exploration shall be terminated. Obviously, exploration shall be terminated when the terminationCriterion is
+   * met. However, two more cases justify termination:<br/>
+   * - If exploration cannot move forward after reset. Resetting is supposed to unstuck exploration, and so if it doesn't help,
+   * exploration cannot proceed forward at all.<br/>
+   * - A special case of the above, if exploration cannot move at the first time exploration strategy makes a decision. This
+   * is a special case because first time exploration strategy makes a decision is immediately after the initial app launch,
+   * which is technically also a kind of reset.
+   * 
+   */
   private boolean terminateExploration(IGuiState guiState, String exploredAppPackageName)
   {
     assert guiState != null
-    assert !(!firstCallToDecideFinished && lastActionWasToReset)
+    assert lastActionWasToReset.implies(firstCallToDecideFinished)
 
     if (terminationCriterion.met())
     {
@@ -238,24 +221,36 @@ class ExplorationStrategy implements IExplorationStrategy
 
     // WISH if !explorationCanMoveForwardOn(guiState) after launch main activity, try again, but with longer wait delay.
 
-    if (!explorationCanMoveForwardOn(guiState, exploredAppPackageName) && (!firstCallToDecideFinished || lastActionWasToReset))
+    // If the exploration cannot move forward after reset or during initial attempt (just after first launch, 
+    // which is also a reset) then it shall be terminated.
+    if (!explorationCanMoveForwardOn(guiState, exploredAppPackageName) && (lastActionWasToReset || firstDecisionIsBeingMade()))
     {
-      String guiStateMsgPart = !firstCallToDecideFinished ? "Initial GUI state" : "GUI state after reset"
+      String guiStateMsgPart = firstDecisionIsBeingMade() ? "Initial GUI state" : "GUI state after reset"
 
       // This case is observed when e.g. the app shows empty screen at startup.
       if (!guiState.belongsToApp(exploredAppPackageName))
-        log.info("Terminating exploration: $guiStateMsgPart doesn't belong to the app. The GUI state: $guiState")
+        log.info(Markers.appHealth, "Terminating exploration: $guiStateMsgPart doesn't belong to the app. " +
+          "The GUI state: $guiState")
 
       // This case is observed when e.g. the app has nonstandard GUI, e.g. game native interface.
       // Also when all widgets have been blacklisted because they e.g. crash the app.
       else if (!hasActionableWidgets(guiState))
-        log.info("Terminating exploration: $guiStateMsgPart doesn't contain actionable widgets. The GUI state: $guiState")
+      {
+        log.info(Markers.appHealth, "Terminating exploration: $guiStateMsgPart doesn't contain actionable widgets. " +
+          "The GUI state: $guiState")
+        // log.info(guiState.debugWidgets())
+      }
 
       else
         throw new UnexpectedIfElseFallthroughError()
 
       return true
     }
+
+    // At this point we know termination is not necessary, thus following assertions hold:
+    assert explorationCanMoveForwardOn(guiState, exploredAppPackageName) || !lastActionWasToReset || firstCallToDecideFinished
+    assert firstDecisionIsBeingMade().implies(explorationCanMoveForwardOn(guiState, exploredAppPackageName))
+    assert lastActionWasToReset.implies(explorationCanMoveForwardOn(guiState, exploredAppPackageName))
 
     return false
   }
@@ -265,8 +260,8 @@ class ExplorationStrategy implements IExplorationStrategy
     assert guiState != null
     assert !terminateExploration(guiState, exploredAppPackageName)
 
-    assert (!firstCallToDecideFinished).implies(explorationCanMoveForwardOn(guiState, exploredAppPackageName))
-
+    // If any of these two asserts would be violated, the exploration would terminate.
+    assert firstDecisionIsBeingMade().implies(explorationCanMoveForwardOn(guiState, exploredAppPackageName))
     assert lastActionWasToReset.implies(explorationCanMoveForwardOn(guiState, exploredAppPackageName))
 
     if (explorationCanMoveForwardOn(guiState, exploredAppPackageName))
@@ -281,12 +276,17 @@ class ExplorationStrategy implements IExplorationStrategy
     }
   }
 
+  private boolean firstDecisionIsBeingMade()
+  {
+    return !firstCallToDecideFinished
+  }
+
   private boolean backtrack(IGuiState guiState, String exploredAppPackageName)
   {
     assert guiState != null
     assert !terminateExploration(guiState, exploredAppPackageName)
     assert !resetExploration(guiState, exploredAppPackageName)
-    /* As  right now we never backtrack and backtracking is the last possibility to do something if exploration cannot move
+    /* As right now we never backtrack and backtracking is the last possibility to do something if exploration cannot move
     forward, thus we have this precondition. If backtracking will have some implementation, then it will handle some cases which
     are right now handled by terminateExploration and resetExploration, and this precondition will no longer hold.
      */
@@ -344,7 +344,7 @@ class ExplorationStrategy implements IExplorationStrategy
     lastActionWasToReset = currentActionIsToReset
   }
 
-  public static ExplorationStrategy build(Configuration cfg)
+  static ExplorationStrategy build(Configuration cfg)
   {
     IWidgetStrategy widgetStrategy = new WidgetStrategy(cfg.randomSeed, cfg.alwaysClickFirstWidget, cfg.widgetIndexes)
     ITerminationCriterion terminationCriterion = new TerminationCriterion(cfg, cfg.timeLimit, Ticker.systemTicker())

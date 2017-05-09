@@ -19,11 +19,9 @@
 
 package org.droidmate.android_sdk
 
-import org.droidmate.exceptions.AdbWrapperException
-
 import java.nio.file.Path
 
-public interface IAdbWrapper {
+interface IAdbWrapper {
 
   void startAdbServer() throws AdbWrapperException
 
@@ -38,10 +36,10 @@ public interface IAdbWrapper {
 
   void reverseForwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
 
-  void pushFile(String deviceSerialNumber, Path sourceFile) throws AdbWrapperException
-  void pushFile(String deviceSerialNumber, Path sourceFile, String targetFileName, String targetDirectory) throws AdbWrapperException
+  void pushJar(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
+  void pushJar(String deviceSerialNumber, Path jarFile, String targetFileName) throws AdbWrapperException
 
-  void removeFile(String deviceSerialNumber, Path  file) throws AdbWrapperException
+  void removeJar(String deviceSerialNumber, Path  jarFile) throws AdbWrapperException
 
   void installApk(String deviceSerialNumber, Path apkToInstall) throws AdbWrapperException
 
@@ -69,11 +67,13 @@ public interface IAdbWrapper {
 
   //void stopUiautomatorDaemon(String deviceSerialNumber) throws AdbWrapperException
 
-  void removeFile_api19(String deviceSerialNumber, String fileName) throws AdbWrapperException
-
   void removeFile_api23(String deviceSerialNumber, String fileName, String shellPackageName) throws AdbWrapperException
 
-  void pullFile_api19(String deviceSerialNumber, String pulledFileName, String destinationFilePath) throws AdbWrapperException
-
   void pullFile_api23(String deviceSerialNumber, String pulledFileName, String destinationFilePath, String shellPackageName) throws AdbWrapperException
+  
+  void takeScreenshot(String deviceSerialNumber, String targetPath) throws AdbWrapperException
+
+  String executeCommand(String deviceSerialNumber, String successfulOutput, String commandDescription, String... cmdLineParams) throws AdbWrapperException
+
+  void reconnect(String deviceSerialNumber) throws AdbWrapperException
 }

@@ -53,13 +53,13 @@ class GuiState implements Serializable, IGuiState
   }
 
   @Override
-  public List<Widget> getActionableWidgets()
+   List<Widget> getActionableWidgets()
   {
     widgets.findAll {it.canBeActedUpon()}
   }
 
   @Override
-  public String toString()
+   String toString()
   {
     use(TextUtilsCategory) {
       if (this.isHomeScreen())
@@ -92,7 +92,7 @@ class GuiState implements Serializable, IGuiState
   @Override
   boolean isCompleteActionUsingDialogBox()
   {
-    return !isSelectAHomeAppDialogBox() &&
+    return !isSelectAHomeAppDialogBox() && !isUseLauncherAsHomeDialogBox() &&
       topNodePackageName == androidPackageName &&
       widgets.any {it.text == "Just once"}
   }
@@ -102,8 +102,18 @@ class GuiState implements Serializable, IGuiState
   {
     return topNodePackageName == androidPackageName &&
       widgets.any {it.text == "Just once"} &&
-      widgets.any {it.text == "Select a home app"}
+      widgets.any {it.text == "Select a Home app"}
   }
+
+  @Override
+  boolean isUseLauncherAsHomeDialogBox()
+  {
+    return topNodePackageName == androidPackageName &&
+      widgets.any {it.text == "Use Launcher as Home" } &&
+      widgets.any {it.text == "Just once"} &&
+      widgets.any {it.text == "Always"}
+  }
+
 
   @Override
   boolean isRequestRuntimePermissionDialogBox()
@@ -117,5 +127,20 @@ class GuiState implements Serializable, IGuiState
   boolean belongsToApp(String appPackageName)
   {
     return this.topNodePackageName == appPackageName
+  }
+
+  @Override
+  String debugWidgets()
+  {
+    StringWriter sw = new StringWriter()
+    sw.withWriter {wr ->
+      
+      wr.println("widgets (${widgets.size()}):")
+      widgets.each {wr.println(it.toString())}
+
+      wr.println("actionable widgets (${actionableWidgets.size()}):")
+      actionableWidgets.each {wr.println(it.toString())}
+    }
+    return sw.toString()
   }
 }

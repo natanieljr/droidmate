@@ -21,18 +21,23 @@ package org.droidmate.tests.device
 
 import groovy.transform.TypeChecked
 import org.droidmate.android_sdk.Apk
-import org.droidmate.android_sdk.ExplorationException
+import org.droidmate.android_sdk.ApkExplorationException
+import org.droidmate.android_sdk.FirstRealDeviceSerialNumber
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
+import org.droidmate.device.IAndroidDevice
 import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.misc.BuildConstants
-import org.droidmate.test_helpers.configuration.ConfigurationForTests
 import org.droidmate.test_suite_categories.RequiresDevice
 import org.droidmate.test_suite_categories.RequiresDeviceSlow
-import org.droidmate.tests.DroidmateGroovyTestCase
+import org.droidmate.test_tools.DroidmateGroovyTestCase
+import org.droidmate.test_tools.configuration.ConfigurationForTests
 import org.droidmate.tools.ApksProvider
 import org.droidmate.tools.DeviceTools
 import org.droidmate.tools.IDeviceTools
+import org.droidmate.uiautomator_daemon.DeviceCommand
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -40,7 +45,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
-import static org.droidmate.device.datatypes.AndroidDeviceAction.*
+import static org.droidmate.device.datatypes.AndroidDeviceAction.newClickGuiDeviceAction
+import static org.droidmate.device.datatypes.AndroidDeviceAction.newTurnWifiOnDeviceAction
+import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_GET_DEVICE_MODEL
 
 @TypeChecked
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -54,8 +61,88 @@ class DeviceTest extends DroidmateGroovyTestCase
     withApkDeployedOnDevice() {IRobustDevice device, IApk deployedApk ->
 
       device.getGuiSnapshot()
-      device.reboot()
+      device.rebootAndRestoreConnection()
       device.getGuiSnapshot()
+    }
+  }
+
+  /**
+   * This test exists for interactive debugging of known, not yet resolved bug. The behavior is as follows.
+   * 
+   * - If everything works fine and the uiadaemon server is alive, this test should succeed without any need to reinstall uiad apks
+   * and setup connection. You can check if the server is allive as follows:
+   * 
+   * adb shell
+   * shell@flo:/ $ ps | grep uia
+   * u0_a1027  31550 205   869064 38120 sys_epoll_ 00000000 S org.droidmate.uiautomator2daemon.UiAutomator2Daemon
+   *
+   * - If the server was somehow corrupted, rerunning this test will hang on the "new ObjectInputStream", even if the installApk
+   * and setupConnection methods are run. However, if the uninstall commands are run, then the test will succeed again without
+   * problems. Not sure which uninstall is the important one, but I guess the one uninstalling.test
+   * 
+   * Symptom observations: sometimes, even though server on the device says he is waiting to accept a socket, actually getting 
+   * a connected socket to it on client side does nothing. This means the server cannot be even stopped by socket, it has to be 
+   * killed by reinstalling the package.
+   */
+  @Category([RequiresDevice])
+  @Test
+  void "Restarts uiautomatorDaemon2 and communicates with it via TCP"()
+  {
+    def cfg = configurationApi23
+    IDeviceTools deviceTools = new DeviceTools(cfg)
+    IAndroidDevice device = new RobustDevice(
+      deviceTools.deviceFactory.create(new FirstRealDeviceSerialNumber(deviceTools.adb).toString()), cfg)
+
+    if (device.isPackageInstalled(UiautomatorDaemonConstants.uia2Daemon_packageName)) 
+      println "uia-daemon2 is installed." 
+    else
+    {
+      println 'uia-daemon2 is not installed: reinstallUiautomatorDaemon'
+      device.reinstallUiautomatorDaemon()
+    }
+
+    println 'setupConnection'
+    device.setupConnection()
+
+    println 'Socket socket = new Socket("localhost", 59800)' 
+    Socket socket = new Socket("localhost", 59800)
+
+    println 'def inputStream = new ObjectInputStream(socket.inputStream)'
+    def inputStream = new ObjectInputStream(socket.inputStream)
+
+    println 'def outputStream = new ObjectOutputStream(socket.outputStream)'
+    def outputStream = new ObjectOutputStream(socket.outputStream)
+
+    println 'outputStream.writeObject(new DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))'
+    outputStream.writeObject(new DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))
+
+    println 'outputStream.flush()'
+    outputStream.flush()
+
+    println 'inputStream.readObject()'
+    inputStream.readObject()
+
+    println 'socket.close()'
+    socket.close()
+
+//    println 'stop uiad'
+//    device.stopUiaDaemon(false)
+
+    println "END"
+  }
+
+  @Category([RequiresDevice])
+  @Test
+  void "Print widgets of current GUI screen"()
+  {
+    withSetupDevice(configurationApi23) {Configuration cfg, IDeviceTools deviceTools, IRobustDevice device ->
+      
+      def gs = device.guiSnapshot.guiState
+      println "widgets (#${gs.widgets.size()}):"
+      gs.widgets.each {println it}
+
+      println "actionable widgets (#${gs.actionableWidgets.size()}):"
+      gs.actionableWidgets.each {println it}
     }
   }
 
@@ -65,7 +152,7 @@ class DeviceTest extends DroidmateGroovyTestCase
   {
     withApkDeployedOnDevice() {IRobustDevice device, IApk deployedApk ->
 
-      device.perform(newLaunchActivityDeviceAction(deployedApk.launchableActivityComponentName))
+      device.launchMainActivity(deployedApk.launchableActivityComponentName)
       assert device.guiSnapshot.guiState.belongsToApp(deployedApk.packageName)
 
       // Act 1
@@ -83,7 +170,7 @@ class DeviceTest extends DroidmateGroovyTestCase
       assert device.guiSnapshot.guiState.isHomeScreen()
 
       // Act 5
-      assert !device.appIsRunning(deployedApk.packageName)
+      assert !device.appProcessIsRunning(deployedApk.packageName)
 
       // Act 6
       assert !device.anyMonitorIsReachable()
@@ -109,35 +196,55 @@ class DeviceTest extends DroidmateGroovyTestCase
 
   @Category([RequiresDevice])
   @Test
-  void "Turns wifi on on api23"()
+  void "Sets up API23 compatible device and turns wifi on"()
   {
-    IDeviceTools deviceTools = new DeviceTools(new ConfigurationForTests().setArgs([Configuration.pn_androidApi, Configuration.api23,]).forDevice().get())
+    
+    IDeviceTools deviceTools = new DeviceTools(configurationApi23)
     deviceTools.deviceDeployer.withSetupDevice(0) {IRobustDevice device ->
       device.perform(newTurnWifiOnDeviceAction())
       return []
     }
   }
 
+  private static Configuration getConfigurationApi23()
+  {
+    new ConfigurationForTests()
+      .setArgs([Configuration.pn_androidApi, Configuration.api23])
+      .forDevice()
+      .get()
+  }
+
+
   private void withApkDeployedOnDevice(Closure computation)
   {
-    Configuration cfg = new ConfigurationForTests().forDevice().setArgs([
-      Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api19_name]" as String]
-    ).get()
-
-    IDeviceTools deviceTools = new DeviceTools(cfg)
-
-    ApksProvider apksProvider = new ApksProvider(deviceTools.aapt)
-    Apk apk = apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames).first()
-
-    List<ExplorationException> exceptions =
-      deviceTools.deviceDeployer.withSetupDevice(0) {IRobustDevice device ->
-        deviceTools.apkDeployer.withDeployedApk(device, apk, computation.curry(device))
+    List<ApkExplorationException> exceptions = []
+      withSetupDevice(configurationApi23monitoredInlinedApk) {Configuration cfg, IDeviceTools deviceTools, IRobustDevice device ->
+        ApksProvider apksProvider = new ApksProvider(deviceTools.aapt)
+        Apk apk = apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks).first()
+        exceptions = deviceTools.apkDeployer.withDeployedApk(device, apk, computation.curry(device))
       }
 
-    exceptions.every {
-      it.printStackTrace()
-    }
+    exceptions.every { it.printStackTrace() }
 
     assert exceptions.empty
+  }
+
+
+  private static Configuration getConfigurationApi23monitoredInlinedApk()
+  {
+    new ConfigurationForTests()
+      .setArgs([
+      Configuration.pn_androidApi, Configuration.api23,
+      Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]" as String,
+    ])
+      .forDevice()
+      .get()
+  }
+
+  private void withSetupDevice(Configuration cfg, Closure computation)
+  {
+    IDeviceTools deviceTools = new DeviceTools(cfg)
+    deviceTools.deviceDeployer.withSetupDevice(0) {IRobustDevice device -> computation(cfg, deviceTools, device)}
+
   }
 }

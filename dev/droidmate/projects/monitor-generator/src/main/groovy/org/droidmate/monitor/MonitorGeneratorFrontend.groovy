@@ -60,10 +60,9 @@ public class MonitorGeneratorFrontend
 
   public static List<ApiMethodSignature> getMethodSignatures(MonitorGeneratorResources res)
   {
-    List<ApiMethodSignature> signatures = readAllLines(res.appguardApis)
+    List<ApiMethodSignature> signatures = readAllLines(res.monitoredApis)
       .findAll {
       it.size() > 0 && !(it.startsWith("#")) && !(it.startsWith(" ")) &&
-        !((res.androidApi == AndroidAPI.API_19) && (it.startsWith("!API19"))) &&
         !((res.androidApi == AndroidAPI.API_23) && (it.startsWith("!API23")))
     }.collect {
       it.startsWith("!API") ?

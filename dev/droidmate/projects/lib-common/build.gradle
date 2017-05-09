@@ -53,7 +53,7 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-simple"
   }
 
-  compile 'org.codehaus.groovy:groovy-all:2.4.6'
+  compile 'org.codehaus.groovy:groovy-all:2.4.10'
 
   compile 'org.apache.commons:commons-exec:1.2'
   compile 'org.apache.commons:commons-lang3:3.3'
@@ -95,19 +95,15 @@ task writeBuildConstantsProperties() { Task it ->
     map["AVD_dir_for_temp_files"] = BuildKt.AVD_dir_for_temp_files
     map["jarsigner_relative_path"] = BuildKt.jarsigner_relative_path
     map["apk_fixtures"] = BuildKt.apk_fixtures
-    map["monitored_inlined_apk_fixture_api19_name"] = BuildKt.monitored_inlined_apk_fixture_api19_name
     map["monitored_inlined_apk_fixture_api23_name"] = BuildKt.monitored_inlined_apk_fixture_api23_name
-    map["monitor_generator_output_relative_path_api19"] = BuildKt.monitor_generator_output_relative_path_api19
     map["monitor_generator_output_relative_path_api23"] = BuildKt.monitor_generator_output_relative_path_api23
     map["test_temp_dir_name"] = BuildKt.test_temp_dir_name
-    map["appguard_apis_txt"] = BuildKt.appguard_apis_txt
+    map["monitored_apis_txt"] = BuildKt.monitored_apis_txt
     map["dir_name_temp_extracted_resources"] = BuildKt.dir_name_temp_extracted_resources
     map["monitor_generator_res_name_monitor_template"] = BuildKt.monitor_generator_res_name_monitor_template
-    map["aapt_command_relative_api19"] = BuildKt.aapt_command_relative_api19
-    map["aapt_command_relative_api23"] = BuildKt.aapt_command_relative_api23
+    map["aapt_command_relative"] = BuildKt.aapt_command_relative
     map["adb_command_relative"] = BuildKt.adb_command_relative
     map["monitor_on_avd_apk_name"] = BuildKt.monitor_on_avd_apk_name
-    map["monitor_api19_apk_name"] = BuildKt.monitor_api19_apk_name
     map["monitor_api23_apk_name"] = BuildKt.monitor_api23_apk_name
     map["locale"] = BuildKt.locale.toString()
 

@@ -58,7 +58,7 @@ dependencies {
 
   // Necessary to make tests from 'reporter' work.
   testCompile 'org.hamcrest:hamcrest-library:1.3'
-
+  
   // Workaround for: 'gradlew :p:command:test' fails when reporter tests are run from command line.
   // It works when run from IntelliJ or when run with 'gradlew :p:reporter:test'
   testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"

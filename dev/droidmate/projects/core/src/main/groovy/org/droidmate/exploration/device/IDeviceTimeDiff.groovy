@@ -18,18 +18,17 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.device
 
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
 
 import java.time.LocalDateTime
 
 interface IDeviceTimeDiff
 {
 
-  LocalDateTime sync(LocalDateTime deviceTime) throws DeviceNeedsRebootException, DeviceException
+  LocalDateTime sync(LocalDateTime deviceTime) throws DeviceException
 
-  List<ITimeFormattedLogcatMessage> syncMessages(List<ITimeFormattedLogcatMessage> messages) throws DeviceNeedsRebootException, DeviceException
+  List<ITimeFormattedLogcatMessage> syncMessages(List<ITimeFormattedLogcatMessage> messages) throws DeviceException
 
   void reset()
 }

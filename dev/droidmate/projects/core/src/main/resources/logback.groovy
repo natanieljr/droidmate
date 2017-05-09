@@ -51,6 +51,7 @@ appender(LogbackAppenders.appender_stdout, ConsoleAppender) {
   target = "System.out"
   filter(ThresholdFilter) {level = STDOUT_LOG_LEVEL}
   filter(LevelFilter) {level = ERROR; onMatch = DENY; onMismatch = NEUTRAL}
+  filter(MarkerFilter) {marker = Markers.appHealth; onMismatch = NEUTRAL; onMatch = ACCEPT}
   filter(AllDroidmateMarkersFilter) {onMatch = DENY}
   encoder(PatternLayoutEncoder) {pattern = pat_date_level_logger}
 }
@@ -58,6 +59,7 @@ appender(LogbackAppenders.appender_stdout, ConsoleAppender) {
 appender(LogbackAppenders.appender_stderr, ConsoleAppender) {
   target = "System.err"
   filter(ThresholdFilter) {level = STDERR_LOG_LEVEL}
+  filter(MarkerFilter) {marker = Markers.appHealth; onMismatch = NEUTRAL; onMatch = ACCEPT}
   filter(AllDroidmateMarkersFilter) {onMatch = DENY}
   encoder(PatternLayoutEncoder) {pattern = pat_date_level_logger}
 }
@@ -71,6 +73,7 @@ appender(appender_name_stdStreams, LazyFileAppender) {
   lazy = true
 
   filter(ThresholdFilter) {level = STDOUT_LOG_LEVEL}
+  filter(MarkerFilter) {marker = Markers.appHealth; onMismatch = NEUTRAL; onMatch = ACCEPT}
   filter(AllDroidmateMarkersFilter) {onMatch = DENY}
   filter(EvaluatorFilter) {
     // Reference:
@@ -91,6 +94,7 @@ appender(appender_name_master, LazyFileAppender) {
   lazy = true
 
   filter(ThresholdFilter) {level = TRACE}
+  filter(MarkerFilter) {marker = Markers.appHealth; onMismatch = NEUTRAL; onMatch = ACCEPT}
   filter(AllDroidmateMarkersFilter) {onMatch = DENY}
 
   // Do not log TRACE from SysCmdExecutor, as it is too verbose.
@@ -99,7 +103,15 @@ appender(appender_name_master, LazyFileAppender) {
   // http://logback.qos.ch/manual/filters.html#GEventEvaluator
   filter(EvaluatorFilter) {
     evaluator(GEventEvaluator) {
-      expression = "(e.loggerName.contains('$SysCmdExecutor.simpleName') && (e.level == TRACE))"
+      expression = "((e.loggerName.contains('$SysCmdExecutor.simpleName')) && (e.level == TRACE))"
+    }
+    onMatch = DENY
+    onMismatch = NEUTRAL
+  }
+  // Do not log anything from zeroturnaround, for example org.zeroturnaround.exec.stream.StreamPumper
+  filter(EvaluatorFilter) {
+    evaluator(GEventEvaluator) {
+      expression = "(e.loggerName.contains('zeroturnaround'))"
     }
     onMatch = DENY
     onMismatch = NEUTRAL
@@ -181,6 +193,18 @@ appender(appender_name_runData, LazyFileAppender) {
   encoder(PatternLayoutEncoder) {pattern = pat_bare}
 }
 
+appender(appender_name_health, LazyFileAppender) {
+  file = getLogFilePath(appender_name_health)
+  append = false
+  lazy = true
+
+  filter(MarkerFilter) {
+    marker = Markers.appHealth
+    onMismatch = DENY; onMatch = NEUTRAL
+  }
+  encoder(PatternLayoutEncoder) {pattern = pat_date_level_logger}
+}
+
 //endregion File appenders based on markers
 
 //region Appender groups
@@ -192,6 +216,7 @@ def warnAppenders = [
 def mainFileAppenders = warnAppenders + [
   appender_name_stdStreams,
   appender_name_master,
+  appender_name_health
 ]
 def mainAppenders = mainFileAppenders + [
   LogbackAppenders.appender_stdout,
@@ -207,11 +232,12 @@ List loggersWithLazyFileAppenders = [
   // We cannot refer here to the classes directly as they would make SLF4J create substitute loggers and thus, issue warning to stderr.
   //@formatter:off
   // Uncomment if a detailed SysCmdExecutor log is needed.
-//  [loggerName: "SysCmdExecutor",                         additivity: false, pattern: pat_date_level],
-  [loggerName: "org.droidmate.android_sdk.AaptWrapper",                       additivity: true,  pattern: pat_date_level],
+//  [loggerName: "SysCmdExecutor",                                              additivity: false, pattern: pat_date_level],
+//  [loggerName: "org.droidmate.android_sdk.AaptWrapper",                       additivity: true,  pattern: pat_date_level],
+  // Has to be commented out to prevent it from polluting master log (prevented by additivity set to false)
   [loggerName: "org.droidmate.exploration.strategy.WidgetStrategy",           additivity: false, pattern: pat_date_level, additionalAppenders: warnAppenders],
-  [loggerName: "org.droidmate.exploration",                                   additivity: true,  pattern: pat_date_level_logger],//, additionalAppenders: warnAppenders],
-  //[loggerName: "org.droidmate.device",                                      additivity: true,  pattern: pat_date_level_logger]//, additionalAppenders: warnAppenders],
+//  [loggerName: "org.droidmate.exploration",                                   additivity: true,  pattern: pat_date_level_logger],//, additionalAppenders: warnAppenders],
+//  [loggerName: "org.droidmate.device",                                        additivity: true,  pattern: pat_date_level_logger]//, additionalAppenders: warnAppenders],
   //@formatter:on
 ]
 
@@ -235,10 +261,17 @@ loggersWithLazyFileAppenders.each {Map it ->
 
 //region Remaining loggers
 
+/*
+All the appenders attached to the root logger will receive logs from all the loggers. The appenders have to rely on their filters
+(defined above)  to prevent from having all the logs dumped into them.
+*/
 root(TRACE, mainAppenders + [
   appender_name_runData,
   appender_file_osCmd,
-  appender_name_monitor,
+  /* The "monitor" appender accepts INFO messages, among others. The fact it is associated with root logger will make the INFO messages
+    be appended to it. */
+  // Turned off because the monitor appender was generating huge files (see the "monitor" logger)
+  //appender_name_monitor,
 ])
 
 // N00b reference for additivity: http://logback.qos.ch/manual/architecture.html#additivity
@@ -249,7 +282,9 @@ root(TRACE, mainAppenders + [
 //logger("org.droidmate.exploration.output", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
 
 
-// Additivity is set to false to stop the uiad logs from appearing in the master log (they would appear there as the "master_log" appender is attached to the root logger)
-logger(logger_name_monitor, TRACE, [appender_name_monitor] + warnAppenders, /* additivity */ false)
+/* This line makes the special "monitor" logger send messages to the "monitor" appender. */
+// Additivity is set to false to stop the logs from "logger_name_monitor" from appearing in the master log (they would appear there as the "master_log" appender is attached to the root logger)
+// Turned off because the messages from "monitor" logger were huge (all API calls monitored, including their stack traces).
+logger(logger_name_monitor, TRACE, [] /*[appender_name_monitor] + warnAppenders*/, /* additivity */ false)
 
 //endregion

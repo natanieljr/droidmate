@@ -19,17 +19,15 @@
 package org.droidmate.device
 
 import groovy.util.logging.Slf4j
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IAdbWrapper
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
-import org.droidmate.exceptions.TcpServerUnreachableException
 import org.droidmate.misc.MonitorConstants
 
 @Slf4j
 class MonitorsClient implements IMonitorsClient
 {
 
-  private final ISerializableTCPClient<String, ArrayList<ArrayList<String>>> monitorTcpClient
+  private final ITcpClientBase<String, ArrayList<ArrayList<String>>> monitorTcpClient
 
   private final String deviceSerialNumber
 
@@ -37,13 +35,13 @@ class MonitorsClient implements IMonitorsClient
 
   MonitorsClient(int socketTimeout, String deviceSerialNumber, IAdbWrapper adbWrapper)
   {
-    this.monitorTcpClient = new SerializableTCPClient<>(socketTimeout)
+    this.monitorTcpClient = new TcpClientBase<>(socketTimeout)
     this.deviceSerialNumber = deviceSerialNumber
     this.adbWrapper = adbWrapper
   }
 
   @Override
-  public boolean anyMonitorIsReachable() throws DeviceNeedsRebootException, DeviceException
+  boolean anyMonitorIsReachable() throws DeviceException
   {
     boolean out = ports.any {
       this.isServerReachable(it)
@@ -75,33 +73,31 @@ class MonitorsClient implements IMonitorsClient
   }
 
   @Override
-  public ArrayList<ArrayList<String>> getCurrentTime() throws DeviceNeedsRebootException, DeviceException
+   ArrayList<ArrayList<String>> getCurrentTime() throws DeviceException
   {
     ArrayList<ArrayList<String>> out = ports.findResult {
       try
       {
         return monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_time, it)
 
-      } catch (DeviceNeedsRebootException e)
-      {
-        throw e
-
       } catch (TcpServerUnreachableException ignored)
       {
-        log.trace("Did not reach monitor TCP server at port $it.")
+        // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_time} request.")
         return null
       }
     }
-
     if (out == null)
+    {
+      assert !this.anyMonitorIsReachable()
       throw new DeviceException("None of the monitor TCP servers were available.", /* stopFurtherApkExplorations */ true)
+    }
 
     assert out != null
     return out
   }
 
   @Override
-  public ArrayList<ArrayList<String>> getLogs() throws DeviceNeedsRebootException, DeviceException
+   ArrayList<ArrayList<String>> getLogs() throws DeviceException
   {
     Collection<ArrayList<ArrayList<String>>> out = ports.findResults {
       try
@@ -109,7 +105,7 @@ class MonitorsClient implements IMonitorsClient
         return monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_logs, it)
       } catch (TcpServerUnreachableException ignored)
       {
-        log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_logs} request.")
+        // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_logs} request.")
         return null
       }
     }
@@ -134,7 +130,7 @@ class MonitorsClient implements IMonitorsClient
         monitorTcpClient.queryServer(MonitorConstants.srvCmd_close, it)
       } catch (TcpServerUnreachableException ignored)
       {
-        log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_close} request.")
+        // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_close} request.")
       } 
     }
   }

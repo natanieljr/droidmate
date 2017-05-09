@@ -30,7 +30,6 @@ import java.nio.file.Path
 @Slf4j
 class ApksProvider implements IApksProvider
 {
-
   IAaptWrapper aapt
 
   ApksProvider(IAaptWrapper aapt)
@@ -38,7 +37,7 @@ class ApksProvider implements IApksProvider
     this.aapt = aapt
   }
 
-  public List<Apk> getApks(Path apksDir, int apksLimit = 0, List<String> apksNames = [])
+  List<Apk> getApks(Path apksDir, int apksLimit = 0, List<String> apksNames = [], boolean shuffle = false)
   {
     assert Files.isDirectory(apksDir)
     assert apksLimit >= 0
@@ -63,10 +62,14 @@ class ApksProvider implements IApksProvider
       log.warn("No apks found! Apks were expected to be found in: {}", apksDir.toAbsolutePath().toString())
 
     Collection<IApk> builtApks = apks.findResults {Apk.build(aapt, it)}
+
+    builtApks.findAll { !it.inlined }.each { log.info("Following input apk is not inlined: $it.fileName")}
+    
+    if (shuffle)
+      Collections.shuffle(builtApks as List<IApk>)
+
     logApksUsedIntoRunData(builtApks)
     
-    builtApks.findAll { !it.inlined }.each { log.info("Following input apk is not inlined: $it.fileName")}
-
     return builtApks
   }
 

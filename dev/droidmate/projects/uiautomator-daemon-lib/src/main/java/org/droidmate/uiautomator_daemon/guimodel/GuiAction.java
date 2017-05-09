@@ -131,11 +131,6 @@ public class GuiAction implements Serializable
     return new GuiAction(UiautomatorDaemonConstants.guiActionCommand_turnWifiOn);
   }
 
-  public static GuiAction createLoadXPrivacyConfigGuiAction(String fileName)
-  {
-    return new GuiAction(UiautomatorDaemonConstants.guiActionCommand_loadXPrivacyConfig + "=" + fileName);
-  }
-
   public static GuiAction createLaunchAppGuiAction(String iconLabel)
   {
     return new GuiAction(UiautomatorDaemonConstants.guiActionCommand_launchApp, iconLabel, null);

@@ -63,7 +63,7 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
     if (deviceCommand.command.equals(DEVICE_COMMAND_STOP_UIADAEMON))
     {
       // The server will be closed after this response is sent, because the given deviceCommand.command will be interpreted
-      // in the caller, i.e. SerializableTcpServerBase.
+      // in the caller, i.e. UiautomatorDaemonTcpServerBase.
       return new DeviceResponse();
     }
 
@@ -87,7 +87,7 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
     throw new UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command));
   }
 
-  private String _deviceModel = null;
+  private String _deviceModel = null; 
   private String getDeviceModel()
   {
     if (_deviceModel == null)
@@ -99,7 +99,7 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
     }
     return _deviceModel;
   }
-
+  
   private boolean deviceIsEmulator()
   {
     return getDeviceModel().contains("unknown");
@@ -152,6 +152,11 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       } else if (action.guiActionCommand.equals(guiActionCommand_turnWifiOn))
       {
         turnWifiOnAndGoHome();
+
+      } else if (action.guiActionCommand.equals(guiActionCommand_launchApp))
+      {
+        launchApp(action.resourceId);
+
       } else
       {
         throw new UiAutomatorDaemonException(String.format("Unrecognized GUI action command: %s",
@@ -233,7 +238,7 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       Log.d(uiaDaemon_logcatTag, "Checking wifi state: skipped, because running on emulator.");
       return;
     }
-
+    
     Log.d(uiaDaemon_logcatTag, "Checking wifi state.");
     try
     {
@@ -364,7 +369,7 @@ public class UiAutomatorDaemonDriver implements IUiAutomatorDaemonDriver
       boolean wfwuReachedTimeout;
       boolean wfiReturnedImmediately;
       int iteration = 0;
-      int maxIterations = 10;
+      int maxIterations = 5;
       do
       {
         iteration++;

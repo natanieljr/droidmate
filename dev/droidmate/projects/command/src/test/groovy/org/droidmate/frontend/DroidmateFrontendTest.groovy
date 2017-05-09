@@ -19,30 +19,30 @@
 package org.droidmate.frontend
 
 import com.google.common.base.Throwables
-import org.droidmate.android_sdk.AaptWrapperStub
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
-import org.droidmate.device_simulation.AndroidDeviceSimulator
-import org.droidmate.device_simulation.DeviceSimulation
-import org.droidmate.device_simulation.IDeviceSimulation
-import org.droidmate.exceptions.ExceptionSpec
-import org.droidmate.exceptions.ITestException
-import org.droidmate.exceptions.ThrowablesCollection
-import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.exploration.strategy.ExplorationStrategy
-import org.droidmate.filesystem.MockFileSystem
 import org.droidmate.misc.BuildConstants
-import org.droidmate.misc.TimeGenerator
+import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.report.OutputDir
 import org.droidmate.storage.Storage2
-import org.droidmate.test_helpers.configuration.ConfigurationForTests
 import org.droidmate.test_suite_categories.RequiresDevice
 import org.droidmate.test_suite_categories.RequiresSimulator
-import org.droidmate.tests.DroidmateGroovyTestCase
-import org.droidmate.tools.DeviceToolsMock
+import org.droidmate.test_tools.DroidmateGroovyTestCase
+import org.droidmate.test_tools.android_sdk.AaptWrapperStub
+import org.droidmate.test_tools.configuration.ConfigurationForTests
+import org.droidmate.test_tools.device_simulation.AndroidDeviceSimulator
+import org.droidmate.test_tools.device_simulation.DeviceSimulation
+import org.droidmate.test_tools.device_simulation.IDeviceSimulation
+import org.droidmate.test_tools.device_simulation.TimeGenerator
+import org.droidmate.test_tools.exceptions.ExceptionSpec
+import org.droidmate.test_tools.exceptions.ITestException
+import org.droidmate.test_tools.filesystem.MockFileSystem
+import org.droidmate.test_tools.tools.DeviceToolsMock
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -50,14 +50,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
-import groovy.io.FileType
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4)
-public class DroidmateFrontendTest extends DroidmateGroovyTestCase
+ class DroidmateFrontendTest extends DroidmateGroovyTestCase
 {
   /**
    * <p>
@@ -92,7 +90,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
    */
   @Category([RequiresSimulator])
   @Test
-  public void "Handles exploration and fatal device exceptions"()
+  void "Handles exploration and fatal device exceptions"()
   {
     def mockedFs = new MockFileSystem([
       "mock_1_noThrow_outputOk",
@@ -133,7 +131,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
   @Category([RequiresSimulator])
   @Test
-  public void "Handles assertion error during exploration loop"()
+  void "Handles assertion error during exploration loop"()
   {
     def mockedFs = new MockFileSystem([
       "mock_1_throwsAssertInLoop_outputNone",
@@ -175,7 +173,6 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
     assert exitStatus != 0
 
-    // KJA test failure. Probably because I call "belongsToApp" on a null Widget. See IApkExplActAndResult extensions in reporter project.
     assert spy.handledThrowable instanceof ThrowablesCollection
     assert spy.throwables.size() == exceptionSpecs.size()
     assert spy.throwables.collect {Throwables.getRootCause(it) as ITestException}*.exceptionSpec == exceptionSpecs
@@ -197,7 +194,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
    */
   @Category([RequiresSimulator])
   @Test
-  public void "Explores on a device simulator"()
+  void "Explores on a device simulator"()
   {
     def mockedFs = new MockFileSystem(["mock_app1"])
     def cfg = new ConfigurationForTests().withFileSystem(mockedFs.fs).get()
@@ -225,28 +222,12 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
   @Category([RequiresDevice])
   @Test
-  public void "Explores monitored apk on a real device api19"()
+  void "Explores monitored apk on a real device api23"()
   {
-    String[] args = new ConfigurationForTests().forDevice().setArgs([
-      Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api19_name]",
-      Configuration.pn_widgetIndexes, "[0, 1]",
-      Configuration.pn_androidApi, Configuration.api19,
-    ]).get().args
-
-    exploreOnRealDevice(args, Configuration.api19)
-  }
-
-
-  @Category([RequiresDevice])
-  @Test
-  public void "Explores monitored apk on a real device api23"()
-  {
-    // WISH Borges: Testing
     String[] args = new ConfigurationForTests().forDevice().setArgs([
       Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
       Configuration.pn_widgetIndexes, "[0, 1, 2, 2, 2]",
-      Configuration.pn_androidApi, Configuration.api23,
-      Configuration.pn_xPrivacyConfigurationFile, "proof_of_concept_allow.xml"
+      Configuration.pn_androidApi, Configuration.api23
     ]).get().args
 
     exploreOnRealDevice(args, Configuration.api23)
@@ -336,27 +317,13 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
 
     // Act
     int exitStatus = DroidmateFrontend.main(args, /* commandProvider = */ null)
-
+    
     assert exitStatus == 0, "Exit status != 0. Please inspect the run logs for details, including exception thrown"
 
     IApkExplorationOutput2 apkOut = outputDir.explorationOutput2.findSingle()
 
     List<List<IApiLogcatMessage>> apiLogs = apkOut?.apiLogs
-    if (api == Configuration.api19)
-    {
-      assert apiLogs.size() == 4
-
-      def resetAppApiLogs = apiLogs[0]
-      def clickApiLogs = apiLogs[1]
-      def launchActivity2Logs = apiLogs[2]
-      def terminateAppApiLogs = apiLogs[3]
-
-      assert resetAppApiLogs*.methodName == []
-      assert clickApiLogs*.methodName == ["<init>", "openConnection"]
-      assert launchActivity2Logs*.methodName == []
-      assert terminateAppApiLogs.empty
-    }
-    else if (api == Configuration.api23)
+    if (api == Configuration.api23)
     {
       // Api logs' structure (Android 6):
       //  [0] Reset
@@ -399,7 +366,7 @@ public class DroidmateFrontendTest extends DroidmateGroovyTestCase
     List<Path> serFiles = Files.list(dir).findAll {it.fileName.toString().endsWith(Storage2.ser2FileExt)}
 
     assert serFiles.size() == packageNames.size()
-    packageNames.each {def packageName ->
+    packageNames.each {packageName ->
       assert serFiles.any {it.fileName.toString().contains(packageName)}
     }
   }

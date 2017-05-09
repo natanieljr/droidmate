@@ -19,21 +19,18 @@
 
 package org.droidmate.device
 
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
 
 import java.nio.file.Path
 
-public interface IDeployableAndroidDevice
+interface IDeployableAndroidDevice
 {
-  void pushFile(Path sourceFile) throws DeviceException
+  void pushJar(Path jar) throws DeviceException
 
-  void pushFile(Path sourceFile, String targetFileName, String targetDirectory) throws DeviceException
+  void pushJar(Path jar, String targetFileName) throws DeviceException
 
-  void pullFile(String sourceFileName, String targetFileName) throws DeviceException
-
-  void removeFile(Path file) throws DeviceException
+  void removeJar(Path jar) throws DeviceException
 
   void installApk(Path apk) throws DeviceException
 
@@ -45,21 +42,42 @@ public interface IDeployableAndroidDevice
 
   void clearPackage(String apkPackageName) throws DeviceException
 
+  boolean appProcessIsRunning(String appPackageName) throws DeviceException
+
   void clearLogcat() throws DeviceException
 
-  void closeConnection() throws DeviceNeedsRebootException, DeviceException
+  void closeConnection() throws DeviceException
 
   void reboot() throws DeviceException
+
+  void stopUiaDaemon(boolean uiaDaemonThreadIsNull) throws DeviceException
 
   boolean isAvailable() throws DeviceException
 
   boolean uiaDaemonClientThreadIsAlive()
 
-  void setupConnection() throws DeviceException
+  void restartUiaDaemon(boolean uiaDaemonThreadIsNull)
+  
+  void startUiaDaemon()
 
   void removeLogcatLogFile() throws DeviceException
 
   void pullLogcatLogFile() throws DeviceException
 
+  void reinstallUiautomatorDaemon() throws DeviceException
+
+  void pushMonitorJar() throws DeviceException
+
+  void setupConnection() throws DeviceException
+
   void initModel() throws DeviceException
+  
+  void reconnectAdb() throws DeviceException
+  
+  void executeAdbCommand(String command, String successfulOutput, String commandDescription) throws DeviceException
+
+  boolean uiaDaemonIsRunning()
+
+  boolean isPackageInstalled(String packageName)
+
 }

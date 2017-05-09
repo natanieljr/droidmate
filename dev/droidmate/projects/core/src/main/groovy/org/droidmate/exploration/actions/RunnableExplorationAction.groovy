@@ -19,17 +19,17 @@
 package org.droidmate.exploration.actions
 
 import groovy.util.logging.Slf4j
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceExceptionMissing
-import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.MissingDeviceLogs
+import org.droidmate.logging.Markers
 
 import java.time.LocalDateTime
 
@@ -54,6 +54,8 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
 
   static RunnableExplorationAction from(ExplorationAction action, LocalDateTime timestamp)
   {
+//    log.trace("Building exploration action ${action.class} with timestamp: $timestamp")
+    
     switch (action.class)
     {
       case ResetAppExplorationAction:
@@ -75,7 +77,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
   protected IDeviceLogs        logs
   protected DeviceException    exception
 
-  public IExplorationActionRunResult run(IApk app, IRobustDevice device)
+  IExplorationActionRunResult run(IApk app, IRobustDevice device)
   {
     assert app != null
     assert device != null
@@ -97,7 +99,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
     {
       successful = false
       this.exception = e
-      log.warn("! Caught ${e.class.simpleName} while performing device actions of ${this.class.simpleName}. " +
+      log.warn(Markers.appHealth, "! Caught ${e.class.simpleName} while performing device actions of ${this.class.simpleName}. " +
         "Returning failed ${ExplorationActionRunResult.class.simpleName} with the exception assigned to a field.")
     }
 
@@ -148,7 +150,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
   }
 
   @Override
-  public String toString()
+   String toString()
   {
     return "Runnable " + base.toString()
   }

@@ -19,29 +19,27 @@
 package org.droidmate.exploration.actions
 
 import groovy.util.logging.Slf4j
-import org.droidmate.android_sdk.AaptWrapper
-import org.droidmate.android_sdk.AdbWrapper
-import org.droidmate.android_sdk.Apk
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.exceptions.DeviceException
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
 
 import java.time.LocalDateTime
 
-import static org.droidmate.device.datatypes.AndroidDeviceAction.newLoadXPrivacyConfigDeviceAction
 import static org.droidmate.device.datatypes.AndroidDeviceAction.newTurnWifiOnDeviceAction
 
 @Slf4j
 class RunnableResetAppExplorationAction extends RunnableExplorationAction
 {
-
   private static final long serialVersionUID = 1
+
+  private final boolean isFirst
 
   RunnableResetAppExplorationAction(ResetAppExplorationAction action, LocalDateTime timestamp)
   {
     super(action, timestamp)
+    this.isFirst = action.isFirst
   }
 
   @Override
@@ -52,7 +50,6 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     assert app != null
     assert device != null
 
-    // KNOWN BUG [clear package]/1 times out (120 sec) even though later on the device works and is available.
     device.clearPackage(app.packageName)
 
     log.debug("2. Clear logcat.")
@@ -60,20 +57,12 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     // possible some API logs will be read from it, wreaking all kinds of havoc, e.g. having timestamp < than the current
     // exploration start time.
     device.clearLogcat()
-
+    
     log.debug("3. Ensure home screen is displayed.")
     device.ensureHomeScreenIsDisplayed()
 
     log.debug("4. Turn wifi on.")
     device.perform(newTurnWifiOnDeviceAction())
-
-    // WISH Borges Replace test ile name
-    if (device.usingXPrivacy)
-    {
-      log.debug("4.1. XPrivacy configuration file specified, loading XPrivacy configuration file.")
-      device.getXPrivacyWrapper().loadConfiguration()
-      device.ensureHomeScreenIsDisplayed()
-    }
 
     log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
     device.getGuiSnapshot()
@@ -88,15 +77,20 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     log.debug("7. Launch app $app.packageName.")
     device.launchApp(app)
 
+    if (this.isFirst)
+    {
+      log.debug("7.firstReset: Take a screenshot of first reset action.")
+      device.takeScreenshot(app, "firstReset")
+    }
+
     log.debug("8. Get GUI snapshot.")
-    // GUI snapshot has to be obtained before a check is made if app is running. Why? Because obtaining GUI snapshot closes all
-    // ANR dialogs, and if the app crashed with ANR, it will be deemed as running until the ANR is closed.
     this.snapshot = device.guiSnapshot
 
     log.debug("9. Try to read API logs.")
     IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
     logsHandler.readAndClearApiLogs()
     this.logs = logsHandler.getLogs()
+
   }
 }
 

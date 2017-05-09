@@ -18,6 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import com.konradjamrozik.createDirIfNotExists
+import org.droidmate.deleteDir
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,6 +37,10 @@ class ExplorationOutput2Report(rawData: List<IApkExplorationOutput2>, val dir: P
 
     log.info("Writing out exploration report to $dir")
     
+    dir.deleteDir()
+    dir.createDirIfNotExists()
+    apkReportsDir.createDirIfNotExists()
+    
     if (includeSummary)
       summaryFile.writeOut()
     
@@ -45,14 +51,16 @@ class ExplorationOutput2Report(rawData: List<IApkExplorationOutput2>, val dir: P
     apksViewsFiles.forEach { it.writeOut() }
   }
 
+  val apkReportsDir: Path by lazy { dir.resolve("app_reports") }
+  
   val summaryFile: IDataFile by lazy { Summary(data, dir.resolve(fileNameSummary)) }
 
   val aggregateStatsFile: TableDataFile<Int, String, String> by lazy {
     TableDataFile(AggregateStatsTable(data), dir.resolve(fileNameAggregateStats))
   }
   
-  val apksTabularReports: List<ApkTabularDataReport> by lazy { data.map { ApkTabularDataReport(it, dir) } }
-  val apksViewsFiles: List<ApkViewsFile> by lazy { data.map {ApkViewsFile(it, dir) } }
+  val apksTabularReports: List<ApkTabularDataReport> by lazy { data.map { ApkTabularDataReport(it, apkReportsDir) } }
+  val apksViewsFiles: List<ApkViewsFile> by lazy { data.map { ApkViewsFile(it, apkReportsDir) } }
 
   companion object { 
     val fileNameSummary = "summary.txt"

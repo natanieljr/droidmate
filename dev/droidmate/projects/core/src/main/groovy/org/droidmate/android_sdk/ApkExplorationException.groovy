@@ -19,10 +19,10 @@
 package org.droidmate.android_sdk
 
 import groovy.util.logging.Slf4j
-import org.droidmate.exceptions.DeviceException
+import org.droidmate.logging.Markers
 
 @Slf4j
-public class ApkExplorationException extends ExplorationException
+ class ApkExplorationException extends ExplorationException
 {
 
   private static final long serialVersionUID = 1
@@ -30,7 +30,7 @@ public class ApkExplorationException extends ExplorationException
   final IApk apk
   final boolean stopFurtherApkExplorations
 
-  public ApkExplorationException(IApk apk, Throwable cause, boolean stopFurtherApkExplorations = false)
+  ApkExplorationException(IApk apk, Throwable cause, boolean stopFurtherApkExplorations = false)
   {
     super(cause)
     this.apk = apk
@@ -41,11 +41,12 @@ public class ApkExplorationException extends ExplorationException
 
     if (this.shouldStopFurtherApkExplorations())
     {
-      log.warn("An ${this.class.simpleName} demanding stopping further apk explorations was just constructed!")
+      log.warn(Markers.appHealth, 
+        "An ${this.class.simpleName} demanding stopping further apk explorations was just constructed!")
     }
   }
 
-  public boolean shouldStopFurtherApkExplorations()
+  boolean shouldStopFurtherApkExplorations()
   {
     if (this.stopFurtherApkExplorations)
       return true

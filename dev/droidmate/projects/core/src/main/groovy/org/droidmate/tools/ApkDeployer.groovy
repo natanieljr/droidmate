@@ -22,10 +22,11 @@ package org.droidmate.tools
 import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.ApkExplorationException
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IDeployableAndroidDevice
-import org.droidmate.exceptions.DeviceException
+import org.droidmate.logging.Markers
 import org.droidmate.misc.Assert
 
 /**
@@ -33,7 +34,7 @@ import org.droidmate.misc.Assert
  */
 @Slf4j
 @TypeChecked
-public class ApkDeployer implements IApkDeployer
+ class ApkDeployer implements IApkDeployer
 {
 
   private final Configuration cfg
@@ -51,7 +52,7 @@ public class ApkDeployer implements IApkDeployer
    * </p>
    */
   @Override
-  public List<ApkExplorationException> withDeployedApk(IDeployableAndroidDevice device, IApk apk, Closure computation)
+   List<ApkExplorationException> withDeployedApk(IDeployableAndroidDevice device, IApk apk, Closure computation)
   {
     log.debug("withDeployedApk(device, $apk.fileName, computation)")
 
@@ -73,7 +74,8 @@ public class ApkDeployer implements IApkDeployer
     }
     catch (Throwable computationThrowable)
     {
-      log.warn("! Caught ${computationThrowable.class.simpleName} in withDeployedApk($device, $apk.fileName)->computation(). " +
+      log.warn(Markers.appHealth, 
+        "! Caught ${computationThrowable.class.simpleName} in withDeployedApk($device, $apk.fileName)->computation(). " +
         "Adding as a cause to an ${ApkExplorationException.class.simpleName}. Then adding to the collected exceptions list.\n" +
         "The ${computationThrowable.class.simpleName}: $computationThrowable")
 
@@ -88,7 +90,8 @@ public class ApkDeployer implements IApkDeployer
       }
       catch (Throwable undeployApkThrowable)
       {
-        log.warn("! Caught ${undeployApkThrowable.class.simpleName} in withDeployedApk($device, $apk.fileName)->tryUndeployApk(). " +
+        log.warn(Markers.appHealth, 
+          "! Caught ${undeployApkThrowable.class.simpleName} in withDeployedApk($device, $apk.fileName)->tryUndeployApk(). " +
           "Adding as a cause to an ${ApkExplorationException.class.simpleName}. Then adding to the collected exceptions list.\n" +
           "The ${undeployApkThrowable.class.simpleName}: $undeployApkThrowable")
 
@@ -105,14 +108,12 @@ public class ApkDeployer implements IApkDeployer
   {
     try
     {
-      // Deployment of apk on device will read some information from logcat, so it has to be cleared to ensure the
-      // anticipated commands are not matched against logcat messages from  deployments of previously explored apks.
-      device.clearLogcat()
       tryReinstallApk(device, apk)
 
     } catch (Throwable deployThrowable)
     {
-      log.warn("! Caught ${deployThrowable.class.simpleName} in deployApk($device, $apk.fileName). " +
+      log.warn(Markers.appHealth, 
+        "! Caught ${deployThrowable.class.simpleName} in deployApk($device, $apk.fileName). " +
         "Adding as a cause to an ${ApkExplorationException.class.simpleName}. Then adding to the collected exceptions list.")
       return new ApkExplorationException(apk, deployThrowable)
     }
@@ -129,7 +130,6 @@ public class ApkDeployer implements IApkDeployer
         // This method is called in org.droidmate.exploration.actions.RunnableTerminateExplorationAction.performDeviceActions 
         // but exploration might throw exception before that call is made, so here we make another attempt at doing it. 
         device.closeMonitorServers()
-        // KNOWN BUG [clear package]/2 times out (120 sec) even though device.available returned true!
         device.clearPackage(apk.packageName)
         device.uninstallApk(apk.packageName, /* ignoreFailure = */ false)
       }
@@ -152,6 +152,9 @@ public class ApkDeployer implements IApkDeployer
      certificates not matching (or something like that))
     */
     device.uninstallApk(apk.packageName, /* ignoreFailure  = */ true)
+    
+    if (!device.available)
+      throw new DeviceException("No device is available just before installing $apk", /* stopFurtherApkExplorations */ true)
     device.installApk(apk)
   }
 

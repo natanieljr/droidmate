@@ -27,6 +27,7 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
+import org.droidmate.logging.Markers
 import org.droidmate.misc.DroidmateException
 
 import java.nio.file.FileSystem
@@ -43,18 +44,18 @@ import static org.droidmate.logging.Markers.runData
  * </p>
  */
 @Slf4j
-public class DroidmateFrontend
+ class DroidmateFrontend
 {
   /**
    * @see DroidmateFrontend
    */
-  public static void main(String[] args)
+   static void main(String[] args)
   {
     int exitStatus = main(args, null)
     System.exit(exitStatus)
   }
 
-  public static int main(String[] args, ICommandProvider commandProvider, FileSystem fs = FileSystems.getDefault(), IExceptionHandler exceptionHandler = new ExceptionHandler())
+   static int main(String[] args, ICommandProvider commandProvider, FileSystem fs = FileSystems.getDefault(), IExceptionHandler exceptionHandler = new ExceptionHandler())
   {
     println "DroidMate, an automated execution generator for Android apps."
     println "Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik"
@@ -88,6 +89,7 @@ public class DroidmateFrontend
 
       log.info("Successfully instantiated ${command.class.simpleName}. Welcome to DroidMate. Lie back, relax and enjoy.")
       log.info("Run start timestamp: " + runStart)
+      log.info("Running in Android $cfg.androidApi compatibility mode (api23 = 6.0).")
 
       command.execute(cfg)
 
@@ -122,7 +124,8 @@ public class DroidmateFrontend
     String timestampFormat = "yyyy MMM dd HH:mm:ss"
 
     if (encounteredExceptionsDuringTheRun)
-      log.warn("DroidMate run finished, but some exceptions have been thrown and handled during the run. See previous logs for details.")
+      log.warn(Markers.appHealth, 
+        "DroidMate run finished, but some exceptions have been thrown and handled during the run. See previous logs for details.")
     else
       log.info("DroidMate run finished successfully.")
 

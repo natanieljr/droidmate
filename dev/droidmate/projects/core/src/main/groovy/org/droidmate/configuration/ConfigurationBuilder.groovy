@@ -28,7 +28,6 @@ import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.apache.commons.lang3.builder.StandardToStringStyle
-import org.droidmate.exceptions.ConfigurationException
 import org.droidmate.misc.BuildConstants
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -72,7 +71,7 @@ class ConfigurationBuilder implements IConfigurationBuilder
  * @see Configuration
  */
   @Override
-  public Configuration build(String[] args, FileSystem fs = FileSystems.default) throws ConfigurationException
+   Configuration build(String[] args, FileSystem fs = FileSystems.default) throws ConfigurationException
   {
     // Groovy bug: the @Memoized annotation causes cryptic compilation error if the args type is String[], so it is List instead.
     return memoizedBuildConfiguration(args as List, fs)
@@ -100,7 +99,7 @@ class ConfigurationBuilder implements IConfigurationBuilder
     return config
   }
 
-  public static JCommander populateConfigurationWithArgs(
+   static JCommander populateConfigurationWithArgs(
     String[] args, Configuration config)
   {
     JCommander jCommander
@@ -157,8 +156,6 @@ class ConfigurationBuilder implements IConfigurationBuilder
   }
 
   static void normalizeAndroidApi(Configuration config) {
-    if (config.androidApi == "19")
-      config.androidApi = Configuration.api19
     if (config.androidApi == "23")
       config.androidApi = Configuration.api23
   }
@@ -206,26 +203,18 @@ class ConfigurationBuilder implements IConfigurationBuilder
 
   private static void setupResourcesAndPaths(Configuration cfg, FileSystem fs) throws ConfigurationException
   {
-    cfg.appGuardApisList = new Resource(BuildConstants.appguard_apis_txt).text.readLines().findAll {it.size() > 0 && !it.startsWith("#")}
-      .collect { it.startsWith("!API") ? it["!APIXX ".size()..-1] : it }
-
-    cfg.uiautomatorDaemonJar = new Resource("uiautomator-daemon.jar").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
-    log.info("Using uiautomator-daemon.jar located at "+cfg.uiautomatorDaemonJar.toAbsolutePath().toString())
-
     cfg.uiautomator2DaemonApk = new Resource("uiautomator2-daemon.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
     log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomator2DaemonApk.toAbsolutePath().toString())
 
     cfg.uiautomator2DaemonTestApk = new Resource("uiautomator2-daemon-test.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
     log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomator2DaemonTestApk.toAbsolutePath().toString())
 
-    cfg.monitorApkApi19 = new Resource(BuildConstants.monitor_api19_apk_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
-    log.info("Using $BuildConstants.monitor_api19_apk_name located at "+cfg.monitorApkApi19.toAbsolutePath().toString())
-
     cfg.monitorApkApi23 = new Resource(BuildConstants.monitor_api23_apk_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
     log.info("Using $BuildConstants.monitor_api23_apk_name located at "+cfg.monitorApkApi23.toAbsolutePath().toString())
 
     
     cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir)
+    cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubdir)
     cfg.reportInputDirPath = fs.getPath(cfg.reportInputDir)
     cfg.reportOutputDirPath = fs.getPath(cfg.reportOutputDir)
     cfg.apksDirPath = cfg.useApkFixturesDir ? new ResourcePath(BuildConstants.apk_fixtures).path : fs.getPath(cfg.apksDirName.toString())
@@ -237,7 +226,6 @@ class ConfigurationBuilder implements IConfigurationBuilder
       log.info("Created directory to which DroidMate will output: "+cfg.droidmateOutputDirPath.toAbsolutePath().toString())
 
   }
-
 
   private static void setLogbackRootLoggerLoggingLevel(Configuration config) throws ConfigurationException
   {

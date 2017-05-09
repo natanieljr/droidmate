@@ -19,11 +19,10 @@
 package org.droidmate.exploration.device
 
 import groovy.util.logging.Slf4j
+import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.DeviceNeedsRebootException
 import org.droidmate.misc.MonitorConstants
 
 import java.time.Duration
@@ -44,7 +43,7 @@ import java.time.format.DateTimeFormatter
  * </p>
  */
 @Slf4j
-public class DeviceTimeDiff implements IDeviceTimeDiff
+ class DeviceTimeDiff implements IDeviceTimeDiff
 {
 
   private final IExplorableAndroidDevice device
@@ -57,7 +56,7 @@ public class DeviceTimeDiff implements IDeviceTimeDiff
   }
 
   @Override
-  public LocalDateTime sync(LocalDateTime deviceTime) throws DeviceNeedsRebootException, DeviceException
+  LocalDateTime sync(LocalDateTime deviceTime) throws DeviceException
   {
     assert deviceTime != null
 
@@ -68,7 +67,7 @@ public class DeviceTimeDiff implements IDeviceTimeDiff
     return deviceTime.minus(diff)
   }
 
-  private Duration computeDiff(IExplorableAndroidDevice device) throws DeviceNeedsRebootException, DeviceException
+  private Duration computeDiff(IExplorableAndroidDevice device) throws DeviceException
   {
     LocalDateTime deviceTime = device.getCurrentTime()
     LocalDateTime now = LocalDateTime.now()
@@ -76,10 +75,10 @@ public class DeviceTimeDiff implements IDeviceTimeDiff
 
     def formatter = DateTimeFormatter.ofPattern(
       MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale)
-    String msg = "computeDiff(device) result:\n" +
-      "Current time   : ${now.format(formatter)}\n" +
-      "Device time    : ${deviceTime.format(formatter)}\n" +
-      "Resulting diff : ${diff.toString()}"
+    String msg = "computeDiff(device) result: " +
+      "Current time: ${now.format(formatter)} " +
+      "Device time: ${deviceTime.format(formatter)} " +
+      "Resulting diff: ${diff.toString()}"
 
     log.trace(msg)
 
@@ -88,9 +87,12 @@ public class DeviceTimeDiff implements IDeviceTimeDiff
   }
 
   @Override
-  List<ITimeFormattedLogcatMessage> syncMessages(List<ITimeFormattedLogcatMessage> messages) throws DeviceNeedsRebootException, DeviceException
+  List<ITimeFormattedLogcatMessage> syncMessages(List<ITimeFormattedLogcatMessage> messages) throws DeviceException
   {
     return messages.collect {
+      
+//      log.trace("syncing: curr diff: ${this.diff} log dev. time: $it.time tag: $it.tag pid: $it.pidString, payload first 200 chars: ${it.messagePayload.take(200)}")
+      
       TimeFormattedLogcatMessage.from(
         this.sync(it.time),
         it.level, it.tag, it.pidString, it.messagePayload)
@@ -101,6 +103,6 @@ public class DeviceTimeDiff implements IDeviceTimeDiff
   @Override
   void reset()
   {
-    diff = null
+     diff = null
   }
 }

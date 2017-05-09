@@ -19,14 +19,20 @@
 package org.droidmate.tools
 
 import org.droidmate.android_sdk.IAaptWrapper
+import org.droidmate.android_sdk.IAdbWrapper
 
 interface IDeviceTools
 {
 
   IAaptWrapper getAapt()
+  
+  IAdbWrapper getAdb()
 
   IAndroidDeviceDeployer getDeviceDeployer()
 
   IApkDeployer getApkDeployer()
+  
+  IAndroidDeviceFactory getDeviceFactory()
+  
 
 }

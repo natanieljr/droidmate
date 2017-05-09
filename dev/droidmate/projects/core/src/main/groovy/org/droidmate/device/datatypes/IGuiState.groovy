@@ -39,6 +39,9 @@ interface IGuiState extends Serializable
 
   boolean isSelectAHomeAppDialogBox()
 
+  boolean isUseLauncherAsHomeDialogBox()
+
   boolean belongsToApp(String appPackageName)
 
+  String debugWidgets()
 }

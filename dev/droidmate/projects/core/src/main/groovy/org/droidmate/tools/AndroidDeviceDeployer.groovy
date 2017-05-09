@@ -20,17 +20,14 @@
 package org.droidmate.tools
 
 import groovy.util.logging.Slf4j
-import org.droidmate.android_sdk.AndroidDeviceDescriptor
-import org.droidmate.android_sdk.ApkExplorationException
-import org.droidmate.android_sdk.ExplorationException
-import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.android_sdk.*
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.IDeployableAndroidDevice
-import org.droidmate.exceptions.DeviceException
-import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.RobustDevice
+import org.droidmate.logging.Markers
 import org.droidmate.misc.Assert
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.DroidmateException
@@ -39,7 +36,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import java.nio.file.Paths
 
 @Slf4j
-public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
+ class AndroidDeviceDeployer implements IAndroidDeviceDeployer
 {
 
   private final Configuration         cfg
@@ -63,7 +60,7 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
   private List<String> usedSerialNumbers = [] as List<String>
 
 
-  public AndroidDeviceDeployer(Configuration cfg, IAdbWrapper adbWrapper, IAndroidDeviceFactory deviceFactory)
+  AndroidDeviceDeployer(Configuration cfg, IAdbWrapper adbWrapper, IAndroidDeviceFactory deviceFactory)
   {
     this.cfg = cfg
     this.adbWrapper = adbWrapper
@@ -85,22 +82,9 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
   {
     this.adbWrapper.startAdbServer()
 
-    // WISH the known bugs on emulators might have been caused by the fact I was using broken appguard-loader.dex. See if they still happen with the correct loader.
-    // KNOWN BUG on emulator, device offline when trying to remove logcat log file. Possible quickfix: on emulators, add a wait.
-    device.removeLogcatLogFile()
-    device.clearLogcat()
-    if (cfg.androidApi == Configuration.api19)
-    {
-      device.pushFile(this.cfg.uiautomatorDaemonJar)
-      device.pushFile(this.cfg.monitorApkApi19, BuildConstants.monitor_on_avd_apk_name, null)
-    }
-    else if (cfg.androidApi == Configuration.api23)
-    {
-      device.installApk(this.cfg.uiautomator2DaemonApk)
-      device.installApk(this.cfg.uiautomator2DaemonTestApk)
-      device.pushFile(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name, null)
-    } else throw new UnexpectedIfElseFallthroughError()
-
+    // Nataniel: Had to invert order, otherwise it crashes on the first time it's executed because the UiAutomator2Daemon was never installed on the device
+    device.reinstallUiautomatorDaemon()
+    device.pushMonitorJar()
     device.setupConnection()
     device.initModel()
 
@@ -126,16 +110,13 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
       log.trace("Tearing down.")
       device.pullLogcatLogFile()
       device.closeConnection()
-      if (cfg.androidApi == Configuration.api19)
-      {
-        device.removeFile(cfg.uiautomatorDaemonJar)
-      } else if (cfg.androidApi == Configuration.api23)
+      if (cfg.androidApi == Configuration.api23)
       {
         // WISH why failure is ignored here? Ask Borges
         device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, /* ignoreFailure = */ true)
         device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, /* ignoreFailure = */ true)
       } else throw new UnexpectedIfElseFallthroughError()
-      device.removeFile(Paths.get(BuildConstants.monitor_on_avd_apk_name))
+      device.removeJar(Paths.get(BuildConstants.monitor_on_avd_apk_name))
     }
     else
       log.trace("Device is not available. Skipping tear down.")
@@ -151,7 +132,7 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
    * @see #tryTearDown(IDeployableAndroidDevice)
    */
   @Override
-  public List<ExplorationException> withSetupDevice(int deviceIndex, Closure<List<ApkExplorationException>> computation)
+  List<ExplorationException> withSetupDevice(int deviceIndex, Closure<List<ApkExplorationException>> computation)
   {
     log.info("Setup device with deviceIndex of $deviceIndex")
     Assert.checkClosureFirstParameterSignature(computation, IRobustDevice)
@@ -191,7 +172,8 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
 
       } catch (Throwable tearDownThrowable)
       {
-        log.warn("! Caught ${tearDownThrowable.class.simpleName} in withSetupDevice($deviceIndex)->tryTearDown($device). " +
+        log.warn(Markers.appHealth, 
+          "! Caught ${tearDownThrowable.class.simpleName} in withSetupDevice($deviceIndex)->tryTearDown($device). " +
           "Adding as a cause to an ${ExplorationException.class.simpleName}. " +
           "Then adding to the collected exceptions list.\n" +
           "The ${tearDownThrowable.class.simpleName}: $tearDownThrowable")
@@ -219,7 +201,8 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
 
     } catch (Throwable setupDeviceThrowable)
     {
-      log.warn("! Caught ${setupDeviceThrowable.class.simpleName} in setupDevice(deviceIndex: $deviceIndex). " +
+      log.warn(Markers.appHealth, 
+        "! Caught ${setupDeviceThrowable.class.simpleName} in setupDevice(deviceIndex: $deviceIndex). " +
         "Adding as a cause to an ${ExplorationException.class.simpleName}. Then adding to the collected exceptions list.")
 
       return [null, null, setupDeviceThrowable]
@@ -246,7 +229,7 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
       throw new DroidmateException("While obtaining new A(V)D serial number, DroidMate detected that one or more of the " +
         "already used serial numbers do not appear on the list of serial numbers returned by the 'adb devices' command. " +
         "This indicates the device(s) with these number most likely have been disconnected. Thus, DroidMate throws exception. " +
-        "List of the offending serial numbers: $unrecognizedNumbers");
+        "List of the offending serial numbers: $unrecognizedNumbers")
 
     def unusedDescriptors = deviceDescriptors.findAll {AndroidDeviceDescriptor add ->
       !(add.deviceSerialNumber in usedSerialNumbers)
@@ -259,7 +242,7 @@ public class AndroidDeviceDeployer implements IAndroidDeviceDeployer
     if (unusedDescriptors.size() < deviceIndex + 1)
       throw new DroidmateException("Requested device with device no. ${deviceIndex + 1} but the no. of available devices is ${unusedDescriptors.size()}.")
 
-    String serialNumber;
+    String serialNumber
     serialNumber = unusedDescriptors.findAll {AndroidDeviceDescriptor add -> !add.isEmulator}[deviceIndex]?.deviceSerialNumber
     if (serialNumber == null)
       serialNumber = unusedDescriptors.findAll {AndroidDeviceDescriptor add -> add.isEmulator}[deviceIndex]?.deviceSerialNumber

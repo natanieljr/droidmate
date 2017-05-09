@@ -32,7 +32,7 @@ dependencies {
   compile project(":projects:lib-common")
   compile project(":projects:lib-kotlin")
 
-  compile 'org.codehaus.groovy:groovy-all:2.4.6'
+  compile 'org.codehaus.groovy:groovy-all:2.4.10'
 
   compile 'ch.qos.logback:logback-classic:1.0.13'
   compile 'ch.qos.logback:logback-core:1.0.13'
@@ -43,18 +43,18 @@ dependencies {
 
 //region Tasks to setup resources necessary for a call to MonitorGeneratorFrontend
 
-// Ensure BuildKt.appguard_apis_txt is available at runtime as a resource. 
+// Ensure BuildKt.monitored_apis_txt is available at runtime as a resource. 
 processResources.configure { Copy copy ->
 
-  File appguardApisTxt = project(":projects").file("resources/${BuildKt.appguard_apis_txt}")
-  assert appguardApisTxt.file
+  File monitoredApisTxt = project(":projects").file("resources/${BuildKt.monitored_apis_txt}")
+  assert monitoredApisTxt.file
 
   evaluationDependsOn(":projects:monitor-template")
   // !!! DUPLICATION WARNING !!! with the file name and file location of class org.droidmate.monitor.MonitorJavaTemplate
   File monitorJavaTemplateSource = findProject(":projects:monitor-template").sourceSets.main.java.find { it.name == "MonitorJavaTemplate.java" } as File
   assert monitorJavaTemplateSource.file
 
-  copy.from(appguardApisTxt, monitorJavaTemplateSource).rename(monitorJavaTemplateSource.name, BuildKt.monitor_generator_res_name_monitor_template)
+  copy.from(monitoredApisTxt, monitorJavaTemplateSource).rename(monitorJavaTemplateSource.name, BuildKt.monitor_generator_res_name_monitor_template)
 }
 
 //endregion
@@ -76,7 +76,6 @@ def generateMonitor = { JavaExec je, List<String> args, File generatedMonitor ->
 }
 
 def generatedMonitor = {int apiLevel -> new File(runTask.workingDir, BuildKt.generated_monitor(apiLevel))}
-task generateMonitor_api19(type: JavaExec) {generateMonitor(it as JavaExec, ["api19"], generatedMonitor(19)) }
 task generateMonitor_api23(type: JavaExec) {generateMonitor(it as JavaExec, ["api23"], generatedMonitor(23)) }
 
 //endregion
@@ -137,27 +136,22 @@ def buildMonitorApk = { GradleBuild task, int apiLevel ->
   task.doLast { copyFileWithRename(apkScaffoldingOutputApk(apiLevel), monitorApk(apiLevel)) }
 }
 
-task buildMonitorApk_api19(type: GradleBuild) {buildMonitorApk(it as GradleBuild, 19) }
 task buildMonitorApk_api23(type: GradleBuild) {buildMonitorApk(it as GradleBuild, 23) }
 
 clean.configure {
-  
-  delete generatedMonitor(19)
-  delete generatedMonitor(23)
-  assert generatedMonitor(19).parent ==  generatedMonitor(23).parent
-  delete generatedMonitor(19).parent
 
-  delete monitorJava(19)
+  delete generatedMonitor(23)
+  delete generatedMonitor(23).parent
+
   delete monitorJava(23)
 
   delete libsBuilt
   delete apkScaffoldingOutput
 
-  delete monitorApk(19)
   delete monitorApk(23)
 }
 
-build.dependsOn "buildMonitorApk_api19", "buildMonitorApk_api23"
+build.dependsOn "buildMonitorApk_api23"
 
 // Tests not included because the test shouldn't be run as part of a test suite.
 configureTest(project, [''])

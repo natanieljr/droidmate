@@ -23,7 +23,7 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
-import org.droidmate.exceptions.UnexpectedIfElseFallthroughError
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackConstants
 
 import java.awt.*
@@ -124,9 +124,9 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
     if (this.wellFormedness != WellFormedness.OK)
       return "Package unknown: the snapshot is not well-formed"
 
-    int startIndex = windowHierarchyDump.indexOf("package=\"");
-    int endIndex = windowHierarchyDump.indexOf('"', startIndex + "package=\"".length());
-    return windowHierarchyDump.substring(startIndex + "package=\"".length(), endIndex);
+    int startIndex = windowHierarchyDump.indexOf("package=\"")
+    int endIndex = windowHierarchyDump.indexOf('"', startIndex + "package=\"".length())
+    return windowHierarchyDump.substring(startIndex + "package=\"".length(), endIndex)
   }
 
   //region Getting GUI state
@@ -150,12 +150,6 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
     assert hierarchy.name() == "hierarchy"
 
     String topNodePackage = hierarchy.node[0]?.@package?.text()
-    // KJA bug assert fail after on fixture droidmate clicked "Crash activity"
-    // KJA DEBUG
-    if (topNodePackage.empty)
-    {
-      log.warn("window hierarchy dump: \n"+windowHierarchyDump)
-    }
     assert !topNodePackage.empty
 
 
@@ -192,13 +186,13 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
           deviceDisplayBounds : deviceDisplayBounds,
           // @formatter:on
         )
-        return w;
+        return w
       }
       catch (InvalidWidgetBoundsException e)
       {
         log.error("Catching exception: parsing widget bounds failed. $LogbackConstants.err_log_msg\n" +
           "Continuing execution, skipping the widget with invalid bounds.")
-        log.error(exceptions, "parsing widget bounds failed with exception:\n", e);
+        log.error(exceptions, "parsing widget bounds failed with exception:\n", e)
         return null
       }
     }.findAll {it != null}
@@ -306,28 +300,32 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
 
 
   @Override
-  public String toString()
+   String toString()
   {
-    String cls = UiautomatorWindowDump.simpleName
+    String clazz = UiautomatorWindowDump.simpleName
     if (this.wellFormedness != WellFormedness.OK)
-      return "$cls{!not well-formed!: $windowHierarchyDump}"
+      return "$clazz{!not well-formed!: $windowHierarchyDump}"
 
     if (this.guiState.isHomeScreen())
-      return "$cls{home screen}"
+      return "$clazz{home screen}"
 
     if (this.guiState.isRequestRuntimePermissionDialogBox())
-      return "$cls{\"Runtime permission\" dialog box. Allow widget enabled: ${(this.guiState as RuntimePermissionDialogBoxGuiState).allowWidget.enabled}}"
+      return "$clazz{\"Runtime permission\" dialog box. Allow widget enabled: ${(this.guiState as RuntimePermissionDialogBoxGuiState).allowWidget.enabled}}"
 
     if (this.guiState.isAppHasStoppedDialogBox())
-      return "$cls{\"App has stopped\" dialog box. OK widget enabled: ${(this.guiState as AppHasStoppedDialogBoxGuiState).OKWidget.enabled}}"
+      return "$clazz{\"App has stopped\" dialog box. OK widget enabled: ${(this.guiState as AppHasStoppedDialogBoxGuiState).OKWidget.enabled}}"
 
     if (this.guiState.isCompleteActionUsingDialogBox())
-      return "$cls{\"Complete action using\" dialog box.}"
+      return "$clazz{\"Complete action using\" dialog box.}"
 
     if (this.guiState.isSelectAHomeAppDialogBox())
-      return "$cls{\"Select a home app\" dialog box.}"
+      return "$clazz{\"Select a home app\" dialog box.}"
 
-    String returnString = "$cls{${packageName}. Widgets# ${this.guiState.widgets.size()}}"
+    if (this.guiState.isUseLauncherAsHomeDialogBox())
+      return "$clazz{\"Use Launcher as Home\" dialog box.}"
+
+
+    String returnString = "$clazz{${packageName}. Widgets# ${this.guiState.widgets.size()}}"
     
     // Uncomment when necessary for debugging.
 //    List<Widget> widgets = this.guiState.widgets

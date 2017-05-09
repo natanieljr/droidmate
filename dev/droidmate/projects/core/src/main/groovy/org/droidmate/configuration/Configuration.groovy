@@ -20,7 +20,6 @@ package org.droidmate.configuration
 
 import com.beust.jcommander.Parameter
 import com.beust.jcommander.Parameters
-import org.droidmate.exceptions.ConfigurationException
 import org.droidmate.misc.BuildConstants
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
@@ -47,36 +46,36 @@ import java.nio.file.Path
 // Solution adapted from: http://stackoverflow.com/a/29042946/986533
 @SuppressWarnings("UnnecessaryQualifiedReference")
 @Parameters(separators = " =")
-public class Configuration implements IConfiguration
+ class Configuration implements IConfiguration
 {
   //region Instance construction logic
 
   /** The raw args (as given to {@code public static void main(String[] args)}) from which this configuration was obtained. */
   private String[] args
 
-  public static Configuration getDefault() throws ConfigurationException
+   static Configuration getDefault() throws ConfigurationException
   {
     return getDefault(FileSystems.getDefault())
   }
 
-  public static Configuration getDefault(FileSystem fs) throws ConfigurationException
+   static Configuration getDefault(FileSystem fs) throws ConfigurationException
   {
     return new ConfigurationBuilder().build(new String[0], fs)
   }
 
-  public String[] getArgs()
+  String[] getArgs()
   {
     return args
   }
 
-  public Configuration(String[] args)
+  Configuration(String[] args)
   {
     this.args = args
   }
   //endregion
 
   //region Cmd line parameters names and defaults
-
+  
   // @formatter:off
   // "pn" stands for "parameter name"
   public static final String pn_actionsLimit                                 = "-actionsLimit"
@@ -97,24 +96,23 @@ public class Configuration implements IConfiguration
   public static final String pn_deployRawApks                                = "-deployRawApks"
   public static final String pn_device                                       = "-device"
   public static final String pn_droidmateOutputDir                           = "-droidmateOutputDirPath"
-  public static final String pn_exploreInteractively                         = "-exploreInteractively"
   public static final String pn_getValidGuiSnapshotRetryAttempts             = "-getValidGuiSnapshotRetryAttempts"
   public static final String pn_getValidGuiSnapshotRetryDelay                = "-getValidGuiSnapshotRetryDelay"
   public static final String pn_inline                                       = "-inline"
   public static final String pn_launchActivityDelay                          = "-launchActivityDelay"
   public static final String pn_launchActivityTimeout                        = "-launchActivityTimeout"
-  public static final String pn_monitorServerStartQueryDelay                 = "-monitorServerStartQueryDelay"
-  public static final String pn_monitorServerStartTimeout                    = "-monitorServerStartTimeout"
+  public static final String pn_monitorSocketTimeout                         = "-monitorSocketTimeout"
   public static final String pn_randomSeed                                   = "-randomSeed"
   public static final String pn_reportIncludePlots                           = "-reportIncludePlots"
   public static final String pn_reportInputDir                               = "-reportInputDir"
   public static final String pn_reportOutputDir                              = "-reportOutputDir"
   public static final String pn_resetEveryNthExplorationForward              = "-resetEvery"
   public static final String pn_runOnNotInlined                              = "-runOnNotInlined"
-  public static final String pn_socketTimeout                                = "-socketTimeout"
+  public static final String pn_shuffleApks                                  = "-shuffleApks"
   public static final String pn_timeLimit                                    = "-timeLimit"
   public static final String pn_uiautomatorDaemonServerStartTimeout          = "-uiautomatorDaemonServerStartTimeout"
   public static final String pn_uiautomatorDaemonServerStartQueryDelay       = "-uiautomatorDaemonServerStartQueryDelay"
+  public static final String pn_uiautomatorDaemonSocketTimeout               = "-uiautomatorDaemonSocketTimeout"
   public static final String pn_uiautomatorDaemonTcpPort                     = "-tcpPort"
   public static final String pn_uiautomatorDaemonWaitForGuiToStabilize       = "-waitForGuiToStabilize"
   public static final String pn_uiautomatorDaemonWaitForWindowUpdateTimeout  = "-waitForWindowUpdateTimeout"
@@ -125,7 +123,6 @@ public class Configuration implements IConfiguration
   public static final String pn_stopAppSuccessCheckDelay                     = "-stopAppSuccessCheckDelay"
   public static final String pn_waitForCanRebootDelay                        = "-waitForCanRebootDelay"
   public static final String pn_widgetIndexes                                = "-widgetIndexes"
-  public static final String pn_xPrivacyConfigurationFile                    = "-xPrivacyConfigurationFile"
   // @formatter:on
   //endregion
 
@@ -135,8 +132,10 @@ public class Configuration implements IConfiguration
   // !!! DUPLICATION WARNING !!! repo\dev\droidmate\.gitignore
   public static final String defaultDroidmateOutputDir              = "output_device1"
   public static final int    defaultResetEveryNthExplorationForward = 0
-
-  public static final String api19 = "api19"
+  
+  public static final String screenshotsOutputSubdir = "screenshots"
+  public static final String reportOutputSubdir      = "report"
+  
   public static final String api23 = "api23"
 
   //region Cmd line parameters
@@ -150,9 +149,9 @@ public class Configuration implements IConfiguration
   public boolean alwaysClickFirstWidget = false
 
   @Parameter(names = [Configuration.pn_androidApi, "-api", "-apiLevel"],
-    description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api19, api23")
+    description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api23")
   public String androidApi = api23
-
+  
   @Parameter(names = [Configuration.pn_apksLimit, "-limit"],
     description = "Limits the number of apks on which DroidMate will run. 0 means no limit.")
   public int apksLimit = 0
@@ -169,7 +168,7 @@ public class Configuration implements IConfiguration
   public int checkAppIsRunningRetryAttempts = 4
 
   @Parameter(names = [Configuration.pn_checkAppIsRunningRetryDelay])
-  public int checkAppIsRunningRetryDelay = 5000
+  public int checkAppIsRunningRetryDelay = 5 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_checkDeviceAvailableAfterRebootAttempts])
   public int checkDeviceAvailableAfterRebootAttempts = 12
@@ -207,41 +206,35 @@ public class Configuration implements IConfiguration
     "Displays command line parameters description.")
   public boolean displayHelp
 
-  @Parameter(names = [Configuration.pn_exploreInteractively], description =
-    "Determines if the user should be asked for confirmation before the exploration driver conducts next action on the Android device. If yes, the information about the action about to be taken will be also displayed.")
-  public boolean exploreInteractively = false
-
-  @Parameter(names = ["-extractSaturationCharts", "-esc"], arity = 1)
-  public boolean extractSaturationCharts = false
-
   @Parameter(names = ["-extractSummaries"], arity = 1)
   public boolean extractSummaries = true
 
   @Parameter(names = [Configuration.pn_getValidGuiSnapshotRetryAttempts])
-  public int getValidGuiSnapshotRetryAttempts = 10
-
+  public int getValidGuiSnapshotRetryAttempts = 8
+  
   @Parameter(names = [Configuration.pn_getValidGuiSnapshotRetryDelay])
-  public int getValidGuiSnapshotRetryDelay = 2000
+  // Exploration of com.facebook.orca_v12.0.0.21.14-inlined.apk shows that that 4 attempts with 4000 ms delays (16s in total)
+  // is not enough: all attempts get exhausted and only the repeated set of attempts, after restarting uia-d, succeeds.
+  // com.netbiscuits.bild.android_v3.5.6-inlined needs more than 20s.
+  public int getValidGuiSnapshotRetryDelay = 4 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_inline], description =
     "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks.")
   public Boolean inline = false
 
   @Parameter(names = [Configuration.pn_launchActivityDelay])
-  public int launchActivityDelay = 5000
+  // Empirically checked that for com.skype.raider_v5.0.0.51733-inlined.apk 5000 ms is sometimes not enough.
+  public int launchActivityDelay = 10 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_launchActivityTimeout])
-  public int launchActivityTimeout = 1000 * 60 * 2
+  public int launchActivityTimeout = 1 * 60 * 1000 // ms
 
   @Parameter(names = ["-logLevel"], description =
     "Logging level of the entirety of application. Possible values, comma separated: trace, debug, info.")
   String logLevel = "trace"
 
-  @Parameter(names = [Configuration.pn_monitorServerStartQueryDelay])
-  public int monitorServerStartQueryDelay = 2000
-
-  @Parameter(names = [Configuration.pn_monitorServerStartTimeout])
-  public int monitorServerStartTimeout = 20000
+  @Parameter(names = [Configuration.pn_monitorSocketTimeout], arity = 1)
+  public int monitorSocketTimeout = 1 * 60 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_uninstallApk], arity = 1)
   public boolean uninstallApk = true
@@ -268,11 +261,6 @@ public class Configuration implements IConfiguration
     "Allow DroidMate to run on non-inlined apks.")
   public Boolean runOnNotInlined = false
 
-  @Parameter(names = [Configuration.pn_socketTimeout], arity = 1)
-  // Has to be hefty as "turn_wifi_on" device action can take 20+ seconds.
-  // Also, starting activity might take some times.
-  public int socketTimeout = 3 * 60 * 1000 // ms
-
   @Parameter(names = [Configuration.pn_uiautomatorDaemonServerStartTimeout], description =
     "How long DroidMate should wait, in milliseconds, for message on logcat confirming that UiAutomatorDaemonServer has started on android (virtual) device.")
   public int uiautomatorDaemonServerStartTimeout = 20000
@@ -280,6 +268,19 @@ public class Configuration implements IConfiguration
   @Parameter(names = [Configuration.pn_uiautomatorDaemonServerStartQueryDelay], description =
     "How often DroidMate should query, in milliseconds, for message on logcat confirming that UiDaemonServer has started on android (virtual) device.")
   public int uiautomatorDaemonServerStartQueryDelay = 2000
+
+  @Parameter(names = [Configuration.pn_uiautomatorDaemonSocketTimeout], arity = 1)
+  // Currently, this has to be at least higher than
+  // "maxIterations" in org.droidmate.uiautomator2daemon.UiAutomatorDaemonDriver.waitForGuiToStabilize
+  // times (uiautomatorDaemonWaitForWindowUpdateTimeout + 10s (default waitForIdle for each iteration))
+  
+  // So if (assuming API 23 / uiautomator2Daemon):
+  // org.droidmate.configuration.Configuration.uiautomatorDaemonWaitForWindowUpdateTimeout = 1200ms
+  // org.droidmate.uiautomator2daemon.UiAutomator2DaemonDriver.waitForGuiToStabilizeMaxIterations = 5
+  // then minimum time should be: 5*(1'200ms + 10'000ms) = 56'000 ms
+  // Plus add ~20 second to make things safe, as in practice even 60 ms caused java.net.SocketTimeoutException: Read timed out,
+  // which I confirmed by seeing that logcat uiad logs took more than 61 seconds to process a GUI that fails to stabilize. 
+  public int uiautomatorDaemonSocketTimeout = 1 * 90 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_uiautomatorDaemonWaitForGuiToStabilize], arity = 1, description =
     "Should the uiautomator-daemon wait for GUI state to stabilize after each click performed on the android device. Setting this to false will drastically speedup the clicking process, but will probably result in new clicks being sent while the results of previous one are still being processed.")
@@ -303,6 +304,9 @@ public class Configuration implements IConfiguration
     "If present, instead of normal run, DroidMate will generate reports from previously serialized data.")
   public Boolean report = false
 
+  @Parameter(names = [Configuration.pn_shuffleApks], arity = 1)
+  public boolean shuffleApks = false
+  
   @Parameter(names = [Configuration.pn_timeLimit], description = "How long the exploration of any given apk should take, in seconds. If set to 0, instead actionsLimit will be used.")
   public int timeLimit = 0
 
@@ -314,13 +318,10 @@ public class Configuration implements IConfiguration
   public int stopAppRetryAttempts = 4
 
   @Parameter(names = [Configuration.pn_stopAppSuccessCheckDelay])
-  public int stopAppSuccessCheckDelay = 5000
+  public int stopAppSuccessCheckDelay = 5 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_waitForCanRebootDelay])
   public int waitForCanRebootDelay = 30 * 1000
-
-  @Parameter(names = [org.droidmate.configuration.Configuration.pn_xPrivacyConfigurationFile])
-  public String xPrivacyConfigurationFile = ""
 
   //endregion
 
@@ -328,27 +329,18 @@ public class Configuration implements IConfiguration
 
   public Path droidmateOutputDirPath
 
+  public Path droidmateOutputReportDirPath
+
   public Path reportInputDirPath
 
   public Path reportOutputDirPath
 
   public Path apksDirPath
 
-  public Path monitorApkApi19
   public Path monitorApkApi23
 
-  public String aaptCommandApi19 = BuildConstants.aapt_command_api19
-  public String aaptCommandApi23 = BuildConstants.aapt_command_api23
-
+  public String aaptCommand = BuildConstants.aapt_command
   public String adbCommand = BuildConstants.adb_command
-
-  public List<String> appGuardApisList
-
-  /**
-   * Jar with uiautomator-daemon location on the file system. The jar is to be deployed on the android (virtual) device
-   * to enable GUI actions execution.
-   */
-  public Path uiautomatorDaemonJar
 
   /**
    * Apk with uiautomator-daemon. This is a dummy package required only by instrumentation command (instrumentation target property)
