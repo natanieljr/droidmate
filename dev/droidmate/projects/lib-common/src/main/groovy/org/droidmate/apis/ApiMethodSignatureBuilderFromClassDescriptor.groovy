@@ -28,42 +28,41 @@ class ApiMethodSignatureBuilderFromClassDescriptor implements IApiMethodSignatur
    * Example:
    * <pre>Landroid/content/ContentProviderClient;->update(Landroid/net/Uri;ZLandroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object; static</pre>
    */
-  private final String descriptor
+  private final String objectClass
+  private final String returnClass
+  private final String methodName
+  private final List<String> paramClasses
+  private final boolean isStatic
+  private final ApiPolicy policy
+  private final String hook
+  private final String name
+  private final String logId
+  private final String invokeCode
+  private final String defaultValue
 
-  ApiMethodSignatureBuilderFromClassDescriptor(String descriptor)
+  ApiMethodSignatureBuilderFromClassDescriptor(String objectClass, String returnClass, String methodName,
+                                               List<String> paramClasses, boolean isStatic, String policy, String hook,
+                                               String name, String logId, String invokeCode, String defaultValue)
   {
-    this.descriptor = descriptor
+    this.objectClass = objectClass
+    this.returnClass = returnClass
+    this.methodName = methodName
+    this.paramClasses = paramClasses
+    this.isStatic = isStatic
+    this.policy = ApiPolicy.valueOf(policy)
+    this.hook = hook
+    this.name = name
+    this.logId = logId
+    this.invokeCode = invokeCode
+    this.defaultValue = defaultValue
   }
 
   @Override
   ApiMethodSignature build()
   {
-    def (objectClass, _) = descriptor.split("->")
-    objectClass = convertJNItypeNotationToSourceCode(objectClass) // e.g. android.content.ContentProviderClient
 
-    def (String methodHeader, String staticness) = descriptor.tokenize(" ")
-    assert staticness in ["static", "instance", null]
-    boolean isStatic = staticness == "static"
-
-    /* This line ensures that if there are no params, the match below will match a one-space string to methodParams,
-       instead of skipping it and matching returnClass to methodParams.
-       The ApiLogcatMessage.matchClassFieldDescriptors then will properly handle the " " methodParams.
-    */
-    methodHeader = methodHeader.replace("()", "( )")
-    // methodName: e.g. update
-    // returnClass: e.g. Ljava/lang/Object;
-    def (String methodName, String methodParams, String returnClass) = methodHeader.tokenize("()")
-
-    methodName = methodName.split("->")[1]
-
-    methodParams = methodParams != " " ? methodParams : ""
-
-    List<String> paramsList = matchClassFieldDescriptors(methodParams)
-    paramsList = paramsList.collect {convertJNItypeNotationToSourceCode(it, /* replaceDollarsWithDots */ true)}
-    returnClass = convertJNItypeNotationToSourceCode(returnClass)
-
-
-    def out = new ApiMethodSignature(objectClass, returnClass, methodName, paramsList, isStatic)
+    def out = new ApiMethodSignature(this.objectClass, this.returnClass, this.methodName, this.paramClasses, isStatic,
+                                     this.policy, this.hook, this.name, this.logId, this.invokeCode, this.defaultValue)
     out.assertValid()
     return out
   }

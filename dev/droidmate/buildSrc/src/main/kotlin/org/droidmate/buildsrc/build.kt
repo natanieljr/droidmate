@@ -94,7 +94,7 @@ val apk_fixtures = "fixtures/apks"
 
 val test_temp_dir_name = "temp_dir_for_tests"
 
-val monitored_apis_txt = "monitored_apis.txt"
+val monitored_apis_xml = "monitored_apis.xml"
 
 /**
  * Directory for resources extracted from jars in the classpath.

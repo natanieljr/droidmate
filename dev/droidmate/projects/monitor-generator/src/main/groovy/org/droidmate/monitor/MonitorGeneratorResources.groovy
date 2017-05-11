@@ -61,7 +61,7 @@ class MonitorGeneratorResources implements IConfiguration
     Path monitorSrcTemplatePath = new ResourcePath(BuildConstants.monitor_generator_res_name_monitor_template).path
     this.monitorSrcTemplatePath = monitorSrcTemplatePath
 
-    Path monitoredApis = new ResourcePath("monitored_apis.txt").path
+    Path monitoredApis = new ResourcePath("monitored_apis.xml").path
     this.monitoredApis = monitoredApis
   }
 }

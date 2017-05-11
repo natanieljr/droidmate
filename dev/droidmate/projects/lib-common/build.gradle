@@ -98,7 +98,7 @@ task writeBuildConstantsProperties() { Task it ->
     map["monitored_inlined_apk_fixture_api23_name"] = BuildKt.monitored_inlined_apk_fixture_api23_name
     map["monitor_generator_output_relative_path_api23"] = BuildKt.monitor_generator_output_relative_path_api23
     map["test_temp_dir_name"] = BuildKt.test_temp_dir_name
-    map["monitored_apis_txt"] = BuildKt.monitored_apis_txt
+    map["monitored_apis_xml"] = BuildKt.monitored_apis_xml
     map["dir_name_temp_extracted_resources"] = BuildKt.dir_name_temp_extracted_resources
     map["monitor_generator_res_name_monitor_template"] = BuildKt.monitor_generator_res_name_monitor_template
     map["aapt_command_relative"] = BuildKt.aapt_command_relative

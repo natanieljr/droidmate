@@ -23,6 +23,7 @@ import groovy.util.logging.Slf4j
 import org.droidmate.apis.Api
 import org.droidmate.apis.ApiLogcatMessage
 import org.droidmate.apis.ApiMethodSignature
+import org.droidmate.apis.ApiPolicy
 import org.droidmate.misc.MonitorConstants
 
 /**
@@ -81,7 +82,7 @@ class RedirectionsGenerator implements IRedirectionsGenerator
   @Override
   List<String> generateCtorCallsAndTargets(List<ApiMethodSignature> signatures)
   {
-    StringBuilder calls = new StringBuilder()
+    /*StringBuilder calls = new StringBuilder()
     StringBuilder out = new StringBuilder()
     signatures.findAll {it.isConstructor()}.eachWithIndex {ApiMethodSignature ams, int id ->
 
@@ -133,8 +134,8 @@ class RedirectionsGenerator implements IRedirectionsGenerator
       }
 
     }
-    return [calls.toString(), out.toString()]
-
+    return [calls.toString(), out.toString()]*/
+    return ["", ""]
   }
 
   private static String getObjectClassWithDots(String objectClass)
@@ -150,7 +151,7 @@ class RedirectionsGenerator implements IRedirectionsGenerator
   String generateMethodTargets(List<ApiMethodSignature> signatures)
   {
     return signatures
-      .findAll {!it.isConstructor()} // Skip ctors here. They are handled in #generateCtorCallsAndTargets()
+      //.findAll {!it.isConstructor()} // Skip ctors here. They are handled in #generateCtorCallsAndTargets()
       .findAll {!(it.objectClass.startsWith("android.test."))} // For justification, see [1] in dev doc at the end of this method.
       .collect {ApiMethodSignature ams ->
 
@@ -158,46 +159,17 @@ class RedirectionsGenerator implements IRedirectionsGenerator
 
       ams.with {
 
-        // Items for method signature.
-
-        String objectClassAsMethodName = getObjectClassAsMethodName(objectClass)
-        String redirMethodName = "$redirMethodNamePrefix${objectClassAsMethodName}_$methodName${paramClasses.size()}"
-        String objectClassWithDots = getObjectClassWithDots(objectClass)
-        String thisParam = isStatic ? "" : "$objectClassWithDots _this"
-        List<String> paramVarNames = buildParamVarNames(it)
-        String formalParams = buildFormalParams(it, paramVarNames)
-
-        // Items for logcat message payload.
-
-        String stackTraceVarName = "stackTrace"
-        String threadIdVarName = "threadId"
-        List<String> paramValues = paramVarNames.collect {"convert(${it})"}
-        String apiLogcatMessagePayload = buildApiLogcatMessagePayload(it, paramValues, threadIdVarName, stackTraceVarName)
-
-        // Items for handling return values from called API method.
-        
-        String castType = "(${degenerify(returnClass)})"
-        String returnStatement = "return $castType "
-        boolean returnsVoid = returnClass == "void"
-        
-        String thisVarOrClass = isStatic ? "${objectClassWithDots}.class" : "_this"
-        String commaSeparatedParamVars = buildCommaSeparatedParamVarNames(ams, paramVarNames)
-
-        if (androidApi == AndroidAPI.API_23)
-        {
-          out << ind4 + "@Hook(\"$objectClass->$methodName\") " + nl
-        } else throw new IllegalStateException()
-        
-        out << ind4 + "public static $returnClass $redirMethodName($thisParam$formalParams)" + nl
-        out << ind4 + "{" + nl
+        out << String.format("@Hook(\"%s\")", ams.hook) + nl
+        out << String.format("public static %s %s", ams.returnClass, ams.name) + nl
+        out << "{" + nl
 
         /**
-         * MonitorJavaTemplate and MonitorTcpServer have calls to Log.i() and Log.v() in them, whose tag starts with 
+         * MonitorJavaTemplate and MonitorTcpServer have calls to Log.i() and Log.v() in them, whose tag starts with
          * MonitorConstants.tag_prefix. This conditional ensures
-         * such calls are not being monitored, 
+         * such calls are not being monitored,
          * as they are DroidMate's monitor internal code, not the behavior of the app under exploration.
          */
-        if (objectClass == "android.util.Log" && (methodName in ["v", "d", "i", "w", "e"]) && paramClasses.size() in [2, 3])
+        if (ams.objectClass == "android.util.Log" && (ams.methodName in ["v", "d", "i", "w", "e"]) && paramClasses.size() in [2, 3])
         {
           out << ind4 + ind4 + "if (p0.startsWith(\"${MonitorConstants.tag_prefix}\"))" + nl
           if (paramClasses.size() == 2)
@@ -207,35 +179,29 @@ class RedirectionsGenerator implements IRedirectionsGenerator
           else
             assert false: "paramClasses.size() is not in [2,3]. It is ${paramClasses.size()}"
         }
-        
-        out << ind4 + ind4 + "String $stackTraceVarName = getStackTrace();" + nl
-        out << ind4 + ind4 + "long $threadIdVarName = getThreadId();" + nl
-        out << ind4 + ind4 + "${monitorHookBeforeCallPrefix}\"$apiLogcatMessagePayload\");" + nl
-        out << ind4 + ind4 + "Log.${MonitorConstants.loglevel}(\"${MonitorConstants.tag_api}\", \"$apiLogcatMessagePayload\"); " + nl
-        out << ind4 + ind4 + "addCurrentLogs(\"$apiLogcatMessagePayload\");" + nl
-        
-        if (androidApi == AndroidAPI.API_23)
-        {
-          String invocation
-          if (!isStatic)
-            invocation = "OriginalMethod.by(new \$() {}).invoke(${thisVarOrClass}${commaSeparatedParamVars})"
-          else
-          {
-            commaSeparatedParamVars = commaSeparatedParamVars.substring(2)
-            invocation = "OriginalMethod.by(new \$() {}).invokeStatic(${commaSeparatedParamVars})"
-          }
-          if (returnsVoid)
-          {
-            out << ind4 + ind4 + "$invocation;" + nl
-            out << ind4 + ind4 + "${monitorHookAfterCallPrefix}\"$apiLogcatMessagePayload\", null);" + nl
-          }
-          else
-          {
-            out << ind4 + ind4 + "Object returnVal = $invocation;" + nl
-            out << ind4 + ind4 + "${returnStatement}${monitorHookAfterCallPrefix}\"$apiLogcatMessagePayload\", ${castType}returnVal);" + nl
-          }
-        } else throw new IllegalStateException()
-        out << ind4 + "}" + nl
+
+        out << ind4 + "String stackTrace = getStackTrace();" + nl
+        out << ind4 + "long threadId = getThreadId();" + nl
+        out << ind4 + String.format("String logSignature = %s;", ams.logId) + nl
+        out << ind4 + "monitorHook.hookBeforeApiCall(logSignature);" + nl
+        out << ind4 + String.format("Log.%s(\"%s\", logSignature);", MonitorConstants.loglevel, MonitorConstants.tag_api) + nl
+        out << ind4 + "addCurrentLogs(logSignature);" + nl
+        // Currently, when denying, the method is not being called
+        switch (ams.policy){
+          case ApiPolicy.Allow:
+            out << ind4 + ams.invokeCode + nl
+            break
+          case ApiPolicy.Deny:
+            out << "throw new RuntimeException(\"API ${ams.objectClass}->${ams.methodName}\" was blocked by DroidMate);" + nl
+            break
+          case ApiPolicy.Mock:
+            out << String.format("return %s;", ams.defaultValue) + nl
+            break
+          default:
+              assert false: "Policy for api ${ams.objectClass}->${ams.methodName} cannot be determined." + nl
+        }
+
+        out << "}" + nl
         out << ind4 + nl
       }
 
