@@ -8,7 +8,7 @@
 
   www.droidmate.org
 
-  Date of last full review: 10 May 2017
+  Date of last full review: 11 May 2017
 
 # Working with DroidMate code base
 
@@ -101,9 +101,21 @@ Run the tests from IntelliJ as described in section above to be able to navigate
 
 The list of monitored APIs is located in
 
-`repo/dev/droidmate/projects/resources/monitored_apis.txt`
+`repo/dev/droidmate/projects/resources/monitored_apis.xml`
 
-Lines starting with `#` and empty lines are discarded.
+It uses standard XML notation, thus the tags `<!-- and -->` are used to define comments.
+
+This new XML mechanism allows individual API policies to be defined. The following API policies are available:
+* __Allow__: Executes the API and returns the value.
+* __Deny__: Generates a runtime exception when the API is accessed.
+* __Mock__: Return a predefined value 
+
+It is also possible to customize each API. Tweo customizations are available:
+* __Custom code__: Configure the API policy as `Allow` and write the custom code in the __\<invoke>__ tag.
+* __Custom return value__: Configure the API policy as `Mock` and change the value of the tag __\<defaultValue>__.
+
+A script to convert from the old API list format to new one are available at:
+- https://github.com/natanieljr/droidmate-monitoredAPIs-converter
 
 After you make your changes, do a build (see `repo/BUILDING.md`).
 

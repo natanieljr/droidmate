@@ -13,7 +13,8 @@ Contact: jamrozik@st.cs.uni-saarland.de
 * [GitHub repository with "Mining Sandbox" publication data](https://github.com/konrad-jamrozik/mining-sandboxes-icse2016)
 * ["Guarantees from Testing" talk by Andreas Zeller](https://www.youtube.com/watch?v=eJyIKt7xuw4)
 
-Date of last full review of this document: 10 May 2017
+Date of last full review of this document: 11 May 2017
+
 
 # Introduction #
 
@@ -96,3 +97,4 @@ Nataniel Borges Jr., @natanieljr:
 - Added support for UI Automator 2.0.
 - Added support for handling runtime permission request dialog boxes present on Android 6 and higher.
 - Removed compatibility to Android 4.4
+- Added support for policy enforcement (Allow, Deny or Mock)
