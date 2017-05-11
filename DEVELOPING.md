@@ -110,7 +110,7 @@ This new XML mechanism allows individual API policies to be defined. The followi
 * __Deny__: Generates a runtime exception when the API is accessed.
 * __Mock__: Return a predefined value 
 
-It is also possible to customize each API. Tweo customizations are available:
+It is also possible to customize each API. Two customizations are available:
 * __Custom code__: Configure the API policy as `Allow` and write the custom code in the __\<invoke>__ tag.
 * __Custom return value__: Configure the API policy as `Mock` and change the value of the tag __\<defaultValue>__.
 
