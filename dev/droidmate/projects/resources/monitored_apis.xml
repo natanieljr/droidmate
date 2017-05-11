@@ -1,0 +1,3786 @@
+<?xml version="1.0"?>
+<policies_list>
+<!--  DroidMate, an automated execution generator for Android apps. 
+  Copyright (C) 2012-2016 Konrad Jamrozik 
+  
+  This program is free software: you can redistribute it and/or modify 
+  it under the terms of the GNU General Public License as published by 
+  the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version. 
+  
+  This program is distributed in the hope that it will be useful, 
+  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+  GNU General Public License for more details. 
+  
+  You should have received a copy of the GNU General Public License 
+  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+  
+  email: jamrozik@st.cs.uni-saarland.de 
+  web: www.droidmate.org -->
+<!--  This file defines list of Android SDK APIs monitored during DroidMate run. 
+  
+  The methods are written in the "class" file format 
+  http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.htmljvms-4.3 
+  with the optional " static" word appended at the end. Please note the space at the beginning. 
+  
+  
+  The list was originally adapted from AppGuard from MonitorInitializer.java. 
+  Details of that .java file are explained in a private repository: 
+  https://hg.st.cs.uni-saarland.de/projects/droidmate-private/repository/revisions/master/entry/resources/from_Philipp/appguard_apis_list_origin.txt 
+  
+  The manual adaptations of this list were made to make it compatible with 
+  API19 / Android 4.4.4-r2.0.1 [1] and API2 / Android 6.0.1_r63 [2] 
+  [1] https://android.googlesource.com/platform/frameworks/base.git/+/android-4.4.4_r2.0.1 
+  [2] https://android.googlesource.com/platform/frameworks/base.git/+/android-6.0.1_r63 
+  
+  The first set of modifications, to make sure the methods work on API 19, were done by 
+  1. deploying the instrumented monitored app on the device, 
+  2. observing the logcat messages with "Instrumentation" tag, 
+  3. diagnosing any failures and comparing the list definitions with the official source, 
+  4. fixing the list and writing down the findings in comments in this file. 
+  
+  The second of set of modifications was done in similar way, but with API23 which uses ArtHook. 
+  To understand how to diagnose method signatures here that cannot be handled by ArtHook (which is used for Android 6), 
+  read the class comment of org.droidmate.monitor.RedirectionsGenerator 
+  
+  
+  Entries starting with !API19 will be skipped when running on Android 4 (API 19) because they do not exist there. 
+  Entries starting with !API23 will be skipped when running on Android 6 (API 23) because they do not exist there. 
+  -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.app.ActivityThread</class>
+           <method>installContentProviders</method>
+           <params>
+			<param>android.content.Context</param>
+			<param>java.util.List</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/app/ActivityThread;-&gt;installContentProviders(Landroid/content/Context;Ljava/util/List;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.app.ActivityThread->installContentProviders</hook> <!-- HOOK ID -->
+<name>redir_android_app_ActivityThread_installContentProviders_53(Object _this , android.content.Context p0, java.util.List p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.app.ActivityThread mthd: installContentProviders retCls: void params: android.content.Context "+convert(p0)+" java.util.List "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.app.ActivityManager</class>
+           <method>getRecentTasks</method>
+           <params>
+			<param>int</param>
+			<param>int</param>
+		</params>
+           <return>java.util.List</return>
+           <static>False</static>
+           <jni>Landroid/app/ActivityManager;-&gt;getRecentTasks(II)Ljava/util/List;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.app.ActivityManager->getRecentTasks</hook> <!-- HOOK ID -->
+<name>redir_android_app_ActivityManager_getRecentTasks_54(Object _this , int p0, int p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.app.ActivityManager mthd: getRecentTasks retCls: java.util.List params: int "+convert(p0)+" int "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.app.ActivityManager</class>
+           <method>getRunningTasks</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>java.util.List</return>
+           <static>False</static>
+           <jni>Landroid/app/ActivityManager;-&gt;getRunningTasks(I)Ljava/util/List;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.app.ActivityManager->getRunningTasks</hook> <!-- HOOK ID -->
+<name>redir_android_app_ActivityManager_getRunningTasks_55(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.app.ActivityManager mthd: getRunningTasks retCls: java.util.List params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Instrumentation fails with: 
+  10-09 14:30:21.916    2435-2435/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.app.ActivityManagerNative->getRecentTasks 
+  
+  The failed method source is in [1]. Note it has three int params not two, as originally defined. 
+  However, both versions fail to instrument. Maybe reason for that is the class is annotated with @hide [2] 
+  
+  [1] https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/app/ActivityManagerNative.javaL2554 
+  [2] https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/app/ActivityManagerNative.javaL52 
+  
+  This is the original method, whose instrumentation fails: 
+ Landroid/app/ActivityManagerNative;->getRecentTasks(II)Ljava/util/List; 
+  This is the manually modified method, matching the source, whose instrumentation also fails: 
+ Landroid/app/ActivityManagerNative;->getRecentTasks(III)Ljava/util/List; -->
+<!--  Note: there are many other methods in this class [1] requiring BLUETOOTH or other similar permissions, yet they are not monitored. 
+  [1] https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/bluetooth/BluetoothHeadset.java 
+  -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.bluetooth.BluetoothHeadset</class>
+           <method>startVoiceRecognition</method>
+           <params>
+			<param>android.bluetooth.BluetoothDevice</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/bluetooth/BluetoothHeadset;-&gt;startVoiceRecognition(Landroid/bluetooth/BluetoothDevice;)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.bluetooth.BluetoothHeadset->startVoiceRecognition</hook> <!-- HOOK ID -->
+<name>redir_android_bluetooth_BluetoothHeadset_startVoiceRecognition_74(Object _this , android.bluetooth.BluetoothDevice p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.bluetooth.BluetoothHeadset mthd: startVoiceRecognition retCls: boolean params: android.bluetooth.BluetoothDevice "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.bluetooth.BluetoothHeadset</class>
+           <method>stopVoiceRecognition</method>
+           <params>
+			<param>android.bluetooth.BluetoothDevice</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/bluetooth/BluetoothHeadset;-&gt;stopVoiceRecognition(Landroid/bluetooth/BluetoothDevice;)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.bluetooth.BluetoothHeadset->stopVoiceRecognition</hook> <!-- HOOK ID -->
+<name>redir_android_bluetooth_BluetoothHeadset_stopVoiceRecognition_75(Object _this , android.bluetooth.BluetoothDevice p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.bluetooth.BluetoothHeadset mthd: stopVoiceRecognition retCls: boolean params: android.bluetooth.BluetoothDevice "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Instrumentation fails: 
+  10-09 17:46:18.976    7461-7461/? W/Instrumentation? Failed to redirect method android.bluetooth.HeadsetBase->acquireWakeLock 
+  10-09 17:46:18.976    7461-7461/? W/Instrumentation? Failed to redirect method android.bluetooth.HeadsetBase->releaseWakeLock 
+  
+  This class seems to have been removed in Android 4.1 (API 16) 
+  Still present: 
+  https://github.com/android/platform_frameworks_base/blob/android-cts-4.1_r4/core/java/android/bluetooth/HeadsetBase.javaL279 
+  Not any more (404) 
+  https://github.com/android/platform_frameworks_base/tree/android-cts-4.2_r1/core/java/android/bluetooth/HeadsetBase.java 
+  
+ Landroid/bluetooth/HeadsetBase;->acquireWakeLock()V 
+ Landroid/bluetooth/HeadsetBase;->releaseWakeLock()V -->
+<!--  Just delegates to the call below. See: 
+  https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/hardware/Camera.javaL319 
+  
+ Landroid/hardware/Camera;->open()Landroid/hardware/Camera; -->
+<!--  Added "static" modifier 
+  -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.hardware.Camera</class>
+           <method>open</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>android.hardware.Camera</return>
+           <static>True</static>
+           <jni>Landroid/hardware/Camera;-&gt;open(I)Landroid/hardware/Camera; static</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.hardware.Camera->open</hook> <!-- HOOK ID -->
+<name>redir_android_hardware_Camera_open_97(int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.hardware.Camera mthd: open retCls: android.hardware.Camera params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invokeStatic (p0);
+        return (android.hardware.Camera) monitorHook.hookAfterApiCall(logSignature, (android.hardware.Camera) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>addGpsStatusListener</method>
+           <params>
+			<param>android.location.GpsStatus.Listener</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;addGpsStatusListener(Landroid/location/GpsStatus$Listener;)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->addGpsStatusListener</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_addGpsStatusListener_99(Object _this , android.location.GpsStatus.Listener p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: addGpsStatusListener retCls: boolean params: android.location.GpsStatus.Listener "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>addNmeaListener</method>
+           <params>
+			<param>android.location.GpsStatus.NmeaListener</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;addNmeaListener(Landroid/location/GpsStatus$NmeaListener;)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->addNmeaListener</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_addNmeaListener_100(Object _this , android.location.GpsStatus.NmeaListener p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: addNmeaListener retCls: boolean params: android.location.GpsStatus.NmeaListener "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>addProximityAlert</method>
+           <params>
+			<param>double</param>
+			<param>double</param>
+			<param>float</param>
+			<param>long</param>
+			<param>android.app.PendingIntent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;addProximityAlert(DDFJLandroid/app/PendingIntent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->addProximityAlert</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_addProximityAlert_101(Object _this , double p0, double p1, float p2, long p3, android.app.PendingIntent p4)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: addProximityAlert retCls: void params: double "+convert(p0)+" double "+convert(p1)+" float "+convert(p2)+" long "+convert(p3)+" android.app.PendingIntent "+convert(p4)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>addTestProvider</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>boolean</param>
+			<param>boolean</param>
+			<param>boolean</param>
+			<param>boolean</param>
+			<param>boolean</param>
+			<param>boolean</param>
+			<param>boolean</param>
+			<param>int</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;addTestProvider(Ljava/lang/String;ZZZZZZZII)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->addTestProvider</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_addTestProvider_102(Object _this , java.lang.String p0, boolean p1, boolean p2, boolean p3, boolean p4, boolean p5, boolean p6, boolean p7, int p8, int p9)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: addTestProvider retCls: void params: java.lang.String "+convert(p0)+" boolean "+convert(p1)+" boolean "+convert(p2)+" boolean "+convert(p3)+" boolean "+convert(p4)+" boolean "+convert(p5)+" boolean "+convert(p6)+" boolean "+convert(p7)+" int "+convert(p8)+" int "+convert(p9)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>clearTestProviderEnabled</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;clearTestProviderEnabled(Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->clearTestProviderEnabled</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_clearTestProviderEnabled_103(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: clearTestProviderEnabled retCls: void params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>clearTestProviderLocation</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;clearTestProviderLocation(Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->clearTestProviderLocation</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_clearTestProviderLocation_104(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: clearTestProviderLocation retCls: void params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>clearTestProviderStatus</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;clearTestProviderStatus(Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->clearTestProviderStatus</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_clearTestProviderStatus_105(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: clearTestProviderStatus retCls: void params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>getBestProvider</method>
+           <params>
+			<param>android.location.Criteria</param>
+			<param>boolean</param>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;getBestProvider(Landroid/location/Criteria;Z)Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->getBestProvider</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_getBestProvider_106(Object _this , android.location.Criteria p0, boolean p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: getBestProvider retCls: java.lang.String params: android.location.Criteria "+convert(p0)+" boolean "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>getLastKnownLocation</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>android.location.Location</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;getLastKnownLocation(Ljava/lang/String;)Landroid/location/Location;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->getLastKnownLocation</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_getLastKnownLocation_107(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: getLastKnownLocation retCls: android.location.Location params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (android.location.Location) monitorHook.hookAfterApiCall(logSignature, (android.location.Location) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>getProvider</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>android.location.LocationProvider</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;getProvider(Ljava/lang/String;)Landroid/location/LocationProvider;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->getProvider</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_getProvider_108(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: getProvider retCls: android.location.LocationProvider params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (android.location.LocationProvider) monitorHook.hookAfterApiCall(logSignature, (android.location.LocationProvider) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>getProviders</method>
+           <params>
+			<param>android.location.Criteria</param>
+			<param>boolean</param>
+		</params>
+           <return>java.util.List</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;getProviders(Landroid/location/Criteria;Z)Ljava/util/List;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->getProviders</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_getProviders_109(Object _this , android.location.Criteria p0, boolean p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: getProviders retCls: java.util.List params: android.location.Criteria "+convert(p0)+" boolean "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>getProviders</method>
+           <params>
+			<param>boolean</param>
+		</params>
+           <return>java.util.List</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;getProviders(Z)Ljava/util/List;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->getProviders</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_getProviders_110(Object _this , boolean p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: getProviders retCls: java.util.List params: boolean "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>isProviderEnabled</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;isProviderEnabled(Ljava/lang/String;)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->isProviderEnabled</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_isProviderEnabled_111(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: isProviderEnabled retCls: boolean params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>removeTestProvider</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;removeTestProvider(Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->removeTestProvider</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_removeTestProvider_112(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: removeTestProvider retCls: void params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestLocationUpdates</method>
+           <params>
+			<param>long</param>
+			<param>float</param>
+			<param>android.location.Criteria</param>
+			<param>android.app.PendingIntent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestLocationUpdates(JFLandroid/location/Criteria;Landroid/app/PendingIntent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestLocationUpdates</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestLocationUpdates_113(Object _this , long p0, float p1, android.location.Criteria p2, android.app.PendingIntent p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestLocationUpdates retCls: void params: long "+convert(p0)+" float "+convert(p1)+" android.location.Criteria "+convert(p2)+" android.app.PendingIntent "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestLocationUpdates</method>
+           <params>
+			<param>long</param>
+			<param>float</param>
+			<param>android.location.Criteria</param>
+			<param>android.location.LocationListener</param>
+			<param>android.os.Looper</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestLocationUpdates(JFLandroid/location/Criteria;Landroid/location/LocationListener;Landroid/os/Looper;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestLocationUpdates</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestLocationUpdates_114(Object _this , long p0, float p1, android.location.Criteria p2, android.location.LocationListener p3, android.os.Looper p4)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestLocationUpdates retCls: void params: long "+convert(p0)+" float "+convert(p1)+" android.location.Criteria "+convert(p2)+" android.location.LocationListener "+convert(p3)+" android.os.Looper "+convert(p4)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestLocationUpdates</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>long</param>
+			<param>float</param>
+			<param>android.app.PendingIntent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestLocationUpdates(Ljava/lang/String;JFLandroid/app/PendingIntent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestLocationUpdates</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestLocationUpdates_115(Object _this , java.lang.String p0, long p1, float p2, android.app.PendingIntent p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestLocationUpdates retCls: void params: java.lang.String "+convert(p0)+" long "+convert(p1)+" float "+convert(p2)+" android.app.PendingIntent "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestLocationUpdates</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>long</param>
+			<param>float</param>
+			<param>android.location.LocationListener</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestLocationUpdates(Ljava/lang/String;JFLandroid/location/LocationListener;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestLocationUpdates</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestLocationUpdates_116(Object _this , java.lang.String p0, long p1, float p2, android.location.LocationListener p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestLocationUpdates retCls: void params: java.lang.String "+convert(p0)+" long "+convert(p1)+" float "+convert(p2)+" android.location.LocationListener "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestLocationUpdates</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>long</param>
+			<param>float</param>
+			<param>android.location.LocationListener</param>
+			<param>android.os.Looper</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestLocationUpdates(Ljava/lang/String;JFLandroid/location/LocationListener;Landroid/os/Looper;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestLocationUpdates</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestLocationUpdates_117(Object _this , java.lang.String p0, long p1, float p2, android.location.LocationListener p3, android.os.Looper p4)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestLocationUpdates retCls: void params: java.lang.String "+convert(p0)+" long "+convert(p1)+" float "+convert(p2)+" android.location.LocationListener "+convert(p3)+" android.os.Looper "+convert(p4)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestSingleUpdate</method>
+           <params>
+			<param>android.location.Criteria</param>
+			<param>android.app.PendingIntent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestSingleUpdate(Landroid/location/Criteria;Landroid/app/PendingIntent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestSingleUpdate</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestSingleUpdate_118(Object _this , android.location.Criteria p0, android.app.PendingIntent p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestSingleUpdate retCls: void params: android.location.Criteria "+convert(p0)+" android.app.PendingIntent "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestSingleUpdate</method>
+           <params>
+			<param>android.location.Criteria</param>
+			<param>android.location.LocationListener</param>
+			<param>android.os.Looper</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestSingleUpdate(Landroid/location/Criteria;Landroid/location/LocationListener;Landroid/os/Looper;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestSingleUpdate</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestSingleUpdate_119(Object _this , android.location.Criteria p0, android.location.LocationListener p1, android.os.Looper p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestSingleUpdate retCls: void params: android.location.Criteria "+convert(p0)+" android.location.LocationListener "+convert(p1)+" android.os.Looper "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestSingleUpdate</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>android.app.PendingIntent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestSingleUpdate(Ljava/lang/String;Landroid/app/PendingIntent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestSingleUpdate</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestSingleUpdate_120(Object _this , java.lang.String p0, android.app.PendingIntent p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestSingleUpdate retCls: void params: java.lang.String "+convert(p0)+" android.app.PendingIntent "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>requestSingleUpdate</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>android.location.LocationListener</param>
+			<param>android.os.Looper</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;requestSingleUpdate(Ljava/lang/String;Landroid/location/LocationListener;Landroid/os/Looper;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->requestSingleUpdate</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_requestSingleUpdate_121(Object _this , java.lang.String p0, android.location.LocationListener p1, android.os.Looper p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: requestSingleUpdate retCls: void params: java.lang.String "+convert(p0)+" android.location.LocationListener "+convert(p1)+" android.os.Looper "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>sendExtraCommand</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+			<param>android.os.Bundle</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;sendExtraCommand(Ljava/lang/String;Ljava/lang/String;Landroid/os/Bundle;)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->sendExtraCommand</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_sendExtraCommand_122(Object _this , java.lang.String p0, java.lang.String p1, android.os.Bundle p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: sendExtraCommand retCls: boolean params: java.lang.String "+convert(p0)+" java.lang.String "+convert(p1)+" android.os.Bundle "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>setTestProviderEnabled</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>boolean</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;setTestProviderEnabled(Ljava/lang/String;Z)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->setTestProviderEnabled</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_setTestProviderEnabled_123(Object _this , java.lang.String p0, boolean p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: setTestProviderEnabled retCls: void params: java.lang.String "+convert(p0)+" boolean "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>setTestProviderLocation</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>android.location.Location</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;setTestProviderLocation(Ljava/lang/String;Landroid/location/Location;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->setTestProviderLocation</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_setTestProviderLocation_124(Object _this , java.lang.String p0, android.location.Location p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: setTestProviderLocation retCls: void params: java.lang.String "+convert(p0)+" android.location.Location "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.location.LocationManager</class>
+           <method>setTestProviderStatus</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>int</param>
+			<param>android.os.Bundle</param>
+			<param>long</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/location/LocationManager;-&gt;setTestProviderStatus(Ljava/lang/String;ILandroid/os/Bundle;J)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.location.LocationManager->setTestProviderStatus</hook> <!-- HOOK ID -->
+<name>redir_android_location_LocationManager_setTestProviderStatus_125(Object _this , java.lang.String p0, int p1, android.os.Bundle p2, long p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.location.LocationManager mthd: setTestProviderStatus retCls: void params: java.lang.String "+convert(p0)+" int "+convert(p1)+" android.os.Bundle "+convert(p2)+" long "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>isBluetoothA2dpOn</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;isBluetoothA2dpOn()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->isBluetoothA2dpOn</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_isBluetoothA2dpOn_126(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: isBluetoothA2dpOn retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>isWiredHeadsetOn</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;isWiredHeadsetOn()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->isWiredHeadsetOn</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_isWiredHeadsetOn_127(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: isWiredHeadsetOn retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>setBluetoothScoOn</method>
+           <params>
+			<param>boolean</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;setBluetoothScoOn(Z)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->setBluetoothScoOn</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_setBluetoothScoOn_128(Object _this , boolean p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: setBluetoothScoOn retCls: void params: boolean "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>setMicrophoneMute</method>
+           <params>
+			<param>boolean</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;setMicrophoneMute(Z)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->setMicrophoneMute</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_setMicrophoneMute_129(Object _this , boolean p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: setMicrophoneMute retCls: void params: boolean "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>setMode</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;setMode(I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->setMode</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_setMode_130(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: setMode retCls: void params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>setParameter</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;setParameter(Ljava/lang/String;Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->setParameter</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_setParameter_131(Object _this , java.lang.String p0, java.lang.String p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: setParameter retCls: void params: java.lang.String "+convert(p0)+" java.lang.String "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>setParameters</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;setParameters(Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->setParameters</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_setParameters_132(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: setParameters retCls: void params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>setSpeakerphoneOn</method>
+           <params>
+			<param>boolean</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;setSpeakerphoneOn(Z)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->setSpeakerphoneOn</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_setSpeakerphoneOn_133(Object _this , boolean p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: setSpeakerphoneOn retCls: void params: boolean "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>startBluetoothSco</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;startBluetoothSco()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->startBluetoothSco</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_startBluetoothSco_134(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: startBluetoothSco retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioManager</class>
+           <method>stopBluetoothSco</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioManager;-&gt;stopBluetoothSco()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioManager->stopBluetoothSco</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioManager_stopBluetoothSco_135(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioManager mthd: stopBluetoothSco retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.AudioRecord</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>int</param>
+			<param>int</param>
+			<param>int</param>
+			<param>int</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/AudioRecord;-&gt;&lt;init&gt;(IIIII)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.AudioRecord->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_android_media_AudioRecord__ctor_136(Object _this , int p0, int p1, int p2, int p3, int p4)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.AudioRecord mthd: &lt;init&gt; retCls: void params: int "+convert(p0)+" int "+convert(p1)+" int "+convert(p2)+" int "+convert(p3)+" int "+convert(p4)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.MediaPlayer</class>
+           <method>setWakeMode</method>
+           <params>
+			<param>android.content.Context</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/MediaPlayer;-&gt;setWakeMode(Landroid/content/Context;I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.MediaPlayer->setWakeMode</hook> <!-- HOOK ID -->
+<name>redir_android_media_MediaPlayer_setWakeMode_137(Object _this , android.content.Context p0, int p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.MediaPlayer mthd: setWakeMode retCls: void params: android.content.Context "+convert(p0)+" int "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.MediaRecorder</class>
+           <method>setAudioSource</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/MediaRecorder;-&gt;setAudioSource(I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.MediaRecorder->setAudioSource</hook> <!-- HOOK ID -->
+<name>redir_android_media_MediaRecorder_setAudioSource_138(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.MediaRecorder mthd: setAudioSource retCls: void params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.media.MediaRecorder</class>
+           <method>setVideoSource</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/media/MediaRecorder;-&gt;setVideoSource(I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.media.MediaRecorder->setVideoSource</hook> <!-- HOOK ID -->
+<name>redir_android_media_MediaRecorder_setVideoSource_139(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.media.MediaRecorder mthd: setVideoSource retCls: void params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.ConnectivityManager</class>
+           <method>requestRouteToHost</method>
+           <params>
+			<param>int</param>
+			<param>int</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/ConnectivityManager;-&gt;requestRouteToHost(II)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.ConnectivityManager->requestRouteToHost</hook> <!-- HOOK ID -->
+<name>redir_android_net_ConnectivityManager_requestRouteToHost_140(Object _this , int p0, int p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.ConnectivityManager mthd: requestRouteToHost retCls: boolean params: int "+convert(p0)+" int "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Update 19 Apr 2016 
+  This method no longer exists on Android 6 / API 23. Source: 
+  https://github.com/android/platform_frameworks_base/blob/android-6.0.1_r31/core/java/android/net/ConnectivityManager.java 
+  Some discussion what might have replaced it: http://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.ConnectivityManager</class>
+           <method>setNetworkPreference</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/net/ConnectivityManager;-&gt;setNetworkPreference(I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.ConnectivityManager->setNetworkPreference</hook> <!-- HOOK ID -->
+<name>redir_android_net_ConnectivityManager_setNetworkPreference_148(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.ConnectivityManager mthd: setNetworkPreference retCls: void params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Instrumentation fails: 
+  10-09 17:46:19.376    7461-7461/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.net.ConnectivityManager->setRadio 
+  
+  Reason: not present in source at all, only the second variant of this method, which instruments successfully, is present [1] 
+  [1] https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/net/ConnectivityManager.javaL722 
+  
+ Landroid/net/ConnectivityManager;->setRadio(ILjava/lang/String;)I -->
+<!--  Note: this instruments successfully even though it has @hide annotation! 
+  
+  Update 19 Apr 2016 
+  This method no longer exists on Android 6 / API 23. Source: 
+  https://github.com/android/platform_frameworks_base/blob/android-6.0.1_r31/core/java/android/net/ConnectivityManager.java -->
+<!--  Instrumentation fails: 
+  10-09 17:46:19.396    7461-7461/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.net.ConnectivityManager->setRadios 
+  
+  Reason: not present in source at all, only the second variant of this method, which instruments successfully, is present [1] 
+  [1] https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/net/ConnectivityManager.javaL702 
+  
+ Landroid/net/ConnectivityManager;->setRadios(ILjava/lang/String;)I -->
+<!--  Note: this instruments successfully even though it has @hide annotation! 
+  
+  Update 19 Apr 2016 
+  This method no longer exists on Android 6 / API 23. Source: 
+  https://github.com/android/platform_frameworks_base/blob/android-6.0.1_r31/core/java/android/net/ConnectivityManager.java -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.ConnectivityManager</class>
+           <method>startUsingNetworkFeature</method>
+           <params>
+			<param>int</param>
+			<param>java.lang.String</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/net/ConnectivityManager;-&gt;startUsingNetworkFeature(ILjava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.ConnectivityManager->startUsingNetworkFeature</hook> <!-- HOOK ID -->
+<name>redir_android_net_ConnectivityManager_startUsingNetworkFeature_180(Object _this , int p0, java.lang.String p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.ConnectivityManager mthd: startUsingNetworkFeature retCls: int params: int "+convert(p0)+" java.lang.String "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.ConnectivityManager</class>
+           <method>stopUsingNetworkFeature</method>
+           <params>
+			<param>int</param>
+			<param>java.lang.String</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/net/ConnectivityManager;-&gt;stopUsingNetworkFeature(ILjava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.ConnectivityManager->stopUsingNetworkFeature</hook> <!-- HOOK ID -->
+<name>redir_android_net_ConnectivityManager_stopUsingNetworkFeature_181(Object _this , int p0, java.lang.String p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.ConnectivityManager mthd: stopUsingNetworkFeature retCls: int params: int "+convert(p0)+" java.lang.String "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.ConnectivityManager</class>
+           <method>tether</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/net/ConnectivityManager;-&gt;tether(Ljava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.ConnectivityManager->tether</hook> <!-- HOOK ID -->
+<name>redir_android_net_ConnectivityManager_tether_182(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.ConnectivityManager mthd: tether retCls: int params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.ConnectivityManager</class>
+           <method>untether</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/net/ConnectivityManager;-&gt;untether(Ljava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.ConnectivityManager->untether</hook> <!-- HOOK ID -->
+<name>redir_android_net_ConnectivityManager_untether_183(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.ConnectivityManager mthd: untether retCls: int params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Insrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x40036910: Ljava/lang/reflect/Method; 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x40036910: invoke 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x40036910: Ljava/lang/reflect/InvocationTargetException; 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x40036910: getCause 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x40036910: getTargetException 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x40036910: getCause 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x40036910: Ljava/lang/reflect/InvocationTargetException; 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to generate trampoline for startAudio V 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.net.sip.SipAudioCall->startAudio to org.droidmate.monitor_generator.generated.Monitor->redir_android_net_sip_SipAudioCall_startAudio0 
+  
+ Landroid/net/sip/SipAudioCall;->startAudio()V -->
+<!--  Instrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x40036910: Ljava/lang/Boolean; 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x40036910: valueOf 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to generate trampoline for setSpeakerMode VZ 
+  10-09 17:46:19.436    7461-7461/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.net.sip.SipAudioCall->setSpeakerMode to org.droidmate.monitor_generator.generated.Monitor->redir_android_net_sip_SipAudioCall_setSpeakerMode1 
+  
+ Landroid/net/sip/SipAudioCall;->setSpeakerMode(Z)V -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager$MulticastLock</class>
+           <method>acquire</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager$MulticastLock;-&gt;acquire()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager$MulticastLock->acquire</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager$MulticastLock_acquire_206(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager$MulticastLock mthd: acquire retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager$MulticastLock</class>
+           <method>release</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager$MulticastLock;-&gt;release()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager$MulticastLock->release</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager$MulticastLock_release_207(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager$MulticastLock mthd: release retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager$WifiLock</class>
+           <method>acquire</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager$WifiLock;-&gt;acquire()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager$WifiLock->acquire</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager$WifiLock_acquire_208(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager$WifiLock mthd: acquire retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager$WifiLock</class>
+           <method>release</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager$WifiLock;-&gt;release()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager$WifiLock->release</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager$WifiLock_release_209(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager$WifiLock mthd: release retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>addNetwork</method>
+           <params>
+			<param>android.net.wifi.WifiConfiguration</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;addNetwork(Landroid/net/wifi/WifiConfiguration;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->addNetwork</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_addNetwork_210(Object _this , android.net.wifi.WifiConfiguration p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: addNetwork retCls: int params: android.net.wifi.WifiConfiguration "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>disableNetwork</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;disableNetwork(I)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->disableNetwork</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_disableNetwork_211(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: disableNetwork retCls: boolean params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>disconnect</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;disconnect()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->disconnect</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_disconnect_212(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: disconnect retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>enableNetwork</method>
+           <params>
+			<param>int</param>
+			<param>boolean</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;enableNetwork(IZ)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->enableNetwork</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_enableNetwork_213(Object _this , int p0, boolean p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: enableNetwork retCls: boolean params: int "+convert(p0)+" boolean "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>initializeMulticastFiltering</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;initializeMulticastFiltering()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->initializeMulticastFiltering</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_initializeMulticastFiltering_214(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: initializeMulticastFiltering retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>pingSupplicant</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;pingSupplicant()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->pingSupplicant</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_pingSupplicant_215(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: pingSupplicant retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>reassociate</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;reassociate()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->reassociate</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_reassociate_216(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: reassociate retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>reconnect</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;reconnect()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->reconnect</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_reconnect_217(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: reconnect retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>removeNetwork</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;removeNetwork(I)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->removeNetwork</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_removeNetwork_218(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: removeNetwork retCls: boolean params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>saveConfiguration</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;saveConfiguration()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->saveConfiguration</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_saveConfiguration_219(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: saveConfiguration retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>setWifiApEnabled</method>
+           <params>
+			<param>android.net.wifi.WifiConfiguration</param>
+			<param>boolean</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;setWifiApEnabled(Landroid/net/wifi/WifiConfiguration;Z)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->setWifiApEnabled</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_setWifiApEnabled_220(Object _this , android.net.wifi.WifiConfiguration p0, boolean p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: setWifiApEnabled retCls: boolean params: android.net.wifi.WifiConfiguration "+convert(p0)+" boolean "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>setWifiEnabled</method>
+           <params>
+			<param>boolean</param>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;setWifiEnabled(Z)Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->setWifiEnabled</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_setWifiEnabled_221(Object _this , boolean p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: setWifiEnabled retCls: boolean params: boolean "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.net.wifi.WifiManager</class>
+           <method>startScan</method>
+           <params>
+		</params>
+           <return>boolean</return>
+           <static>False</static>
+           <jni>Landroid/net/wifi/WifiManager;-&gt;startScan()Z</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.net.wifi.WifiManager->startScan</hook> <!-- HOOK ID -->
+<name>redir_android_net_wifi_WifiManager_startScan_222(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.net.wifi.WifiManager mthd: startScan retCls: boolean params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>false</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Instrumentation fails: 
+  10-09 20:27:15.536  12024-12024/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.net.wifi.WifiManager->startScanActive 
+  
+  Reason: there is no such method in the source: 
+  https://android.googlesource.com/platform/frameworks/base/+/android-4.4.4_r2.0.1/wifi/java/android/net/wifi/WifiManager.java 
+  
+ Landroid/net/wifi/WifiManager;->startScanActive()Z -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.os.PowerManager$WakeLock</class>
+           <method>acquire</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/os/PowerManager$WakeLock;-&gt;acquire()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.os.PowerManager$WakeLock->acquire</hook> <!-- HOOK ID -->
+<name>redir_android_os_PowerManager$WakeLock_acquire_232(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.os.PowerManager$WakeLock mthd: acquire retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.os.PowerManager$WakeLock</class>
+           <method>acquire</method>
+           <params>
+			<param>long</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/os/PowerManager$WakeLock;-&gt;acquire(J)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.os.PowerManager$WakeLock->acquire</hook> <!-- HOOK ID -->
+<name>redir_android_os_PowerManager$WakeLock_acquire_233(Object _this , long p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.os.PowerManager$WakeLock mthd: acquire retCls: void params: long "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  REDUNDANT: just delegates to release(I) 
+  Source: https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r46/core/java/android/os/PowerManager.java1127 
+  Landroid/os/PowerManager$WakeLock;->release()V -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.os.PowerManager$WakeLock</class>
+           <method>release</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/os/PowerManager$WakeLock;-&gt;release(I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.os.PowerManager$WakeLock->release</hook> <!-- HOOK ID -->
+<name>redir_android_os_PowerManager$WakeLock_release_239(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.os.PowerManager$WakeLock mthd: release retCls: void params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Instrumentation fails: 
+  10-09 20:27:15.556  12024-12024/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.server.BluetoothA2dpService->resumeSink 
+  
+  Reason: there is no such method in the source [1]. It was present in the previous versions [2]. 
+  [1] https://github.com/android/platform_frameworks_base/blob/android-4.4.4_r2.0.1/core/java/android/bluetooth/BluetoothA2dp.java 
+  [2] https://github.com/android/platform_frameworks_base/blob/android-cts-4.1_r4/core/java/android/bluetooth/BluetoothA2dp.javaL396 
+  
+ Landroid/server/BluetoothA2dpService;->resumeSink(Landroid/bluetooth/BluetoothDevice;)Z -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.speech.SpeechRecognizer</class>
+           <method>cancel</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/speech/SpeechRecognizer;-&gt;cancel()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.speech.SpeechRecognizer->cancel</hook> <!-- HOOK ID -->
+<name>redir_android_speech_SpeechRecognizer_cancel_250(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.speech.SpeechRecognizer mthd: cancel retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.speech.SpeechRecognizer</class>
+           <method>handleCancelMessage</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/speech/SpeechRecognizer;-&gt;handleCancelMessage()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.speech.SpeechRecognizer->handleCancelMessage</hook> <!-- HOOK ID -->
+<name>redir_android_speech_SpeechRecognizer_handleCancelMessage_251(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.speech.SpeechRecognizer mthd: handleCancelMessage retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.speech.SpeechRecognizer</class>
+           <method>handleStartListening</method>
+           <params>
+			<param>android.content.Intent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/speech/SpeechRecognizer;-&gt;handleStartListening(Landroid/content/Intent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.speech.SpeechRecognizer->handleStartListening</hook> <!-- HOOK ID -->
+<name>redir_android_speech_SpeechRecognizer_handleStartListening_252(Object _this , android.content.Intent p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.speech.SpeechRecognizer mthd: handleStartListening retCls: void params: android.content.Intent "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.speech.SpeechRecognizer</class>
+           <method>handleStopMessage</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/speech/SpeechRecognizer;-&gt;handleStopMessage()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.speech.SpeechRecognizer->handleStopMessage</hook> <!-- HOOK ID -->
+<name>redir_android_speech_SpeechRecognizer_handleStopMessage_253(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.speech.SpeechRecognizer mthd: handleStopMessage retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.speech.SpeechRecognizer</class>
+           <method>startListening</method>
+           <params>
+			<param>android.content.Intent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/speech/SpeechRecognizer;-&gt;startListening(Landroid/content/Intent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.speech.SpeechRecognizer->startListening</hook> <!-- HOOK ID -->
+<name>redir_android_speech_SpeechRecognizer_startListening_254(Object _this , android.content.Intent p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.speech.SpeechRecognizer mthd: startListening retCls: void params: android.content.Intent "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.speech.SpeechRecognizer</class>
+           <method>stopListening</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/speech/SpeechRecognizer;-&gt;stopListening()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.speech.SpeechRecognizer->stopListening</hook> <!-- HOOK ID -->
+<name>redir_android_speech_SpeechRecognizer_stopListening_255(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.speech.SpeechRecognizer mthd: stopListening retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Instrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 18:21:55.646    8703-8703/? D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/Short; 
+  10-09 18:21:55.646    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: valueOf 
+  10-09 18:21:55.646    8703-8703/? W/Instrumentation? Failed to generate trampoline for sendDataMessage VLLSLLL 
+  10-09 18:21:55.646    8703-8703/? W/Instrumentation? Failed to redirect method android.telephony.SmsManager->sendDataMessage to org.droidmate.monitor_generator.generated.Monitor->redir_android_telephony_SmsManager_sendDataMessage6 
+  
+ Landroid/telephony/SmsManager;->sendDataMessage(Ljava/lang/String;Ljava/lang/String;S[BLandroid/app/PendingIntent;Landroid/app/PendingIntent;)V -->
+<!--  Instrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/Method; 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: invoke 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/InvocationTargetException; 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getTargetException 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.656    8703-8703/? W/Instrumentation? Failed to generate trampoline for sendMultipartTextMessage VLLLLL 
+  10-09 18:21:55.656    8703-8703/? W/Instrumentation? Failed to redirect method android.telephony.SmsManager->sendMultipartTextMessage to org.droidmate.monitor_generator.generated.Monitor->redir_android_telephony_SmsManager_sendMultipartTextMessage5 
+  
+ Landroid/telephony/SmsManager;->sendMultipartTextMessage(Ljava/lang/String;Ljava/lang/String;Ljava/util/ArrayList;Ljava/util/ArrayList;Ljava/util/ArrayList;)V -->
+<!--  Instrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/Method; 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: invoke 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/InvocationTargetException; 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getTargetException 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.656    8703-8703/? D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.656    8703-8703/? W/Instrumentation? Failed to generate trampoline for sendTextMessage VLLLLL 
+  10-09 18:21:55.656    8703-8703/? W/Instrumentation? Failed to redirect method android.telephony.SmsManager->sendTextMessage to org.droidmate.monitor_generator.generated.Monitor->redir_android_telephony_SmsManager_sendTextMessage5 
+  
+  Landroid/telephony/SmsManager;->sendTextMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/app/PendingIntent;Landroid/app/PendingIntent;)V -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getCellLocation</method>
+           <params>
+		</params>
+           <return>android.telephony.CellLocation</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getCellLocation()Landroid/telephony/CellLocation;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getCellLocation</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getCellLocation_291(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getCellLocation retCls: android.telephony.CellLocation params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (android.telephony.CellLocation) monitorHook.hookAfterApiCall(logSignature, (android.telephony.CellLocation) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getDeviceId</method>
+           <params>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getDeviceId()Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getDeviceId</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getDeviceId_292(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getDeviceId retCls: java.lang.String params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getDeviceSoftwareVersion</method>
+           <params>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getDeviceSoftwareVersion()Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getDeviceSoftwareVersion</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getDeviceSoftwareVersion_293(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getDeviceSoftwareVersion retCls: java.lang.String params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getLine1Number</method>
+           <params>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getLine1Number()Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getLine1Number</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getLine1Number_294(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getLine1Number retCls: java.lang.String params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getNeighboringCellInfo</method>
+           <params>
+		</params>
+           <return>java.util.List</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getNeighboringCellInfo()Ljava/util/List;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getNeighboringCellInfo</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getNeighboringCellInfo_295(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getNeighboringCellInfo retCls: java.util.List params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getSimSerialNumber</method>
+           <params>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getSimSerialNumber()Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getSimSerialNumber</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getSimSerialNumber_296(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getSimSerialNumber retCls: java.lang.String params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getSubscriberId</method>
+           <params>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getSubscriberId()Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getSubscriberId</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getSubscriberId_297(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getSubscriberId retCls: java.lang.String params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getVoiceMailAlphaTag</method>
+           <params>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getVoiceMailAlphaTag()Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getVoiceMailAlphaTag</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getVoiceMailAlphaTag_298(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getVoiceMailAlphaTag retCls: java.lang.String params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>getVoiceMailNumber</method>
+           <params>
+		</params>
+           <return>java.lang.String</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;getVoiceMailNumber()Ljava/lang/String;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->getVoiceMailNumber</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_getVoiceMailNumber_299(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: getVoiceMailNumber retCls: java.lang.String params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.TelephonyManager</class>
+           <method>listen</method>
+           <params>
+			<param>android.telephony.PhoneStateListener</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/telephony/TelephonyManager;-&gt;listen(Landroid/telephony/PhoneStateListener;I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.TelephonyManager->listen</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_TelephonyManager_listen_300(Object _this , android.telephony.PhoneStateListener p0, int p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.TelephonyManager mthd: listen retCls: void params: android.telephony.PhoneStateListener "+convert(p0)+" int "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Instrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 18:21:55.716    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/Short; 
+  10-09 18:21:55.716    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: valueOf 
+  10-09 18:21:55.716    8703-8703/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to generate trampoline for sendDataMessage VLLSLLL 
+  10-09 18:21:55.716    8703-8703/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.telephony.gsm.SmsManager->sendDataMessage to org.droidmate.monitor_generator.generated.Monitor->redir_android_telephony_gsm_SmsManager_sendDataMessage6 
+  
+ Landroid/telephony/gsm/SmsManager;->sendDataMessage(Ljava/lang/String;Ljava/lang/String;S[BLandroid/app/PendingIntent;Landroid/app/PendingIntent;)V -->
+<!--  Instrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/Method; 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: invoke 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/InvocationTargetException; 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getTargetException 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to generate trampoline for sendMultipartTextMessage VLLLLL 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.telephony.gsm.SmsManager->sendMultipartTextMessage to org.droidmate.monitor_generator.generated.Monitor->redir_android_telephony_gsm_SmsManager_sendMultipartTextMessage5 
+  
+ Landroid/telephony/gsm/SmsManager;->sendMultipartTextMessage(Ljava/lang/String;Ljava/lang/String;Ljava/util/ArrayList;Ljava/util/ArrayList;Ljava/util/ArrayList;)V -->
+<!--  Instrumentation fails due to its un-workaround-able implementation limitation: 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/Method; 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: invoke 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? TypeId not found in dexFile 0x41edffa8: Ljava/lang/reflect/InvocationTargetException; 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getTargetException 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored D/Instrumentation? MethodId not found in dexFile 0x41edffa8: getCause 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to generate trampoline for sendTextMessage VLLLLL 
+  10-09 18:21:55.726    8703-8703/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method android.telephony.gsm.SmsManager->sendTextMessage to org.droidmate.monitor_generator.generated.Monitor->redir_android_telephony_gsm_SmsManager_sendTextMessage5 
+  
+ Landroid/telephony/gsm/SmsManager;->sendTextMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/app/PendingIntent;Landroid/app/PendingIntent;)V -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.webkit.WebView</class>
+           <method>loadDataWithBaseURL</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/webkit/WebView;-&gt;loadDataWithBaseURL(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.webkit.WebView->loadDataWithBaseURL</hook> <!-- HOOK ID -->
+<name>redir_android_webkit_WebView_loadDataWithBaseURL_336(Object _this , java.lang.String p0, java.lang.String p1, java.lang.String p2, java.lang.String p3, java.lang.String p4)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.webkit.WebView mthd: loadDataWithBaseURL retCls: void params: java.lang.String "+convert(p0)+" java.lang.String "+convert(p1)+" java.lang.String "+convert(p2)+" java.lang.String "+convert(p3)+" java.lang.String "+convert(p4)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.webkit.WebView</class>
+           <method>loadUrl</method>
+           <params>
+			<param>java.lang.String</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/webkit/WebView;-&gt;loadUrl(Ljava/lang/String;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.webkit.WebView->loadUrl</hook> <!-- HOOK ID -->
+<name>redir_android_webkit_WebView_loadUrl_337(Object _this , java.lang.String p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.webkit.WebView mthd: loadUrl retCls: void params: java.lang.String "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.webkit.WebView</class>
+           <method>loadUrl</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>java.util.Map</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/webkit/WebView;-&gt;loadUrl(Ljava/lang/String;Ljava/util/Map;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.webkit.WebView->loadUrl</hook> <!-- HOOK ID -->
+<name>redir_android_webkit_WebView_loadUrl_338(Object _this , java.lang.String p0, java.util.Map p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.webkit.WebView mthd: loadUrl retCls: void params: java.lang.String "+convert(p0)+" java.util.Map "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  APIs added on 9 Jun 2016 to enable sensitive dataflow leaks. Obtained from Vitalii. 
+  Taken from "apis_art.txt" that should be located in the same dir as this file. 
+  Note that as of 9 Jun 2016 the methods from Vitalii are missing the " static" suffix. The methods have been obtained from HornDroid API list. -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.telephony.SmsManager</class>
+           <method>sendTextMessage</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+			<param>android.app.PendingIntent</param>
+			<param>android.app.PendingIntent</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/telephony/SmsManager;-&gt;sendTextMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/app/PendingIntent;Landroid/app/PendingIntent;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.telephony.SmsManager->sendTextMessage</hook> <!-- HOOK ID -->
+<name>redir_android_telephony_SmsManager_sendTextMessage_343(Object _this , java.lang.String p0, java.lang.String p1, java.lang.String p2, android.app.PendingIntent p3, android.app.PendingIntent p4)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.telephony.SmsManager mthd: sendTextMessage retCls: void params: java.lang.String "+convert(p0)+" java.lang.String "+convert(p1)+" java.lang.String "+convert(p2)+" android.app.PendingIntent "+convert(p3)+" android.app.PendingIntent "+convert(p4)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ! If this method call is commented out, asserts for api23 in method org.droidmate.frontend.DroidmateFrontendTestexploreOnRealDevice will have to be changed. 
+  !API19 Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I static -->
+<!--  While these methods were present in the original MonitorInitializer.java in AppGuard, 
+  they pertain to activity lifecycle and thus are very common and not security-critical. 
+  For this reason they are not monitored. 
+  ! If this method call is commented out, asserts for api23 in method org.droidmate.frontend.DroidmateFrontendTestexploreOnRealDevice will have to be changed. 
+  Landroid/app/Activity;->onResume()V 
+  ! If this method call is commented out, asserts for api23 in method org.droidmate.frontend.DroidmateFrontendTestexploreOnRealDevice will have to be changed. 
+  Landroid/app/Activity;->startActivityForResult(Landroid/content/Intent;I)V 
+  Landroid/app/Activity;->startActivityFromChild(Landroid/app/Activity;Landroid/content/Intent;I)V 
+  Landroid/app/Activity;->startActivityIfNeeded(Landroid/content/Intent;I)Z -->
+<!--  APIs for various bugs repros from Mark Schuegraf. 
+  !API19 Landroid/util/Log;->v(Ljava/lang/String;Ljava/lang/String;)I static 
+  !API19 Landroid/util/Log;->v(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I static 
+  !API19 Ljava/io/FileOutputStream;->write([BII)V 
+  !API19 Ljava/io/FileOutputStream;->write(I)V 
+  !API19 Ljava/io/FileOutputStream;->write([B)V -->
+<!--  ======================================== 
+  NETWORKING APIs 
+  ======================================== 
+  
+  Reviewed on 22 Aug 2016 for Android 6.0.1_r63. 
+  Might break on Android 4.4.4_r2.0.1, although developer.android.com doc is the same. 
+  API comments pertain to 6.0.1_r63 -->
+<!--  ========== java.net.Socket documentation 
+  https://developer.android.com/reference/java/net/Socket.html 
+  https://android.googlesource.com/platform/libcore/+/android-6.0.1_r63/luni/src/main/java/java/net/Socket.java 
+  https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/Socket.java -->
+<!--  ========== java.net.Socket constructors -->
+<!--  SECURITY-IRRELEVANT: it doesn't actually connect anywhere, and doesn't contain any server address. 
+  Ljava/net/Socket;-><init>()V -->
+<!--  Similar to no-arg constructor, but takes as param SocketAddress which might contain server address. -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.Socket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.net.Proxy</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/Socket;-&gt;&lt;init&gt;(Ljava/net/Proxy;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.Socket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_Socket__ctor_384(Object _this , java.net.Proxy p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.Socket mthd: &lt;init&gt; retCls: void params: java.net.Proxy "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  REDUNDANT: delegates to <init>(Ljava/lang/String;ILjava/net/InetAddress;I)V 
+  Ljava/net/Socket;-><init>(Ljava/lang/String;I)V -->
+<!--  Calls no-arg constructor and then tryAllAddresses(dstName, dstPort, localAddress, localPort, streaming=true) -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.Socket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>int</param>
+			<param>java.net.InetAddress</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/Socket;-&gt;&lt;init&gt;(Ljava/lang/String;ILjava/net/InetAddress;I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.Socket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_Socket__ctor_390(Object _this , java.lang.String p0, int p1, java.net.InetAddress p2, int p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.Socket mthd: &lt;init&gt; retCls: void params: java.lang.String "+convert(p0)+" int "+convert(p1)+" java.net.InetAddress "+convert(p2)+" int "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  @Deprecated. Calls no-arg constructor and then tryAllAddresses(hostName, port, null, 0, streaming) -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.Socket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>int</param>
+			<param>boolean</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/Socket;-&gt;&lt;init&gt;(Ljava/lang/String;IZ)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.Socket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_Socket__ctor_393(Object _this , java.lang.String p0, int p1, boolean p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.Socket mthd: &lt;init&gt; retCls: void params: java.lang.String "+convert(p0)+" int "+convert(p1)+" boolean "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Calls: no-arg constructor, checkDestination, startupSocket -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.Socket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.net.InetAddress</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/Socket;-&gt;&lt;init&gt;(Ljava/net/InetAddress;I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.Socket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_Socket__ctor_396(Object _this , java.net.InetAddress p0, int p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.Socket mthd: &lt;init&gt; retCls: void params: java.net.InetAddress "+convert(p0)+" int "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Calls: no-arg constructor, checkDestination, startupSocket -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.Socket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.net.InetAddress</param>
+			<param>int</param>
+			<param>java.net.InetAddress</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/Socket;-&gt;&lt;init&gt;(Ljava/net/InetAddress;ILjava/net/InetAddress;I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.Socket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_Socket__ctor_399(Object _this , java.net.InetAddress p0, int p1, java.net.InetAddress p2, int p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.Socket mthd: &lt;init&gt; retCls: void params: java.net.InetAddress "+convert(p0)+" int "+convert(p1)+" java.net.InetAddress "+convert(p2)+" int "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  @Deprecated. Calls: no-arg constructor, checkDestination, startupSocket -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.Socket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.net.InetAddress</param>
+			<param>int</param>
+			<param>boolean</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/Socket;-&gt;&lt;init&gt;(Ljava/net/InetAddress;IZ)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.Socket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_Socket__ctor_402(Object _this , java.net.InetAddress p0, int p1, boolean p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.Socket mthd: &lt;init&gt; retCls: void params: java.net.InetAddress "+convert(p0)+" int "+convert(p1)+" boolean "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  SECURITY-IRRELEVANT: protected, used only in private or test code. 
+  Ljava/net/Socket;-><init>(Ljava/net/SocketImpl;)V -->
+<!--  ========== java.net.Socket methods -->
+<!--  REDUNDANT: delegates to Ljava/net/Socket;->connect(Ljava/net/SocketAddress;I)V 
+  Ljava/net/Socket;->connect(Ljava/net/SocketAddress;)V -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.Socket</class>
+           <method>connect</method>
+           <params>
+			<param>java.net.SocketAddress</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/Socket;-&gt;connect(Ljava/net/SocketAddress;I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.Socket->connect</hook> <!-- HOOK ID -->
+<name>redir_java_net_Socket_connect_412(Object _this , java.net.SocketAddress p0, int p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.Socket mthd: connect retCls: void params: java.net.SocketAddress "+convert(p0)+" int "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ========== java.net.DatagramSocket constructors -->
+<!--  Calls: checkPort, createSocket -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.DatagramSocket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/DatagramSocket;-&gt;&lt;init&gt;(I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.DatagramSocket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_DatagramSocket__ctor_417(Object _this , int p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.DatagramSocket mthd: &lt;init&gt; retCls: void params: int "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Calls: checkPort, createSocket -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.DatagramSocket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>int</param>
+			<param>java.net.InetAddress</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/DatagramSocket;-&gt;&lt;init&gt;(ILjava/net/InetAddress;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.DatagramSocket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_DatagramSocket__ctor_420(Object _this , int p0, java.net.InetAddress p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.DatagramSocket mthd: &lt;init&gt; retCls: void params: int "+convert(p0)+" java.net.InetAddress "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.DatagramSocket</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.net.SocketAddress</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/DatagramSocket;-&gt;&lt;init&gt;(Ljava/net/SocketAddress;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.DatagramSocket->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_DatagramSocket__ctor_422(Object _this , java.net.SocketAddress p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.DatagramSocket mthd: &lt;init&gt; retCls: void params: java.net.SocketAddress "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Note that there are other constructors. They have been manually inspected and determined to be redundant. -->
+<!--  ========== java.net.DatagramSocket methods -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.DatagramSocket</class>
+           <method>connect</method>
+           <params>
+			<param>java.net.SocketAddress</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/DatagramSocket;-&gt;connect(Ljava/net/SocketAddress;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.DatagramSocket->connect</hook> <!-- HOOK ID -->
+<name>redir_java_net_DatagramSocket_connect_428(Object _this , java.net.SocketAddress p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.DatagramSocket mthd: connect retCls: void params: java.net.SocketAddress "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  REDUNDANT: delegates to the Ljava/net/DatagramSocket;->connect(Ljava/net/SocketAddress;)V 
+  Ljava/net/DatagramSocket;->connect(Ljava/net/InetAddress;I)V -->
+<!--  ========== java.net.MulticastSocket constructors -->
+<!--  All MulticastSocket constructors call super, which is DatagramSocket constructor, which should be monitored. -->
+<!--  ========== java.net.MulticastSocket methods -->
+<!--  From method javadoc: "A socket must join a group before data may be received". Thus these methods are monitored. -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.MulticastSocket</class>
+           <method>joinGroup</method>
+           <params>
+			<param>java.net.InetAddress</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/MulticastSocket;-&gt;joinGroup(Ljava/net/InetAddress;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.MulticastSocket->joinGroup</hook> <!-- HOOK ID -->
+<name>redir_java_net_MulticastSocket_joinGroup_440(Object _this , java.net.InetAddress p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.MulticastSocket mthd: joinGroup retCls: void params: java.net.InetAddress "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.MulticastSocket</class>
+           <method>joinGroup</method>
+           <params>
+			<param>java.net.SocketAddress</param>
+			<param>java.net.NetworkInterface</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/MulticastSocket;-&gt;joinGroup(Ljava/net/SocketAddress;Ljava/net/NetworkInterface;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.MulticastSocket->joinGroup</hook> <!-- HOOK ID -->
+<name>redir_java_net_MulticastSocket_joinGroup_441(Object _this , java.net.SocketAddress p0, java.net.NetworkInterface p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.MulticastSocket mthd: joinGroup retCls: void params: java.net.SocketAddress "+convert(p0)+" java.net.NetworkInterface "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ========== java.net.URL documentation 
+  https://android.googlesource.com/platform/libcore/+/android-6.0.1_r63/luni/src/main/java/java/net/URL.java -->
+<!--  ========== java.net.URL constructors -->
+<!--  REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;Ljava/net/URLStreamHandler;)V 
+  Ljava/net/URL;-><init>(Ljava/lang/String;)V -->
+<!--  REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;Ljava/net/URLStreamHandler;)V 
+  Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;)V -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.URL</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.net.URL</param>
+			<param>java.lang.String</param>
+			<param>java.net.URLStreamHandler</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/URL;-&gt;&lt;init&gt;(Ljava/net/URL;Ljava/lang/String;Ljava/net/URLStreamHandler;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.URL->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_URL__ctor_454(Object _this , java.net.URL p0, java.lang.String p1, java.net.URLStreamHandler p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.URL mthd: &lt;init&gt; retCls: void params: java.net.URL "+convert(p0)+" java.lang.String "+convert(p1)+" java.net.URLStreamHandler "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/net/URLStreamHandler;)V 
+ Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V -->
+<!--  REDUNDANT: delegates to Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/net/URLStreamHandler;)V 
+ Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.URL</class>
+           <method>&lt;init&gt;</method>
+           <params>
+			<param>java.lang.String</param>
+			<param>java.lang.String</param>
+			<param>int</param>
+			<param>java.lang.String</param>
+			<param>java.net.URLStreamHandler</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/URL;-&gt;&lt;init&gt;(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/net/URLStreamHandler;)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.URL->&lt;init&gt;</hook> <!-- HOOK ID -->
+<name>redir_java_net_URL__ctor_462(Object _this , java.lang.String p0, java.lang.String p1, int p2, java.lang.String p3, java.net.URLStreamHandler p4)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.URL mthd: &lt;init&gt; retCls: void params: java.lang.String "+convert(p0)+" java.lang.String "+convert(p1)+" int "+convert(p2)+" java.lang.String "+convert(p3)+" java.net.URLStreamHandler "+convert(p4)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ========== java.net.URL methods -->
+<!--  Fundamental methods for establishing connections, as described here: https://developer.android.com/reference/java/net/HttpURLConnection.html -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.URL</class>
+           <method>openConnection</method>
+           <params>
+		</params>
+           <return>java.net.URLConnection</return>
+           <static>False</static>
+           <jni>Ljava/net/URL;-&gt;openConnection()Ljava/net/URLConnection;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.URL->openConnection</hook> <!-- HOOK ID -->
+<name>redir_java_net_URL_openConnection_467(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.URL mthd: openConnection retCls: java.net.URLConnection params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);
+        return (java.net.URLConnection) monitorHook.hookAfterApiCall(logSignature, (java.net.URLConnection) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.URL</class>
+           <method>openConnection</method>
+           <params>
+			<param>java.net.Proxy</param>
+		</params>
+           <return>java.net.URLConnection</return>
+           <static>False</static>
+           <jni>Ljava/net/URL;-&gt;openConnection(Ljava/net/Proxy;)Ljava/net/URLConnection;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.URL->openConnection</hook> <!-- HOOK ID -->
+<name>redir_java_net_URL_openConnection_468(Object _this , java.net.Proxy p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.URL mthd: openConnection retCls: java.net.URLConnection params: java.net.Proxy "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (java.net.URLConnection) monitorHook.hookAfterApiCall(logSignature, (java.net.URLConnection) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ========== java.net.URLConnection documentation 
+  https://developer.android.com/reference/java/net/URLConnection.html -->
+<!--  ========== java.net.URLConnection constructors -->
+<!--  API23 (ArtHook) error: "Can't find original method (redir_9_java_net_URLConnection_ctor1)" 
+  Possibly because the method is "protected". 
+  Ljava/net/URLConnection;-><init>(Ljava/net/URL;)V -->
+<!--  ========== java.net.URLConnection methods -->
+
+<apiPolicy>
+
+        <api>
+           <class>java.net.URLConnection</class>
+           <method>connect</method>
+           <params>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Ljava/net/URLConnection;-&gt;connect()V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>java.net.URLConnection->connect</hook> <!-- HOOK ID -->
+<name>redir_java_net_URLConnection_connect_481(Object _this )</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: java.net.URLConnection mthd: connect retCls: void params:  stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  This method is part of a general connection lifecycle as described in the doc (see above) 
+  Note that the http implementation of URLConnection, the HttpURLConnection doesn't actually use connect() method. 
+  Instead of connection, one writes to OutputStream, as described here: 
+  https://developer.android.com/reference/java/net/HttpURLConnection.html 
+  
+  In the AppGuard's MonitorInitializer.java following method is defined to be monitored: 
+  Ljava/net/HttpURLConnection;->connect()V 
+  But its instrumentation fails: 
+  10-09 19:35:44.456  10187-10187/? W/Instrumentation? Failed to redirect method java.net.HttpURLConnection->connect 
+  
+  Failure reason: the method doesn't actually exist in the class HttpURLConnection [1]; 
+  instead, it is inherited from URLConnection [2]. However URLConnection also cannot be monitored in API 19 due to: 
+  10-09 19:53:46.226  10965-10965/org.droidmate.fixtures.apks.monitored W/Instrumentation? Skipping abstract method: connect V 
+  10-09 19:53:46.226  10965-10965/org.droidmate.fixtures.apks.monitored W/Instrumentation? Failed to redirect method java.net.URLConnection->connect to org.droidmate.monitor_generator.generated.Monitor->redir_java_net_URLConnection_connect0 
+  
+  Nevertheless, it works on API23, so it is monitored on it. 
+  
+  [1] https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/HttpURLConnection.java 
+  [2] https://android.googlesource.com/platform/libcore/+/android-4.4.4_r2.0.1/luni/src/main/java/java/net/URLConnection.java167 -->
+<!--  ========== org.apache.http.impl.client.AbstractHttpClient -->
+<!--  Note: this class as well as its implementation, DefaultHttpClient, are deprecated and HttpURLConnection should be used instead. 
+  This is explained here: https://developer.android.com/reference/org/apache/http/impl/client/DefaultHttpClient.html -->
+<!--  Note: AppGuard's MonitorInitializer.java monitors a set of "execute" methods of DefaultHttpClient, but it doesn't work on API19: 
+  
+  DefaultHttpClient doesn't actually contain the execute() method [1]. It inherits it from AbstractHttpClient [2]. 
+  
+  Furthermore, all the execute() methods are really just delegates to AbstractHttpClient.execute(HttpHost, HttpRequest, HttpContext) [2] 
+  
+  [1] https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/DefaultHttpClient.java 
+  [2] https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/AbstractHttpClient.java514 -->
+<!--  API23 sources: 
+  https://android.googlesource.com/platform/external/apache-http/+/android-6.0.1_r63/src/org/apache/http/impl/client/DefaultHttpClient.java 
+  https://android.googlesource.com/platform/external/apache-http/+/android-6.0.1_r63/src/org/apache/http/impl/client/AbstractHttpClient.java -->
+<!--  Here is the method that actually needs to be monitored [2], as all the other execute() methods delegate to it: -->
+
+<apiPolicy>
+
+        <api>
+           <class>org.apache.http.impl.client.AbstractHttpClient</class>
+           <method>execute</method>
+           <params>
+			<param>org.apache.http.HttpHost</param>
+			<param>org.apache.http.HttpRequest</param>
+			<param>org.apache.http.protocol.HttpContext</param>
+		</params>
+           <return>org.apache.http.HttpResponse</return>
+           <static>False</static>
+           <jni>Lorg/apache/http/impl/client/AbstractHttpClient;-&gt;execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>org.apache.http.impl.client.AbstractHttpClient->execute</hook> <!-- HOOK ID -->
+<name>redir_org_apache_http_impl_client_AbstractHttpClient_execute_521(Object _this , org.apache.http.HttpHost p0, org.apache.http.HttpRequest p1, org.apache.http.protocol.HttpContext p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: org.apache.http.impl.client.AbstractHttpClient mthd: execute retCls: org.apache.http.HttpResponse params: org.apache.http.HttpHost "+convert(p0)+" org.apache.http.HttpRequest "+convert(p1)+" org.apache.http.protocol.HttpContext "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+        return (org.apache.http.HttpResponse) monitorHook.hookAfterApiCall(logSignature, (org.apache.http.HttpResponse) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ======================================== 
+  End of NETWORKING APIs 
+  ======================================== -->
+<!--  ======================================== 
+  CONTENT PROVIDER APIs 
+  ======================================== 
+  
+  Reviewed on 23 Aug 2016 for Android 6.0.1_r63. 
+  Might break on Android 4.4.4_r2.0.1. 
+  API comments pertain to 6.0.1_r63 
+  
+  Intro to content APIs from official doc: 
+  https://developer.android.com/guide/topics/providers/content-providers.html 
+  On class difference 
+  http://stackoverflow.com/questions/5084896/using-contentproviderclient-vs-contentresolver-to-access-content-provider -->
+<!--  ========== android.content.ContentResolver documentation 
+  https://developer.android.com/reference/android/content/ContentResolver.html 
+  https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r63/core/java/android/content/ContentResolver.java 
+  https://android.googlesource.com/platform/frameworks/base/+/android-4.4.4_r2.0.1/core/java/android/content/ContentResolver.java -->
+<!--  ========== android.content.ContentResolver -->
+<!--  APIs unchanged from AppGuard's MonitorInitializer.java -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>bulkInsert</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>android.content.ContentValues[]</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->bulkInsert</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_bulkInsert_548(Object _this , android.net.Uri p0, android.content.ContentValues[] p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: bulkInsert retCls: int params: android.net.Uri "+convert(p0)+" android.content.ContentValues[] "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>delete</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String[]</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->delete</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_delete_549(Object _this , android.net.Uri p0, java.lang.String p1, java.lang.String[] p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: delete retCls: int params: android.net.Uri "+convert(p0)+" java.lang.String "+convert(p1)+" java.lang.String[] "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>insert</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>android.content.ContentValues</param>
+		</params>
+           <return>android.net.Uri</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->insert</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_insert_550(Object _this , android.net.Uri p0, android.content.ContentValues p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: insert retCls: android.net.Uri params: android.net.Uri "+convert(p0)+" android.content.ContentValues "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (android.net.Uri) monitorHook.hookAfterApiCall(logSignature, (android.net.Uri) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>update</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>android.content.ContentValues</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String[]</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->update</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_update_551(Object _this , android.net.Uri p0, android.content.ContentValues p1, java.lang.String p2, java.lang.String[] p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: update retCls: int params: android.net.Uri "+convert(p0)+" android.content.ContentValues "+convert(p1)+" java.lang.String "+convert(p2)+" java.lang.String[] "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>openInputStream</method>
+           <params>
+			<param>android.net.Uri</param>
+		</params>
+           <return>java.io.InputStream</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;openInputStream(Landroid/net/Uri;)Ljava/io/InputStream;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->openInputStream</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_openInputStream_552(Object _this , android.net.Uri p0)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: openInputStream retCls: java.io.InputStream params: android.net.Uri "+convert(p0)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);
+        return (java.io.InputStream) monitorHook.hookAfterApiCall(logSignature, (java.io.InputStream) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Note: openOutputStream methods are not monitored as they ultimately are redundant: they call openAssetFileDescriptor, which should be monitored. -->
+<!--  REDUNDANT: originally present in AppGuard's MonitorInitializer.java, but it delegates to 3-param openFileDescriptor, which in turn just delegates to openAssetFileDescriptor. 
+  Landroid/content/ContentResolver;->openFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/os/ParcelFileDescriptor; 
+  REDUNDANT: delegates to 3-param openAssetFileDescriptor 
+  Landroid/content/ContentResolver;->openFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/os/ParcelFileDescriptor; 
+  Note: there are also openTypedAssertFileDescriptor() methods that ultimately delegate to this one. -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>openAssetFileDescriptor</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String</param>
+			<param>android.os.CancellationSignal</param>
+		</params>
+           <return>android.content.res.AssetFileDescriptor</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;openAssetFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->openAssetFileDescriptor</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_openAssetFileDescriptor_560(Object _this , android.net.Uri p0, java.lang.String p1, android.os.CancellationSignal p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: openAssetFileDescriptor retCls: android.content.res.AssetFileDescriptor params: android.net.Uri "+convert(p0)+" java.lang.String "+convert(p1)+" android.os.CancellationSignal "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+        return (android.content.res.AssetFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.content.res.AssetFileDescriptor) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Note: there is a 2-arg query() method that just delegates to this one. -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>query</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String[]</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String[]</param>
+			<param>java.lang.String</param>
+			<param>android.os.CancellationSignal</param>
+		</params>
+           <return>android.database.Cursor</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->query</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_query_563(Object _this , android.net.Uri p0, java.lang.String[] p1, java.lang.String p2, java.lang.String[] p3, java.lang.String p4, android.os.CancellationSignal p5)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: query retCls: android.database.Cursor params: android.net.Uri "+convert(p0)+" java.lang.String[] "+convert(p1)+" java.lang.String "+convert(p2)+" java.lang.String[] "+convert(p3)+" java.lang.String "+convert(p4)+" android.os.CancellationSignal "+convert(p5)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4, p5);
+        return (android.database.Cursor) monitorHook.hookAfterApiCall(logSignature, (android.database.Cursor) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Note: there is a 3-arg registerContentObserver() method that just delegates to this one. -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentResolver</class>
+           <method>registerContentObserver</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>boolean</param>
+			<param>android.database.ContentObserver</param>
+			<param>int</param>
+		</params>
+           <return>void</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentResolver;-&gt;registerContentObserver(Landroid/net/Uri;ZLandroid/database/ContentObserver;I)V</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentResolver->registerContentObserver</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentResolver_registerContentObserver_566(Object _this , android.net.Uri p0, boolean p1, android.database.ContentObserver p2, int p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentResolver mthd: registerContentObserver retCls: void params: android.net.Uri "+convert(p0)+" boolean "+convert(p1)+" android.database.ContentObserver "+convert(p2)+" int "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+          monitorHook.hookAfterApiCall(logSignature,  null);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue></defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ========== android.content.ContentProviderClient -->
+<!--  APIs unchanged from AppGuard's MonitorInitializer.java -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>bulkInsert</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>android.content.ContentValues[]</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->bulkInsert</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_bulkInsert_571(Object _this , android.net.Uri p0, android.content.ContentValues[] p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: bulkInsert retCls: int params: android.net.Uri "+convert(p0)+" android.content.ContentValues[] "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>delete</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String[]</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->delete</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_delete_572(Object _this , android.net.Uri p0, java.lang.String p1, java.lang.String[] p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: delete retCls: int params: android.net.Uri "+convert(p0)+" java.lang.String "+convert(p1)+" java.lang.String[] "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>insert</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>android.content.ContentValues</param>
+		</params>
+           <return>android.net.Uri</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->insert</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_insert_573(Object _this , android.net.Uri p0, android.content.ContentValues p1)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: insert retCls: android.net.Uri params: android.net.Uri "+convert(p0)+" android.content.ContentValues "+convert(p1)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);
+        return (android.net.Uri) monitorHook.hookAfterApiCall(logSignature, (android.net.Uri) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>update</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>android.content.ContentValues</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String[]</param>
+		</params>
+           <return>int</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->update</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_update_574(Object _this , android.net.Uri p0, android.content.ContentValues p1, java.lang.String p2, java.lang.String[] p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: update retCls: int params: android.net.Uri "+convert(p0)+" android.content.ContentValues "+convert(p1)+" java.lang.String "+convert(p2)+" java.lang.String[] "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>0</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  REDUNDANT: delegates to 3-arg openFile 
+  Landroid/content/ContentProviderClient;->openFile(Landroid/net/Uri;Ljava/lang/String;)Landroid/os/ParcelFileDescriptor; -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>openFile</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String</param>
+			<param>android.os.CancellationSignal</param>
+		</params>
+           <return>android.os.ParcelFileDescriptor</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;openFile(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/os/ParcelFileDescriptor;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->openFile</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_openFile_578(Object _this , android.net.Uri p0, java.lang.String p1, android.os.CancellationSignal p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: openFile retCls: android.os.ParcelFileDescriptor params: android.net.Uri "+convert(p0)+" java.lang.String "+convert(p1)+" android.os.CancellationSignal "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+        return (android.os.ParcelFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.os.ParcelFileDescriptor) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  Note: there is a 2-arg openAssetFile() that just delegates to this one. -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>openAssetFile</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String</param>
+			<param>android.os.CancellationSignal</param>
+		</params>
+           <return>android.content.res.AssetFileDescriptor</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;openAssetFile(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->openAssetFile</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_openAssetFile_580(Object _this , android.net.Uri p0, java.lang.String p1, android.os.CancellationSignal p2)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: openAssetFile retCls: android.content.res.AssetFileDescriptor params: android.net.Uri "+convert(p0)+" java.lang.String "+convert(p1)+" android.os.CancellationSignal "+convert(p2)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);
+        return (android.content.res.AssetFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.content.res.AssetFileDescriptor) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>openTypedAssetFileDescriptor</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String</param>
+			<param>android.os.Bundle</param>
+			<param>android.os.CancellationSignal</param>
+		</params>
+           <return>android.content.res.AssetFileDescriptor</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;openTypedAssetFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->openTypedAssetFileDescriptor</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_openTypedAssetFileDescriptor_581(Object _this , android.net.Uri p0, java.lang.String p1, android.os.Bundle p2, android.os.CancellationSignal p3)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: openTypedAssetFileDescriptor retCls: android.content.res.AssetFileDescriptor params: android.net.Uri "+convert(p0)+" java.lang.String "+convert(p1)+" android.os.Bundle "+convert(p2)+" android.os.CancellationSignal "+convert(p3)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);
+        return (android.content.res.AssetFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.content.res.AssetFileDescriptor) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  REDUNDANT: delegates to the  6-arg query() method. 
+  Landroid/content/ContentProviderClient;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor; -->
+
+<apiPolicy>
+
+        <api>
+           <class>android.content.ContentProviderClient</class>
+           <method>query</method>
+           <params>
+			<param>android.net.Uri</param>
+			<param>java.lang.String[]</param>
+			<param>java.lang.String</param>
+			<param>java.lang.String[]</param>
+			<param>java.lang.String</param>
+			<param>android.os.CancellationSignal</param>
+		</params>
+           <return>android.database.Cursor</return>
+           <static>False</static>
+           <jni>Landroid/content/ContentProviderClient;-&gt;query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;</jni>
+           <version>All</version>
+        </api> <!-- API -->
+<policy>Mock</policy> <!-- POLICY -->
+<hook>android.content.ContentProviderClient->query</hook> <!-- HOOK ID -->
+<name>redir_android_content_ContentProviderClient_query_585(Object _this , android.net.Uri p0, java.lang.String[] p1, java.lang.String p2, java.lang.String[] p3, java.lang.String p4, android.os.CancellationSignal p5)</name> <!-- METHOD ID -->
+<logId> "TId: "+threadId+" objCls: android.content.ContentProviderClient mthd: query retCls: android.database.Cursor params: android.net.Uri "+convert(p0)+" java.lang.String[] "+convert(p1)+" java.lang.String "+convert(p2)+" java.lang.String[] "+convert(p3)+" java.lang.String "+convert(p4)+" android.os.CancellationSignal "+convert(p5)+" stacktrace: "+stackTrace</logId> <!-- LOG SIGNATURE -->
+<invoke>
+
+        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4, p5);
+        return (android.database.Cursor) monitorHook.hookAfterApiCall(logSignature, (android.database.Cursor) returnVal);
+    
+</invoke> <!-- INVOKE_CODE -->
+<defaultValue>null</defaultValue> <!-- DEFAULT RETURN -->
+</apiPolicy>
+<!--  ======================================== 
+  End of CONTENT PROVIDER APIs 
+  ======================================== -->
+</policies_list>
