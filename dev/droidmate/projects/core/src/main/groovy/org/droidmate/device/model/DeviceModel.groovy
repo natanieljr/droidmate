@@ -60,7 +60,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
         hw.ramSize: 1024
         hw.gpu.enabled: yes
      */
-      case "unknown-Android SDK built for x86":
+      case UiautomatorDaemonConstants.DEVICE_EMULATOR:
         result = new Nexus7_2013_AVD_API23_Model()
         break
       case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_7:
@@ -69,8 +69,11 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
       case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_5X:
         result = new Nexus5X_Model()
         break
-      case "samsung-Nexus 10":
+      case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_10:
         result = new Nexus10Model()
+        break
+      case UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C:
+        result = new PixelCModel()
         break
       case UiautomatorDaemonConstants.DEVICE_SAMSUNG_GALAXY_S3_GT_I9300:
         result = new GalaxyS3Model()

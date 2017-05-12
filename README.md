@@ -76,6 +76,7 @@ DroidMate works on following devices:
 API 23:
 * Nexus 7 2013
 * Nexus 5X
+* Pixel C
 
 ~~API 19~~:
 * ~~Nexus 7 2012~~
