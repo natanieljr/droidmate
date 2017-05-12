@@ -56,6 +56,8 @@ class RunnableWidgetExplorationAction extends RunnableExplorationAction
     logsHandler.readAndClearApiLogs()
     this.logs = logsHandler.getLogs()
 
+    Thread.sleep(action.delay);
+
     log.debug("4. Get GUI snapshot.")
     this.snapshot = device.guiSnapshot
   }
