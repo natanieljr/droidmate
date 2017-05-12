@@ -29,14 +29,16 @@ abstract class DroidmateCommand
   abstract void execute(Configuration cfg) throws ThrowablesCollection
 
    static DroidmateCommand build(
-    boolean report, boolean inline, Configuration cfg)
+    boolean report, boolean inline, boolean generateMonitor, Configuration cfg)
   {
-    assert [report, inline].count {it} <= 1
+    assert [report, inline, generateMonitor].count {it} <= 1
 
     if (report)
       return new ReportCommand()
     else if (inline)
       return InlineCommand.build()
+    else if (generateMonitor)
+      return GenerateMonitorCommand.build()
     else
       return ExploreCommand.build(cfg)
   }

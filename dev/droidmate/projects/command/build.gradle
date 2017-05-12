@@ -50,6 +50,7 @@ dependWithTest(project, ":projects:core", "groovy")
 dependWithTest(project, ":projects:reporter", "kotlin")
 dependWithTest(project, ":projects:lib-kotlin", "kotlin")
 dependWithTest(project, ":projects:lib-common", "groovy")
+dependWithTest(project, ":projects:monitor-generator", "groovy")
 
 dependencies {
 
