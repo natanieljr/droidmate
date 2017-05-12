@@ -98,7 +98,6 @@ import java.nio.file.Path
   public static final String pn_droidmateOutputDir                           = "-droidmateOutputDirPath"
   public static final String pn_getValidGuiSnapshotRetryAttempts             = "-getValidGuiSnapshotRetryAttempts"
   public static final String pn_getValidGuiSnapshotRetryDelay                = "-getValidGuiSnapshotRetryDelay"
-  public static final String pn_generateMonitor                              = "-generateMonitor"
   public static final String pn_inline                                       = "-inline"
   public static final String pn_launchActivityDelay                          = "-launchActivityDelay"
   public static final String pn_launchActivityTimeout                        = "-launchActivityTimeout"
@@ -218,10 +217,6 @@ import java.nio.file.Path
   // is not enough: all attempts get exhausted and only the repeated set of attempts, after restarting uia-d, succeeds.
   // com.netbiscuits.bild.android_v3.5.6-inlined needs more than 20s.
   public int getValidGuiSnapshotRetryDelay = 4 * 1000 // ms
-
-  @Parameter(names = [Configuration.pn_generateMonitor], description =
-    "If present, instead of normal run, DroidMate will recompile the Monitor component, used to create inlined apks")
-  public Boolean generateMonitor = false
 
   @Parameter(names = [Configuration.pn_inline], description =
     "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks.")
