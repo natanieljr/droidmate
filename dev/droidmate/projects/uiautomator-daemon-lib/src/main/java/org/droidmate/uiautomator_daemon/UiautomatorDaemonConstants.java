@@ -34,9 +34,12 @@ public class UiautomatorDaemonConstants
 
   // End of DUPLICATION WARNING
 
+  public static final String DEVICE_EMULATOR                   = "unknown-Android SDK built for x86";
   public static final String DEVICE_SAMSUNG_GALAXY_S3_GT_I9300 = "samsung-GT-I9300";
   public static final String DEVICE_GOOGLE_NEXUS_7             = "asus-Nexus 7";
+  public static final String DEVICE_GOOGLE_NEXUS_10            = "samsung-Nexus 10";
   public static final String DEVICE_GOOGLE_NEXUS_5X            = "LGE-Nexus 5X";
+  public static final String DEVICE_GOOGLE_PIXEL_C             = "google-Pixel C";
   
   public static final String UIADAEMON_SERVER_START_TAG = uiaDaemon_logcatTag + "/notify";
   public static final String UIADAEMON_SERVER_START_MSG = "uiad server start success";
