@@ -35,6 +35,7 @@ class ApiMethodSignature
   String logId
   String invokeCode
   String defaultValue
+  String customPolicyConstraint;
 
   /**
    * <p>
@@ -56,10 +57,10 @@ class ApiMethodSignature
    */
   static ApiMethodSignature fromDescriptor(String objectClass, String returnClass, String methodName, List<String> paramClasses,
                                            boolean isStatic, String policy, String hook, String name, String logId,
-                                           String invokeCode, String defaultValue)
+                                           String invokeCode, String defaultValue, String customPolicyConstraint)
   {
     def builder = new ApiMethodSignatureBuilderFromClassDescriptor(objectClass, returnClass, methodName, paramClasses,
-            isStatic, policy, hook, name, logId, invokeCode, defaultValue)
+            isStatic, policy, hook, name, logId, invokeCode, defaultValue, customPolicyConstraint)
     return builder.build()
   }
 

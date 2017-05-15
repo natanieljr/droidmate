@@ -19,14 +19,12 @@
 
 package org.droidmate.monitor
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import groovy.util.logging.Slf4j
 import org.droidmate.apis.ApiMethodSignature
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 
 import static java.nio.file.Files.readAllLines
 
@@ -64,64 +62,47 @@ public class MonitorGeneratorFrontend
     new MonitorSrcFile(res.monitorSrcOutPath, monitorSrc)
   }
 
-  private static List<ApiMethodSignature> readMonitoredApisXML(MonitorGeneratorResources res)
+  private static List<ApiMethodSignature> readMonitoredApisJSON(MonitorGeneratorResources res)
   {
-    List<ApiMethodSignature> apiList = new ArrayList<>()
     String fileData = readAllLines(res.monitoredApis).join("\n")
-    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-    Document doc = dBuilder.parse(new ByteArrayInputStream(fileData.getBytes()));
+    List<ApiMethodSignature> apiList = new ArrayList<>()
+    JsonObject jsonApiList = new JsonParser().parse(fileData).getAsJsonObject();
 
-    //optional, but recommended
-    //read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-    doc.getDocumentElement().normalize();
+    JsonElement apis = jsonApiList.get("apis");
 
-    NodeList nPolicies = doc.getElementsByTagName("apiPolicy");
+    for(JsonElement item : (JsonArray)apis) {
+      JsonObject objApi = (JsonObject) item;
+      String className = objApi.get("className").getAsString();
+      String policy = objApi.get("policy").getAsString();
+      String hookedMethod = objApi.get("hookedMethod").getAsString();
+      String signature = objApi.get("signature").getAsString();
+      String invokeAPICode = objApi.get("invokeAPICode").getAsString();
+      String defaultReturnValue = objApi.get("defaultReturnValue").getAsString();
+      String logID = objApi.get("logID").getAsString();
+      String customPolicyConstraint = objApi.get("customPolicyConstraint").getAsString();
+      String methodName = objApi.get("methodName").getAsString();
+      List<String> paramList = new ArrayList<>();
+      for (JsonElement param : objApi.get("paramList").getAsJsonArray())
+        paramList.add(param.getAsString());
+      String returnType = objApi.get("returnType").getAsString();
+      boolean isStatic = objApi.get("isStatic").getAsBoolean();
+      String platformVersion = objApi.get("platformVersion").getAsString();
 
-    for (int x = 0; x < nPolicies.getLength(); x++) {
-      Node nPolicy = nPolicies.item(x)
-      Node nApi = nPolicy.childNodes.item(1)
-
-      Element eApi = (Element) nApi
-
-      String versionRestriction = eApi.getElementsByTagName("version").item(0).getTextContent()
-
-      // If API should be ignored on Andorid 23, skip it
-      if ((res.androidApi == AndroidAPI.API_23) && (versionRestriction.startsWith("!API23")))
+      if ((res.androidApi == AndroidAPI.API_23) && (platformVersion.startsWith("!API23")))
         continue
 
-      // Components from the API tag
-      String objectClass = eApi.getElementsByTagName("class").item(0).getTextContent()
-      String methodName = eApi.getElementsByTagName("method").item(0).getTextContent()
-      String returnClass = eApi.getElementsByTagName("return").item(0).getTextContent()
-      boolean isStatic = eApi.getElementsByTagName("static").item(0).getTextContent().equalsIgnoreCase("True")
-      List<String> params = new ArrayList<>()
-
-      Element eParams = (Element)eApi.getElementsByTagName("params").item(0)
-      for (Node nParam: eParams.getElementsByTagName("param")) {
-        params.add(nParam.getTextContent())
-      }
-
-      // Componenets from the Policy tag
-      Element ePolicy = (Element) nPolicy;
-      String policy = ePolicy.getElementsByTagName("policy").item(0).getTextContent()
-      String hook = ePolicy.getElementsByTagName("hook").item(0).getTextContent()
-      String name = ePolicy.getElementsByTagName("name").item(0).getTextContent()
-      String logId = ePolicy.getElementsByTagName("logId").item(0).getTextContent()
-      String invokeCode = ePolicy.getElementsByTagName("invoke").item(0).getTextContent()
-      String defaultValue = ePolicy.getElementsByTagName("defaultValue").item(0).getTextContent()
-
-      ApiMethodSignature api = ApiMethodSignature.fromDescriptor(objectClass, returnClass, methodName, params, isStatic,
-                                                                 policy, hook, name, logId, invokeCode, defaultValue)
+      ApiMethodSignature api = ApiMethodSignature.fromDescriptor(className, returnType, methodName, paramList,
+              isStatic, policy, hookedMethod, signature, logID, invokeAPICode, defaultReturnValue,
+              customPolicyConstraint)
       apiList.add(api)
     }
 
     return apiList
   }
 
-  public static List<ApiMethodSignature> getMethodSignatures(MonitorGeneratorResources res)
+  static List<ApiMethodSignature> getMethodSignatures(MonitorGeneratorResources res)
   {
-    List<ApiMethodSignature> signatures = readMonitoredApisXML(res)
+    List<ApiMethodSignature> signatures = readMonitoredApisJSON(res)
     return signatures
   }
 

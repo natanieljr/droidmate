@@ -192,10 +192,29 @@ class RedirectionsGenerator implements IRedirectionsGenerator
             out << ind4 + ams.invokeCode + nl
             break
           case ApiPolicy.Deny:
-            out << "throw new RuntimeException(\"API ${ams.objectClass}->${ams.methodName}\" was blocked by DroidMate);" + nl
+            if (ams.customPolicyConstraint != "")
+              out << ind4 << "if ($ams.customPolicyConstraint){"  + nl
+
+            out << "throw new SecurityException(\"API ${ams.objectClass}->${ams.methodName} was blocked by DroidMate\");" + nl
+            if (ams.customPolicyConstraint != "") {
+              out << ind4 << "}" + nl
+              out << ind4 << "else {" + nl
+              out << ind4 << ind4 + ams.invokeCode + nl
+              out << ind4 << "}" + nl
+            }
             break
           case ApiPolicy.Mock:
+            if (ams.customPolicyConstraint != "")
+              out << ind4 << "if ($ams.customPolicyConstraint){"  + nl
+
             out << String.format("return %s;", ams.defaultValue) + nl
+
+            if (ams.customPolicyConstraint != "") {
+              out << ind4 << "}" + nl
+              out << ind4 << "else {" + nl
+              out << ind4 << ind4 + ams.invokeCode + nl
+              out << ind4 << "}" + nl
+            }
             break
           default:
               assert false: "Policy for api ${ams.objectClass}->${ams.methodName} cannot be determined." + nl

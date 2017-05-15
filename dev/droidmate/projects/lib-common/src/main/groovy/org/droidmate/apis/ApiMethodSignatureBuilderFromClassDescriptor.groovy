@@ -39,10 +39,12 @@ class ApiMethodSignatureBuilderFromClassDescriptor implements IApiMethodSignatur
   private final String logId
   private final String invokeCode
   private final String defaultValue
+  private final String customPolicyConstraint
 
   ApiMethodSignatureBuilderFromClassDescriptor(String objectClass, String returnClass, String methodName,
                                                List<String> paramClasses, boolean isStatic, String policy, String hook,
-                                               String name, String logId, String invokeCode, String defaultValue)
+                                               String name, String logId, String invokeCode, String defaultValue,
+                                               String customPolicyConstraint)
   {
     this.objectClass = objectClass
     this.returnClass = returnClass
@@ -55,6 +57,7 @@ class ApiMethodSignatureBuilderFromClassDescriptor implements IApiMethodSignatur
     this.logId = logId
     this.invokeCode = invokeCode
     this.defaultValue = defaultValue
+    this.customPolicyConstraint = customPolicyConstraint
   }
 
   @Override
@@ -62,7 +65,8 @@ class ApiMethodSignatureBuilderFromClassDescriptor implements IApiMethodSignatur
   {
 
     def out = new ApiMethodSignature(this.objectClass, this.returnClass, this.methodName, this.paramClasses, isStatic,
-                                     this.policy, this.hook, this.name, this.logId, this.invokeCode, this.defaultValue)
+                                     this.policy, this.hook, this.name, this.logId, this.invokeCode, this.defaultValue,
+                                     this.customPolicyConstraint)
     out.assertValid()
     return out
   }
