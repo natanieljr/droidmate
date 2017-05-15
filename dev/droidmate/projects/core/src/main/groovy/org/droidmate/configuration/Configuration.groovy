@@ -99,6 +99,7 @@ import java.nio.file.Path
   public static final String pn_getValidGuiSnapshotRetryAttempts             = "-getValidGuiSnapshotRetryAttempts"
   public static final String pn_getValidGuiSnapshotRetryDelay                = "-getValidGuiSnapshotRetryDelay"
   public static final String pn_inline                                       = "-inline"
+  public static final String pn_unpack                                       = "-unpack"
   public static final String pn_launchActivityDelay                          = "-launchActivityDelay"
   public static final String pn_launchActivityTimeout                        = "-launchActivityTimeout"
   public static final String pn_monitorSocketTimeout                         = "-monitorSocketTimeout"
@@ -221,6 +222,10 @@ import java.nio.file.Path
   @Parameter(names = [Configuration.pn_inline], description =
     "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks.")
   public Boolean inline = false
+
+  @Parameter(names = [Configuration.pn_unpack], description =
+          "If present, instead of normal run, DroidMate will unpack all exploration output (SER) files into a directory.")
+  public Boolean unpack = false
 
   @Parameter(names = [Configuration.pn_launchActivityDelay])
   // Empirically checked that for com.skype.raider_v5.0.0.51733-inlined.apk 5000 ms is sometimes not enough.

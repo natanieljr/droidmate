@@ -104,7 +104,7 @@ import static org.droidmate.logging.Markers.runData
 
   private static DroidmateCommand determineAndBuildCommand(Configuration cfg)
   {
-    return DroidmateCommand.build(cfg.report, cfg.inline, cfg)
+    return DroidmateCommand.build(cfg.report, cfg.inline, cfg.unpack, cfg)
   }
 
   private static void validateStdoutLoglevel()
