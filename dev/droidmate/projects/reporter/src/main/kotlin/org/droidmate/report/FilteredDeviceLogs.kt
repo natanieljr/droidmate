@@ -162,7 +162,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
     // (present in this file).
     private val apisManuallyConfirmedToBeRedundant: List<String> = listOf(
       // Android 6 source: https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r46/core/java/android/os/PowerManager.java#1127
-      "redir_android_os_PowerManager_WakeLock_release0"
+      "redir_android_os_PowerManager_WakeLock_release_"
     )
     
     private val apisManuallyConfirmedToBeNotRedundant: List<String> = listOf(
@@ -195,7 +195,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
           https://android.googlesource.com/platform/external/apache-http/+/android-4.4.4_r2.0.1/src/org/apache/http/impl/client/AbstractHttpClient.java#514
           https://android.googlesource.com/platform/external/apache-http/+/android-6.0.1_r63/src/org/apache/http/impl/client/AbstractHttpClient.java#519
        */
-      "redir_org_apache_http_impl_client_AbstractHttpClient_execute3",
+      "redir_org_apache_http_impl_client_AbstractHttpClient_execute_",
 
       /*
         Redundancy was being reported because the monitored method called itself down the stack trace. See the lines prefixed 
@@ -214,7 +214,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
           java.net.URL.openStream(URL.java:470)
 
        */
-      "redir_java_net_URL_openConnection0",
+      "redir_java_net_URL_openConnection_",
       
       /*
         Same story as with openConnection0 (see above).
@@ -232,7 +232,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
       --> org.droidmate.monitor.Monitor.redir_10_java_net_URL_ctor3(Monitor.java:842)
           java.net.URL.<init>(URL.java:125)        
        */
-      "redir_10_java_net_URL_ctor3",
+      "redir_java_net_URL_ctor_",
       
       /*
         This method calls other monitored method, openAssetFileDescriptor, if the parameter URI has file scheme:
@@ -241,7 +241,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
           https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r63/core/java/android/content/ContentResolver.java#647
         this this method is not redundant.
        */
-      "redir_android_content_ContentResolver_openInputStream1",
+      "redir_android_content_ContentResolver_openInputStream_",
 
       /*
         The redundancy suspicion happens because the ContentProvider.query() abstract method implementation of Spotify app 
@@ -260,7 +260,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
       --> org.droidmate.monitor.Monitor.redir_android_content_ContentResolver_query6(Monitor.java:2082)
           android.content.ContentResolver.query(ContentResolver.java:434)        
        */
-      "redir_android_content_ContentResolver_query6"
+      "redir_android_content_ContentResolver_query_"
     )
     /// !!! DUPLICATION WARNING !!! with org.droidmate.monitor.RedirectionsGenerator.redirMethodNamePrefix and related code.
     private val apisManuallyCheckedForRedundancy: List<String> = apisManuallyConfirmedToBeRedundant + apisManuallyConfirmedToBeNotRedundant
