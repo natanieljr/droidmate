@@ -40,10 +40,9 @@ class MonitorGenerator implements IMonitorGenerator
   @Override
   String generate(List<ApiMethodSignature> signatures)
   {
-    def (String genCtorCalls, String genCtorTargets) = redirectionsGenerator.generateCtorCallsAndTargets(signatures)
     String genMethodTargets = redirectionsGenerator.generateMethodTargets(signatures)
 
-    return monitorSrcTemplate.injectGeneratedCode(genCtorCalls, genCtorTargets, genMethodTargets)
+    return monitorSrcTemplate.injectGeneratedCode(genMethodTargets)
   }
 
 

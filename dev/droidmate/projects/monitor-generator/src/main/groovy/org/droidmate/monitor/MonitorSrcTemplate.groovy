@@ -24,8 +24,6 @@ import java.nio.file.Path
 class MonitorSrcTemplate
 {
 
-  private final static String injectionPoint_ctorCalls      = "GENERATED_CODE_INJECTION_POINT:CTOR_REDIR_CALLS"
-  private final static String injectionPoint_ctorTargets    = "GENERATED_CODE_INJECTION_POINT:CTOR_REDIR_TARGETS"
   private final static String injectionPoints_methodTargets = "GENERATED_CODE_INJECTION_POINT:METHOD_REDIR_TARGETS"
 
   private final String monitorSrcTemplate
@@ -74,13 +72,11 @@ class MonitorSrcTemplate
   }
 
 
-  String injectGeneratedCode(String genCtorRedirCalls, String genCtorTargets, String genMethodsTargets)
+  String injectGeneratedCode(String genMethodsTargets)
   {
     return monitorSrcTemplate
       .readLines().collect {
-      it.contains(injectionPoint_ctorCalls) ? genCtorRedirCalls
-        : it.contains(injectionPoint_ctorTargets) ? genCtorTargets
-        : it.contains(injectionPoints_methodTargets) ? genMethodsTargets : it
+      it.contains(injectionPoints_methodTargets) ? genMethodsTargets : it
     }
     .join(System.lineSeparator())
   }

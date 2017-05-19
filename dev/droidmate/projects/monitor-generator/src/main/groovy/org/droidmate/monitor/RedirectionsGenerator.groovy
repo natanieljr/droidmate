@@ -59,83 +59,13 @@ class RedirectionsGenerator implements IRedirectionsGenerator
 {
 
   private static final nl   = System.lineSeparator()
-  private static final ind6 = "      "
   private static final ind4 = "    "
 
-  private static final String monitorHookInstanceName = "monitorHook"
-  private static final String monitorHookBeforeCallPrefix = monitorHookInstanceName + ".hookBeforeApiCall("
-  private static final String monitorHookAfterCallPrefix = monitorHookInstanceName + ".hookAfterApiCall("
-
-  // !!! DUPLICATION WARNING !!! with org.droidmate.report.FilteredDeviceLogs.Companion.apisManuallyCheckedForRedundancy
-  private static String redirMethodNamePrefix = "redir_"
-  private static String redirMethodDefPrefix = "Lorg/droidmate/monitor/Monitor;->$redirMethodNamePrefix" 
-
-  private static Map<Integer, String> ctorRedirNames = [:]
   private final  AndroidAPI           androidApi
   
-
   RedirectionsGenerator(AndroidAPI androidApi)
   {
     this.androidApi = androidApi
-  }
-
-  @Override
-  List<String> generateCtorCallsAndTargets(List<ApiMethodSignature> signatures)
-  {
-    /*StringBuilder calls = new StringBuilder()
-    StringBuilder out = new StringBuilder()
-    signatures.findAll {it.isConstructor()}.eachWithIndex {ApiMethodSignature ams, int id ->
-
-      ams.with {
-
-        // --- Redirecting constructor calls ---
-
-        String objectClassAsMethodName = getObjectClassAsMethodName(objectClass)
-        ctorRedirNames[id] = "${id}_${objectClassAsMethodName}_ctor${paramClasses.size()}"
-
-        // --- The generation of redirected method (target of the .redirectMethod call) ---
-        
-        // Items for method signature.
-
-        String objectClassWithDots = getObjectClassWithDots(objectClass)
-        List<String> paramVarNames = buildParamVarNames(it)
-        String formalParams = buildFormalParams(it, paramVarNames)
-
-        // Items for logcat message payload.
-        String stackTraceVarName = "stackTrace"
-        String threadIdVarName = "threadId"
-        List<String> paramValues = paramVarNames.collect {"convert(${it})"}
-        String apiLogcatMessagePayload = buildApiLogcatMessagePayload(it, paramValues, threadIdVarName, stackTraceVarName)
-
-        // Items for call to Instrumentation method returning value.
-
-        String commaSeparatedParamVars = buildCommaSeparatedParamVarNames(ams, paramVarNames)
-
-        if (androidApi == AndroidAPI.API_23)
-        {
-          out << ind4 + "@Hook(\"$objectClass->$methodName\") " + nl
-        }
-        out << ind4 + "public static void $redirMethodNamePrefix${ctorRedirNames[id]}($objectClassWithDots _this$formalParams)" + nl
-        out << ind4 + "{" + nl
-        out << ind4 + ind4 + "String $stackTraceVarName = getStackTrace();" + nl
-        out << ind4 + ind4 + "long $threadIdVarName = getThreadId();" + nl
-        out << ind4 + ind4 + "${monitorHookBeforeCallPrefix}\"$apiLogcatMessagePayload\");" + nl
-        
-        out << ind4 + ind4 + "Log.${MonitorConstants.loglevel}(\"${MonitorConstants.tag_api}\", \"$apiLogcatMessagePayload\"); " + nl
-        out << ind4 + ind4 + "addCurrentLogs(\"$apiLogcatMessagePayload\");" + nl
-
-        if (androidApi == AndroidAPI.API_23)
-        {
-          out << ind4 + ind4 + "OriginalMethod.by(new \$() {}).invoke(_this$commaSeparatedParamVars);" + nl
-          out << ind4 + ind4 + "${monitorHookAfterCallPrefix}\"$apiLogcatMessagePayload\", null);" + nl
-        } else throw new IllegalStateException()
-        out << ind4 + "}" + nl
-        out << ind4 + nl
-      }
-
-    }
-    return [calls.toString(), out.toString()]*/
-    return ["", ""]
   }
 
   private static String getObjectClassWithDots(String objectClass)
@@ -151,7 +81,6 @@ class RedirectionsGenerator implements IRedirectionsGenerator
   String generateMethodTargets(List<ApiMethodSignature> signatures)
   {
     return signatures
-      //.findAll {!it.isConstructor()} // Skip ctors here. They are handled in #generateCtorCallsAndTargets()
       .findAll {!(it.objectClass.startsWith("android.test."))} // For justification, see [1] in dev doc at the end of this method.
       .collect {ApiMethodSignature ams ->
 
@@ -195,7 +124,9 @@ class RedirectionsGenerator implements IRedirectionsGenerator
             if (ams.customPolicyConstraint != "")
               out << ind4 << "if ($ams.customPolicyConstraint){"  + nl
 
-            out << "throw new SecurityException(\"API ${ams.objectClass}->${ams.methodName} was blocked by DroidMate\");" + nl
+            out << "RuntimeException e = new SecurityException(\"API ${ams.objectClass}->${ams.methodName} was blocked by DroidMate\");" + nl
+            out << String.format("Log.e(\"%s\", e.getMessage());", MonitorConstants.tag_api) + nl
+            out << "throw e;" + nl
             if (ams.customPolicyConstraint != "") {
               out << ind4 << "}" + nl
               out << ind4 << "else {" + nl

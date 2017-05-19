@@ -687,11 +687,7 @@ public class MonitorJavaTemplate
     // org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
     // ClassLoader[] classLoaders = {Thread.currentThread().getContextClassLoader(), Monitor.class.getClassLoader()};
     // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
-    // GENERATED_CODE_INJECTION_POINT:CTOR_REDIR_CALLS
   }
-
-  // GENERATED_CODE_INJECTION_POINT:CTOR_REDIR_TARGETS
 
   // GENERATED_CODE_INJECTION_POINT:METHOD_REDIR_TARGETS
 

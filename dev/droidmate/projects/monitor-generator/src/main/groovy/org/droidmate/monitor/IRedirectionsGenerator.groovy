@@ -23,9 +23,6 @@ import org.droidmate.apis.ApiMethodSignature
 
 interface IRedirectionsGenerator
 {
-
-  List<String> generateCtorCallsAndTargets(List<ApiMethodSignature> signatures)
-
   String generateMethodTargets(List<ApiMethodSignature> signatures)
 }
 
