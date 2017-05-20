@@ -97,16 +97,17 @@ class WidgetStrategy implements IWidgetStrategy
 
     ExplorationAction action
 
-    if (repeatLastAction)
+    // Sometimes the runtime permission dialog is displayed upon starting the application, thus there's no previous widget
+    if ((repeatLastAction) && (lastWidgetInfo != null))
     {
-      assert lastWidgetInfo != null
-
       repeatLastAction = false
 
       action = chooseAction(lastWidgetInfo)
     }
     else
     {
+      repeatLastAction = false
+
       if (guiState.requestRuntimePermissionDialogBox)
       {
         action = clickRuntimePermissionAllowWidget(guiState)
@@ -134,7 +135,8 @@ class WidgetStrategy implements IWidgetStrategy
     assert allowButton != null
 
     // Remove blacklist restriction from previous action since it will need to be executed again
-    lastWidgetInfo.blackListed = false
+    if (lastWidgetInfo != null)
+      lastWidgetInfo.blackListed = false
 
     return newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
   }
