@@ -52,7 +52,6 @@ class UnpackCommand extends DroidmateCommand {
 
         // Process files
         droidmateOutputDirPath.eachFileRecurse(FileType.FILES) { file ->
-            System.out.println(file + "")
             if (((String) (file + "")).contains('.ser2')) {
                 outputDir = fs.getPath((String) file.getParent(), outputStr)
                 outputDir.createDirIfNotExists()
