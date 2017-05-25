@@ -73,13 +73,12 @@ public class MonitorGeneratorFrontend
     for(JsonElement item : (JsonArray)apis) {
       JsonObject objApi = (JsonObject) item;
       String className = objApi.get("className").getAsString();
-      String policy = objApi.get("policy").getAsString();
       String hookedMethod = objApi.get("hookedMethod").getAsString();
       String signature = objApi.get("signature").getAsString();
       String invokeAPICode = objApi.get("invokeAPICode").getAsString();
       String defaultReturnValue = objApi.get("defaultReturnValue").getAsString();
+      String exceptionType = objApi.get("exceptionType").getAsString();
       String logID = objApi.get("logID").getAsString();
-      String customPolicyConstraint = objApi.get("customPolicyConstraint").getAsString();
       String methodName = objApi.get("methodName").getAsString();
       List<String> paramList = new ArrayList<>();
       for (JsonElement param : objApi.get("paramList").getAsJsonArray())
@@ -92,8 +91,7 @@ public class MonitorGeneratorFrontend
         continue
 
       ApiMethodSignature api = ApiMethodSignature.fromDescriptor(className, returnType, methodName, paramList,
-              isStatic, policy, hookedMethod, signature, logID, invokeAPICode, defaultReturnValue,
-              customPolicyConstraint)
+              isStatic, hookedMethod, signature, logID, invokeAPICode, defaultReturnValue, exceptionType)
       apiList.add(api)
     }
 

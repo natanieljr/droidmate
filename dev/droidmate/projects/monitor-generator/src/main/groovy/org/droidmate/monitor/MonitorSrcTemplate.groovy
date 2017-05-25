@@ -19,6 +19,8 @@
 
 package org.droidmate.monitor
 
+import org.droidmate.misc.BuildConstants
+
 import java.nio.file.Path
 
 class MonitorSrcTemplate
@@ -71,12 +73,12 @@ class MonitorSrcTemplate
     this.monitorSrcTemplate = builder.toString()
   }
 
-
   String injectGeneratedCode(String genMethodsTargets)
   {
     return monitorSrcTemplate
       .readLines().collect {
-      it.contains(injectionPoints_methodTargets) ? genMethodsTargets : it
+      it.contains(injectionPoints_methodTargets) ? genMethodsTargets : it.replace("#POLICIES_FILE_PATH",
+              BuildConstants.getAVD_dir_for_temp_files() + BuildConstants.getApi_policies_file_name())
     }
     .join(System.lineSeparator())
   }

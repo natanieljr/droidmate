@@ -25,14 +25,12 @@ package org.droidmate.monitor;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import org.droidmate.apis.Api;
 import org.droidmate.misc.MonitorConstants;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -655,6 +653,12 @@ public class MonitorJavaTemplate
     return String.valueOf(android.os.Process.myPid());
   }
 
+  enum ApiPolicy {
+    Allow,
+    Deny,
+    Mock
+  }
+
   /**
    * <p> Contains API logs gathered by monitor, to be transferred to the host machine when appropriate command is read by the
    * TCP server.
@@ -669,6 +673,122 @@ public class MonitorJavaTemplate
    * @see MonitorJavaTemplate#addCurrentLogs(java.lang.String)
    */
   final static List<ArrayList<String>> currentLogs = new ArrayList<ArrayList<String>>();
+
+  private class ApiPolicyId{
+    private String method;
+    private List<String> uriList;
+
+    public ApiPolicyId(String method, String... uris){
+      this.method = method;
+      this.uriList = Arrays.asList(uris);
+
+      if (this.uriList == null)
+        this.uriList = new ArrayList<>();
+
+      assert this.method != null;
+    }
+
+    boolean affects(String methodName, List<String> uriList){
+      Log.i("XXX", "Method: " + methodName);
+      boolean equal = this.method.equals(methodName);
+
+      StringBuilder b = new StringBuilder();
+      for(String uri : uriList)
+        b.append(uri + "");
+      String apiList = b.toString();
+      Log.i("XXX", "ApiList: " + apiList);
+
+      for (String otherUri : uriList){
+        equal &= apiList.contains(otherUri);
+      }
+
+      return equal;
+    }
+
+    @Override
+    public boolean equals(Object other){
+      return (other instanceof ApiPolicyId) &&
+              ((ApiPolicyId)other).method.equals(this.method) &&
+              ((ApiPolicyId)other).uriList.equals(this.uriList);
+    }
+  }
+
+  private final static HashMap<ApiPolicyId, ApiPolicy> apiPolicies = new HashMap<>();
+
+  private static void processLine(String line){
+    if (!line.contains("\t") || line.startsWith("#")) {
+      Log.i("XXX", "Line " + line + " invalid");
+      return;
+    }
+
+    // first field is method signature
+    // last field is policy
+    // anything in between are URIs
+    String[] lineData = line.split("\t");
+
+    String methodName = lineData[0];
+    String policyStr = lineData[lineData.length - 1].trim();
+
+    ApiPolicy policy = ApiPolicy.valueOf(policyStr);
+    List<String> uriList = new ArrayList<>();
+    uriList.addAll(Arrays.asList(lineData).subList(1, lineData.length - 1));
+
+    Log.i("XXX", "Add: " + methodName + " policy " + policyStr);
+
+    // org.droidmate.monitor.MonitorSrcTemplate:REMOVE_LINES
+    apiPolicies.put(new MonitorJavaTemplate().new ApiPolicyId(methodName, uriList.toArray(new String[0])), policy);
+    // org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
+    // apiPolicies.put(new Monitor().new ApiPolicyId(methodName, uriList.toArray(new String[0])), policy);
+    // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
+  }
+
+  private static void initializeApiPolicies() throws Exception{
+    // initialize only once
+    if (!apiPolicies.isEmpty())
+      return;;
+
+    File policiesFile = new File("#POLICIES_FILE_PATH");
+    try (BufferedReader reader = new BufferedReader(new FileReader(policiesFile))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        processLine(line);
+      }
+    }
+  }
+
+  /**
+   * Check is the API call should be allowed or not
+   * @param methodName Method that should have its policy checked
+   * @param uriList List of resources being accessed by the method (if any)
+   * @return How how DroidMate behave regarding the policy. Default return is ApiPolicy.Allow
+   */
+  @SuppressWarnings("unused")
+  private static ApiPolicy getPolicy(String methodName, List<Uri> uriList)
+  {
+    try{
+      initializeApiPolicies();
+
+      for(ApiPolicyId apiId : apiPolicies.keySet()){
+        List<String> uriListStr = new ArrayList<>();
+        for (Uri uri : uriList) {
+          uriListStr.add(uri.toString());
+        }
+
+        if (apiId.affects(methodName, uriListStr)) {
+          Log.i("XXX", "Found return");
+          return apiPolicies.get(apiId);
+        }
+      }
+    }
+    catch (Exception e){
+      Log.i("XXX", "Error return" + e.getMessage());
+      // Default behavior is to allow
+      return ApiPolicy.Allow;
+    }
+
+    Log.i("XXX", "Not found return");
+    return ApiPolicy.Allow;
+  }
 
   //endregion
 

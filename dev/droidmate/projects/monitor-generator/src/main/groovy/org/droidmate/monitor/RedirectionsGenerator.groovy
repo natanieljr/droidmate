@@ -115,41 +115,27 @@ class RedirectionsGenerator implements IRedirectionsGenerator
         out << ind4 + "monitorHook.hookBeforeApiCall(logSignature);" + nl
         out << ind4 + String.format("Log.%s(\"%s\", logSignature);", MonitorConstants.loglevel, MonitorConstants.tag_api) + nl
         out << ind4 + "addCurrentLogs(logSignature);" + nl
+
+        out << ind4 + "List<Uri> uriList = new ArrayList<>();" + nl
+        for(int x = 0; x < ams.paramClasses.size(); ++x)
+          if (ams.paramClasses.get(x).equals("android.net.Uri"))
+                out << ind4 + "uriList.add(p${x});" + nl
+        out << ind4 + "ApiPolicy policy = getPolicy(\"${ams.shortSignature}\", uriList);" + nl
+        out << ind4 + "Log.i(\"XXX\", policy.toString());" + nl
         // Currently, when denying, the method is not being called
-        switch (ams.policy){
-          case ApiPolicy.Allow:
-            out << ind4 + ams.invokeCode + nl
-            break
-          case ApiPolicy.Deny:
-            if (ams.customPolicyConstraint != "")
-              out << ind4 << "if ($ams.customPolicyConstraint){"  + nl
-
-            out << "RuntimeException e = new SecurityException(\"API ${ams.objectClass}->${ams.methodName} was blocked by DroidMate\");" + nl
-            out << String.format("Log.e(\"%s\", e.getMessage());", MonitorConstants.tag_api) + nl
-            out << "throw e;" + nl
-            if (ams.customPolicyConstraint != "") {
-              out << ind4 << "}" + nl
-              out << ind4 << "else {" + nl
-              out << ind4 << ind4 + ams.invokeCode + nl
-              out << ind4 << "}" + nl
-            }
-            break
-          case ApiPolicy.Mock:
-            if (ams.customPolicyConstraint != "")
-              out << ind4 << "if ($ams.customPolicyConstraint){"  + nl
-
-            out << String.format("return %s;", ams.defaultValue) + nl
-
-            if (ams.customPolicyConstraint != "") {
-              out << ind4 << "}" + nl
-              out << ind4 << "else {" + nl
-              out << ind4 << ind4 + ams.invokeCode + nl
-              out << ind4 << "}" + nl
-            }
-            break
-          default:
-              assert false: "Policy for api ${ams.objectClass}->${ams.methodName} cannot be determined." + nl
-        }
+        out << ind4 + "switch (policy){ " + nl
+        out << ind4 + ind4 + "case Allow: " + nl
+        // has an embedded return, no need for break
+        out << ind4 + ind4 + ind4 + ams.invokeCode + nl
+        out << ind4 + ind4 + "case Mock: " + nl
+        out << ind4 + ind4 + ind4 + String.format("return %s;", ams.defaultValue) + nl
+        out << ind4 + ind4 + "case Deny: " + nl
+        out << ind4 + ind4 + ind4 + "${ams.exceptionType} e = new ${ams.exceptionType}(\"API ${ams.objectClass}->${ams.methodName} was blocked by DroidMate\");" + nl
+        out << ind4 + ind4 + ind4 + String.format("Log.e(\"%s\", e.getMessage());", MonitorConstants.tag_api) + nl
+        out << ind4 + ind4 + ind4 + "throw e;" + nl
+        out << ind4 + ind4 + "default:" + nl
+        out << ind4 + ind4 + ind4 + "throw new RuntimeException(\"Policy for api ${ams.objectClass}->${ams.methodName} cannot be determined.\");" + nl
+        out << ind4 + "}" + nl
 
         out << "}" + nl
         out << ind4 + nl
