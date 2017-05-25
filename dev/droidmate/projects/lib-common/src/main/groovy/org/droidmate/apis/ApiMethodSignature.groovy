@@ -29,13 +29,12 @@ class ApiMethodSignature
   String methodName
   List<String> paramClasses
   boolean isStatic
-  ApiPolicy policy
   String hook
   String name
   String logId
   String invokeCode
-  String defaultValue
-  String customPolicyConstraint;
+  String defaultValue;
+  String exceptionType;
 
   /**
    * <p>
@@ -56,11 +55,11 @@ class ApiMethodSignature
    * </p>
    */
   static ApiMethodSignature fromDescriptor(String objectClass, String returnClass, String methodName, List<String> paramClasses,
-                                           boolean isStatic, String policy, String hook, String name, String logId,
-                                           String invokeCode, String defaultValue, String customPolicyConstraint)
+                                           boolean isStatic, String hook, String name, String logId,
+                                           String invokeCode, String defaultValue, String exceptionType)
   {
     def builder = new ApiMethodSignatureBuilderFromClassDescriptor(objectClass, returnClass, methodName, paramClasses,
-            isStatic, policy, hook, name, logId, invokeCode, defaultValue, customPolicyConstraint)
+            isStatic, hook, name, logId, invokeCode, defaultValue, exceptionType)
     return builder.build()
   }
 
@@ -75,7 +74,6 @@ class ApiMethodSignature
     assert name?.size() > 0
     assert logId?.size() > 0
     assert invokeCode?.size() > 0
-    assert policy != null
   }
 
   List getDistinctSignature()

@@ -33,31 +33,29 @@ class ApiMethodSignatureBuilderFromClassDescriptor implements IApiMethodSignatur
   private final String methodName
   private final List<String> paramClasses
   private final boolean isStatic
-  private final ApiPolicy policy
   private final String hook
   private final String name
   private final String logId
   private final String invokeCode
   private final String defaultValue
-  private final String customPolicyConstraint
+  private final String exceptionType
 
   ApiMethodSignatureBuilderFromClassDescriptor(String objectClass, String returnClass, String methodName,
-                                               List<String> paramClasses, boolean isStatic, String policy, String hook,
+                                               List<String> paramClasses, boolean isStatic, String hook,
                                                String name, String logId, String invokeCode, String defaultValue,
-                                               String customPolicyConstraint)
+                                               String exceptionType)
   {
     this.objectClass = objectClass
     this.returnClass = returnClass
     this.methodName = methodName
     this.paramClasses = paramClasses
     this.isStatic = isStatic
-    this.policy = ApiPolicy.valueOf(policy)
     this.hook = hook
     this.name = name
     this.logId = logId
     this.invokeCode = invokeCode
     this.defaultValue = defaultValue
-    this.customPolicyConstraint = customPolicyConstraint
+    this.exceptionType = exceptionType
   }
 
   @Override
@@ -65,8 +63,8 @@ class ApiMethodSignatureBuilderFromClassDescriptor implements IApiMethodSignatur
   {
 
     def out = new ApiMethodSignature(this.objectClass, this.returnClass, this.methodName, this.paramClasses, isStatic,
-                                     this.policy, this.hook, this.name, this.logId, this.invokeCode, this.defaultValue,
-                                     this.customPolicyConstraint)
+                                     this.hook, this.name, this.logId, this.invokeCode, this.defaultValue,
+                                     this.exceptionType)
     out.assertValid()
     return out
   }
