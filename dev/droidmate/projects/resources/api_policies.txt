@@ -1,0 +1,2 @@
+android.hardware.Camera.open(int)	Allow
+java.net.URL.<init>(java.net.URL, java.lang.String, java.net.URLStreamHandler)	Allow
