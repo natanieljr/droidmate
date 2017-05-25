@@ -237,7 +237,7 @@ class AndroidDeviceSimulator implements IAndroidDevice
   }
 
   @Override
-  void pushJar(Path jar, String targetFileName = null) throws DroidmateException
+  void pushFile(Path jar, String targetFileName = null) throws DroidmateException
   {
   }
 

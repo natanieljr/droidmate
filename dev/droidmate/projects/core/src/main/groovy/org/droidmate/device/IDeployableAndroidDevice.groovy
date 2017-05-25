@@ -26,9 +26,9 @@ import java.nio.file.Path
 
 interface IDeployableAndroidDevice
 {
-  void pushJar(Path jar) throws DeviceException
+  void pushFile(Path jar) throws DeviceException
 
-  void pushJar(Path jar, String targetFileName) throws DeviceException
+  void pushFile(Path jar, String targetFileName) throws DeviceException
 
   void removeJar(Path jar) throws DeviceException
 

@@ -486,7 +486,7 @@ class AdbWrapper implements IAdbWrapper
 
 
   @Override
-  void pushJar(String deviceSerialNumber, Path jarFile, String targetFileName = null) throws AdbWrapperException
+  void pushFile(String deviceSerialNumber, Path jarFile, String targetFileName = null) throws AdbWrapperException
   {
     assert cfg.adbCommand != null
     assert deviceSerialNumber != null

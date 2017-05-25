@@ -91,10 +91,10 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
   }
 
   @Override
-  void pushJar(Path jar, String targetFileName = null) throws DeviceException
+  void pushFile(Path jar, String targetFileName = null) throws DeviceException
   {
-    log.debug("pushJar(${jar.toString()}, $targetFileName)")
-    adbWrapper.pushJar(serialNumber, jar, targetFileName)
+    log.debug("pushFile(${jar.toString()}, $targetFileName)")
+    adbWrapper.pushFile(serialNumber, jar, targetFileName)
   }
 
 
@@ -493,9 +493,11 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
   {
     if (cfg.androidApi == Configuration.api23)
     {
-      this.pushJar(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
+      this.pushFile(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
 
     } else throw new UnexpectedIfElseFallthroughError()
+
+    this.pushFile(this.cfg.apiPoliciesFile, BuildConstants.api_policies_file_name)
 
   }
   
