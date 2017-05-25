@@ -166,13 +166,13 @@ import java.nio.file.Path
   public String apksDirName = defaultApksDir
 
   @Parameter(names = [Configuration.pn_checkAppIsRunningRetryAttempts])
-  public int checkAppIsRunningRetryAttempts = 4
+  public int checkAppIsRunningRetryAttempts = 2
 
   @Parameter(names = [Configuration.pn_checkAppIsRunningRetryDelay])
   public int checkAppIsRunningRetryDelay = 5 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_checkDeviceAvailableAfterRebootAttempts])
-  public int checkDeviceAvailableAfterRebootAttempts = 12
+  public int checkDeviceAvailableAfterRebootAttempts = 2
 
   @Parameter(names = [Configuration.pn_checkDeviceAvailableAfterRebootFirstDelay])
   public int checkDeviceAvailableAfterRebootFirstDelay = 60 * 1000
@@ -181,13 +181,13 @@ import java.nio.file.Path
   public int checkDeviceAvailableAfterRebootLaterDelays = 10 * 1000
 
   @Parameter(names = [Configuration.pn_clearPackageRetryAttempts], arity = 1)
-  public int clearPackageRetryAttempts = 3
+  public int clearPackageRetryAttempts = 2
 
   @Parameter(names = [Configuration.pn_clearPackageRetryDelay], arity = 1)
   public int clearPackageRetryDelay = 1000
 
   @Parameter(names = [Configuration.pn_closeANRAttempts])
-  public int closeANRAttempts = 4
+  public int closeANRAttempts = 2
 
   @Parameter(names = [Configuration.pn_closeANRDelay])
   public int closeANRDelay = 1000
@@ -211,7 +211,7 @@ import java.nio.file.Path
   public boolean extractSummaries = true
 
   @Parameter(names = [Configuration.pn_getValidGuiSnapshotRetryAttempts])
-  public int getValidGuiSnapshotRetryAttempts = 8
+  public int getValidGuiSnapshotRetryAttempts = 4
   
   @Parameter(names = [Configuration.pn_getValidGuiSnapshotRetryDelay])
   // Exploration of com.facebook.orca_v12.0.0.21.14-inlined.apk shows that that 4 attempts with 4000 ms delays (16s in total)
@@ -285,7 +285,7 @@ import java.nio.file.Path
   // then minimum time should be: 5*(1'200ms + 10'000ms) = 56'000 ms
   // Plus add ~20 second to make things safe, as in practice even 60 ms caused java.net.SocketTimeoutException: Read timed out,
   // which I confirmed by seeing that logcat uiad logs took more than 61 seconds to process a GUI that fails to stabilize. 
-  public int uiautomatorDaemonSocketTimeout = 1 * 90 * 1000 // ms
+  public int uiautomatorDaemonSocketTimeout = 1 * 60 * 1000 // ms
 
   @Parameter(names = [Configuration.pn_uiautomatorDaemonWaitForGuiToStabilize], arity = 1, description =
     "Should the uiautomator-daemon wait for GUI state to stabilize after each click performed on the android device. Setting this to false will drastically speedup the clicking process, but will probably result in new clicks being sent while the results of previous one are still being processed.")
@@ -358,6 +358,12 @@ import java.nio.file.Path
    * to enable GUI actions execution.
    */
   public Path uiautomator2DaemonTestApk
+
+  /**
+   * File with API policies. This file will be deployed be on the android (virtual) device
+   * to define which APIs will be accessible
+   */
+  public Path apiPoliciesFile
 
   //endregion
 }

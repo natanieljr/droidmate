@@ -212,6 +212,8 @@ class ConfigurationBuilder implements IConfigurationBuilder
     cfg.monitorApkApi23 = new Resource(BuildConstants.monitor_api23_apk_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
     log.info("Using $BuildConstants.monitor_api23_apk_name located at "+cfg.monitorApkApi23.toAbsolutePath().toString())
 
+    cfg.apiPoliciesFile = new Resource(BuildConstants.api_policies_file_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    log.info("Using $BuildConstants.api_policies_file_name located at "+cfg.apiPoliciesFile.toAbsolutePath().toString())
     
     cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir)
     cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubdir)
