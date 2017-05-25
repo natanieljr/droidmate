@@ -689,17 +689,15 @@ public class MonitorJavaTemplate
     }
 
     boolean affects(String methodName, List<String> uriList){
-      Log.i("XXX", "Method: " + methodName);
-      boolean equal = this.method.equals(methodName);
+      boolean equal = this.method.equals(methodName.replaceAll("\\s+",""));
 
       StringBuilder b = new StringBuilder();
       for(String uri : uriList)
         b.append(uri + "");
       String apiList = b.toString();
-      Log.i("XXX", "ApiList: " + apiList);
 
-      for (String otherUri : uriList){
-        equal &= apiList.contains(otherUri);
+      for (String restrictedUri : this.uriList){
+        equal &= apiList.contains(restrictedUri);
       }
 
       return equal;
@@ -715,25 +713,27 @@ public class MonitorJavaTemplate
 
   private final static HashMap<ApiPolicyId, ApiPolicy> apiPolicies = new HashMap<>();
 
+  private static boolean skipLine(String line){
+    return (line.trim().length() == 0) ||
+            !line.contains("\t") ||
+            line.startsWith("#");
+  }
+
   private static void processLine(String line){
-    if (!line.contains("\t") || line.startsWith("#")) {
-      Log.i("XXX", "Line " + line + " invalid");
+    if (skipLine(line))
       return;
-    }
 
     // first field is method signature
     // last field is policy
     // anything in between are URIs
     String[] lineData = line.split("\t");
 
-    String methodName = lineData[0];
+    String methodName = lineData[0].replaceAll("\\s+","");
     String policyStr = lineData[lineData.length - 1].trim();
 
     ApiPolicy policy = ApiPolicy.valueOf(policyStr);
     List<String> uriList = new ArrayList<>();
     uriList.addAll(Arrays.asList(lineData).subList(1, lineData.length - 1));
-
-    Log.i("XXX", "Add: " + methodName + " policy " + policyStr);
 
     // org.droidmate.monitor.MonitorSrcTemplate:REMOVE_LINES
     apiPolicies.put(new MonitorJavaTemplate().new ApiPolicyId(methodName, uriList.toArray(new String[0])), policy);
@@ -774,19 +774,15 @@ public class MonitorJavaTemplate
           uriListStr.add(uri.toString());
         }
 
-        if (apiId.affects(methodName, uriListStr)) {
-          Log.i("XXX", "Found return");
+        if (apiId.affects(methodName, uriListStr))
           return apiPolicies.get(apiId);
-        }
       }
     }
     catch (Exception e){
-      Log.i("XXX", "Error return" + e.getMessage());
       // Default behavior is to allow
       return ApiPolicy.Allow;
     }
 
-    Log.i("XXX", "Not found return");
     return ApiPolicy.Allow;
   }
 
