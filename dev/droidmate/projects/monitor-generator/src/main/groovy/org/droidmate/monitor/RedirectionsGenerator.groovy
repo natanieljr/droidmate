@@ -121,7 +121,6 @@ class RedirectionsGenerator implements IRedirectionsGenerator
           if (ams.paramClasses.get(x).equals("android.net.Uri"))
                 out << ind4 + "uriList.add(p${x});" + nl
         out << ind4 + "ApiPolicy policy = getPolicy(\"${ams.shortSignature}\", uriList);" + nl
-        out << ind4 + "Log.i(\"XXX\", policy.toString());" + nl
         // Currently, when denying, the method is not being called
         out << ind4 + "switch (policy){ " + nl
         out << ind4 + ind4 + "case Allow: " + nl
