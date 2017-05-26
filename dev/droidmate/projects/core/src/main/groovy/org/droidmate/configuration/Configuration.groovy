@@ -95,6 +95,7 @@ import java.nio.file.Path
   public static final String pn_closeANRDelay                                = "-closeANRDelay"
   public static final String pn_deployRawApks                                = "-deployRawApks"
   public static final String pn_device                                       = "-device"
+  public static final String pn_replaceExtractedResources                    = "-replaceExtractedResources"
   public static final String pn_droidmateOutputDir                           = "-droidmateOutputDirPath"
   public static final String pn_getValidGuiSnapshotRetryAttempts             = "-getValidGuiSnapshotRetryAttempts"
   public static final String pn_getValidGuiSnapshotRetryDelay                = "-getValidGuiSnapshotRetryDelay"
@@ -206,6 +207,10 @@ import java.nio.file.Path
   @Parameter(names = ["-displayHelp", "-help", "-h", "-?"], help = true, description =
     "Displays command line parameters description.")
   public boolean displayHelp
+
+  @Parameter(names = [Configuration.pn_replaceExtractedResources], arity = 1,
+          description = "Replace the resources from the extracted resources folder upon execution.")
+  public boolean replaceExtractedResources = true
 
   @Parameter(names = ["-extractSummaries"], arity = 1)
   public boolean extractSummaries = true

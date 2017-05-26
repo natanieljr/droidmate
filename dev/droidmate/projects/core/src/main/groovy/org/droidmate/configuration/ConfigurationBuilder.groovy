@@ -200,21 +200,29 @@ class ConfigurationBuilder implements IConfigurationBuilder
     ].collect {it ? 1 : 0}.sum() as int
   }
 
+  private static Path getResourcePath(Configuration cfg, FileSystem fs, String resourceName){
+    Path path = fs.getPath(BuildConstants.dir_name_temp_extracted_resources, resourceName)
 
-  private static void setupResourcesAndPaths(Configuration cfg, FileSystem fs) throws ConfigurationException
+    if (!cfg.replaceExtractedResources && Files.exists(path))
+      return path
+
+    return new Resource(resourceName).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+  }
+
+  private static void setupResourcesAndPaths(Configuration cfg, FileSystem    fs) throws ConfigurationException
   {
-    cfg.uiautomator2DaemonApk = new Resource("uiautomator2-daemon.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    cfg.uiautomator2DaemonApk = getResourcePath(cfg, fs, "uiautomator2-daemon.apk")
     log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomator2DaemonApk.toAbsolutePath().toString())
 
-    cfg.uiautomator2DaemonTestApk = new Resource("uiautomator2-daemon-test.apk").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, fs,"uiautomator2-daemon-test.apk")
     log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomator2DaemonTestApk.toAbsolutePath().toString())
 
-    cfg.monitorApkApi23 = new Resource(BuildConstants.monitor_api23_apk_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
-    log.info("Using $BuildConstants.monitor_api23_apk_name located at "+cfg.monitorApkApi23.toAbsolutePath().toString())
+    cfg.monitorApkApi23 = getResourcePath(cfg, fs, BuildConstants.monitor_api23_apk_name)
+    log.info("Using $BuildConstants.monitor_api23_apk_name located at " + cfg.monitorApkApi23.toAbsolutePath().toString())
 
-    cfg.apiPoliciesFile = new Resource(BuildConstants.api_policies_file_name).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
-    log.info("Using $BuildConstants.api_policies_file_name located at "+cfg.apiPoliciesFile.toAbsolutePath().toString())
-    
+    cfg.apiPoliciesFile = getResourcePath(cfg, fs, BuildConstants.api_policies_file_name)
+    log.info("Using $BuildConstants.api_policies_file_name located at " + cfg.apiPoliciesFile.toAbsolutePath().toString())
+
     cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir)
     cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubdir)
     cfg.reportInputDirPath = fs.getPath(cfg.reportInputDir)
