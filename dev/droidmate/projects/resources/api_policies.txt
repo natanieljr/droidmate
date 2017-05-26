@@ -47,8 +47,8 @@
 #
 #
 # Usage examples (tab separated):
-#android.hardware.Camera.open(int)	Deny
-#java.net.URL.<init>(java.net.URL, java.lang.String, java.net.URLStreamHandler)	Deny
+# android.hardware.Camera.open(int)	Deny
+# java.net.URL.<init>(java.net.URL, java.lang.String, java.net.URLStreamHandler)	Deny
 # android.content.ContentResolver->query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal)	content://sms	Deny
 # android.content.ContentResolver->query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal)	content://call_log	Deny
 #
