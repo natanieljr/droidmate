@@ -308,26 +308,23 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
 
       // ----- Methods present in monitored_apis.txt -----
       
-      "redir_android_content_ContentResolver_openFileDescriptor2",
-      "redir_android_content_ContentResolver_query5",
+      "redir_android_content_ContentResolver_openFileDescriptor_",
+      "redir_android_content_ContentResolver_query_",
       
        // ----- Methods not present in monitored_apis.txt, but which were present in jellybean_publishedapimapping_modified.txt ----- 
-      "redir_4_android_webkit_WebView_ctor1",
-      "redir_5_android_webkit_WebView_ctor2",
-      "redir_6_android_webkit_WebView_ctor3",
-      "redir_7_android_webkit_WebView_ctor4",
-      "redir_android_app_ActivityManager_restartPackage1",
-      "redir_android_net_wifi_WifiManager_isWifiEnabled0",
-      "redir_java_net_URL_getContent0",
-      "redir_java_net_URL_openStream0",
-      "redir_android_widget_VideoView_start0",
-      "redir_android_widget_VideoView_setVideoURI1",
-      "redir_android_widget_VideoView_stopPlayback0",
-      "redir_android_widget_VideoView_release1",
-      "redir_android_app_NotificationManager_notify2",
+      "redir_android_webkit_WebView_ctor_",
+      "redir_android_app_ActivityManager_restartPackage_",
+      "redir_android_net_wifi_WifiManager_isWifiEnabled_",
+      "redir_java_net_URL_getContent_",
+      "redir_java_net_URL_openStream_",
+      "redir_android_widget_VideoView_start_",
+      "redir_android_widget_VideoView_setVideoURI_",
+      "redir_android_widget_VideoView_stopPlayback_",
+      "redir_android_widget_VideoView_release_",
+      "redir_android_app_NotificationManager_notify_",
       // This makes actually two methods redundant in jellybean_publishedapimapping_modified.txt, 
       // both having one param, but of different type.
-      "redir_android_content_ContextWrapper_setWallpaper1"      
+      "redir_android_content_ContextWrapper_setWallpaper_"
     )
   }
 }
