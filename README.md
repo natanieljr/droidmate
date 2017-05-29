@@ -78,7 +78,7 @@ API 23:
 * Nexus 5X
 * Pixel C
 
-If DroidMate doesn't recognize a device it defaults to Nexus 7. You can change the default by editing [DeviceModel](https://github.com/konrad-jamrozik/droidmate/blob/master/dev/droidmate/projects/core/src/main/groovy/org/droidmate/device/model/DeviceModel.groovy#L76-L79). In your device model you just have to ensure the package name of the home screen is correct. You can check the package name by doing the following:
+If DroidMate doesn't recognize a device it defaults to Nexus 7. You can change the default by editing [DeviceModel](https://github.com/natanieljr/droidmate/blob/master/dev/droidmate/projects/core/src/main/groovy/org/droidmate/device/model/DeviceModel.groovy#L76-L79). In your device model you just have to ensure the package name of the home screen is correct. You can check the package name by doing the following:
 
 * launch Android Device Monitor, e.g. with `android-sdk/tools/monitor.bat`; 
 * select running device. If device is running, `adb devices` will show it;

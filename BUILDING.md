@@ -40,7 +40,7 @@ To configure your local setup, do the following:
 ## First build ##
 
 * Setup the local build requirements as described above. 
-* `git clone https://github.com/konrad-jamrozik/droidmate.git repo`
+* `git clone https://github.com/natanieljr/droidmate.git repo`
 * `cd repo/dev/droidmate`
 * `chmod +x gradlew` (on Unix systems)
 * `gradlew build` (on Unix systems always add `./` i.e. in this case run `./gradlew build`)
