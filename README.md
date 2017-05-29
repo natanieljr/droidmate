@@ -78,11 +78,6 @@ API 23:
 * Nexus 5X
 * Pixel C
 
-~~API 19~~:
-* ~~Nexus 7 2012~~
-* ~~Nexus 10~~
-* ~~Samsung Galaxy S3~~
-
 If DroidMate doesn't recognize a device it defaults to Nexus 7. You can change the default by editing [DeviceModel](https://github.com/konrad-jamrozik/droidmate/blob/master/dev/droidmate/projects/core/src/main/groovy/org/droidmate/device/model/DeviceModel.groovy#L76-L79). In your device model you just have to ensure the package name of the home screen is correct. You can check the package name by doing the following:
 
 * launch Android Device Monitor, e.g. with `android-sdk/tools/monitor.bat`; 
@@ -96,6 +91,6 @@ Nataniel Borges Jr., @natanieljr:
  
 - Added support for multiple Android devices. 
 - Added support for UI Automator 2.0.
-- Added support for handling runtime permission request dialog boxes present on Android 6 and higher.
-- Removed compatibility to Android 4.4
-- Added support for policy enforcement (Allow, Deny or Mock)
+- Added support for Android 6 (API23).
+- Added support for policy enforcement.
+- Removed compatibility with Android 4.4

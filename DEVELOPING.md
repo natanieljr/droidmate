@@ -101,18 +101,41 @@ Run the tests from IntelliJ as described in section above to be able to navigate
 
 The list of monitored APIs is located in
 
-`repo/dev/droidmate/projects/resources/monitored_apis.xml`
+`repo/dev/droidmate/projects/resources/monitored_apis.json`
 
-It uses standard XML notation, thus the tags `<!-- and -->` are used to define comments.
+To monitor a new API create an entry with the following information:
+* **className**: Fully-qualified name of the class which contains the method (String)
+* **methodName**: Name of the method, without brackets and parameters (String)
+* **paramList**: List of parameter types in JSON format (String)
+* **returnType**: Type of the API's return (String)
+* **isStatic**: If the API is static or not (boolean)
+* **exceptionType**: Type of exception that will be generated when blocking the API. Must be a runtime exception (String)
+* **defaultReturnValue**: Value that will be returned when mocking the API. Can be a value or function. (String)
+* **hookenMethod**: Signature of the method that will be hooked, without parameters (String)
+* **logID**: API identifier for logging (String)
+* **platformVersion**: For which platform version the API should be activated (String)
+* **signature**: Signature of the hook method (String)
+* **jniSignature**: JNI signature of the method. Optional (String)
+* **invokeAPICode**: Code to invoke the API. Parameters are named `p0,p1,...,pn` and the current object is called `this`.
 
-This new XML mechanism allows individual API policies to be defined. The following API policies are available:
-* __Allow__: Executes the API and returns the value.
-* __Deny__: Generates a runtime exception when the API is accessed.
-* __Mock__: Return a predefined value 
+**Example**:
 
-It is also possible to customize each API. Two customizations are available:
-* __Custom code__: Configure the API policy as `Allow` and write the custom code in the __\<invoke>__ tag.
-* __Custom return value__: Configure the API policy as `Mock` and change the value of the tag __\<defaultValue>__.
+	{
+		"className": "android.hardware.Camera", 
+		"methodName": "open", 
+		"paramList": ["int"], 
+		"returnType": "android.hardware.Camera", 
+		"isStatic": true, 
+		"hookedMethod": "android.hardware.Camera->open", 
+		"exceptionType": "SecurityException", 
+		"defaultReturnValue": "null", 
+		"logID": " \"TId: \"+threadId+\" objCls: android.hardware.Camera mthd: open retCls: android.hardware.Camera params: int \"+convert(p0)+\" stacktrace: \"+stackTrace", 
+		"platformVersion": "All", 
+		"signature": "redir_android_hardware_Camera_open_97(int p0)", 
+		"jniSignature": "Landroid/hardware/Camera;->open(I)Landroid/hardware/Camera; static", 
+		"invokeAPICode": "Object returnVal =  OriginalMethod.by(new $() {}).invokeStatic (p0);\n        
+		                 return (android.hardware.Camera) returnVal;"
+	}
 
 A script to convert from the old API list format to new one are available at:
 - https://github.com/natanieljr/droidmate-monitoredAPIs-converter
@@ -122,6 +145,21 @@ After you make your changes, do a build (see `repo/BUILDING.md`).
 To test if DroidMate successfully monitored your modified API list, observe the logcat output
 while the explored application is started. You will see 100+ messages
 tagged `Instrumentation`. If there were any failures, the messages will say so.
+
+## Applying policies on individual APIs
+
+It is now possible to apply indiviual policies for each monitored API. The following API policies are available:
+* __Allow__: Executes the code contained in the `invokeAPICode` tag.
+* __Deny__: Generates an exception when the API is accessed. The exception type is defined by the `exceptionType` tag.
+* __Mock__: Return the value defined in the `defaultReturnValue` tag. 
+
+The API policies should be added to the file located at:
+
+`repo/dev/droidmate/projects/resources/api_policies.txt`
+
+This file contains instructions and examples of policies.
+
+In order to change policies without recompiling DroidMate, it is possible to use the switch `replaceExtractedResources` to prevent DroidMate from overriding the policy definition file in the `temp_extracted_resources` directory. In this case it is just necessary to update the file in the directory and DroidMate will activate the new policies.
 
 ## Providing your own hooks to the monitored APIs
 

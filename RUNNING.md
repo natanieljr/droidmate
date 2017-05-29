@@ -68,11 +68,5 @@ $ adb pull /data/app/com.frank_weber.forex2-1.apk
 
 # Configuring emulators
 
-Ensure the emulator:
- 
-* is a Nexus (e.g. Nexus 7),
-* has Google APIs,
-* runs Android 4.2.2 (API 19),
-* has no frame,
-* has VM heap of at least 256 MB,
-* has at least 1 GB of RAM.
+Currently [ArtHook](https://github.com/mar-v-in) (internally used by DroidMate) does not support emulators.
+
