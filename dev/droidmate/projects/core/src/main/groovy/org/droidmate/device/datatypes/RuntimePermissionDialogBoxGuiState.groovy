@@ -28,6 +28,7 @@ import groovy.transform.Canonical
 class RuntimePermissionDialogBoxGuiState extends GuiState implements Serializable
 {
   private static final long serialVersionUID = 1
+  private static final String resId_runtimePermissionAllow  = "com.android.packageinstaller:id/permission_allow_button"
 
   RuntimePermissionDialogBoxGuiState(String topNodePackageName, List<Widget> widgets, String androidLauncherPackageName)
   {
@@ -35,7 +36,13 @@ class RuntimePermissionDialogBoxGuiState extends GuiState implements Serializabl
   }
 
   Widget getAllowWidget() {
-    return this.widgets.find { it.text == "Allow" }
+    Widget allowWidget = this.widgets.find{ it.resourceId != null && it.resourceId == resId_runtimePermissionAllow};
+
+    // Failsafe: If some manufacturer replaces the resource name, this should work as well
+    if (allowWidget == null)
+      return this.widgets.find { it.text != null && it.text.toUpperCase() == "ALLOW" }
+
+    return allowWidget;
   }
 
 }

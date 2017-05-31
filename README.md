@@ -66,17 +66,17 @@ Primary development of DroidMate is done on Windows 10. Ubuntu is used in the CI
  
 ### Android devices and emulators compatibility ###
 
-DroidMate works on Android 6.0 (API 23), on physical devices. ~~It also works on Android 4.4.2 (API 19), both physical devices and emulators.~~**From May 10th onward support for Android 4.4.2 (API 19) was removed because the libraries required for compatibility are no longer shipped with Android SDK.**
- 
+DroidMate works on Android 6.0 (API 23) and 7.0 (API24) on physical devices. **From May 10th onward support for Android 4.4.2 (API 19) was removed because the libraries required for compatibility are no longer shipped with Android SDK.**
 
 DroidMate works on API 23 emulators, but with limitations. It works fully on the slow, ARM-based emulators. In the fast x86 emulators, DroidMate cannot work with _inlined_ (see `repo/RUNNING.md`) apks and thus, cannot monitor calls to Android framework. This is due to the fact ArtHook, the library used in DroidMate for monitoring when running on API 23, is compatible only with ARM architecture, not x86.
 
 DroidMate works on following devices:
 
-API 23:
-* Nexus 7 2013
-* Nexus 5X
-* Pixel C
+API 23+:
+* Google Nexus 7 2013
+* Google Nexus 5X
+* Google Pixel C
+* Huawei Honor 8
 
 If DroidMate doesn't recognize a device it defaults to Nexus 7. You can change the default by editing [DeviceModel](https://github.com/konrad-jamrozik/droidmate/blob/master/dev/droidmate/projects/core/src/main/groovy/org/droidmate/device/model/DeviceModel.groovy#L76-L79). In your device model you just have to ensure the package name of the home screen is correct. You can check the package name by doing the following:
 
@@ -92,5 +92,6 @@ Nataniel Borges Jr., @natanieljr:
 - Added support for multiple Android devices. 
 - Added support for UI Automator 2.0.
 - Added support for Android 6 (API23).
+- Added support for Android 7 (API24).
 - Added support for policy enforcement.
 - Removed compatibility with Android 4.4

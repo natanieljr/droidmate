@@ -521,7 +521,7 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
       packageName = uia2Daemon_packageName
     else throw new UnexpectedIfElseFallthroughError()
     
-    String processList = this.adbWrapper.executeCommand(this.serialNumber, "USER", "Check if process $packageName is running.", "shell ps $packageName"
+    String processList = this.adbWrapper.executeCommand(this.serialNumber, "USER", "Check if process $packageName is running.", "shell ps"
     )
     return processList.contains(packageName)
   }

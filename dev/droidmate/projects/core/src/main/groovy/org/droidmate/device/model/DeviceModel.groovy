@@ -78,6 +78,9 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
       case UiautomatorDaemonConstants.DEVICE_SAMSUNG_GALAXY_S3_GT_I9300:
         result = new GalaxyS3Model()
         break
+      case UiautomatorDaemonConstants.DEVICE_HUAWEI_HONOR_8:
+        result = new HuaweiHonor8Model()
+        break
       default:
         result = buildDefault()
         log.warn(Markers.appHealth, 
