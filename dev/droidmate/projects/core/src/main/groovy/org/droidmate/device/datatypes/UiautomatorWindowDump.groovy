@@ -219,6 +219,7 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
 
       if (gs instanceof AppHasStoppedDialogBoxGuiState)
       {
+        assert gs.OKWidget != null
         if (gs.OKWidget.enabled)
           return ValidationResult.app_has_stopped_dialog_box_with_OK_button_enabled
         else
@@ -226,6 +227,7 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
 
       } else if (gs instanceof RuntimePermissionDialogBoxGuiState)
       {
+        assert gs.allowWidget != null
         if (gs.allowWidget.enabled)
           return ValidationResult.request_runtime_permission_dialog_box_with_Allow_button_enabled
         else
