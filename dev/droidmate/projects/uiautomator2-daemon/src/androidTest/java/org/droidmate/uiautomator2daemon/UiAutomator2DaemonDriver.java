@@ -42,6 +42,7 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*;
 class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 {
   private final UiDevice device;
+  private static final String APP_LIST_RES_ID = "com.google.android.googlequicksearchbox:id/apps_list_view";
 
   /**
    * Decides if {@link #UiAutomator2DaemonDriver} should wait for the window to go to idle state after each click.
@@ -630,8 +631,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
   }
 
 
-  private UiObject navigateToAppLaunchIcon(String appLaunchIconName) throws UiObjectNotFoundException
-  {
+  private UiObject navigateToAppLaunchIcon(String appLaunchIconName) throws UiObjectNotFoundException {
     // Simulate a short press on the HOME button.
     this.device.pressHome();
 
@@ -651,15 +651,37 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     // the Apps tab. To simulate the user bringing up the Apps tab,
     // we create a UiSelector to find a tab with the text
     // label "Apps".
-    UiObject appsTab = this.device.findObject(new UiSelector().text("Apps"));
+    try {
+      UiObject appsTab = this.device.findObject(new UiSelector().text("Apps"));
 
-    // Simulate a click to enter the Apps tab.
-    appsTab.click();
+      // Simulate a click to enter the Apps tab.
+      appsTab.click();
+    } catch (UiObjectNotFoundException e) {
+      Log.w(uiaDaemon_logcatTag, "This device does not have an 'Apps' and a 'Widgets' tab, skipping.");
+    }
 
     // Next, in the apps tabs, we can simulate a user swiping until
     // they come to the app launch icon. Since the container view
     // is scrollable, we can use a UiScrollable object.
-    UiScrollable appViews = new UiScrollable(new UiSelector().scrollable(true));
+    UiScrollable appViews;
+
+    try {
+      Log.i(uiaDaemon_logcatTag, "Attempting to locate app list by resourceId.");
+      appViews = new UiScrollable(new UiSelector().resourceId(APP_LIST_RES_ID));
+
+      // Set the swiping mode to horizontal (the default is vertical)
+      appViews.setAsHorizontalList();
+
+      // Create a UiSelector to find the app launch icon and simulate
+      // a user click to launch the app.
+      return appViews.getChildByText(
+              new UiSelector().className(android.widget.TextView.class.getName()),
+              appLaunchIconName);
+    }
+    catch (UiObjectNotFoundException e){
+      Log.i(uiaDaemon_logcatTag, "It was not possible to locate app list by resourceId, using heuristic.");
+      appViews = new UiScrollable(new UiSelector().scrollable(true));
+    }
 
     // Set the swiping mode to horizontal (the default is vertical)
     appViews.setAsHorizontalList();
