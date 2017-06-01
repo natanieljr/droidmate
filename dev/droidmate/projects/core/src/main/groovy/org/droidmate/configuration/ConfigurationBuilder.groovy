@@ -201,12 +201,17 @@ class ConfigurationBuilder implements IConfigurationBuilder
   }
 
   private static Path getResourcePath(Configuration cfg, FileSystem fs, String resourceName){
-    Path path = fs.getPath(BuildConstants.dir_name_temp_extracted_resources, resourceName)
+    String dstPath = BuildConstants.dir_name_temp_extracted_resources
+    // If not using main device, export again
+    if (cfg.deviceIndex > 0)
+      dstPath += cfg.deviceIndex;
+
+    Path path = fs.getPath(dstPath, resourceName)
 
     if (!cfg.replaceExtractedResources && Files.exists(path))
       return path
 
-    return new Resource(resourceName).extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
+    return new Resource(resourceName).extractTo(fs.getPath(dstPath))
   }
 
   private static void setupResourcesAndPaths(Configuration cfg, FileSystem    fs) throws ConfigurationException
