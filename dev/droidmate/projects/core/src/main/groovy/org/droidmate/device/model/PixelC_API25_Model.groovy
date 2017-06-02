@@ -21,12 +21,14 @@ package org.droidmate.device.model
 import java.awt.Dimension
 
 /**
- * Describes {@link IDeviceModel} of Google Pixel C.
+ * Describes {@link IDeviceModel} of Google Pixel C (Android 7.1.2).
  *
  * @author Nataniel Borges Jr.
  */
-class PixelCModel extends NexusModel
+class PixelC_API25_Model implements IDeviceModel
 {
+    final String androidLauncherPackageName = "com.google.android.apps.pixelclauncher"
+
     @Override
     Dimension getDeviceDisplayDimensionsForTesting()
     {

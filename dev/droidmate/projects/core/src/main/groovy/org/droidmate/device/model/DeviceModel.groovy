@@ -78,8 +78,11 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
       case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_9:
         result = new Nexus9Model()
         break
-      case UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C:
-        result = new PixelCModel()
+      case UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C_API23:
+        result = new PixelC_API23_Model()
+        break
+      case UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C_API25:
+        result = new PixelC_API25_Model()
         break
       case UiautomatorDaemonConstants.DEVICE_SAMSUNG_GALAXY_S3_GT_I9300:
         result = new GalaxyS3Model()
