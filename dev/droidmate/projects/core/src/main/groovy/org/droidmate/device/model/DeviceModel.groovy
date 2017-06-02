@@ -75,6 +75,9 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
       case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_6:
         result = new Nexus6Model()
         break
+      case UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_9:
+        result = new Nexus9Model()
+        break
       case UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C:
         result = new PixelCModel()
         break
