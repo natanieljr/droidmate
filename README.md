@@ -66,15 +66,17 @@ Primary development of DroidMate is done on Windows 10. Ubuntu is used in the CI
  
 ### Android devices and emulators compatibility ###
 
-DroidMate works on Android 6.0 (API 23) and 7.0 (API24) on physical devices. **From May 10th onward support for Android 4.4.2 (API 19) was removed because the libraries required for compatibility are no longer shipped with Android SDK.**
+DroidMate works on Android 6.0 (API 23), 7.0 (API24) and 7.1 (API25) on physical devices. **From May 10th onward support for Android 4.4.2 (API 19) was removed because the libraries required for compatibility are no longer shipped with Android SDK.**
 
-DroidMate works on API 23 emulators, but with limitations. It works fully on the slow, ARM-based emulators. In the fast x86 emulators, DroidMate cannot work with _inlined_ (see `repo/RUNNING.md`) apks and thus, cannot monitor calls to Android framework. This is due to the fact ArtHook, the library used in DroidMate for monitoring when running on API 23, is compatible only with ARM architecture, not x86.
+DroidMate works on emulators, but with limitations. It works fully on the slow, ARM-based emulators. In the fast x86 emulators, DroidMate cannot work with _inlined_ (see `repo/RUNNING.md`) apks and thus, cannot monitor calls to Android framework. This is due to the fact ArtHook, the library used in DroidMate for monitoring when running on API 23+, is compatible only with ARM architecture, not x86.
 
 DroidMate works on following devices:
 
 API 23+:
-* Google Nexus 7 2013
 * Google Nexus 5X
+* Google Nexus 6
+* Google Nexus 7 2013
+* Google Nexus 9
 * Google Pixel C
 * Huawei Honor 8
 
@@ -93,5 +95,6 @@ Nataniel Borges Jr., @natanieljr:
 - Added support for UI Automator 2.0.
 - Added support for Android 6 (API23).
 - Added support for Android 7 (API24).
+- Added support for Android 7.1 (API25).
 - Added support for policy enforcement.
 - Removed compatibility with Android 4.4
