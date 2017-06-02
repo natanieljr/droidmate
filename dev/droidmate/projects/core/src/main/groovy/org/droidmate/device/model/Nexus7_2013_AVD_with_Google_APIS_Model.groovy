@@ -20,11 +20,8 @@ package org.droidmate.device.model
 
 import java.awt.*
 
-class Nexus7_2013_AVD_API19_with_Google_APIs_Model implements IDeviceModel
+class Nexus7_2013 extends NexusModel
 {
-
-  final String androidLauncherPackageName = "com.google.android.googlequicksearchbox"
-
   @Override
   Dimension getDeviceDisplayDimensionsForTesting()
   {

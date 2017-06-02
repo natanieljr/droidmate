@@ -23,13 +23,7 @@ import java.awt.*
 /**
  * Describes {@link IDeviceModel} of Google Nexus 5X.
  */
-class Nexus5X_Model implements IDeviceModel
+abstract class NexusModel implements IDeviceModel
 {
   final String androidLauncherPackageName = "com.google.android.googlequicksearchbox"
-  
-  @Override
-  Dimension getDeviceDisplayDimensionsForTesting()
-  {
-    throw new UnsupportedOperationException("This device model is not expected to be used for testing.")
-  }
 }

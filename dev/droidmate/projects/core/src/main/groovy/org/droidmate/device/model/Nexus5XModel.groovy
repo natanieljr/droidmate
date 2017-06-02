@@ -21,15 +21,14 @@ package org.droidmate.device.model
 import java.awt.Dimension
 
 /**
- * Describes {@link IDeviceModel} of Google Pixel C.
+ * Describes {@link IDeviceModel} of Google Nexus 5X.
  *
  * @author Nataniel Borges Jr.
  */
-class PixelCModel extends NexusModel
-{
+class Nexus5XModel extends NexusModel {
     @Override
     Dimension getDeviceDisplayDimensionsForTesting()
     {
-        return new Dimension(1800, 2485)
+        return new Dimension(1080, 1920)
     }
 }
