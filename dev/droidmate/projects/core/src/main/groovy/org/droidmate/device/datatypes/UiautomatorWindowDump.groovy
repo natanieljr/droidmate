@@ -150,6 +150,13 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
     assert hierarchy.name() == "hierarchy"
 
     String topNodePackage = hierarchy.node[0]?.@package?.text()
+
+    // When the application starts with an active keyboard, look for the proper application instead of the keyboard
+    // This problem was identified on the app "com.hykwok.CurrencyConverter"
+    // https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
+    if (topNodePackage.startsWith("com.google.android.inputmethod.") && (hierarchy.childNodes().size() > 1))
+      topNodePackage = hierarchy.node[1]?.@package?.text()
+
     assert !topNodePackage.empty
 
 
