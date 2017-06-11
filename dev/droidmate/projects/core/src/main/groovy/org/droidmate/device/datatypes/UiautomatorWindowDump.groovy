@@ -222,50 +222,6 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
     for (Node node : hierarchy.childNodes())
       addWidget(widgets, null, node);
 
-//    hierarchy.depthFirst().findAll {it.name() == "node"}.collect {
-
-//      try
-//      {
-        /*
-          Example "it": <node index="0" text="LOG IN" resource-id="com.snapchat.android:id/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>
-         */
-/*        Widget w = new Widget(
-
-          // @formatter:off
-          id                  : it.@id.text() != "" ? it.@id.text() : null, // Appears only in test code simulating the device, never on actual devices or their emulators.
-
-          index               : it.@index             .text() as int,
-          text                : it.@text              .text(),
-          resourceId          : it.@'resource-id'     .text(),
-          className           : it.@class             .text(),
-          packageName         : it.@package           .text(),
-          contentDesc         : it.@'content-desc'    .text(),
-          checkable           : it.@checkable         .text() == "true",
-          checked             : it.@checked           .text() == "true",
-          clickable           : it.@clickable         .text() == "true",
-          enabled             : it.@enabled           .text() == "true",
-          focusable           : it.@focusable         .text() == "true",
-          focused             : it.@focused           .text() == "true",
-          scrollable          : it.@scrollable        .text() == "true",
-          longClickable       : it.@'long-clickable'  .text() == "true",
-          password            : it.@password          .text() == "true",
-          selected            : it.@selected          .text() == "true",
-
-          bounds              : Widget.parseBounds(it.@bounds.text()),
-          deviceDisplayBounds : deviceDisplayBounds,
-          // @formatter:on
-        )
-        return w
-      }
-      catch (InvalidWidgetBoundsException e)
-      {
-        log.error("Catching exception: parsing widget bounds failed. $LogbackConstants.err_log_msg\n" +
-          "Continuing execution, skipping the widget with invalid bounds.")
-        log.error(exceptions, "parsing widget bounds failed with exception:\n", e)
-        return null
-      }
-    }.findAll {it != null}
-*/
     def gs = new GuiState(topNodePackage, id, widgets, this.androidLauncherPackageName)
     if (gs.isRequestRuntimePermissionDialogBox())
       return new RuntimePermissionDialogBoxGuiState(topNodePackage, widgets, this.androidLauncherPackageName)
