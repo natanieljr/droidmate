@@ -23,6 +23,7 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
+import groovy.util.slurpersupport.Node;
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackConstants
 
@@ -142,6 +143,63 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
   }
 
   @TypeChecked(SKIP)
+  private Widget createWidget(Node it, Widget parent) {
+    try{
+     /*
+      Example "it": <node index="0" text="LOG IN" resource-id="com.snapchat.android:id/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>
+      */
+      Widget w = new Widget(
+
+              // @formatter:off
+              id                  : it.attributes().containsKey("id") ? it.attributes().get("id") : null, // Appears only in test code simulating the device, never on actual devices or their emulators.
+
+              index               : it.attributes().get("index") as int,
+              text                : it.attributes().get("text"),
+              resourceId          : it.attributes().get("resource-id"),
+              className           : it.attributes().get("class"),
+              packageName         : it.attributes().get("package"),
+              contentDesc         : it.attributes().get("content-desc"),
+              checkable           : it.attributes().get("checkable")      == "true",
+              checked             : it.attributes().get("checked")        == "true",
+              clickable           : it.attributes().get("clickable")      == "true",
+              enabled             : it.attributes().get("enabled")        == "true",
+              focusable           : it.attributes().get("focusable")      == "true",
+              focused             : it.attributes().get("focused")        == "true",
+              scrollable          : it.attributes().get("scrollable")     == "true",
+              longClickable       : it.attributes().get("long-clickable") == "true",
+              password            : it.attributes().get("password")       == "true",
+              selected            : it.attributes().get("selected")       == "true",
+
+              bounds              : Widget.parseBounds(it.attributes().get("bounds") as String),
+              deviceDisplayBounds : deviceDisplayBounds,
+
+              parent              : parent,
+              // @formatter:on
+      )
+      return w
+    }
+    catch (InvalidWidgetBoundsException e)
+    {
+      log.error("Catching exception: parsing widget bounds failed. $LogbackConstants.err_log_msg\n" +
+              "Continuing execution, skipping the widget with invalid bounds.")
+      log.error(exceptions, "parsing widget bounds failed with exception:\n", e)
+      return null
+    }
+  }
+
+  @TypeChecked(SKIP)
+  private void addWidget(List<Widget> result, Widget parent, Node data) {
+    assert data != null
+
+    Widget w = createWidget(data, parent)
+    if (w != null)
+      result.add(w);
+
+    for(Node node : data.childNodes())
+      addWidget(result, w, node)
+  }
+
+  @TypeChecked(SKIP)
   private GuiState computeGuiState(String windowHierarchyDump)
   {
     assert wellFormedness == WellFormedness.OK
@@ -159,15 +217,19 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
 
     assert !topNodePackage.empty
 
+    List<Widget> widgets = new ArrayList<>();
 
-    List<Widget> widgets = hierarchy.depthFirst().findAll {it.name() == "node"}.collect {
+    for (Node node : hierarchy.childNodes())
+      addWidget(widgets, null, node);
 
-      try
-      {
+//    hierarchy.depthFirst().findAll {it.name() == "node"}.collect {
+
+//      try
+//      {
         /*
           Example "it": <node index="0" text="LOG IN" resource-id="com.snapchat.android:id/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>
          */
-        Widget w = new Widget(
+/*        Widget w = new Widget(
 
           // @formatter:off
           id                  : it.@id.text() != "" ? it.@id.text() : null, // Appears only in test code simulating the device, never on actual devices or their emulators.
@@ -203,7 +265,7 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
         return null
       }
     }.findAll {it != null}
-
+*/
     def gs = new GuiState(topNodePackage, id, widgets, this.androidLauncherPackageName)
     if (gs.isRequestRuntimePermissionDialogBox())
       return new RuntimePermissionDialogBoxGuiState(topNodePackage, widgets, this.androidLauncherPackageName)

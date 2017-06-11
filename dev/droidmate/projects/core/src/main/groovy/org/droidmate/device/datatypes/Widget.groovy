@@ -55,6 +55,7 @@ class Widget implements Serializable
   Boolean   password      = false
   Boolean   selected      = false
   Rectangle bounds        = new Rectangle()
+  Widget    parent        = null;
 
   /* WISH this actually shouldn't be necessary as the [dump] call is supposed to already return only the visible part, as
     it makes call to [visible-bounds] to obtain the "bounds" property of widget. I had problems with negative coordinates in
