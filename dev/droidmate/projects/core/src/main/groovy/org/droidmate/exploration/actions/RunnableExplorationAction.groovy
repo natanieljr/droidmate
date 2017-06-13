@@ -119,6 +119,8 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
    */
   void frontendHook(IExplorationActionRunResult result)
   {
+    base.notifyResult(result);
+
     if (!(result.guiSnapshot instanceof MissingGuiSnapshot))
     {
       List<Widget> widgets = result.guiSnapshot.guiState.widgets

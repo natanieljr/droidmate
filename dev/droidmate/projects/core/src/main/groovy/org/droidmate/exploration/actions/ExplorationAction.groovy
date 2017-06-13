@@ -27,6 +27,7 @@ abstract class ExplorationAction implements Serializable
 
   private static final long serialVersionUID = 1
   protected Boolean runtimePermission = false
+  private List<IExplorationActionResultObserver> observers = new ArrayList<>();
 
   @Override
   String toString()
@@ -48,7 +49,28 @@ abstract class ExplorationAction implements Serializable
     return toShortString()
   }
 
-   static ResetAppExplorationAction newResetAppExplorationAction(boolean isFirst = false)
+  void notifyResult(IExplorationActionRunResult result)
+  {
+    this.notifyObservers(result);
+  }
+
+  private void notifyObservers(IExplorationActionRunResult result){
+    this.observers.forEach{p -> p.notify(result)}
+  }
+
+  @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
+  public void unregisterObserver(IExplorationActionResultObserver observer){
+    if (this.observers.contains(observer))
+      this.observers.remove(observer);
+  }
+
+  @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
+  public void registerObserver(IExplorationActionResultObserver observer){
+    if (!this.observers.contains(observer))
+      this.observers.add(observer);
+  }
+
+  static ResetAppExplorationAction newResetAppExplorationAction(boolean isFirst = false)
   {
     return new ResetAppExplorationAction(isFirst)
   }

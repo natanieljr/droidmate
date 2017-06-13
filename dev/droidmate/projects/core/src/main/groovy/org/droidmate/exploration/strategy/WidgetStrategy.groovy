@@ -77,7 +77,8 @@ class WidgetStrategy implements IWidgetStrategy
           assert guiState.isRequestRuntimePermissionDialogBox()
         else
         {
-          assert !lastWidgetInfo.blackListed
+          // TODO Nataniel: Review
+          //assert !lastWidgetInfo.blackListed
           lastWidgetInfo.blackListed = true
           log.debug("Blacklisted $lastWidgetInfo")
         }
@@ -208,7 +209,8 @@ class WidgetStrategy implements IWidgetStrategy
     WidgetInfo chosenWidgetInfo = candidates[random.nextInt(candidates.size())]
 
     lastWidgetInfo = chosenWidgetInfo
-    assert !lastWidgetInfo.blackListed
+    // TODO Nataniel: Review
+    //assert !lastWidgetInfo.blackListed
 
     return chooseAction(chosenWidgetInfo)
   }
