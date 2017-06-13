@@ -13,3 +13,5 @@ temp_dir_for_tests
 /temp.txt
 /temp_extracted_resources
 .gitignore
+projects/monitor-apk-scaffolding/libs_built/
+projects/monitor-apk-scaffolding/src/
