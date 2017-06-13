@@ -481,14 +481,9 @@ class RobustDevice implements IRobustDevice
   
   void reconnectAdbDiscardingException(String exceptionMsg) throws DeviceException
   {
-    // TODO Nataniel: Not feasible when using a device farm.
-    /*try
-    {
-      device.reconnectAdb()
-    } catch (DeviceException reconnectException)
-    {
-      log.debug(String.format(exceptionMsg, reconnectException))
-    }*/
+    // Removed by Nataniel
+    // This is not feasible when using the device farm, upon restart of the ADB server the connection
+    // to the device is lost and it's assigned a new, random port, which doesn't allow automatic reconnection.
   }
 
   @Override
@@ -538,10 +533,9 @@ class RobustDevice implements IRobustDevice
   @Override
   void rebootAndRestoreConnection() throws DeviceException
   {
-    //TODO NATNAIEL: Not feasible when using the farm
-    //this.reboot()
-    //this.setupConnection()
-    //this.resetTimeSync()
+    // Removed by Nataniel
+    // This is not feasible when using the device farm, upon restart of the ADB server the connection
+    // to the device is lost and it's assigned a new, random port, which doesn't allow automatic reconnection.
   }
 
 
