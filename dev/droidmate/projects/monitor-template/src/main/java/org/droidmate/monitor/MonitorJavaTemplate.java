@@ -748,12 +748,16 @@ public class MonitorJavaTemplate
       return;;
 
     File policiesFile = new File("#POLICIES_FILE_PATH");
-    try (BufferedReader reader = new BufferedReader(new FileReader(policiesFile))) {
-      String line;
-      while ((line = reader.readLine()) != null) {
-        processLine(line);
+    if (policiesFile.exists()) {
+      try (BufferedReader reader = new BufferedReader(new FileReader(policiesFile))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          processLine(line);
+        }
       }
     }
+    else
+      Log.w(MonitorConstants.tag_mjt, "Api policies file not found. Continuing with default behavior (Allow)");
   }
 
   /**
