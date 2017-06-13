@@ -95,6 +95,19 @@ public class MonitorJavaTemplate
   // public Monitor()
   // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
   {
+    this(false);
+  }
+
+  //region Class init code
+  // org.droidmate.monitor.MonitorSrcTemplate:REMOVE_LINES
+  private MonitorJavaTemplate(boolean skip)
+  // org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
+  // public Monitor(boolean skip)
+  // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
+  {
+    if (skip)
+      return;
+
     Log.v(MonitorConstants.tag_mjt, MonitorConstants.msg_ctor_start);
     try
     {
@@ -736,9 +749,9 @@ public class MonitorJavaTemplate
     uriList.addAll(Arrays.asList(lineData).subList(1, lineData.length - 1));
 
     // org.droidmate.monitor.MonitorSrcTemplate:REMOVE_LINES
-    apiPolicies.put(new MonitorJavaTemplate().new ApiPolicyId(methodName, uriList.toArray(new String[0])), policy);
+    apiPolicies.put(new MonitorJavaTemplate(true).new ApiPolicyId(methodName, uriList.toArray(new String[0])), policy);
     // org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-    // apiPolicies.put(new Monitor().new ApiPolicyId(methodName, uriList.toArray(new String[0])), policy);
+    // apiPolicies.put(new Monitor(true).new ApiPolicyId(methodName, uriList.toArray(new String[0])), policy);
     // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
   }
 
@@ -756,8 +769,8 @@ public class MonitorJavaTemplate
         }
       }
     }
-    else
-      Log.w(MonitorConstants.tag_mjt, "Api policies file not found. Continuing with default behavior (Allow)");
+    //else
+    //  Log.w(MonitorConstants.tag_srv, "Api policies file not found. Continuing with default behavior (Allow)");
   }
 
   /**
