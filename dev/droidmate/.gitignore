@@ -1,5 +1,5 @@
 # Dirs containing outputs of running DroidMate
-output_device1
+output_device*
 dev1
 dev2
 dataStaging
@@ -10,8 +10,7 @@ reportOutput
 temp_dir_for_tests
 
 # other
-/temp.txt
-/temp_extracted_resources
+temp_extracted_resources*
 .gitignore
 projects/monitor-apk-scaffolding/libs_built/
 projects/monitor-apk-scaffolding/src/
