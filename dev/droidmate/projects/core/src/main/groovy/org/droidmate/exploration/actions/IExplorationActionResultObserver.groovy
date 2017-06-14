@@ -24,5 +24,5 @@ package org.droidmate.exploration.actions
  * @author: Nataniel P. Borges Jr.
  */
 interface IExplorationActionResultObserver {
-    void notify(IExplorationActionRunResult result)
+    void notifyActionExecuted(IExplorationActionRunResult result)
 }

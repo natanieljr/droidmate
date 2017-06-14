@@ -55,7 +55,7 @@ abstract class ExplorationAction implements Serializable
   }
 
   private void notifyObservers(IExplorationActionRunResult result){
-    this.observers.forEach{p -> p.notify(result)}
+    this.observers.forEach{p -> p.notifyActionExecuted(result)}
   }
 
   @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
