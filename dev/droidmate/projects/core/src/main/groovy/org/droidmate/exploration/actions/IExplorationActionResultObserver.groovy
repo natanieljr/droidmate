@@ -24,5 +24,11 @@ package org.droidmate.exploration.actions
  * @author: Nataniel P. Borges Jr.
  */
 interface IExplorationActionResultObserver {
-    void notifyActionExecuted(IExplorationActionRunResult result)
+    /**
+     * Handle action executed notification
+     *
+     * @param result Executed action result
+     * @return If observer should be unassociated with the action
+     */
+    boolean notifyActionExecuted(IExplorationActionRunResult result)
 }

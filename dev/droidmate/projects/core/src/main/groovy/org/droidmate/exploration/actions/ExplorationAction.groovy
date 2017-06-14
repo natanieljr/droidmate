@@ -55,7 +55,13 @@ abstract class ExplorationAction implements Serializable
   }
 
   private void notifyObservers(IExplorationActionRunResult result){
-    this.observers.forEach{p -> p.notifyActionExecuted(result)}
+    List<IExplorationActionResultObserver> toRemove = new ArrayList<>()
+    this.observers.forEach{ p ->
+        if (p.notifyActionExecuted(result))
+          toRemove.add(p)
+    }
+
+    toRemove.forEach{ p -> this.unregisterObserver(p) }
   }
 
   @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
