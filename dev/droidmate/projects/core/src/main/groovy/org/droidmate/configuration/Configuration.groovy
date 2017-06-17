@@ -95,6 +95,7 @@ import java.nio.file.Path
   public static final String pn_closeANRDelay                                = "-closeANRDelay"
   public static final String pn_deployRawApks                                = "-deployRawApks"
   public static final String pn_device                                       = "-device"
+  public static final String pn_deviceSN                                     = "-deviceSN"
   public static final String pn_replaceExtractedResources                    = "-replaceExtractedResources"
   public static final String pn_droidmateOutputDir                           = "-droidmateOutputDirPath"
   public static final String pn_getValidGuiSnapshotRetryAttempts             = "-getValidGuiSnapshotRetryAttempts"
@@ -200,6 +201,9 @@ import java.nio.file.Path
   @Parameter(names = [Configuration.pn_deployRawApks], arity = 1,
     description = "Deploys apks to device in 'raw' form, that is, without instrumenting them. Will deploy them raw even if instrumented version is available from last run.")
   public boolean deployRawApks = false
+
+  @Parameter(names = [Configuration.pn_deviceSN])
+  public String deviceSerialNumber = ""
 
   @Parameter(names = [Configuration.pn_device])
   public int deviceIndex = 0

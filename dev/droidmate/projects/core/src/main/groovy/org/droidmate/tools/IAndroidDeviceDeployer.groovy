@@ -28,5 +28,5 @@ import org.droidmate.android_sdk.ExplorationException
  */
 interface IAndroidDeviceDeployer
 {
-  List<ExplorationException> withSetupDevice(int deviceIndex, Closure<List<ApkExplorationException>> closure) throws DeviceException
+  List<ExplorationException> withSetupDevice(String deviceSerialNumber, int deviceIndex, Closure<List<ApkExplorationException>> closure) throws DeviceException
 }

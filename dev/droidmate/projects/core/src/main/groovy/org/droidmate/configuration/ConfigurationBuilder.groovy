@@ -203,7 +203,9 @@ class ConfigurationBuilder implements IConfigurationBuilder
   private static Path getResourcePath(Configuration cfg, FileSystem fs, String resourceName){
     String dstPath = BuildConstants.dir_name_temp_extracted_resources
     // If not using main device, export again
-    if (cfg.deviceIndex > 0)
+    if (cfg.deviceSerialNumber != null)
+      dstPath += cfg.deviceSerialNumber.replace(":", "-")
+    else if (cfg.deviceIndex > 0)
       dstPath += cfg.deviceIndex;
 
     Path path = fs.getPath(dstPath, resourceName)

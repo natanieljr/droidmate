@@ -54,7 +54,7 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
  * </p><p>
  * Provides programmatic access to Android (Virtual) Device. The instance of this class should be available only as a parameter
  * in {@code closure} passed to
- * {@link org.droidmate.tools.IAndroidDeviceDeployer#withSetupDevice(int, Closure)
+ * {@link org.droidmate.tools.IAndroidDeviceDeployer#withSetupDevice(String, int, Closure)
  * AndroidDeviceDeployer.withSetupDevice(closure)}, thus guaranteeing invariant of this class:
  *
  * </p><p>
@@ -476,10 +476,8 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
   {
     if (cfg.androidApi == Configuration.api23)
     {
-      // Uninstall packages in case previous DroidMate run had some leftovers in the form of a living uia-daemon.
-      // Commented out as seems to be superfluous with .installApk() as it reinstalls apps.
-//      this.executeAdbCommand("uninstall $uia2Daemon_packageName", "Success")
-//      this.executeAdbCommand("uninstall ${uia2Daemon_packageName}.test", "Success")
+      this.uninstallApk(uia2Daemon_testPackageName, true)
+      this.uninstallApk(uia2Daemon_packageName, true)
 
       this.installApk(this.cfg.uiautomator2DaemonApk)
       this.installApk(this.cfg.uiautomator2DaemonTestApk)

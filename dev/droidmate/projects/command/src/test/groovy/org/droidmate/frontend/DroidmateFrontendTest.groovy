@@ -19,6 +19,7 @@
 package org.droidmate.frontend
 
 import com.google.common.base.Throwables
+import groovy.io.FileType
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.Configuration
@@ -50,6 +51,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -240,8 +242,7 @@ import java.nio.file.Path
   public void "Unpack .SER files"()
   {
     // Parameters
-    //def dirStr = 'output_device1'
-    def dirStr = 'C:/Users/natan_000/Desktop/Saarland/repositories/automatic-permission-tightening/data/exploration/1-api-blocked'
+    def dirStr = 'output_device1'
     def outputStr = 'raw_data'
     def fs = FileSystems.default
 
@@ -254,7 +255,7 @@ import java.nio.file.Path
     def storage2 = new Storage2(droidmateOutputDirPath)
 
     // Process files
-    droidmateOutputDirPath.eachFileRecurse (FileType.FILES) {file ->
+    droidmateOutputDirPath.eachFileRecurse (FileType.FILES) { file ->
       System.out.println(file + "")
       //if (((String)(file + "")).contains('de.wortundbildverlag.mobil.apotheke.ser2'))
       if (((String)(file + "")).contains('.ser2'))

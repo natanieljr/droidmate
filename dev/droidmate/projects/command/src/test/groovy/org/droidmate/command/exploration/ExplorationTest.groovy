@@ -99,7 +99,7 @@ import org.junit.runners.MethodSorters
     Exploration exploration = Exploration.build(cfg)
 
     IApkExplorationOutput2 out = null
-    deviceTools.deviceDeployer.withSetupDevice(0) {IRobustDevice device ->
+    deviceTools.deviceDeployer.withSetupDevice("",0) {IRobustDevice device ->
       deviceTools.apkDeployer.withDeployedApk(device, apk) {IApk deployedApk ->
 
         // Act

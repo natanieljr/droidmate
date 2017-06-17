@@ -188,7 +188,7 @@ class DeviceTest extends DroidmateGroovyTestCase
         .forDevice()
         .get()
     )
-    deviceTools.deviceDeployer.withSetupDevice(0) {IRobustDevice device ->
+    deviceTools.deviceDeployer.withSetupDevice("",0) {IRobustDevice device ->
       println device.guiSnapshot.windowHierarchyDump
       return []
     }
@@ -200,7 +200,7 @@ class DeviceTest extends DroidmateGroovyTestCase
   {
     
     IDeviceTools deviceTools = new DeviceTools(configurationApi23)
-    deviceTools.deviceDeployer.withSetupDevice(0) {IRobustDevice device ->
+    deviceTools.deviceDeployer.withSetupDevice("", 0) {IRobustDevice device ->
       device.perform(newTurnWifiOnDeviceAction())
       return []
     }
@@ -244,7 +244,7 @@ class DeviceTest extends DroidmateGroovyTestCase
   private void withSetupDevice(Configuration cfg, Closure computation)
   {
     IDeviceTools deviceTools = new DeviceTools(cfg)
-    deviceTools.deviceDeployer.withSetupDevice(0) {IRobustDevice device -> computation(cfg, deviceTools, device)}
+    deviceTools.deviceDeployer.withSetupDevice("",0) {IRobustDevice device -> computation(cfg, deviceTools, device)}
 
   }
 }

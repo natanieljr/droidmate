@@ -112,9 +112,8 @@ import java.nio.file.Paths
       device.closeConnection()
       if (cfg.androidApi == Configuration.api23)
       {
-        // WISH why failure is ignored here? Ask Borges
-        device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, /* ignoreFailure = */ true)
-        device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, /* ignoreFailure = */ true)
+        device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, true)
+        device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, true)
       } else throw new UnexpectedIfElseFallthroughError()
       device.removeJar(Paths.get(BuildConstants.monitor_on_avd_apk_name))
     }
@@ -132,14 +131,17 @@ import java.nio.file.Paths
    * @see #tryTearDown(IDeployableAndroidDevice)
    */
   @Override
-  List<ExplorationException> withSetupDevice(int deviceIndex, Closure<List<ApkExplorationException>> computation)
+  List<ExplorationException> withSetupDevice(String deviceSerialNumber, int deviceIndex, Closure<List<ApkExplorationException>> computation)
   {
-    log.info("Setup device with deviceIndex of $deviceIndex")
+    if ((deviceSerialNumber != null) && !deviceSerialNumber.isEmpty())
+      log.info("Setup device with deviceSerialNumber of $deviceSerialNumber")
+    else
+      log.info("Setup device with deviceIndex of $deviceIndex")
     Assert.checkClosureFirstParameterSignature(computation, IRobustDevice)
 
     List<ExplorationException> explorationExceptions = []
     //noinspection GroovyAssignabilityCheck
-    def (IRobustDevice device, String serialNumber, Throwable throwable) = setupDevice(deviceIndex)
+    def (IRobustDevice device, String serialNumber, Throwable throwable) = setupDevice(deviceSerialNumber, deviceIndex)
     if (throwable != null)
     {
       explorationExceptions << new ExplorationException(throwable)
@@ -185,11 +187,13 @@ import java.nio.file.Paths
     return explorationExceptions
   }
 
-  private List setupDevice(int deviceIndex)
+  private List setupDevice(String deviceSerialNumber, int deviceIndex)
   {
     try
     {
-      String serialNumber = tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
+      String serialNumber = deviceSerialNumber
+      if ((serialNumber == null) || serialNumber.isEmpty())
+        serialNumber = tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
 
       this.usedSerialNumbers << serialNumber
 

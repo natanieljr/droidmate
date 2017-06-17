@@ -143,7 +143,7 @@ class ExploreCommand extends DroidmateCommand
     List<ExplorationException> explorationExceptions = []
     try
     {
-      explorationExceptions += deployExploreSerialize(cfg.deviceIndex, apks, out)
+      explorationExceptions += deployExploreSerialize(cfg.deviceSerialNumber, cfg.deviceIndex, apks, out)
     }
     catch (Throwable deployExploreSerializeThrowable)
     {
@@ -160,9 +160,9 @@ class ExploreCommand extends DroidmateCommand
     return explorationExceptions
   }
 
-  private List<ExplorationException> deployExploreSerialize(int deviceIndex, List<Apk> apks, ExplorationOutput2 out)
+  private List<ExplorationException> deployExploreSerialize(String deviceSerialNumber, int deviceIndex, List<Apk> apks, ExplorationOutput2 out)
   {
-    this.deviceDeployer.withSetupDevice(deviceIndex) {IRobustDevice device ->
+    this.deviceDeployer.withSetupDevice(deviceSerialNumber, deviceIndex) {IRobustDevice device ->
 
       List<ApkExplorationException> allApksExplorationExceptions = []
 
