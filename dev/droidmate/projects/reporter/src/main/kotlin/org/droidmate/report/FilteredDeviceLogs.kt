@@ -162,7 +162,8 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
     // (present in this file).
     private val apisManuallyConfirmedToBeRedundant: List<String> = listOf(
       // Android 6 source: https://android.googlesource.com/platform/frameworks/base/+/android-6.0.1_r46/core/java/android/os/PowerManager.java#1127
-      "redir_android_os_PowerManager_WakeLock_release_"
+      "redir_android_os_PowerManager\$WakeLock_release_",
+      "redir_android_os_PowerManager\$WakeLock_acquire_"
     )
     
     private val apisManuallyConfirmedToBeNotRedundant: List<String> = listOf(
@@ -322,6 +323,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
       "redir_android_widget_VideoView_stopPlayback_",
       "redir_android_widget_VideoView_release_",
       "redir_android_app_NotificationManager_notify_",
+      "redir_android_app_ActivityThread_installContentProviders_",
       // This makes actually two methods redundant in jellybean_publishedapimapping_modified.txt, 
       // both having one param, but of different type.
       "redir_android_content_ContextWrapper_setWallpaper_"
