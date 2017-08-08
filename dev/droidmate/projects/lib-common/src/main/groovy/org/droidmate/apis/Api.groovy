@@ -117,7 +117,10 @@ class Api implements IApi, Serializable
 
     assert uri.startsWith("content://") ||
       uri.startsWith("android.resource://") || 
-      uri.startsWith("file://") || uri.startsWith("http://") || uri.startsWith("https://")
+      uri.startsWith("file://") || uri.startsWith("http://") || uri.startsWith("https://") ||
+            // Added due to "com.steam.photoeditor", it uses the following resource:
+            // /data/user/0/com.steam.photoeditor/cache/admobVideoStreams/48E464ED6F3F22EED4D9314B276E580C
+            uri.startsWith("/")
 
     String[] uriParts = uri.split(/\?/)
     assert uriParts.size() <= 2
