@@ -23,6 +23,8 @@ import groovy.transform.Canonical
 import groovy.transform.TupleConstructor
 import org.droidmate.device.datatypes.Widget
 
+import java.lang.reflect.Proxy
+
 @Canonical
 @TupleConstructor(includeSuperProperties = true)
 class WidgetExplorationAction extends ExplorationAction
@@ -33,6 +35,12 @@ class WidgetExplorationAction extends ExplorationAction
   Widget  widget
   boolean longClick
   int     delay = 0
+
+  public Widget getSelectedWidget(){
+    new URL().openConnection()
+    new Proxy()
+    return widget
+  }
 
   @Override
   String toString()
