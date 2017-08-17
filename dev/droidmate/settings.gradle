@@ -36,8 +36,8 @@ include(
   "projects:monitor-generator",
   "projects:core",
   "projects:reporter",
-  "projects:command",
-  "DummyAndroidApp"
+  "projects:command"/*,
+  "DummyAndroidApp"*/
 )
 
 /* The path navigates from github/droidmate/dev/droidmate to github/utilities

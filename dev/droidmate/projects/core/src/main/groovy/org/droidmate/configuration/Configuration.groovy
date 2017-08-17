@@ -112,6 +112,7 @@ import java.nio.file.Path
   public static final String pn_resetEveryNthExplorationForward              = "-resetEvery"
   public static final String pn_runOnNotInlined                              = "-runOnNotInlined"
   public static final String pn_shuffleApks                                  = "-shuffleApks"
+  public static final String pn_takeScreenshots                              = "-takeScreenshots"
   public static final String pn_timeLimit                                    = "-timeLimit"
   public static final String pn_uiautomatorDaemonServerStartTimeout          = "-uiautomatorDaemonServerStartTimeout"
   public static final String pn_uiautomatorDaemonServerStartQueryDelay       = "-uiautomatorDaemonServerStartQueryDelay"
@@ -320,7 +321,10 @@ import java.nio.file.Path
 
   @Parameter(names = [Configuration.pn_shuffleApks], arity = 1)
   public boolean shuffleApks = false
-  
+
+  @Parameter(names = [Configuration.pn_takeScreenshots], description = "Take screenshot after each exploration action.")
+  public boolean takeScreenshots = false
+
   @Parameter(names = [Configuration.pn_timeLimit], description = "How long the exploration of any given apk should take, in seconds. If set to 0, instead actionsLimit will be used.")
   public int timeLimit = 0
 

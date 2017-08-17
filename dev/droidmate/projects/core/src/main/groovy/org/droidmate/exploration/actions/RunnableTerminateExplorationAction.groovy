@@ -26,6 +26,7 @@ import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Slf4j
 class RunnableTerminateExplorationAction extends RunnableExplorationAction
@@ -47,7 +48,8 @@ class RunnableTerminateExplorationAction extends RunnableExplorationAction
     this.logs = logsHandler.getLogs()
     
     log.debug("2. Take a screenshot.")
-    device.takeScreenshot(app, "terminate")
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+    device.takeScreenshot(app, timestamp.format(formatter))
     
     log.debug("3. Close monitor servers, if any.")
     device.closeMonitorServers()
