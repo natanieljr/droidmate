@@ -52,7 +52,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
     this.timestamp = timestamp
   }
 
-  static RunnableExplorationAction from(ExplorationAction action, LocalDateTime timestamp)
+  static RunnableExplorationAction from(ExplorationAction action, LocalDateTime timestamp, Boolean takeScreenShot = false)
   {
 //    log.trace("Building exploration action ${action.class} with timestamp: $timestamp")
     
@@ -63,7 +63,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
         break
 
       case WidgetExplorationAction:
-        return new RunnableWidgetExplorationAction(action as WidgetExplorationAction, timestamp)
+        return new RunnableWidgetExplorationAction(action as WidgetExplorationAction, timestamp, takeScreenShot)
 
       case TerminateExplorationAction:
         return new RunnableTerminateExplorationAction(action as TerminateExplorationAction, timestamp)

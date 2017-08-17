@@ -26,6 +26,7 @@ import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 import static org.droidmate.device.datatypes.AndroidDeviceAction.newTurnWifiOnDeviceAction
 
@@ -80,7 +81,8 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     if (this.isFirst)
     {
       log.debug("7.firstReset: Take a screenshot of first reset action.")
-      device.takeScreenshot(app, "firstReset")
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+      device.takeScreenshot(app, timestamp.format(formatter))
     }
 
     log.debug("8. Get GUI snapshot.")

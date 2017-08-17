@@ -124,7 +124,7 @@ class Exploration implements IExploration
     // Execute the exploration loop proper, starting with the values of initial reset action and its result.
     while (result.successful && !(action instanceof RunnableTerminateExplorationAction))
     {
-      action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.now)
+      action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.now, cfg.takeScreenshots)
       result = action.run(app, device)
       output.add(action, result)
     }

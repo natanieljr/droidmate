@@ -26,6 +26,7 @@ import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 import static org.droidmate.device.datatypes.AndroidDeviceAction.newClickGuiDeviceAction
 
@@ -36,15 +37,16 @@ class RunnableWidgetExplorationAction extends RunnableExplorationAction
   private static final long serialVersionUID = 1
 
   private final WidgetExplorationAction action
+  private final boolean takeScreenShot
 
-  RunnableWidgetExplorationAction(WidgetExplorationAction action, LocalDateTime timestamp)
+  RunnableWidgetExplorationAction(WidgetExplorationAction action, LocalDateTime timestamp, Boolean takeScreenShot = false)
   {
     super(action, timestamp)
     this.action = action
+    this.takeScreenShot = takeScreenShot
   }
 
-  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException
-  {
+  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
     log.debug("1. Assert only background API logs are present, if any.")
     IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
     logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
@@ -56,10 +58,16 @@ class RunnableWidgetExplorationAction extends RunnableExplorationAction
     logsHandler.readAndClearApiLogs()
     this.logs = logsHandler.getLogs()
 
-    Thread.sleep(action.delay);
+    Thread.sleep(action.delay)
 
     log.debug("4. Get GUI snapshot.")
     this.snapshot = device.guiSnapshot
+
+    if (this.takeScreenShot) {
+      log.debug("5. Get GUI screenshot.")
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+      device.takeScreenshot(app, timestamp.format(formatter))
+    }
   }
 
 }
