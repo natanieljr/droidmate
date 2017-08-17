@@ -71,6 +71,9 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
       case EnterTextExplorationAction:
         return new RunnableEnterTextExplorationAction(action as EnterTextExplorationAction, timestamp)
 
+      case PressBackExplorationAction:
+        return new RunnablePressBackExplorationAction(action as PressBackExplorationAction, timestamp)
+
       default:
         throw new UnexpectedIfElseFallthroughError("Unhandled ExplorationAction class. The class: ${action.class}")
     }
