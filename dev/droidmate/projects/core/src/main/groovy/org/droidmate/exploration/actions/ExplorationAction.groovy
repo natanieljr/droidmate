@@ -27,7 +27,7 @@ abstract class ExplorationAction implements Serializable
 
   private static final long serialVersionUID = 1
   protected Boolean runtimePermission = false
-  private List<IExplorationActionResultObserver> observers = new ArrayList<>();
+  private List<IExplorationActionResultObserver> observers = new ArrayList<>()
 
   @Override
   String toString()
@@ -51,7 +51,7 @@ abstract class ExplorationAction implements Serializable
 
   void notifyResult(IExplorationActionRunResult result)
   {
-    this.notifyObservers(result);
+    this.notifyObservers(result)
   }
 
   private void notifyObservers(IExplorationActionRunResult result){
@@ -67,13 +67,13 @@ abstract class ExplorationAction implements Serializable
   @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
   public void unregisterObserver(IExplorationActionResultObserver observer){
     if (this.observers.contains(observer))
-      this.observers.remove(observer);
+      this.observers.remove(observer)
   }
 
   @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
   public void registerObserver(IExplorationActionResultObserver observer){
     if (!this.observers.contains(observer))
-      this.observers.add(observer);
+      this.observers.add(observer)
   }
 
   static ResetAppExplorationAction newResetAppExplorationAction(boolean isFirst = false)
