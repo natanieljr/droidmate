@@ -59,7 +59,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
     switch (action.class)
     {
       case ResetAppExplorationAction:
-        return new RunnableResetAppExplorationAction(action as ResetAppExplorationAction, timestamp)
+        return new RunnableResetAppExplorationAction(action as ResetAppExplorationAction, timestamp, takeScreenShot)
         break
 
       case WidgetExplorationAction:
@@ -72,7 +72,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
         return new RunnableEnterTextExplorationAction(action as EnterTextExplorationAction, timestamp)
 
       case PressBackExplorationAction:
-        return new RunnablePressBackExplorationAction(action as PressBackExplorationAction, timestamp)
+        return new RunnablePressBackExplorationAction(action as PressBackExplorationAction, timestamp, takeScreenShot)
 
       default:
         throw new UnexpectedIfElseFallthroughError("Unhandled ExplorationAction class. The class: ${action.class}")

@@ -36,16 +36,17 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
   private static final long serialVersionUID = 1
 
   private final boolean isFirst
+  private final boolean takeScreenShot
 
-  RunnableResetAppExplorationAction(ResetAppExplorationAction action, LocalDateTime timestamp)
+  RunnableResetAppExplorationAction(ResetAppExplorationAction action, LocalDateTime timestamp, Boolean takeScreenShot = false)
   {
     super(action, timestamp)
     this.isFirst = action.isFirst
+    this.takeScreenShot = takeScreenShot
   }
 
   @Override
-  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException
-  {
+  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
     log.debug("1. Clear package ${app?.packageName}.")
 
     assert app != null
@@ -58,7 +59,7 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     // possible some API logs will be read from it, wreaking all kinds of havoc, e.g. having timestamp < than the current
     // exploration start time.
     device.clearLogcat()
-    
+
     log.debug("3. Ensure home screen is displayed.")
     device.ensureHomeScreenIsDisplayed()
 
@@ -69,8 +70,7 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     device.getGuiSnapshot()
 
     log.debug("6. Ensure app is not running.")
-    if (device.appIsRunning(app.packageName))
-    {
+    if (device.appIsRunning(app.packageName)) {
       log.trace("App is still running. Clearing package again.")
       device.clearPackage(app.packageName)
     }
@@ -78,9 +78,8 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     log.debug("7. Launch app $app.packageName.")
     device.launchApp(app)
 
-    if (this.isFirst)
-    {
-      log.debug("7.firstReset: Take a screenshot of first reset action.")
+    if (isFirst || takeScreenShot) {
+      log.debug("7.1. Take a screenshot.")
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
       device.takeScreenshot(app, timestamp.format(formatter))
     }
