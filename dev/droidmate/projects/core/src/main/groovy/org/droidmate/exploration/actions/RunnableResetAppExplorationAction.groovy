@@ -81,7 +81,7 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     if (isFirst || takeScreenShot) {
       log.debug("7.1. Take a screenshot.")
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
-      device.takeScreenshot(app, timestamp.format(formatter))
+      device.takeScreenshot(app, timestamp.format(formatter) +"-RESET")
     }
 
     log.debug("8. Get GUI snapshot.")
