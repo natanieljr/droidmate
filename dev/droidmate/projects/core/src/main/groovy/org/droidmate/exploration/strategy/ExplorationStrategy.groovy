@@ -73,6 +73,14 @@ class ExplorationStrategy implements IExplorationStrategy
   ExplorationAction decide(IExplorationActionRunResult result)
   {
     log.debug("decide($result)")
+
+    // If the result is null it means that it is the first action, which should be a reset
+    // This logic was moved from the Exploration class, so that whenever a new strategy is provided
+    // It is possible to monitor the first action
+    if (result == null){
+      return newResetAppExplorationAction()
+    }
+
     assert result?.successful
 
     def guiState = result.guiSnapshot.guiState

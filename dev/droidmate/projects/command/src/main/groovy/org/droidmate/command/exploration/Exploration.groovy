@@ -98,12 +98,7 @@ class Exploration implements IExploration
 
   IApkExplorationOutput2 explorationLoop(IApk app, IRobustDevice device)
   {
-    // Construct initial action and run it on the device to obtain initial result.
-    IRunnableExplorationAction action = RunnableExplorationAction.from(
-      newResetAppExplorationAction(/* isFirst */ true), timeProvider.now)
-
     log.debug("explorationLoop(app=${app?.fileName}, device)")
-    log.info("Initial action: ${action.base}")
 
     assert app != null
     assert device != null
@@ -114,19 +109,24 @@ class Exploration implements IExploration
     output.explorationStartTime = timeProvider.now
     log.debug("Exploration start time: " + output.explorationStartTime)
 
-    IExplorationActionRunResult result = action.run(app, device)
+    // Construct initial action and run it on the device to obtain initial result.
+    IRunnableExplorationAction action = null
+    IExplorationActionRunResult result = null
 
-    // Write the initial action and its execution result to the output holder.
-    output.add(action, result)
-
+    boolean isFirst = true
     IExplorationStrategy strategy = strategyProvider.provideNewInstance()
 
     // Execute the exploration loop proper, starting with the values of initial reset action and its result.
-    while (result.successful && !(action instanceof RunnableTerminateExplorationAction))
+    while (isFirst || (result.successful && !(action instanceof RunnableTerminateExplorationAction)))
     {
       action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.now, cfg.takeScreenshots)
       result = action.run(app, device)
       output.add(action, result)
+
+      if (isFirst){
+        log.info("Initial action: ${action.base}")
+        isFirst = false
+      }
     }
     
     assert !result.successful || action instanceof RunnableTerminateExplorationAction
