@@ -22,6 +22,8 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.exploration.device.IDeviceLogs
 
+import java.nio.file.Path
+
 interface IExplorationActionRunResult extends Serializable
 {
   boolean getSuccessful()
@@ -33,4 +35,6 @@ interface IExplorationActionRunResult extends Serializable
   IDeviceGuiSnapshot getGuiSnapshot()
 
   DeviceException getException()
+
+  URI getScreenshot()
 }

@@ -25,6 +25,7 @@ import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 
+import java.nio.file.Path
 import java.time.LocalDateTime
 
 interface IExplorableAndroidDevice
@@ -52,7 +53,7 @@ interface IExplorableAndroidDevice
   Boolean appIsRunning(String appPackageName) throws DeviceException
 
   void clickAppIcon(String iconLabel) throws DeviceException
-  
-  void takeScreenshot(IApk app, String suffix) throws DeviceException
+
+  Path takeScreenshot(IApk app, String suffix) throws DeviceException
 }
 

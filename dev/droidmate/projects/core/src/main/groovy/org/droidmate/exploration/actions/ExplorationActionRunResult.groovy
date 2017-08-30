@@ -25,6 +25,8 @@ import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
 
+import java.nio.file.Path
+
 class ExplorationActionRunResult implements IExplorationActionRunResult
 {
 
@@ -35,15 +37,18 @@ class ExplorationActionRunResult implements IExplorationActionRunResult
   final IDeviceLogs        deviceLogs
   final IDeviceGuiSnapshot guiSnapshot
   final DeviceException    exception
+  final URI                screenshot
 
 
-  ExplorationActionRunResult(boolean successful, String exploredAppPackageName, IDeviceLogs deviceLogs, IDeviceGuiSnapshot guiSnapshot, DeviceException exception)
+  ExplorationActionRunResult(boolean successful, String exploredAppPackageName, IDeviceLogs deviceLogs, IDeviceGuiSnapshot guiSnapshot,
+                             DeviceException exception, URI screenshot)
   {
     this.successful = successful
     this.exploredAppPackageName = exploredAppPackageName
     this.deviceLogs = deviceLogs
     this.guiSnapshot = guiSnapshot
     this.exception = exception
+    this.screenshot = screenshot
 
     assert exploredAppPackageName?.size() >= 1
     assert deviceLogs != null

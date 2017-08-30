@@ -412,7 +412,7 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
   }
 
   @Override
-  void takeScreenshot(IApk app, String suffix) throws DeviceException
+  Path takeScreenshot(IApk app, String suffix) throws DeviceException
   {
     log.debug("takeScreenshot($app, $suffix)")
     
@@ -432,6 +432,8 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
       log.warn(Markers.appHealth, "! Failed to take screenshot for ${app.fileName} with exception: $e " +
         "Discarding the exception and continuing without the screenshot.")
     }
+
+    return targetFile
   }
   
   private static boolean uiaDaemonHandlesCommand(DeviceCommand deviceCommand)

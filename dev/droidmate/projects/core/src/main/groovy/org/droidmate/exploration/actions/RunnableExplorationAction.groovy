@@ -31,6 +31,7 @@ import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.MissingDeviceLogs
 import org.droidmate.logging.Markers
 
+import java.nio.file.Path
 import java.time.LocalDateTime
 
 @Slf4j
@@ -44,6 +45,8 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
   ExplorationAction base
 
   LocalDateTime timestamp
+
+  URI screenshot
 
 
   RunnableExplorationAction(ExplorationAction base, LocalDateTime timestamp)
@@ -110,7 +113,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
     }
 
     // For post-conditions, see inside the constructor call made line below.
-    ExplorationActionRunResult result = new ExplorationActionRunResult(successful, app.packageName, this.logs, this.snapshot, this.exception)
+    ExplorationActionRunResult result = new ExplorationActionRunResult(successful, app.packageName, this.logs, this.snapshot, this.exception, this.screenshot)
 
     frontendHook(result)
 
@@ -122,7 +125,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
    */
   void frontendHook(IExplorationActionRunResult result)
   {
-    base.notifyResult(result);
+    base.notifyResult(result)
 
     if (!(result.guiSnapshot instanceof MissingGuiSnapshot))
     {

@@ -44,7 +44,8 @@ val List<IApkExplorationOutput2>.withFilteredApiLogs: List<IApkExplorationOutput
           result.exploredAppPackageName,
           filterApiLogs(result.deviceLogs),
           result.guiSnapshot,
-          result.exception
+          result.exception,
+          result.screenshot
         )
       }
 

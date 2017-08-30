@@ -110,7 +110,7 @@ class ExplorationOutput2Builder
     def packageName = attributes.packageName ?: currentlyBuiltApkOut2.packageName
     assert packageName?.size() >= 1
     
-    def result = new ExplorationActionRunResult(successful, packageName, deviceLogs, guiSnapshot, exception)
+    def result = new ExplorationActionRunResult(successful, packageName, deviceLogs, guiSnapshot, exception, null)
     return result
   }
 

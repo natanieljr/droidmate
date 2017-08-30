@@ -25,6 +25,7 @@ import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
 
+import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -81,7 +82,9 @@ class RunnableResetAppExplorationAction extends RunnableExplorationAction
     if (isFirst || takeScreenShot) {
       log.debug("7.1. Take a screenshot.")
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
-      device.takeScreenshot(app, timestamp.format(formatter) +"-RESET")
+      Path screenshotPath = device.takeScreenshot(app, timestamp.format(formatter) +"-RESET")
+      if (screenshotPath != null)
+        this.screenshot = screenshotPath.toUri()
     }
 
     log.debug("8. Get GUI snapshot.")
