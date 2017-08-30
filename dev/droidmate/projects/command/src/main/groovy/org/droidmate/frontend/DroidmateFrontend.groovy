@@ -55,7 +55,8 @@ import static org.droidmate.logging.Markers.runData
     System.exit(exitStatus)
   }
 
-   static int main(String[] args, ICommandProvider commandProvider, FileSystem fs = FileSystems.getDefault(), IExceptionHandler exceptionHandler = new ExceptionHandler())
+   static int main(String[] args, ICommandProvider commandProvider, FileSystem fs = FileSystems.getDefault(),
+                   IExceptionHandler exceptionHandler = new ExceptionHandler(), Configuration receivedCfg = null)
   {
     println "DroidMate, an automated execution generator for Android apps."
     println "Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik"
@@ -79,7 +80,11 @@ import static org.droidmate.logging.Markers.runData
       log.info("IMPORTANT: for help on how to configure DroidMate, run it with -help")
       log.info("IMPORTANT: for detailed logs from DroidMate run, please see ${LogbackConstants.LOGS_DIR_PATH}.")
 
-      Configuration cfg = new ConfigurationBuilder().build(args, fs)
+      Configuration cfg
+      if (receivedCfg == null)
+        cfg = new ConfigurationBuilder().build(args, fs)
+      else
+        cfg = receivedCfg
 
       DroidmateCommand command
       if (commandProvider != null)
