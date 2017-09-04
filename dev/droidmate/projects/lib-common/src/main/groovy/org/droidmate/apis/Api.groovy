@@ -100,7 +100,7 @@ class Api implements IApi, Serializable
       uriSuffix = " uri: " + parseUri()
 
     if (paramTypes.findIndexOf {it == "android.content.Intent"} != -1)
-      intentSuffix = " intent: " + parseIntent()[0]
+      intentSuffix = " intent: " + getIntents()[0]
 
     if (methodName == "<init>")
       return "$objectClass: $returnClass $methodName"
@@ -144,7 +144,8 @@ class Api implements IApi, Serializable
    *
    * @return A two-element list: [1. unique string of the intent, 2. the package name of targeted intent's recipient or null]
    */
-  private List<String> parseIntent()
+  @Override
+  List<String> getIntents()
   {
     assert paramTypes.findIndexValues {it == "android.content.Intent"}.size() == 1
 
@@ -154,7 +155,9 @@ class Api implements IApi, Serializable
     if (intent == "null")
       return ["null", null]
 
-    assert intent.contains("#Intent;")
+    if (!intent.contains("#Intent;"))
+      return new ArrayList()
+
     intent -= "intent:"
 
     Matcher m = intent =~ /(.*)#Intent;(.*)end/

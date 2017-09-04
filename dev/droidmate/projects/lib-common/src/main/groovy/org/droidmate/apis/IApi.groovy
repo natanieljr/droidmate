@@ -45,4 +45,6 @@ interface IApi
   List<String> getStackTraceFrames()
 
   String getUniqueString()
+
+  List<String> getIntents()
 }

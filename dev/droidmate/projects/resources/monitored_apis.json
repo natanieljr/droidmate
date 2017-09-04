@@ -2239,6 +2239,410 @@
       "returnType": "android.database.Cursor",
       "jniSignature": "Landroid/content/ContentProviderClient;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;",
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4, p5);\n        return (android.database.Cursor) monitorHook.hookAfterApiCall(logSignature, (android.database.Cursor) returnVal);\n    "
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivities",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivities([Landroid/content/Intent;Landroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivities retCls: void params: android.content.Intent[] \"+convert(p0)+\" android.os.Bundle \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivities",
+      "paramList": [
+        "android.content.Intent[]",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivities_2451(Object _this , android.content.Intent[] p0, android.os.Bundle p1)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityAsUser",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityAsUser(Landroid/content/Intent;Landroid/os/UserHandle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityAsUser retCls: void params: android.content.Intent \"+convert(p0)+\" android.os.UserHandle \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityAsUser",
+      "paramList": [
+        "android.content.Intent",
+        "android.os.UserHandle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivityAsUser_2452(Object _this , android.content.Intent p0, android.os.UserHandle p1)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityForResult",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityForResult(Landroid/content/Intent;ILandroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityForResult retCls: void params: android.content.Intent \"+convert(p0)+\" int \"+convert(p1)+\" android.os.Bundle \"+convert(p2)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityForResult",
+      "paramList": [
+        "android.content.Intent",
+        "int",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivityForResult_2453(Object _this , android.content.Intent p0, int p1, android.os.Bundle p2)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityForResult",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityForResult(Landroid/content/Intent;I)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityForResult retCls: void params: android.content.Intent \"+convert(p0)+\" int \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityForResult",
+      "paramList": [
+        "android.content.Intent",
+        "int"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivityForResult_2454(Object _this , android.content.Intent p0, int p1)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityFromChild",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityFromChild(Landroid/app/Activity;Landroid/content/Intent;ILandroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityFromChild retCls: void params: android.app.Activity \"+convert(p0)+\" android.content.Intent \"+convert(p1)+\" int \"+convert(p2)+\" android.os.Bundle \"+convert(p3)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityFromChild",
+      "paramList": [
+        "android.app.Activity",
+        "android.content.Intent",
+        "int",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivityFromChild_2455(Object _this , android.app.Activity p0, android.content.Intent p1, int p2, android.os.Bundle p3)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityFromChild",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityFromChild(Landroid/app/Activity;Landroid/content/Intent;I)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityFromChild retCls: void params: android.app.Activity \"+convert(p0)+\" android.content.Intent \"+convert(p1)+\" int \"+convert(p2)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityFromChild",
+      "paramList": [
+        "android.app.Activity",
+        "android.content.Intent",
+        "int"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivityFromChild_2456(Object _this , android.app.Activity p0, android.content.Intent p1, int p2)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityFromFragment",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityFromFragment(Landroid/app/Fragment;Landroid/content/Intent;ILandroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityFromFragment retCls: void params: android.app.Fragment \"+convert(p0)+\" android.content.Intent \"+convert(p1)+\" int \"+convert(p2)+\" android.os.Bundle \"+convert(p3)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityFromFragment",
+      "paramList": [
+        "android.app.Fragment",
+        "android.content.Intent",
+        "int",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivityFromFragment_2457(Object _this , android.app.Fragment p0, android.content.Intent p1, int p2, android.os.Bundle p3)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityFromFragment",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityFromFragment(Landroid/app/Fragment;Landroid/content/Intent;I)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityFromFragment retCls: void params: android.app.Fragment \"+convert(p0)+\" android.content.Intent \"+convert(p1)+\" int \"+convert(p2)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityFromFragment",
+      "paramList": [
+        "android.app.Fragment",
+        "android.content.Intent",
+        "int"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivityFromFragment_2458(Object _this , android.app.Fragment p0, android.content.Intent p1, int p2)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "false",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityIfNeeded",
+      "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityIfNeeded(Landroid/content/Intent;ILandroid/os/Bundle;)Z",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityIfNeeded retCls: boolean params: android.content.Intent \"+convert(p0)+\" int \"+convert(p1)+\" android.os.Bundle \"+convert(p2)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityIfNeeded",
+      "paramList": [
+        "android.content.Intent",
+        "int",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "boolean",
+      "signature": "redir_android_app_Activity_startActivityIfNeeded_2459(Object _this , android.content.Intent p0, int p1, android.os.Bundle p2)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "false",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivityIfNeeded",
+      "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivityIfNeeded(Landroid/content/Intent;I)Z",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivityIfNeeded retCls: boolean params: android.content.Intent \"+convert(p0)+\" int \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityIfNeeded",
+      "paramList": [
+        "android.content.Intent",
+        "int"
+      ],
+      "platformVersion": "All",
+      "returnType": "boolean",
+      "signature": "redir_android_app_Activity_startActivityIfNeeded_2460(Object _this , android.content.Intent p0, int p1)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivity",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivity(Landroid/content/Intent;Landroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivity retCls: void params: android.content.Intent \"+convert(p0)+\" android.os.Bundle \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivity",
+      "paramList": [
+        "android.content.Intent",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivity_2461(Object _this , android.content.Intent p0, android.os.Bundle p1)"
+    },
+    {
+      "className": "android.app.Activity",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Activity->startActivity",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Activity mthd: startActivity retCls: void params: android.content.Intent \"+convert(p0)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivity",
+      "paramList": [
+        "android.content.Intent"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Activity_startActivity_2462(Object _this , android.content.Intent p0)"
+    },
+    {
+      "className": "android.app.Fragment",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Fragment->startActivityForResult",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Fragment;->startActivityForResult(Landroid/content/Intent;ILandroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Fragment mthd: startActivityForResult retCls: void params: android.content.Intent \"+convert(p0)+\" int \"+convert(p1)+\" android.os.Bundle \"+convert(p2)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityForResult",
+      "paramList": [
+        "android.content.Intent",
+        "int",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Fragment_startActivityForResult_2492(Object _this , android.content.Intent p0, int p1, android.os.Bundle p2)"
+    },
+    {
+      "className": "android.app.Fragment",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Fragment->startActivityForResult",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Fragment;->startActivityForResult(Landroid/content/Intent;I)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Fragment mthd: startActivityForResult retCls: void params: android.content.Intent \"+convert(p0)+\" int \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityForResult",
+      "paramList": [
+        "android.content.Intent",
+        "int"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Fragment_startActivityForResult_2493(Object _this , android.content.Intent p0, int p1)"
+    },
+    {
+      "className": "android.app.Fragment",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Fragment->startActivity",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Fragment;->startActivity(Landroid/content/Intent;Landroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Fragment mthd: startActivity retCls: void params: android.content.Intent \"+convert(p0)+\" android.os.Bundle \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivity",
+      "paramList": [
+        "android.content.Intent",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Fragment_startActivity_2494(Object _this , android.content.Intent p0, android.os.Bundle p1)"
+    },
+    {
+      "className": "android.app.Fragment",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.app.Fragment->startActivity",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/app/Fragment;->startActivity(Landroid/content/Intent;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.app.Fragment mthd: startActivity retCls: void params: android.content.Intent \"+convert(p0)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivity",
+      "paramList": [
+        "android.content.Intent"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_app_Fragment_startActivity_2495(Object _this , android.content.Intent p0)"
+    },
+    {
+      "className": "android.content.ContextWrapper",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.content.ContextWrapper->startActivitiesAsUser",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/content/ContextWrapper;->startActivitiesAsUser([Landroid/content/Intent;Landroid/os/Bundle;Landroid/os/UserHandle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.content.ContextWrapper mthd: startActivitiesAsUser retCls: void params: android.content.Intent[] \"+convert(p0)+\" android.os.Bundle \"+convert(p1)+\" android.os.UserHandle \"+convert(p2)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivitiesAsUser",
+      "paramList": [
+        "android.content.Intent[]",
+        "android.os.Bundle",
+        "android.os.UserHandle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_content_ContextWrapper_startActivitiesAsUser_2532(Object _this , android.content.Intent[] p0, android.os.Bundle p1, android.os.UserHandle p2)"
+    },
+    {
+      "className": "android.content.ContextWrapper",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.content.ContextWrapper->startActivities",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/content/ContextWrapper;->startActivities([Landroid/content/Intent;Landroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.content.ContextWrapper mthd: startActivities retCls: void params: android.content.Intent[] \"+convert(p0)+\" android.os.Bundle \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivities",
+      "paramList": [
+        "android.content.Intent[]",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_content_ContextWrapper_startActivities_2533(Object _this , android.content.Intent[] p0, android.os.Bundle p1)"
+    },
+    {
+      "className": "android.content.ContextWrapper",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.content.ContextWrapper->startActivityAsUser",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/content/ContextWrapper;->startActivityAsUser(Landroid/content/Intent;Landroid/os/Bundle;Landroid/os/UserHandle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.content.ContextWrapper mthd: startActivityAsUser retCls: void params: android.content.Intent \"+convert(p0)+\" android.os.Bundle \"+convert(p1)+\" android.os.UserHandle \"+convert(p2)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityAsUser",
+      "paramList": [
+        "android.content.Intent",
+        "android.os.Bundle",
+        "android.os.UserHandle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_content_ContextWrapper_startActivityAsUser_2534(Object _this , android.content.Intent p0, android.os.Bundle p1, android.os.UserHandle p2)"
+    },
+    {
+      "className": "android.content.ContextWrapper",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.content.ContextWrapper->startActivityAsUser",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/content/ContextWrapper;->startActivityAsUser(Landroid/content/Intent;Landroid/os/UserHandle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.content.ContextWrapper mthd: startActivityAsUser retCls: void params: android.content.Intent \"+convert(p0)+\" android.os.UserHandle \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivityAsUser",
+      "paramList": [
+        "android.content.Intent",
+        "android.os.UserHandle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_content_ContextWrapper_startActivityAsUser_2535(Object _this , android.content.Intent p0, android.os.UserHandle p1)"
+    },
+    {
+      "className": "android.content.ContextWrapper",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.content.ContextWrapper->startActivity",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/content/ContextWrapper;->startActivity(Landroid/content/Intent;Landroid/os/Bundle;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.content.ContextWrapper mthd: startActivity retCls: void params: android.content.Intent \"+convert(p0)+\" android.os.Bundle \"+convert(p1)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivity",
+      "paramList": [
+        "android.content.Intent",
+        "android.os.Bundle"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_content_ContextWrapper_startActivity_2536(Object _this , android.content.Intent p0, android.os.Bundle p1)"
+    },
+    {
+      "className": "android.content.ContextWrapper",
+      "defaultReturnValue": "",
+      "exceptionType": "SecurityException",
+      "hookedMethod": "android.content.ContextWrapper->startActivity",
+      "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
+      "isStatic": false,
+      "jniSignature": "Landroid/content/ContextWrapper;->startActivity(Landroid/content/Intent;)V",
+      "logID": " \"TId: \"+threadId+\" objCls: android.content.ContextWrapper mthd: startActivity retCls: void params: android.content.Intent \"+convert(p0)+\" stacktrace: \"+stackTrace",
+      "methodName": "startActivity",
+      "paramList": [
+        "android.content.Intent"
+      ],
+      "platformVersion": "All",
+      "returnType": "void",
+      "signature": "redir_android_content_ContextWrapper_startActivity_2537(Object _this , android.content.Intent p0)"
     }
   ]
 }
