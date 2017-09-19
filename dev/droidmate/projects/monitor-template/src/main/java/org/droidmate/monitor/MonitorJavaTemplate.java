@@ -756,9 +756,8 @@ public class MonitorJavaTemplate
   }
 
   private static void initializeApiPolicies() throws Exception{
-    // initialize only once
-    if (!apiPolicies.isEmpty())
-      return;;
+    // loads every time to allow restrictions to be dynamically changed
+    apiPolicies.clear();
 
     File policiesFile = new File("#POLICIES_FILE_PATH");
     if (policiesFile.exists()) {
