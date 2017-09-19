@@ -188,7 +188,10 @@ class AdbWrapper implements IAdbWrapper
 
     } catch (SysCmdExecutorException e)
     {
-      throw new AdbWrapperException("Calling 'adb uninstall' failed. Oh my.", e)
+      // Android 8 compatibility: ADB Uninstall command now generates an excaption when package not found
+      // Ex: java.lang.IllegalArgumentException: Unknown package: org.droidmate.uiautomator2daemon.UiAutomator2Daemon.test
+      if (!ignoreFailure || !e.message.contains("Unknown package:"))
+        throw new AdbWrapperException("Calling 'adb uninstall' failed. Oh my.", e)
     }
   }
 
@@ -718,7 +721,7 @@ class AdbWrapper implements IAdbWrapper
     {
       // Logcat file does not exist on new devices, therefore it crashes on the first attempt
       if (!fileName.contains("droidmate_logcat"))
-        throw e;
+        throw e
     }
   }
 
