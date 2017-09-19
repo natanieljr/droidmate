@@ -47,4 +47,6 @@ interface IApi
   String getUniqueString()
 
   List<String> getIntents()
+
+  String parseUri()
 }

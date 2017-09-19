@@ -108,7 +108,7 @@ class Api implements IApi, Serializable
       return "$objectClass: $returnClass $methodName(${paramTypes.join(",")})$uriSuffix$intentSuffix"
   }
 
-  private String parseUri()
+  String parseUri()
   {
     assert paramTypes.findIndexValues {it == "android.net.Uri"}.size() == 1
 
