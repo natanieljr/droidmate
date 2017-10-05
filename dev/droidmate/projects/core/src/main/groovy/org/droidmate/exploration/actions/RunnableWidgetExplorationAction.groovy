@@ -21,6 +21,7 @@ package org.droidmate.exploration.actions
 import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
+import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
@@ -30,6 +31,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import static org.droidmate.device.datatypes.AndroidDeviceAction.newClickGuiDeviceAction
+import static org.droidmate.device.datatypes.AndroidDeviceAction.newSwipeGuiDeviceAction
 
 @Slf4j
 class RunnableWidgetExplorationAction extends RunnableExplorationAction
@@ -47,13 +49,20 @@ class RunnableWidgetExplorationAction extends RunnableExplorationAction
     this.takeScreenShot = takeScreenShot
   }
 
+  protected IAndroidDeviceAction getAndroidDeviceAction(){
+    if (action.swipeAngle >= 0)
+      return newSwipeGuiDeviceAction(action.widget, action.swipeAngle)
+    else
+      return newClickGuiDeviceAction(action.widget, action.longClick)
+  }
+
   protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
     log.debug("1. Assert only background API logs are present, if any.")
     IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
     logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
     log.debug("2. Perform widget click: ${action}.")
-    device.perform(newClickGuiDeviceAction(action.widget, action.longClick))
+    device.perform(getAndroidDeviceAction())
 
     log.debug("3. Read and clear API logs if any, then seal logs reading.")
     logsHandler.readAndClearApiLogs()

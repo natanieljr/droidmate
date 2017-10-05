@@ -25,6 +25,11 @@ import java.awt.*
 
 abstract class AndroidDeviceAction implements IAndroidDeviceAction
 {
+  static ClickGuiAction newSwipeGuiDeviceAction(Widget clickedWidget, int swipeAngle)
+  {
+    Point p = clickedWidget.clickPoint
+    return new ClickGuiAction(GuiAction.createSwipeAction(p.x as int, p.y as int, swipeAngle))
+  }
 
   static ClickGuiAction newClickGuiDeviceAction(Widget clickedWidget, boolean longClick = false)
   {

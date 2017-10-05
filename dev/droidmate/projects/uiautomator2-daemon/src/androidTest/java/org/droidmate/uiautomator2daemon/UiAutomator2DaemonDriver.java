@@ -174,70 +174,78 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     } else if (deviceCommand.guiAction.resourceId != null)
     {
-      Log.d(uiaDaemon_logcatTag, String.format("Setting text of widget with resource ID %s to %s.", deviceCommand.guiAction.resourceId, deviceCommand.guiAction.textToEnter));
-      try
-      {
-        boolean enterResult = this.device.findObject(
-          new UiSelector().resourceId(deviceCommand.guiAction.resourceId)
-        ).setText(deviceCommand.guiAction.textToEnter);
-
-        if (enterResult)
-          waitForGuiToStabilize();
-
-        if (!enterResult)
-          Log.w(uiaDaemon_logcatTag, String.format(
-            "Failed to enter text in widget with resource id: %s", deviceCommand.guiAction.resourceId));
-
-      } catch (UiObjectNotFoundException e)
-      {
-        throw new AssertionError("Assertion error:  UIObject not found. ResourceId: " + deviceCommand.guiAction.resourceId);
-      }
+      inputText(deviceCommand);
     } else
     {
-      int clickXCoor = deviceCommand.guiAction.clickXCoor;
-      int clickYCoor = deviceCommand.guiAction.clickYCoor;
-
-      Log.d(uiaDaemon_logcatTag, String.format("Clicking on (x,y) coordinates of (%d,%d)", clickXCoor, clickYCoor));
-
-      if (clickXCoor < 0) throw new AssertionError("assert clickXCoor >= 0");
-      if (clickYCoor < 0) throw new AssertionError("assert clickYCoor >= 0");
-
-      if (clickXCoor > this.device.getDisplayWidth())
-        throw new AssertionError("assert clickXCoor <= device.getDisplayWidth()");
-      if (clickYCoor > this.device.getDisplayHeight())
-        throw new AssertionError("assert clickXCoor <= device.getDisplayHeight()");
-
-      // WISH return clickResult in deviceResponse, so we can try to click again on 'app has stopped' and other dialog boxes. Right now there is just last chance attempt in org.droidmate.exploration.VerifiableDeviceActionsExecutor.executeAndVerify()
-      boolean clickResult;
-      clickResult = click(deviceCommand, clickXCoor, clickYCoor);
-      if (!clickResult)
-      {
-        Log.d(uiaDaemon_logcatTag, (String.format("The operation device.click(%d, %d) failed (the 'click' method returned 'false'). Retrying after 2 seconds.", clickXCoor, clickYCoor)));
-
-        try
-        {
-          Thread.sleep(2000);
-        } catch (InterruptedException e)
-        {
-          Log.w(uiaDaemon_logcatTag, "InterruptedException while sleeping before repeating a click.");
-        }
-
-        clickResult = click(deviceCommand, clickXCoor, clickYCoor);
-
-        // WISH what does it actually mean that click failed?
-        if (!clickResult)
-        {
-          Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().click(%d, %d) failed for the second time. Giving up.", clickXCoor, clickYCoor)));
-        }
-        else
-          Log.d(uiaDaemon_logcatTag, "The click retry attempt succeeded.");
-      }
+      click(deviceCommand);
     }
 
     DeviceResponse deviceResponse = new DeviceResponse();
     deviceResponse.isNaturalOrientation = this.device.isNaturalOrientation();
 
     return deviceResponse;
+  }
+
+  private void inputText(DeviceCommand deviceCommand){
+    Log.d(uiaDaemon_logcatTag, String.format("Setting text of widget with resource ID %s to %s.", deviceCommand.guiAction.resourceId, deviceCommand.guiAction.textToEnter));
+    try
+    {
+      boolean enterResult = this.device.findObject(
+              new UiSelector().resourceId(deviceCommand.guiAction.resourceId)
+      ).setText(deviceCommand.guiAction.textToEnter);
+
+      if (enterResult)
+        waitForGuiToStabilize();
+
+      if (!enterResult)
+        Log.w(uiaDaemon_logcatTag, String.format(
+                "Failed to enter text in widget with resource id: %s", deviceCommand.guiAction.resourceId));
+
+    } catch (UiObjectNotFoundException e)
+    {
+      throw new AssertionError("Assertion error:  UIObject not found. ResourceId: " + deviceCommand.guiAction.resourceId);
+    }
+  }
+
+  private void click(DeviceCommand deviceCommand){
+    int clickXCoor = deviceCommand.guiAction.clickXCoor;
+    int clickYCoor = deviceCommand.guiAction.clickYCoor;
+
+    Log.d(uiaDaemon_logcatTag, String.format("Clicking on (x,y) coordinates of (%d,%d)", clickXCoor, clickYCoor));
+
+    if (clickXCoor < 0) throw new AssertionError("assert clickXCoor >= 0");
+    if (clickYCoor < 0) throw new AssertionError("assert clickYCoor >= 0");
+
+    if (clickXCoor > this.device.getDisplayWidth())
+      throw new AssertionError("assert clickXCoor <= device.getDisplayWidth()");
+    if (clickYCoor > this.device.getDisplayHeight())
+      throw new AssertionError("assert clickXCoor <= device.getDisplayHeight()");
+
+    // WISH return clickResult in deviceResponse, so we can try to click again on 'app has stopped' and other dialog boxes. Right now there is just last chance attempt in org.droidmate.exploration.VerifiableDeviceActionsExecutor.executeAndVerify()
+    boolean clickResult;
+    clickResult = click(deviceCommand, clickXCoor, clickYCoor);
+    if (!clickResult)
+    {
+      Log.d(uiaDaemon_logcatTag, (String.format("The operation device.click(%d, %d) failed (the 'click' method returned 'false'). Retrying after 2 seconds.", clickXCoor, clickYCoor)));
+
+      try
+      {
+        Thread.sleep(2000);
+      } catch (InterruptedException e)
+      {
+        Log.w(uiaDaemon_logcatTag, "InterruptedException while sleeping before repeating a click.");
+      }
+
+      clickResult = click(deviceCommand, clickXCoor, clickYCoor);
+
+      // WISH what does it actually mean that click failed?
+      if (!clickResult)
+      {
+        Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().click(%d, %d) failed for the second time. Giving up.", clickXCoor, clickYCoor)));
+      }
+      else
+        Log.d(uiaDaemon_logcatTag, "The click retry attempt succeeded.");
+    }
   }
 
 

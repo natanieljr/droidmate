@@ -32,6 +32,7 @@ class WidgetExplorationAction extends ExplorationAction
 
   Widget  widget
   boolean longClick
+  int     swipeAngle = -1
   int     delay = 0
 
   @SuppressWarnings("unused")
@@ -48,13 +49,19 @@ class WidgetExplorationAction extends ExplorationAction
   @Override
   String toShortString()
   {
-    "LC? ${longClick ? 1 : 0} " + widget.toShortString()
+    if (swipeAngle >= 0)
+      return "SW $swipeAngle " + widget.toShortString()
+    else
+      return "LC? ${longClick ? 1 : 0} " + widget.toShortString()
   }
 
   @Override
   String toTabulatedString()
   {
-    "LC? ${longClick ? 1 : 0} " + widget.toTabulatedString()
+    if (swipeAngle >= 0)
+      return "SW $swipeAngle " + widget.toTabulatedString()
+    else
+      return "LC? ${longClick ? 1 : 0} " + widget.toTabulatedString()
   }
 }
 

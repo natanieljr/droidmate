@@ -119,7 +119,7 @@ class Widget implements Serializable
 
   boolean canBeActedUpon()
   {
-    boolean canBeActedUpon = this.enabled && (this.clickable || this.checkable || this.longClickable) && isVisibleOnCurrentDeviceDisplay()
+    boolean canBeActedUpon = this.enabled && (this.clickable || this.checkable || this.longClickable || this.scrollable) && isVisibleOnCurrentDeviceDisplay()
     return canBeActedUpon
   }
 
