@@ -75,7 +75,7 @@ class RunnableWidgetExplorationAction extends RunnableExplorationAction
 
     if (this.takeScreenShot) {
       log.debug("5. Get GUI screenshot.")
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
       Path screenshotPath = device.takeScreenshot(app, timestamp.format(formatter))
       if (screenshotPath != null)
         this.screenshot = screenshotPath.toUri()
