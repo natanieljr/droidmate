@@ -58,6 +58,10 @@ val Widget.uniqueString: String get() {
   return WidgetStrategy.WidgetInfo(this).uniqueString
 }
 
+fun Widget.isEquivalentIgnoreLocation(other: Widget): Boolean {
+  return this.uniqueString.takeWhile { it -> it != '[' } == other.uniqueString.takeWhile { it -> it != '[' }
+}
+
 fun <T, TItem> Iterable<T>.setByUniqueString(
   extractItems: (T) -> Iterable<TItem>,
   uniqueString: (TItem) -> String
