@@ -27,3 +27,13 @@ task sourcesJar(type: Jar, dependsOn: "classes") {
 artifacts {
   archives sourcesJar
 }
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/")
+        }
+    }
+}
+
+
