@@ -1,4 +1,4 @@
-# DroidMate ![GNU GPL v3](https://www.gnu.org/graphics/gplv3-88x31.png)[![Build Status](https://travis-ci.org/konrad-jamrozik/droidmate.svg?branch=master)](https://travis-ci.org/konrad-jamrozik/droidmate)
+# DroidMate ![GNU GPL v3](https://www.gnu.org/graphics/gplv3-88x31.png)[![Build Status](http://soot-build.cs.uni-paderborn.de/jenkins/buildStatus/icon?job=testify/droidmate)](http://soot-build.cs.uni-paderborn.de/jenkins/job/testify/job/droidmate/)
 
 DroidMate, an automated execution generator for Android apps.  
 Copyright (C) 2012-2016 Konrad Jamrozik
