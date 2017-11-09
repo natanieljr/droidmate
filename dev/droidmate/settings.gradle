@@ -30,14 +30,12 @@ include(
   "projects:lib-kotlin",
   "projects:apk-inliner",
   "projects:uiautomator-daemon-lib",
-  "projects:uiautomator2-daemon-proxy",
   "projects:monitor-template",
   "projects:monitor-hook",
   "projects:monitor-generator",
   "projects:core",
   "projects:reporter",
-  "projects:command"/*,
-  "DummyAndroidApp"*/
+  "projects:command"
 )
 
 /* The path navigates from github/droidmate/dev/droidmate to github/utilities
