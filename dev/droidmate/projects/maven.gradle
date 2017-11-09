@@ -18,6 +18,14 @@
 // web: www.droidmate.org
 apply plugin: "maven"
 
+configurations {
+    deployerJars
+}
+
+dependencies {
+    deployerJars "org.apache.maven.wagon:wagon-ssh:2.2"
+}
+
 task sourcesJar(type: Jar, dependsOn: "classes") {
   classifier = 'sources'
   from sourceSets.main.allSource
@@ -27,6 +35,15 @@ task sourcesJar(type: Jar, dependsOn: "classes") {
 artifacts {
   archives sourcesJar
 }
+
+uploadArchives {
+    repositories.mavenDeployer {
+        configuration = configurations.deployerJars
+        repository(url: "file:///Users/nataniel/Downloads/myRepo/")
+        //repository(url: "scp://repos.mycompany.com/releases") {
+        //    authentication(userName: "me", password: "myPassword")
+        }
+    }
 
 uploadArchives {
     repositories {

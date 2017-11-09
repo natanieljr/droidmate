@@ -20,6 +20,7 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.exploration.actions.WidgetExplorationAction.Direction
 import org.droidmate.misc.TextUtilsCategory
 
 abstract class ExplorationAction implements Serializable
@@ -96,6 +97,12 @@ abstract class ExplorationAction implements Serializable
     assert widget != null
 
     return new WidgetExplorationAction(widget: widget, longClick: longClick)
+  }
+	
+	static WidgetExplorationAction newWidgetSwipeExplorationAction(Widget widget, Direction direction){
+		assert widget != null
+		
+		return new WidgetExplorationAction(widget: widget, swipe : true, direction : direction)
   }
 
   static WidgetExplorationAction newIgnoreActionForTerminationWidgetExplorationAction(Widget widget, boolean longClick = false)

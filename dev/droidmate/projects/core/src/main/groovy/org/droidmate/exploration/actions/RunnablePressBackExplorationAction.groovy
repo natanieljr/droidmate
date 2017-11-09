@@ -48,6 +48,7 @@ class RunnablePressBackExplorationAction extends RunnableExplorationAction
         this.takeScreenShot = takeScreenShot
     }
 
+	@Override
     protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
         log.debug("1. Assert only background API logs are present, if any.")
         IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
@@ -73,4 +74,3 @@ class RunnablePressBackExplorationAction extends RunnableExplorationAction
     }
 
 }
-

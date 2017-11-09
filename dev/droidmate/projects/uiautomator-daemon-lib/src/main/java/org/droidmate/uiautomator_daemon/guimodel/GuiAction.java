@@ -35,8 +35,12 @@ public class GuiAction implements Serializable
   public final String  guiActionCommand;
   public final String  resourceId;
   public final String  textToEnter;
-  // Counter clockwise. Rightmost part = 0 degrees
-  public final Integer swipeAngle;
+
+  public final boolean swipe;
+  public final Integer startSwipeXCoor;
+  public final Integer startSwipeYCoor;
+  public final Integer targetSwipeXCoor;
+  public final Integer targetSwipeYCoor;
 
   public GuiAction(int clickXCoor, int clickYCoor, boolean longClick)
   {
@@ -46,8 +50,30 @@ public class GuiAction implements Serializable
     this.guiActionCommand = null;
     this.resourceId = null;
     this.textToEnter = null;
-    this.swipeAngle = -1;
+
+    this.swipe = false;
+    this.startSwipeXCoor = null;
+    this.startSwipeYCoor = null;
+    this.targetSwipeXCoor = null;
+    this.targetSwipeYCoor = null;
   }
+
+  public GuiAction(int startSwipeXCoor , int startSwipeYCoor, int targetSwipeXCoor, int targetSwipeYCoor)
+  {
+    this.clickXCoor = null;
+    this.clickYCoor = null;
+    this.longClick = false;
+    this.guiActionCommand = null;
+    this.resourceId = null;
+    this.textToEnter = null;
+
+    this.swipe = true;
+    this.startSwipeXCoor = startSwipeXCoor;
+    this.startSwipeYCoor = startSwipeYCoor;
+    this.targetSwipeXCoor = targetSwipeXCoor;
+    this.targetSwipeYCoor = targetSwipeYCoor;
+  }
+
 
   public GuiAction(String guiActionCommand, String resourceId, String textToEnter)
   {
@@ -57,8 +83,12 @@ public class GuiAction implements Serializable
     this.guiActionCommand = guiActionCommand;
     this.resourceId = resourceId;
     this.textToEnter = textToEnter;
-    this.swipeAngle = -1;
 
+    this.swipe = false;
+    this.startSwipeXCoor = null;
+    this.startSwipeYCoor = null;
+    this.targetSwipeXCoor = null;
+    this.targetSwipeYCoor = null;
   }
 
   public GuiAction(String guiActionCommand)
@@ -69,25 +99,23 @@ public class GuiAction implements Serializable
     this.guiActionCommand = guiActionCommand;
     this.resourceId = null;
     this.textToEnter = null;
-    this.swipeAngle = -1;
-  }
 
-  public GuiAction(int clickXCoor, int clickYCoor, int swipeAngle)
-  {
-    this.clickXCoor = clickXCoor;
-    this.clickYCoor = clickYCoor;
-    this.longClick = false;
-    this.guiActionCommand = null;
-    this.resourceId = null;
-    this.textToEnter = null;
-    this.swipeAngle = swipeAngle;
+    this.swipe = false;
+    this.startSwipeXCoor = null;
+    this.startSwipeYCoor = null;
+    this.targetSwipeXCoor = null;
+    this.targetSwipeYCoor = null;
   }
 
   @Override
   public String toString()
   {
-    if (guiActionCommand == null)
+    if (guiActionCommand == null){
+    	if (swipe)
+    		return startSwipeXCoor + ", " + startSwipeYCoor + " " + targetSwipeXCoor + ", " + targetSwipeYCoor + " swipe: " + swipe;
+    	else
       return clickXCoor + " " + clickYCoor + " long: " + longClick;
+    }
     else
       return guiActionCommand;
   }
@@ -151,10 +179,6 @@ public class GuiAction implements Serializable
     return new GuiAction(UiautomatorDaemonConstants.guiActionCommand_launchApp, iconLabel, null);
   }
 
-  public static GuiAction createSwipeAction(int clickXCoor, int clickYCoor, int swipeAngle){
-    return new GuiAction(clickXCoor, clickYCoor, swipeAngle);
-  }
-
   @Override
   public boolean equals(Object o)
   {
@@ -165,8 +189,6 @@ public class GuiAction implements Serializable
 
     if (clickXCoor != null ? !clickXCoor.equals(guiAction.clickXCoor) : guiAction.clickXCoor != null) return false;
     if (clickYCoor != null ? !clickYCoor.equals(guiAction.clickYCoor) : guiAction.clickYCoor != null) return false;
-    if (!swipeAngle.equals(guiAction.swipeAngle)) return false;
-
     return guiActionCommand != null ? guiActionCommand.equals(guiAction.guiActionCommand) : guiAction.guiActionCommand == null;
 
   }

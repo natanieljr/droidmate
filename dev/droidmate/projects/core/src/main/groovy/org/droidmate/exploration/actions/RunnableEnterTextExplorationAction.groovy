@@ -25,13 +25,20 @@ class RunnableEnterTextExplorationAction extends RunnableExplorationAction
     this.action = action
   }
 
-  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException
-  {
+	
+	@Override
+	protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
+		
     log.debug("1. Assert only background API logs are present, if any.")
     IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
     logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
-    log.debug("2. Perform enter text: ${action}.")
+			//NEED FIX: In some cases the setting of text does open the keyboard and is hiding some widgets
+  		// 					but these widgets are still in the uiautomator dump. Therefore it may be that droidmate
+  		//					clicks on the keyboard thinking it clicked one of the widgets below it.
+    	//				  http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
+    	//					-> It seems there is no reliable way to suppress the keyboard.
+		log.debug("2. Perform widget text input: ${action}.")
     device.perform(newEnterTextDeviceAction(action.widget.resourceId, action.textToEnter))
 
     log.debug("3. Read and clear API logs if any, then seal logs reading.")

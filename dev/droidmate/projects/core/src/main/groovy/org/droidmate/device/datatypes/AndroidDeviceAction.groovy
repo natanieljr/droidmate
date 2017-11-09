@@ -19,6 +19,7 @@
 
 package org.droidmate.device.datatypes
 
+import org.droidmate.exploration.actions.WidgetExplorationAction.Direction
 import org.droidmate.uiautomator_daemon.guimodel.GuiAction
 
 import java.awt.*
@@ -29,6 +30,12 @@ abstract class AndroidDeviceAction implements IAndroidDeviceAction
   {
     Point p = clickedWidget.clickPoint
     return new ClickGuiAction(GuiAction.createSwipeAction(p.x as int, p.y as int, swipeAngle))
+  }
+
+	static ClickGuiAction newSwipeGuiDeviceAction(Widget widget, Direction direction){
+		double swipe_percentage = 0.8
+		def (Point startPoint , Point targetPoint) = widget.getSwipePoints(direction, swipe_percentage)
+		return new ClickGuiAction(new GuiAction(startPoint.x as int, startPoint.y as int, targetPoint.x as int, targetPoint.y as int))
   }
 
   static ClickGuiAction newClickGuiDeviceAction(Widget clickedWidget, boolean longClick = false)

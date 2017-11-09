@@ -21,9 +21,11 @@ package org.droidmate.device.datatypes
 
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 
 import java.awt.*
 import java.util.regex.Matcher
+import org.droidmate.exploration.actions.WidgetExplorationAction.Direction
 
 @Canonical
 @AutoClone
@@ -31,6 +33,8 @@ class Widget implements Serializable
 {
 
   private static final long serialVersionUID = 1
+
+	static final double ONTOUCH_DISPLAY_RELATION = 0.7
 
   /** Id is used only for tests, for:
    * - easy determination by human which widget is which when looking at widget string representation
@@ -73,6 +77,17 @@ class Widget implements Serializable
    */
   Rectangle deviceDisplayBounds = null
 
+	public double getAreaSize(){
+		return bounds.height * bounds.width
+	}
+	
+	public double getDeviceAreaSize(){
+		if (deviceDisplayBounds != null)
+			return deviceDisplayBounds.height * deviceDisplayBounds.width
+		else
+			return -1
+	}
+	
   public Point center()
   {
     return new Point(bounds.getCenterX() as int, bounds.getCenterY() as int)
@@ -95,6 +110,10 @@ class Widget implements Serializable
   {
     return this.resourceId - (this.packageName + ":")
   }
+
+	public String getResourceIdName(){
+		return this.resourceId - (this.packageName + ":id/")
+	}
 
   public String toShortString()
   {
@@ -143,6 +162,33 @@ class Widget implements Serializable
     def clickRectangle = bounds.intersection(deviceDisplayBounds)
 
     return new Point(clickRectangle.centerX as int, clickRectangle.centerY as int)
+  }
+	
+	def getSwipePoints(Direction direction, double percent){
+		
+		assert bounds.intersects(deviceDisplayBounds)
+		
+		Rectangle swipeRectangle = bounds.intersection(deviceDisplayBounds)
+		double offsetHor = (swipeRectangle.getWidth() *  (1 - percent ) ) / 2
+		double offsetVert =(swipeRectangle.getHeight() * (1 - percent ) ) / 2
+		switch (direction)
+		{
+			case Direction.LEFT:
+				return [ new Point((swipeRectangle.getMaxX() - offsetHor ) as int, swipeRectangle.getCenterY() as int ), new Point((swipeRectangle.getMinX() + offsetHor) as int, swipeRectangle.getCenterY() as int )  ]
+				break
+			case Direction.RIGHT:
+				return [ new Point((this.bounds.getMinX() + offsetHor ) as int, this.bounds.getCenterY() as int ) , new Point((this.bounds.getMaxX() - offsetHor) as int, this.bounds.getCenterY() as int ) ]
+				break
+			case Direction.UP:
+				return [ new Point(this.bounds.getCenterX() as int, (this.bounds.getMaxY() - offsetVert ) as int ), new Point(this.bounds.getCenterX() as int, ( this.bounds.getMinY() + offsetVert ) as int )]
+				break
+			
+			case Direction.DOWN:
+				return [ new Point(this.bounds.getCenterX() as int, ( this.bounds.getMinY() + offsetVert ) as int ), new Point(this.bounds.getCenterX() as int, ( this.bounds.getMaxY() - offsetVert ) as int ) ]
+				break
+			default:
+				throw new UnexpectedIfElseFallthroughError()
+		}
   }
 
   /**

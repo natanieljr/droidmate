@@ -23,6 +23,9 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+
+import android.view.accessibility.AccessibilityWindowInfo;
+
 import android.support.test.InstrumentationRegistry;
 import android.support.test.uiautomator.*;
 import android.util.Log;
@@ -116,12 +119,18 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     String deviceModel = this.getDeviceModel().model;
 
     String switchWidgetName;
-    if (deviceModel.equals(DEVICE_SAMSUNG_GALAXY_S3_GT_I9300))
-      switchWidgetName = "android:id/switchWidget";
-    else if (deviceModel.equals(DEVICE_GOOGLE_NEXUS_7) || deviceModel.equals(DEVICE_GOOGLE_NEXUS_5X))
-      switchWidgetName = "com.android.settings:id/switch_widget";
-    else
-      switchWidgetName = "com.android.settings:id/switchWidget";
+      switch (deviceModel) {
+          case DEVICE_SAMSUNG_GALAXY_S3_GT_I9300:
+              switchWidgetName = "android:id/switchWidget";
+              break;
+          case DEVICE_GOOGLE_NEXUS_7:
+          case DEVICE_GOOGLE_NEXUS_5X:
+              switchWidgetName = "com.android.settings:id/switch_widget";
+              break;
+          default:
+              switchWidgetName = "com.android.settings:id/switchWidget";
+              break;
+      }
 
     return switchWidgetName;
   }
@@ -175,6 +184,9 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     } else if (deviceCommand.guiAction.resourceId != null)
     {
       inputText(deviceCommand);
+    } else if (deviceCommand.guiAction.swipe)
+    {
+    	swipe(deviceCommand);
     } else
     {
       click(deviceCommand);
@@ -186,6 +198,58 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     return deviceResponse;
   }
 
+  private void swipe(DeviceCommand deviceCommand){
+      int startSwipeXCoor = deviceCommand.guiAction.startSwipeXCoor;
+      int startSwipeYCoor = deviceCommand.guiAction.startSwipeYCoor;
+      int targetSwipeXCoor = deviceCommand.guiAction.targetSwipeXCoor;
+      int targetSwipeYCoor = deviceCommand.guiAction.targetSwipeYCoor;
+      Log.d(uiaDaemon_logcatTag, String.format("Swiping from (x,y) coordinates (%d,%d) to (%d,%d)", startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor));
+
+      if (startSwipeXCoor < 0 ) throw new AssertionError("assert startSwipeXCoor >= 0");
+      if (startSwipeYCoor < 0 ) throw new AssertionError("assert startSwipeYCoor >= 0");
+      if (targetSwipeXCoor < 0 ) throw new AssertionError("assert targetSwipeXCoor >= 0");
+      if (targetSwipeYCoor < 0 ) throw new AssertionError("assert targetSwipeYCoor >= 0");
+
+      if(startSwipeXCoor > this.device.getDisplayWidth())
+          throw new AssertionError("assert startSwipeXCoor <= device.getDisplayWidth()");
+      if(startSwipeYCoor > this.device.getDisplayHeight())
+          throw new AssertionError("assert startSwipeYCoor <= device.getDisplayHeigth()");
+      if(targetSwipeXCoor > this.device.getDisplayWidth())
+          throw new AssertionError("assert targetSwipeXCoor <= device.getDisplayWidth()");
+      if(targetSwipeYCoor > this.device.getDisplayHeight())
+          throw new AssertionError("assert targetSwipeYCoor <= device.getDisplayHeigth()");
+
+      boolean swipeResult = swipe(startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor);
+
+      if (!swipeResult)
+      {
+          Log.d(uiaDaemon_logcatTag, (String.format("The operation device.swipe(%d, %d, %d, %d) failed (the 'swipe' method returned 'false'). Retrying after 2 seconds.", startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor)));
+
+          try
+          {
+              Thread.sleep(2000);
+          } catch (InterruptedException e)
+          {
+              Log.w(uiaDaemon_logcatTag, "InterruptedException while sleeping before repeating a swipe.");
+          }
+
+          swipeResult = swipe(startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor);
+
+          // WISH what does it actually mean that click failed?
+          if (!swipeResult)
+          {
+              Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().swipe(%d, %d, %d, %d) failed for the second time. Giving up.", startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor)));
+          }
+          else
+              Log.d(uiaDaemon_logcatTag, "The swipe retry attempt succeeded.");
+      }
+  }
+
+  // NEED FIX: In some cases the setting of text does open the keyboard and is hiding some widgets
+  // but these widgets are still in the uiautomator dump. Therefore it may be that droidmate
+  // clicks on the keyboard thinking it clicked one of the widgets below it.
+  // http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
+  // -> It seems there is no reliable way to suppress the keyboard.
   private void inputText(DeviceCommand deviceCommand){
     Log.d(uiaDaemon_logcatTag, String.format("Setting text of widget with resource ID %s to %s.", deviceCommand.guiAction.resourceId, deviceCommand.guiAction.textToEnter));
     try
@@ -194,12 +258,14 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
               new UiSelector().resourceId(deviceCommand.guiAction.resourceId)
       ).setText(deviceCommand.guiAction.textToEnter);
 
-      if (enterResult)
-        waitForGuiToStabilize();
+        if (enterResult)
+          waitForGuiToStabilize();
 
-      if (!enterResult)
-        Log.w(uiaDaemon_logcatTag, String.format(
-                "Failed to enter text in widget with resource id: %s", deviceCommand.guiAction.resourceId));
+        if (!enterResult)
+          Log.w(uiaDaemon_logcatTag, String.format(
+            "Failed to enter text in widget with resource id: %s", deviceCommand.guiAction.resourceId));
+
+
 
     } catch (UiObjectNotFoundException e)
     {
@@ -211,43 +277,51 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     int clickXCoor = deviceCommand.guiAction.clickXCoor;
     int clickYCoor = deviceCommand.guiAction.clickYCoor;
 
-    Log.d(uiaDaemon_logcatTag, String.format("Clicking on (x,y) coordinates of (%d,%d)", clickXCoor, clickYCoor));
+      Log.d(uiaDaemon_logcatTag, String.format("Clicking on (x,y) coordinates of (%d,%d)", clickXCoor, clickYCoor));
 
-    if (clickXCoor < 0) throw new AssertionError("assert clickXCoor >= 0");
-    if (clickYCoor < 0) throw new AssertionError("assert clickYCoor >= 0");
+      if (clickXCoor < 0) throw new AssertionError("assert clickXCoor >= 0");
+      if (clickYCoor < 0) throw new AssertionError("assert clickYCoor >= 0");
 
-    if (clickXCoor > this.device.getDisplayWidth())
-      throw new AssertionError("assert clickXCoor <= device.getDisplayWidth()");
-    if (clickYCoor > this.device.getDisplayHeight())
-      throw new AssertionError("assert clickXCoor <= device.getDisplayHeight()");
+      if (clickXCoor > this.device.getDisplayWidth())
+        throw new AssertionError("assert clickXCoor <= device.getDisplayWidth()");
+      if (clickYCoor > this.device.getDisplayHeight())
+        throw new AssertionError("assert clickXCoor <= device.getDisplayHeight()");
 
-    // WISH return clickResult in deviceResponse, so we can try to click again on 'app has stopped' and other dialog boxes. Right now there is just last chance attempt in org.droidmate.exploration.VerifiableDeviceActionsExecutor.executeAndVerify()
-    boolean clickResult;
-    clickResult = click(deviceCommand, clickXCoor, clickYCoor);
-    if (!clickResult)
-    {
-      Log.d(uiaDaemon_logcatTag, (String.format("The operation device.click(%d, %d) failed (the 'click' method returned 'false'). Retrying after 2 seconds.", clickXCoor, clickYCoor)));
-
-      try
-      {
-        Thread.sleep(2000);
-      } catch (InterruptedException e)
-      {
-        Log.w(uiaDaemon_logcatTag, "InterruptedException while sleeping before repeating a click.");
-      }
-
+      // WISH return clickResult in deviceResponse, so we can try to click again on 'app has stopped' and other dialog boxes. Right now there is just last chance attempt in org.droidmate.exploration.VerifiableDeviceActionsExecutor.executeAndVerify()
+      boolean clickResult;
       clickResult = click(deviceCommand, clickXCoor, clickYCoor);
-
-      // WISH what does it actually mean that click failed?
       if (!clickResult)
       {
-        Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().click(%d, %d) failed for the second time. Giving up.", clickXCoor, clickYCoor)));
-      }
-      else
-        Log.d(uiaDaemon_logcatTag, "The click retry attempt succeeded.");
-    }
-  }
+        Log.d(uiaDaemon_logcatTag, (String.format("The operation device.click(%d, %d) failed (the 'click' method returned 'false'). Retrying after 2 seconds.", clickXCoor, clickYCoor)));
 
+        try
+        {
+          Thread.sleep(2000);
+        } catch (InterruptedException e)
+        {
+          Log.w(uiaDaemon_logcatTag, "InterruptedException while sleeping before repeating a click.");
+        }
+
+        clickResult = click(deviceCommand, clickXCoor, clickYCoor);
+
+        // WISH what does it actually mean that click failed?
+        if (!clickResult)
+        {
+          Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().click(%d, %d) failed for the second time. Giving up.", clickXCoor, clickYCoor)));
+        }
+        else
+          Log.d(uiaDaemon_logcatTag, "The click retry attempt succeeded.");
+      }
+    }
+
+  boolean isKeyboardOpened(){
+    for(AccessibilityWindowInfo window: InstrumentationRegistry.getInstrumentation().getUiAutomation().getWindows()){
+        if(window.getType()==AccessibilityWindowInfo.TYPE_INPUT_METHOD){
+            return true;
+        }
+    }
+    return false;
+}
 
   /**
    * Based on: http://stackoverflow.com/a/12420590/986533
@@ -275,6 +349,14 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
       waitForGuiToStabilize();
 
     return clickResult;
+  }
+
+  private boolean swipe(int startSwipeXCoor, int startSwipeYCoor, int targetSwipeXCoor, int targetSwipeYCoor){
+
+  	boolean swipeResult = this.device.swipe(startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor, 35);
+  	if (swipeResult)
+  		waitForGuiToStabilize();
+  	return swipeResult;
   }
 
   // WISH maybe waitForIdle can be set by http://developer.android.com/tools/help/uiautomator/Configurator.html#setWaitForIdleTimeout%28long%29

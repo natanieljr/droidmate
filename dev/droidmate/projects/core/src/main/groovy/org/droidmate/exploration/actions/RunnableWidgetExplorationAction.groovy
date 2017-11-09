@@ -49,21 +49,19 @@ class RunnableWidgetExplorationAction extends RunnableExplorationAction
     this.takeScreenShot = takeScreenShot
   }
 
-  protected IAndroidDeviceAction getAndroidDeviceAction(){
-    if (action.swipeAngle >= 0)
-      return newSwipeGuiDeviceAction(action.widget, action.swipeAngle)
-    else
-      return newClickGuiDeviceAction(action.widget, action.longClick)
-  }
-
-  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
+  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException
+  {
     log.debug("1. Assert only background API logs are present, if any.")
     IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
     logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
+		if(action.swipe){
+			log.debug("2. Perform widget swipe: ${action}.")
+			device.perform(newSwipeGuiDeviceAction(action.widget, action.direction))
+		} else {
     log.debug("2. Perform widget click: ${action}.")
-    device.perform(getAndroidDeviceAction())
-
+			device.perform(newClickGuiDeviceAction(action.widget, action.longClick))
+		}
     log.debug("3. Read and clear API logs if any, then seal logs reading.")
     logsHandler.readAndClearApiLogs()
     this.logs = logsHandler.getLogs()

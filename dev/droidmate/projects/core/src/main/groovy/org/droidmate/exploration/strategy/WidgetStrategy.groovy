@@ -26,11 +26,13 @@ import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiState
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.logging.Markers
 
 import static org.droidmate.exploration.actions.ExplorationAction.newIgnoreActionForTerminationWidgetExplorationAction
 import static org.droidmate.exploration.actions.ExplorationAction.newWidgetExplorationAction
+import static org.droidmate.exploration.actions.ExplorationAction.newPressBackExplorationAction
 
 @Slf4j
 @TypeChecked
@@ -44,6 +46,7 @@ class WidgetStrategy implements IWidgetStrategy
   private WidgetContext       currentWidgetContext = null
   private WidgetInfo          lastWidgetInfo       = null
   private Boolean             repeatLastAction     = false
+	private ExplorationAction   lastExplorationAction = null
 
   WidgetStrategy(
     long randomSeed,
@@ -63,25 +66,21 @@ class WidgetStrategy implements IWidgetStrategy
   @Override
   boolean updateState(IGuiState guiState, String exploredAppPackageName)
   {
+			
     currentWidgetContext = updateWidgetContexts(guiState)
 
     if (!guiState.belongsToApp(exploredAppPackageName))
     {
-      if (firstCallToUpdateState || alreadyUpdatedAfterLastDecide)
+      if (firstCallToUpdateState || alreadyUpdatedAfterLastDecide || lastExplorationAction instanceof PressBackExplorationAction )
       {
         // Do not blacklist anything, as either exploration just started or the current GUI state was not triggered by this
         // widget strategy.
       } else
       {
-        if (lastWidgetInfo == null)
-          assert guiState.isRequestRuntimePermissionDialogBox()
-        else
-        {
-          // TODO Nataniel: Review
-          //assert !lastWidgetInfo.blackListed
+        assert lastWidgetInfo != null
+        assert !lastWidgetInfo.blackListed
           lastWidgetInfo.blackListed = true
           log.debug("Blacklisted $lastWidgetInfo")
-        }
       }
     }
 
@@ -128,7 +127,7 @@ class WidgetStrategy implements IWidgetStrategy
       else
         action = biasedRandomAction()
     }
-
+		lastExplorationAction = action
     return action
   }
 
@@ -205,6 +204,10 @@ class WidgetStrategy implements IWidgetStrategy
     assert widgetContext.any {!it.blackListed}
     int minActedUponCount = widgetContext.findAll {!it.blackListed}.collect {it.actedUponCount}.min()
     Collection<WidgetInfo> candidates = widgetContext.findAll {(!it.blackListed && it.actedUponCount == minActedUponCount)}
+
+    //test normal droidmate with press back
+    //if(minActedUponCount >= 5 && (random.nextInt(10) == 2))
+    //  return newPressBackExplorationAction()
 
     WidgetInfo chosenWidgetInfo = candidates[random.nextInt(candidates.size())]
 
@@ -294,6 +297,7 @@ class WidgetStrategy implements IWidgetStrategy
     /** clicked (including checked or unchecked) + long clicked */
     int actedUponCount   = 0
     int longClickedCount = 0
+    int touchCount = 0
 
     boolean blackListed = false
 
@@ -316,7 +320,7 @@ class WidgetStrategy implements IWidgetStrategy
     @Override
      String toString()
     {
-      return "WI: bl? ${blackListed ? 1 : 0} act#: $actedUponCount lcc#: $longClickedCount ${widget.toShortString()}"
+      return "WI: bl? ${blackListed ? 1 : 0} act#: $actedUponCount lcc#: $longClickedCount tc#: $touchCount ${widget.toShortString()}"
     }
   }
 

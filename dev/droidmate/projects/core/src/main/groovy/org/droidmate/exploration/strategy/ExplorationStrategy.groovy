@@ -147,6 +147,12 @@ class ExplorationStrategy implements IExplorationStrategy
       case TerminateExplorationAction:
         // No interesting properties, but just knowing the class is useful.
         break
+			
+			case EnterTextExplorationAction:	
+				break
+				
+			case PressBackExplorationAction:	
+				break
       default:
         throw new UnexpectedIfElseFallthroughError()
     }
@@ -355,6 +361,7 @@ class ExplorationStrategy implements IExplorationStrategy
   static ExplorationStrategy build(Configuration cfg)
   {
     IWidgetStrategy widgetStrategy = new WidgetStrategy(cfg.randomSeed, cfg.alwaysClickFirstWidget, cfg.widgetIndexes)
+	
     ITerminationCriterion terminationCriterion = new TerminationCriterion(cfg, cfg.timeLimit, Ticker.systemTicker())
     IForwardExplorationSpecialCases specialCases = new ForwardExplorationSpecialCases()
     return new ExplorationStrategy(cfg.resetEveryNthExplorationForward, widgetStrategy, terminationCriterion, specialCases)

@@ -137,7 +137,8 @@ class GuiScreen implements IGuiScreen
           out = new ScreenTransitionResult(this, [])
           break
         case UiautomatorDaemonConstants.guiActionCommand_pressBack:
-          assert false: "Not yet implemented!"
+          //assert false: "Not yet implemented!"
+          out = new ScreenTransitionResult(this, [])
           break
         default:
           throw new UnexpectedIfElseFallthroughError()

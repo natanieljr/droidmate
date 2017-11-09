@@ -21,6 +21,8 @@ package org.droidmate.report
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ResetAppExplorationAction
+import org.droidmate.exploration.actions.PressBackExplorationAction
+import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 
@@ -50,6 +52,12 @@ val IApkExplorationOutput2.uniqueEventApiPairs: Set<EventApiPair>
 
 val IApkExplorationOutput2.resetActionsCount: Int
   get() = actions.count { it.base is ResetAppExplorationAction }
+
+val IApkExplorationOutput2.swipeActionsCount: Int
+  get() = actions.count { it.base is WidgetExplorationAction && (it.base as WidgetExplorationAction).isSwipe }
+
+val IApkExplorationOutput2.pressBackActionsCount: Int
+  get() = actions.count { it.base is PressBackExplorationAction }
 
 val IApkExplorationOutput2.apkFileNameWithUnderscoresForDots: String
   get() = apk.fileName.replace(".", "_")

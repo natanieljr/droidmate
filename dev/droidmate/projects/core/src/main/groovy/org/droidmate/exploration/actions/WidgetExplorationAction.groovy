@@ -28,11 +28,14 @@ import org.droidmate.device.datatypes.Widget
 class WidgetExplorationAction extends ExplorationAction
 {
 
+	public enum Direction { LEFT, RIGHT, UP, DOWN}
+
   private static final long serialVersionUID = 1
 
   Widget  widget
   boolean longClick
-  int     swipeAngle = -1
+	boolean swipe
+	Direction direction
   int     delay = 0
 
   @SuppressWarnings("unused")
@@ -49,19 +52,13 @@ class WidgetExplorationAction extends ExplorationAction
   @Override
   String toShortString()
   {
-    if (swipeAngle >= 0)
-      return "SW $swipeAngle " + widget.toShortString()
-    else
-      return "LC? ${longClick ? 1 : 0} " + widget.toShortString()
+    "SW? ${swipe ? 1 : 0 } LC? ${longClick ? 1 : 0} " + widget.toShortString()
   }
 
   @Override
   String toTabulatedString()
   {
-    if (swipeAngle >= 0)
-      return "SW $swipeAngle " + widget.toTabulatedString()
-    else
-      return "LC? ${longClick ? 1 : 0} " + widget.toTabulatedString()
+    "SW? ${swipe ? 1 : 0 } LC? ${longClick ? 1 : 0} " + widget.toTabulatedString()
   }
 }
 
