@@ -44,7 +44,7 @@ uploadArchives {
         //repository(url: "file:///Users/nataniel/Downloads/myRepo/")
 
         // Https
-        repository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/")
+        repository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/")
 
         // SSH
         //repository(url: "scp://repos.mycompany.com/releases") {
