@@ -86,10 +86,10 @@ abstract class ExplorationAction implements Serializable
   {
     return new TerminateExplorationAction()
   }
-  
-  static WidgetExplorationAction newWidgetExplorationAction(Widget widget, int delay, int swipeAngle = -1)
+
+  static WidgetExplorationAction newWidgetExplorationAction(Widget widget, int delay)
   {
-    return new WidgetExplorationAction(widget: widget, runtimePermission: false, delay: delay, swipeAngle: swipeAngle)
+    return new WidgetExplorationAction(widget: widget, runtimePermission: false, delay: delay)
   }
 
   static WidgetExplorationAction newWidgetExplorationAction(Widget widget, boolean longClick = false)

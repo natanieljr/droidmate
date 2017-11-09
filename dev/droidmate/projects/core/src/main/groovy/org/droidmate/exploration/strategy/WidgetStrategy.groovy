@@ -77,10 +77,15 @@ class WidgetStrategy implements IWidgetStrategy
         // widget strategy.
       } else
       {
-        assert lastWidgetInfo != null
-        assert !lastWidgetInfo.blackListed
+        if (lastWidgetInfo == null)
+          assert guiState.isRequestRuntimePermissionDialogBox()
+        else
+        {
+          // TODO Nataniel: Review
+          //assert !lastWidgetInfo.blackListed
           lastWidgetInfo.blackListed = true
           log.debug("Blacklisted $lastWidgetInfo")
+        }
       }
     }
 

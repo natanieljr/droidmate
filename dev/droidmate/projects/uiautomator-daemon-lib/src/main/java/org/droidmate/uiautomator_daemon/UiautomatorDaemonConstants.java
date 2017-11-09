@@ -70,11 +70,6 @@ public class UiautomatorDaemonConstants
   public static final String guiActionCommand_turnWifiOn = "turn_wifi_on";
   public static final String guiActionCommand_launchApp  = "launch_app";
 
-  public static final int guiActionSwipe_right = 0;
-  public static final int guiActionSwipe_up = 90;
-  public static final int guiActionSwipe_left = 180;
-  public static final int guiActionSwipe_down = 270;
-
   public static final String uiaDaemonParam_waitForGuiToStabilize      = "wait_for_gui_to_stabilize";
   public static final String uiaDaemonParam_waitForWindowUpdateTimeout = "wait_for_window_update_timeout";
   public static final String uiaDaemonParam_tcpPort                    = "uiadaemon_server_tcp_port";

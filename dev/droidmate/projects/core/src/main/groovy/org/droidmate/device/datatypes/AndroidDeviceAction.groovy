@@ -26,13 +26,7 @@ import java.awt.*
 
 abstract class AndroidDeviceAction implements IAndroidDeviceAction
 {
-  static ClickGuiAction newSwipeGuiDeviceAction(Widget clickedWidget, int swipeAngle)
-  {
-    Point p = clickedWidget.clickPoint
-    return new ClickGuiAction(GuiAction.createSwipeAction(p.x as int, p.y as int, swipeAngle))
-  }
-
-	static ClickGuiAction newSwipeGuiDeviceAction(Widget widget, Direction direction){
+  static ClickGuiAction newSwipeGuiDeviceAction(Widget widget, Direction direction){
 		double swipe_percentage = 0.8
 		def (Point startPoint , Point targetPoint) = widget.getSwipePoints(direction, swipe_percentage)
 		return new ClickGuiAction(new GuiAction(startPoint.x as int, startPoint.y as int, targetPoint.x as int, targetPoint.y as int))
