@@ -14,6 +14,13 @@ task droidmateBuild(type: GradleBuild) {
   tasks = ["clean", "build", "install"]
 }
 
+task droidmatePublish(type: GradleBuild) {
+  group = "build"
+
+  buildFile = file "dev/droidmate/build.gradle"
+  tasks = ["clean", "build", "uploadArchives"]
+}
+
 task droidmateUsageExamplesBuild(type: GradleBuild) {
   group = "build"
   
