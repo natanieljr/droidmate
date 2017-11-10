@@ -9,7 +9,6 @@
 
 task droidmateBuild(type: GradleBuild) { 
   group = "build"
-
   buildFile = file "dev/droidmate/build.gradle"
   tasks = ["clean", "build", "install"]
 }

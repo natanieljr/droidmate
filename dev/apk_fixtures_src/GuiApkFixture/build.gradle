@@ -10,10 +10,11 @@ buildscript {
     // Reference: http://stackoverflow.com/a/35186295/986533
     System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
     repositories {
+	google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.android.tools.build:gradle:2.3.3'
     }
 }
 

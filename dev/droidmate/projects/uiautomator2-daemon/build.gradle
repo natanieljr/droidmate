@@ -20,10 +20,11 @@ apply plugin: 'com.android.application'
 apply plugin: 'project-report'
 buildscript {
   repositories {
+    google()
     jcenter()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:2.2.0'
+    classpath 'com.android.tools.build:gradle:2.3.3'
   }
 }
 
@@ -61,7 +62,7 @@ dependencies {
   androidTestCompile project(':uiautomator-daemon-lib')
 
   androidTestCompile 'commons-io:commons-io:2.4'
-  androidTestCompile 'com.google.guava:guava:18.0'
+  androidTestCompile 'com.google.guava:guava:19.0'
   // Testing-only dependencies
   // Force usage of support annotations in the test app, since it is internally used by the runner module.
   androidTestCompile 'com.android.support:support-annotations:23.3.0'
