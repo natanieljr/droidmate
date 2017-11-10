@@ -48,7 +48,7 @@ uploadArchives {
             authentication(userName: "$System.env.nexusUser", password: "$System.env.nexusPW"
         }
         snapshotRepository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/"){
-            authentication(userName: "$System.env.nexusUser", password: "$System.env.nexusPW"
+            authentication(userName: "$System.env.nexusUser", password: "$System.env.nexusPW")
         }
 
         // SSH
