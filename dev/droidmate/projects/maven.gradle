@@ -44,8 +44,12 @@ uploadArchives {
         //repository(url: "file:///Users/nataniel/Downloads/myRepo/")
 
         // Https
-        repository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/")
-        snapshotRepository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/")
+        repository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/"){
+            authentication(userName: "$System.env.nexusUser", password: "$System.env.nexusPW"
+        }
+        snapshotRepository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/"){
+            authentication(userName: "$System.env.nexusUser", password: "$System.env.nexusPW"
+        }
 
         // SSH
         //repository(url: "scp://repos.mycompany.com/releases") {
