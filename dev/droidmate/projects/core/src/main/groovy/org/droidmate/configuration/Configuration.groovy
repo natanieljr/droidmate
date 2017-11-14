@@ -105,6 +105,7 @@ import java.nio.file.Path
   public static final String pn_launchActivityDelay                          = "-launchActivityDelay"
   public static final String pn_launchActivityTimeout                        = "-launchActivityTimeout"
   public static final String pn_monitorSocketTimeout                         = "-monitorSocketTimeout"
+  public static final String pn_monitorUseLogcat                             = "-monitorUseLogcat"
   public static final String pn_randomSeed                                   = "-randomSeed"
   public static final String pn_reportIncludePlots                           = "-reportIncludePlots"
   public static final String pn_reportInputDir                               = "-reportInputDir"
@@ -250,6 +251,9 @@ import java.nio.file.Path
 
   @Parameter(names = [Configuration.pn_monitorSocketTimeout], arity = 1)
   public int monitorSocketTimeout = 1 * 60 * 1000 // ms
+
+  @Parameter(names = [Configuration.pn_monitorUseLogcat], arity = 1)
+  public boolean monitorUseLogcat = false
 
   @Parameter(names = [Configuration.pn_uninstallApk], arity = 1)
   public boolean uninstallApk = true

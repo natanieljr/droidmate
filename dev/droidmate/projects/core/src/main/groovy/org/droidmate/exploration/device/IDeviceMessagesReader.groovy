@@ -23,7 +23,7 @@ import org.droidmate.apis.IApiLogcatMessage
 
 interface IDeviceMessagesReader
 {
-  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer() throws DeviceException
+  List<IApiLogcatMessage> getAndClearCurrentApiLogs() throws DeviceException
 
   void resetTimeSync()
 }

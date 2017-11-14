@@ -37,9 +37,11 @@ class DeviceMessagesReader implements IDeviceMessagesReader
 {
   private final IApiLogsReader  apiLogsReader
   private final IDeviceTimeDiff deviceTimeDiff
+  private final boolean useLogcat;
 
-  DeviceMessagesReader(IExplorableAndroidDevice device)
+  DeviceMessagesReader(IExplorableAndroidDevice device, boolean useLogcat = false)
   {
+    this.useLogcat = useLogcat
     this.apiLogsReader = new ApiLogsReader(device)
     this.deviceTimeDiff = new DeviceTimeDiff(device)
   }
@@ -51,7 +53,20 @@ class DeviceMessagesReader implements IDeviceMessagesReader
   }
 
   @Override
-  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer() throws DeviceException
+  List<IApiLogcatMessage> getAndClearCurrentApiLogs() throws DeviceException{
+    if (useLogcat)
+      return this.getAndClearCurrentApiLogsFromLogcat()
+    else
+      return this.getAndClearCurrentApiLogsFromMonitorTcpServer()
+  }
+
+  @Deprecated
+  private List<IApiLogcatMessage> getAndClearCurrentApiLogsFromLogcat() throws DeviceException
+  {
+    return apiLogsReader.getCurrentApiLogsFromLogcat(deviceTimeDiff)
+  }
+
+  private List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer() throws DeviceException
   {
     return apiLogsReader.getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)
   }

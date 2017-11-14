@@ -79,7 +79,7 @@ class DeviceLogsHandler implements IDeviceLogsHandler
 
   private List<IApiLogcatMessage> _readAndClearApiLogs() throws DeviceException
   {
-    def logs = this.device.getAndClearCurrentApiLogsFromMonitorTcpServer()
+    def logs = this.device.getAndClearCurrentApiLogs()
     assert logs != null
     return logs
   }

@@ -82,7 +82,8 @@ class RobustDevice implements IRobustDevice
       cfg.checkDeviceAvailableAfterRebootAttempts,
       cfg.checkDeviceAvailableAfterRebootFirstDelay,
       cfg.checkDeviceAvailableAfterRebootLaterDelays,
-      cfg.waitForCanRebootDelay)
+      cfg.waitForCanRebootDelay,
+      cfg.monitorUseLogcat)
   }
 
   RobustDevice(IAndroidDevice device,
@@ -99,10 +100,11 @@ class RobustDevice implements IRobustDevice
                int checkDeviceAvailableAfterRebootAttempts,
                int checkDeviceAvailableAfterRebootFirstDelay,
                int checkDeviceAvailableAfterRebootLaterDelays,
-               int waitForCanRebootDelay)
+               int waitForCanRebootDelay,
+               boolean monitorUseLogcat)
   {
     this.device = device
-    this.messagesReader = new DeviceMessagesReader(device)
+    this.messagesReader = new DeviceMessagesReader(device, monitorUseLogcat)
 
     this.clearPackageRetryAttempts = clearPackageRetryAttempts
     this.clearPackageRetryDelay = clearPackageRetryDelay
@@ -540,9 +542,9 @@ class RobustDevice implements IRobustDevice
 
 
   @Override
-  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer() throws DeviceException
+  List<IApiLogcatMessage> getAndClearCurrentApiLogs() throws DeviceException
   {
-    return rebootIfNecessary("messagesReader.getAndClearCurrentApiLogsFromMonitorTcpServer()", true) {this.messagesReader.getAndClearCurrentApiLogsFromMonitorTcpServer()}
+    return rebootIfNecessary("messagesReader.getAndClearCurrentApiLogs()", true) {this.messagesReader.getAndClearCurrentApiLogs()}
   }
 
   @Override
