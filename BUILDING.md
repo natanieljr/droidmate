@@ -34,7 +34,7 @@ To configure your local setup, do the following:
   * Extras / Intel x86 Emulator Accelerator (HAXM Installer) (if you want to use emulator on Windows)
 * Install gnuplot 4.4.3 or newer, e.g. [from sourceforge](https://sourceforge.net/projects/gnuplot/files/gnuplot). Add `gnuplot/bin` directory to the `PATH` environment variable.
   * On Mac OS X you will have to install gnuplot together with `pdf` terminal. Using homebrew you can do this by doing 
-  `brew install gnuplot --with-pdflib-lite`.
+  `brew install gnuplot --with-cairo` (--with-pdf-lite was removed).
 * Set `GRADLE_USER_HOME` environment variable to a directory in which Gradle will locally cache the dependencies downloaded from maven repository ([Gradle doc about environment variables](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_properties_and_system_properties)). (optional)
 
 ## First build ##
