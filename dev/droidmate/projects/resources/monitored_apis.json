@@ -8,7 +8,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/app/ActivityThread;->installContentProviders(Landroid/content/Context;Ljava/util/List;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.app.ActivityThread; mthd: installContentProviders; retCls: void; params: android.content.Context \\\"\" +objectToString(p0)+ \"\\\" java.util.List \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.app.ActivityThread\\\";mthd: \\\"installContentProviders\\\";retCls: \\\"void\\\";params: android.content.Context \\\"\" +objectToString(p0)+ \"\\\" java.util.List \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "installContentProviders",
       "paramList": [
         "android.content.Context",
@@ -26,7 +26,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/app/ActivityManager;->getRecentTasks(II)Ljava/util/List;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.app.ActivityManager; mthd: getRecentTasks; retCls: java.util.List; params: int \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.app.ActivityManager\\\";mthd: \\\"getRecentTasks\\\";retCls: \\\"java.util.List\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getRecentTasks",
       "paramList": [
         "int",
@@ -44,7 +44,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/app/ActivityManager;->getRunningTasks(I)Ljava/util/List;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.app.ActivityManager; mthd: getRunningTasks; retCls: java.util.List; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.app.ActivityManager\\\";mthd: \\\"getRunningTasks\\\";retCls: \\\"java.util.List\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getRunningTasks",
       "paramList": [
         "int"
@@ -61,7 +61,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/bluetooth/BluetoothHeadset;->startVoiceRecognition(Landroid/bluetooth/BluetoothDevice;)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.bluetooth.BluetoothHeadset; mthd: startVoiceRecognition; retCls: boolean; params: android.bluetooth.BluetoothDevice \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.bluetooth.BluetoothHeadset\\\";mthd: \\\"startVoiceRecognition\\\";retCls: \\\"boolean\\\";params: android.bluetooth.BluetoothDevice \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "startVoiceRecognition",
       "paramList": [
         "android.bluetooth.BluetoothDevice"
@@ -78,7 +78,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/bluetooth/BluetoothHeadset;->stopVoiceRecognition(Landroid/bluetooth/BluetoothDevice;)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.bluetooth.BluetoothHeadset; mthd: stopVoiceRecognition; retCls: boolean; params: android.bluetooth.BluetoothDevice \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.bluetooth.BluetoothHeadset\\\";mthd: \\\"stopVoiceRecognition\\\";retCls: \\\"boolean\\\";params: android.bluetooth.BluetoothDevice \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "stopVoiceRecognition",
       "paramList": [
         "android.bluetooth.BluetoothDevice"
@@ -95,7 +95,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invokeStatic (p0);\n        return (android.hardware.Camera) monitorHook.hookAfterApiCall(logSignature, (android.hardware.Camera) returnVal);\n    ",
       "isStatic": true,
       "jniSignature": "Landroid/hardware/Camera;->open(I)Landroid/hardware/Camera; static",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.hardware.Camera; mthd: open; retCls: android.hardware.Camera; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.hardware.Camera\\\";mthd: \\\"open\\\";retCls: \\\"android.hardware.Camera\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "open",
       "paramList": [
         "int"
@@ -112,7 +112,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->addGpsStatusListener(Landroid/location/GpsStatus$Listener;)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: addGpsStatusListener; retCls: boolean; params: android.location.GpsStatus.Listener \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"addGpsStatusListener\\\";retCls: \\\"boolean\\\";params: android.location.GpsStatus.Listener \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "addGpsStatusListener",
       "paramList": [
         "android.location.GpsStatus.Listener"
@@ -129,7 +129,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->addNmeaListener(Landroid/location/GpsStatus$NmeaListener;)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: addNmeaListener; retCls: boolean; params: android.location.GpsStatus.NmeaListener \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"addNmeaListener\\\";retCls: \\\"boolean\\\";params: android.location.GpsStatus.NmeaListener \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "addNmeaListener",
       "paramList": [
         "android.location.GpsStatus.NmeaListener"
@@ -146,7 +146,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->addProximityAlert(DDFJLandroid/app/PendingIntent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: addProximityAlert; retCls: void; params: double \\\"\" +objectToString(p0)+ \"\\\" double \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" long \\\"\" +objectToString(p3)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p4)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"addProximityAlert\\\";retCls: \\\"void\\\";params: double \\\"\" +objectToString(p0)+ \"\\\" double \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" long \\\"\" +objectToString(p3)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p4)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "addProximityAlert",
       "paramList": [
         "double",
@@ -167,7 +167,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->addTestProvider(Ljava/lang/String;ZZZZZZZII)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: addTestProvider; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" boolean \\\"\" +objectToString(p2)+ \"\\\" boolean \\\"\" +objectToString(p3)+ \"\\\" boolean \\\"\" +objectToString(p4)+ \"\\\" boolean \\\"\" +objectToString(p5)+ \"\\\" boolean \\\"\" +objectToString(p6)+ \"\\\" boolean \\\"\" +objectToString(p7)+ \"\\\" int \\\"\" +objectToString(p8)+ \"\\\" int \\\"\" +objectToString(p9)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"addTestProvider\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" boolean \\\"\" +objectToString(p2)+ \"\\\" boolean \\\"\" +objectToString(p3)+ \"\\\" boolean \\\"\" +objectToString(p4)+ \"\\\" boolean \\\"\" +objectToString(p5)+ \"\\\" boolean \\\"\" +objectToString(p6)+ \"\\\" boolean \\\"\" +objectToString(p7)+ \"\\\" int \\\"\" +objectToString(p8)+ \"\\\" int \\\"\" +objectToString(p9)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "addTestProvider",
       "paramList": [
         "java.lang.String",
@@ -193,7 +193,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->clearTestProviderEnabled(Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: clearTestProviderEnabled; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"clearTestProviderEnabled\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "clearTestProviderEnabled",
       "paramList": [
         "java.lang.String"
@@ -210,7 +210,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->clearTestProviderLocation(Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: clearTestProviderLocation; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"clearTestProviderLocation\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "clearTestProviderLocation",
       "paramList": [
         "java.lang.String"
@@ -227,7 +227,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->clearTestProviderStatus(Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: clearTestProviderStatus; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"clearTestProviderStatus\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "clearTestProviderStatus",
       "paramList": [
         "java.lang.String"
@@ -244,7 +244,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->getBestProvider(Landroid/location/Criteria;Z)Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: getBestProvider; retCls: java.lang.String; params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"getBestProvider\\\";retCls: \\\"java.lang.String\\\";params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getBestProvider",
       "paramList": [
         "android.location.Criteria",
@@ -262,7 +262,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (android.location.Location) monitorHook.hookAfterApiCall(logSignature, (android.location.Location) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->getLastKnownLocation(Ljava/lang/String;)Landroid/location/Location;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: getLastKnownLocation; retCls: android.location.Location; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"getLastKnownLocation\\\";retCls: \\\"android.location.Location\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getLastKnownLocation",
       "paramList": [
         "java.lang.String"
@@ -279,7 +279,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (android.location.LocationProvider) monitorHook.hookAfterApiCall(logSignature, (android.location.LocationProvider) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->getProvider(Ljava/lang/String;)Landroid/location/LocationProvider;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: getProvider; retCls: android.location.LocationProvider; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"getProvider\\\";retCls: \\\"android.location.LocationProvider\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getProvider",
       "paramList": [
         "java.lang.String"
@@ -296,7 +296,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->getProviders(Landroid/location/Criteria;Z)Ljava/util/List;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: getProviders; retCls: java.util.List; params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"getProviders\\\";retCls: \\\"java.util.List\\\";params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getProviders",
       "paramList": [
         "android.location.Criteria",
@@ -314,7 +314,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->getProviders(Z)Ljava/util/List;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: getProviders; retCls: java.util.List; params: boolean \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"getProviders\\\";retCls: \\\"java.util.List\\\";params: boolean \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getProviders",
       "paramList": [
         "boolean"
@@ -331,7 +331,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->isProviderEnabled(Ljava/lang/String;)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: isProviderEnabled; retCls: boolean; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"isProviderEnabled\\\";retCls: \\\"boolean\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "isProviderEnabled",
       "paramList": [
         "java.lang.String"
@@ -348,7 +348,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->removeTestProvider(Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: removeTestProvider; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"removeTestProvider\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "removeTestProvider",
       "paramList": [
         "java.lang.String"
@@ -365,7 +365,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestLocationUpdates(JFLandroid/location/Criteria;Landroid/app/PendingIntent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestLocationUpdates; retCls: void; params: long \\\"\" +objectToString(p0)+ \"\\\" float \\\"\" +objectToString(p1)+ \"\\\" android.location.Criteria \\\"\" +objectToString(p2)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestLocationUpdates\\\";retCls: \\\"void\\\";params: long \\\"\" +objectToString(p0)+ \"\\\" float \\\"\" +objectToString(p1)+ \"\\\" android.location.Criteria \\\"\" +objectToString(p2)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestLocationUpdates",
       "paramList": [
         "long",
@@ -385,7 +385,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestLocationUpdates(JFLandroid/location/Criteria;Landroid/location/LocationListener;Landroid/os/Looper;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestLocationUpdates; retCls: void; params: long \\\"\" +objectToString(p0)+ \"\\\" float \\\"\" +objectToString(p1)+ \"\\\" android.location.Criteria \\\"\" +objectToString(p2)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p3)+ \"\\\" android.os.Looper \\\"\" +objectToString(p4)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestLocationUpdates\\\";retCls: \\\"void\\\";params: long \\\"\" +objectToString(p0)+ \"\\\" float \\\"\" +objectToString(p1)+ \"\\\" android.location.Criteria \\\"\" +objectToString(p2)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p3)+ \"\\\" android.os.Looper \\\"\" +objectToString(p4)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestLocationUpdates",
       "paramList": [
         "long",
@@ -406,7 +406,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestLocationUpdates(Ljava/lang/String;JFLandroid/app/PendingIntent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestLocationUpdates; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" long \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestLocationUpdates\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" long \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestLocationUpdates",
       "paramList": [
         "java.lang.String",
@@ -426,7 +426,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestLocationUpdates(Ljava/lang/String;JFLandroid/location/LocationListener;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestLocationUpdates; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" long \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestLocationUpdates\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" long \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestLocationUpdates",
       "paramList": [
         "java.lang.String",
@@ -446,7 +446,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestLocationUpdates(Ljava/lang/String;JFLandroid/location/LocationListener;Landroid/os/Looper;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestLocationUpdates; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" long \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p3)+ \"\\\" android.os.Looper \\\"\" +objectToString(p4)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestLocationUpdates\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" long \\\"\" +objectToString(p1)+ \"\\\" float \\\"\" +objectToString(p2)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p3)+ \"\\\" android.os.Looper \\\"\" +objectToString(p4)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestLocationUpdates",
       "paramList": [
         "java.lang.String",
@@ -467,7 +467,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestSingleUpdate(Landroid/location/Criteria;Landroid/app/PendingIntent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestSingleUpdate; retCls: void; params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestSingleUpdate\\\";retCls: \\\"void\\\";params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestSingleUpdate",
       "paramList": [
         "android.location.Criteria",
@@ -485,7 +485,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestSingleUpdate(Landroid/location/Criteria;Landroid/location/LocationListener;Landroid/os/Looper;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestSingleUpdate; retCls: void; params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p1)+ \"\\\" android.os.Looper \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestSingleUpdate\\\";retCls: \\\"void\\\";params: android.location.Criteria \\\"\" +objectToString(p0)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p1)+ \"\\\" android.os.Looper \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestSingleUpdate",
       "paramList": [
         "android.location.Criteria",
@@ -504,7 +504,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestSingleUpdate(Ljava/lang/String;Landroid/app/PendingIntent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestSingleUpdate; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestSingleUpdate\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestSingleUpdate",
       "paramList": [
         "java.lang.String",
@@ -522,7 +522,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->requestSingleUpdate(Ljava/lang/String;Landroid/location/LocationListener;Landroid/os/Looper;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: requestSingleUpdate; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p1)+ \"\\\" android.os.Looper \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"requestSingleUpdate\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" android.location.LocationListener \\\"\" +objectToString(p1)+ \"\\\" android.os.Looper \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestSingleUpdate",
       "paramList": [
         "java.lang.String",
@@ -541,7 +541,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->sendExtraCommand(Ljava/lang/String;Ljava/lang/String;Landroid/os/Bundle;)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: sendExtraCommand; retCls: boolean; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.Bundle \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"sendExtraCommand\\\";retCls: \\\"boolean\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.Bundle \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "sendExtraCommand",
       "paramList": [
         "java.lang.String",
@@ -560,7 +560,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->setTestProviderEnabled(Ljava/lang/String;Z)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: setTestProviderEnabled; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"setTestProviderEnabled\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setTestProviderEnabled",
       "paramList": [
         "java.lang.String",
@@ -578,7 +578,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->setTestProviderLocation(Ljava/lang/String;Landroid/location/Location;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: setTestProviderLocation; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" android.location.Location \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"setTestProviderLocation\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" android.location.Location \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setTestProviderLocation",
       "paramList": [
         "java.lang.String",
@@ -596,7 +596,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/location/LocationManager;->setTestProviderStatus(Ljava/lang/String;ILandroid/os/Bundle;J)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.location.LocationManager; mthd: setTestProviderStatus; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" android.os.Bundle \\\"\" +objectToString(p2)+ \"\\\" long \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.location.LocationManager\\\";mthd: \\\"setTestProviderStatus\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" android.os.Bundle \\\"\" +objectToString(p2)+ \"\\\" long \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setTestProviderStatus",
       "paramList": [
         "java.lang.String",
@@ -616,7 +616,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->isBluetoothA2dpOn()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: isBluetoothA2dpOn; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"isBluetoothA2dpOn\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "isBluetoothA2dpOn",
       "paramList": [],
       "platformVersion": "All",
@@ -631,7 +631,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->isWiredHeadsetOn()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: isWiredHeadsetOn; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"isWiredHeadsetOn\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "isWiredHeadsetOn",
       "paramList": [],
       "platformVersion": "All",
@@ -646,7 +646,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->setBluetoothScoOn(Z)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: setBluetoothScoOn; retCls: void; params: boolean \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"setBluetoothScoOn\\\";retCls: \\\"void\\\";params: boolean \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setBluetoothScoOn",
       "paramList": [
         "boolean"
@@ -663,7 +663,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->setMicrophoneMute(Z)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: setMicrophoneMute; retCls: void; params: boolean \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"setMicrophoneMute\\\";retCls: \\\"void\\\";params: boolean \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setMicrophoneMute",
       "paramList": [
         "boolean"
@@ -680,7 +680,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->setMode(I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: setMode; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"setMode\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setMode",
       "paramList": [
         "int"
@@ -697,7 +697,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->setParameter(Ljava/lang/String;Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: setParameter; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"setParameter\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setParameter",
       "paramList": [
         "java.lang.String",
@@ -715,7 +715,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->setParameters(Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: setParameters; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"setParameters\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setParameters",
       "paramList": [
         "java.lang.String"
@@ -732,7 +732,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->setSpeakerphoneOn(Z)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: setSpeakerphoneOn; retCls: void; params: boolean \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"setSpeakerphoneOn\\\";retCls: \\\"void\\\";params: boolean \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setSpeakerphoneOn",
       "paramList": [
         "boolean"
@@ -749,7 +749,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->startBluetoothSco()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: startBluetoothSco; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"startBluetoothSco\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "startBluetoothSco",
       "paramList": [],
       "platformVersion": "All",
@@ -764,7 +764,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioManager;->stopBluetoothSco()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioManager; mthd: stopBluetoothSco; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioManager\\\";mthd: \\\"stopBluetoothSco\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "stopBluetoothSco",
       "paramList": [],
       "platformVersion": "All",
@@ -779,7 +779,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/AudioRecord;-><init>(IIIII)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.AudioRecord; mthd: <init>; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" int \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" int \\\"\" +objectToString(p4)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.AudioRecord\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" int \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" int \\\"\" +objectToString(p4)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "int",
@@ -800,7 +800,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/MediaPlayer;->setWakeMode(Landroid/content/Context;I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.MediaPlayer; mthd: setWakeMode; retCls: void; params: android.content.Context \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.MediaPlayer\\\";mthd: \\\"setWakeMode\\\";retCls: \\\"void\\\";params: android.content.Context \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setWakeMode",
       "paramList": [
         "android.content.Context",
@@ -818,7 +818,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/MediaRecorder;->setAudioSource(I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.MediaRecorder; mthd: setAudioSource; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.MediaRecorder\\\";mthd: \\\"setAudioSource\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setAudioSource",
       "paramList": [
         "int"
@@ -835,7 +835,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/media/MediaRecorder;->setVideoSource(I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.media.MediaRecorder; mthd: setVideoSource; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.media.MediaRecorder\\\";mthd: \\\"setVideoSource\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setVideoSource",
       "paramList": [
         "int"
@@ -852,7 +852,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/ConnectivityManager;->requestRouteToHost(II)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.ConnectivityManager; mthd: requestRouteToHost; retCls: boolean; params: int \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.ConnectivityManager\\\";mthd: \\\"requestRouteToHost\\\";retCls: \\\"boolean\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "requestRouteToHost",
       "paramList": [
         "int",
@@ -870,7 +870,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/ConnectivityManager;->setNetworkPreference(I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.ConnectivityManager; mthd: setNetworkPreference; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.ConnectivityManager\\\";mthd: \\\"setNetworkPreference\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setNetworkPreference",
       "paramList": [
         "int"
@@ -887,7 +887,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/ConnectivityManager;->startUsingNetworkFeature(ILjava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.ConnectivityManager; mthd: startUsingNetworkFeature; retCls: int; params: int \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.ConnectivityManager\\\";mthd: \\\"startUsingNetworkFeature\\\";retCls: \\\"int\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "startUsingNetworkFeature",
       "paramList": [
         "int",
@@ -905,7 +905,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/ConnectivityManager;->stopUsingNetworkFeature(ILjava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.ConnectivityManager; mthd: stopUsingNetworkFeature; retCls: int; params: int \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.ConnectivityManager\\\";mthd: \\\"stopUsingNetworkFeature\\\";retCls: \\\"int\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "stopUsingNetworkFeature",
       "paramList": [
         "int",
@@ -923,7 +923,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/ConnectivityManager;->tether(Ljava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.ConnectivityManager; mthd: tether; retCls: int; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.ConnectivityManager\\\";mthd: \\\"tether\\\";retCls: \\\"int\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "tether",
       "paramList": [
         "java.lang.String"
@@ -940,7 +940,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/ConnectivityManager;->untether(Ljava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.ConnectivityManager; mthd: untether; retCls: int; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.ConnectivityManager\\\";mthd: \\\"untether\\\";retCls: \\\"int\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "untether",
       "paramList": [
         "java.lang.String"
@@ -957,7 +957,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager$MulticastLock;->acquire()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager$MulticastLock; mthd: acquire; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager$MulticastLock\\\";mthd: \\\"acquire\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "acquire",
       "paramList": [],
       "platformVersion": "All",
@@ -972,7 +972,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager$MulticastLock;->release()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager$MulticastLock; mthd: release; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager$MulticastLock\\\";mthd: \\\"release\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "release",
       "paramList": [],
       "platformVersion": "All",
@@ -987,7 +987,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager$WifiLock;->acquire()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager$WifiLock; mthd: acquire; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager$WifiLock\\\";mthd: \\\"acquire\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "acquire",
       "paramList": [],
       "platformVersion": "All",
@@ -1002,7 +1002,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager$WifiLock;->release()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager$WifiLock; mthd: release; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager$WifiLock\\\";mthd: \\\"release\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "release",
       "paramList": [],
       "platformVersion": "All",
@@ -1017,7 +1017,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->addNetwork(Landroid/net/wifi/WifiConfiguration;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: addNetwork; retCls: int; params: android.net.wifi.WifiConfiguration \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"addNetwork\\\";retCls: \\\"int\\\";params: android.net.wifi.WifiConfiguration \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "addNetwork",
       "paramList": [
         "android.net.wifi.WifiConfiguration"
@@ -1034,7 +1034,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->disableNetwork(I)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: disableNetwork; retCls: boolean; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"disableNetwork\\\";retCls: \\\"boolean\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "disableNetwork",
       "paramList": [
         "int"
@@ -1051,7 +1051,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->disconnect()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: disconnect; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"disconnect\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "disconnect",
       "paramList": [],
       "platformVersion": "All",
@@ -1066,7 +1066,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->enableNetwork(IZ)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: enableNetwork; retCls: boolean; params: int \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"enableNetwork\\\";retCls: \\\"boolean\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "enableNetwork",
       "paramList": [
         "int",
@@ -1084,7 +1084,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->initializeMulticastFiltering()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: initializeMulticastFiltering; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"initializeMulticastFiltering\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "initializeMulticastFiltering",
       "paramList": [],
       "platformVersion": "All",
@@ -1099,7 +1099,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->pingSupplicant()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: pingSupplicant; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"pingSupplicant\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "pingSupplicant",
       "paramList": [],
       "platformVersion": "All",
@@ -1114,7 +1114,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->reassociate()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: reassociate; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"reassociate\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "reassociate",
       "paramList": [],
       "platformVersion": "All",
@@ -1129,7 +1129,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->reconnect()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: reconnect; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"reconnect\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "reconnect",
       "paramList": [],
       "platformVersion": "All",
@@ -1144,7 +1144,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->removeNetwork(I)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: removeNetwork; retCls: boolean; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"removeNetwork\\\";retCls: \\\"boolean\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "removeNetwork",
       "paramList": [
         "int"
@@ -1161,7 +1161,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->saveConfiguration()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: saveConfiguration; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"saveConfiguration\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "saveConfiguration",
       "paramList": [],
       "platformVersion": "All",
@@ -1176,7 +1176,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->setWifiApEnabled(Landroid/net/wifi/WifiConfiguration;Z)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: setWifiApEnabled; retCls: boolean; params: android.net.wifi.WifiConfiguration \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"setWifiApEnabled\\\";retCls: \\\"boolean\\\";params: android.net.wifi.WifiConfiguration \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setWifiApEnabled",
       "paramList": [
         "android.net.wifi.WifiConfiguration",
@@ -1194,7 +1194,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->setWifiEnabled(Z)Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: setWifiEnabled; retCls: boolean; params: boolean \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"setWifiEnabled\\\";retCls: \\\"boolean\\\";params: boolean \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "setWifiEnabled",
       "paramList": [
         "boolean"
@@ -1211,7 +1211,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (Boolean) monitorHook.hookAfterApiCall(logSignature, (Boolean) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/net/wifi/WifiManager;->startScan()Z",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.net.wifi.WifiManager; mthd: startScan; retCls: boolean; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.net.wifi.WifiManager\\\";mthd: \\\"startScan\\\";retCls: \\\"boolean\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "startScan",
       "paramList": [],
       "platformVersion": "All",
@@ -1226,7 +1226,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/os/PowerManager$WakeLock;->acquire()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.os.PowerManager$WakeLock; mthd: acquire; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.os.PowerManager$WakeLock\\\";mthd: \\\"acquire\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "acquire",
       "paramList": [],
       "platformVersion": "All",
@@ -1241,7 +1241,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/os/PowerManager$WakeLock;->acquire(J)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.os.PowerManager$WakeLock; mthd: acquire; retCls: void; params: long \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.os.PowerManager$WakeLock\\\";mthd: \\\"acquire\\\";retCls: \\\"void\\\";params: long \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "acquire",
       "paramList": [
         "long"
@@ -1258,7 +1258,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/os/PowerManager$WakeLock;->release(I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.os.PowerManager$WakeLock; mthd: release; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.os.PowerManager$WakeLock\\\";mthd: \\\"release\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "release",
       "paramList": [
         "int"
@@ -1275,7 +1275,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/speech/SpeechRecognizer;->cancel()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.speech.SpeechRecognizer; mthd: cancel; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.speech.SpeechRecognizer\\\";mthd: \\\"cancel\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "cancel",
       "paramList": [],
       "platformVersion": "All",
@@ -1290,7 +1290,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/speech/SpeechRecognizer;->handleCancelMessage()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.speech.SpeechRecognizer; mthd: handleCancelMessage; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.speech.SpeechRecognizer\\\";mthd: \\\"handleCancelMessage\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "handleCancelMessage",
       "paramList": [],
       "platformVersion": "All",
@@ -1305,7 +1305,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/speech/SpeechRecognizer;->handleStartListening(Landroid/content/Intent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.speech.SpeechRecognizer; mthd: handleStartListening; retCls: void; params: android.content.Intent \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.speech.SpeechRecognizer\\\";mthd: \\\"handleStartListening\\\";retCls: \\\"void\\\";params: android.content.Intent \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "handleStartListening",
       "paramList": [
         "android.content.Intent"
@@ -1322,7 +1322,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/speech/SpeechRecognizer;->handleStopMessage()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.speech.SpeechRecognizer; mthd: handleStopMessage; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.speech.SpeechRecognizer\\\";mthd: \\\"handleStopMessage\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "handleStopMessage",
       "paramList": [],
       "platformVersion": "All",
@@ -1337,7 +1337,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/speech/SpeechRecognizer;->startListening(Landroid/content/Intent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.speech.SpeechRecognizer; mthd: startListening; retCls: void; params: android.content.Intent \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.speech.SpeechRecognizer\\\";mthd: \\\"startListening\\\";retCls: \\\"void\\\";params: android.content.Intent \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "startListening",
       "paramList": [
         "android.content.Intent"
@@ -1354,7 +1354,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/speech/SpeechRecognizer;->stopListening()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.speech.SpeechRecognizer; mthd: stopListening; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.speech.SpeechRecognizer\\\";mthd: \\\"stopListening\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "stopListening",
       "paramList": [],
       "platformVersion": "All",
@@ -1369,7 +1369,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (android.telephony.CellLocation) monitorHook.hookAfterApiCall(logSignature, (android.telephony.CellLocation) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getCellLocation()Landroid/telephony/CellLocation;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getCellLocation; retCls: android.telephony.CellLocation; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getCellLocation\\\";retCls: \\\"android.telephony.CellLocation\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getCellLocation",
       "paramList": [],
       "platformVersion": "All",
@@ -1384,7 +1384,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getDeviceId()Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getDeviceId; retCls: java.lang.String; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getDeviceId\\\";retCls: \\\"java.lang.String\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getDeviceId",
       "paramList": [],
       "platformVersion": "All",
@@ -1399,7 +1399,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getDeviceSoftwareVersion()Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getDeviceSoftwareVersion; retCls: java.lang.String; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getDeviceSoftwareVersion\\\";retCls: \\\"java.lang.String\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getDeviceSoftwareVersion",
       "paramList": [],
       "platformVersion": "All",
@@ -1414,7 +1414,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getLine1Number()Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getLine1Number; retCls: java.lang.String; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getLine1Number\\\";retCls: \\\"java.lang.String\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getLine1Number",
       "paramList": [],
       "platformVersion": "All",
@@ -1429,7 +1429,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.util.List) monitorHook.hookAfterApiCall(logSignature, (java.util.List) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getNeighboringCellInfo()Ljava/util/List;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getNeighboringCellInfo; retCls: java.util.List; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getNeighboringCellInfo\\\";retCls: \\\"java.util.List\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getNeighboringCellInfo",
       "paramList": [],
       "platformVersion": "All",
@@ -1444,7 +1444,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getSimSerialNumber()Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getSimSerialNumber; retCls: java.lang.String; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getSimSerialNumber\\\";retCls: \\\"java.lang.String\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getSimSerialNumber",
       "paramList": [],
       "platformVersion": "All",
@@ -1459,7 +1459,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getSubscriberId()Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getSubscriberId; retCls: java.lang.String; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getSubscriberId\\\";retCls: \\\"java.lang.String\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getSubscriberId",
       "paramList": [],
       "platformVersion": "All",
@@ -1474,7 +1474,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getVoiceMailAlphaTag()Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getVoiceMailAlphaTag; retCls: java.lang.String; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getVoiceMailAlphaTag\\\";retCls: \\\"java.lang.String\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getVoiceMailAlphaTag",
       "paramList": [],
       "platformVersion": "All",
@@ -1489,7 +1489,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.lang.String) monitorHook.hookAfterApiCall(logSignature, (java.lang.String) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->getVoiceMailNumber()Ljava/lang/String;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: getVoiceMailNumber; retCls: java.lang.String; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"getVoiceMailNumber\\\";retCls: \\\"java.lang.String\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "getVoiceMailNumber",
       "paramList": [],
       "platformVersion": "All",
@@ -1504,7 +1504,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/TelephonyManager;->listen(Landroid/telephony/PhoneStateListener;I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.TelephonyManager; mthd: listen; retCls: void; params: android.telephony.PhoneStateListener \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.TelephonyManager\\\";mthd: \\\"listen\\\";retCls: \\\"void\\\";params: android.telephony.PhoneStateListener \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "listen",
       "paramList": [
         "android.telephony.PhoneStateListener",
@@ -1522,7 +1522,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/webkit/WebView;->loadDataWithBaseURL(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.webkit.WebView; mthd: loadDataWithBaseURL; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String \\\"\" +objectToString(p3)+ \"\\\" java.lang.String \\\"\" +objectToString(p4)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.webkit.WebView\\\";mthd: \\\"loadDataWithBaseURL\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String \\\"\" +objectToString(p3)+ \"\\\" java.lang.String \\\"\" +objectToString(p4)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "loadDataWithBaseURL",
       "paramList": [
         "java.lang.String",
@@ -1543,7 +1543,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.webkit.WebView; mthd: loadUrl; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.webkit.WebView\\\";mthd: \\\"loadUrl\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "loadUrl",
       "paramList": [
         "java.lang.String"
@@ -1560,7 +1560,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;Ljava/util/Map;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.webkit.WebView; mthd: loadUrl; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.util.Map \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.webkit.WebView\\\";mthd: \\\"loadUrl\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.util.Map \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "loadUrl",
       "paramList": [
         "java.lang.String",
@@ -1578,7 +1578,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/telephony/SmsManager;->sendTextMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/app/PendingIntent;Landroid/app/PendingIntent;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.telephony.SmsManager; mthd: sendTextMessage; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p3)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p4)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.telephony.SmsManager\\\";mthd: \\\"sendTextMessage\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p3)+ \"\\\" android.app.PendingIntent \\\"\" +objectToString(p4)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "sendTextMessage",
       "paramList": [
         "java.lang.String",
@@ -1599,7 +1599,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/Socket;-><init>(Ljava/net/Proxy;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.Socket; mthd: <init>; retCls: void; params: java.net.Proxy \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.Socket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.net.Proxy \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.net.Proxy"
@@ -1616,7 +1616,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/Socket;-><init>(Ljava/lang/String;ILjava/net/InetAddress;I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.Socket; mthd: <init>; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" java.net.InetAddress \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.Socket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" java.net.InetAddress \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.lang.String",
@@ -1636,7 +1636,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/Socket;-><init>(Ljava/lang/String;IZ)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.Socket; mthd: <init>; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" boolean \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.Socket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" boolean \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.lang.String",
@@ -1655,7 +1655,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/Socket;-><init>(Ljava/net/InetAddress;I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.Socket; mthd: <init>; retCls: void; params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.Socket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.net.InetAddress",
@@ -1673,7 +1673,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/Socket;-><init>(Ljava/net/InetAddress;ILjava/net/InetAddress;I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.Socket; mthd: <init>; retCls: void; params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" java.net.InetAddress \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.Socket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" java.net.InetAddress \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.net.InetAddress",
@@ -1693,7 +1693,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/Socket;-><init>(Ljava/net/InetAddress;IZ)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.Socket; mthd: <init>; retCls: void; params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" boolean \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.Socket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" boolean \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.net.InetAddress",
@@ -1712,7 +1712,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/Socket;->connect(Ljava/net/SocketAddress;I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.Socket; mthd: connect; retCls: void; params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.Socket\\\";mthd: \\\"connect\\\";retCls: \\\"void\\\";params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" int \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "connect",
       "paramList": [
         "java.net.SocketAddress",
@@ -1730,7 +1730,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/DatagramSocket;-><init>(I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.DatagramSocket; mthd: <init>; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.DatagramSocket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "int"
@@ -1747,7 +1747,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/DatagramSocket;-><init>(ILjava/net/InetAddress;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.DatagramSocket; mthd: <init>; retCls: void; params: int \\\"\" +objectToString(p0)+ \"\\\" java.net.InetAddress \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.DatagramSocket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: int \\\"\" +objectToString(p0)+ \"\\\" java.net.InetAddress \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "int",
@@ -1765,7 +1765,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/DatagramSocket;-><init>(Ljava/net/SocketAddress;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.DatagramSocket; mthd: <init>; retCls: void; params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.DatagramSocket\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.net.SocketAddress"
@@ -1782,7 +1782,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/DatagramSocket;->connect(Ljava/net/SocketAddress;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.DatagramSocket; mthd: connect; retCls: void; params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.DatagramSocket\\\";mthd: \\\"connect\\\";retCls: \\\"void\\\";params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "connect",
       "paramList": [
         "java.net.SocketAddress"
@@ -1799,7 +1799,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/MulticastSocket;->joinGroup(Ljava/net/InetAddress;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.MulticastSocket; mthd: joinGroup; retCls: void; params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.MulticastSocket\\\";mthd: \\\"joinGroup\\\";retCls: \\\"void\\\";params: java.net.InetAddress \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "joinGroup",
       "paramList": [
         "java.net.InetAddress"
@@ -1816,7 +1816,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/MulticastSocket;->joinGroup(Ljava/net/SocketAddress;Ljava/net/NetworkInterface;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.MulticastSocket; mthd: joinGroup; retCls: void; params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" java.net.NetworkInterface \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.MulticastSocket\\\";mthd: \\\"joinGroup\\\";retCls: \\\"void\\\";params: java.net.SocketAddress \\\"\" +objectToString(p0)+ \"\\\" java.net.NetworkInterface \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "joinGroup",
       "paramList": [
         "java.net.SocketAddress",
@@ -1834,7 +1834,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/URL;-><init>(Ljava/net/URL;Ljava/lang/String;Ljava/net/URLStreamHandler;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.URL; mthd: <init>; retCls: void; params: java.net.URL \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.net.URLStreamHandler \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.URL\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.net.URL \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.net.URLStreamHandler \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.net.URL",
@@ -1853,7 +1853,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/URL;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/net/URLStreamHandler;)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.URL; mthd: <init>; retCls: void; params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" int \\\"\" +objectToString(p2)+ \"\\\" java.lang.String \\\"\" +objectToString(p3)+ \"\\\" java.net.URLStreamHandler \\\"\" +objectToString(p4)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.URL\\\";mthd: \\\"<init>\\\";retCls: \\\"void\\\";params: java.lang.String \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" int \\\"\" +objectToString(p2)+ \"\\\" java.lang.String \\\"\" +objectToString(p3)+ \"\\\" java.net.URLStreamHandler \\\"\" +objectToString(p4)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "<init>",
       "paramList": [
         "java.lang.String",
@@ -1874,7 +1874,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this);\n        return (java.net.URLConnection) monitorHook.hookAfterApiCall(logSignature, (java.net.URLConnection) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/URL;->openConnection()Ljava/net/URLConnection;",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.URL; mthd: openConnection; retCls: java.net.URLConnection; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.URL\\\";mthd: \\\"openConnection\\\";retCls: \\\"java.net.URLConnection\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "openConnection",
       "paramList": [],
       "platformVersion": "All",
@@ -1889,7 +1889,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (java.net.URLConnection) monitorHook.hookAfterApiCall(logSignature, (java.net.URLConnection) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/URL;->openConnection(Ljava/net/Proxy;)Ljava/net/URLConnection;",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.URL; mthd: openConnection; retCls: java.net.URLConnection; params: java.net.Proxy \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.URL\\\";mthd: \\\"openConnection\\\";retCls: \\\"java.net.URLConnection\\\";params: java.net.Proxy \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "openConnection",
       "paramList": [
         "java.net.Proxy"
@@ -1906,7 +1906,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Ljava/net/URLConnection;->connect()V",
-      "logID": " \"TId: \"+threadId+\"; objCls: java.net.URLConnection; mthd: connect; retCls: void; params: ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"java.net.URLConnection\\\";mthd: \\\"connect\\\";retCls: \\\"void\\\";params: ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "connect",
       "paramList": [],
       "platformVersion": "All",
@@ -1921,7 +1921,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (org.apache.http.HttpResponse) monitorHook.hookAfterApiCall(logSignature, (org.apache.http.HttpResponse) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Lorg/apache/http/impl/client/AbstractHttpClient;->execute(Lorg/apache/http/HttpHost;Lorg/apache/http/HttpRequest;Lorg/apache/http/protocol/HttpContext;)Lorg/apache/http/HttpResponse;",
-      "logID": " \"TId: \"+threadId+\"; objCls: org.apache.http.impl.client.AbstractHttpClient; mthd: execute; retCls: org.apache.http.HttpResponse; params: org.apache.http.HttpHost \\\"\" +objectToString(p0)+ \"\\\" org.apache.http.HttpRequest \\\"\" +objectToString(p1)+ \"\\\" org.apache.http.protocol.HttpContext \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"org.apache.http.impl.client.AbstractHttpClient\\\";mthd: \\\"execute\\\";retCls: \\\"org.apache.http.HttpResponse\\\";params: org.apache.http.HttpHost \\\"\" +objectToString(p0)+ \"\\\" org.apache.http.HttpRequest \\\"\" +objectToString(p1)+ \"\\\" org.apache.http.protocol.HttpContext \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "execute",
       "paramList": [
         "org.apache.http.HttpHost",
@@ -1940,7 +1940,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: bulkInsert; retCls: int; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues[] \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"bulkInsert\\\";retCls: \\\"int\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues[] \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "bulkInsert",
       "paramList": [
         "android.net.Uri",
@@ -1958,7 +1958,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: delete; retCls: int; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"delete\\\";retCls: \\\"int\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "delete",
       "paramList": [
         "android.net.Uri",
@@ -1977,7 +1977,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (android.net.Uri) monitorHook.hookAfterApiCall(logSignature, (android.net.Uri) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: insert; retCls: android.net.Uri; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"insert\\\";retCls: \\\"android.net.Uri\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "insert",
       "paramList": [
         "android.net.Uri",
@@ -1995,7 +1995,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: update; retCls: int; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"update\\\";retCls: \\\"int\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "update",
       "paramList": [
         "android.net.Uri",
@@ -2015,7 +2015,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0);\n        return (java.io.InputStream) monitorHook.hookAfterApiCall(logSignature, (java.io.InputStream) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->openInputStream(Landroid/net/Uri;)Ljava/io/InputStream;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: openInputStream; retCls: java.io.InputStream; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"openInputStream\\\";retCls: \\\"java.io.InputStream\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "openInputStream",
       "paramList": [
         "android.net.Uri"
@@ -2032,7 +2032,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (android.content.res.AssetFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.content.res.AssetFileDescriptor) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->openAssetFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: openAssetFileDescriptor; retCls: android.content.res.AssetFileDescriptor; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"openAssetFileDescriptor\\\";retCls: \\\"android.content.res.AssetFileDescriptor\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "openAssetFileDescriptor",
       "paramList": [
         "android.net.Uri",
@@ -2051,7 +2051,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4, p5);\n        return (android.database.Cursor) monitorHook.hookAfterApiCall(logSignature, (android.database.Cursor) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: query; retCls: android.database.Cursor; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" java.lang.String \\\"\" +objectToString(p4)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p5)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"query\\\";retCls: \\\"android.database.Cursor\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" java.lang.String \\\"\" +objectToString(p4)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p5)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "query",
       "paramList": [
         "android.net.Uri",
@@ -2073,7 +2073,7 @@
       "invokeAPICode": "\n         OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n          monitorHook.hookAfterApiCall(logSignature,  null);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentResolver;->registerContentObserver(Landroid/net/Uri;ZLandroid/database/ContentObserver;I)V",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentResolver; mthd: registerContentObserver; retCls: void; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" android.database.ContentObserver \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentResolver\\\";mthd: \\\"registerContentObserver\\\";retCls: \\\"void\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" boolean \\\"\" +objectToString(p1)+ \"\\\" android.database.ContentObserver \\\"\" +objectToString(p2)+ \"\\\" int \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "registerContentObserver",
       "paramList": [
         "android.net.Uri",
@@ -2093,7 +2093,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->bulkInsert(Landroid/net/Uri;[Landroid/content/ContentValues;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: bulkInsert; retCls: int; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues[] \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"bulkInsert\\\";retCls: \\\"int\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues[] \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "bulkInsert",
       "paramList": [
         "android.net.Uri",
@@ -2111,7 +2111,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->delete(Landroid/net/Uri;Ljava/lang/String;[Ljava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: delete; retCls: int; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"delete\\\";retCls: \\\"int\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "delete",
       "paramList": [
         "android.net.Uri",
@@ -2130,7 +2130,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1);\n        return (android.net.Uri) monitorHook.hookAfterApiCall(logSignature, (android.net.Uri) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->insert(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: insert; retCls: android.net.Uri; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"insert\\\";retCls: \\\"android.net.Uri\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "insert",
       "paramList": [
         "android.net.Uri",
@@ -2148,7 +2148,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n        return (Integer) monitorHook.hookAfterApiCall(logSignature, (Integer) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->update(Landroid/net/Uri;Landroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)I",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: update; retCls: int; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"update\\\";retCls: \\\"int\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" android.content.ContentValues \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "update",
       "paramList": [
         "android.net.Uri",
@@ -2168,7 +2168,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (android.os.ParcelFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.os.ParcelFileDescriptor) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->openFile(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/os/ParcelFileDescriptor;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: openFile; retCls: android.os.ParcelFileDescriptor; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"openFile\\\";retCls: \\\"android.os.ParcelFileDescriptor\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "openFile",
       "paramList": [
         "android.net.Uri",
@@ -2187,7 +2187,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2);\n        return (android.content.res.AssetFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.content.res.AssetFileDescriptor) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->openAssetFile(Landroid/net/Uri;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: openAssetFile; retCls: android.content.res.AssetFileDescriptor; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p2)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"openAssetFile\\\";retCls: \\\"android.content.res.AssetFileDescriptor\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p2)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "openAssetFile",
       "paramList": [
         "android.net.Uri",
@@ -2206,7 +2206,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3);\n        return (android.content.res.AssetFileDescriptor) monitorHook.hookAfterApiCall(logSignature, (android.content.res.AssetFileDescriptor) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->openTypedAssetFileDescriptor(Landroid/net/Uri;Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;)Landroid/content/res/AssetFileDescriptor;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: openTypedAssetFileDescriptor; retCls: android.content.res.AssetFileDescriptor; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.Bundle \\\"\" +objectToString(p2)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p3)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"openTypedAssetFileDescriptor\\\";retCls: \\\"android.content.res.AssetFileDescriptor\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String \\\"\" +objectToString(p1)+ \"\\\" android.os.Bundle \\\"\" +objectToString(p2)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p3)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "openTypedAssetFileDescriptor",
       "paramList": [
         "android.net.Uri",
@@ -2226,7 +2226,7 @@
       "invokeAPICode": "\n        Object returnVal =  OriginalMethod.by(new $() {}).invoke (_this, p0, p1, p2, p3, p4, p5);\n        return (android.database.Cursor) monitorHook.hookAfterApiCall(logSignature, (android.database.Cursor) returnVal);\n    ",
       "isStatic": false,
       "jniSignature": "Landroid/content/ContentProviderClient;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;Landroid/os/CancellationSignal;)Landroid/database/Cursor;",
-      "logID": " \"TId: \"+threadId+\"; objCls: android.content.ContentProviderClient; mthd: query; retCls: android.database.Cursor; params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" java.lang.String \\\"\" +objectToString(p4)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p5)+ \"\\\" ; stacktrace: \"+stackTrace",
+      "logID": " \"TId: \"+threadId+\";objCls: \\\"android.content.ContentProviderClient\\\";mthd: \\\"query\\\";retCls: \\\"android.database.Cursor\\\";params: android.net.Uri \\\"\" +objectToString(p0)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p1)+ \"\\\" java.lang.String \\\"\" +objectToString(p2)+ \"\\\" java.lang.String[] \\\"\" +objectToString(p3)+ \"\\\" java.lang.String \\\"\" +objectToString(p4)+ \"\\\" android.os.CancellationSignal \\\"\" +objectToString(p5)+ \"\\\" ;stacktrace: \\\"\"+stackTrace+\"\\\"\"  ",
       "methodName": "query",
       "paramList": [
         "android.net.Uri",
