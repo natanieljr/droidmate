@@ -500,37 +500,8 @@ public class MonitorJavaTemplate
     return Thread.currentThread().getId();
   }
 
-  static String convert(Object param)
-  {
-    if (param == null)
-      return "null";
-
-    String paramStr;
-    if (param.getClass().isArray())
-    {
-      StringBuilder sb = new StringBuilder("[");
-      boolean first = true;
-
-      Object[] objects = convertToObjectArray(param);
-
-      for (Object obj : objects)
-      {
-
-        if (!first)
-          sb.append(",");
-        first = false;
-
-        sb.append(String.format("%s", obj));
-      }
-      sb.append("]");
-
-      paramStr = sb.toString();
-    } else if (param instanceof android.content.Intent)
-    {
-      paramStr = ((android.content.Intent) param).toUri(1);
-      if (!paramStr.endsWith("end")) throw new AssertionError();
-
-      /*
+  private static String trimToLogSize(String paramString) {
+        /*
         Logcat buffer size is 4096 [1]. I have encountered a case in which intent's string extra has eaten up entire log line,
         preventing the remaining parts of the log (in particular, stack trace) to be transferred to DroidMate,
         causing regex match fail. This is how the offending intent value looked like:
@@ -539,42 +510,39 @@ public class MonitorJavaTemplate
           ...<and_so_on_until_entire_line_buffer_was_eaten>
 
         [1] http://stackoverflow.com/questions/6321555/what-is-the-size-limit-for-logcat
-      */
-      if (paramStr.length() > 1024)
-      {
-        paramStr = paramStr.substring(0, 1024 - 24) + "_TRUNCATED_TO_1000_CHARS" + "end";
-      }
-
-    } else
-    {
-      paramStr = String.format("%s", param);
-      if (paramStr.length() > 1024)
-      {
-        paramStr = paramStr.substring(0, 1024 - 24) + "_TRUNCATED_TO_1000_CHARS";
-      }
+        */
+    if (paramString.length() > 1024) {
+      return paramString.substring(0, 1024 - 24) + "_TRUNCATED_TO_1000_CHARS";
     }
+    return paramString;
+  }
 
-    // !!! DUPLICATION WARNING !!! with: org.droidmate.logcat.Api.spaceEscapeInParamValue
-    // solution would be to provide this method with an generated code injection point.
-    // end of duplication warning
-    return paramStr.replace(" ", "_");
+  public static String objectToString(Object param) {
+    if (param == null)
+      return "null";
+
+    if (param instanceof android.content.Intent) {
+      String paramStr = ((android.content.Intent) param).toUri(1);
+      if (!paramStr.endsWith("end")) throw new AssertionError();
+      return trimToLogSize(paramStr);
+    } else if (param.getClass().isArray()) {
+      return trimToLogSize(Arrays.deepToString(convertToObjectArray(param)));
+    } else {
+      return trimToLogSize(param.toString());
+    }
   }
 
   // Copied from http://stackoverflow.com/a/16428065/986533
-  private static Object[] convertToObjectArray(Object array)
-  {
+  private static Object[] convertToObjectArray(Object array) {
     Class ofArray = array.getClass().getComponentType();
-    if (ofArray.isPrimitive())
-    {
-      List<Object> ar = new ArrayList<>();
+    if (ofArray.isPrimitive()) {
+      ArrayList<Object> ar = new ArrayList<>();
       int length = Array.getLength(array);
-      for (int i = 0; i < length; i++)
-      {
+      for (int i = 0; i < length; i++) {
         ar.add(Array.get(array, i));
       }
       return ar.toArray();
-    } else
-    {
+    } else {
       return (Object[]) array;
     }
   }
