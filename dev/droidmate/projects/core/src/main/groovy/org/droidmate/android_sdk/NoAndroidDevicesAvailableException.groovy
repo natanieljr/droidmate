@@ -21,6 +21,7 @@ package org.droidmate.android_sdk
 
 class NoAndroidDevicesAvailableException extends AdbWrapperException
 {
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long serialVersionUID = 1
 
   private static String message = "No android devices available, i.e. command \"<android sdk>/platform-tools/adb devices\" returns no devices."
@@ -30,6 +31,7 @@ class NoAndroidDevicesAvailableException extends AdbWrapperException
     super(message)
   }
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   NoAndroidDevicesAvailableException(Throwable cause)
   {
     super(message, cause)

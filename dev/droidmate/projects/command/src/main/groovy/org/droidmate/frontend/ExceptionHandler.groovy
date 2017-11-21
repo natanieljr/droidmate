@@ -55,7 +55,7 @@ class ExceptionHandler implements IExceptionHandler
         return 2
 
       case ThrowablesCollection:
-        logThrowablesCollection(e as ThrowablesCollection)
+        logThrowableCollection(e as ThrowablesCollection)
         return 3
 
       case Throwable:
@@ -83,7 +83,7 @@ class ExceptionHandler implements IExceptionHandler
     log.error(exceptions, "$message\n", e)
   }
 
-  private static void logThrowablesCollection(ThrowablesCollection e)
+  private static void logThrowableCollection(ThrowablesCollection e)
   {
     assert !(e.throwables.empty)
     assert e.cause == null

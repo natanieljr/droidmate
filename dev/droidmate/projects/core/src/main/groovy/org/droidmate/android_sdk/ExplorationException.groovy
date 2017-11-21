@@ -20,11 +20,14 @@ package org.droidmate.android_sdk
 
 import org.droidmate.misc.DroidmateException
 
+@SuppressWarnings("GrUnnecessaryPublicModifier")
 public class ExplorationException extends DroidmateException
 {
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long serialVersionUID = 1
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   public ExplorationException()
   {
     super()
@@ -35,11 +38,13 @@ public class ExplorationException extends DroidmateException
     super(cause)
   }
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   public ExplorationException(String message, Throwable cause)
   {
     super(message, cause)
   }
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   public ExplorationException(String message)
   {
     super(message)

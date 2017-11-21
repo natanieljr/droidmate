@@ -73,7 +73,7 @@ import static org.droidmate.logging.Markers.runData
 
     try
     {
-      validateStdoutLoglevel()
+      validateStdOutLogLevel()
       LogbackUtilsRequiringLogbackLog.cleanLogsDir()
       log.info("Bootstrapping DroidMate: building ${Configuration.simpleName} from args " +
         "and instantiating objects for ${DroidmateCommand.simpleName}.")
@@ -112,7 +112,7 @@ import static org.droidmate.logging.Markers.runData
     return DroidmateCommand.build(cfg.report, cfg.inline, cfg.unpack, cfg)
   }
 
-  private static void validateStdoutLoglevel()
+  private static void validateStdOutLogLevel()
   {
     if (!System.hasProperty(system_prop_stdout_loglevel))
       return

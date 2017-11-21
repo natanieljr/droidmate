@@ -31,10 +31,10 @@ import java.nio.file.Path
 import static org.droidmate.apk_inliner.PathValueConverter.pathIn
 
 @Slf4j
-public class ApkInlinerFrontend
+class ApkInlinerFrontend
 {
 
-  public static void main(String[] args)
+  static void main(String[] args)
   {
     try
     {

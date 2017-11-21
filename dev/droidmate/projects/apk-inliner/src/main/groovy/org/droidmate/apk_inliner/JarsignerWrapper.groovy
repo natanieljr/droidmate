@@ -29,8 +29,7 @@ import java.nio.file.Path
 import static java.nio.file.Files.isRegularFile
 
 @Slf4j
-
-public class JarsignerWrapper implements IJarsignerWrapper
+class JarsignerWrapper implements IJarsignerWrapper
 {
 
   private final ISysCmdExecutor sysCmdExecutor
@@ -50,8 +49,9 @@ public class JarsignerWrapper implements IJarsignerWrapper
     assert this.sysCmdExecutor != null
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   @Override
-  public ApkPath signWithDebugKey(ApkPath apk) throws DroidmateException
+  ApkPath signWithDebugKey(ApkPath apk) throws DroidmateException
   {
     assert apk != null
 

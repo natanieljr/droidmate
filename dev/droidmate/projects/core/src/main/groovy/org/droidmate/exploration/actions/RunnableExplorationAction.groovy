@@ -21,23 +21,21 @@ package org.droidmate.exploration.actions
 import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.MissingDeviceLogs
 import org.droidmate.logging.Markers
 
-import java.nio.file.Path
 import java.time.LocalDateTime
 
 @Slf4j
 abstract class RunnableExplorationAction implements IRunnableExplorationAction
 {
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long serialVersionUID = 1
 
 
@@ -127,11 +125,11 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
   {
     base.notifyResult(result)
 
-    if (!(result.guiSnapshot instanceof MissingGuiSnapshot))
+    /*if (!(result.guiSnapshot instanceof MissingGuiSnapshot))
     {
       List<Widget> widgets = result.guiSnapshot.guiState.widgets
       boolean isANR = result.guiSnapshot.guiState.isAppHasStoppedDialogBox()
-      // And so on. see org.droidmate.device.datatypes.IGuiState
+      // And so on. see IGuiState
     }
 
     if (!(result.deviceLogs instanceof MissingDeviceLogs))
@@ -148,7 +146,7 @@ abstract class RunnableExplorationAction implements IRunnableExplorationAction
     if (!(result.successful))
     {
       DeviceException exception = result.exception
-    }
+    }*/
 
     // To-do for SE team
   }

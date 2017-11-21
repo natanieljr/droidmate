@@ -26,7 +26,7 @@ import java.nio.file.Path
 /**
  * See {@link org.droidmate.android_sdk.AaptWrapper}
  */
-public interface IAaptWrapper {
+interface IAaptWrapper {
 
   String getPackageName(Path apk) throws DroidmateException
 

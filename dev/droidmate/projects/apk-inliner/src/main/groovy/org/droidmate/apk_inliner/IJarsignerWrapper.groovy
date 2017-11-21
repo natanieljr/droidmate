@@ -19,7 +19,7 @@
 
 package org.droidmate.apk_inliner
 
-public interface IJarsignerWrapper
+interface IJarsignerWrapper
 {
-  public ApkPath signWithDebugKey(ApkPath apk)
+  ApkPath signWithDebugKey(ApkPath apk)
 }

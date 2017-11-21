@@ -41,8 +41,6 @@ import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
 
-import static org.droidmate.exploration.actions.ExplorationAction.newResetAppExplorationAction
-
 @TypeChecked
 @Slf4j
 class Exploration implements IExploration

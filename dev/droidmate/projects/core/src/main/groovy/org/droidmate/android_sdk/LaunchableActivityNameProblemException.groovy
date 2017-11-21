@@ -24,10 +24,12 @@ import org.droidmate.misc.DroidmateException
 class LaunchableActivityNameProblemException extends DroidmateException
 {
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long    serialVersionUID = 1
 
   final                boolean isFatal
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   LaunchableActivityNameProblemException()
   {
     super()

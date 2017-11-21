@@ -25,11 +25,10 @@ import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
 
-import java.nio.file.Path
-
 class ExplorationActionRunResult implements IExplorationActionRunResult
 {
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long serialVersionUID = 1
 
   final boolean            successful

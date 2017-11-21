@@ -23,6 +23,7 @@ import org.droidmate.misc.DroidmateException
 
 class DeviceException extends DroidmateException
 {
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long serialVersionUID = 1
 
   final boolean stopFurtherApkExplorations

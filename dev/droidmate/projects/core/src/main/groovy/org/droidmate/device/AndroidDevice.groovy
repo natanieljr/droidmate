@@ -419,7 +419,7 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
     assert app != null
     assert !suffix?.empty
     
-    Path targetFile = Paths.get("${cfg.droidmateOutputDir}/${cfg.screenshotsOutputSubdir}/${app.fileNameWithoutExtension}_${suffix}.png")
+    Path targetFile = Paths.get("${cfg.droidmateOutputDir}/${cfg.screenshotsOutputSubDir}/${app.fileNameWithoutExtension}_${suffix}.png")
     targetFile.mkdirs()
     assert !Files.exists(targetFile)
     String targetFileString = targetFile.toString().replace(File.separator, "/")

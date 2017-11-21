@@ -22,10 +22,10 @@ package org.droidmate.configuration
 import com.beust.jcommander.IStringConverter
 import org.droidmate.misc.DroidmateException
 
-public class ListOfIntegersConverter implements IStringConverter<List<Integer>>
+class ListOfIntegersConverter implements IStringConverter<List<Integer>>
 {
   @Override
-  public List<Integer> convert(String arg)
+  List<Integer> convert(String arg)
   {
     assert arg != null
 
@@ -36,7 +36,7 @@ public class ListOfIntegersConverter implements IStringConverter<List<Integer>>
     } catch (Exception e)
     {
       throw new DroidmateException("The string '${arg}' is not a valid value for parameter expecting a list of integers. " +
-        "See command line parameters help for examples of correct format.", e);
+        "See command line parameters help for examples of correct format.", e)
     }
 
     assert convertedArg != null

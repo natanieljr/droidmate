@@ -44,7 +44,7 @@ class PathValueConverter implements ValueConverter<Path>
    *
    * @param value the string to convert
    * @return the converted value
-   * @throws ValueConversionException if a problem occurs while converting the value
+   * @throws java.nio.file.InvalidPathException if a problem occurs while converting the value
    */
   @Override
   Path convert(String value)

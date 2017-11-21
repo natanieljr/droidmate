@@ -36,7 +36,7 @@ class ApkPath
     assert path.fileName.toString().endsWith(".apk")
   }
 
-  public String getName()
+  String getName()
   {
     return this.path.fileName.toString()
   }

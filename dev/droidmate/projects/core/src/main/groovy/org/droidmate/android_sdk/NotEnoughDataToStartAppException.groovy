@@ -24,8 +24,10 @@ import org.droidmate.misc.DroidmateException
 class NotEnoughDataToStartAppException extends DroidmateException
 {
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long serialVersionUID = 1
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   NotEnoughDataToStartAppException()
   {
     super()

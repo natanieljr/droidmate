@@ -21,7 +21,6 @@ package org.droidmate.exploration.actions
 import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
@@ -37,6 +36,7 @@ import static org.droidmate.device.datatypes.AndroidDeviceAction.newSwipeGuiDevi
 class RunnableWidgetExplorationAction extends RunnableExplorationAction
 {
 
+  @SuppressWarnings("GroovyUnusedDeclaration")
   private static final long serialVersionUID = 1
 
   private final WidgetExplorationAction action

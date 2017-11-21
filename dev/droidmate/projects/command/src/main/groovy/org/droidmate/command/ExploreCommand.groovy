@@ -122,7 +122,7 @@ class ExploreCommand extends DroidmateCommand
     if (!Files.isDirectory(outputDir))
       return
     
-    [cfg.screenshotsOutputSubdir, cfg.reportOutputSubdir].each {
+    [cfg.screenshotsOutputSubDir, cfg.reportOutputSubDir].each {
 
       Path dirToDelete = outputDir.resolve(it)
       if (Files.isDirectory(dirToDelete))
@@ -197,16 +197,16 @@ class ExploreCommand extends DroidmateCommand
   private void tryExploreOnDeviceAndSerialize(
     IApk deployedApk, IRobustDevice device, ExplorationOutput2 out) throws DeviceException
   {
-    Failable<IApkExplorationOutput2, DeviceException> failableApkOut2 = this.exploration.run(deployedApk, device)
+    Failable<IApkExplorationOutput2, DeviceException> fallibleApkOut2 = this.exploration.run(deployedApk, device)
 
-    if (failableApkOut2.result != null)
+    if (fallibleApkOut2.result != null)
     {
-      failableApkOut2.result.serialize(this.storage2)
-      out << failableApkOut2.result
+      fallibleApkOut2.result.serialize(this.storage2)
+      out << fallibleApkOut2.result
     }
 
-    if (failableApkOut2.exception != null)
-      throw failableApkOut2.exception
+    if (fallibleApkOut2.exception != null)
+      throw fallibleApkOut2.exception
   }
 
 }

@@ -206,7 +206,7 @@ class ConfigurationBuilder implements IConfigurationBuilder
     if (cfg.deviceSerialNumber != null)
       dstPath += cfg.deviceSerialNumber.replace(":", "-")
     else if (cfg.deviceIndex > 0)
-      dstPath += cfg.deviceIndex;
+      dstPath += cfg.deviceIndex
 
     Path path = fs.getPath(dstPath, resourceName)
 
@@ -231,7 +231,7 @@ class ConfigurationBuilder implements IConfigurationBuilder
     log.info("Using $BuildConstants.api_policies_file_name located at " + cfg.apiPoliciesFile.toAbsolutePath().toString())
 
     cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir)
-    cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubdir)
+    cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubDir)
     cfg.reportInputDirPath = fs.getPath(cfg.reportInputDir)
     cfg.reportOutputDirPath = fs.getPath(cfg.reportOutputDir)
     cfg.apksDirPath = cfg.useApkFixturesDir ? new ResourcePath(BuildConstants.apk_fixtures).path : fs.getPath(cfg.apksDirName.toString())
