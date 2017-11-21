@@ -159,6 +159,8 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
         }
 
         ApiLogcatMessagePayload(String payload) {
+            log.debug("foundMonitoredAPI($payload)")
+
             /* WISH instead of this complex process of extracting the API method signature from a serialized string, the monitor should
             send through TCP a list of strings, not a string. See: org.droidmate.lib_android.MonitorJavaTemplate.addCurrentLogs
 
