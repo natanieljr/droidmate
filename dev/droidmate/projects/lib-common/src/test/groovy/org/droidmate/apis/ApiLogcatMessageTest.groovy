@@ -27,13 +27,11 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
-import static org.droidmate.apis.ApiLogcatMessage.from
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4)
 class ApiLogcatMessageTest {
     @Test
-    public void "Parses simple logcat message payload"() {
+    void "Parses simple logcat message payload"() {
         String msg = """\
 TId: 1;objCls: "android.webkit.WebView";mthd: "loadDataWithBaseURL";retCls: "void";params: java.lang.String null java.lang.String \
 "<html><head><style_type="text/css">body_{_font-family:_"default_font";_}" \
@@ -47,7 +45,7 @@ java.lang.String "null"\
     }
 
     @Test
-    public void "Parses no params"() {
+    void "Parses no params"() {
         String msg = """\
 TId: 1;objCls: "android.webkit.WebView";mthd: "methd";retCls: "void";params: ;stacktrace: "dalvik"\
 """
@@ -56,7 +54,7 @@ TId: 1;objCls: "android.webkit.WebView";mthd: "methd";retCls: "void";params: ;st
     }
 
     @Test
-    public void "Parses param values being empty strings"() {
+    void "Parses param values being empty strings"() {
         String msg1 = """\
 TId: 1;objCls: "android.webkit.WebView";mthd: "loadDataWithBaseURL";retCls: "void"\
 ;params: \
@@ -77,13 +75,13 @@ java.lang.String "" java.lang.String "" java.lang.String ""\
     }
 
     @Test
-    public void "Throws exception on duplicate keyword"() {
+    void "Throws exception on duplicate keyword"() {
         String msg = """\
 TId: 1;objCls: "android.webkit.WebView";mthd: "methd";retCls: "void";params: java.lang.String "<html>";retCls: "void";stacktrace: "dalvik"\
 """
         try {
             // Act
-            from(msg)
+            ApiLogcatMessage.from(msg)
         } catch (DroidmateException ignored) {
             return
         }
@@ -91,7 +89,7 @@ TId: 1;objCls: "android.webkit.WebView";mthd: "methd";retCls: "void";params: jav
     }
 
     @Test
-    public void "Parses simple logcat message payload without thread ID"() {
+    void "Parses simple logcat message payload without thread ID"() {
         String msg = """\
 objCls: "android.webkit.WebView";mthd: "loadDataWithBaseURL";retCls: "void";params: java.lang.String null java.lang.String \
 "<html><head><style_type="text/css">body_{_font-family:_"default_font";_}" \
@@ -105,7 +103,7 @@ java.lang.String null\
     }
 
     @Test
-    public void "Parses logcat message payload with params with newlines"() {
+    void "Parses logcat message payload with params with newlines"() {
         String msg = """\
 TId: 1;objCls: "android.webkit.WebView";mthd: "loadDataWithBaseURL";retCls: "void";params: java.lang.String null java.lang.String \
 "<html><head><style_type="text/css">body_{_font-family:_"default_font";_}
@@ -182,7 +180,7 @@ java.lang.String "<!doctype_html><html><head><meta_charset=\"UTF-8\"><link_href=
     }
 
     @Test
-    void "toStringMatchesFromString"(){
+    void "toStringMatchesFromString"() {
         String msg = """\
 TId: 1;objCls: "android.webkit.WebView";mthd: "loadDataWithBaseURL";retCls: "void";params: java.lang.String null java.lang.String \
 "<html><head><style_type="text/css">body_{_font-family:_"default_font";_}
@@ -236,6 +234,17 @@ dalvik.system.NativeStart.main(Native Method)"\
         def from = ApiLogcatMessage.from(msg)
         def payload = ApiLogcatMessage.toLogcatMessagePayload(from)
 
-        Assert.assertEquals(msg,payload)
+        Assert.assertEquals(msg, payload)
+    }
+
+    @Test
+    void "Parses quoted logcat message payload"() {
+        def msg = """\
+TId: 692;objCls: \"android.content.ContentResolver\";mthd: \"update\";retCls: \"int\";params: android.net.Uri \"content://com.haringeymobile.ukweather.provider/Cities/5\" android.content.ContentValues \"TimeThreeHourlyForecast=1511283086950 JsonThreeHourlyForecast={\"cod\":\"200\",\"message\":0.0021,\"cnt\":40,\"list\":[{\"dt\":1511287200,\"main\":{\"temp\":272.49,\"temp_min\":272.244,\"temp_max\":272.49,\"pressure\":999.88,\"sea_level\":1020.4,\"grnd_level\":999.88,\"humidity\":87,\"temp_kf\":0.25},\"weather\":[{\"id\":600,\"main\":\"Snow\",\"description\":\"light snow\",\"icon\":\"13n\"}],\"clouds\":{\"all\":88},\"wind\":{\"speed\":3.48,\"deg\":352.001},\"snow\":{\"3h\":0.12975},\"sys\":{\"pod\":\"n\"},\"dt_txt\":\"2017-11-21 18:00:00\"},{\"dt\":1511298000,\"main\":{\"temp\":271.82,\"temp_min\":271.633,\"temp_max\":271.82,\"pressure\":999.74,\"sea_level\":1020.3,\"grnd_level\":999.74,\"humidity\":88,\"temp_kf\":0.19},\"weather\":[{\"id\":800,\"main\":\"Clear\",\"description\":\"clear sky\",\"icon\":\"01n\"}],\"clouds\":{\"all\":92},\"wind\":{\"speed\":3.47,\"deg\":345.51},\"snow\":{\"3h\":0.02625},\"sys\":{\"pod\":\"n\"},\"dt_txt\":\"2017-11-21 21:00:00\"},{\"dt\":1511308800,\"main\":{\"temp\":271.66,\"temp_min\":271.532,\"temp_max\":271.66,\"pressure\":999.74,\"sea_level\":1020.28,\"grnd_level\":999.74,\"humidity\":88,\"temp_kf_TRUNCATED_TO_1000_CHARS\" java.lang.String \"null\" java.lang.String[] \"null\" ;stacktrace: \"dalvik.system.VMStack.getThreadStackTrace(Native Method)->java.lang.Thread.getStackTrace(Thread.java:1566)->org.droidmate.monitor.Monitor.getStackTrace(Monitor.java:459)->org.droidmate.monitor.Monitor.redir_android_content_ContentResolver_update_551(Monitor.java:3980)->com.haringeymobile.ukweather.database.c.a(SqlOperation.java)->com.haringeymobile.ukweather.database.GeneralDatabaseService.onHandleIntent(GeneralDatabaseService.java)->android.app.IntentService\$ServiceHandler.handleMessage(IntentService.java:68)->android.os.Handler.dispatchMessage(Handler.java:102)->android.os.Looper.loop(Looper.java:154)->android.os.HandlerThread.run(HandlerThread.java:61)\"
+"""
+        def from = ApiLogcatMessage.from(msg)
+        def payload = ApiLogcatMessage.toLogcatMessagePayload(from)
+
+        Assert.assertEquals(msg, payload)
     }
 }
