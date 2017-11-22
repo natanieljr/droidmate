@@ -21,11 +21,10 @@ package org.droidmate.apis
 
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang3.StringUtils
 import org.droidmate.misc.DroidmateException
 
+import java.util.regex.Pattern
 import java.util.stream.Collectors
-import java.util.stream.Stream
 
 /**
  * See {@link IApiLogcatMessage}
@@ -36,29 +35,16 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
 
     private static final long serialVersionUID = 1
 
-    private static final String nonQuotedOccruencesFormat =
-            "(?x)   " +
-                    "%s          " +   // Split on semi-colon
-                    "(?=        " +   // Followed by
-                    "  (?:      " +   // Start a non-capture group
-                    "    [^\"]* " +   // 0 or more non-quote characters
-                    "    \"     " +   // 1 quote
-                    "    [^\"]* " +   // 0 or more non-quote characters
-                    "    \"     " +   // 1 quote
-                    "  )*       " +   // 0 or more repetition of non-capture group (multiple of 2 quotes will be even)
-                    "  [^\"]*   " +   // Finally 0 or more non-quotes
-                    "  \$        " +   // Till the end  (This is necessary, else every comma will satisfy the condition)
-                    ")          "     // End look-ahead
+    private static final char FRAGMENT_SPLITTER_CHAR = ';'
+    private static final char KEYVALUE_SPLITTER_CHAR = ':'
+    private static final char PARAM_SPLITTER_CHAR = ' '
+    /**
+     * Character used for escaping values so that are not considered during the parsing process
+     */
+    private static final char VALUESTRING_ENCLOSCHAR = '\''
+    private static final char ESCAPE_CHAR = '\\'
 
-    private static final String FRAGMENT_SPLITTER = ";"
-    private static final String KEYVALUE_SPLITTER = ":\\ "
-    private static final String PARAM_SPLITTER = "\\ "
-    private static final String VALUE_ESCAPECHAR = "\""
-
-
-    private static String[] splitOnChar(String value, String splitter, String format = nonQuotedOccruencesFormat) {
-        return value.split(String.format(format, splitter))
-    }
+    private static final Pattern UNESCAPE_PATTERN = Pattern.compile("\\\\" + VALUESTRING_ENCLOSCHAR)
 
     @Delegate
     ITimeFormattedLogcatMessage message
@@ -76,10 +62,10 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
 
     /**
      *
-     * All non primitive values have to be escaped by {@link ApiLogcatMessage#VALUE_ESCAPECHAR}! (except null).
-     * Separate fragments by {@link ApiLogcatMessage#FRAGMENT_SPLITTER}.
-     * Separate keyword and values by {@link ApiLogcatMessage#KEYVALUE_SPLITTER}.
-     * Separate param types and values by {@link ApiLogcatMessage#PARAM_SPLITTER}.
+     * All non primitive values have to be escaped by {@link ApiLogcatMessage#VALUESTRING_ENCLOSCHAR}! (except null).
+     * Separate fragments by {@link ApiLogcatMessage#FRAGMENT_SPLITTER_CHAR}.
+     * Separate keyword and values by {@link ApiLogcatMessage#KEYVALUE_SPLITTER_CHAR}.
+     * Separate param types and values by {@link ApiLogcatMessage#PARAM_SPLITTER_CHAR}.
      * <p>
      * Example string to parse:
      * <pre><code>
@@ -170,10 +156,7 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
             this wish now.
              */
 
-            List<String> elements = Stream.of(splitOnChar(payload, FRAGMENT_SPLITTER))
-                    .flatMap({ s -> Stream.of(splitOnChar(s, KEYVALUE_SPLITTER)) })
-                    .flatMap({ s -> Stream.of(splitOnChar(s, PARAM_SPLITTER)) })
-                    .collect(Collectors.toList())
+            List<String> elements = splitPayload(payload)
             assert !elements.empty
 
             addThreadIdIfNecessary(elements)
@@ -182,12 +165,48 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
 
             this.threadId = keywordToValues[keyword_TId].findSingle()
 
-            this.objectClass = StringUtils.strip(keywordToValues[keyword_objCls].findSingle(), VALUE_ESCAPECHAR)
-            this.methodName = StringUtils.strip(keywordToValues[keyword_mthd].findSingle(), VALUE_ESCAPECHAR)
-            this.returnClass = StringUtils.strip(keywordToValues[keyword_retCls].findSingle(), VALUE_ESCAPECHAR)
+            this.objectClass = keywordToValues[keyword_objCls].findSingle()
+            this.methodName = keywordToValues[keyword_mthd].findSingle()
+            this.returnClass = keywordToValues[keyword_retCls].findSingle()
             this.paramTypes = params.first
-            this.paramValues = params.second.stream().map({ s -> StringUtils.strip(s, VALUE_ESCAPECHAR) }).collect(Collectors.toList())
-            this.stackTrace = StringUtils.strip(keywordToValues[keyword_stacktrace].findSingle(), VALUE_ESCAPECHAR)
+            this.paramValues = params.second.stream().map({ s -> unescape(s) }).collect(Collectors.toList())
+            this.stackTrace = keywordToValues[keyword_stacktrace].findSingle()
+        }
+
+        def unescape(String s) {
+            return UNESCAPE_PATTERN.matcher(s).replaceAll(VALUESTRING_ENCLOSCHAR.toString())
+        }
+
+        List<String> splitPayload(String payload) {
+            List<String> res = new LinkedList<>()
+            StringBuilder builder = new StringBuilder()
+            boolean inValueString = false, wasEscaped = false
+
+            for (char c : payload.toCharArray()) {
+                if (!inValueString && (c == FRAGMENT_SPLITTER_CHAR || c == KEYVALUE_SPLITTER_CHAR || c == PARAM_SPLITTER_CHAR)) {
+                    if (builder.length() > 0) {
+                        res.add(builder.toString())
+                        builder.setLength(0)
+                    }
+                } else if (!wasEscaped && c == VALUESTRING_ENCLOSCHAR) {
+                    if (inValueString) {
+                        inValueString = false
+                        res.add(builder.toString())
+                        builder.setLength(0)
+                    } else {
+                        inValueString = true
+                    }
+                } else {
+                    if (c == ESCAPE_CHAR)
+                        wasEscaped = true
+                    else
+                        wasEscaped = false
+
+                    builder.append(c)
+                }
+            }
+
+            return res
         }
 
         private void addThreadIdIfNecessary(List<String> elements) {
@@ -245,14 +264,14 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
 
         @Override
         String toString() {
-            String.format("""$keyword_TId: %s;$keyword_objCls: "%s";$keyword_mthd: "%s";$keyword_retCls: "%s";$keyword_params: %s;$keyword_stacktrace: "%s\"""",
+            String.format("""$keyword_TId:%s;$keyword_objCls:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR;$keyword_mthd:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR;$keyword_retCls:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR;$keyword_params:%s;$keyword_stacktrace:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR""",
                     this.threadId, this.objectClass, this.methodName, this.returnClass, this.params, this.stackTrace)
         }
 
         String getParams() {
-            [this.paramTypes,
-             this.paramValues.stream().map({ p -> p.equals("null") ? p : "\"" + p + "\"" }).collect(Collectors.toList())
-            ].transpose().flatten().join(" ")
+            [this.paramTypes.stream().map({ p -> new StringBuilder().append(VALUESTRING_ENCLOSCHAR).append(p).append(VALUESTRING_ENCLOSCHAR).toString() }).collect(Collectors.toList()),
+             this.paramValues.stream().map({ p -> p.equals("null") ? p : new StringBuilder().append(VALUESTRING_ENCLOSCHAR).append(p).append(VALUESTRING_ENCLOSCHAR).toString() }).collect(Collectors.toList())
+            ].transpose().flatten().join(PARAM_SPLITTER_CHAR.toString())
         }
     }
 
