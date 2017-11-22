@@ -188,6 +188,8 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
                         res.add(builder.toString())
                         builder.setLength(0)
                     }
+                } else if (!inValueString && Character.isWhitespace(c)) {
+                    // we ignore whitespace outside of value strings
                 } else if (!wasEscaped && c == VALUESTRING_ENCLOSCHAR) {
                     if (inValueString) {
                         inValueString = false
