@@ -23,6 +23,7 @@ import org.droidmate.deleteDir
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
 import java.nio.file.Path
 
 class ExplorationOutput2Report(rawData: List<IApkExplorationOutput2>, val dir: Path) {
@@ -38,7 +39,8 @@ class ExplorationOutput2Report(rawData: List<IApkExplorationOutput2>, val dir: P
     log.info("Writing out exploration report to $dir")
     
     dir.deleteDir()
-    dir.createDirIfNotExists()
+    Files.createDirectories(dir)
+    //dir.createDirIfNotExists()
     apkReportsDir.createDirIfNotExists()
     
     if (includeSummary)
