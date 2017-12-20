@@ -41,18 +41,18 @@ class MonitorGeneratorFrontendTest
    */
   @Test
   fun `Generates DroidMate monitor`() {
-      val actualMonitorJava = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
-      assert(Files.notExists(actualMonitorJava) || Files.isWritable(actualMonitorJava))
+    val actualMonitorJava = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
+    assert(Files.notExists(actualMonitorJava) || Files.isWritable(actualMonitorJava))
 
-      MonitorGeneratorFrontend.handleException = { throw it }
+    MonitorGeneratorFrontend.handleException = { throw it }
 
     // Act
-      MonitorGeneratorFrontend.main(arrayOf("api23"))
+    MonitorGeneratorFrontend.main(arrayOf("api23"))
 
-      assert(Files.isRegularFile(actualMonitorJava))
-      val actualText = actualMonitorJava.text
-      assert(!actualText.contains("public class MonitorJavaTemplate"))
-      assert(actualText.contains("public class Monitor"))
+    assert(Files.isRegularFile(actualMonitorJava))
+    val actualText = actualMonitorJava.text
+    assert(!actualText.contains("public class MonitorJavaTemplate"))
+    assert(actualText.contains("public class Monitor"))
   }
 }
 
