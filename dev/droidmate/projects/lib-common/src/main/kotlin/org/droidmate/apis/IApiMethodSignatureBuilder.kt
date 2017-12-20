@@ -21,5 +21,5 @@ package org.droidmate.apis
 interface IApiMethodSignatureBuilder
 {
 
-  ApiMethodSignature build()
+    fun build(): ApiMethodSignature
 }

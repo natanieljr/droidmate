@@ -18,28 +18,25 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import groovy.util.logging.Slf4j
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.ThrowablesCollection
 
-@Slf4j
-abstract class DroidmateCommand
-{
+abstract class DroidmateCommand {
 
-  abstract void execute(Configuration cfg) throws ThrowablesCollection
+    @Throws(ThrowablesCollection::class)
+    abstract fun execute(cfg: Configuration)
 
-   static DroidmateCommand build(
-    boolean report, boolean inline, boolean unpack, Configuration cfg)
-  {
-    assert [report, inline, unpack].count {it} <= 1
+    companion object {
+        @JvmStatic
+        fun build(report: Boolean, inline: Boolean, unpack: Boolean, cfg: Configuration): DroidmateCommand {
+            assert(arrayListOf(report, inline, unpack).count { it } <= 1)
 
-    if (report)
-      return new ReportCommand()
-    else if (inline)
-      return InlineCommand.build()
-    else if (unpack)
-      return UnpackCommand.build()
-    else
-      return ExploreCommand.build(cfg)
-  }
+            return when {
+                report -> ReportCommand()
+                inline -> InlineCommand.build()
+                unpack -> UnpackCommand.build()
+                else -> ExploreCommand.build(cfg)
+            }
+        }
+    }
 }

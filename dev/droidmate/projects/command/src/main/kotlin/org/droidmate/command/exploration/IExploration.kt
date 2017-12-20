@@ -27,5 +27,5 @@ import org.droidmate.misc.Failable
 interface IExploration
 {
 
-  Failable<IApkExplorationOutput2, DeviceException> run(IApk app, IRobustDevice device)
+    fun run(app: IApk, device: IRobustDevice): Failable<IApkExplorationOutput2, DeviceException>
 }

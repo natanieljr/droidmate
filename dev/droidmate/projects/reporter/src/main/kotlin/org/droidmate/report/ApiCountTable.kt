@@ -24,7 +24,7 @@ import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 class ApiCountTable : CountsPartitionedByTimeTable {
 
   constructor(data: IApkExplorationOutput2) : super(
-    data.explorationTimeInMs,
+          data.getExplorationTimeInMs(),
     listOf(
       headerTime,
       headerApisSeen,
@@ -43,8 +43,8 @@ class ApiCountTable : CountsPartitionedByTimeTable {
     val headerApiEventsSeen = "Api+Event_pairs_seen"
 
     private val IApkExplorationOutput2.uniqueApisCountByTime: Map<Long, Iterable<String>> get() {
-      return this.actRess.itemsAtTimes(
-        extractItems = { it.result.deviceLogs.apiLogsOrEmpty },
+        return this.actRes.itemsAtTimes(
+                extractItems = { it.getResult().deviceLogs.apiLogs },
         startTime = this.explorationStartTime,
         extractTime = { it.time }
       ).mapValues {
@@ -55,7 +55,7 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 
     private val IApkExplorationOutput2.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>> get() {
 
-      return this.actRess.itemsAtTimes(
+        return this.actRes.itemsAtTimes(
         extractItems = RunnableExplorationActionWithResult::extractEventApiPairs,
         startTime = this.explorationStartTime,
         extractTime = EventApiPair::time

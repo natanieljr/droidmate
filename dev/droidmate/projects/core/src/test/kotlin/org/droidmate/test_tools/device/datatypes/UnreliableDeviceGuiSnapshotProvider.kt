@@ -18,63 +18,47 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device.datatypes
 
-import groovy.util.logging.Slf4j
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.slf4j.LoggerFactory
 
-@Slf4j
-class UnreliableDeviceGuiSnapshotProvider implements IUnreliableDeviceGuiSnapshotProvider
-{
+class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IDeviceGuiSnapshot) : IUnreliableDeviceGuiSnapshotProvider {
+    companion object {
+        private val log = LoggerFactory.getLogger(UnreliableDeviceGuiSnapshotProvider::class.java)
+    }
 
+    private val emptyGuiSnapshot = UiautomatorWindowDumpTestHelper.newEmptyWindowDump()
+    private val appHasStoppedOKDisabledGuiSnapshot = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogOKDisabledWindowDump()
+    private val appHasStoppedGuiSnapshot = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump()
+    private val guiSnapshotsSequence = arrayListOf(
+            emptyGuiSnapshot,
+            appHasStoppedOKDisabledGuiSnapshot,
+            appHasStoppedGuiSnapshot
+    )
 
-  private final IDeviceGuiSnapshot originalGuiSnapshot
+    private var currentGuiSnapshot: IDeviceGuiSnapshot = guiSnapshotsSequence.first()
 
-  private final IDeviceGuiSnapshot       nullGuiSnapshot                    = UiautomatorWindowDumpTestHelper.newNullWindowDump()
-  private final IDeviceGuiSnapshot       emptyGuiSnapshot                   = UiautomatorWindowDumpTestHelper.newEmptyWindowDump()
-  private final IDeviceGuiSnapshot       appHasStoppedOKDisabledGuiSnapshot = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogOKDisabledWindowDump()
-  private final IDeviceGuiSnapshot       appHasStoppedGuiSnapshot           = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump()
-  private final List<IDeviceGuiSnapshot> guiSnapshotsSequence               =
-    [nullGuiSnapshot,
-     emptyGuiSnapshot,
-     appHasStoppedOKDisabledGuiSnapshot,
-     appHasStoppedGuiSnapshot
-    ]
+    private var okOnAppHasStoppedWasPressed = false
 
-  private IDeviceGuiSnapshot currentGuiSnapshot = guiSnapshotsSequence.first()
+    override fun pressOkOnAppHasStopped() {
+        assert(!this.okOnAppHasStoppedWasPressed)
+        assert(guiSnapshotsSequence.last() == currentGuiSnapshot)
+        this.okOnAppHasStoppedWasPressed = true
 
-  boolean okOnAppHasStoppedWasPressed = false
+        this.currentGuiSnapshot = originalGuiSnapshot
+    }
 
+    override fun getCurrentWithoutChange(): IDeviceGuiSnapshot {
+        return this.currentGuiSnapshot
+    }
 
-  UnreliableDeviceGuiSnapshotProvider(IDeviceGuiSnapshot originalGuiSnapshot)
-  {
-    this.originalGuiSnapshot = originalGuiSnapshot
-  }
+    override fun provide(): IDeviceGuiSnapshot {
+        log.trace("provide($currentGuiSnapshot)")
 
-  @Override
-  void pressOkOnAppHasStopped()
-  {
-    assert !this.okOnAppHasStoppedWasPressed
-    assert guiSnapshotsSequence.last() == currentGuiSnapshot
-    this.okOnAppHasStoppedWasPressed = true
+        val out = this.currentGuiSnapshot
 
-    this.currentGuiSnapshot = originalGuiSnapshot
-  }
+        if (currentGuiSnapshot != guiSnapshotsSequence.last() && currentGuiSnapshot != originalGuiSnapshot)
+            this.currentGuiSnapshot = this.guiSnapshotsSequence[guiSnapshotsSequence.indexOf(currentGuiSnapshot) + 1]
 
-  @Override
-  IDeviceGuiSnapshot getCurrentWithoutChange()
-  {
-    return this.currentGuiSnapshot
-  }
-
-  @Override
-  IDeviceGuiSnapshot provide()
-  {
-    log.trace("provide($currentGuiSnapshot)")
-
-    IDeviceGuiSnapshot out = this.currentGuiSnapshot
-
-    if (currentGuiSnapshot != guiSnapshotsSequence.last() && currentGuiSnapshot != originalGuiSnapshot)
-      this.currentGuiSnapshot = this.guiSnapshotsSequence[guiSnapshotsSequence.indexOf(currentGuiSnapshot) + 1]
-
-    return out
-  }
+        return out
+    }
 }

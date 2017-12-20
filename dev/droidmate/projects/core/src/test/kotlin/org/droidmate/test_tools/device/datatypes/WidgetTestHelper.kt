@@ -19,210 +19,214 @@
 
 package org.droidmate.test_tools.device.datatypes
 
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.model.DeviceModel
+import java.awt.Rectangle
 
-import java.awt.*
-import java.util.List
+class WidgetTestHelper {
+    companion object {
+        @JvmStatic
+        private fun newGenWidget(args: Map<String, Any>, widgetGenIndex: Int): IWidget {
+            assert(widgetGenIndex >= 1)
+            val genArgs = args.toMutableMap()
 
-class WidgetTestHelper
-{
+            // @formatter:off
+            genArgs["id"] = args["id"] ?: getIdsList(widgetGenIndex).last()
+            genArgs["text"] = args["text"] ?: getTextsList(widgetGenIndex, (0 until widgetGenIndex).map { _ -> genArgs["id"] as String? ?: "" }).last()
+            genArgs["bounds"] = args["bounds"] ?: getBoundsList(widgetGenIndex).last()
+            genArgs["className"] = args["className"] ?: getClassesList(widgetGenIndex).last()
+            genArgs["enabled"] = args["enabled"] ?: true
+            // @formatter:on
 
-  static Widget newGenWidget(Map args, int widgetGenIndex)
-  {
-    assert widgetGenIndex >= 1
-    Map genArgs = args
+            return newWidget(genArgs)
+        }
 
-    // @formatter:off
-    genArgs.id        = args.id        ?: getIdsList(widgetGenIndex).last()
-    genArgs.text      = args.text      ?: getTextsList(widgetGenIndex, ([genArgs.id] * widgetGenIndex) as List<String>).last()
-    genArgs.bounds    = args.bounds    ?: getBoundsList(widgetGenIndex).last()
-    genArgs.className = args.className ?: getClassesList(widgetGenIndex).last()
-    genArgs.enabled   = args.enabled   ?: true
-    // @formatter:on
+        @Suppress("UNCHECKED_CAST")
+        @JvmStatic
+        fun newWidgets(widgetCount: Int, packageName: String, props: Map<String, Any>, widgetIdPrefix: String = ""): List<IWidget> {
+            assert(widgetCount >= 1)
 
-    return newWidget(genArgs)
-  }
+            val propIdsList = props["idsList"]
+            val idsList = if ( (propIdsList == null) || (propIdsList as List<String>).isEmpty() )
+                getIdsList(widgetCount, widgetIdPrefix)
+            else
+                propIdsList
+
+            val textsList = props["textsList"] as List<String>? ?: getTextsList(widgetCount, idsList)
+            val boundsList = props["boundsList"] as List<List<Int>>? ?: getBoundsList(widgetCount)
+            val classesList = props["classList"] as List<String>? ?: getClassesList(widgetCount)
+            val enabledList = props["enabledList"] as List<Boolean>? ?: (0..widgetCount).map { _ -> true }
+
+            assert(arrayListOf(idsList, textsList, boundsList, classesList, enabledList).all { it.size == widgetCount })
+
+            val widgets = (0 until widgetCount).map { i ->
+                newWidget(mutableMapOf(
+                        "id" to idsList[i],
+                        "text" to textsList[i],
+                        "bounds" to boundsList[i],
+                        "className" to classesList[i],
+                        "packageName" to packageName,
+                        "clickable" to true,
+                        "checkable" to false,
+                        "enabled" to enabledList[i]
+                ))
+            }
+            assert(widgets.size == widgetCount)
+            return widgets
+        }
+
+        @JvmStatic
+        private fun getIdsList(idsCount: Int, widgetIdPrefix: String = ""): List<String> =
+                (0 until idsCount).map { i -> getNextWidgetId(i, widgetIdPrefix) }
+
+        @JvmStatic
+        private fun getTextsList(textsCount: Int, widgetIds: List<String>): List<String> {
+            assert(widgetIds.size == textsCount)
+            return (0 until textsCount).map { i -> "txt:id/${widgetIds[i]}" }
+        }
+
+        @JvmStatic
+        private fun getClassesList(classesCount: Int): List<String> {
+            val classesList = androidWidgetClassesForTesting
+
+            return (0 until classesCount).map { index ->
+                val classNameIndex = index % classesList.size
+                classesList[classNameIndex]
+            }
+        }
+
+        @JvmStatic
+        private fun getBoundsList(boundsCount: Int): List<List<Int>> {
+            var lowX = 5 + getBoundsListCallGen
+            var lowY = 6 + getBoundsListCallGen
+            getBoundsListCallGen++
+            var highX = lowX + 20
+            var highY = lowY + 30
+
+            val bounds: MutableList<List<Int>> = ArrayList()
+            (0 until boundsCount).forEach { _ ->
+                bounds.add(arrayListOf(lowX, lowY, highX, highY))
+                lowX += 25
+                lowY += 35
+                highX = lowX + 20
+                highY = lowY + 30
+            }
+            return bounds
+        }
+
+        @JvmStatic
+        private var dummyNameGen = 0
+        @JvmStatic
+        private var getBoundsListCallGen = 0
+
+        @JvmStatic
+        private fun getNextWidgetId(index: Int, widgetIdPrefix: String = ""): String {
+            return if (widgetIdPrefix.isEmpty())
+                "${index}_uniq${dummyNameGen++}"
+            else
+                "${widgetIdPrefix}_W$index"
+        }
+
+        @JvmStatic
+        private val androidWidgetClassesForTesting = arrayListOf(
+                "android.view.View",
+                "android.widget.Button",
+                "android.widget.CheckBox",
+                "android.widget.CheckedTextView",
+                "android.widget.CompoundButton",
+                "android.widget.EditText",
+                "android.widget.GridView",
+                "android.widget.ImageButton",
+                "android.widget.ImageView",
+                "android.widget.LinearLayout",
+                "android.widget.ListView",
+                "android.widget.RadioButton",
+                "android.widget.RadioGroup",
+                "android.widget.Spinner",
+                "android.widget.Switch",
+                "android.widget.TableLayout",
+                "android.widget.TextView",
+                "android.widget.ToggleButton"
+        )
+
+        @JvmStatic
+        fun newClickableButton(args: MutableMap<String, Any> = HashMap()): IWidget {
+            val newArgs: MutableMap<String, Any> = args.toMutableMap()
+                    .apply { putAll(hashMapOf("clickable" to true, "checkable" to true, "enabled" to true)) }
+
+            return newButton(newArgs)
+        }
+
+        @JvmStatic
+        private fun newButton(args: Map<String, Any>): IWidget {
+            val newArgs: MutableMap<String, Any> = args.toMutableMap()
+                    .apply { putAll(hashMapOf("className" to "android.widget.Button")) }
+
+            return newWidget(newArgs)
+        }
 
 
-   static List<Widget> newWidgets(int widgetCount, String packageName, Map props, String widgetIdPrefix = null)
-  {
-    assert widgetCount >= 1
+        @JvmStatic
+        @Suppress("unused")
+        fun newTopLevelWidget(packageName: String): IWidget {
+            return newWidget(mapOf("id" to "topLevelFrameLayout",
+                    "packageName" to packageName,
+                    "class" to "android.widget.FrameLayout",
+                    "bounds" to arrayListOf(0, 0, 800, 1205))
+                    .toMutableMap())
+        }
 
-    // @formatter:off
-    List<String>        idsList     = props.idsList     ?: getIdsList(widgetCount, widgetIdPrefix)
-    List<String>        textsList   = props.textsList   ?: getTextsList(widgetCount, idsList)
-    List<List<Integer>> boundsList  = props.boundsList  ?: getBoundsList(widgetCount)
-    List<String>        classesList = props.classList   ?: getClassesList(widgetCount)
-    List<Boolean>       enabledList = props.enabledList ?: [true] * widgetCount
-    // @formatter:on
+        @JvmStatic
+        fun newClickableWidget(args: MutableMap<String, Any> = HashMap(), widgetGenIndex: Int = 0): IWidget {
+            val newArgs: MutableMap<String, Any> = args.toMutableMap()
+                    .apply { putAll(hashMapOf("clickable" to true, "enabled" to true)) }
 
-    assert [idsList, textsList, boundsList, classesList, enabledList].every {it.size() == widgetCount}
+            return if (widgetGenIndex > 0)
+                newWidget(newArgs)
+            else
+                newGenWidget(newArgs, widgetGenIndex + 1)
+        }
 
-    List<Widget> widgets = []
-    widgetCount.times {int i ->
-      widgets << newWidget(
-        // @formatter:off
-        id          : idsList[i],
-        text        : textsList[i],
-        bounds      : boundsList[i],
-        className   : classesList[i],
-        packageName : packageName,
-        clickable   : true,
-        checkable   : false,
-        enabled     : enabledList[i]
-        // @formatter:on
-      )
+        @Suppress("UNCHECKED_CAST")
+        @JvmStatic
+        private fun newWidget(args: MutableMap<String, Any>): IWidget {
+            val bounds = if (args["bounds"] != null) args["bounds"] as List<Int> else arrayListOf(10, 20, 101, 202)
+
+            assert(bounds.size == 4)
+            assert(bounds[0] < bounds[2])
+            assert(bounds[1] < bounds[3])
+
+            val lowX = bounds[0]
+            val lowY = bounds[1]
+            val highX = bounds[2]
+            val highY = bounds[3]
+
+            return Widget(args["id"] as String? ?: "",
+                    args["index"] as Int? ?: 0,
+                    args["text"] as String? ?: "fix_text",
+                    args["resourceId"] as String? ?: "fix_resId",
+                    args["className"] as String? ?: "fix_cls",
+                    args["packageName"] as String? ?: "fix_pkg",
+                    args["contentDesc"] as String? ?: "fix_contDesc",
+                    args["xpath"] as String? ?: "",
+                    args["checkable"] as Boolean? ?: false,
+                    args["checked"] as Boolean? ?: false,
+                    args["clickable"] as Boolean? ?: false,
+                    args["enabled"] as Boolean? ?: false,
+                    args["focusable"] as Boolean? ?: false,
+                    args["focused"] as Boolean? ?: false,
+                    args["scrollable"] as Boolean? ?: false,
+                    args["longClickable"] as Boolean? ?: false,
+                    args["password"] as Boolean? ?: false,
+                    args["selected"] as Boolean? ?: false,
+                    Rectangle(lowX, lowY, highX - lowX, highY - lowY),
+                    null
+                    // @formatter:on
+            ).apply {
+                deviceDisplayBounds = args["deviceDisplayBounds"] as Rectangle? ?:
+                        Rectangle(DeviceModel.buildDefault().getDeviceDisplayDimensionsForTesting())
+            }
+        }
     }
-    assert widgets?.size() == widgetCount
-    return widgets
-  }
-
-  private static List<String> getIdsList(int idsCount, String widgetIdPrefix = null)
-  {
-    List<String> idsList = []
-    idsCount.times {int i -> idsList << getNextWidgetId(i, widgetIdPrefix)}
-    return idsList
-  }
-
-  private static List<String> getTextsList(int textsCount, List<String> widgetIds)
-  {
-    assert widgetIds.size() == textsCount
-    List<String> textsList = []
-    textsCount.times {int i -> textsList << "txt:id/" + widgetIds[i]}
-    return textsList
-  }
-
-  private static List<String> getClassesList(int classesCount)
-  {
-    List<String> classesList = androidWidgetClassesForTesting as List
-    List<String> classes = []
-    classesCount.times {int index ->
-      int classNameIndex = index % classesList.size()
-      classes << classesList[classNameIndex]
-    }
-
-    return classes
-  }
-
-  private static List<List<Integer>> getBoundsList(int boundsCount)
-  {
-    int lowX = 5 + getBoundsListCallGen
-    int lowY = 6 + getBoundsListCallGen
-    getBoundsListCallGen++
-    int highX = lowX + 20
-    int highY = lowY + 30
-
-    List<List<Integer>> bounds = []
-    boundsCount.times {
-      bounds << [lowX, lowY, highX, highY]
-      lowX += 25
-      lowY += 35
-      highX = lowX + 20
-      highY = lowY + 30
-    }
-    return bounds
-  }
-
-  static long dummyNameGen         = 0
-  static long getBoundsListCallGen = 0
-
-   static GString getNextWidgetId(int index, String widgetIdPrefix = null)
-  {
-    if (widgetIdPrefix == null)
-      return "${index}_uniq${dummyNameGen++}"
-    else
-      return "${widgetIdPrefix}_W${index}"
-  }
-
-  public static final List<String> androidWidgetClassesForTesting = [
-    "android.view.View",
-    "android.widget.Button",
-    "android.widget.CheckBox",
-    "android.widget.CheckedTextView",
-    "android.widget.CompoundButton",
-    "android.widget.EditText",
-    "android.widget.GridView",
-    "android.widget.ImageButton",
-    "android.widget.ImageView",
-    "android.widget.LinearLayout",
-    "android.widget.ListView",
-    "android.widget.RadioButton",
-    "android.widget.RadioGroup",
-    "android.widget.Spinner",
-    "android.widget.Switch",
-    "android.widget.TableLayout",
-    "android.widget.TextView",
-    "android.widget.ToggleButton"
-  ]
-
-
-   static Widget newClickableButton(Map args = [:])
-  {
-    newButton(args + [clickable: true, checkable: false, enabled: true])
-  }
-
-   static Widget newButton(Map args)
-  {
-    return newWidget(args + [className: "android.widget.Button"])
-  }
-
-
-   static newTopLevelWidget(String packageName)
-  {
-    newWidget([id: "topLevelFrameLayout", packageName: packageName, class: "android.widget.FrameLayout", bounds: [0, 0, 800, 1205]])
-  }
-
-   static Widget newClickableWidget(Map args = [:], Integer widgetGenIndex = null)
-  {
-    if (widgetGenIndex == null)
-      newWidget(args + [clickable: true, enabled: true])
-    else
-    {
-      assert widgetGenIndex >= 0
-      newGenWidget(args + [clickable: true, enabled: true], widgetGenIndex + 1)
-    }
-
-  }
-
-   static Widget newWidget(Map args)
-  {
-    List<Integer> bounds = (args.bounds ?: [10, 20, 101, 202]) as List<Integer>
-
-    assert bounds?.size() == 4
-    assert bounds[0] < bounds[2]
-    assert bounds[1] < bounds[3]
-
-    int lowX = bounds[0]
-    int lowY = bounds[1]
-    int highX = bounds[2]
-    int highY = bounds[3]
-
-
-    return new Widget(
-      // @formatter:off
-      id            : args.id            ?: null,
-      index         : args.index         ?: 0,
-      text          : args.text          ?: "fix_text",
-      resourceId    : args.resourceId    ?: "fix_resId", // other example value: dummy.package.ExampleApp:id/button_someName
-      className     : args.className     ?: "fix_cls",
-      packageName   : args.packageName   ?: "fix_pkg", // note that: apkFixture_simple_packageName == "org.droidmate.fixtures.apks.simple"
-      contentDesc   : args.contentDesc   ?: "fix_contDesc",
-      checkable     : args.checkable     ?: false,
-      checked       : args.checked       ?: false,
-      clickable     : args.clickable     ?: false,
-      enabled       : args.enabled       ?: false,
-      focusable     : args.focusable     ?: false,
-      focused       : args.focused       ?: false,
-      scrollable    : args.scrollable    ?: false,
-      longClickable : args.longClickable ?: false,
-      password      : args.password      ?: false,
-      selected      : args.selected      ?: false,
-      bounds        : new Rectangle(lowX, lowY, highX - lowX, highY - lowY),
-      deviceDisplayBounds: new Rectangle(DeviceModel.buildDefault().getDeviceDisplayDimensionsForTesting())
-      // @formatter:on
-    )
-  }
-
-
 }

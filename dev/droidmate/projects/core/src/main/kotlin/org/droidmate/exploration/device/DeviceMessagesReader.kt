@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.IExplorableAndroidDevice
 
+
 /**
  * <p>
  * This class is responsible for reading messages from the device. It can read messages from the device logcat or from the
@@ -33,41 +34,31 @@ import org.droidmate.device.IExplorableAndroidDevice
  * and the host machine, to sync the time logs from the device's clock with the host machine's clock.
  * </p>
  */
-class DeviceMessagesReader implements IDeviceMessagesReader
-{
-  private final IApiLogsReader  apiLogsReader
-  private final IDeviceTimeDiff deviceTimeDiff
-  private final boolean useLogcat;
+class DeviceMessagesReader @JvmOverloads constructor(device: IExplorableAndroidDevice,
+                                                     private val useLogcat: Boolean = false) : IDeviceMessagesReader {
+    private val apiLogsReader = ApiLogsReader(device)
+    private val deviceTimeDiff = DeviceTimeDiff(device)
 
-  DeviceMessagesReader(IExplorableAndroidDevice device, boolean useLogcat = false)
-  {
-    this.useLogcat = useLogcat
-    this.apiLogsReader = new ApiLogsReader(device)
-    this.deviceTimeDiff = new DeviceTimeDiff(device)
-  }
+    override fun resetTimeSync() {
+        this.deviceTimeDiff.reset()
+    }
 
-  @Override
-  void resetTimeSync()
-  {
-    this.deviceTimeDiff.reset()
-  }
+    @Throws(DeviceException::class)
+    override fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage> {
+        return if (useLogcat)
+            this.getAndClearCurrentApiLogsFromLogcat()
+        else
+            this.getAndClearCurrentApiLogsFromMonitorTcpServer()
+    }
 
-  @Override
-  List<IApiLogcatMessage> getAndClearCurrentApiLogs() throws DeviceException{
-    if (useLogcat)
-      return this.getAndClearCurrentApiLogsFromLogcat()
-    else
-      return this.getAndClearCurrentApiLogsFromMonitorTcpServer()
-  }
+    @Deprecated("Deprecated. Prefer to use the TCP server instead.")
+    @Throws(DeviceException::class)
+    private fun getAndClearCurrentApiLogsFromLogcat(): List<IApiLogcatMessage> {
+        return apiLogsReader.getCurrentApiLogsFromLogcat(deviceTimeDiff)
+    }
 
-  @Deprecated
-  private List<IApiLogcatMessage> getAndClearCurrentApiLogsFromLogcat() throws DeviceException
-  {
-    return apiLogsReader.getCurrentApiLogsFromLogcat(deviceTimeDiff)
-  }
-
-  private List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer() throws DeviceException
-  {
-    return apiLogsReader.getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)
-  }
+    @Throws(DeviceException::class)
+    private fun getAndClearCurrentApiLogsFromMonitorTcpServer(): List<IApiLogcatMessage> {
+        return apiLogsReader.getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)
+    }
 }

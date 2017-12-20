@@ -20,39 +20,59 @@ package org.droidmate.device
 
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.uiautomator_daemon.DeviceCommand
+import org.droidmate.uiautomator_daemon.DeviceResponse
 
-class TcpClients implements ITcpClients
-{
+class TcpClients constructor(adbWrapper: IAdbWrapper,
+                             deviceSerialNumber: String,
+                             monitorSocketTimeout: Int,
+                             uiautomatorDaemonSocketTimeout: Int,
+                             uiautomatorDaemonTcpPort: Int,
+                             uiautomatorDaemonServerStartTimeout: Int,
+                             uiautomatorDaemonServerStartQueryDelay: Int) : ITcpClients {
+    private val monitorsClient: IMonitorsClient = MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper)
+    private val uiautomatorClient: IUiautomatorDaemonClient = UiautomatorDaemonClient(
+            adbWrapper,
+            deviceSerialNumber,
+            uiautomatorDaemonTcpPort,
+            uiautomatorDaemonSocketTimeout,
+            uiautomatorDaemonServerStartTimeout,
+            uiautomatorDaemonServerStartQueryDelay)
 
-  @Delegate
-  private final IMonitorsClient          monitorsClient
-  @Delegate
-  private final IUiautomatorDaemonClient uiautomatorClient
+    override fun anyMonitorIsReachable(): Boolean = monitorsClient.anyMonitorIsReachable()
 
-  TcpClients(
-    IAdbWrapper adbWrapper,
-    String deviceSerialNumber,
-    int monitorSocketTimeout,
-    int uiautomatorDaemonSocketTimeout,
-    int uiautomatorDaemonTcpPort,
-    int uiautomatorDaemonServerStartTimeout,
-    int uiautomatorDaemonServerStartQueryDelay)
-  {
-    this.uiautomatorClient = new UiautomatorDaemonClient(
-      adbWrapper,
-      deviceSerialNumber,
-      uiautomatorDaemonTcpPort,
-      uiautomatorDaemonSocketTimeout,
-      uiautomatorDaemonServerStartTimeout,
-      uiautomatorDaemonServerStartQueryDelay)
+    override fun closeMonitorServers() {
+        monitorsClient.closeMonitorServers()
+    }
 
-    this.monitorsClient = new MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper)
-  }
+    override fun getCurrentTime(): List<List<String>> = monitorsClient.getCurrentTime()
 
-  @Override
-  void forwardPorts() throws DeviceException
-  {
-    this.uiautomatorClient.forwardPort()
-    this.monitorsClient.forwardPorts()
-  }
+    override fun getLogs(): List<List<String>> = monitorsClient.getLogs()
+
+    override fun getPorts(): List<Int> = monitorsClient.getPorts()
+
+    override fun getUiaDaemonThreadIsAlive(): Boolean = uiautomatorClient.getUiaDaemonThreadIsAlive()
+
+    override fun getUiaDaemonThreadIsNull(): Boolean = uiautomatorClient.getUiaDaemonThreadIsNull()
+
+    override fun sendCommandToUiautomatorDaemon(deviceCommand: DeviceCommand): DeviceResponse =
+            uiautomatorClient.sendCommandToUiautomatorDaemon(deviceCommand)
+
+    override fun startUiaDaemon() {
+        uiautomatorClient.startUiaDaemon()
+    }
+
+    override fun waitForUiaDaemonToClose() {
+        uiautomatorClient.waitForUiaDaemonToClose()
+    }
+
+    override fun forwardPort() {
+        this.uiautomatorClient.forwardPort()
+    }
+
+    @Throws(DeviceException::class)
+    override fun forwardPorts() {
+        this.uiautomatorClient.forwardPort()
+        this.monitorsClient.forwardPorts()
+    }
 }

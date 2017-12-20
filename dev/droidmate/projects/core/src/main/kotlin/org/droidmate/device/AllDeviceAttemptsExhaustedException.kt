@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,27 +20,16 @@ package org.droidmate.device
 
 import org.droidmate.android_sdk.DeviceException
 
-class AllDeviceAttemptsExhaustedException extends DeviceException
-{
-  private static final long serialVersionUID = 1
+class AllDeviceAttemptsExhaustedException : DeviceException {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  AllDeviceAttemptsExhaustedException()
-  {
-    super()
-  }
+    constructor() : super()
 
-  AllDeviceAttemptsExhaustedException(Throwable cause)
-  {
-    super(cause)
-  }
+    constructor(cause: Throwable) : super(cause)
 
-  AllDeviceAttemptsExhaustedException(String message)
-  {
-    super(message)
-  }
+    constructor(message: String, cause: Throwable) : super(message, cause)
 
-  AllDeviceAttemptsExhaustedException(String message, Throwable cause)
-  {
-    super(message, cause)
-  }
+    constructor(message: String) : super(message)
 }

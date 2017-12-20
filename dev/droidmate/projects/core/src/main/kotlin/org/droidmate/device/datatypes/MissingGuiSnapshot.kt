@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,44 +20,33 @@
 package org.droidmate.device.datatypes
 
 import org.droidmate.errors.ForbiddenOperationError
+import java.io.Serializable
 
-class MissingGuiSnapshot implements IDeviceGuiSnapshot, Serializable
-{
-  private static final long serialVersionUID = 1
+class MissingGuiSnapshot : IDeviceGuiSnapshot, Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  @Override
-  String getWindowHierarchyDump()
-  {
-    throw new ForbiddenOperationError()
-  }
+    private val internalGuiState = EmptyGuiState("EMPTY")
 
-  @Override
-  String getPackageName()
-  {
-    throw new ForbiddenOperationError()
-  }
+    override val androidLauncherPackageName: String
+        get() = internalGuiState.androidLauncherPackageName
 
-  @Override
-  IGuiState getGuiState()
-  {
-    throw new ForbiddenOperationError()
-  }
+    override val windowHierarchyDump: String
+        get() = throw ForbiddenOperationError()
 
-  @Override
-  ValidationResult getValidationResult()
-  {
-    throw new ForbiddenOperationError()
-  }
+    override fun getPackageName(): String {
+        return internalGuiState.topNodePackageName
+    }
 
-  @Override
-  String getId()
-  {
-    throw new ForbiddenOperationError()
-  }
+    override val guiState: IGuiState
+        get() = internalGuiState
 
-  @Override
-   String toString()
-  {
-    return "N/A (lack of ${IDeviceGuiSnapshot.class.simpleName})"
-  }
+    override val validationResult: ValidationResult
+        get() = throw ForbiddenOperationError()
+
+    override val id: String
+        get() = throw ForbiddenOperationError()
+
+    override fun toString(): String = "N/A (lack of ${IDeviceGuiSnapshot::class.java.simpleName})"
 }

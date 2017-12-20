@@ -23,6 +23,5 @@ import org.droidmate.configuration.Configuration
 
 interface ICommandProvider
 {
-  DroidmateCommand provide(Configuration cfg)
-
+    fun provide(cfg: Configuration): DroidmateCommand
 }

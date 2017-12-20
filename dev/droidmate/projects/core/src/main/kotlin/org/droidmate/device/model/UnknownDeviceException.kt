@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,27 +26,17 @@ import org.droidmate.misc.DroidmateException
  *
  * @author Nataniel Borges Jr.
  */
-class UnknownDeviceException extends DroidmateException
-{
-  private static final long serialVersionUID = 1
+class UnknownDeviceException : DroidmateException {
+    companion object {
+        private const val serialVersionUID: Long = 1
 
-  UnknownDeviceException()
-  {
-    super()
-  }
+    }
 
-  UnknownDeviceException(Throwable cause)
-  {
-    super(cause)
-  }
+    constructor() : super()
 
-  UnknownDeviceException(String message, Throwable cause)
-  {
-    super(message, cause)
-  }
+    constructor(cause: Throwable) : super(cause)
 
-  UnknownDeviceException(String message)
-  {
-    super(message)
-  }
+    constructor(message: String, cause: Throwable) : super(message, cause)
+
+    constructor(message: String) : super(message)
 }

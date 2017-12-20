@@ -19,33 +19,20 @@
 
 package org.droidmate.misc
 
-import groovy.transform.Canonical
+import java.io.Serializable
 
-@Canonical
-class LabeledEdge<TSource extends Serializable, TLabel extends Serializable, TTarget extends Serializable> implements Serializable
-{
+class LabeledEdge<out TSource : Serializable, out TLabel : Serializable, out TTarget : Serializable> constructor(val source: TSource,
+                                                                                                                 val label: TLabel,
+                                                                                                                 val target: TTarget) : Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  private static final long serialVersionUID = 1
-
-  TSource source
-  TLabel  label
-  TTarget target
-
-  LabeledEdge(TSource source, TLabel label, TTarget target)
-  {
-    this.source = source
-    this.label = label
-    this.target = target
-  }
-
-
-  @Override
-  public String toString()
-  {
-    return "LabeledEdge{\n" +
-      "source = " + source + "\n" +
-      "label  = " + label + "\n" +
-      "target = " + target + "\n" +
-      "} " + super.toString()
-  }
+    override fun toString(): String {
+        return "LabeledEdge{\n" +
+                "source = " + source + "\n" +
+                "label  = " + label + "\n" +
+                "target = " + target + "\n" +
+                "} " + super.toString()
+    }
 }

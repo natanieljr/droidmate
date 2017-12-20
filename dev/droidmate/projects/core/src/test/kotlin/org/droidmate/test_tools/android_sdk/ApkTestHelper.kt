@@ -24,45 +24,43 @@ import org.droidmate.android_sdk.Apk
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class ApkTestHelper
-{
+class ApkTestHelper {
+    companion object {
+        @JvmStatic
+        fun build(name: String): Apk {
+            assert(name.isNotEmpty())
+            assert(!name.endsWith(".apk"))
 
-  static Apk build(String name)
-  {
-    assert name?.size() > 0
-    assert !name.endsWith(".apk")
+            return Apk(
+                    Paths.get("/path/to/$name.apk"),
+                    "$name.pkg_name",
+                    "${name}_lActName",
+                    "${name}_lActCompName",
+                    "${name}_applicationLabel")
+        }
 
-    return new Apk(
-      Paths.get("/path/to/${name}.apk"),
-      "${name}.pkg_name",
-      "${name}_lActName",
-      "${name}_lActCompName",
-      "${name}_applicationLabel")
-  }
+        @JvmStatic
+        fun build(packageName: String, launchableActivityName: String, launchableActivityComponentName: String, applicationLabel: String): Apk {
+            val path = Paths.get("/path/to/$packageName.apk")
+            return Apk(
+                    path,
+                    packageName,
+                    launchableActivityName,
+                    launchableActivityComponentName,
+                    applicationLabel)
+        }
 
-   static Apk build(String packageName, String launchableActivityName, String launchableActivityComponentName, String applicationLabel)
-  {
-    Path path = Paths.get("/path/to/${packageName}.apk")
-    return new Apk(
-      path,
-      packageName,
-      launchableActivityName,
-      launchableActivityComponentName,
-      applicationLabel)
-  }
+        @JvmStatic
+        fun build(path: Path): Apk {
+            assert(path.toString().isNotEmpty())
+            val name = FilenameUtils.getBaseName(path.fileName.toString())
 
-   static Apk build(Path path)
-  {
-    assert path?.toString()?.size() > 0
-    String name = FilenameUtils.getBaseName(path.fileName.toString())
-
-    return new Apk(
-      path,
-      "${name}.pkg_name",
-      "${name}_lActName",
-      "${name}_lActCompName",
-      "${name}_applicationLabel")
-  }
-
-
+            return Apk(
+                    path,
+                    "$name.pkg_name",
+                    "${name}_lActName",
+                    "${name}_lActCompName",
+                    "${name}_applicationLabel")
+        }
+    }
 }

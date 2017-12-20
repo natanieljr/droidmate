@@ -21,16 +21,12 @@ package org.droidmate.device.model
 import java.awt.Dimension
 
 /**
-* Describes {@link IDeviceModel} of Huawei Honor 8.
-*
-* @author Nataniel Borges Jr.
-*/
-class HuaweiHonor8Model implements IDeviceModel {
-    final String androidLauncherPackageName = "com.huawei.android.launcher"
+ * Describes {@link IDeviceModel} of Huawei Honor 8.
+ *
+ * @author Nataniel Borges Jr.
+ */
+class HuaweiHonor8Model : IDeviceModel {
+    override fun getAndroidLauncherPackageName(): String = "com.huawei.android.launcher"
 
-    @Override
-    Dimension getDeviceDisplayDimensionsForTesting()
-    {
-        return new Dimension(1080, 1920)
-    }
+    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1080, 1920)
 }

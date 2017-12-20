@@ -19,7 +19,7 @@
 
 package org.droidmate.device
 
-import groovy.util.logging.Slf4j
+import com.konradjamrozik.mkdirs
 import org.droidmate.android_sdk.*
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
@@ -35,18 +35,17 @@ import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
 import org.droidmate.uiautomator_daemon.UiautomatorWindowHierarchyDumpDeviceResponse
-
-import java.awt.*
+import org.slf4j.LoggerFactory
+import java.awt.Dimension
+import java.io.File
+import java.lang.Thread.sleep
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.List
-
-import static org.droidmate.device.datatypes.AndroidDeviceAction.newLaunchAppDeviceAction
-import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
 
 /**
  * <p>
@@ -62,483 +61,375 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
  *
  * </p>
  */
-@Slf4j
- class AndroidDevice implements IAndroidDevice
-{
+class AndroidDevice constructor(private val serialNumber: String,
+                                private val cfg: Configuration,
+                                private val adbWrapper: IAdbWrapper) : IAndroidDevice {
+    companion object {
+        private val log = LoggerFactory.getLogger(AndroidDevice::class.java)
 
-  private final String        serialNumber
-  private final Configuration cfg
-  private final IAdbWrapper   adbWrapper
-  private final ITcpClients   tcpClients
-  private       IDeviceModel  deviceModel
+        @JvmStatic
+        @Throws(DeviceException::class)
+        private fun throwDeviceResponseThrowableIfAny(deviceResponse: DeviceResponse) {
+            if (deviceResponse.throwable != null)
+                throw DeviceException(String.format(
+                        "Device returned DeviceResponse with non-null throwable, indicating something went horribly wrong on the A(V)D. " +
+                                "The exception is given as a cause of this one. If it doesn't have enough information, " +
+                                "try inspecting the logcat output of the A(V)D.",
+                        deviceResponse.throwable))
+        }
 
-  AndroidDevice(
-    String serialNumber,
-    Configuration cfg,
-    IAdbWrapper adbWrapper)
-  {
-    this.serialNumber = serialNumber
-    this.cfg = cfg
-    this.adbWrapper = adbWrapper
-    this.tcpClients = new TcpClients(
-      this.adbWrapper,
-      this.serialNumber,
-      cfg.monitorSocketTimeout,
-      cfg.uiautomatorDaemonSocketTimeout,
-      cfg.uiautomatorDaemonTcpPort,
-      cfg.uiautomatorDaemonServerStartTimeout,
-      cfg.uiautomatorDaemonServerStartQueryDelay)
-  }
-
-  @Override
-  void pushFile(Path jar, String targetFileName = null) throws DeviceException
-  {
-    log.debug("pushFile(${jar.toString()}, $targetFileName)")
-    adbWrapper.pushFile(serialNumber, jar, targetFileName)
-  }
-
-
-  @Override
-  boolean hasPackageInstalled(String packageName) throws DeviceException
-  {
-    log.debug("hasPackageInstalled($packageName)")
-    return adbWrapper.listPackage(serialNumber, packageName).contains(packageName)
-  }
-
-
-  @Override
-   IDeviceGuiSnapshot getGuiSnapshot() throws DeviceException
-  {
-    log.debug("getGuiSnapshot()")
-
-    def response = this.issueCommand(
-      new DeviceCommand(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP)) as UiautomatorWindowHierarchyDumpDeviceResponse
-
-    def outSnapshot = new UiautomatorWindowDump(
-      response.windowHierarchyDump,
-      new Dimension(response.displayWidth, response.displayHeight),
-      this.deviceModel.androidLauncherPackageName
-    )
-
-    log.debug("getGuiSnapshot(): $outSnapshot")
-    return outSnapshot
-  }
-
-  @Override
-  void perform(IAndroidDeviceAction action) throws DeviceException
-  {
-    log.debug("perform($action)")
-    //noinspection GroovyInArgumentCheck
-    assert action?.class in [ClickGuiAction, AdbClearPackageAction, LaunchMainActivityDeviceAction]
-
-    //noinspection GroovyAssignabilityCheck
-    switch (action)
-    {
-      case ClickGuiAction:
-        performGuiClick((action as ClickGuiAction))
-        break
-      case LaunchMainActivityDeviceAction:
-        assert false : "call .launchMainActivity() directly instead"
-        break
-      case AdbClearPackageAction:
-        assert false : "call .clearPackage() directly instead"
-        break
-      default:
-        throw new UnexpectedIfElseFallthroughError()
+        @JvmStatic
+        private fun uiaDaemonHandlesCommand(deviceCommand: DeviceCommand): Boolean {
+            return deviceCommand.command in arrayListOf(
+                    DEVICE_COMMAND_PERFORM_ACTION,
+                    DEVICE_COMMAND_STOP_UIADAEMON,
+                    DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP,
+                    DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE,
+                    DEVICE_COMMAND_GET_DEVICE_MODEL
+            )
+        }
     }
-  }
 
-  DeviceResponse performGuiClick(ClickGuiAction action) throws DeviceException
-  {
-    return issueCommand(new DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action.guiAction))
-  }
+    private val tcpClients: ITcpClients = TcpClients(
+            this.adbWrapper,
+            this.serialNumber,
+            cfg.monitorSocketTimeout,
+            cfg.uiautomatorDaemonSocketTimeout,
+            cfg.uiautomatorDaemonTcpPort,
+            cfg.uiautomatorDaemonServerStartTimeout,
+            cfg.uiautomatorDaemonServerStartQueryDelay)
+    private lateinit var deviceModel: IDeviceModel
 
-  private DeviceResponse issueCommand(DeviceCommand deviceCommand) throws DeviceException
-  {
-    DeviceResponse deviceResponse
+    @Throws(DeviceException::class)
+    override fun pushFile(jar: Path) {
+        pushFile(jar, "")
+    }
 
-    boolean uiaDaemonHandlesCommand = uiaDaemonHandlesCommand(deviceCommand)
+    @Throws(DeviceException::class)
+    override fun pushFile(jar: Path, targetFileName: String) {
+        log.debug("pushFile($jar, $targetFileName)")
+        adbWrapper.pushFile(serialNumber, jar, targetFileName)
+    }
 
-    if (!uiaDaemonHandlesCommand)
-      throw new DeviceException(String.format("Unhandled command of %s", deviceCommand.command))
+    override fun hasPackageInstalled(packageName: String): Boolean {
+        log.debug("hasPackageInstalled($packageName)")
+        return adbWrapper.listPackage(serialNumber, packageName).contains(packageName)
+    }
 
-    deviceResponse = this.tcpClients.sendCommandToUiautomatorDaemon(deviceCommand)
-    
-    assert deviceResponse != null
-    throwDeviceResponseThrowableIfAny(deviceResponse)
-    assert deviceResponse.throwable == null
-    return deviceResponse
-  }
+    override fun getGuiSnapshot(): IDeviceGuiSnapshot {
+        log.debug("getGuiSnapshot()")
 
-  private static void throwDeviceResponseThrowableIfAny(DeviceResponse deviceResponse) throws DeviceException
-  {
-    if (deviceResponse.throwable != null)
-      throw new DeviceException(String.format(
-        "Device returned DeviceResponse with non-null throwable, indicating something went horribly wrong on the A(V)D. " +
-          "The exception is given as a cause of this one. If it doesn't have enough information, " +
-          "try inspecting the logcat output of the A(V)D.",
-      ), deviceResponse.throwable)
-  }
+        val response = this.issueCommand(
+                DeviceCommand(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP)) as UiautomatorWindowHierarchyDumpDeviceResponse
 
-  @Override
-  void closeConnection() throws DeviceException
-  {
-    this.stopUiaDaemon(false)
-  }
+        val outSnapshot = UiautomatorWindowDump(
+                response.windowHierarchyDump,
+                Dimension(response.displayWidth, response.displayHeight),
+                this.deviceModel.getAndroidLauncherPackageName())
 
-  @Override
-  void stopUiaDaemon(boolean uiaDaemonThreadIsNull) throws DeviceException
-  {
-    log.trace("stopUiaDaemon(uiaDaemonThreadIsNull:$uiaDaemonThreadIsNull)")
+        log.debug("getGuiSnapshot(): $outSnapshot")
+        return outSnapshot
+    }
 
-    this.issueCommand(new DeviceCommand(DEVICE_COMMAND_STOP_UIADAEMON))
+    override fun perform(action: IAndroidDeviceAction) {
+        log.debug("perform($action)")
+        assert(action::class in arrayListOf(ClickGuiAction::class, WaitAction::class,
+                AdbClearPackageAction::class, LaunchMainActivityDeviceAction::class))
 
-    if (uiaDaemonThreadIsNull) 
-      assert this.tcpClients.uiaDaemonThreadIsNull 
-    else 
-      this.tcpClients.waitForUiaDaemonToClose()
+        when (action) {
+            is ClickGuiAction -> performGuiClick(action)
+            is WaitAction -> performWaitAction(action)
+            is LaunchMainActivityDeviceAction -> assert(false, { "call .launchMainActivity() directly instead" })
+            is AdbClearPackageAction -> assert(false, { "call .clearPackage() directly instead" })
+            else -> throw UnexpectedIfElseFallthroughError()
+        }
+    }
 
-    assert Utils.retryOnFalse( {!this.uiaDaemonIsRunning()}, 5, 1000)
-    log.trace("DONE stopUiaDaemon()")
+    @Throws(DeviceException::class)
+    private fun performWaitAction(action: WaitAction): DeviceResponse {
+        log.debug("perform wait action")
+        return issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action.action))
+    }
 
-  }
 
-  @Override
-  boolean isAvailable() throws DeviceException
-  {
+    @Throws(DeviceException::class)
+    private fun performGuiClick(action: ClickGuiAction): DeviceResponse =
+            issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action.guiAction))
+
+    @Throws(DeviceException::class)
+    private fun issueCommand(deviceCommand: DeviceCommand): DeviceResponse {
+        val uiaDaemonHandlesCommand = uiaDaemonHandlesCommand(deviceCommand)
+
+        if (!uiaDaemonHandlesCommand)
+            throw DeviceException(String.format("Unhandled command of %s", deviceCommand.command))
+
+        val deviceResponse = this.tcpClients.sendCommandToUiautomatorDaemon(deviceCommand)
+
+        throwDeviceResponseThrowableIfAny(deviceResponse)
+        assert(deviceResponse.throwable == null)
+        return deviceResponse
+    }
+
+    override fun closeConnection() {
+        this.stopUiaDaemon(false)
+    }
+
+    override fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+
+        log.trace("stopUiaDaemon(uiaDaemonThreadIsNull:$uiaDaemonThreadIsNull)")
+
+        this.issueCommand(DeviceCommand(DEVICE_COMMAND_STOP_UIADAEMON))
+
+        if (uiaDaemonThreadIsNull)
+            assert(this.tcpClients.getUiaDaemonThreadIsNull())
+        else
+            this.tcpClients.waitForUiaDaemonToClose()
+
+        assert(Utils.retryOnFalse({ !this.uiaDaemonIsRunning() }, 5, 1000))
+        assert(!this.uiaDaemonIsRunning())
+        log.trace("DONE stopUiaDaemon()")
+    }
+
+    override fun isAvailable(): Boolean {
 //    log.trace("isAvailable(${this.serialNumber})")
-    try
-    {
-      this.adbWrapper.androidDevicesDescriptors.any {it.deviceSerialNumber == this.serialNumber}
-    } catch (NoAndroidDevicesAvailableException ignored)
-    {
-      return false
+        return try {
+            this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
+        } catch (ignored: NoAndroidDevicesAvailableException) {
+            false
+        }
     }
-  }
 
-  @Override
-  void reboot() throws DeviceException
-  {
+    override fun reboot() {
 //    log.trace("reboot(${this.serialNumber})")
-    this.adbWrapper.reboot(this.serialNumber)
-  }
-
-  @Override
-  boolean uiaDaemonClientThreadIsAlive()
-  {
-    return this.tcpClients.uiaDaemonThreadIsAlive
-  }
-
-  @Override
-  void setupConnection() throws DeviceException
-  {
-    log.trace("setupConnection($serialNumber) / this.tcpClients.forwardPorts()")
-    this.tcpClients.forwardPorts()
-    log.trace("setupConnection($serialNumber) / this.restartUiaDaemon()")
-    restartUiaDaemon(true)
-    log.trace("setupConnection($serialNumber) / DONE")
-  }
-
-  @Override
-  void restartUiaDaemon(boolean uiaDaemonThreadIsNull)
-  {
-    if (this.uiaDaemonIsRunning())
-    {
-      log.trace("stopUiaDaemon() during restart")
-      this.stopUiaDaemon(uiaDaemonThreadIsNull)
-    }
-    log.trace("startUiaDaemon() during restart")
-    this.startUiaDaemon()
-  }
-
-
-  @Override
-  void startUiaDaemon()
-  {
-    assert !this.uiaDaemonIsRunning()
-    this.clearLogcat()
-    this.tcpClients.startUiaDaemon()
-  }
-
-  @Override
-  void removeLogcatLogFile() throws DeviceException
-  {
-    log.debug("removeLogcatLogFile()")
-    if (cfg.androidApi == Configuration.api23)
-      this.adbWrapper.removeFile_api23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
-    else throw new UnexpectedIfElseFallthroughError()
-  }
-
-  @Override
-  void pullLogcatLogFile() throws DeviceException
-  {
-    log.debug("pullLogcatLogFile()")
-    if (cfg.androidApi == Configuration.api23)
-      this.adbWrapper.pullFile_api23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
-    else throw new UnexpectedIfElseFallthroughError()
-  }
-
-  @Override
-  List<ITimeFormattedLogcatMessage> readLogcatMessages(String messageTag) throws DeviceException
-  {
-    log.debug("readLogcatMessages(tag: $messageTag)")
-    List<String> messages = adbWrapper.readMessagesFromLogcat(this.serialNumber, messageTag)
-    return messages.collect {TimeFormattedLogcatMessage.from(it)}
-  }
-
-  @Override
-  List<ITimeFormattedLogcatMessage> waitForLogcatMessages(String messageTag, int minMessagesCount, int waitTimeout, int queryDelay) throws DeviceException
-  {
-    log.debug("waitForLogcatMessages(tag: $messageTag, minMessagesCount: $minMessagesCount, waitTimeout: $waitTimeout, queryDelay: $queryDelay)")
-    List<String> messages = adbWrapper.waitForMessagesOnLogcat(this.serialNumber, messageTag, minMessagesCount, waitTimeout, queryDelay)
-    log.debug("waitForLogcatMessages(): obtained messages: ${messages.join("\n")}")
-    return messages.collect {TimeFormattedLogcatMessage.from(it)}
-  }
-
-  @Override
-  List<List<String>> readAndClearMonitorTcpMessages() throws DeviceException
-  {
-    log.debug("readAndClearMonitorTcpMessages()")
-
-    ArrayList<ArrayList<String>> msgs = this.tcpClients.getLogs()
-
-    msgs.each {ArrayList<String> msg ->
-      assert msg.size() == 3
-      assert !(msg[0]?.empty)
-      assert !(msg[1]?.empty)
-      assert !(msg[2]?.empty)
+        this.adbWrapper.reboot(this.serialNumber)
     }
 
-    return msgs
-  }
+    override fun uiaDaemonClientThreadIsAlive(): Boolean = this.tcpClients.getUiaDaemonThreadIsAlive()
 
-  @Override
-  LocalDateTime getCurrentTime() throws DeviceException
-  {
-    List<List<String>> msgs = this.tcpClients.getCurrentTime()
-
-    assert msgs.size() == 1
-    assert msgs[0].size() == 3
-    assert !(msgs[0][0]?.empty)
-    assert msgs[0][1] == null
-    assert msgs[0][2] == null
-
-
-    return LocalDateTime.parse(msgs[0][0], DateTimeFormatter.ofPattern(MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale))
-
-  }
-
-  @Override
-   boolean appProcessIsRunning(String appPackageName) throws DeviceException
-  {
-    log.debug("appProcessIsRunning($appPackageName)")
-    String ps = this.adbWrapper.ps(this.serialNumber)
-
-    boolean out = ps.contains(appPackageName)
-    if (out)
-      log.trace("App process of $appPackageName is running")
-    else
-      log.trace("App process of $appPackageName is not running")
-    return out
-  }
-
-  @Override
-  Boolean anyMonitorIsReachable() throws DeviceException
-  {
-//    log.debug("anyMonitorIsReachable()")
-    return this.tcpClients.anyMonitorIsReachable()
-  }
-
-  @Override
-  void clearLogcat() throws DeviceException
-  {
-    log.debug("clearLogcat()")
-    adbWrapper.clearLogcat(serialNumber)
-  }
-
-  @Override
-  void installApk(IApk apk) throws DeviceException
-  {
-    log.debug("installApk($apk.fileName)")
-    adbWrapper.installApk(serialNumber, apk)
-  }
-
-  // KJA got on logcat:
-  // 12-23 03:55:33.531 589-1267/? I/PackageManager: Package doesn't exist in get block uninstall com.skype.raider
-  // 12-23 03:55:33.532 589-614/? W/PackageManager: Package named 'com.skype.raider' doesn't exist.
-  @Override
-  void uninstallApk(String apkPackageName, boolean ignoreFailure) throws DeviceException
-  {
-    log.debug("uninstallApk($apkPackageName, ignoreFailure: $ignoreFailure)")
-    adbWrapper.uninstallApk(serialNumber, apkPackageName, ignoreFailure)
-  }
-
-  @Override
-  void launchMainActivity(String launchableActivityComponentName) throws DeviceException
-  {
-    log.debug("launchMainActivity($launchableActivityComponentName)")
-    adbWrapper.launchMainActivity(serialNumber, launchableActivityComponentName)
-    log.info("Sleeping after launching $launchableActivityComponentName for ${cfg.launchActivityDelay} ms")
-    sleep(cfg.launchActivityDelay)
-  }
-
-  @Override
-  void closeMonitorServers() throws DeviceException
-  {
-    log.debug("closeMonitorServers()")
-    tcpClients.closeMonitorServers()
-  }
-
-
-  @Override
-  void clearPackage(String apkPackageName) throws DeviceException
-  {
-    log.debug("clearPackage($apkPackageName)")
-    adbWrapper.clearPackage(serialNumber, apkPackageName)
-  }
-
-  @Override
-  void removeJar(Path jar) throws DeviceException
-  {
-    log.debug("removeJar($jar)")
-    adbWrapper.removeJar(serialNumber, jar)
-  }
-
-  @Override
-  void installApk(Path apk) throws DeviceException
-  {
-    log.debug("installApk($apk.fileName)")
-    adbWrapper.installApk(serialNumber, apk)
-  }
-
-  @Override
-  Path takeScreenshot(IApk app, String suffix) throws DeviceException
-  {
-    log.debug("takeScreenshot($app, $suffix)")
-    
-    assert app != null
-    assert !suffix?.empty
-    
-    Path targetFile = Paths.get("${cfg.droidmateOutputDir}/${cfg.screenshotsOutputSubdir}/${app.fileNameWithoutExtension}_${suffix}.png")
-    targetFile.mkdirs()
-    assert !Files.exists(targetFile)
-    String targetFileString = targetFile.toString().replace(File.separator, "/")
-    
-    try
-    {
-      adbWrapper.takeScreenshot(serialNumber, targetFileString)
-    } catch (AdbWrapperException e)
-    {
-      log.warn(Markers.appHealth, "! Failed to take screenshot for ${app.fileName} with exception: $e " +
-        "Discarding the exception and continuing without the screenshot.")
+    override fun setupConnection() {
+        log.trace("setupConnection($serialNumber) / this.tcpClients.forwardPorts()")
+        this.tcpClients.forwardPorts()
+        log.trace("setupConnection($serialNumber) / this.restartUiaDaemon()")
+        restartUiaDaemon(true)
+        log.trace("setupConnection($serialNumber) / DONE")
     }
 
-    return targetFile
-  }
-  
-  private static boolean uiaDaemonHandlesCommand(DeviceCommand deviceCommand)
-  {
-    return deviceCommand.command in [
-      DEVICE_COMMAND_PERFORM_ACTION,
-      DEVICE_COMMAND_STOP_UIADAEMON,
-      DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP,
-      DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE,
-      DEVICE_COMMAND_GET_DEVICE_MODEL
-    ]
-  }
+    override fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+        if (this.uiaDaemonIsRunning()) {
+            log.trace("stopUiaDaemon() during restart")
+            this.stopUiaDaemon(uiaDaemonThreadIsNull)
+        }
+        log.trace("startUiaDaemon() during restart")
+        this.startUiaDaemon()
+    }
 
-  @Override
-  Boolean appIsRunning(String appPackageName) throws DeviceException
-  {
-    return this.anyMonitorIsReachable() && this.appProcessIsRunning(appPackageName)
-  }
+    override fun startUiaDaemon() {
+        assert(!this.uiaDaemonIsRunning())
+        this.clearLogcat()
+        this.tcpClients.startUiaDaemon()
+    }
 
-  @Override
-  void clickAppIcon(String iconLabel) throws DeviceException
-  {
-    log.debug("perform(newLaunchAppDeviceAction(iconLabel:$iconLabel))")
-    this.perform(newLaunchAppDeviceAction(iconLabel))
-    log.info("Sleeping after clicking app icon labeled '$iconLabel' for ${cfg.launchActivityDelay} ms")
-    sleep(cfg.launchActivityDelay)
-  }
+    override fun removeLogcatLogFile() {
 
-  @Override
-  void initModel() throws DeviceException
-  {
-    log.trace("initModel(): this.issueCommand(new DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))")
-    DeviceResponse response = this.issueCommand(new DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))
-    assert response.model != null
+        log.debug("removeLogcatLogFile()")
+        if (cfg.androidApi == Configuration.api23)
+            this.adbWrapper.removeFile_api23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
+        else throw UnexpectedIfElseFallthroughError()
+    }
 
-    this.deviceModel = DeviceModel.build(response.model)
-    assert this.deviceModel != null
-  }
+    override fun pullLogcatLogFile() {
+        log.debug("pullLogcatLogFile()")
+        if (cfg.androidApi == Configuration.api23)
+            this.adbWrapper.pullFile_api23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
+        else throw UnexpectedIfElseFallthroughError()
+    }
 
-  @Override
-  void reinstallUiautomatorDaemon() throws DeviceException
-  {
-    if (cfg.androidApi == Configuration.api23)
-    {
-      this.uninstallApk(uia2Daemon_testPackageName, true)
-      this.uninstallApk(uia2Daemon_packageName, true)
+    override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> {
+        log.debug("readLogcatMessages(tag: $messageTag)")
+        val messages = adbWrapper.readMessagesFromLogcat(this.serialNumber, messageTag)
+        return messages.map { TimeFormattedLogcatMessage.from(it) }
+    }
 
-      this.installApk(this.cfg.uiautomator2DaemonApk)
-      this.installApk(this.cfg.uiautomator2DaemonTestApk)
+    override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> {
+        log.debug("waitForLogcatMessages(tag: $messageTag, minMessagesCount: $minMessagesCount, waitTimeout: $waitTimeout, queryDelay: $queryDelay)")
+        val messages = adbWrapper.waitForMessagesOnLogcat(this.serialNumber, messageTag, minMessagesCount, waitTimeout, queryDelay)
+        log.debug("waitForLogcatMessages(): obtained messages: ${messages.joinToString("\n")}")
+        return messages.map { TimeFormattedLogcatMessage.from(it) }
+    }
 
-    } else throw new UnexpectedIfElseFallthroughError()
+    override fun readAndClearMonitorTcpMessages(): List<List<String>> {
+        log.debug("readAndClearMonitorTcpMessages()")
 
-  }
+        val messages = this.tcpClients.getLogs()
 
-  @Override
-  void pushMonitorJar() throws DeviceException
-  {
-    if (cfg.androidApi == Configuration.api23)
-    {
-      this.pushFile(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
+        messages.forEach { msg ->
+            assert(msg.size == 3)
+            assert(msg[0].isNotEmpty())
+            assert(msg[1].isNotEmpty())
+            assert(msg[2].isNotEmpty())
+        }
 
-    } else throw new UnexpectedIfElseFallthroughError()
+        return messages
+    }
 
-    this.pushFile(this.cfg.apiPoliciesFile, BuildConstants.api_policies_file_name)
+    override fun getCurrentTime(): LocalDateTime {
+        val messages = this.tcpClients.getCurrentTime()
 
-  }
-  
-  @Override 
-  void reconnectAdb() throws DeviceException
-  {
-    this.adbWrapper.reconnect(this.serialNumber)
-  }
-  
-  @Override
-  void executeAdbCommand(String command, String successfulOutput, String commandDescription) throws DeviceException
-  {
-    this.adbWrapper.executeCommand(this.serialNumber, successfulOutput, commandDescription, command)
-  }
+        assert(messages.size == 1)
+        assert(messages[0].size == 3)
+        assert(messages[0][0].isNotEmpty())
+        //assert(messages[0][1].isNotEmpty())
+        //assert(messages[0][2].isNotEmpty())
 
-  @Override
-  boolean uiaDaemonIsRunning()
-  {
-    String packageName
-    if (cfg.androidApi == Configuration.api23)
-      packageName = uia2Daemon_packageName
-    else throw new UnexpectedIfElseFallthroughError()
-    
-    String processList = this.adbWrapper.executeCommand(this.serialNumber, "USER", "Check if process $packageName is running.", "shell ps"
-    )
-    return processList.contains(packageName)
-  }
+        return LocalDateTime.parse(messages[0][0], DateTimeFormatter.ofPattern(MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale))
 
-  @Override
-  boolean isPackageInstalled(String packageName)
-  {
-    String uiadPackageList = this.adbWrapper.executeCommand(this.serialNumber, "", "Check if package $packageName is installed.", "shell pm list packages $packageName"
-    )
-    String[] packages = uiadPackageList.trim().replace("package:","").replace("\r","|").replace("\n","|").split("\\|")
-    return packages.any { it == packageName }
-  }
+    }
 
-  @Override
-  String toString()
-  {
-    return "{device $serialNumber}"
-  }
+    override fun appProcessIsRunning(appPackageName: String): Boolean {
+        log.debug("appProcessIsRunning($appPackageName)")
+        val ps = this.adbWrapper.ps(this.serialNumber)
 
+        val out = ps.contains(appPackageName)
+        if (out)
+            log.trace("App process of $appPackageName is running")
+        else
+            log.trace("App process of $appPackageName is not running")
+        return out
+    }
+
+    override fun anyMonitorIsReachable(): Boolean =//    log.debug("anyMonitorIsReachable()")
+            this.tcpClients.anyMonitorIsReachable()
+
+    override fun clearLogcat() {
+        log.debug("clearLogcat()")
+        adbWrapper.clearLogcat(serialNumber)
+    }
+
+    override fun installApk(apk: IApk) {
+        log.debug("installApk($apk.fileName)")
+        adbWrapper.installApk(serialNumber, apk)
+    }
+
+    override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
+        log.debug("uninstallApk($apkPackageName, ignoreFailure: $ignoreFailure)")
+        adbWrapper.uninstallApk(serialNumber, apkPackageName, ignoreFailure)
+    }
+
+    override fun launchMainActivity(launchableActivityComponentName: String) {
+
+        log.debug("launchMainActivity($launchableActivityComponentName)")
+        adbWrapper.launchMainActivity(serialNumber, launchableActivityComponentName)
+        log.info("Sleeping after launching $launchableActivityComponentName for ${cfg.launchActivityDelay} ms")
+        sleep(cfg.launchActivityDelay.toLong())
+    }
+
+    override fun closeMonitorServers() {
+        log.debug("closeMonitorServers()")
+        tcpClients.closeMonitorServers()
+    }
+
+    override fun clearPackage(apkPackageName: String) {
+        log.debug("clearPackage($apkPackageName)")
+        adbWrapper.clearPackage(serialNumber, apkPackageName)
+    }
+
+    override fun removeJar(jar: Path) {
+        log.debug("removeJar($jar)")
+        adbWrapper.removeJar(serialNumber, jar)
+    }
+
+    override fun installApk(apk: Path) {
+        log.debug("installApk($apk.fileName)")
+        adbWrapper.installApk(serialNumber, apk)
+    }
+
+    override fun takeScreenshot(app: IApk, suffix: String): Path {
+        log.debug("takeScreenshot($app, $suffix)")
+
+        assert(suffix.isNotEmpty())
+
+        val targetFile = Paths.get("${cfg.droidmateOutputDir}/${cfg.screenshotsOutputSubDir}/${app.fileNameWithoutExtension}_$suffix.png")
+        targetFile.mkdirs()
+        assert(!Files.exists(targetFile))
+        val targetFileString = targetFile.toString().replace(File.separator, "/")
+
+        try {
+            adbWrapper.takeScreenshot(serialNumber, targetFileString)
+        } catch (e: AdbWrapperException) {
+            log.warn(Markers.appHealth, "! Failed to take screenshot for ${app.fileName} with exception: $e " +
+                    "Discarding the exception and continuing without the screenshot.")
+        }
+
+        return targetFile
+    }
+
+    override fun appIsRunning(appPackageName: String): Boolean =
+            this.anyMonitorIsReachable() && this.appProcessIsRunning(appPackageName)
+
+    override fun clickAppIcon(iconLabel: String) {
+
+        log.debug("perform(newLaunchAppDeviceAction(iconLabel:$iconLabel))")
+        this.perform(org.droidmate.device.datatypes.AndroidDeviceAction.newLaunchAppDeviceAction(iconLabel))
+        log.info("Sleeping after clicking app icon labeled '$iconLabel' for ${cfg.launchActivityDelay} ms")
+        sleep(cfg.launchActivityDelay.toLong())
+    }
+
+    override fun initModel() {
+        log.trace("initModel(): this.issueCommand(new DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))")
+        val response = this.issueCommand(DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))
+        assert(response.model != null)
+
+        this.deviceModel = DeviceModel.build(response.model)
+    }
+
+    override fun reinstallUiautomatorDaemon() {
+        if (cfg.androidApi == Configuration.api23) {
+            this.uninstallApk(uia2Daemon_testPackageName, true)
+            this.uninstallApk(uia2Daemon_packageName, true)
+
+            this.installApk(this.cfg.uiautomator2DaemonApk)
+            this.installApk(this.cfg.uiautomator2DaemonTestApk)
+
+        } else throw UnexpectedIfElseFallthroughError()
+    }
+
+    override fun pushMonitorJar() {
+        if (cfg.androidApi == Configuration.api23) {
+            this.pushFile(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
+
+        } else throw UnexpectedIfElseFallthroughError()
+
+        this.pushFile(this.cfg.apiPoliciesFile, BuildConstants.api_policies_file_name)
+    }
+
+    override fun reconnectAdb() {
+        this.adbWrapper.reconnect(this.serialNumber)
+    }
+
+    override fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
+        this.adbWrapper.executeCommand(this.serialNumber, successfulOutput, commandDescription, command)
+    }
+
+    override fun uiaDaemonIsRunning(): Boolean {
+        if (cfg.androidApi != Configuration.api23)
+            throw UnexpectedIfElseFallthroughError()
+
+        val packageName = uia2Daemon_packageName
+
+        val processList = this.adbWrapper.executeCommand(this.serialNumber,
+                "USER", "Check if process $packageName is running.",
+                "shell ps"
+        )
+        return processList.contains(packageName)
+    }
+
+    override fun isPackageInstalled(packageName: String): Boolean {
+        val uiadPackageList = this.adbWrapper.executeCommand(this.serialNumber,
+                "", "Check if package $packageName is installed.",
+                "shell pm list packages $packageName")
+        val packages = uiadPackageList.trim().replace("package:", "").replace("\r", "|").replace("\n", "|").split("\\|")
+        return packages.any { it == packageName }
+    }
+
+    override fun toString(): String = "{device $serialNumber}"
 }

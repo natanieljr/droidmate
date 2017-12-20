@@ -18,111 +18,86 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 
-class GuiScreensBuilderFromApkExplorationOutput2 implements IGuiScreensBuilder
+class GuiScreensBuilderFromApkExplorationOutput2(private val output : IApkExplorationOutput2) : IGuiScreensBuilder
 {
 
-  private final IApkExplorationOutput2 out
-
-  GuiScreensBuilderFromApkExplorationOutput2(IApkExplorationOutput2 out)
-  {
-    this.out = out
-  }
-
-  @Override
-   List<IGuiScreen> build()
-  {
-    return buildGuiScreens(out)
-  }
-
-
-  private List<IGuiScreen> buildGuiScreens(IApkExplorationOutput2 out)
-  {
-    out?.verify()
-
-    List<IGuiScreen> guiScreens = out.guiSnapshots.collect {
-      assert (it.id in GuiScreen.reservedIds) == !(it.guiState.belongsToApp(out.packageName))
-      return new GuiScreen(it)
+    override fun build(): List<IGuiScreen> {
+        return buildGuiScreens(output)
     }
 
-    // Remove duplicate representations of the GuiScreens.
-    guiScreens.unique(true) {it.id}
+    private fun buildGuiScreens(output: IApkExplorationOutput2): List<IGuiScreen> {
+        output.verify()
 
-    // Ensure the set of GuiScreens contains home screen.
-    if (!(guiScreens*.id.any {it == GuiScreen.idHome}))
-    {
-      def home = new GuiScreen(GuiScreen.idHome)
-      home.buildInternals()
-      guiScreens += home
+        var guiScreens = output.guiSnapshots.map {
+            assert((it.id in GuiScreen.reservedIds) == !(it.guiState.belongsToApp(output.packageName)))
+            GuiScreen(it)
+        }
+
+        // Remove duplicate representations of the GuiScreens.
+        guiScreens = guiScreens.distinctBy { it.getId() }
+
+        // Ensure the set of GuiScreens contains home screen.
+        if (!(guiScreens.any { it.getId() == GuiScreen.idHome })) {
+            val home = GuiScreen(GuiScreen.idHome)
+            home.buildInternals()
+            guiScreens += home
+        }
+
+        // Ensure the set of GuiScreens contains chrome screen.
+        if (!(guiScreens.any { it.getId() == GuiScreen.idChrome })) {
+            val chrome = GuiScreen(GuiScreen.idChrome)
+            chrome.buildInternals()
+            guiScreens += chrome
+        }
+
+        // Obtain references to special Screens.
+        val home = guiScreens.single { it.getId() == GuiScreen.idHome }
+        val main = guiScreens[0]
+        assert(main.getId() !in GuiScreen.reservedIds)
+        assert(main.getGuiSnapshot().guiState.belongsToApp(output.packageName))
+
+        guiScreens.forEach {
+            it.addHomeScreenReference(home)
+            it.addMainScreenReference(main)
+        }
+
+        output.actRes.forEachIndexed { i, action ->
+
+            val explAction = action.getAction().base
+
+            when (explAction) {
+            // Do not any transition: all GuiScreens already know how to transition on device actions resulting from
+            // this exploration action.
+                is ResetAppExplorationAction -> { /* Do nothing */
+                }
+                is WidgetExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
+                is EnterTextExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
+                is TerminateExplorationAction -> {
+                    assert(i == output.actRes.size - 1)
+                    // Do not add any transition: all GuiScreens already know how to transition on device actions resulting from
+                    // this exploration action.
+                }
+                else -> throw UnexpectedIfElseFallthroughError(
+                        "Unsupported ExplorationAction class while extracting transitions from IApkExplorationOutput2. " +
+                                "The unsupported class: ${explAction.javaClass}")
+            }
+        }
+
+        guiScreens.forEach { it.verify() }
+        return guiScreens
     }
-
-    // Ensure the set of GuiScreens contains chrome screen.
-    if (!(guiScreens*.id.any {it == GuiScreen.idChrome}))
-    {
-      def chrome = new GuiScreen(GuiScreen.idChrome)
-      chrome.buildInternals()
-      guiScreens += chrome
+    
+    private fun addWidgetTransition(guiScreens: List<IGuiScreen>, i: Int, widget: IWidget) {
+        assert(i > 0)
+        val sourceScreen = guiScreens.single { output.guiSnapshots[i - 1].id == it.getId() }
+        val targetScreen = guiScreens.single { output.guiSnapshots[i].id == it.getId() }
+        sourceScreen.addWidgetTransition(widget.id, targetScreen, /* ignoreDuplicates */ true)
     }
-
-    // Obtain references to special Screens.
-    IGuiScreen home = guiScreens.findSingle {it.id == GuiScreen.idHome}
-    IGuiScreen main = guiScreens[0]
-    assert !(main.id in GuiScreen.reservedIds)
-    assert main.guiSnapshot.guiState.belongsToApp(out.packageName)
-
-    guiScreens.each {
-      it.addHomeScreenReference(home)
-      it.addMainScreenReference(main)
-    }
-
-    out.actRess.eachWithIndex {RunnableExplorationActionWithResult action, int i ->
-
-      ExplorationAction explAction = action.action.base
-
-      switch (explAction.class)
-      {
-        case ResetAppExplorationAction:
-          // Do not any transition: all GuiScreens already know how to transition on device actions resulting from
-          // this exploration action.
-          break
-
-        case WidgetExplorationAction:
-          addWidgetTransition(guiScreens, i, (explAction as WidgetExplorationAction).widget)
-          break
-
-        case EnterTextExplorationAction:
-          addWidgetTransition(guiScreens, i, (explAction as EnterTextExplorationAction).widget)
-          break
-
-        case TerminateExplorationAction:
-          assert i == out.actRess.size() - 1
-          // Do not add any transition: all GuiScreens already know how to transition on device actions resulting from
-          // this exploration action.
-          break
-
-        default:
-          new UnexpectedIfElseFallthroughError(
-            "Unsupported ExplorationAction class while extracting transitions from IApkExplorationOutput2. " +
-              "The unsupported class: ${explAction.class}")
-      }
-
-    }
-
-    guiScreens.each {it.verify()}
-    return guiScreens
-
-  }
-
-  private void addWidgetTransition(List<IGuiScreen> guiScreens, int i, Widget widget)
-  {
-    assert i > 0
-    IGuiScreen sourceScreen = guiScreens.findSingle {out.guiSnapshots[i - 1].id == it.id}
-    IGuiScreen targetScreen = guiScreens.findSingle {out.guiSnapshots[i].id == it.id}
-    sourceScreen.addWidgetTransition(widget.id, targetScreen, /* ignoreDuplicates */ true)
-  }
 }
 

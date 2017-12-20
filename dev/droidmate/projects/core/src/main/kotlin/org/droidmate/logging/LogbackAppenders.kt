@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,44 +24,41 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.filter.ThresholdFilter
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
-import ch.qos.logback.core.filter.Filter
 import org.slf4j.LoggerFactory
 
-class LogbackAppenders
-{
-  static final String appender_stdout = "appender_STDOUT"
-  static final String appender_stderr = "appender_STDERR"
+@Suppress("RedundantVisibilityModifier", "MemberVisibilityCanPrivate")
+class LogbackAppenders {
+    companion object {
+        val appender_stdout = "appender_STDOUT"
+        val appender_stderr = "appender_STDERR"
 
-  public static ArrayList<String> stdStreamsAppenders()
-  {
-    return [appender_stdout, appender_stderr]
-  }
+        public fun stdStreamsAppenders(): List<String> = arrayListOf(appender_stdout, appender_stderr)
 
-  public static void setThresholdLevelOfStdStreamsAppenders(Level level)
-  {
-    getStdStreamsAppenders().each {Appender<ILoggingEvent> it -> changeThresholdLevelOfFirstFilter(it, level)}
-  }
+        public fun setThresholdLevelOfStdStreamsAppenders(level: Level) {
+            getStdStreamsAppenders().forEach { it -> changeThresholdLevelOfFirstFilter(it, level) }
+        }
 
-  protected static List<Appender<ILoggingEvent>> getStdStreamsAppenders()
-  {
-    Logger log = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
-    List<Appender<ILoggingEvent>> appenders = log.iteratorForAppenders().findAll {Appender<ILoggingEvent> appender ->
-      appender.name in stdStreamsAppenders()
-    }.asList()
-    return appenders
-  }
+        @JvmStatic
+        fun getStdStreamsAppenders(): List<Appender<ILoggingEvent>> {
+            val log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+            val appenders = log.iteratorForAppenders()
+                    .asSequence()
+                    .filter { appender -> appender.name in stdStreamsAppenders() }
+                    .toList()
+            return appenders
+        }
 
-  // Adapted from http://groovy.codehaus.org/JN3515-Interception
-  // WARNING: possibly (not sure) this doesn't work on log methods residing in @Memoized method. Dunno why, AST transformation magic interferes?
-  protected static void changeThresholdLevelOfFirstFilter(Appender<ILoggingEvent> appender, Level newLevel)
-  {
+        // Adapted from http://groovy.codehaus.org/JN3515-Interception
+        // WARNING: possibly (not sure) this doesn't work on log methods residing in @Memoized method. Dunno why, AST transformation magic interferes?
+        @JvmStatic
+        fun changeThresholdLevelOfFirstFilter(appender: Appender<ILoggingEvent>, newLevel: Level) {
+            val filters = appender.copyOfAttachedFiltersList
 
-    List<Filter<ILoggingEvent>> filters = appender.copyOfAttachedFiltersList
+            val thresholdFilter = filters[0] as ThresholdFilter
+            thresholdFilter.setLevel(newLevel.toString())
 
-    ThresholdFilter thresholdFilter = filters[0] as ThresholdFilter
-    thresholdFilter.setLevel(newLevel.toString())
-
-    appender.clearAllFilters()
-    filters.each {Filter<ILoggingEvent> it -> appender.addFilter(it)}
-  }
+            appender.clearAllFilters()
+            filters.forEach { it -> appender.addFilter(it) }
+        }
+    }
 }

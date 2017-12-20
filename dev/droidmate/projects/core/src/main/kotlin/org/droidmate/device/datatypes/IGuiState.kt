@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,29 +19,29 @@
 
 package org.droidmate.device.datatypes
 
-interface IGuiState extends Serializable
-{
-  String getTopNodePackageName()
+import java.io.Serializable
 
-  List<Widget> getWidgets()
+interface IGuiState : Serializable {
+    val topNodePackageName: String
+    val widgets: List<IWidget>
+    val id: String
+    val androidLauncherPackageName: String
 
-  String getId()
+    fun getActionableWidgets(): List<IWidget>
 
-  List<Widget> getActionableWidgets()
+    val isHomeScreen: Boolean
 
-  boolean isHomeScreen()
+    val isAppHasStoppedDialogBox: Boolean
 
-  boolean isAppHasStoppedDialogBox()
+    val isRequestRuntimePermissionDialogBox: Boolean
 
-  boolean isRequestRuntimePermissionDialogBox()
+    val isCompleteActionUsingDialogBox: Boolean
 
-  boolean isCompleteActionUsingDialogBox()
+    val isSelectAHomeAppDialogBox: Boolean
 
-  boolean isSelectAHomeAppDialogBox()
+    val isUseLauncherAsHomeDialogBox: Boolean
 
-  boolean isUseLauncherAsHomeDialogBox()
+    fun belongsToApp(appPackageName: String): Boolean
 
-  boolean belongsToApp(String appPackageName)
-
-  String debugWidgets()
+    fun debugWidgets(): String
 }

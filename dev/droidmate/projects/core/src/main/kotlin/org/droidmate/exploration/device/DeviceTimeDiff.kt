@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,16 +18,16 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.device
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.misc.MonitorConstants
-
+import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
 
 /**
  * <p>
@@ -42,67 +42,53 @@ import java.time.format.DateTimeFormatter
  *
  * </p>
  */
-@Slf4j
- class DeviceTimeDiff implements IDeviceTimeDiff
-{
-
-  private final IExplorableAndroidDevice device
-
-  private Duration diff = null
-
-  DeviceTimeDiff(IExplorableAndroidDevice device)
-  {
-    this.device = device
-  }
-
-  @Override
-  LocalDateTime sync(LocalDateTime deviceTime) throws DeviceException
-  {
-    assert deviceTime != null
-
-    if (diff == null)
-      diff = computeDiff(device)
-    assert diff != null
-
-    return deviceTime.minus(diff)
-  }
-
-  private Duration computeDiff(IExplorableAndroidDevice device) throws DeviceException
-  {
-    LocalDateTime deviceTime = device.getCurrentTime()
-    LocalDateTime now = LocalDateTime.now()
-    Duration diff = Duration.between(now, deviceTime)
-
-    def formatter = DateTimeFormatter.ofPattern(
-      MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale)
-    String msg = "computeDiff(device) result: " +
-      "Current time: ${now.format(formatter)} " +
-      "Device time: ${deviceTime.format(formatter)} " +
-      "Resulting diff: ${diff.toString()}"
-
-    log.trace(msg)
-
-    assert diff != null
-    return diff
-  }
-
-  @Override
-  List<ITimeFormattedLogcatMessage> syncMessages(List<ITimeFormattedLogcatMessage> messages) throws DeviceException
-  {
-    return messages.collect {
-      
-//      log.trace("syncing: curr diff: ${this.diff} log dev. time: $it.time tag: $it.tag pid: $it.pidString, payload first 200 chars: ${it.messagePayload.take(200)}")
-      
-      TimeFormattedLogcatMessage.from(
-        this.sync(it.time),
-        it.level, it.tag, it.pidString, it.messagePayload)
+class DeviceTimeDiff(private val device: IExplorableAndroidDevice) : IDeviceTimeDiff {
+    companion object {
+        private val log = LoggerFactory.getLogger(DeviceTimeDiff::class.java)
     }
 
-  }
+    private var diff: Duration? = null
 
-  @Override
-  void reset()
-  {
-     diff = null
-  }
+    override fun sync(deviceTime: LocalDateTime): LocalDateTime {
+        if (diff == null)
+            diff = computeDiff(device)
+
+        assert(diff != null)
+
+        return deviceTime.minus(diff)
+    }
+
+    @Throws(DeviceException::class)
+    private fun computeDiff(device: IExplorableAndroidDevice): Duration {
+        val deviceTime = device.getCurrentTime()
+        val now = LocalDateTime.now()
+        val diff = Duration.between(now, deviceTime)
+
+        val formatter = DateTimeFormatter.ofPattern(
+                MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale)
+        val msg = "computeDiff(device) result: " +
+                "Current time: ${now.format(formatter)} " +
+                "Device time: ${deviceTime.format(formatter)} " +
+                "Resulting diff: ${diff.toString()}"
+
+        log.trace(msg)
+
+        assert(diff != null)
+        return diff
+    }
+
+    override fun syncMessages(messages: List<ITimeFormattedLogcatMessage>): List<ITimeFormattedLogcatMessage> {
+        return messages.map {
+
+            //      log.trace("syncing: curr diff: ${this.diff} log dev. time: $it.time tag: $it.tag pid: $it.pidString, payload first 200 chars: ${it.messagePayload.take(200)}")
+
+            TimeFormattedLogcatMessage.from(
+                    this.sync(it.time),
+                    it.level, it.tag, it.pidString, it.messagePayload)
+        }
+    }
+
+    override fun reset() {
+        diff = null
+    }
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,32 +20,21 @@ package org.droidmate.exploration.actions
 
 import org.droidmate.android_sdk.DeviceException
 
-class DeviceExceptionMissing extends DeviceException
-{
+class DeviceExceptionMissing : DeviceException {
+    companion object {
+        private const val serialVersionUID: Long = 1
+        private val defaultExceptionMessage = "N/A (lack of ${DeviceException::class.java.simpleName})"
+    }
 
-  DeviceExceptionMissing()
-  {
-  }
+    constructor() : super(defaultExceptionMessage)
 
-  DeviceExceptionMissing(Throwable cause)
-  {
-    super(cause)
-  }
+    constructor(cause: Throwable) : super(cause)
 
-  DeviceExceptionMissing(String message, Throwable cause)
-  {
-    super(message, cause)
-  }
+    constructor(message: String, cause: Throwable) : super(message, cause)
 
-  DeviceExceptionMissing(String message)
-  {
-    super(message)
-  }
+    constructor(message: String) : super(message)
 
-  @Override
-   String toString()
-  {
-    return "N/A (lack of ${DeviceException.class.simpleName})"
-  }
-
+    override fun toString(): String {
+        return defaultExceptionMessage
+    }
 }

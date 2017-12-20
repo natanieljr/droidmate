@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,24 +22,19 @@ package org.droidmate.configuration
 import com.beust.jcommander.IStringConverter
 import org.droidmate.misc.DroidmateException
 
-public class ListOfStringsConverter implements IStringConverter<List<String>>
-{
-  @Override
-  public List<String> convert(String arg)
-  {
-    assert arg != null
+public class ListOfStringsConverter : IStringConverter<List<String>> {
+    override fun convert(arg: String?): List<String> {
+        try {
+            if (arg == null)
+                throw DroidmateException("Null parameter value")
 
-    List<String> convertedArg
-    try
-    {
-      convertedArg = arg.tokenize("[,]").collect {(it as String).trim()}
-    } catch (Exception e)
-    {
-      throw new DroidmateException("The string '${arg}' is not a valid value for parameter expecting a list of strings. " +
-        "See command line parameters help for examples of correct format.", e);
+            return arg.replace("[", "")
+                    .replace("[", "")
+                    .split(",")
+                    .map { it.trim() }
+        } catch (e: Exception) {
+            throw DroidmateException("The string '$arg' is not a valid value for parameter expecting a list of strings. " +
+                    "See command line parameters help for examples of correct format.", e);
+        }
     }
-
-    assert convertedArg != null
-    return convertedArg
-  }
 }

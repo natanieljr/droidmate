@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,16 +19,16 @@
 
 package org.droidmate.device.datatypes
 
-public interface IDeviceGuiSnapshot
-{
-  String getWindowHierarchyDump()
+interface IDeviceGuiSnapshot {
 
-  String getPackageName()
+    val windowHierarchyDump: String
+    val androidLauncherPackageName: String
+    val id: String
+    val guiState: IGuiState
+    val validationResult: ValidationResult
 
-  IGuiState getGuiState()
+    fun getPackageName(): String
 
-  ValidationResult getValidationResult()
 
-  String getId()
 }
 

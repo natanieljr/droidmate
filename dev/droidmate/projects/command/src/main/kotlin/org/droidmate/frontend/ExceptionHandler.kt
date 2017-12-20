@@ -18,106 +18,96 @@
 // web: www.droidmate.org
 package org.droidmate.frontend
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.ApkExplorationException
 import org.droidmate.android_sdk.ExplorationException
 import org.droidmate.configuration.Configuration
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackConstants
+import org.droidmate.logging.Markers.Companion.exceptions
 import org.droidmate.misc.ThrowablesCollection
+import org.slf4j.LoggerFactory
 
-import static org.droidmate.logging.Markers.exceptions
-
-@Slf4j
-class ExceptionHandler implements IExceptionHandler
-{
-
-  @Override
-  int handle(Throwable e)
-  {
-    def returnCode = internalHandle(e)
-    log.error("$LogbackConstants.err_log_msg")
-    return returnCode
-  }
-
-  private static int internalHandle(Throwable e)
-  {
-    assert e.suppressed.length == 0
-
-    switch (e)
-    {
-      case ApkExplorationException:
-        logApkExplorationException(e as ApkExplorationException)
-        return 1
-
-      case ExplorationException:
-        logExplorationException(e as ExplorationException)
-        return 2
-
-      case ThrowablesCollection:
-        logThrowablesCollection(e as ThrowablesCollection)
-        return 3
-
-      case Throwable:
-        logThrowable(e)
-        return 4
-
-      default:
-        throw new UnexpectedIfElseFallthroughError()
+class ExceptionHandler : IExceptionHandler {
+    override fun handle(e: Throwable): Int {
+        val returnCode = internalHandle(e)
+        log.error(LogbackConstants.err_log_msg)
+        return returnCode
     }
-  }
 
-  private static void logApkExplorationException(ApkExplorationException e)
-  {
-    String message = "An ${e.class.simpleName} was thrown during DroidMate run, pertaining to ${e.apk.fileName}:"
+    companion object {
+        private val log = LoggerFactory.getLogger(ExceptionHandler::class.java)
 
-    log.error("$message $e")
-    log.error(exceptions, "$message\n", e)
-  }
+        @JvmStatic
+        private fun internalHandle(e: Throwable): Int {
+            assert(e.suppressed.isEmpty())
 
-  private static void logExplorationException(ExplorationException e)
-  {
-    String message = "An ${e.class.simpleName} was thrown during DroidMate run:"
 
-    log.error("$message $e")
-    log.error(exceptions, "$message\n", e)
-  }
+            when (e) {
+                is ApkExplorationException -> {
+                    logApkExplorationException(e)
+                    return 1
+                }
 
-  private static void logThrowablesCollection(ThrowablesCollection e)
-  {
-    assert !(e.throwables.empty)
-    assert e.cause == null
-    assert e.suppressed.length == 0
+                is ExplorationException -> {
+                    logExplorationException(e)
+                    return 2
+                }
 
-    assert e.throwables.every {it instanceof ExplorationException}
+                is ThrowablesCollection -> {
+                    logThrowablesCollection(e)
+                    return 3
+                }
 
-    def message = "A nonempty ${e.class.simpleName} was thrown during DroidMate run. " +
-      "Each of the ${e.throwables.size()} ${Throwable.simpleName}s will now be logged."
-    log.error(message)
-    log.error(exceptions, message)
+                else -> {
+                    logThrowable(e)
+                    return 4
+                }
+            }
+        }
 
-    def throwableDelimiter = "========================================"
-    log.error(throwableDelimiter)
-    log.error(exceptions, throwableDelimiter)
-    e.throwables.each {
-      internalHandle(it)
-      log.error(throwableDelimiter)
-      log.error(exceptions, throwableDelimiter)
+        private fun logApkExplorationException(e: ApkExplorationException) {
+            val message = "An ${e.javaClass.simpleName} was thrown during DroidMate run, pertaining to ${e.apk.fileName}:"
+
+            log.error("$message $e")
+            log.error(exceptions, "$message\n", e)
+        }
+
+        private fun logExplorationException(e: ExplorationException) {
+            val message = "An ${e.javaClass.simpleName} was thrown during DroidMate run:"
+
+            log.error("$message $e")
+            log.error(exceptions, "$message\n", e)
+        }
+
+        private fun logThrowablesCollection(e: ThrowablesCollection) {
+            assert(!(e.throwables.isEmpty()))
+            assert(e.cause == null)
+            assert(e.suppressed.isEmpty())
+            assert(e.throwables.all { it is ExplorationException })
+
+            val message = "A nonempty ${e.javaClass.simpleName} was thrown during DroidMate run. " +
+                    "Each of the ${e.throwables.size} ${Throwable::class.java.simpleName}s will now be logged."
+            log.error(message)
+            log.error(exceptions, message)
+
+            val throwableDelimiter = "========================================"
+            log.error(throwableDelimiter)
+            log.error(exceptions, throwableDelimiter)
+            e.throwables.forEach {
+                internalHandle(it)
+                log.error(throwableDelimiter)
+                log.error(exceptions, throwableDelimiter)
+            }
+        }
+
+        private fun logThrowable(e: Throwable) {
+            val message = "An unhandled exception of ${e.javaClass.simpleName} was thrown during DroidMate run. If you cannot diagnose " +
+                    "and fix the problem yourself by inspecting the logs, this might a bug in the code. Sorry!\n" +
+                    "In such case, please contact the DroidMate developer, Konrad Jamrozik, at jamrozik@st.cs.uni-saarland.de.\n" +
+                    "Please include the output dir (by default set to ${Configuration.defaultDroidmateOutputDir}).\n" +
+                    "A cookie for you, brave human.\n"
+
+            log.error("$message$e")
+            log.error(exceptions, message, e)
+        }
     }
-  }
-
-  private static void logThrowable(Throwable e)
-  {
-    String message = "An unhandled exception of ${e.class.simpleName} was thrown during DroidMate run. If you cannot diagnose " +
-      "and fix the problem yourself by inspecting the logs, this might a bug in the code. Sorry!\n" +
-      "In such case, please contact the DroidMate developer, Konrad Jamrozik, at jamrozik@st.cs.uni-saarland.de.\n" +
-      "Please include the output dir (by default set to ${Configuration.defaultDroidmateOutputDir}).\n" +
-      "A cookie for you, brave human.\n"
-
-    log.error("$message$e")
-    log.error(exceptions, message, e)
-
-  }
-
-
 }

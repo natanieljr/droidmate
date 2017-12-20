@@ -19,375 +19,265 @@
 
 package org.droidmate.test_tools.device_simulation
 
-import groovy.util.logging.Slf4j
-import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.datatypes.*
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.misc.DroidmateException
 import org.droidmate.test_tools.ApkFixtures
 import org.droidmate.test_tools.exceptions.IExceptionSpec
 import org.droidmate.test_tools.exceptions.TestDeviceException
+import org.slf4j.LoggerFactory
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.LocalDateTime
 
-@Slf4j
-class AndroidDeviceSimulator implements IAndroidDevice
-{
+/**
+ * The simulator has only rudimentary support for multiple apps.
+ * It is expected to be either used with one app, or with multiple apps only for exception handling simulation.
+ * Right now "spec" is used for all the apks simulations on the simulator (obtained pkgNames) and a call to "installApk"
+ * switches the simulations.
+ */
+class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
+                             pkgNames: List<String> = arrayListOf(ApkFixtures.apkFixture_simple_packageName),
+                             spec: String,
+                             private val exceptionSpecs: List<IExceptionSpec> = ArrayList(),
+                             unreliableSimulation: Boolean = false) : IAndroidDevice {
+    companion object {
+        private val log = LoggerFactory.getLogger(AndroidDeviceSimulator::class.java)
 
-  private final List<IDeviceSimulation> simulations
-
-  IDeviceSimulation currentSimulation
-
-  private List<ITimeFormattedLogcatMessage> logcatMessagesToBeReadNext = []
-
-  private final List<IExceptionSpec> exceptionSpecs
-
-  private final ICallCounters callCounters = new CallCounters()
-  private       boolean       uiaDaemonIsRunning = false
-
-  /**
-   * The simulator has only rudimentary support for multiple apps.
-   * It is expected to be either used with one app, or with multiple apps only for exception handling simulation.
-   * Right now "spec" is used for all the apks simulations on the simulator (obtained pkgNames) and a call to "installApk"
-   * switches the simulations.
-   */
-  AndroidDeviceSimulator(
-    ITimeGenerator timeGenerator,
-    List<String> pkgNames = [ApkFixtures.apkFixture_simple_packageName],
-    String spec,
-    List<IExceptionSpec> exceptionSpecs = [],
-    boolean unreliableSimulation = false)
-  {
-
-    this.simulations = pkgNames.collect {buildDeviceSimulation(timeGenerator, it, spec, unreliableSimulation)}
-    this.exceptionSpecs = exceptionSpecs
-    this.currentSimulation = this.simulations[0]
-
-  }
-
-  IDeviceSimulation buildDeviceSimulation(ITimeGenerator timeGenerator, String packageName, String spec, boolean unreliable)
-  {
-    //noinspection GroovyIfStatementWithIdenticalBranches // WISH intellij BUG
-    if (unreliable)
-      return new UnreliableDeviceSimulation(timeGenerator, packageName, spec)
-    else
-      return new DeviceSimulation(timeGenerator, packageName, spec)
-  }
-
-
-  private String getCurrentlyDeployedPackageName()
-  {
-    return this.currentSimulation.packageName
-  }
-
-  @Override
-  boolean hasPackageInstalled(String packageName) throws DeviceException
-  {
-    log.debug("hasPackageInstalled($packageName)")
-    assert this.currentlyDeployedPackageName == packageName
-
-    IExceptionSpec s = findMatchingExceptionSpecAndThrowIfApplies("hasPackageInstalled", packageName)
-    if (s != null)
-    {
-      assert !s.throwsEx
-      return s.exceptionalReturnBool
+        @JvmStatic
+        fun build(timeGenerator: ITimeGenerator = TimeGenerator(),
+                  pkgNames: List<String>,
+                  exceptionSpecs: List<IExceptionSpec> = ArrayList(),
+                  unreliableSimulation: Boolean = false): AndroidDeviceSimulator {
+            return AndroidDeviceSimulator(timeGenerator, pkgNames, "s1-w12->s2 " +
+                    "s1-w13->s3 " +
+                    "s2-w22->s2 " +
+                    "s2-w2h->home", exceptionSpecs, unreliableSimulation)
+        }
     }
 
-    return this.currentlyDeployedPackageName == packageName
-  }
+    private val simulations: List<IDeviceSimulation>
 
-  private IExceptionSpec findMatchingExceptionSpec(String methodName, String packageName)
-  {
-    return this.exceptionSpecs.findSingleOrDefault(null) {
-      it.matches(methodName, packageName, callCounters.get(packageName, methodName))
+    var currentSimulation: IDeviceSimulation? = null
+
+    private val logcatMessagesToBeReadNext: MutableList<ITimeFormattedLogcatMessage> = ArrayList()
+
+    private val callCounters = CallCounters()
+    private var uiaDaemonIsRunning = false
+
+    fun buildDeviceSimulation(timeGenerator: ITimeGenerator, packageName: String, spec: String, unreliable: Boolean): IDeviceSimulation {
+        if (unreliable)
+            return UnreliableDeviceSimulation(timeGenerator, packageName, spec)
+        else
+            return DeviceSimulation(timeGenerator, packageName, spec)
     }
-  }
 
-  private IExceptionSpec findMatchingExceptionSpecAndThrowIfApplies(String methodName, String packageName) throws TestDeviceException
-  {
-    callCounters.increment(packageName, methodName)
-    IExceptionSpec s = findMatchingExceptionSpec(methodName, packageName)
-    if (s != null)
-    {
-      if (s.throwsEx)
-        s.throwEx()
+    private fun getCurrentlyDeployedPackageName(): String
+            = this.currentSimulation!!.packageName
+
+    override fun hasPackageInstalled(packageName: String): Boolean {
+        log.debug("hasPackageInstalled($packageName)")
+        assert(this.getCurrentlyDeployedPackageName() == packageName)
+
+        val s = findMatchingExceptionSpecAndThrowIfApplies("hasPackageInstalled", packageName)
+        if (s != null) {
+            assert(!s.throwsEx)
+            return s.exceptionalReturnBool!!
+        }
+
+        return this.getCurrentlyDeployedPackageName() == packageName
     }
-    assert !(s?.throwsEx)
-    return s
-  }
 
-  @Override
-  IDeviceGuiSnapshot getGuiSnapshot() throws DeviceException
-  {
-    log.debug("getGuiSnapshot()")
-
-    findMatchingExceptionSpecAndThrowIfApplies("getGuiSnapshot", this.currentlyDeployedPackageName)
-
-    def outSnapshot = this.currentSimulation.currentGuiSnapshot
-
-    log.debug("getGuiSnapshot(): $outSnapshot")
-    return outSnapshot
-  }
-
-  @Override
-  void perform(IAndroidDeviceAction action) throws TestDeviceException
-  {
-    log.debug("perform($action)")
-
-    findMatchingExceptionSpecAndThrowIfApplies("perform", this.currentlyDeployedPackageName)
-
-    switch (action.class)
-    {
-      case LaunchMainActivityDeviceAction:
-        assert false : "call .launchMainActivity() directly instead"
-        break
-      case ClickGuiAction:
-        updateSimulatorState(action)
-        break
-      case AdbClearPackageAction:
-        assert false : "call .clearPackage() directly instead"
-        break
-      default:
-        throw new UnexpectedIfElseFallthroughError()
+    private fun findMatchingExceptionSpec(methodName: String, packageName: String): IExceptionSpec? {
+        return this.exceptionSpecs.singleOrNull {
+            it.matches(methodName, packageName, callCounters.get(packageName, methodName))
+        }
     }
-  }
 
-  void updateSimulatorState(IAndroidDeviceAction action)
-  {
-    if (action instanceof WidgetExplorationAction)
-      println "action widget id: ${(action as WidgetExplorationAction).widget.id}"
+    @Throws(TestDeviceException::class)
+    private fun findMatchingExceptionSpecAndThrowIfApplies(methodName: String, packageName: String): IExceptionSpec? {
+        callCounters.increment(packageName, methodName)
+        val s = findMatchingExceptionSpec(methodName, packageName)
+        if (s != null) {
+            if (s.throwsEx)
+                s.throwEx()
+        }
+        assert(s == null || !s.throwsEx)
+        return s
+    }
 
-    this.currentSimulation.updateState(action)
-    this.logcatMessagesToBeReadNext.addAll(currentSimulation.currentLogs)
-  }
+    override fun getGuiSnapshot(): IDeviceGuiSnapshot {
+        log.debug("getGuiSnapshot()")
 
-  @Override
-  void clearLogcat() throws DroidmateException
-  {
-    log.debug("clearLogcat()")
+        findMatchingExceptionSpecAndThrowIfApplies("getGuiSnapshot", this.getCurrentlyDeployedPackageName())
 
-    logcatMessagesToBeReadNext.clear()
-  }
+        val outSnapshot = this.currentSimulation!!.getCurrentGuiSnapshot()
 
+        log.debug("getGuiSnapshot(): $outSnapshot")
+        return outSnapshot
+    }
 
-  @Override
-  void closeConnection() throws DeviceException
-  {
-    findMatchingExceptionSpecAndThrowIfApplies("closeConnection", this.currentlyDeployedPackageName)
-    this.stopUiaDaemon(false)
-  }
+    override fun perform(action: IAndroidDeviceAction) {
+        log.debug("perform($action)")
 
-  @Override
-  List<ITimeFormattedLogcatMessage> readLogcatMessages(String messageTag)
-  {
-    List<ITimeFormattedLogcatMessage> returnedMessages = logcatMessagesToBeReadNext.findResults {it.tag == messageTag ? it : null}
-    return returnedMessages
-  }
+        findMatchingExceptionSpecAndThrowIfApplies("perform", this.getCurrentlyDeployedPackageName())
 
-  @Override
-  List<ITimeFormattedLogcatMessage> waitForLogcatMessages(String messageTag, int minMessagesCount, int waitTimeout, int queryDelay) throws DeviceException
-  {
-    return readLogcatMessages(messageTag)
-  }
+        when (action) {
+            is LaunchMainActivityDeviceAction -> assert(false, { "call .launchMainActivity() directly instead" })
+            is ClickGuiAction -> updateSimulatorState(action)
+            is AdbClearPackageAction -> assert(false, { "call .clearPackage() directly instead" })
+            else -> throw UnexpectedIfElseFallthroughError()
+        }
+    }
 
-  @Override
-  LocalDateTime getCurrentTime()
-  {
-    return LocalDateTime.now()
-  }
+    private fun updateSimulatorState(action: IAndroidDeviceAction) {
+        //if (action is WidgetExplorationAction)
+        //  println("action widget id: ${(action as WidgetExplorationAction).widget.id}")
 
-  @Override
-  Boolean anyMonitorIsReachable()
-  {
-    this.currentSimulation.appIsRunning
-  }
+        this.currentSimulation!!.updateState(action)
+        this.logcatMessagesToBeReadNext.addAll(currentSimulation!!.getCurrentLogs())
+    }
 
-  @Override
-  void launchMainActivity(String launchableActivityComponentName) throws DeviceException
-  {
-    updateSimulatorState(new LaunchMainActivityDeviceAction(launchableActivityComponentName))
-  }
+    override fun clearLogcat() {
+        log.debug("clearLogcat()")
 
-  @Override
-  Boolean appIsRunning(String appPackageName) throws DeviceException
-  {
-    this.appProcessIsRunning(appPackageName)
-  }
+        logcatMessagesToBeReadNext.clear()
+    }
 
-  @Override
-  boolean appProcessIsRunning(String appPackageName) throws DeviceException
-  {
-    return this.currentSimulation.packageName == appPackageName && this.currentSimulation.appIsRunning
-  }
+    override fun closeConnection() {
+        findMatchingExceptionSpecAndThrowIfApplies("closeConnection", this.getCurrentlyDeployedPackageName())
+        this.stopUiaDaemon(false)
+    }
 
-  @Override
-  void clickAppIcon(String iconLabel) throws DeviceException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> =
+            logcatMessagesToBeReadNext.filter { it.tag == messageTag }
 
-  @Override
-  Path takeScreenshot(IApk app, String suffix) throws DeviceException
-  {
-    return null
-  }
+    override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> =
+            readLogcatMessages(messageTag)
 
-  @Override
-  void pushFile(Path jar, String targetFileName = null) throws DroidmateException
-  {
-  }
+    override fun getCurrentTime(): LocalDateTime {
+        return LocalDateTime.now()
+    }
 
-  @Override
-  void removeJar(Path jar) throws DroidmateException
-  {
-  }
+    override fun anyMonitorIsReachable(): Boolean = this.currentSimulation!!.getAppIsRunning()
 
-  @Override
-  void installApk(IApk apk) throws DroidmateException
-  {
-    this.currentSimulation = simulations.findSingle {it.packageName == apk.packageName}
-  }
+    override fun launchMainActivity(launchableActivityComponentName: String) {
+        updateSimulatorState(LaunchMainActivityDeviceAction(launchableActivityComponentName))
+    }
 
-  @Override
-  void installApk(Path apk) throws DroidmateException
-  {
-    // Do nothing, used only to install UiAutomator2-daemon
-  }
+    override fun appIsRunning(appPackageName: String): Boolean = this.appProcessIsRunning(appPackageName)
 
-  @Override
-  void uninstallApk(String apkPackageName, boolean ignoreFailure) throws DroidmateException
-  {
-    findMatchingExceptionSpecAndThrowIfApplies("uninstallApk", apkPackageName)
-  }
+    override fun appProcessIsRunning(appPackageName: String): Boolean =
+            this.currentSimulation!!.packageName == appPackageName && this.currentSimulation!!.getAppIsRunning()
 
-  @Override
-  void closeMonitorServers() throws DeviceException
-  {
-  }
-  
-  @Override
-  void clearPackage(String apkPackageName)
-  {
-    updateSimulatorState(new AdbClearPackageAction(apkPackageName))
-  }
+    override fun clickAppIcon(iconLabel: String) {
+        assert(false, { "Not yet implemented!" })
+    }
 
+    override fun takeScreenshot(app: IApk, suffix: String): Path {
+        return Paths.get(".")
+    }
 
-  @Override
-  void reboot() throws DeviceException
-  {
-  }
+    override fun pushFile(jar: Path) {
+    }
 
-  @Override
-  void stopUiaDaemon(boolean uiaDaemonThreadIsNull) throws DeviceException
-  {
-    this.uiaDaemonIsRunning = false
-  }
+    override fun pushFile(jar: Path, targetFileName: String) {
+    }
 
-  @Override
-  boolean isAvailable()
-  {
-    return true
-  }
+    override fun removeJar(jar: Path) {
+    }
 
-  @Override
-  boolean uiaDaemonClientThreadIsAlive()
-  {
-    return this.uiaDaemonIsRunning
-  }
+    override fun installApk(apk: IApk) {
+        this.currentSimulation = simulations.single { it.packageName == apk.packageName }
+    }
 
-  @Override
-  void restartUiaDaemon(boolean uiaDaemonThreadIsNull)
-  {
-    if (this.uiaDaemonIsRunning())
-      this.stopUiaDaemon(uiaDaemonThreadIsNull)
-    this.startUiaDaemon()
-  }
+    override fun installApk(apk: Path) {
+        // Do nothing, used only to install UiAutomator2-daemon
+    }
 
-  @Override
-  void startUiaDaemon()
-  {
-    this.uiaDaemonIsRunning = true
-  }
+    override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
+        findMatchingExceptionSpecAndThrowIfApplies("uninstallApk", apkPackageName)
+    }
 
-  @Override
-  void setupConnection() throws DeviceException
-  {
-    this.startUiaDaemon()
-  }
+    override fun closeMonitorServers() {
+    }
 
-  @Override
-  void removeLogcatLogFile() throws DeviceException
-  {
-  }
+    override fun clearPackage(apkPackageName: String) {
+        updateSimulatorState(AdbClearPackageAction(apkPackageName))
+    }
 
-  @Override
-  void pullLogcatLogFile() throws DeviceException
-  {
-  }
+    override fun reboot() {
+    }
 
-  @Override
-  void reinstallUiautomatorDaemon() throws DeviceException
-  {
-  }
+    override fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+        this.uiaDaemonIsRunning = false
+    }
 
-  @Override
-  void pushMonitorJar() throws DeviceException
-  {
-  }
+    override fun isAvailable(): Boolean {
+        return true
+    }
 
-  @Override
-  List<List<String>> readAndClearMonitorTcpMessages() throws DeviceException
-  {
-    return []
-  }
+    override fun uiaDaemonClientThreadIsAlive(): Boolean {
+        return this.uiaDaemonIsRunning
+    }
 
-   static AndroidDeviceSimulator build(
-    ITimeGenerator timeGenerator = new TimeGenerator(),
-    List<String> pkgNames,
-    List<IExceptionSpec> exceptionSpecs = [],
-    boolean unreliableSimulation = false)
-  {
-    return new AndroidDeviceSimulator(timeGenerator, pkgNames, "s1-w12->s2 " +
-      "s1-w13->s3 " +
-      "s2-w22->s2 " +
-      "s2-w2h->home", exceptionSpecs, unreliableSimulation)
-  }
+    override fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+        if (this.uiaDaemonIsRunning())
+            this.stopUiaDaemon(uiaDaemonThreadIsNull)
+        this.startUiaDaemon()
+    }
 
-  @Override
-   String toString()
-  {
-    return this.class.simpleName
-  }
+    override fun startUiaDaemon() {
+        this.uiaDaemonIsRunning = true
+    }
 
-  @Override
-  void initModel() throws DeviceException
-  {
-  }
+    override fun setupConnection() {
+        this.startUiaDaemon()
+    }
 
-  @Override
-  void reconnectAdb() throws DeviceException
-  {
-  }
+    override fun removeLogcatLogFile() {
+    }
 
-  @Override
-  void executeAdbCommand(String command, String successfulOutput, String commandDescription) throws DeviceException
-  {
-  }
+    override fun pullLogcatLogFile() {
+    }
 
-  @Override
-  boolean uiaDaemonIsRunning()
-  {
-    this.uiaDaemonIsRunning
-  }
+    override fun reinstallUiautomatorDaemon() {
+    }
 
-  @Override
-  boolean isPackageInstalled(String packageName)
-  {
-    return false
-  }
+    override fun pushMonitorJar() {
+
+    }
+
+    override fun readAndClearMonitorTcpMessages(): List<List<String>> {
+        return ArrayList()
+    }
+
+    override fun toString(): String {
+        return this.javaClass.simpleName
+    }
+
+    override fun initModel() {
+    }
+
+    override fun reconnectAdb() {
+    }
+
+    override fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
+    }
+
+    override fun uiaDaemonIsRunning(): Boolean {
+        return this.uiaDaemonIsRunning
+    }
+
+    override fun isPackageInstalled(packageName: String): Boolean {
+        return false
+    }
+
+    init {
+        this.simulations = pkgNames.map { buildDeviceSimulation(timeGenerator, it, spec, unreliableSimulation) }
+        this.currentSimulation = this.simulations[0]
+    }
 }

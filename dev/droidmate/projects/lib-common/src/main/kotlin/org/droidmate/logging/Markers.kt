@@ -31,29 +31,27 @@ import org.slf4j.MarkerFactory
  *
  * </p>
  */
-class Markers
-{
+class Markers {
+    companion object {
+        /**
+         * Marker for logging detailed exception information.
+         */
+        val exceptions = MarkerFactory.getMarker("MARKER_EXCEPTIONS")
 
-  /**
-   * Marker for logging detailed exception information.
-   */
-  public static final Marker exceptions = MarkerFactory.getMarker("MARKER_EXCEPTIONS")
+        /**
+         * Marker for logging command line executions. Such logs can be copy-pasted to console and executed for
+         * quick ad-hoc debugging.
+         */
+        val osCmd = MarkerFactory.getMarker("MARKER_OS_CMD")
 
-  /**
-   * Marker for logging command line executions. Such logs can be copy-pasted to console and executed for
-   * quick ad-hoc debugging.
-   */
-  public static final Marker osCmd = MarkerFactory.getMarker("MARKER_OS_CMD")
+        /**
+         * Denotes logs that output data about DroidMate run: input files, configuration, run time + run timestamps, etc.
+         */
+        val runData = MarkerFactory.getMarker("MARKER_RUN_DATA")
 
-  /**
-   * Denotes logs that output data about DroidMate run: input files, configuration, run time + run timestamps, etc.
-   */
-  public static final Marker runData = MarkerFactory.getMarker("MARKER_RUN_DATA")
+        val appHealth = MarkerFactory.getMarker("MARKER_HEALTH")
 
-  public static final Marker appHealth = MarkerFactory.getMarker("MARKER_HEALTH")
-
-   static List<Marker> getAllMarkers()
-  {
-    return Markers.fields.collect {it as Marker}
-  }
+        fun getAllMarkers(): List<Marker>
+                = arrayListOf(exceptions, osCmd, runData, appHealth)
+    }
 }

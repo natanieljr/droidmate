@@ -18,19 +18,19 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.exceptions
 
-interface IExceptionSpec extends Serializable
-{
-  boolean matches(String methodName, String packageName, int callIndex)
+interface IExceptionSpec : java.io.Serializable {
+    fun matches(methodName: String, packageName: String, callIndex: Int): Boolean
 
-  boolean getThrowsEx()
+    val throwsEx: Boolean
 
-  String getPackageName()
+    val packageName: String
 
-  String getMethodName()
+    val methodName: String
 
-  int getCallIndex()
+    val callIndex: Int
 
-  void throwEx() throws TestDeviceException
+    @Throws(TestDeviceException::class)
+    fun throwEx()
 
-  Boolean getExceptionalReturnBool()
+    val exceptionalReturnBool: Boolean?
 }

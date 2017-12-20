@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,28 +19,16 @@
 
 package org.droidmate.android_sdk
 
-class AdbWrapperException extends DeviceException
-{
-  private static final long serialVersionUID = 1
+open class AdbWrapperException : DeviceException {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  AdbWrapperException()
-  {
-    super()
-  }
+    constructor() : super()
 
-  AdbWrapperException(Throwable cause)
-  {
-    super(cause)
-  }
+    constructor(cause: Throwable) : super(cause)
 
-  AdbWrapperException(String message, Throwable cause)
-  {
-    super(message, cause)
-  }
+    constructor(message: String, cause: Throwable) : super(message, cause)
 
-  AdbWrapperException(String message)
-  {
-    super(message)
-  }
-
+    constructor(message: String) : super(message)
 }

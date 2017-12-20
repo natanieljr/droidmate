@@ -25,10 +25,6 @@ import java.awt.Dimension
  *
  * @author Nataniel Borges Jr.
  */
-class Nexus5XModel extends NexusModel {
-    @Override
-    Dimension getDeviceDisplayDimensionsForTesting()
-    {
-        return new Dimension(1080, 1920)
-    }
+class Nexus5XModel : NexusModel() {
+    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1080, 1920)
 }

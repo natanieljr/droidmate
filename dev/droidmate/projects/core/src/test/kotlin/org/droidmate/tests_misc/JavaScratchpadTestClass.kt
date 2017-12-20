@@ -21,11 +21,10 @@ package org.droidmate.tests_misc;
 
 import org.junit.Test;
 
-public class JavaScratchpadTestClass
+class JavaScratchpadTestClass
 {
   @Test
-  public void JavaScratchpadTest()
-  {
-  }
+  fun JavaScratchpadTest()
+          = Unit
 }
 

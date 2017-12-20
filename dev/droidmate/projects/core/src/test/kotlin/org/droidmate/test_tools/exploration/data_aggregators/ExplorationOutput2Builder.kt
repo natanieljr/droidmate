@@ -22,6 +22,7 @@ package org.droidmate.test_tools.exploration.data_aggregators
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.Api
 import org.droidmate.apis.ApiLogcatMessageTestHelper
+import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
@@ -34,139 +35,118 @@ import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.exploration.actions.ExplorationActionTestHelper
+import java.net.URI
 
 import java.time.LocalDateTime
 
-class ExplorationOutput2Builder
-{
+class ExplorationOutput2Builder {
 
-  private ApkExplorationOutput2 currentlyBuiltApkOut2
-  private ExplorationOutput2    builtOutput = []
+    private lateinit var currentlyBuiltApkOut2: ApkExplorationOutput2
+    private val builtOutput: ExplorationOutput2 = ExplorationOutput2(ArrayList())
 
-  static ExplorationOutput2 build(
-    @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = ExplorationOutput2Builder) Closure buildDefinition)
-  {
-    def builder = new ExplorationOutput2Builder()
+    companion object {
+        @JvmStatic
+        fun build(): ExplorationOutput2 {
+            val builder = ExplorationOutput2Builder()
 
-    buildDefinition.delegate = builder
-    buildDefinition.resolveStrategy = Closure.DELEGATE_FIRST
-    buildDefinition()
-    return builder.builtOutput
-  }
-
-  void apk(Map attributes, Closure apkBuildDefinition)
-  {
-    assert attributes.name instanceof String
-    assert attributes.monitorInitTime instanceof LocalDateTime
-    assert attributes.explorationStartTime instanceof LocalDateTime
-    assert attributes.explorationEndTimeMss instanceof Integer
-
-    String packageName = attributes.name
-    this.currentlyBuiltApkOut2 = new ApkExplorationOutput2(
-      ApkTestHelper.build(
-        packageName,
-        "${packageName}/${packageName}.MainActivity",
-        "$packageName" + "1",
-        "applicationLabel"
-      )
-    )
-    this.currentlyBuiltApkOut2.explorationStartTime = attributes.explorationStartTime
-    this.currentlyBuiltApkOut2.explorationEndTime = explorationStartPlusMss(attributes.explorationEndTimeMss as Integer)
-
-    apkBuildDefinition()
-
-    this.currentlyBuiltApkOut2.verify()
-
-    builtOutput << currentlyBuiltApkOut2
-  }
-
-  void actRes(Map attributes)
-  {
-    RunnableExplorationAction runnableAction = buildRunnableAction(attributes)
-    ExplorationActionRunResult result = buildActionResult(attributes)
-    currentlyBuiltApkOut2.add(runnableAction, result)
-  }
-
-  RunnableExplorationAction buildRunnableAction(Map attributes)
-  {
-    assert attributes.mss instanceof Integer
-    Integer mssSinceExplorationStart = attributes.mss ?: 0
-    LocalDateTime timestamp = explorationStartPlusMss(mssSinceExplorationStart)
-
-    def runnableAction = parseRunnableAction(attributes.action as String, timestamp)
-    return runnableAction
-  }
-
-  ExplorationActionRunResult buildActionResult(Map attributes)
-  {
-    def deviceLogs = buildDeviceLogs(attributes)
-    def guiSnapshot = attributes.guiSnapshot ?: UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump() 
-
-    def successful = attributes.containsKey("successful") ? attributes.successful : true
-
-    def exception = successful ? new DeviceExceptionMissing() :
-      new DeviceException("Exception created in ${ExplorationOutput2Builder.simpleName}.buildActionResult()")
-
-    def packageName = attributes.packageName ?: currentlyBuiltApkOut2.packageName
-    assert packageName?.size() >= 1
-    
-    def result = new ExplorationActionRunResult(successful, packageName, deviceLogs, guiSnapshot, exception, null)
-    return result
-  }
-
-
-  private IDeviceLogs buildDeviceLogs(Map attributes)
-  {
-    List<List> apiLogs = attributes.logs ?: []
-
-    def deviceLogs = new DeviceLogs()
-
-    deviceLogs.apiLogs = apiLogs.collect {
-
-      assert it.size() == 2
-      def methodName = it[0] as String
-      def mssSinceExplorationStart = it[1] as Integer
-
-      return ApiLogcatMessageTestHelper.newApiLogcatMessage(
-        time: explorationStartPlusMss(mssSinceExplorationStart),
-        methodName: methodName,
-        // Minimal stack trace to pass all the validation checks.
-        // In particular, the ->Socket.<init> is enforced by asserts in org.droidmate.report.FilteredDeviceLogs.Companion.isStackTraceOfMonitorTcpServerSocketInit
-        stackTrace: "$Api.monitorRedirectionPrefix->Socket.<init>->$currentlyBuiltApkOut2.packageName"
-      )
+            return builder.builtOutput
+        }
     }
 
-    return deviceLogs
-  }
+    fun apk(attributes: Map<String, Any>, apkBuildDefinition: () -> Any) {
+        assert(attributes["name"] is String)
+        assert(attributes["monitorInitTime"] is LocalDateTime)
+        assert(attributes["explorationStartTime"] is LocalDateTime)
+        assert(attributes["explorationEndTimeMss"] is Int)
 
-  RunnableExplorationAction parseRunnableAction(String actionString, LocalDateTime timestamp)
-  {
-    ExplorationAction action
-    switch (actionString)
-    {
-      case "reset":
-        action = ExplorationAction.newResetAppExplorationAction()
-        break
-      case "click":
-        action = ExplorationActionTestHelper.newWidgetClickExplorationAction()
-        break
-      case "terminate":
-        action = ExplorationAction.newTerminateExplorationAction()
-        break
-      default:
-        throw new UnexpectedIfElseFallthroughError()
+        val packageName = attributes["name"]!! as String
+        this.currentlyBuiltApkOut2 = ApkExplorationOutput2(
+                ApkTestHelper.build(
+                        packageName,
+                        "$packageName/$packageName.MainActivity",
+                        packageName + "1",
+                        "applicationLabel"
+                )
+        )
+        this.currentlyBuiltApkOut2.explorationStartTime = attributes["explorationStartTime"]!! as LocalDateTime
+        this.currentlyBuiltApkOut2.explorationEndTime = explorationStartPlusMss(attributes["explorationEndTimeMss"]!! as Int)
 
+        apkBuildDefinition()
+
+        this.currentlyBuiltApkOut2.verify()
+
+        builtOutput.add(currentlyBuiltApkOut2)
     }
-    return RunnableExplorationAction.from(action, timestamp)
-  }
 
-  private LocalDateTime explorationStartPlusMss(Integer mss)
-  {
-    return datePlusMss(this.currentlyBuiltApkOut2.explorationStartTime, mss)
-  }
+    private fun actRes(attributes: Map<String, Any>) {
+        val runnableAction = buildRunnableAction(attributes)
+        val result = buildActionResult(attributes)
+        currentlyBuiltApkOut2.add(runnableAction, result)
+    }
 
-  private LocalDateTime datePlusMss(LocalDateTime date, Integer mss)
-  {
-    return date.plusNanos((mss * 1000000) as long)
-  }
+    private fun buildRunnableAction(attributes: Map<String, Any>): RunnableExplorationAction {
+        assert(attributes["mss"] is Int)
+        val mssSinceExplorationStart = attributes["mss"] as Int? ?: 0
+        val timestamp = explorationStartPlusMss(mssSinceExplorationStart)
+
+        return parseRunnableAction(attributes["action"] as String, timestamp)
+    }
+
+    internal fun buildActionResult(attributes: Map<String, Any>): ExplorationActionRunResult {
+        val deviceLogs = buildDeviceLogs(attributes)
+        val guiSnapshot = attributes["guiSnapshot"] as IDeviceGuiSnapshot? ?: UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump()
+
+        val successful = if (attributes.containsKey("successful")) attributes["successful"] as Boolean else true
+
+        val exception = if (successful) DeviceExceptionMissing() else
+            DeviceException("Exception created in ${ExplorationOutput2Builder::class.java.simpleName}.buildActionResult()")
+
+        val packageName = attributes["packageName"] as String? ?: currentlyBuiltApkOut2.packageName
+        assert(packageName.isNotEmpty())
+
+        return ExplorationActionRunResult(successful, packageName, deviceLogs, guiSnapshot,
+                exception, URI.create("file://."))
+    }
+
+
+    @Suppress("UNCHECKED_CAST")
+    private fun buildDeviceLogs(attributes: Map<String, Any>): IDeviceLogs {
+        val apiLogs = attributes["logs"] as List<Array<String>>? ?: ArrayList()
+
+        val deviceLogs = DeviceLogs()
+
+        deviceLogs.apiLogs = apiLogs.map {
+
+            assert(it.size == 2)
+            val methodName = it[0]
+            val mssSinceExplorationStart = it[1].toInt()
+
+            ApiLogcatMessageTestHelper.newApiLogcatMessage(
+                    mutableMapOf("time" to explorationStartPlusMss(mssSinceExplorationStart),
+                            "methodName" to methodName,
+                            // Minimal stack trace to pass all the validation checks.
+                            // In particular, the ->Socket.<init> is enforced by asserts in org.droidmate.report.FilteredDeviceLogs.Companion.isStackTraceOfMonitorTcpServerSocketInit
+                            "stackTrace" to "$Api.monitorRedirectionPrefix->Socket.<init>->$currentlyBuiltApkOut2.packageName")
+            )
+        }.toMutableList()
+
+        return deviceLogs
+    }
+
+    private fun parseRunnableAction(actionString: String, timestamp: LocalDateTime): RunnableExplorationAction {
+        val action: ExplorationAction = when (actionString) {
+            "reset" -> ExplorationAction.newResetAppExplorationAction()
+            "click" -> ExplorationActionTestHelper.newWidgetClickExplorationAction()
+            "terminate" -> ExplorationAction.newTerminateExplorationAction()
+            else -> throw UnexpectedIfElseFallthroughError()
+
+        }
+        return RunnableExplorationAction.from(action, timestamp)
+    }
+
+    private fun explorationStartPlusMss(mss: Int): LocalDateTime
+            = datePlusMss(this.currentlyBuiltApkOut2.explorationStartTime, mss)
+
+    private fun datePlusMss(date: LocalDateTime, mss: Int): LocalDateTime
+            = date.plusNanos((mss * 1000000).toLong())
 }

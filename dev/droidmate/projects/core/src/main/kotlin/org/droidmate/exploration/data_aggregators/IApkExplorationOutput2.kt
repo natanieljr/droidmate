@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -27,48 +27,44 @@ import org.droidmate.exploration.actions.IExplorationActionRunResult
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.storage.IStorage2
-
+import java.io.Serializable
 import java.time.Duration
 import java.time.LocalDateTime
 
-interface IApkExplorationOutput2 extends Serializable
-{
+interface IApkExplorationOutput2 : Serializable {
 
-  void add(IRunnableExplorationAction action, IExplorationActionRunResult result)
+    fun add(action: IRunnableExplorationAction, result: IExplorationActionRunResult)
 
-  LocalDateTime getExplorationStartTime()
+    var explorationStartTime: LocalDateTime
 
-  LocalDateTime getExplorationEndTime()
+    var explorationEndTime: LocalDateTime
 
-  void setExplorationStartTime(LocalDateTime time)
+    val actRes: MutableList<RunnableExplorationActionWithResult>
 
-  void setExplorationEndTime(LocalDateTime time)
+    @Throws(DroidmateError::class)
+    fun verify()
 
-  List<RunnableExplorationActionWithResult> getActRess()
+    val exceptionIsPresent: Boolean
 
-  void verify() throws DroidmateError
+    var exception: DeviceException
 
-  boolean getExceptionIsPresent()
+    val apk: IApk
 
-  DeviceException getException()
+    val packageName: String
 
-  IApk getApk()
+    val apiLogs: List<List<IApiLogcatMessage>>
 
-  String getPackageName()
+    val actions: List<IRunnableExplorationAction>
 
-  List<List<IApiLogcatMessage>> getApiLogs()
+    val guiSnapshots: List<IDeviceGuiSnapshot>
 
-  List<IRunnableExplorationAction> getActions()
+    fun getExplorationTimeInMs(): Int
 
-  List<IDeviceGuiSnapshot> getGuiSnapshots()
+    fun getExplorationDuration(): Duration
 
-  Integer getExplorationTimeInMs()
-  
-  Duration getExplorationDuration()
+    fun getContainsExplorationStartTime(): Boolean
 
-  boolean getContainsExplorationStartTime()
+    fun getContainsExplorationEndTime(): Boolean
 
-  boolean getContainsExplorationEndTime()
-
-  void serialize(IStorage2 storage2)
+    fun serialize(storage2: IStorage2)
 }

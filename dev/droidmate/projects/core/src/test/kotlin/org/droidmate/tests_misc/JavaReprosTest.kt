@@ -26,7 +26,7 @@ import java.awt.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class JavaReprosTest
+class JavaReprosTest
 {
 
   /**
@@ -37,38 +37,36 @@ public class JavaReprosTest
   
   // Gradle dependency: testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
   @Test
-  public void BBoxError() throws IOException
-  {
-    PDFGraphics2D pdf = new PDFGraphics2D(0.0, 0.0, 100.0, 100.0);
-    System.out.println(pdf.getFont());
-    // Prints out: java.awt.Font[family=Dialog,name=Dialog,style=plain,size=12]
+  @Throws(IOException::class)
+  fun BBoxError(){
+      val pdf = PDFGraphics2D(0.0, 0.0, 100.0, 100.0)
+      System.out.println(pdf.font)
+      // Prints out: java.awt.Font[family=Dialog,name=Dialog,style=plain,size=12]
 
-    try (FileOutputStream file = new FileOutputStream("test1.pdf"))
-    {
-      file.write(pdf.getBytes());
-    }
+      var file = FileOutputStream("test1.pdf")
+      file.write(pdf.bytes)
+      file.close()
 
-    // Open test1.pdf with Adobe Acrobat Reader DC (15.016.20045) on Windows 10
-    // See a dialog box: "The font 'Dialog.plain' contains bad /BBox."
+      // Open test1.pdf with Adobe Acrobat Reader DC (15.016.20045) on Windows 10
+      // See a dialog box: "The font 'Dialog.plain' contains bad /BBox."
 
-    pdf.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-    System.out.println(pdf.getFont());
-    // Prints out: java.awt.Font[family=SansSerif,name=SansSerif,style=bold,size=14]
-    try (FileOutputStream file = new FileOutputStream("test2.pdf"))
-    {
-      file.write(pdf.getBytes());
-    }
+      pdf.font = Font(Font.SANS_SERIF, Font.BOLD, 14)
+      System.out.println(pdf.font)
+      // Prints out: java.awt.Font[family=SansSerif,name=SansSerif,style=bold,size=14]
+      file = FileOutputStream("test2.pdf")
+      file.write(pdf.bytes)
+      file.close()
 
-    // Open test2.pdf with Adobe Acrobat Reader DC (15.016.20045) on Windows 10
-    // See a dialog box: "The font 'Dialog.plain' contains bad /BBox."
-    // I.e. the message is the same, even though the font was changed.
+      // Open test2.pdf with Adobe Acrobat Reader DC (15.016.20045) on Windows 10
+      // See a dialog box: "The font 'Dialog.plain' contains bad /BBox."
+      // I.e. the message is the same, even though the font was changed.
 
-    // Both test1.pdf and test2.pdf in "Document Propeties -> Fonts" show:
-    //   Dialog.plain
-    //     Type: TrueType
-    //     Encoding: Ansi
-    //     Actual font: Adobe Sans MM
-    //     Actual Font Type: Type 1
+      // Both test1.pdf and test2.pdf in "Document Propeties -> Fonts" show:
+      //   Dialog.plain
+      //     Type: TrueType
+      //     Encoding: Ansi
+      //     Actual font: Adobe Sans MM
+      //     Actual Font Type: Type 1
   }
 }
 

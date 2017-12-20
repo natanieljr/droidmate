@@ -20,5 +20,5 @@ package org.droidmate.test_tools.device_simulation
 
 interface IGuiScreensBuilder
 {
-  List<IGuiScreen> build()
+  fun build(): List<IGuiScreen>
 }

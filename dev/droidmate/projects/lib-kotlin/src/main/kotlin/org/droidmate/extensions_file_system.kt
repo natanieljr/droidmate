@@ -21,34 +21,32 @@ package org.droidmate
 import com.konradjamrozik.FileSystemsOperations
 import com.konradjamrozik.createDirIfNotExists
 import com.konradjamrozik.isDirectory
-import org.codehaus.groovy.runtime.NioGroovyMethods
+import com.konradjamrozik.toList
 import java.io.File
+import java.io.IOException
 import java.nio.file.FileSystem
+import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Files.newDirectoryStream
 import java.nio.file.Path
 
 val Path.text: String get() {
-  return NioGroovyMethods.getText(this)
+    return Files.readAllLines(this).joinToString("\n")
 }
 
 fun Path.deleteDir(): Boolean {
-  return NioGroovyMethods.deleteDir(this)
+    return try {
+        if (Files.exists(this))
+            Files.walk(this, FileVisitOption.FOLLOW_LINKS)
+                    .toList()
+                    .sorted()
+                    .reversed()
+                    .forEach { Files.delete(it) }
+        true
+    } catch (e: IOException) {
+        false
+    }
 }
-
-val Path.singleDir: Path
-  get() {
-
-    require(this.isDirectory)
-
-    val files = Files.newDirectoryStream(this).toList()
-    check(files.size == 1)
-
-    val singleDir = files.first()
-    check(singleDir.isDirectory)
-
-    return singleDir
-  }
 
 fun Path.withExtension(extension: String): Path {
   require(!this.isDirectory)
@@ -73,5 +71,5 @@ fun FileSystem.dir(dirName: String): Path {
 }
 
 fun List<Path>.copyFilesToDirInDifferentFileSystem(destDir: Path): Unit {
-  FileSystemsOperations().copyFilesToDirInDifferentFileSystem(this, destDir)
+    FileSystemsOperations().copyFilesToDirInDifferentFileSystem(this, destDir)
 }

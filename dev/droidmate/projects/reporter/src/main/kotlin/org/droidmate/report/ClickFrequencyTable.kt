@@ -21,7 +21,7 @@ package org.droidmate.report
 import com.google.common.collect.Table
 import com.konradjamrozik.frequencies
 import com.konradjamrozik.transpose
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 
 class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
@@ -52,9 +52,9 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
 
     private val IApkExplorationOutput2.countOfViewsHavingNoOfClicks: Map<Int, Int> get() {
 
-      val clickedWidgets: List<Widget> = this.actRess.flatMap { it.clickedWidget }
-      val noOfClicksPerWidget: Map<Widget, Int> = clickedWidgets.frequencies
-      val widgetsHavingNoOfClicks: Map<Int, Set<Widget>> = noOfClicksPerWidget.transpose
+        val clickedWidgets: List<IWidget> = this.actRes.flatMap { it.clickedWidget }
+        val noOfClicksPerWidget: Map<IWidget, Int> = clickedWidgets.frequencies
+        val widgetsHavingNoOfClicks: Map<Int, Set<IWidget>> = noOfClicksPerWidget.transpose
       val widgetsCountPerNoOfClicks: Map<Int, Int> = widgetsHavingNoOfClicks.mapValues { it.value.size }
 
       val maxNoOfClicks = noOfClicksPerWidget.values.max() ?: 0

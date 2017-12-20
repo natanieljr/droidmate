@@ -25,12 +25,6 @@ import org.junit.experimental.categories.Categories
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Categories)
-@Suite.SuiteClasses([
-  ApiLogcatMessageTest,
-  ClassFileFormatTest,
-  TimeFormattedLogcatMessageTest
-])
+@RunWith(Categories::class)
+@Suite.SuiteClasses(ApiLogcatMessageTest::class,ClassFileFormatTest::class,TimeFormattedLogcatMessageTest::class)
 class LibCommonTestSuite
-{
-}

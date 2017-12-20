@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,19 +18,14 @@
 // web: www.droidmate.org
 package org.droidmate.android_sdk
 
-class FirstRealDeviceSerialNumber
-{
-  private final serialNumber
+class FirstRealDeviceSerialNumber(adb: IAdbWrapper) {
+    private val serialNumber: String
 
-  FirstRealDeviceSerialNumber(IAdbWrapper adb)
-  {
-    def realDevices = adb.androidDevicesDescriptors.findAll {!it.isEmulator}
-    assert !realDevices.empty
-    this.serialNumber = realDevices.first().deviceSerialNumber
-  }
+    override fun toString(): String = serialNumber
 
-  @Override
-  String toString() {
-    return serialNumber
-  }
+    init {
+        val realDevices = adb.getAndroidDevicesDescriptors().filter { !it.isEmulator }
+        assert(!realDevices.isEmpty())
+        this.serialNumber = realDevices.first().deviceSerialNumber
+    }
 }

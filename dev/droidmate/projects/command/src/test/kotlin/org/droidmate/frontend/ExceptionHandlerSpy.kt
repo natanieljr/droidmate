@@ -20,23 +20,21 @@ package org.droidmate.frontend
 
 import org.droidmate.misc.ThrowablesCollection
 
-class ExceptionHandlerSpy implements IExceptionHandler
-{
+class ExceptionHandlerSpy(private val exceptionHandler: ExceptionHandler = ExceptionHandler()) : IExceptionHandler by exceptionHandler {
+    var handledThrowable: Throwable? = null
 
-  @Delegate
-  ExceptionHandler exceptionHandler = new ExceptionHandler()
+    override fun handle(e: Throwable): Int {
+        this.handledThrowable = e
+        return exceptionHandler.handle(e)
+    }
 
-  Throwable handledThrowable
-
-  @Override
-  int handle(Throwable e)
-  {
-    this.handledThrowable = e
-    exceptionHandler.handle(e)
-  }
-
-  List<Throwable> getThrowables()
-  {
-    return (this.handledThrowable as ThrowablesCollection).throwables
-  }
+    fun getThrowables(): List<Throwable> {
+        return if (this.handledThrowable != null) {
+            if (this.handledThrowable is ThrowablesCollection)
+                (this.handledThrowable as ThrowablesCollection).throwables
+            else
+                arrayListOf(this.handledThrowable!!)
+        } else
+            ArrayList()
+    }
 }

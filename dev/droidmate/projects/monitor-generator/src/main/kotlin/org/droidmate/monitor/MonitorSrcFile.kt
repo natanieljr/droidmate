@@ -22,18 +22,15 @@ package org.droidmate.monitor
 import java.nio.file.Files
 import java.nio.file.Path
 
-class MonitorSrcFile
-{
+class MonitorSrcFile constructor(path: Path, contents: String) {
 
- MonitorSrcFile(Path path, String contents)
- {
-   assert contents?.size() > 0
-   assert path != null
-   Path absolutePath = path.toAbsolutePath()
-   assert Files.notExists(absolutePath) || Files.isWritable(absolutePath)
-   assert absolutePath.fileName.toString().endsWith(".java")
+    init {
+        assert(contents.isNotEmpty())
+        val absolutePath = path.toAbsolutePath()
+        assert(Files.notExists(absolutePath) || Files.isWritable(absolutePath))
+        assert(absolutePath.fileName.toString().endsWith(".java"))
 
-   Files.createDirectories(absolutePath.parent)
-   Files.write(absolutePath, contents.getBytes())
- }
+        Files.createDirectories(absolutePath.parent)
+        Files.write(absolutePath, contents.toByteArray())
+    }
 }

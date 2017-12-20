@@ -19,15 +19,11 @@
 /*
   This project contains classes reused by multiple projects, some of which are run on an Android device.
   Because some of them are run on an Android Device, the classes in this project have to be compiled with Java 7, not Java 8.
-  
-  Even though this project uses Groovy, it can still run on Android Device. Not sure why, maybe because at runtime there are no
-  direct calls to methods from Groovy SDK.
 */
 
-import com.konradjamrozik.IterableExtensions
 import org.droidmate.buildsrc.BuildKt
 
-apply plugin: 'groovy'
+apply plugin: 'kotlin'
 apply plugin: 'project-report'
 
 /* 
@@ -42,19 +38,13 @@ apply plugin: 'project-report'
 */
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
-compileGroovy.configure { GroovyCompile gc ->
-  // See explanation of this in build.gradle of 'monitor-template' project.
-  gc.options.compilerArgs += "-Xlint:-options"
-}
 
 dependencies {
 
   compile("com.github.konrad-jamrozik:utilities:$utilities_version") {
     exclude group: "org.slf4j", module: "slf4j-simple"
   }
-
-  compile 'org.codehaus.groovy:groovy-all:2.4.10'
-
+  
   compile 'org.apache.commons:commons-exec:1.2'
   compile 'org.apache.commons:commons-lang3:3.3'
   compile 'commons-io:commons-io:2.4'
@@ -72,7 +62,7 @@ dependencies {
   testCompile 'junit:junit:4.12'
 }
 
-File resDir = IterableExtensions.findSingle(sourceSets.main.resources.srcDirs)
+File resDir = sourceSets.main.resources.srcDirs.first()
 File buildConstantsFile = new File(resDir, "buildConstants.properties")
 
 task writeBuildConstantsProperties() { Task it ->

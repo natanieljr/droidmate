@@ -18,48 +18,37 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.exceptions
 
-import groovy.transform.Canonical
-
-@Canonical
-class ExceptionSpec implements IExceptionSpec
+class ExceptionSpec constructor(override val methodName: String,
+                                override val packageName : String = "",
+                                override val callIndex : Int = 1,
+                                override val throwsEx : Boolean = true,
+                                override val exceptionalReturnBool : Boolean? = null,
+                                private val throwsAssertionError : Boolean = false): IExceptionSpec
 {
-
-  private static final long serialVersionUID = 1
-
-  final String  methodName
-  final String  packageName
-  final int     callIndex
-  final boolean throwsEx
-  final Boolean exceptionalReturnBool
-  final boolean throwsAssertionError
-
-  ExceptionSpec(String methodName, String packageName = null, int callIndex = 1, boolean throwsEx = true, Boolean exceptionalReturnBool = null, boolean throwsAssertionError = false)
-  {
-    this.methodName = methodName
-    this.packageName = packageName
-    this.callIndex = callIndex
-    this.throwsEx = throwsEx
-    this.exceptionalReturnBool = exceptionalReturnBool
-    this.throwsAssertionError = throwsAssertionError
-
-    assert this.throwsEx == (this.exceptionalReturnBool == null)
-    assert this.throwsAssertionError.implies(this.throwsEx)
+  companion object {
+    private const val serialVersionUID: Long = 1
   }
 
-  boolean matches(String methodName, String packageName, int callIndex)
-  {
-    if (this.methodName == methodName && (this.packageName in [null, packageName]) && this.callIndex == callIndex)
-      return true
-    return false
+  init {
+      assert(this.throwsEx == (this.exceptionalReturnBool == null))
+      assert(!this.throwsAssertionError || this.throwsEx)
   }
 
-  void throwEx() throws ITestException
-  {
-    assert this.exceptionalReturnBool == null
-    //noinspection GroovyIfStatementWithIdenticalBranches
-    if (this.throwsAssertionError)
-      throw new TestAssertionError(this)
-    else
-      throw new TestDeviceException(this)
-  }
+    override fun matches(methodName: String, packageName: String, callIndex: Int): Boolean {
+        if (this.methodName == methodName && (this.packageName in arrayListOf("", packageName)) && this.callIndex == callIndex)
+            return true
+        return false
+    }
+
+    override fun throwEx() {
+        assert(this.exceptionalReturnBool == null)
+        if (this.throwsAssertionError)
+            throw TestAssertionError (this)
+        else
+            throw TestDeviceException (this)
+    }
+
+    override fun toString(): String {
+        return "mthd: $methodName pkg: $packageName idx: $callIndex throw: $throwsEx"
+    }
 }

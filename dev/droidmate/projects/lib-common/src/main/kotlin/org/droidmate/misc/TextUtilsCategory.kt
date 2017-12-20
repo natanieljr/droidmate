@@ -19,13 +19,12 @@
 
 package org.droidmate.misc
 
-public class TextUtilsCategory
-{
-
-  public static wrapWith(String self, String brackets)
-  {
-    assert self != null
-    assert brackets?.size() == 2
-    return self.replaceFirst("^", brackets[0]).replaceFirst("\$", brackets[1])
-  }
+class TextUtilsCategory {
+    companion object {
+        @JvmStatic
+        fun wrapWith(self: String, brackets: String): String {
+            assert(brackets.length == 2)
+            return self.replaceFirst('^', brackets[0]).replaceFirst('\$', brackets[1])
+        }
+    }
 }

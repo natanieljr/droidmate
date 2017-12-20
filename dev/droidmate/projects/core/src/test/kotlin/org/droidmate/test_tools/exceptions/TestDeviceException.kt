@@ -21,16 +21,11 @@ package org.droidmate.test_tools.exceptions
 
 import org.droidmate.android_sdk.DeviceException
 
-class TestDeviceException extends DeviceException implements ITestException
-{
+class TestDeviceException(override val exceptionSpec: IExceptionSpec)
+  : DeviceException("Test-enforced device exception. Package name: $exceptionSpec.packageName Method name: " +
+        "$exceptionSpec.methodName Call index: $exceptionSpec.callIndex"), ITestException {
 
-  private static final long serialVersionUID = 1
-
-  final IExceptionSpec exceptionSpec
-
-  TestDeviceException(IExceptionSpec exceptionSpec)
-  {
-    super("Test-enforced device exception. Package name: $exceptionSpec.packageName Method name: $exceptionSpec.methodName Call index: $exceptionSpec.callIndex")
-    this.exceptionSpec = exceptionSpec
-  }
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 }

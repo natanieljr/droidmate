@@ -18,46 +18,61 @@
 // web: www.droidmate.org
 package org.droidmate.misc;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*
 
-public class MonitorConstants
-{
-  // WISH known limitation: if running droidmate with multiple devices, each will have the same set of server ports.
-  // Suggested fix: make monitor.java read the port number from a .txt file; deploy different .txt file to each device.
-  public static final  List<Integer> serverPorts      = Arrays.asList(59701,59702,59703,59704);
-  public static final  String        tag_api          = "Monitor_API_method_call";
-  
-  public static final  String tag_prefix = "droidmate/monit/";
-  public static final  String tag_srv    = tag_prefix + "server";
-  public static final  String tag_run    = tag_prefix + "srv_run";
-  // mjt == MonitorJavaTemplate
-  public static final  String tag_mjt    = tag_prefix + "mjt";
+class MonitorConstants {
+    companion object {
 
-  
-  public static final  String loglevel                = "i";
-  public static final  String msg_ctor_start          = "ctor(): entering";
-  public static final  String msg_ctor_success        = "ctor(): startMonitorTCPServer(): SUCCESS port: ";
-  public static final  String msg_ctor_failure        = "! ctor(): startMonitorTCPServer(): FAILURE";
-  
-  /**
-   * <p>
-   * Example full message:
-   * </p><p>
-   * {@code Monitor initialized for package org.droidmate.fixtures.apks.monitored}
-   * </p>
-   */
-  public static final String msgPrefix_init_success         = "init(): SUCCESS for package ";
-  public static final String srvCmd_connCheck               = "connCheck";
-  public static final String srvCmd_get_logs                = "getLogs";
-  public static final String srvCmd_get_time                = "getTime";
-  public static final String srvCmd_close                   = "close";
-  
-  public static final String monitor_time_formatter_pattern = "yyyy-MM-dd HH:mm:ss.SSS";
-  // !!! DUPLICATION WARNING !!! with org.droidmate.buildsrc.locale
-  // BuildConstants.getLocale() is not used here as monitor_time_formatter_locale is used in android device, and BuildConstants
-  // requires Groovy, which is not available on the device.
-  //public static final Locale monitor_time_formatter_locale  = BuildConstants.getLocale();
-  public static final Locale monitor_time_formatter_locale  = Locale.US;
+        // WISH known limitation: if running droidmate with multiple devices, each will have the same set of server ports.
+        // Suggested fix: make monitor.java read the port number from a .txt file; deploy different .txt file to each device.
+        @JvmStatic
+        val serverPorts = arrayListOf(59701, 59702, 59703, 59704)
+        @JvmStatic
+        val tag_api = "Monitor_API_method_call"
+
+        @JvmStatic
+        val tag_prefix = "droidmate/monit/"
+        @JvmStatic
+        val tag_srv = tag_prefix + "server"
+        @JvmStatic
+        val tag_run = tag_prefix + "srv_run"
+        // mjt == MonitorJavaTemplate
+        @JvmStatic
+        val tag_mjt = tag_prefix + "mjt"
+
+        @JvmStatic
+        val loglevel = "i"
+        @JvmStatic
+        val msg_ctor_start = "ctor(): entering"
+        @JvmStatic
+        val msg_ctor_success = "ctor(): startMonitorTCPServer(): SUCCESS port: "
+        @JvmStatic
+        val msg_ctor_failure = "! ctor(): startMonitorTCPServer(): FAILURE"
+
+        /**
+         * <p>
+         * Example full message:
+         * </p><p>
+         * {@code Monitor initialized for package org.droidmate.fixtures.apks.monitored}
+         * </p>
+         */
+        @JvmStatic
+        val msgPrefix_init_success = "init(): SUCCESS for package "
+        @JvmStatic
+        val srvCmd_connCheck = "connCheck"
+        @JvmStatic
+        val srvCmd_get_logs = "getLogs"
+        @JvmStatic
+        val srvCmd_get_time = "getTime"
+        @JvmStatic
+        val srvCmd_close = "close"
+
+        @JvmStatic
+        val monitor_time_formatter_pattern = "yyyy-MM-dd HH:mm:ss.SSS"
+        // !!! DUPLICATION WARNING !!! with org.droidmate.buildsrc.locale
+        // BuildConstants.getLocale() is not used here as monitor_time_formatter_locale is used in android device.
+        //public static final Locale monitor_time_formatter_locale  = BuildConstants.getLocale();
+        @JvmStatic
+        val monitor_time_formatter_locale: Locale = Locale.US;
+    }
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,19 +19,24 @@
 
 package org.droidmate.device.datatypes
 
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.TypeChecked
-import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
-import groovy.util.slurpersupport.Node;
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackConstants
-
-import java.awt.*
-import java.util.List
-
-import static groovy.transform.TypeCheckingMode.SKIP
-import static org.droidmate.logging.Markers.exceptions
+import org.droidmate.logging.Markers.Companion.exceptions
+import org.slf4j.LoggerFactory
+import org.w3c.dom.Document
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
+import java.awt.Dimension
+import java.awt.Rectangle
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.Serializable
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+import javax.xml.xpath.XPathConstants
+import javax.xml.xpath.XPathExpression
+import javax.xml.xpath.XPathFactory
 
 /**
  * <p>
@@ -62,299 +67,315 @@ import static org.droidmate.logging.Markers.exceptions
  * The monitor.bat from examples above should live in path like:<br/>
  * c:\Program Files (x86)\Android\android-sdk\tools\monitor.bat
  */
-@TypeChecked
-@Slf4j
-@EqualsAndHashCode
-class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
-{
+data class UiautomatorWindowDump @JvmOverloads constructor(override val windowHierarchyDump: String,
+                                                           private val displayDimensions: Dimension,
+                                                           override val androidLauncherPackageName: String,
+                                                           override val id: String = "") : IDeviceGuiSnapshot, Serializable {
+    private enum class WellFormedness {
 
-  private static final long serialVersionUID = 1
+        OK,
+        is_null,
+        is_empty,
+        missing_root_xml_node_prefix;
 
-  public static final String rootXmlNodePrefix = "<hierarchy"
+        fun toValidationResult(): ValidationResult {
+            when (this) {
+                OK -> assert(false, { "Called .toValidatonResult() on 'OK' well-formedness status. This is forbidden, as 'OK' well-formedness is not enough by itself to determine validation result." })
+                is_null -> return ValidationResult.is_null
+                is_empty -> ValidationResult.is_empty
+                missing_root_xml_node_prefix -> return ValidationResult.missing_root_xml_node_prefix
+            }
 
-  final         String         windowHierarchyDump
-  final         Rectangle      deviceDisplayBounds
-  private final WellFormedness wellFormedness
-
-  private final IGuiState        guiState
-  final         ValidationResult validationResult
-  private final String           androidLauncherPackageName
-
-  /** Id is used only for tests, for:
-   * - easy determination by human which widget is which when looking at widget string representation
-   * - For asserting actual widgets match expected.
-   * */
-  String id = null
-
-
-  UiautomatorWindowDump(String windowHierarchyDump, Dimension displayDimensions, String androidLauncherPackageName, String id = null)
-  {
-    this.id = id
-    this.deviceDisplayBounds = new Rectangle(displayDimensions)
-    this.androidLauncherPackageName = androidLauncherPackageName
-
-    def wellFormedness = checkWellFormedness(windowHierarchyDump)
-    if (wellFormedness == WellFormedness.OK)
-    {
-      this.windowHierarchyDump = removeSystemuiNodes(windowHierarchyDump)
-      this.wellFormedness = checkWellFormedness(this.windowHierarchyDump)
-    }
-    else
-    {
-      this.wellFormedness = wellFormedness
-      this.windowHierarchyDump = windowHierarchyDump
+            assert(false, { "This statement should be unreachable code!" })
+            return ValidationResult.error// To make compiler happy
+        }
     }
 
-    if (this.wellFormedness == WellFormedness.OK)
-      this.guiState = computeGuiState(this.windowHierarchyDump)
-    else
-      this.guiState = null
+    companion object {
+        private const val serialVersionUID: Long = 1
+        private val log = LoggerFactory.getLogger(UiautomatorWindowDump::class.java)
 
-    this.validationResult = validate()
-  }
+        val rootXmlNodePrefix = "<hierarchy"
 
-  @Override
-  String getWindowHierarchyDump()
-  {
-    return windowHierarchyDump
-  }
+        /**
+         * THIS FUNCTION IS BROKEN, DO NOT USE IT. See below.
+         *
+         * DroidMate obtains Android device's window hierarchy dump via
+         * android.support.test.uiautomator.UiDevice#dumpWindowHierarchy(java.io.File)
+         * called in org.droidmate.uiautomator2daemon.UiAutomatorDaemonDriver
+         *
+         * This dump contains as first children of the <hierarchy> node some nodes with com.android.systemui package.
+         * They are deleted by this function. Interestingly, they are not present if the window hierarchy is obtained with monitor tool
+         * from Android SDK.
+         *
+         * Implemented with help of:
+         * http://stackoverflow.com/a/3717875/986533
+         * https://docs.oracle.com/javase/tutorial/jaxp/xslt/xpath.html
+         * http://www.xpathtester.com/xpath
+         * https://docs.oracle.com/javase/7/docs/api/javax/xml/parsers/package-summary.html
+         * https://docs.oracle.com/javase/7/docs/api/javax/xml/xpath/package-summary.html
+         *
+         */
+        @JvmStatic
+        fun removeSystemuiNodes(windowHierarchyDump: String): String {
+            val doc: Document = getDumpDocument(windowHierarchyDump)
+            val nodesToRemove: NodeList = getNodesToRemove(doc)
 
-  @Override
-  String getPackageName()
-  {
-    if (this.wellFormedness != WellFormedness.OK)
-      return "Package unknown: the snapshot is not well-formed"
+            for (i in 0 until nodesToRemove.length) {
+                removeNode(nodesToRemove.item(i))
+            }
 
-    int startIndex = windowHierarchyDump.indexOf("package=\"")
-    int endIndex = windowHierarchyDump.indexOf('"', startIndex + "package=\"".length())
-    return windowHierarchyDump.substring(startIndex + "package=\"".length(), endIndex)
-  }
+            return writeDocToString(doc)
+        }
 
-  //region Getting GUI state
+        private fun getDumpDocument(windowHierarchyDump: String) = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(windowHierarchyDump.byteInputStream())
 
-  /**
-   * see {@link #computeGuiState()}
-   */
-  @Override
-  IGuiState getGuiState()
-  {
-    assert guiState != null
-    return guiState
-  }
+        private fun getNodesToRemove(windowHierarchyDumpDocument: Document): NodeList {
+            val nodesToRemoveXpath: XPathExpression = XPathFactory.newInstance().newXPath().compile("/hierarchy/node[@package=\"com.android.systemui\"]")
+            val nodesToRemove: NodeList = nodesToRemoveXpath.evaluate(windowHierarchyDumpDocument, XPathConstants.NODESET) as NodeList
+            return nodesToRemove
+        }
 
-  @TypeChecked(SKIP)
-  private Widget createWidget(Node it, Widget parent) {
-    try{
-     /*
+        private fun removeNode(currNodeToBeRemoved: Node) {
+            // Current node is removed by informing its parent that its child, being current node, is o be removed.
+            currNodeToBeRemoved.parentNode.removeChild(currNodeToBeRemoved)
+        }
+
+        private fun writeDocToString(windowHierarchyDumpDocument: Document): String {
+            val baos = ByteArrayOutputStream()
+            TransformerFactory.newInstance().newTransformer().transform(DOMSource(windowHierarchyDumpDocument), StreamResult(baos))
+            val outputString = baos.toString(Charsets.UTF_8.name())
+            return outputString
+        }
+    }
+
+    val deviceDisplayBounds: Rectangle
+    private val wellFormedness: WellFormedness
+    override val guiState: IGuiState
+    override val validationResult: ValidationResult
+
+
+    init {
+        this.deviceDisplayBounds = Rectangle(displayDimensions)
+
+        val wellFormedness = checkWellFormedness(windowHierarchyDump)
+        if (wellFormedness == WellFormedness.OK) {
+            this.wellFormedness = checkWellFormedness(this.windowHierarchyDump)
+            this.guiState = computeGuiState(this.windowHierarchyDump)
+        } else {
+            this.wellFormedness = wellFormedness
+            this.guiState = GuiState("INVALID", "", ArrayList(), "INVALID")
+        }
+
+        this.validationResult = validate()
+    }
+
+
+    override fun getPackageName(): String {
+        if (this.wellFormedness != WellFormedness.OK)
+            return "Package unknown: the snapshot is not well-formed"
+
+        val startIndex = windowHierarchyDump.indexOf("package=\"")
+        val endIndex = windowHierarchyDump.indexOf('"', startIndex + "package=\"".length)
+        return windowHierarchyDump.substring(startIndex + "package=\"".length, endIndex)
+    }
+
+    //region Getting GUI state
+
+    private fun createWidget(it: Node, parentWidget: IWidget?): IWidget? {
+        try {
+            /*
       Example "it": <node index="0" text="LOG IN" resource-id="com.snapchat.android:id/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>
       */
-      Widget w = new Widget(
+            val w = Widget()
+            with(w) {
+                // @formatter:off
+                id = it.attributes.getNamedItem("id")?.nodeValue ?: ""
+                // Appears only in test code simulating the device, never on actual devices or their emulators.
+                index = it.attributes.getNamedItem("index").nodeValue.toInt()
+                text = it.attributes.getNamedItem("text")?.nodeValue ?: ""
+                resourceId = it.attributes.getNamedItem("resource-id")?.nodeValue ?: ""
+                className = it.attributes.getNamedItem("class")?.nodeValue ?: ""
+                packageName = it.attributes.getNamedItem("package")?.nodeValue ?: ""
+                contentDesc = it.attributes.getNamedItem("content-desc")?.nodeValue ?: ""
+                checkable = it.attributes.getNamedItem("checkable").nodeValue == "true"
+                checked = it.attributes.getNamedItem("checked").nodeValue == "true"
+                clickable = it.attributes.getNamedItem("clickable").nodeValue == "true"
+                enabled = it.attributes.getNamedItem("enabled").nodeValue == "true"
+                focusable = it.attributes.getNamedItem("focusable").nodeValue == "true"
+                focused = it.attributes.getNamedItem("focused").nodeValue == "true"
+                scrollable = it.attributes.getNamedItem("scrollable").nodeValue == "true"
+                longClickable = it.attributes.getNamedItem("long-clickable").nodeValue == "true"
+                password = it.attributes.getNamedItem("password").nodeValue == "true"
+                selected = it.attributes.getNamedItem("selected").nodeValue == "true"
 
-              // @formatter:off
-              id                  : it.attributes().containsKey("id") ? it.attributes().get("id") : null, // Appears only in test code simulating the device, never on actual devices or their emulators.
+                bounds = Widget.parseBounds(it.attributes.getNamedItem("bounds").nodeValue)
+                deviceDisplayBounds = this.deviceDisplayBounds
 
-              index               : it.attributes().get("index") as int,
-              text                : it.attributes().get("text"),
-              resourceId          : it.attributes().get("resource-id"),
-              className           : it.attributes().get("class"),
-              packageName         : it.attributes().get("package"),
-              contentDesc         : it.attributes().get("content-desc"),
-              checkable           : it.attributes().get("checkable")      == "true",
-              checked             : it.attributes().get("checked")        == "true",
-              clickable           : it.attributes().get("clickable")      == "true",
-              enabled             : it.attributes().get("enabled")        == "true",
-              focusable           : it.attributes().get("focusable")      == "true",
-              focused             : it.attributes().get("focused")        == "true",
-              scrollable          : it.attributes().get("scrollable")     == "true",
-              longClickable       : it.attributes().get("long-clickable") == "true",
-              password            : it.attributes().get("password")       == "true",
-              selected            : it.attributes().get("selected")       == "true",
-
-              bounds              : Widget.parseBounds(it.attributes().get("bounds") as String),
-              deviceDisplayBounds : deviceDisplayBounds,
-
-              parent              : parent,
-              // @formatter:on
-      )
-      return w
+                parent = parentWidget
+                // @formatter:on
+            }
+            return w
+        } catch (e: InvalidWidgetBoundsException) {
+            log.error("Catching exception: parsing widget bounds failed. ${LogbackConstants.err_log_msg}\n" +
+                    "Continuing execution, skipping the widget with invalid bounds.")
+            log.error(exceptions, "parsing widget bounds failed with exception:\n", e)
+            return null
+        }
     }
-    catch (InvalidWidgetBoundsException e)
-    {
-      log.error("Catching exception: parsing widget bounds failed. $LogbackConstants.err_log_msg\n" +
-              "Continuing execution, skipping the widget with invalid bounds.")
-      log.error(exceptions, "parsing widget bounds failed with exception:\n", e)
-      return null
+
+    private fun addWidget(result: MutableList<IWidget>, parent: IWidget?, data: Node) {
+        val w = createWidget(data, parent)
+
+        if (w != null) {
+            if (parent == null)
+                w.xpath = "//"
+            else
+                w.xpath = "$parent.xpath/"
+
+            w.xpath += "${w.className}[${w.index + 1}]"
+
+            result.add(w)
+        }
+
+        data.childNodes.toList()
+                .filter { it.nodeName == "node" }
+                .forEach { addWidget(result, w, it) }
     }
-  }
 
-  @TypeChecked(SKIP)
-  private void addWidget(List<Widget> result, Widget parent, Node data) {
-    assert data != null
+    private fun NodeList.toList(): List<Node> {
+        return (0 until this.length).map { i ->
+            this.item(i)
+        }
+    }
 
-    Widget w = createWidget(data, parent)
-    if (w != null)
-      result.add(w);
+    private fun Node.isSystemUINode(): Boolean {
+        val pkg = this.attributes.getNamedItem("package")
 
-    for(Node node : data.childNodes())
-      addWidget(result, w, node)
-  }
+        return (pkg != null) && (pkg.nodeValue.contains("com.android.systemui"))
+    }
 
-  @TypeChecked(SKIP)
-  private GuiState computeGuiState(String windowHierarchyDump)
-  {
-    assert wellFormedness == WellFormedness.OK
-    
-    GPathResult hierarchy = new XmlSlurper().parseText(windowHierarchyDump)
-    assert hierarchy.name() == "hierarchy"
+    private fun computeGuiState(windowHierarchyDump: String): GuiState {
+        assert(wellFormedness == WellFormedness.OK)
 
-    String topNodePackage = hierarchy.node[0]?.@package?.text()
+        val dbf = DocumentBuilderFactory.newInstance()
+        val db = dbf.newDocumentBuilder()
+        val inputStream = ByteArrayInputStream(windowHierarchyDump.toByteArray())
+        val hierarchy = db.parse(inputStream)
+                .apply { documentElement.normalize() }
+                .childNodes.item(0)
 
-    // When the application starts with an active keyboard, look for the proper application instead of the keyboard
-    // This problem was identified on the app "com.hykwok.CurrencyConverter"
-    // https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
-    if (topNodePackage.startsWith("com.google.android.inputmethod.") && (hierarchy.childNodes().size() > 1))
-      topNodePackage = hierarchy.node[1]?.@package?.text()
+        ////////val hierarchy = XmlSlurper().parseText(windowHierarchyDump)
+        assert(hierarchy.nodeName == "hierarchy")
 
-    assert !topNodePackage.empty
+        val childNodes = hierarchy.childNodes
+                .toList()
+                .filter { it.nodeName == "node" }
+                .filterNot { it.isSystemUINode() }
+        var topNodePackage = childNodes.first().attributes.getNamedItem("package").nodeValue
 
-    List<Widget> widgets = new ArrayList<>();
+        // When the application starts with an active keyboard, look for the proper application instead of the keyboard
+        // This problem was identified on the app "com.hykwok.CurrencyConverter"
+        // https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
+        if (topNodePackage.startsWith("com.google.android.inputmethod.") && (hierarchy.childNodes.length > 1))
+            topNodePackage = childNodes.drop(1).first().attributes.getNamedItem("package").nodeValue
 
-    for (Node node : hierarchy.childNodes())
-      addWidget(widgets, null, node);
+        assert(topNodePackage.isNotEmpty())
 
-    def gs = new GuiState(topNodePackage, id, widgets, this.androidLauncherPackageName)
-    if (gs.isRequestRuntimePermissionDialogBox())
-      return new RuntimePermissionDialogBoxGuiState(topNodePackage, widgets, this.androidLauncherPackageName)
-    else if (gs.isAppHasStoppedDialogBox())
-      return new AppHasStoppedDialogBoxGuiState(topNodePackage, widgets, this.androidLauncherPackageName)
-    else
-      return gs
-  }
+        val widgets: MutableList<IWidget> = ArrayList()
 
-  //endregion Getting GUI state
+        childNodes.forEach {
+            addWidget(widgets, null, it)
+        }
 
-  //region Validation
+        val gs = GuiState(topNodePackage, id, widgets, this.androidLauncherPackageName)
+        return when {
+            gs.isRequestRuntimePermissionDialogBox -> RuntimePermissionDialogBoxGuiState(topNodePackage, widgets, this.androidLauncherPackageName)
+            gs.isAppHasStoppedDialogBox -> AppHasStoppedDialogBoxGuiState(topNodePackage, widgets, this.androidLauncherPackageName)
+            else -> gs
+        }
+    }
 
-  private ValidationResult validate()
-  {
-    if (wellFormedness == WellFormedness.OK)
-    {
-      def gs = this.guiState
-      assert gs != null
+    //endregion Getting GUI state
 
-      if (gs instanceof AppHasStoppedDialogBoxGuiState)
-      {
-        assert gs.OKWidget != null
-        if (gs.OKWidget.enabled)
-          return ValidationResult.app_has_stopped_dialog_box_with_OK_button_enabled
+    //region Validation
+
+    private fun validate(): ValidationResult {
+        if (wellFormedness == WellFormedness.OK) {
+            val gs = this.guiState
+
+            return if (gs is AppHasStoppedDialogBoxGuiState) {
+                if (gs.okWidget.enabled)
+                    ValidationResult.app_has_stopped_dialog_box_with_OK_button_enabled
+                else
+                    ValidationResult.app_has_stopped_dialog_box_with_OK_button_disabled
+
+            } else if (gs is RuntimePermissionDialogBoxGuiState) {
+                if (gs.allowWidget.enabled)
+                    ValidationResult.request_runtime_permission_dialog_box_with_Allow_button_enabled
+                else
+                    ValidationResult.request_runtime_permission_dialog_box_with_Allow_button_disabled
+
+            } else {
+                ValidationResult.OK
+            }
+        } else
+            return wellFormedness.toValidationResult()
+    }
+
+
+    private fun checkWellFormedness(windowHierarchyDump: String): WellFormedness {
+        if (windowHierarchyDump.isEmpty())
+            return WellFormedness.is_null
+        else if (isEmptyStub(windowHierarchyDump))
+            return WellFormedness.is_empty
+        else if (!windowHierarchyDump.contains(rootXmlNodePrefix))
+            return WellFormedness.missing_root_xml_node_prefix
         else
-          return ValidationResult.app_has_stopped_dialog_box_with_OK_button_disabled
-
-      } else if (gs instanceof RuntimePermissionDialogBoxGuiState)
-      {
-        assert gs.allowWidget != null
-        if (gs.allowWidget.enabled)
-          return ValidationResult.request_runtime_permission_dialog_box_with_Allow_button_enabled
-        else
-          return ValidationResult.request_runtime_permission_dialog_box_with_Allow_button_disabled
-
-      } else
-      {
-        return ValidationResult.OK
-      }
-    } else
-      return wellFormedness.toValidationResult()
-  }
-
-
-  private WellFormedness checkWellFormedness(String windowHierarchyDump)
-  {
-    if (windowHierarchyDump == null)
-      return WellFormedness.is_null
-    else if (windowHierarchyDump.length() == 0 || isEmptyStub(windowHierarchyDump))
-      return WellFormedness.is_empty
-    else if (!windowHierarchyDump.contains(rootXmlNodePrefix))
-      return WellFormedness.missing_root_xml_node_prefix
-    else
-      return WellFormedness.OK
-  }
-
-  /**
-   * This covers a case when the dump looks as follows:
-   * 
-   * <?xml version="1.0" encoding="UTF-8"?><hierarchy rotation="0">
-   *
-   *
-   * </hierarchy>
-   */
-  private boolean isEmptyStub(String windowHierarchyDump)
-  {
-    return windowHierarchyDump.count("<") <= 3 && windowHierarchyDump.count("\n") <= 5
-  }
-
-  private enum WellFormedness {
-
-    OK,
-    is_null,
-    is_empty,
-    missing_root_xml_node_prefix
-
-    ValidationResult toValidationResult()
-    {
-      switch (this)
-      {
-        case OK:
-          assert false: "Called .toValidatonResult() on 'OK' well-formedness status. This is forbidden, as 'OK' well-formedness is not enough by itself to determine validation result."
-          break
-        case is_null:
-          return ValidationResult.is_null
-          break
-        case is_empty:
-          return ValidationResult.is_empty
-          break
-        case missing_root_xml_node_prefix:
-          return ValidationResult.missing_root_xml_node_prefix
-          break
-        default:
-          throw new UnexpectedIfElseFallthroughError("Unhandled $this")
-      }
-
-      assert false: "This statement should be unreachable code!"
-      return null // To make compiler happy
+            return WellFormedness.OK
     }
-  }
-  //endregion
+
+    /**
+     * This covers a case when the dump looks as follows:
+     *
+     * <?xml version="1.0" encoding="UTF-8"?><hierarchy rotation="0">
+     *
+     *
+     * </hierarchy>
+     */
+    private fun isEmptyStub(windowHierarchyDump: String): Boolean
+            = windowHierarchyDump.count { it == '<' } <= 3 && windowHierarchyDump.count { it == '\n' } <= 5
+    //endregion
 
 
-  @Override
-   String toString()
-  {
-    String clazz = UiautomatorWindowDump.simpleName
-    if (this.wellFormedness != WellFormedness.OK)
-      return "$clazz{!not well-formed!: $windowHierarchyDump}"
+    override fun toString(): String {
+        val clazz = UiautomatorWindowDump::class.java.simpleName
 
-    if (this.guiState.isHomeScreen())
-      return "$clazz{home screen}"
+        if (this.wellFormedness != WellFormedness.OK)
+            return "$clazz{!not well-formed!: $windowHierarchyDump}"
 
-    if (this.guiState.isRequestRuntimePermissionDialogBox())
-      return "$clazz{\"Runtime permission\" dialog box. Allow widget enabled: ${(this.guiState as RuntimePermissionDialogBoxGuiState).allowWidget.enabled}}"
+        if (this.guiState.isHomeScreen)
+            return "$clazz{home screen}"
 
-    if (this.guiState.isAppHasStoppedDialogBox())
-      return "$clazz{\"App has stopped\" dialog box. OK widget enabled: ${(this.guiState as AppHasStoppedDialogBoxGuiState).OKWidget.enabled}}"
+        if (this.guiState.isRequestRuntimePermissionDialogBox)
+            return "$clazz{\"Runtime permission\" dialog box. Allow widget enabled: ${(this.guiState as RuntimePermissionDialogBoxGuiState).allowWidget.enabled}}"
 
-    if (this.guiState.isCompleteActionUsingDialogBox())
-      return "$clazz{\"Complete action using\" dialog box.}"
+        if (this.guiState.isAppHasStoppedDialogBox)
+            return "$clazz{\"App has stopped\" dialog box. OK widget enabled: ${(this.guiState as AppHasStoppedDialogBoxGuiState).okWidget.enabled}}"
 
-    if (this.guiState.isSelectAHomeAppDialogBox())
-      return "$clazz{\"Select a home app\" dialog box.}"
+        if (this.guiState.isCompleteActionUsingDialogBox)
+            return "$clazz{\"Complete action using\" dialog box.}"
 
-    if (this.guiState.isUseLauncherAsHomeDialogBox())
-      return "$clazz{\"Use Launcher as Home\" dialog box.}"
+        if (this.guiState.isSelectAHomeAppDialogBox)
+            return "$clazz{\"Select a home app\" dialog box.}"
+
+        if (this.guiState.isUseLauncherAsHomeDialogBox)
+            return "$clazz{\"Use Launcher as Home\" dialog box.}"
 
 
-    String returnString = "$clazz{${packageName}. Widgets# ${this.guiState.widgets.size()}}"
-    
-    // Uncomment when necessary for debugging.
+        val returnString = "$clazz{${getPackageName()}. Widgets# ${this.guiState.widgets.size}}"
+
+        // Uncomment when necessary for debugging.
 //    List<Widget> widgets = this.guiState.widgets
 //    final int displayedWidgetsLimit = 50
 //    returnString += widgets.take(displayedWidgetsLimit).collect {it.toShortString() }.join("\n") + "\n"
@@ -362,12 +383,7 @@ class UiautomatorWindowDump implements IDeviceGuiSnapshot, Serializable
 //      returnString += "...\n...skipped displaying remaining ${widgets.size()-displayedWidgetsLimit} widgets...\n"
 //    returnString += "----- end of widgets ----\n"
 
-    return returnString
-  }
-
-  private String removeSystemuiNodes(String windowHierarchyDump)
-  {
-    return UiautomatorWindowDump_functionsKt.removeSystemuiNodes(windowHierarchyDump)
-}
+        return returnString
+    }
 }
 

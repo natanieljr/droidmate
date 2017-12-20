@@ -30,7 +30,7 @@ class Summary(val data: List<IApkExplorationOutput2>, file: Path): DataFile(file
     Files.write(file, summaryString.toByteArray())
   }
 
-  val summaryString: String by lazy {
+    private val summaryString: String by lazy {
     if (data.isEmpty())
       "Exploration output was empty (no apks), so this summary is empty."
     else

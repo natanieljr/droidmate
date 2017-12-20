@@ -20,49 +20,34 @@ package org.droidmate.test_tools.android_sdk
 
 import org.droidmate.android_sdk.IAaptWrapper
 import org.droidmate.android_sdk.IApk
-import org.droidmate.misc.DroidmateException
 
 import java.nio.file.Path
 
-class AaptWrapperStub implements IAaptWrapper
+class AaptWrapperStub(private val apks: List<IApk>) : IAaptWrapper
 {
 
-  final List<IApk> apks
-
-  AaptWrapperStub(List<IApk> apks)
-  {
-    this.apks = apks
+  override fun getPackageName(apk: Path): String {
+    assert(false, {"Not yet implemented!"})
+            return ""
   }
 
-  @Override
-  String getPackageName(Path apk) throws DroidmateException
-  {
-    assert false: "Not yet implemented!"
+  override fun getLaunchableActivityName(apk: Path): String {
+    assert(false, {"Not yet implemented!"})
+    return ""
   }
 
-  @Override
-  String getLaunchableActivityName(Path apk) throws DroidmateException
-  {
-    assert false: "Not yet implemented!"
+  override fun getLaunchableActivityComponentName(apk: Path): String {
+    assert(false, {"Not yet implemented!"})
+    return ""
   }
 
-  @Override
-  String getLaunchableActivityComponentName(Path apk) throws DroidmateException
-  {
-    assert false: "Not yet implemented!"
+  override fun getApplicationLabel(apk: Path): String {
+    assert(false, {"Not yet implemented!"})
+    return ""
   }
 
-  @Override
-  String getApplicationLabel(Path apk) throws DroidmateException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-
-  @Override
-  List<String> getMetadata(Path path) throws DroidmateException
-  {
-    def apk = apks.findSingle {it.absolutePath == path.toAbsolutePath().toString()}
-    return [apk.packageName, apk.launchableActivityName, apk.launchableActivityComponentName, apk.applicationLabel]
+  override fun getMetadata(apk: Path): List<String> {
+    val data = apks.single {it.absolutePath == apk.toAbsolutePath().toString()}
+    return arrayListOf(data.packageName, data.launchableActivityName, data.launchableActivityComponentName, data.applicationLabel)
   }
 }

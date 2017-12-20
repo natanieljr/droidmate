@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate
 
-import org.hamcrest.Matchers.equalTo
+import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.Duration

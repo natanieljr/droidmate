@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,19 +16,24 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-
 package org.droidmate.misc
 
-class Pair<T1 extends Serializable, T2 extends Serializable> implements Serializable
-{
-  private static final long serialVersionUID = 1
+import java.io.Serializable
 
-  T1 first
-  T2 second
+open class Pair<out T1 : Serializable, out T2 : Serializable> constructor(val first: T1, val second: T2) : Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  Pair(T1 first, T2 second)
-  {
-    this.first = first
-    this.second = second
-  }
+    override fun hashCode(): Int = first.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if ((other == null) || (other !is Pair<*, *>))
+            return false
+
+        return (this.first == other.first) &&
+                (this.second == other.second)
+    }
+
+    override fun toString(): String = "($first,$second)"
 }

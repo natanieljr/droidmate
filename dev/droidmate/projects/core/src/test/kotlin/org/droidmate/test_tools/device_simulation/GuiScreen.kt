@@ -30,254 +30,202 @@ import org.droidmate.test_tools.device.datatypes.GuiStateTestHelper
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
-import org.droidmate.uiautomator_daemon.guimodel.GuiAction
 
-class GuiScreen implements IGuiScreen
-{
-  //private static final String packageAndroidLauncher = new DeviceConfigurationFactory(UiautomatorDaemonConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
+/**
+ * <p>
+ * The time generator provides successive timestamps to the logs returned by the simulated device from a call to
+ * {@link #perform(org.droidmate.device.datatypes.IAndroidDeviceAction)}.
+ *
+ * </p><p>
+ * If this object s a part of simulation obtained from exploration output the time generator is null, as no time needs to be
+ * generated. Instead, all time is obtained from the exploration output timestamps.
+ *
+ * </p>
+ */
+class GuiScreen constructor(private val internalId: String, 
+                            packageName : String = "", 
+                            private val timeGenerator : ITimeGenerator? = null) : IGuiScreen {
+    //private static final String packageAndroidLauncher = new DeviceConfigurationFactory(UiautomatorDaemonConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
+    companion object {
+        val idHome = "home"
+        val idChrome = "chrome"
+        val reservedIds = arrayListOf(idHome, idChrome)
+        val reservedIdsPackageNames = mapOf(
+                idHome to DeviceModel.buildDefault().getAndroidLauncherPackageName(),
+                idChrome to "com.android.chrome")
+    }
+    
+    private val packageName : String
+    private var internalGuiSnapshot: IDeviceGuiSnapshot = MissingGuiSnapshot()
 
-  public static final String              idHome                  = "home"
-  public static final String              idChrome                = "chrome"
-  public static final Set<String>         reservedIds             = [idHome, idChrome]
-  public static final Map<String, String> reservedIdsPackageNames = [
-    (idHome)  : DeviceModel.buildDefault().androidLauncherPackageName,
-    (idChrome): "com.android.chrome"
-  ]
+    private var home : IGuiScreen? = null
+    private var main : IGuiScreen? = null
 
-  IDeviceGuiSnapshot guiSnapshot = null
+    private val widgetTransitions : MutableMap<IWidget, IGuiScreen> = mutableMapOf()
+    private var finishedBuilding = false
 
-  final         String id
-  private final String packageName
+    constructor(snapshot: IDeviceGuiSnapshot) : this(snapshot.id, snapshot.getPackageName()) {
+        this.internalGuiSnapshot = snapshot
+    }
 
-  private IGuiScreen home = null
-  private IGuiScreen main = null
 
-  /**
-   * <p>
-   * The time generator provides successive timestamps to the logs returned by the simulated device from a call to
-   * {@link #perform(org.droidmate.device.datatypes.IAndroidDeviceAction)}.
-   *
-   * </p><p>
-   * If this object s a part of simulation obtained from exploration output the time generator is null, as no time needs to be
-   * generated. Instead, all time is obtained from the exploration output timestamps.
-   *
-   * </p>
-   */
-  private final ITimeGenerator timeGenerator
+  init {
+      this.packageName = if (packageName.isNotEmpty()) packageName else reservedIdsPackageNames[internalId]!!
 
-  private Map<Widget, IGuiScreen> widgetTransitions = new LinkedHashMap<>()
-  private boolean                 finishedBuilding  = false
-
-  GuiScreen(IDeviceGuiSnapshot snapshot)
-  {
-    this(snapshot.id, snapshot.packageName)
-    this.guiSnapshot = snapshot
+      assert(this.internalId.isNotEmpty())
+      assert(this.packageName.isNotEmpty())
+      assert((this.internalId !in reservedIds) || (this.packageName == reservedIdsPackageNames[internalId]))
+      assert((this.internalId in reservedIds) || (this.packageName !in reservedIdsPackageNames.values))
   }
 
-  GuiScreen(String id, String packageName = null, ITimeGenerator timeGenerator = null)
-  {
-    this.timeGenerator = timeGenerator
-
-    this.id = id
-    this.packageName = packageName ?: reservedIdsPackageNames[id]
-
-    assert this.id != null
-    assert this.packageName != null
-    assert (this.id in reservedIds).implies(this.packageName == reservedIdsPackageNames[id])
-    assert (!(this.id in reservedIds)).implies(!(this.packageName in reservedIdsPackageNames.values()))
-  }
-
-  @Override
-  IScreenTransitionResult perform(IAndroidDeviceAction action)
-  {
-    assert finishedBuilding
-    internalPerform(action)
-  }
+    override fun perform(action: IAndroidDeviceAction): IScreenTransitionResult {
+        assert(finishedBuilding)
+        return when (action) {
+            is AdbClearPackageAction -> internalPerform(action)
+            is LaunchMainActivityDeviceAction -> internalPerform(action)
+            is ClickGuiAction -> internalPerform(action)
+            else -> throw UnsupportedMultimethodDispatch(action)
+        }
+    }
 
   //region internalPerform multimethod
 
-  private IScreenTransitionResult internalPerform(action)
-  {
-    throw new UnsupportedMultimethodDispatch(action)
+  // This method is used: it is a multimethod.
+  private fun internalPerform(clearPackage: AdbClearPackageAction): IScreenTransitionResult {
+      return if (this.getGuiSnapshot().getPackageName() == clearPackage.packageName)
+          ScreenTransitionResult(home!!, ArrayList())
+      else
+          ScreenTransitionResult(this, ArrayList())
   }
 
-  // This method is used: it is a multimethod.
-  @SuppressWarnings("GroovyUnusedDeclaration")
-  private IScreenTransitionResult internalPerform(AdbClearPackageAction clearPackage)
-  {
-    if (this.guiSnapshot.packageName == clearPackage.packageName)
-      return new ScreenTransitionResult(home, [])
-    else
-      return new ScreenTransitionResult(this, [])
-  }
+  @Suppress("UNUSED_PARAMETER")
+  private fun internalPerform(launch: LaunchMainActivityDeviceAction): IScreenTransitionResult =
+          ScreenTransitionResult(main!!, this.buildMonitorMessages())
 
-  // This method is used: it is a multimethod.
-  @SuppressWarnings("GroovyUnusedDeclaration")
-  private IScreenTransitionResult internalPerform(LaunchMainActivityDeviceAction launch)
-  {
-    return new ScreenTransitionResult(main, this.buildMonitorMessages())
-  }
+  private fun internalPerform(click: ClickGuiAction): IScreenTransitionResult {
+      val guiAction = click.guiAction
 
-  // This method is used: it is a multimethod.
-  @SuppressWarnings("GroovyUnusedDeclaration")
-  private IScreenTransitionResult internalPerform(ClickGuiAction click)
-  {
-    GuiAction guiAction = click.guiAction
+      return if (guiAction.guiActionCommand != null) {
+          when (guiAction.guiActionCommand) {
+              UiautomatorDaemonConstants.guiActionCommand_pressHome -> ScreenTransitionResult(home!!, ArrayList())
+              UiautomatorDaemonConstants.guiActionCommand_turnWifiOn -> {
+                  assert(this == home)
+                  ScreenTransitionResult(this, ArrayList())
+              }
+              UiautomatorDaemonConstants.guiActionCommand_pressBack -> ScreenTransitionResult(this, ArrayList())
+              else -> throw UnexpectedIfElseFallthroughError()
+          }
+      } else {
 
-    IScreenTransitionResult out = null
-    if (guiAction.guiActionCommand != null)
-    {
-      switch (guiAction.guiActionCommand)
-      {
-        case UiautomatorDaemonConstants.guiActionCommand_pressHome:
-          out = new ScreenTransitionResult(home, [])
-          break
-        case UiautomatorDaemonConstants.guiActionCommand_turnWifiOn:
-          assert this.is(home)
-          out = new ScreenTransitionResult(this, [])
-          break
-        case UiautomatorDaemonConstants.guiActionCommand_pressBack:
-          //assert false: "Not yet implemented!"
-          out = new ScreenTransitionResult(this, [])
-          break
-        default:
-          throw new UnexpectedIfElseFallthroughError()
+          val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
+          ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
       }
-    } else
-    {
-
-      Widget widget = click.getSingleMatchingWidget(this.widgetTransitions.keySet())
-      out = new ScreenTransitionResult(widgetTransitions[widget], [])
-
-    }
-    assert out != null
-    return out
   }
 
   //endregion internalPerform multimethod
 
+    override fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen, ignoreDuplicates: Boolean) {
+        assert(!finishedBuilding)
+        assert(this.internalId !in reservedIds)
+        assert(ignoreDuplicates || !(widgetTransitions.keys.any { it.id.contains(widgetId) }))
 
-  @Override
-  void addWidgetTransition(String widgetId, IGuiScreen targetScreen, boolean ignoreDuplicates = false)
-  {
-    assert !finishedBuilding
-    assert !(this.id in reservedIds)
-    assert (!ignoreDuplicates).implies(!(widgetTransitions.keySet()*.id.contains(widgetId)))
+        if (!(ignoreDuplicates && widgetTransitions.keys.any { it.id.contains(widgetId) })) {
+            val widget = if (this.getGuiSnapshot() !is MissingGuiSnapshot)
+                this.getGuiSnapshot().guiState.widgets.single { it.id == widgetId }
+            else
+                WidgetTestHelper.newClickableWidget(mutableMapOf("id" to widgetId), /* widgetGenIndex */ widgetTransitions.keys.size)
 
-    if (!(ignoreDuplicates && widgetTransitions.keySet()*.id.contains(widgetId)))
-    {
-      Widget widget
-      if (this.guiSnapshot != null)
-        widget = this.guiSnapshot.guiState.widgets.findSingle {it.id == widgetId}
-      else
-        widget = WidgetTestHelper.newClickableWidget([id: widgetId], /* widgetGenIndex */ widgetTransitions.keySet().size())
+            widgetTransitions[widget] = targetScreen
+        }
 
-      widgetTransitions[widget] = targetScreen
+        assert(widgetTransitions.keys.any { it.id.contains(widgetId) })
     }
 
-    assert widgetTransitions.keySet()*.id.contains(widgetId)
-    assert widgetTransitions.values().every {it != null}
-  }
-
-  @Override
-  void addHomeScreenReference(IGuiScreen home)
-  {
-    assert !finishedBuilding
-    assert home.id == idHome
+    override fun addHomeScreenReference(home: IGuiScreen) {
+    assert(!finishedBuilding)
+    assert(home.getId() == idHome)
     this.home = home
   }
 
-  @Override
-  void addMainScreenReference(IGuiScreen main)
-  {
-    assert !finishedBuilding
-    assert !(main.id in reservedIds)
-    this.main = main
-  }
+    override fun addMainScreenReference(main: IGuiScreen) {
+        assert(!finishedBuilding)
+        assert(main.getId() !in reservedIds)
+        this.main = main
+    }
 
-  @Override
-  void buildInternals()
-  {
-    assert !this.finishedBuilding
-    assert this.guiSnapshot == null
+    override fun buildInternals() {
+        assert(!this.finishedBuilding)
+        assert(this.getGuiSnapshot() is MissingGuiSnapshot)
 
-    Set<Widget> widgets = widgetTransitions.keySet()
-    if (!(id in reservedIds))
-    {
-      IGuiState guiState
-      if (widgets.empty)
-      {
-        guiState = buildEmptyInternals()
-      } else
-        guiState = GuiStateTestHelper.newGuiStateWithWidgets(
-          widgets.size(), packageName, /* enabled */ true, id, widgets*.id as List<String>)
+        val widgets = widgetTransitions.keys
+        when (internalId) {
+            !in reservedIds -> {
+                val guiState = if (widgets.isEmpty()) {
+                    buildEmptyInternals()
+                } else
+                    GuiStateTestHelper.newGuiStateWithWidgets(
+                            widgets.size, packageName, /* enabled */ true, internalId, widgets.map { it.id })
 
-      this.guiSnapshot = UiautomatorWindowDumpTestHelper.fromGuiState(guiState)
+                this.internalGuiSnapshot = UiautomatorWindowDumpTestHelper.fromGuiState(guiState)
 
-    } else if (id == idHome)
-    {
-      this.guiSnapshot = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump(this.id)
+            }
+            idHome -> this.internalGuiSnapshot = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump(this.internalId)
+            idChrome -> this.internalGuiSnapshot = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump(this.internalId)
+            else -> throw UnexpectedIfElseFallthroughError("Unsupported reserved id: $internalId")
+        }
 
-    } else if (id == idChrome)
-    {
-      this.guiSnapshot = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump(this.id)
+        assert(this.getGuiSnapshot().id.isNotEmpty())
+    }
 
-    } else
-      throw new UnexpectedIfElseFallthroughError("Unsupported reserved id: $id")
+    private fun buildEmptyInternals(): IGuiState {
+        val guiState = GuiStateTestHelper.newGuiStateWithTopLevelNodeOnly(packageName, internalId)
+        // This one widget is necessary, as it is the only xml element from which packageName can be obtained. Without it, following
+        // method would fail: UiautomatorWindowDump.getPackageName when called on
+        // org.droidmate.exploration.device.simulation.GuiScreen.guiSnapshot.
+        assert(guiState.widgets.size == 1)
+        return guiState
+    }
 
-    assert this.guiSnapshot.id != null
+    override fun verify() {
+        assert(!finishedBuilding)
+        this.finishedBuilding = true
 
-  }
+        assert(this.home?.getId() == idHome)
+        assert(this.main?.getId() !in reservedIds)
+        assert(this.getGuiSnapshot().id.isNotEmpty())
+        assert(this.getGuiSnapshot().guiState.id.isNotEmpty())
+        assert((this.internalId in reservedIds) || (this.widgetTransitions.keys.map { it.id }.sorted() == this.getGuiSnapshot().guiState.getActionableWidgets().map { it.id }.sorted()))
+        assert(this.finishedBuilding)
+    }
 
-  GuiState buildEmptyInternals()
-  {
-    def guiState = GuiStateTestHelper.newGuiStateWithTopLevelNodeOnly(packageName, id)
-    // This one widget is necessary, as it is the only xml element from which packageName can be obtained. Without it, following
-    // method would fail: org.droidmate.device.datatypes.UiautomatorWindowDump.getPackageName when called on
-    // org.droidmate.exploration.device.simulation.GuiScreen.guiSnapshot.
-    assert guiState.widgets.size() == 1
-    return guiState
-  }
+    private fun buildMonitorMessages(): List<ITimeFormattedLogcatMessage> {
+        return listOf(
+                TimeFormattedLogcatMessage.from(
+                        this.timeGenerator!!.shiftAndGet(mapOf("milliseconds" to 1500)), // Milliseconds amount based on empirical evidence.
+                        MonitorConstants.loglevel.toUpperCase(),
+                        MonitorConstants.tag_mjt,
+                        "4224", // arbitrary process ID
+                        MonitorConstants.msg_ctor_success),
+                TimeFormattedLogcatMessage.from(
+                        this.timeGenerator.shiftAndGet(mapOf("milliseconds" to 1810)), // Milliseconds amount based on empirical evidence.
+                        MonitorConstants.loglevel.toUpperCase(),
+                        MonitorConstants.tag_mjt,
+                        "4224", // arbitrary process ID
+                        MonitorConstants.msgPrefix_init_success + this.packageName)
+        )
+    }
 
-  @Override
-  void verify()
-  {
-    assert !finishedBuilding
-    this.finishedBuilding = true
+    override fun toString(): String {
+        return MoreObjects.toStringHelper(this)
+                .add("id", internalId)
+                .toString()
+    }
 
-    assert this?.home?.id == idHome
-    assert !(this?.main?.id in reservedIds)
-    assert this.guiSnapshot.id != null
-    assert this.guiSnapshot.guiState.id != null
-    assert (!(this.id in reservedIds)).implies(this.widgetTransitions.keySet()*.id.sort() == this.guiSnapshot.guiState.actionableWidgets*.id.sort())
-    assert widgetTransitions.values().every {it != null}
-    assert this.finishedBuilding
-  }
+    override fun getId(): String = this.internalId
 
-  ArrayList<ITimeFormattedLogcatMessage> buildMonitorMessages()
-  {
-    return [
-      TimeFormattedLogcatMessage.from(
-        this.timeGenerator.shiftAndGet(milliseconds: 1500), // Milliseconds amount based on empirical evidence.
-        MonitorConstants.loglevel.toUpperCase(),
-        MonitorConstants.tag_mjt,
-        "4224", // arbitrary process ID
-        MonitorConstants.msg_ctor_success),
-      TimeFormattedLogcatMessage.from(
-        this.timeGenerator.shiftAndGet(milliseconds: 1810), // Milliseconds amount based on empirical evidence.
-        MonitorConstants.loglevel.toUpperCase(),
-        MonitorConstants.tag_mjt,
-        "4224", // arbitrary process ID
-        MonitorConstants.msgPrefix_init_success + this.packageName)
-    ]
-  }
+    override fun getGuiSnapshot(): IDeviceGuiSnapshot = this.internalGuiSnapshot
 
-
-  @Override
-   String toString()
-  {
-    return MoreObjects.toStringHelper(this)
-      .add("id", id)
-      .toString()
-  }
+    override fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen) {
+        addWidgetTransition(widgetId, targetScreen, false)
+    }
 }

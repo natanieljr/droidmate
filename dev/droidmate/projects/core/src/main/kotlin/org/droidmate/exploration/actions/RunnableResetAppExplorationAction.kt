@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,83 +18,64 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import groovy.util.logging.Slf4j
-import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
+import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newTurnWifiOnDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
-
-import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import static org.droidmate.device.datatypes.AndroidDeviceAction.newTurnWifiOnDeviceAction
-
-@Slf4j
-class RunnableResetAppExplorationAction extends RunnableExplorationAction
-{
-  private static final long serialVersionUID = 1
-
-  private final boolean isFirst
-  private final boolean takeScreenShot
-
-  RunnableResetAppExplorationAction(ResetAppExplorationAction action, LocalDateTime timestamp, Boolean takeScreenShot = false)
-  {
-    super(action, timestamp)
-    this.isFirst = action.isFirst
-    this.takeScreenShot = takeScreenShot
-  }
-
-  @Override
-  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
-    log.debug("1. Clear package ${app?.packageName}.")
-
-    assert app != null
-    assert device != null
-
-    device.clearPackage(app.packageName)
-
-    log.debug("2. Clear logcat.")
-    // This is made to clean up the logcat if previous app exploration failed. If the clean would not be made, it might be
-    // possible some API logs will be read from it, wreaking all kinds of havoc, e.g. having timestamp < than the current
-    // exploration start time.
-    device.clearLogcat()
-
-    log.debug("3. Ensure home screen is displayed.")
-    device.ensureHomeScreenIsDisplayed()
-
-    log.debug("4. Turn wifi on.")
-    device.perform(newTurnWifiOnDeviceAction())
-
-    log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
-    device.getGuiSnapshot()
-
-    log.debug("6. Ensure app is not running.")
-    if (device.appIsRunning(app.packageName)) {
-      log.trace("App is still running. Clearing package again.")
-      device.clearPackage(app.packageName)
+class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, timestamp: LocalDateTime, takeScreenshot: Boolean)
+    : RunnableExplorationAction(action, timestamp, takeScreenshot) {
+    companion object {
+        private const val serialVersionUID: Long = 1
     }
 
-    log.debug("7. Launch app $app.packageName.")
-    device.launchApp(app)
+    private val isFirst: Boolean = (action.isFirst)
 
-    if (isFirst || takeScreenShot) {
-      log.debug("7.1. Take a screenshot.")
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-      Path screenshotPath = device.takeScreenshot(app, timestamp.format(formatter) +"-RESET")
-      if (screenshotPath != null)
-        this.screenshot = screenshotPath.toUri()
+    override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+        log.debug("1. Clear package ${app.packageName}.")
+
+        device.clearPackage(app.packageName)
+
+        log.debug("2. Clear logcat.")
+        // This is made to clean up the logcat if previous app exploration failed. If the clean would not be made, it might be
+        // possible some API logs will be read from it, wreaking all kinds of havoc, e.g. having timestamp < than the current
+        // exploration start time.
+        device.clearLogcat()
+
+        log.debug("3. Ensure home screen is displayed.")
+        device.ensureHomeScreenIsDisplayed()
+
+        log.debug("4. Turn wifi on.")
+        device.perform(newTurnWifiOnDeviceAction())
+
+        log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
+        device.getGuiSnapshot()
+
+        log.debug("6. Ensure app is not running.")
+        if (device.appIsRunning(app.packageName)) {
+            log.trace("App is still running. Clearing package again.")
+            device.clearPackage(app.packageName)
+        }
+
+        log.debug("7. Launch app $app.packageName.")
+        device.launchApp(app)
+
+        if (this.isFirst || this.takeScreenshot) {
+            log.debug("7.firstReset: Take a screenshot of first reset action.")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+            this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
+        }
+
+        log.debug("8. Get GUI snapshot.")
+        this.snapshot = device.getGuiSnapshot()
+
+        log.debug("9. Try to read API logs.")
+        val logsHandler = DeviceLogsHandler(device)
+        logsHandler.readAndClearApiLogs()
+        this.logs = logsHandler.getLogs()
+
     }
-
-    log.debug("8. Get GUI snapshot.")
-    this.snapshot = device.guiSnapshot
-
-    log.debug("9. Try to read API logs.")
-    IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
-    logsHandler.readAndClearApiLogs()
-    this.logs = logsHandler.getLogs()
-
-  }
 }
 

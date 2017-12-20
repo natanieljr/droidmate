@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,63 +19,43 @@
 
 package org.droidmate.apk_inliner
 
-import groovy.util.logging.Slf4j
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
+import java.nio.file.Files
 
 import java.nio.file.Path
 
-import static java.nio.file.Files.isRegularFile
-
-@Slf4j
-
-public class JarsignerWrapper implements IJarsignerWrapper
-{
-
-  private final ISysCmdExecutor sysCmdExecutor
-  private final Path jarsignerPath
-  private final Path debugKeystore
-
-  JarsignerWrapper(ISysCmdExecutor sysCmdExecutor,
-                   Path jarsignerPath,
-                   Path debugKeystore)
-  {
-    this.jarsignerPath = jarsignerPath
-    this.debugKeystore = debugKeystore
-    this.sysCmdExecutor = sysCmdExecutor
-
-    assert isRegularFile(this.jarsignerPath)
-    assert isRegularFile(this.debugKeystore)
-    assert this.sysCmdExecutor != null
-  }
-
-  @Override
-  public ApkPath signWithDebugKey(ApkPath apk) throws DroidmateException
-  {
-    assert apk != null
-
-    String commandDescription = String.format("Executing jarsigner to sign apk %s.", apk.toRealPath().toString())
-
-    try
-    {
-
-      // this command is based on:
-      // http://developer.android.com/tools/publishing/app-signing.html#debugmode
-      // http://developer.android.com/tools/publishing/app-signing.html#signapp
-      sysCmdExecutor.execute(commandDescription, jarsignerPath.toRealPath().toString(),
-        "-sigalg MD5withRSA -digestalg SHA1",
-        "-keystore", debugKeystore.toRealPath().toString(),
-        "-storepass android -keypass android ",
-        apk.toRealPath().toString(),
-        "androiddebugkey")
-
-    } catch (SysCmdExecutorException e)
-    {
-      throw new DroidmateException(e)
+class JarsignerWrapper(private val sysCmdExecutor: ISysCmdExecutor,
+                       private val jarsignerPath: Path,
+                       private val debugKeystore: Path) : IJarsignerWrapper {
+    init {
+        assert(Files.isRegularFile(this.jarsignerPath))
+        assert(Files.isRegularFile(this.debugKeystore))
     }
 
-    assert isRegularFile(apk.path)
-    return apk
-  }
+    @SuppressWarnings("SpellCheckingInspection")
+    @Throws(DroidmateException::class)
+    override fun signWithDebugKey(apk: Path): Path {
+        val commandDescription = "Executing jarsigner to sign apk ${apk.toRealPath()}"
+
+        try {
+
+            // this command is based on:
+            // http://developer.android.com/tools/publishing/app-signing.html#debugmode
+            // http://developer.android.com/tools/publishing/app-signing.html#signapp
+            sysCmdExecutor.execute(commandDescription, jarsignerPath.toRealPath().toString(),
+                    "-sigalg MD5withRSA -digestalg SHA1",
+                    "-keystore", debugKeystore.toRealPath().toString(),
+                    "-storepass android -keypass android ",
+                    apk.toRealPath().toString(),
+                    "androiddebugkey")
+
+        } catch (e: SysCmdExecutorException) {
+            throw DroidmateException(e)
+        }
+
+        assert(Files.isRegularFile(apk))
+        return apk
+    }
 }

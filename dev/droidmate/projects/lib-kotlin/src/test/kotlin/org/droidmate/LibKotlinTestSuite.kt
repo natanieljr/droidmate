@@ -18,17 +18,14 @@
 // web: www.droidmate.org
 package org.droidmate
 
-import org.droidmate.device.datatypes.UiautomatorWindowDumpFunctionsTest
 import org.junit.experimental.categories.Categories
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
 @RunWith(Categories::class)
 @Suite.SuiteClasses(
-  UiautomatorWindowDumpFunctionsTest::class,
   extensions_file_systemKtTest::class,
   TimeDiffWithToleranceTest::class
 )
+
 class LibKotlinTestSuite
-{
-}

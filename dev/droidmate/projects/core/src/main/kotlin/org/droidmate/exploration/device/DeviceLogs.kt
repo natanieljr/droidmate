@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,53 +19,18 @@
 package org.droidmate.exploration.device
 
 import com.google.common.base.MoreObjects
-import groovy.util.logging.Slf4j
 import org.droidmate.apis.IApiLogcatMessage
+import java.io.Serializable
 
-@Slf4j
-class DeviceLogs implements IDeviceLogs, Serializable
-{
-  private static final long serialVersionUID = 1
+class DeviceLogs @JvmOverloads constructor(override var apiLogs: MutableList<IApiLogcatMessage> = ArrayList()) : IDeviceLogs, Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  List<IApiLogcatMessage> apiLogs = null
-
-  DeviceLogs(List<IApiLogcatMessage> apiLogs)
-  {
-    this.apiLogs = apiLogs
-  }
-  
-/**
-   * For safe variant, use {@link #getApiLogsOrEmpty}
-   * @return
-   */
-  @Override
-  List<IApiLogcatMessage> getApiLogsOrNull()
-  {
-    return apiLogs
-  }
-
-  @Override
-  List<IApiLogcatMessage> getApiLogsOrEmpty()
-  {
-    if (!readAnyApiLogsSuccessfully)
-      return []
-
-    return apiLogs
-  }
-
-  @Override
-  boolean getReadAnyApiLogsSuccessfully()
-  {
-    return apiLogs != null
-  }
-
-  @Override
-  public String toString()
-  {
-    return MoreObjects.toStringHelper(this)
-      .add("apiLogs#", this.readAnyApiLogsSuccessfully ? apiLogs.size() : "N/A")
-      .toString()
-  }
-
+    override fun toString(): String {
+        return MoreObjects.toStringHelper(this)
+                .add("apiLogs#", apiLogs.size)
+                .toString()
+    }
 }
 

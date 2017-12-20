@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,19 +22,19 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.exploration.device.IDeviceLogs
 
-import java.nio.file.Path
+import java.io.Serializable
+import java.net.URI
 
-interface IExplorationActionRunResult extends Serializable
-{
-  boolean getSuccessful()
+interface IExplorationActionRunResult : Serializable {
+    val successful: Boolean
 
-  String getExploredAppPackageName()
+    val exploredAppPackageName: String
 
-  IDeviceLogs getDeviceLogs()
+    val deviceLogs: IDeviceLogs
 
-  IDeviceGuiSnapshot getGuiSnapshot()
+    val guiSnapshot: IDeviceGuiSnapshot
 
-  DeviceException getException()
+    val exception: DeviceException
 
-  URI getScreenshot()
+    val screenshot: URI
 }

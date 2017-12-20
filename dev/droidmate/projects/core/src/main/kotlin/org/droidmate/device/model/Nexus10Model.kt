@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.device.model
 
-import java.awt.*
+import java.awt.Dimension
 
 /**
  * Describes {@link IDeviceModel} of Google Nexus 10.
@@ -26,13 +26,8 @@ import java.awt.*
  * @author Nataniel Borges Jr. (inception)
  * @author Konrad Jamrozik (refactoring)
  */
-class Nexus10Model implements IDeviceModel
-{
-  final String androidLauncherPackageName = "com.android.launcher"
-  
-  @Override
-  Dimension getDeviceDisplayDimensionsForTesting()
-  {
-    return new Dimension(1600, 2485)
-  }
+class Nexus10Model : IDeviceModel {
+    override fun getAndroidLauncherPackageName(): String = "com.android.launcher"
+
+    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1600, 2485)
 }

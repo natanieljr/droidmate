@@ -23,8 +23,8 @@ import org.droidmate.misc.ITimeProvider
 
 import java.time.LocalDateTime
 
-interface ITimeGenerator extends ITimeProvider
+interface ITimeGenerator : ITimeProvider
 {
-  LocalDateTime shiftAndGet(Map<String, Integer> timeShift)
+  fun shiftAndGet(timeShift: Map<String, Int>): LocalDateTime
 }
 

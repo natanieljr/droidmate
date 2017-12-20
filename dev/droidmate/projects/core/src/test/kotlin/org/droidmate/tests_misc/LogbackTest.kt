@@ -19,141 +19,120 @@
 
 package org.droidmate.tests_misc
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.LoggerContext
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.Appender
-import ch.qos.logback.core.FileAppender
-import ch.qos.logback.core.OutputStreamAppender
-import com.google.common.base.Stopwatch
-import groovy.transform.TypeChecked
-import groovy.transform.TypeCheckingMode
-import groovy.util.logging.Slf4j
-import org.droidmate.logging.LazyFileAppender
-import org.droidmate.logging.LogbackAppenders
-import org.droidmate.logging.LogbackConstants
-import org.droidmate.test_tools.DroidmateGroovyTestCase
+import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
-import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
-import org.slf4j.LoggerFactory
 
-import java.util.concurrent.TimeUnit
-
-@TypeChecked
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(JUnit4)
-class LogbackTest extends DroidmateGroovyTestCase
+@RunWith(JUnit4::class)
+class LogbackTest : DroidmateTestCase()
 {
-  public static final fileAppenderName = "FileAppenderName"
+  /*companion object {
+      @JvmStatic
+      val fileAppenderName = "FileAppenderName"
 
-  @Test
-  void t1_rootLoggerHasStdAppenders()
-  {
-    Logger log = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
-    List<Appender<ILoggingEvent>> appenders = log.iteratorForAppenders().toList()
+      @JvmStatic
+      private fun createLoggerWithFileAppender(loggerName: String, fileName: String, lazyFileAppender: Boolean): Logger {
 
-    assert LogbackAppenders.appender_stdout in appenders*.name
+          val lc = LoggerFactory.getILoggerFactory() as LoggerContext
+          val ple = createAndSetupPatternLayoutEncoder(lc)
+          val fileAppender = createAndSetupFileAppender(fileName, ple, lc, lazyFileAppender)
+
+          val logger = LoggerFactory.getLogger(loggerName) as Logger
+          logger.addAppender(fileAppender)
+          logger.level = Level.DEBUG
+          logger.isAdditive = false /* set to true if root should log too */
+
+          return logger
+      }
+
+      @JvmStatic
+      private fun createAndSetupPatternLayoutEncoder(lc: LoggerContext): PatternLayoutEncoder {
+          val ple = PatternLayoutEncoder()
+
+          ple.pattern = "%date %level [%thread] %logger{10} [%file:%line] %msg%n"
+          ple.context = lc
+          ple.start()
+          return ple
+      }
+
+      @JvmStatic
+      private fun createAndSetupFileAppender(fileName: String, ple: PatternLayoutEncoder,
+                                             lc: LoggerContext, lazy: Boolean): OutputStreamAppender<ILoggingEvent>
+      {
+          val fileAppender : OutputStreamAppender<ILoggingEvent> = if (lazy)
+              LazyFileAppender<ILoggingEvent>()
+          else
+              FileAppender<ILoggingEvent>()
+
+          fileAppender.name = fileAppenderName
+          fileAppender.setFile("${LogbackConstants.LOGS_DIR_PATH}${File.separator}" + fileName)
+          fileAppender.setEncoder(ple)
+          fileAppender.context = lc
+          if (lazy)
+              fileAppender.setLazy(true)
+          fileAppender.start()
+
+          return fileAppender
+      }
+
+      @JvmStatic
+      fun measureTime(name: String, iterations: Int, computation: () -> Any) {
+          val stopwatch = Stopwatch.createStarted()
+
+          for (i in 1..iterations)
+              computation()
+
+          stopwatch.stop()
+
+          println("Measured seconds for $name: " + stopwatch.elapsed(TimeUnit.MILLISECONDS) / 1000)
+      }
   }
 
   @Test
-  void t2_performanceTest()
+  fun t1_rootLoggerHasStdAppenders() {
+      val log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+      val appenders = log.iteratorForAppenders().asSequence().toList()
+
+      assert(LogbackAppenders.appender_stdout in appenders.map { it.name })
+  }
+
+  @Test
+  fun t2_performanceTest()
   {
-    Logger logger = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+    val logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
 
-    def entry = "t"
+    val entry = "t"
 
-    measureTime("plain log", 1000) {logger.debug("The new entry is "+entry+".")}
+    measureTime("plain log", 1000) {logger.debug("The new entry is $entry.")}
     measureTime("fast log", 1000) {logger.debug("The new entry is {}.", entry)}
-    measureTime("plain groovy log", 1000) {LoggedClass.useLog("The new entry is "+entry+".")}
+    measureTime("plain groovy log", 1000) {LoggedClass.useLog("The new entry is $entry.")}
     measureTime("fast groovy log", 1000) {LoggedClass.useLog("The new entry is {}.", entry)}
   }
 
   @Test
-  void t3_creatingLoggerAndAppender()
+  fun t3_creatingLoggerAndAppender()
   {
-    Logger foo = createLoggerWithFileAppender("foo", "foo.log", false)
-    Logger bar = createLoggerWithFileAppender("bar", "bar.log", false)
+    val foo = createLoggerWithFileAppender("foo", "foo.log", false)
+    val bar = createLoggerWithFileAppender("bar", "bar.log", false)
     foo.info("test")
     bar.info("bar")
   }
 
   @SuppressWarnings("GroovyAssignabilityCheck")
-  @TypeChecked(TypeCheckingMode.SKIP)
   @Test
-  void t4_lazyFileAppenderCreatesFileLazily()
-  {
-    def logger = createLoggerWithFileAppender("quxLogger", "qux.log", true)
-    def fileAppender = logger.getAppender(fileAppenderName)
+  fun t4_lazyFileAppenderCreatesFileLazily() {
+      val logger = createLoggerWithFileAppender ("quxLogger", "qux.log", true)
+      val fileAppender = logger.getAppender (fileAppenderName)
 
-    assert !(new File(fileAppender.file).exists())
-    logger.info("something")
-    assert new File(fileAppender.file).exists()
+      assert(!(File(fileAppender..file).exists()))
+      logger.info("something")
+      assert new File(fileAppender.file).exists()
 
   }
 
-  private static Logger createLoggerWithFileAppender(String loggerName, String fileName, boolean lazyFileAppender) {
-
-    def lc = (LoggerContext) LoggerFactory.getILoggerFactory()
-    def ple = createAndSetupPatternLayoutEncoder(lc)
-    def fileAppender = createAndSetupFileAppender(fileName, ple, lc, lazyFileAppender)
-
-    Logger logger = (Logger) LoggerFactory.getLogger(loggerName)
-    logger.addAppender(fileAppender)
-    logger.setLevel(Level.DEBUG)
-    logger.setAdditive(false) /* set to true if root should log too */
-
-    return logger
-  }
-
-  private static PatternLayoutEncoder createAndSetupPatternLayoutEncoder(LoggerContext lc)
-  {
-    PatternLayoutEncoder ple = new PatternLayoutEncoder()
-
-    ple.setPattern("%date %level [%thread] %logger{10} [%file:%line] %msg%n")
-    ple.setContext(lc)
-    ple.start()
-    return ple
-  }
-
-
-  @TypeChecked(TypeCheckingMode.SKIP)
-  private static OutputStreamAppender<ILoggingEvent> createAndSetupFileAppender(
-    String fileName, PatternLayoutEncoder ple, LoggerContext lc, boolean lazy)
-  {
-    OutputStreamAppender<ILoggingEvent> fileAppender = lazy ?
-      new LazyFileAppender<ILoggingEvent>() : new FileAppender<ILoggingEvent>()
-
-
-    fileAppender.setName(fileAppenderName)
-    fileAppender.setFile("${LogbackConstants.LOGS_DIR_PATH}${File.separator}" + fileName)
-    fileAppender.setEncoder(ple)
-    fileAppender.setContext(lc)
-    if (lazy)
-      fileAppender.setLazy(true)
-    fileAppender.start()
-
-    return fileAppender
-  }
-
-  static void measureTime(String name, int iterations, Closure computation)
-  {
-    def stopwatch = Stopwatch.createStarted()
-
-    for (i in 1..iterations)
-      computation()
-
-    stopwatch.stop()
-
-    println "Measured seconds for $name: " + stopwatch.elapsed(TimeUnit.MILLISECONDS)/1000
-  }
-
-  @TypeChecked(TypeCheckingMode.SKIP)
-  @Slf4j
   static class LoggedClass
   {
     static useLog(String msg)
@@ -165,7 +144,7 @@ class LogbackTest extends DroidmateGroovyTestCase
     {
       log.debug(format, args)
     }
-  }
+  }*/
 
 
 }

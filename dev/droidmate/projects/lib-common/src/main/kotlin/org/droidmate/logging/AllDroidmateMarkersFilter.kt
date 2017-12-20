@@ -22,7 +22,6 @@ package org.droidmate.logging
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.filter.AbstractMatcherFilter
 import ch.qos.logback.core.spi.FilterReply
-import org.slf4j.Marker
 
 /**
  * <p>
@@ -33,19 +32,20 @@ import org.slf4j.Marker
  *
  * </p>
  */
-public class AllDroidmateMarkersFilter extends AbstractMatcherFilter<ILoggingEvent>
-{
+class AllDroidmateMarkersFilter : AbstractMatcherFilter<ILoggingEvent>() {
+    override fun decide(event: ILoggingEvent?): FilterReply {
+        if (event == null)
+            return onMismatch
 
-  @Override
-  public FilterReply decide(ILoggingEvent event)
-  {
-    Marker marker = event.getMarker()
-    if (!isStarted())
-      return FilterReply.NEUTRAL
-    if (marker == null)
-      return onMismatch
-    if (Markers.getAllMarkers().any { it.contains(marker) })
-      return onMatch
-    return onMismatch
-  }
+        val marker = event.marker
+
+        return if (!isStarted)
+            FilterReply.NEUTRAL
+        else if (marker == null)
+            onMismatch
+        else if (Markers.getAllMarkers().any { it.contains(marker) })
+            onMatch
+        else
+            onMismatch
+    }
 }

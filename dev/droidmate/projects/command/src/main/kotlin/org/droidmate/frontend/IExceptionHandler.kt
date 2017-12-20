@@ -20,5 +20,5 @@ package org.droidmate.frontend
 
 interface IExceptionHandler
 {
-  int handle(Throwable e)
+    fun handle(e: Throwable): Int
 }

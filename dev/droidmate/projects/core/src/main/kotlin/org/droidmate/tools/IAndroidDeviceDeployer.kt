@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@
 package org.droidmate.tools
 
 import org.droidmate.android_sdk.ApkExplorationException
-import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.ExplorationException
+import org.droidmate.exploration.device.IRobustDevice
 
 /**
  * @see AndroidDeviceDeployer
  */
-interface IAndroidDeviceDeployer
-{
-  List<ExplorationException> withSetupDevice(String deviceSerialNumber, int deviceIndex, Closure<List<ApkExplorationException>> closure) throws DeviceException
+interface IAndroidDeviceDeployer {
+    //throws DeviceException
+    fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> List<ApkExplorationException>): List<ExplorationException>
 }

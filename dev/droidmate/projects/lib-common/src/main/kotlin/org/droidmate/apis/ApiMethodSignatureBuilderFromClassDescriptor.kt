@@ -18,55 +18,26 @@
 // web: www.droidmate.org
 package org.droidmate.apis
 
-import static ClassFileFormat.convertJNItypeNotationToSourceCode
-import static ClassFileFormat.matchClassFieldDescriptors
-
-class ApiMethodSignatureBuilderFromClassDescriptor implements IApiMethodSignatureBuilder
-{
-
-  /**
-   * Example:
-   * <pre>Landroid/content/ContentProviderClient;->update(Landroid/net/Uri;ZLandroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object; static</pre>
-   */
-  private final String objectClass
-  private final String returnClass
-  private final String methodName
-  private final List<String> paramClasses
-  private final boolean isStatic
-  private final String hook
-  private final String name
-  private final String logId
-  private final String invokeCode
-  private final String defaultValue
-  private final String exceptionType
-
-  ApiMethodSignatureBuilderFromClassDescriptor(String objectClass, String returnClass, String methodName,
-                                               List<String> paramClasses, boolean isStatic, String hook,
-                                               String name, String logId, String invokeCode, String defaultValue,
-                                               String exceptionType)
-  {
-    this.objectClass = objectClass
-    this.returnClass = returnClass
-    this.methodName = methodName
-    this.paramClasses = paramClasses
-    this.isStatic = isStatic
-    this.hook = hook
-    this.name = name
-    this.logId = logId
-    this.invokeCode = invokeCode
-    this.defaultValue = defaultValue
-    this.exceptionType = exceptionType
-  }
-
-  @Override
-  ApiMethodSignature build()
-  {
-
-    def out = new ApiMethodSignature(this.objectClass, this.returnClass, this.methodName, this.paramClasses, isStatic,
-                                     this.hook, this.name, this.logId, this.invokeCode, this.defaultValue,
-                                     this.exceptionType)
-    out.assertValid()
-    return out
-  }
-
-}
+/**
+ * Example:
+ * <pre>Landroid/content/ContentProviderClient;->update(Landroid/net/Uri;ZLandroid/content/ContentValues;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object; static</pre>
+ */
+/*class ApiMethodSignatureBuilderFromClassDescriptor private constructor(private val objectClass: String,
+                                                                       private val returnClass: String,
+                                                               private val methodName: String,
+                                                               private val paramClasses: List<String>,
+                                                               private val isStatic: Boolean,
+                                                               private val hook: String,
+                                                               private val name: String,
+                                                               private val logId: String,
+                                                               private val invokeCode: String,
+                                                               private val defaultValue: String,
+                                                               private val exceptionType: String): IApiMethodSignatureBuilder {
+    override fun build(): ApiMethodSignature {
+        val out = ApiMethodSignature(this.objectClass, this.returnClass, this.methodName, this.paramClasses, isStatic,
+                this.hook, this.name, this.logId, this.invokeCode, this.defaultValue,
+                this.exceptionType)
+        out.assertValid()
+        return out
+    }
+}*/

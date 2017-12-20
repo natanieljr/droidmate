@@ -18,19 +18,17 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import groovy.io.FileType
-import groovy.util.logging.Slf4j
+import com.konradjamrozik.isRegularFile
 import org.droidmate.android_sdk.*
 import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
+import org.droidmate.deleteDir
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.strategy.ExplorationStrategy
-import org.droidmate.exploration.strategy.IExplorationStrategyProvider
+import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.logging.Markers
-import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.misc.TimeProvider
@@ -38,175 +36,146 @@ import org.droidmate.report.ExplorationOutput2Report
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
+import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
-import java.nio.file.Path
 
-@Slf4j
-class ExploreCommand extends DroidmateCommand
-{
+class ExploreCommand constructor(private val apksProvider: IApksProvider,
+                                 private val deviceDeployer: IAndroidDeviceDeployer,
+                                 private val apkDeployer: IApkDeployer,
+                                 private val exploration: IExploration,
+                                 private val storage2: IStorage2) : DroidmateCommand() {
+    companion object {
+        private val log = LoggerFactory.getLogger(ExploreCommand::class.java)
 
-  private final IApksProvider                       apksProvider
-  private final IAndroidDeviceDeployer              deviceDeployer
-  private final IApkDeployer                        apkDeployer
-  private final IExploration                        exploration
-  private final IStorage2                           storage2
+        fun build(cfg: Configuration,
+                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategy.build(cfg) },
+                  timeProvider: ITimeProvider = TimeProvider(),
+                  deviceTools: IDeviceTools = DeviceTools(cfg)): ExploreCommand {
+            val apksProvider = ApksProvider(deviceTools.aapt)
 
-  ExploreCommand(
-    IApksProvider apksProvider, 
-    IAndroidDeviceDeployer deviceDeployer, 
-    IApkDeployer apkDeployer, 
-    IExploration exploration, 
-    IStorage2 storage2)
-  {
-    this.apksProvider = apksProvider
-    this.deviceDeployer = deviceDeployer
-    this.apkDeployer = apkDeployer
-    this.exploration = exploration
-    this.storage2 = storage2
-  }
-
-   static ExploreCommand build(Configuration cfg,
-                                     IExplorationStrategyProvider strategyProvider = {ExplorationStrategy.build(cfg)},
-                                     ITimeProvider timeProvider = new TimeProvider(),
-                                     IDeviceTools deviceTools = new DeviceTools(cfg))
-  {
-    IApksProvider apksProvider = new ApksProvider(deviceTools.aapt)
-
-    def storage2 = new Storage2(cfg.droidmateOutputDirPath)
-    IExploration exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-    return new ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
-  }
-
-  @Override
-  void execute(Configuration cfg) throws ThrowablesCollection
-  {
-    cleanOutputDir(cfg)
-
-    List<Apk> apks = this.apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks)
-    if (!validateApks(apks, cfg.runOnNotInlined)) return
-
-    List<ExplorationException> explorationExceptions = execute(cfg, apks)
-    if (!explorationExceptions.empty)
-      throw new ThrowablesCollection(explorationExceptions)
-  }
-
-  private boolean validateApks(List<Apk> apks, boolean runOnNotInlined)
-  {
-    if (apks.size() == 0)
-    {
-      log.warn("No input apks found. Terminating.")
-      return false
-    }
-    if (apks.any {!it.inlined})
-    {
-      if (runOnNotInlined)
-      {
-        log.info("Not inlined input apks have been detected, but DroidMate was instructed to run anyway. Continuing with execution.")
-      } else
-      {
-        log.warn("At least one input apk is not inlined. DroidMate will not be able to monitor any calls to Android SDK methods done by such apps.")
-        log.warn("If you want to inline apks, run DroidMate with $Configuration.pn_inline")
-        log.warn("If you want to run DroidMate on non-inlined apks, run it with $Configuration.pn_runOnNotInlined")
-        log.warn("DroidMate will now abort due to the not-inlined apk.")
-        return false
-      }
-    }
-    return true
-  }
-
-  private void cleanOutputDir(Configuration cfg)
-  {
-    Path outputDir = cfg.droidmateOutputDirPath
-    
-    if (!Files.isDirectory(outputDir))
-      return
-    
-    [cfg.screenshotsOutputSubdir, cfg.reportOutputSubdir].each {
-
-      Path dirToDelete = outputDir.resolve(it)
-      if (Files.isDirectory(dirToDelete))
-        dirToDelete.deleteDir()
+            val storage2 = Storage2(cfg.droidmateOutputDirPath)
+            val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
+            return ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+        }
     }
 
-    outputDir.eachFile(FileType.FILES) {Path p ->
-      Files.delete(p)
+    override fun execute(cfg: Configuration) {
+        cleanOutputDir(cfg)
+
+        val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks)
+        if (!validateApks(apks, cfg.runOnNotInlined)) return
+
+        val explorationExceptions = execute(cfg, apks)
+        if (!explorationExceptions.isEmpty())
+            throw ThrowablesCollection(explorationExceptions)
     }
 
-    outputDir.eachFile {Path p -> assert Files.isDirectory(p)}
-  }
+    private fun validateApks(apks: List<Apk>, runOnNotInlined: Boolean): Boolean {
+        if (apks.isEmpty()) {
+            log.warn("No input apks found. Terminating.")
+            return false
+        }
 
-  List<ExplorationException> execute(Configuration cfg, List<Apk> apks)
-  {
-    ExplorationOutput2 out = new ExplorationOutput2()
-
-    List<ExplorationException> explorationExceptions = []
-    try
-    {
-      explorationExceptions += deployExploreSerialize(cfg.deviceSerialNumber, cfg.deviceIndex, apks, out)
-    }
-    catch (Throwable deployExploreSerializeThrowable)
-    {
-      log.error("!!! Caught ${deployExploreSerializeThrowable.class.simpleName} " +
-        "in execute(configuration, apks)->deployExploreSerialize(${cfg.deviceIndex}, apks, out). " +
-        "This means ${ExplorationException.simpleName}s have been lost, if any! " +
-        "Skipping summary output analysis persisting. " +
-        "Rethrowing.")
-      throw deployExploreSerializeThrowable
+        if (apks.any { !it.inlined }) {
+            if (runOnNotInlined) {
+                log.info("Not inlined input apks have been detected, but DroidMate was instructed to run anyway. Continuing with execution.")
+            } else {
+                log.warn("At least one input apk is not inlined. DroidMate will not be able to monitor any calls to Android SDK methods done by such apps.")
+                log.warn("If you want to inline apks, run DroidMate with ${Configuration.pn_inline}")
+                log.warn("If you want to run DroidMate on non-inlined apks, run it with ${Configuration.pn_runOnNotInlined}")
+                log.warn("DroidMate will now abort due to the not-inlined apk.")
+                return false
+            }
+        }
+        return true
     }
 
-    new ExplorationOutput2Report(out, cfg.droidmateOutputReportDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
-    
-    return explorationExceptions
-  }
+    private fun cleanOutputDir(cfg: Configuration) {
+        val outputDir = cfg.droidmateOutputDirPath
 
-  private List<ExplorationException> deployExploreSerialize(String deviceSerialNumber, int deviceIndex, List<Apk> apks, ExplorationOutput2 out)
-  {
-    this.deviceDeployer.withSetupDevice(deviceSerialNumber, deviceIndex) {IRobustDevice device ->
+        if (!Files.isDirectory(outputDir))
+            return
 
-      List<ApkExplorationException> allApksExplorationExceptions = []
+        arrayListOf(cfg.screenshotsOutputSubDir, cfg.reportOutputSubDir).forEach {
 
-      boolean encounteredApkExplorationsStoppingException = false
+            val dirToDelete = outputDir.resolve(it)
+            if (Files.isDirectory(dirToDelete))
+                dirToDelete.deleteDir()
+        }
 
-      apks.eachWithIndex {Apk apk, int i ->
+        Files.walk(outputDir).filter { it.isRegularFile }.forEach { Files.delete(it) }
 
-        if (!encounteredApkExplorationsStoppingException)
-        {
-          log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size()} apks: ${apk.fileName}")
-          
-          allApksExplorationExceptions +=
-            this.apkDeployer.withDeployedApk(device, apk) {IApk deployedApk ->
-              tryExploreOnDeviceAndSerialize(deployedApk, device, out)
+        Files.walk(outputDir).forEach { assert(Files.isDirectory(it)) }
+    }
+
+    private fun execute(cfg: Configuration, apks: List<Apk>): List<ExplorationException> {
+        val out = ExplorationOutput2()
+
+        val explorationExceptions: MutableList<ExplorationException> = ArrayList()
+
+        try {
+            explorationExceptions += deployExploreSerialize(cfg.deviceSerialNumber, cfg.deviceIndex, apks, out)
+        } catch (deployExploreSerializeThrowable: Throwable) {
+            log.error("!!! Caught ${deployExploreSerializeThrowable.javaClass.simpleName} " +
+                    "in execute(configuration, apks)->deployExploreSerialize(${cfg.deviceIndex}, apks, out). " +
+                    "This means ${ExplorationException::class.java.simpleName}s have been lost, if any! " +
+                    "Skipping summary output analysis persisting. " +
+                    "Rethrowing.")
+            throw deployExploreSerializeThrowable
+        }
+
+        ExplorationOutput2Report(out, cfg.droidmateOutputReportDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
+
+        return explorationExceptions
+    }
+
+    private fun deployExploreSerialize(deviceSerialNumber: String,
+                                       deviceIndex: Int,
+                                       apks: List<Apk>,
+                                       out: ExplorationOutput2): List<ExplorationException> {
+        return this.deviceDeployer.withSetupDevice(deviceSerialNumber, deviceIndex) { device ->
+
+            val allApksExplorationExceptions: MutableList<ApkExplorationException> = ArrayList()
+
+            var encounteredApkExplorationsStoppingException = false
+
+            apks.forEachIndexed { i, apk ->
+                if (!encounteredApkExplorationsStoppingException) {
+                    log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
+
+                    allApksExplorationExceptions +=
+                            this.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
+                                tryExploreOnDeviceAndSerialize(deployedApk, device, out)
+                            }
+
+                    if (allApksExplorationExceptions.any { it.shouldStopFurtherApkExplorations() }) {
+                        log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
+                        encounteredApkExplorationsStoppingException = true
+                    }
+
+                    // Just preventative measures for ensuring healthiness of the device connection.
+                    //          device.reconnectAdb()
+                    //          device.restartUiaDaemon(false)
+                }
             }
 
-          if (allApksExplorationExceptions.any {it.shouldStopFurtherApkExplorations()})
-          {
-            log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
-            encounteredApkExplorationsStoppingException = true
-          }
-
-          // Just preventative measures for ensuring healthiness of the device connection.
-//          device.reconnectAdb()
-//          device.restartUiaDaemon(false)
+            allApksExplorationExceptions
         }
-      }
-      return allApksExplorationExceptions
-    }
-  }
-
-  private void tryExploreOnDeviceAndSerialize(
-    IApk deployedApk, IRobustDevice device, ExplorationOutput2 out) throws DeviceException
-  {
-    Failable<IApkExplorationOutput2, DeviceException> failableApkOut2 = this.exploration.run(deployedApk, device)
-
-    if (failableApkOut2.result != null)
-    {
-      failableApkOut2.result.serialize(this.storage2)
-      out << failableApkOut2.result
     }
 
-    if (failableApkOut2.exception != null)
-      throw failableApkOut2.exception
-  }
+    @Throws(DeviceException::class)
+    private fun tryExploreOnDeviceAndSerialize(
+            deployedApk: IApk, device: IRobustDevice, out: ExplorationOutput2) {
+        val fallibleApkOut2 = this.exploration.run(deployedApk, device)
 
+        if (fallibleApkOut2.result != null) {
+            fallibleApkOut2.result!!.serialize(this.storage2)
+            out.add(fallibleApkOut2.result!!)
+        }
+
+        if (fallibleApkOut2.exception != null)
+            throw fallibleApkOut2.exception!!
+    }
 }
+

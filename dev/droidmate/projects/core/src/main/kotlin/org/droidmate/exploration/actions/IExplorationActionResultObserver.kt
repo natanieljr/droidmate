@@ -30,5 +30,5 @@ interface IExplorationActionResultObserver {
      * @param result Executed action result
      * @return If observer should be unassociated with the action
      */
-    boolean notifyActionExecuted(IExplorationActionRunResult result)
+    fun notifyActionExecuted(result: IExplorationActionRunResult): Boolean
 }

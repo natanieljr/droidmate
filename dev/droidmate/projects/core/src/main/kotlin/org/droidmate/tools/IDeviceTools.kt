@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,18 +21,10 @@ package org.droidmate.tools
 import org.droidmate.android_sdk.IAaptWrapper
 import org.droidmate.android_sdk.IAdbWrapper
 
-interface IDeviceTools
-{
-
-  IAaptWrapper getAapt()
-  
-  IAdbWrapper getAdb()
-
-  IAndroidDeviceDeployer getDeviceDeployer()
-
-  IApkDeployer getApkDeployer()
-  
-  IAndroidDeviceFactory getDeviceFactory()
-  
-
+interface IDeviceTools {
+    val aapt: IAaptWrapper
+    val adb: IAdbWrapper
+    val deviceDeployer: IAndroidDeviceDeployer
+    val apkDeployer: IApkDeployer
+    val deviceFactory: IAndroidDeviceFactory
 }

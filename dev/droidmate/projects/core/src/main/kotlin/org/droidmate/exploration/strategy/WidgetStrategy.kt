@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,315 +19,246 @@
 
 package org.droidmate.exploration.strategy
 
-import groovy.transform.Canonical
-import groovy.transform.TypeChecked
-import groovy.util.logging.Slf4j
 import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiState
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.PressBackExplorationAction
+import org.droidmate.exploration.actions.ExplorationAction.Companion.newIgnoreActionForTerminationWidgetExplorationAction
+import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.logging.Markers
+import org.slf4j.LoggerFactory
+import java.util.*
+import kotlin.collections.ArrayList
 
-import static org.droidmate.exploration.actions.ExplorationAction.newIgnoreActionForTerminationWidgetExplorationAction
-import static org.droidmate.exploration.actions.ExplorationAction.newWidgetExplorationAction
-import static org.droidmate.exploration.actions.ExplorationAction.newPressBackExplorationAction
+class WidgetStrategy constructor(randomSeed: Long,
+                                 private val alwaysClickFirstWidget: Boolean,
+                                 private var widgetIndexes: List<Int>) : IWidgetStrategy {
+    companion object {
+        private val log = LoggerFactory.getLogger(WidgetStrategy::class.java)
+    }
 
-@Slf4j
-@TypeChecked
-class WidgetStrategy implements IWidgetStrategy
-{
-  private final Random        random
-  private final Boolean       alwaysClickFirstWidget
-  private       List<Integer> widgetIndexes
+    private val random = Random(randomSeed)
 
-  private List<WidgetContext> widgetContexts       = []
-  private WidgetContext       currentWidgetContext = null
-  private WidgetInfo          lastWidgetInfo       = null
-  private Boolean             repeatLastAction     = false
-	private ExplorationAction   lastExplorationAction = null
 
-  WidgetStrategy(
-    long randomSeed,
-    boolean alwaysClickFirstWidget,
-    List<Integer> widgetIndexes)
-  {
-    this.random = new Random(randomSeed)
-    this.alwaysClickFirstWidget = alwaysClickFirstWidget
-    this.widgetIndexes = widgetIndexes
+    private val widgetContexts: MutableList<WidgetContext> = ArrayList()
+    private var currentWidgetContext: WidgetContext? = null
+    private var lastWidgetInfo: WidgetInfo? = null
+    private var repeatLastAction = false
 
-    assert !(alwaysClickFirstWidget && !widgetIndexes.empty)
-  }
+    init {
+        assert(!(alwaysClickFirstWidget && !widgetIndexes.isEmpty()))
+    }
 
-  private boolean firstCallToUpdateState        = true
-  private boolean alreadyUpdatedAfterLastDecide = false
+    private var firstCallToUpdateState = true
+    private var alreadyUpdatedAfterLastDecide = false
 
-  @Override
-  boolean updateState(IGuiState guiState, String exploredAppPackageName)
-  {
-			
-    currentWidgetContext = updateWidgetContexts(guiState)
+    override fun updateState(guiState: IGuiState, exploredAppPackageName: String): Boolean {
+        currentWidgetContext = updateWidgetContexts(guiState)
 
-    if (!guiState.belongsToApp(exploredAppPackageName))
-    {
-      if (firstCallToUpdateState || alreadyUpdatedAfterLastDecide || lastExplorationAction instanceof PressBackExplorationAction )
-      {
-        // Do not blacklist anything, as either exploration just started or the current GUI state was not triggered by this
-        // widget strategy.
-      } else
-      {
-        if (lastWidgetInfo == null)
-          assert guiState.isRequestRuntimePermissionDialogBox()
-        else
-        {
-          // TODO Nataniel: Review
-          //assert !lastWidgetInfo.blackListed
-          lastWidgetInfo.blackListed = true
-          log.debug("Blacklisted $lastWidgetInfo")
+        if (!guiState.belongsToApp(exploredAppPackageName)) {
+            if (firstCallToUpdateState || alreadyUpdatedAfterLastDecide) {
+                // Do not blacklist anything, as either exploration just started or the current GUI state was not triggered by this
+                // widget strategy.
+            } else {
+                if (lastWidgetInfo == null)
+                    assert(guiState.isRequestRuntimePermissionDialogBox)
+                else {
+                    // TODO Nataniel: Review
+                    //assert !lastWidgetInfo.blackListed
+                    lastWidgetInfo!!.blackListed = true
+                    log.debug("Blacklisted $lastWidgetInfo")
+                }
+            }
         }
-      }
+
+        if (firstCallToUpdateState)
+            firstCallToUpdateState = false
+
+        if (!alreadyUpdatedAfterLastDecide)
+            alreadyUpdatedAfterLastDecide = true
+
+        return currentWidgetContext!!.all { it.blackListed }
     }
 
-    if (firstCallToUpdateState)
-      firstCallToUpdateState = false
+    override fun decide(guiState: IGuiState): ExplorationAction {
+        alreadyUpdatedAfterLastDecide = false
 
-    if (!alreadyUpdatedAfterLastDecide)
-      alreadyUpdatedAfterLastDecide = true
+        val action: ExplorationAction
 
-    boolean allWidgetsBlacklisted = currentWidgetContext.every {it.blackListed}
-    return allWidgetsBlacklisted
-  }
+        // Sometimes the runtime permission dialog is displayed upon starting the application, thus there's no previous widget
+        if ((repeatLastAction) && (lastWidgetInfo != null)) {
+            repeatLastAction = false
 
-  @Override
-  ExplorationAction decide(IGuiState guiState)
-  {
-    alreadyUpdatedAfterLastDecide = false
+            action = chooseAction(lastWidgetInfo!!)
+        } else {
+            repeatLastAction = false
 
-    ExplorationAction action
+            if (guiState.isRequestRuntimePermissionDialogBox) {
+                action = clickRuntimePermissionAllowWidget(guiState)
+                repeatLastAction = true
+            } else if (alwaysClickFirstWidget) {
+                lastWidgetInfo = currentWidgetContext!![0]
+                action = newWidgetExplorationAction(currentWidgetContext!![0].widget)
+            } else if (widgetIndexes.size > 0)
+                action = clickWidgetByIndex()
+            else
+                action = biasedRandomAction()
+        }
 
-    // Sometimes the runtime permission dialog is displayed upon starting the application, thus there's no previous widget
-    if ((repeatLastAction) && (lastWidgetInfo != null))
-    {
-      repeatLastAction = false
-
-      action = chooseAction(lastWidgetInfo)
-    }
-    else
-    {
-      repeatLastAction = false
-
-      if (guiState.requestRuntimePermissionDialogBox)
-      {
-        action = clickRuntimePermissionAllowWidget(guiState)
-        repeatLastAction = true
-      }
-      else if (alwaysClickFirstWidget)
-      {
-        lastWidgetInfo = currentWidgetContext[0]
-        action = newWidgetExplorationAction(currentWidgetContext[0].widget)
-      }
-      else if (widgetIndexes.size() > 0)
-        action = clickWidgetByIndex()
-      else
-        action = biasedRandomAction()
-    }
-		lastExplorationAction = action
-    return action
-  }
-
-  private WidgetExplorationAction clickRuntimePermissionAllowWidget(IGuiState guiState)
-  {
-    assert guiState instanceof RuntimePermissionDialogBoxGuiState
-
-    Widget allowButton = (guiState as RuntimePermissionDialogBoxGuiState).allowWidget
-    assert allowButton != null
-
-    // Remove blacklist restriction from previous action since it will need to be executed again
-    if (lastWidgetInfo != null)
-      lastWidgetInfo.blackListed = false
-
-    return newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
-  }
-
-  private WidgetExplorationAction clickWidgetByIndex()
-  {
-    int widgetIndex = widgetIndexes.first()
-    widgetIndexes = widgetIndexes.drop(1)
-
-    assert currentWidgetContext.size() >= widgetIndex + 1
-
-    Widget chosenWidget = currentWidgetContext[widgetIndex].widget
-    WidgetInfo chosenWidgetInfo = currentWidgetContext.find({it.index == widgetIndex})
-
-    assert chosenWidgetInfo != null
-
-    lastWidgetInfo = chosenWidgetInfo
-    return newWidgetExplorationAction(chosenWidget)
-  }
-
-  ExplorationAction biasedRandomAction()
-  {
-    return chooseWidgetAndAction(currentWidgetContext)
-  }
-
-  private WidgetContext updateWidgetContexts(IGuiState guiState)
-  {
-    WidgetContext currCtxt = WidgetContext.from(guiState.topNodePackageName,
-      guiState.widgets
-        .findAll {it.canBeActedUpon()}
-        .collect {WidgetInfo.from(it)}
-    )
-
-    Collection<WidgetContext> eqCtxt = widgetContexts.findAll {
-      it.uniqueString == currCtxt.uniqueString
+        return action
     }
 
-    assert eqCtxt.size() <= 1
+    private fun clickRuntimePermissionAllowWidget(guiState: IGuiState): WidgetExplorationAction {
+        assert(guiState is RuntimePermissionDialogBoxGuiState)
 
-    if (eqCtxt.size() == 0)
-    {
-      // The flaw of the currently applied algorithm is that here we will have imprecise representation of the GUI if the widgets
-      // seen on the screen will have their unique properties modified: if, for example, one widget is added because some
-      // sub-menu got displayed, the algorithm will think it has found entirely new widget context, being exactly the same as
-      // the original one, but having one new widget.
-      widgetContexts << currCtxt
-      log.debug("Encountered NEW widget context:\n${currCtxt.toString()}")
-    } else
-    {
-      currCtxt = eqCtxt[0]
-      log.debug("Encountered existing widget context:\n${currCtxt.toString()}")
+        val allowButton = (guiState as RuntimePermissionDialogBoxGuiState).allowWidget
+
+        // Remove blacklist restriction from previous action since it will need to be executed again
+        if (lastWidgetInfo != null)
+            lastWidgetInfo!!.blackListed = false
+
+        return newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
     }
 
-    currCtxt.seenCount++
+    private fun clickWidgetByIndex(): WidgetExplorationAction {
+        val widgetIndex = widgetIndexes.first()
+        widgetIndexes = widgetIndexes.drop(1)
 
-    return currCtxt
-  }
+        assert(currentWidgetContext!!.size >= widgetIndex + 1)
 
-  ExplorationAction chooseWidgetAndAction(WidgetContext widgetContext)
-  {
-    assert widgetContext.any {!it.blackListed}
-    int minActedUponCount = widgetContext.findAll {!it.blackListed}.collect {it.actedUponCount}.min()
-    Collection<WidgetInfo> candidates = widgetContext.findAll {(!it.blackListed && it.actedUponCount == minActedUponCount)}
+        val chosenWidget = currentWidgetContext!![widgetIndex].widget
+        val chosenWidgetInfo = currentWidgetContext!!.first { it.index == widgetIndex }
 
-    //test normal droidmate with press back
-    //if(minActedUponCount >= 5 && (random.nextInt(10) == 2))
-    //  return newPressBackExplorationAction()
-
-    WidgetInfo chosenWidgetInfo = candidates[random.nextInt(candidates.size())]
-
-    lastWidgetInfo = chosenWidgetInfo
-    // TODO Nataniel: Review
-    //assert !lastWidgetInfo.blackListed
-
-    return chooseAction(chosenWidgetInfo)
-  }
-
-  ExplorationAction chooseAction(WidgetInfo chosenWidgetInfo)
-  {
-    Widget chosenWidget = chosenWidgetInfo.widget
-
-    ExplorationAction action
-    if (chosenWidget.longClickable && !chosenWidget.clickable && !chosenWidget.checkable)
-    {
-      chosenWidgetInfo.longClickedCount++
-      action = newWidgetExplorationAction(chosenWidget, /* longClick */ true)
-
-    } else if (chosenWidget.longClickable)
-    {
-
-      if (!(chosenWidgetInfo.actedUponCount <= 1).implies(chosenWidgetInfo.longClickedCount == 0))
-        log.warn(Markers.appHealth, 
-          "Expectation violated: (chosenWidgetInfo.actedUponCount <= 1).implies(chosenWidgetInfo.longClickedCount == 0).\n" +
-          "Actual actedUponCount:  ${chosenWidgetInfo.actedUponCount}.\n" +
-          "Actual longClickedCount: ${chosenWidgetInfo.longClickedCount}")
-
-      // The sequence of clicks (C) and long-clicks (LC) is:
-      // C, LC, C, C, LC, C, C, LC, ..., C, C, LC, ...
-      if (chosenWidgetInfo.actedUponCount % 3 == 1)
-      {
-        chosenWidgetInfo.longClickedCount++
-        action = newWidgetExplorationAction(chosenWidget, /* longClick */ true)
-      } else
-        action = newWidgetExplorationAction(chosenWidget)
-
-    } else
-      action = newWidgetExplorationAction(chosenWidget)
-
-    chosenWidgetInfo.actedUponCount++
-
-    log.debug("Chosen widget info: $chosenWidgetInfo")
-    return action
-  }
-
-  //region Nested classes
-
-  static class WidgetContext implements List<WidgetInfo>
-  {
-
-    @Delegate
-    List<WidgetInfo> widgetInfos
-
-    int seenCount = 0
-
-    String packageName
-
-    static WidgetContext from(String packageName, List<WidgetInfo> widgetInfos)
-    {
-      return new WidgetContext(widgetInfos: widgetInfos, packageName: packageName)
+        lastWidgetInfo = chosenWidgetInfo
+        return newWidgetExplorationAction(chosenWidget)
     }
 
-    String getUniqueString()
-    {
-      return packageName + " " + this.collect {it.uniqueString}.join(" ")
+    private fun biasedRandomAction(): ExplorationAction = chooseWidgetAndAction(currentWidgetContext!!)
+
+    private fun updateWidgetContexts(guiState: IGuiState): WidgetContext {
+        var currCtxt = WidgetContext.from(guiState.topNodePackageName,
+                guiState.widgets
+                        .filter { it.canBeActedUpon() }
+                        .map { WidgetInfo.from(it) }
+        )
+
+        val eqCtxt = widgetContexts.filter { it.uniqueString == currCtxt.uniqueString }
+
+        assert(eqCtxt.size <= 1)
+
+        if (eqCtxt.isEmpty()) {
+            // The flaw of the currently applied algorithm is that here we will have imprecise representation of the GUI if the widgets
+            // seen on the screen will have their unique properties modified: if, for example, one widget is added because some
+            // sub-menu got displayed, the algorithm will think it has found entirely new widget context, being exactly the same as
+            // the original one, but having one new widget.
+            widgetContexts.add(currCtxt)
+            log.debug("Encountered NEW widget context:\n${currCtxt.toString()}")
+        } else {
+            currCtxt = eqCtxt[0]
+            log.debug("Encountered existing widget context:\n${currCtxt.toString()}")
+        }
+
+        currCtxt.seenCount++
+
+        return currCtxt
     }
 
+    private fun chooseWidgetAndAction(widgetContext: WidgetContext): ExplorationAction {
+        assert(widgetContext.any { !it.blackListed })
+        val minActedUponCount = widgetContext.filter { !it.blackListed }.map { it.actedUponCount }.min()
+        val candidates = widgetContext.filter { !it.blackListed && it.actedUponCount == minActedUponCount }
 
-    @Override
-     String toString()
-    {
-      return "WC:[seenCount=$seenCount, package=$packageName\n" +
-        this.join("\n") + "]"
-    }
-  }
+        val chosenWidgetInfo = candidates[random.nextInt(candidates.size)]
 
+        lastWidgetInfo = chosenWidgetInfo
+        // TODO Nataniel: Review
+        //assert !lastWidgetInfo.blackListed
 
-  @Canonical
-  static class WidgetInfo
-  {
-
-    @Delegate
-    Widget widget
-
-    /** clicked (including checked or unchecked) + long clicked */
-    int actedUponCount   = 0
-    int longClickedCount = 0
-    int touchCount = 0
-
-    boolean blackListed = false
-
-    static WidgetInfo from(Widget widget)
-    {
-      assert widget != null
-      return new WidgetInfo(widget)
+        return chooseAction(chosenWidgetInfo)
     }
 
-    String getUniqueString()
-    {
-      widget.with {
-        if (["Switch", "Toggle"].any {className.contains(it)})
-          return "$className $resourceId $contentDesc $bounds"
-        else
-          return "$className $resourceId $text $contentDesc $bounds"
-      }
+    fun chooseAction(chosenWidgetInfo: WidgetInfo): ExplorationAction {
+        val chosenWidget = chosenWidgetInfo.widget
+
+        val action: ExplorationAction
+        if (chosenWidget.longClickable && !chosenWidget.clickable && !chosenWidget.checkable) {
+            chosenWidgetInfo.longClickedCount++
+            action = newWidgetExplorationAction(chosenWidget, /* longClick */ true)
+
+        } else if (chosenWidget.longClickable) {
+
+            if ((chosenWidgetInfo.actedUponCount <= 1) && (chosenWidgetInfo.longClickedCount > 0))
+                log.warn(Markers.appHealth,
+                        "Expectation violated: (chosenWidgetInfo.actedUponCount <= 1).implies(chosenWidgetInfo.longClickedCount == 0).\n" +
+                                "Actual actedUponCount:  ${chosenWidgetInfo.actedUponCount}.\n" +
+                                "Actual longClickedCount: ${chosenWidgetInfo.longClickedCount}")
+
+            // The sequence of clicks (C) and long-clicks (LC) is:
+            // C, LC, C, C, LC, C, C, LC, ..., C, C, LC, ...
+            if (chosenWidgetInfo.actedUponCount % 3 == 1) {
+                chosenWidgetInfo.longClickedCount++
+                action = newWidgetExplorationAction(chosenWidget, /* longClick */ true)
+            } else
+                action = newWidgetExplorationAction(chosenWidget)
+
+        } else
+            action = newWidgetExplorationAction(chosenWidget)
+
+        chosenWidgetInfo.actedUponCount++
+
+        log.debug("Chosen widget info: $chosenWidgetInfo")
+        return action
     }
 
-    @Override
-     String toString()
-    {
-      return "WI: bl? ${blackListed ? 1 : 0} act#: $actedUponCount lcc#: $longClickedCount tc#: $touchCount ${widget.toShortString()}"
-    }
-  }
+    //region Nested classes
 
-  //endregion Nested classes
+    class WidgetContext private constructor(val widgetInfos: List<WidgetInfo>,
+                                            val packageName: String) : List<WidgetInfo> by widgetInfos {
+
+        var seenCount = 0
+
+        companion object {
+            @JvmStatic
+            fun from(packageName: String, widgetInfos: List<WidgetInfo>): WidgetContext =
+                    WidgetContext(widgetInfos, packageName)
+        }
+
+        val uniqueString: String
+            get() = packageName + " " + this.map { it.uniqueString }.joinToString(" ")
+
+        override fun toString(): String {
+            return "WC:[seenCount=$seenCount, package=$packageName\n" +
+                    this.joinToString("\n") + "]"
+        }
+    }
+
+    class WidgetInfo constructor(val widget: IWidget) : IWidget by widget {
+
+        /** clicked (including checked or unchecked) + long clicked */
+        var actedUponCount = 0
+        var longClickedCount = 0
+
+        var blackListed = false
+
+        companion object {
+            @JvmStatic
+            fun from(widget: IWidget): WidgetInfo = WidgetInfo(widget)
+        }
+
+        val uniqueString: String
+            get() {
+                with(widget) {
+                    return if (arrayListOf("Switch", "Toggle").any { className.contains(it) })
+                        "$className[$index] $resourceId $contentDesc $bounds"
+                    else
+                        "$className[$index] $resourceId $text $contentDesc $bounds"
+                }
+            }
+
+        override fun toString(): String =
+                "WI: bl? ${if (blackListed) 1 else 0} act#: $actedUponCount lcc#: $longClickedCount ${widget.toShortString()}"
+    }
+
+    //endregion Nested classes
 }

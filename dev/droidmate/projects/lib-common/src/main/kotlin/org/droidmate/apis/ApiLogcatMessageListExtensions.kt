@@ -20,8 +20,20 @@ package org.droidmate.apis
 
 class ApiLogcatMessageListExtensions
 {
-  public static Boolean sortedByTimePerPID(List<IApiLogcatMessage> self)
-  {
-    return self.groupBy {it.pidString}.every {pid, logsByPid -> logsByPid*.time == logsByPid*.time.collect().sort() }
+    companion object {
+
+        @JvmStatic
+        fun sortedByTimePerPID(self: List<IApiLogcatMessage>): Boolean {
+            return self.groupBy { it.pidString }.all { (_, logsByPid) ->
+                val sortedTime = logsByPid.map { it.time }.sorted()
+
+                var same = true
+                logsByPid.forEachIndexed { idx, logMessage ->
+                    same = same && (logMessage.time == sortedTime[idx])
+                }
+
+                same
+            }
+        }
   }
 }

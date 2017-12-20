@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,37 +34,37 @@ import org.slf4j.MarkerFactory
  *
  * </p>
  */
-public class MarkerFilter extends AbstractMatcherFilter<ILoggingEvent>
-{
-  private Marker markerToMatch = null;
+@Suppress("RedundantVisibilityModifier")
+public class MarkerFilter : AbstractMatcherFilter<ILoggingEvent>() {
+    private var markerToMatch: Marker? = null
 
-  @Override
-  public void start()
-  {
-    if (this.markerToMatch != null)
-      super.start();
-    else
-      addError("Marker to match doesn't exist yet.");
-  }
+    override fun start() {
+        if (this.markerToMatch != null)
+            super.start()
+        else
+            addError("Marker to match doesn't exist yet.")
+    }
 
-  @Override
-  public FilterReply decide(ILoggingEvent event)
-  {
-    Marker marker = event.getMarker();
-    if (!isStarted())
-      return FilterReply.NEUTRAL;
-    if (marker == null)
-      return onMismatch;
-    if (markerToMatch.contains(marker))
-      return onMatch;
-    return onMismatch;
-  }
+    override fun decide(event: ILoggingEvent?): FilterReply {
+        return if (event == null)
+            onMismatch
+        else {
+            val marker = event.marker
+            if (!isStarted)
+                return FilterReply.NEUTRAL
+            else if (marker == null)
+                return onMismatch
+            else if (markerToMatch == null)
+                return onMismatch
+            else if (markerToMatch!!.contains(marker))
+                return onMatch
+            onMismatch
+        }
+    }
 
-  // SuppressWarnings reason: used in logback.groovy, but not recognized by IntelliJ IDEA.
-  @SuppressWarnings("GroovyUnusedDeclaration")
-  public void setMarker(String markerStr)
-  {
-    if (null != markerStr)
-      markerToMatch = MarkerFactory.getMarker(markerStr);
-  }
+    // SuppressWarnings reason: used in logback.groovy, but not recognized by IntelliJ IDEA.
+    @Suppress("unused")
+    public fun setMarker(markerStr: String) {
+        markerToMatch = MarkerFactory.getMarker(markerStr)
+    }
 }

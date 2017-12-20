@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,23 +24,7 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.device.AndroidDevice
 import org.droidmate.device.IAndroidDevice
 
-class AndroidDeviceFactory implements IAndroidDeviceFactory
-{
-
-  private final Configuration                                         cfg
-  private final IAdbWrapper                                           adbWrapper
-
-  AndroidDeviceFactory(
-    Configuration cfg,
-    IAdbWrapper adbWrapper)
-  {
-    this.cfg = cfg
-    this.adbWrapper = adbWrapper
-  }
-
-  @Override
-  IAndroidDevice create(String serialNumber)
-  {
-    return new AndroidDevice(serialNumber, cfg, adbWrapper)
-  }
+class AndroidDeviceFactory constructor(private val cfg: Configuration,
+                                       private val adbWrapper: IAdbWrapper) : IAndroidDeviceFactory {
+    override fun create(serialNumber: String): IAndroidDevice = AndroidDevice(serialNumber, cfg, adbWrapper)
 }

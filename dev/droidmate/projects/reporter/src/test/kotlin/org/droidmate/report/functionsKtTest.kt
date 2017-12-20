@@ -28,7 +28,7 @@ class functionsKtTest {
   @Test
   fun plots() {
     
-    val testTempDir = Paths.get(BuildConstants.getTest_temp_dir_name())
+    val testTempDir = Paths.get(BuildConstants.test_temp_dir_name)
     plot(dataFilePath = Resource("plot_test_data_fixture.txt").extractTo(testTempDir).toAbsolutePath().toString(),
       outputFilePath = testTempDir.resolve("plot_test_output.pdf").toAbsolutePath().toString())
   }

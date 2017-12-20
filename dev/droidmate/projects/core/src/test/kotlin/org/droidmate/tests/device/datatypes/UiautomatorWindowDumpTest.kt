@@ -19,10 +19,8 @@
 
 package org.droidmate.tests.device.datatypes
 
-import groovy.transform.TypeChecked
-import org.droidmate.device.datatypes.UiautomatorWindowDump
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.test_tools.DroidmateGroovyTestCase
+import org.droidmate.test_tools.DroidmateTestCase
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
 import org.junit.FixMethodOrder
@@ -32,104 +30,89 @@ import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
 import java.awt.*
-import java.util.List
-
-import static groovy.transform.TypeCheckingMode.SKIP
 
 // WISH add test checking that widget.canBeClicked or not, depending if it intersects with visible device display bounds.
-@TypeChecked(SKIP)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(JUnit4)
-class UiautomatorWindowDumpTest extends DroidmateGroovyTestCase
-{
+@RunWith(JUnit4::class)
+class UiautomatorWindowDumpTest : DroidmateTestCase() {
 
-  /**
-   * Bug: ANR with disabled OK button is invalid
-   * https://hg.st.cs.uni-saarland.de/issues/987
-   */
-  @Test
-  void "Has no bug #987"()
-  {
-    UiautomatorWindowDump gs = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogOKDisabledWindowDump()
-    assert !(gs.validationResult.valid)
-  }
+    /**
+     * Bug: ANR with disabled OK button is invalid
+     * https://hg.st.cs.uni-saarland.de/issues/987
+     */
+    @Test
+    fun `Has no bug #987`() {
+        val gs = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogOKDisabledWindowDump()
+        assert(!gs.validationResult.valid)
+    }
 
-  @Test
-  void "Uiautomator window dump 'empty' fixture is indeed empty"()
-  {
-    UiautomatorWindowDump sut = UiautomatorWindowDumpTestHelper.newEmptyActivityWindowDump()
+    @Test
+    fun `Uiautomator window dump 'empty' fixture is indeed empty`() {
+        val sut = UiautomatorWindowDumpTestHelper.newEmptyActivityWindowDump()
 
-    // Act
-    def guiState = sut.guiState
+        // Act
+        val guiState = sut.guiState
 
-    assert guiState?.actionableWidgets?.isEmpty()
-  }
+        assert(guiState.getActionableWidgets().isEmpty())
+    }
 
-  @Test
-  void "Gets GUI state from window dump and parses widgets with negative bounds"()
-  {
-    // Arrange
-    Widget w1 = WidgetTestHelper.newClickableWidget(text: "fake_control", bounds: [-100, -5, 90, -3])
-    Widget w2 = WidgetTestHelper.newClickableWidget(text: "dummy_button", bounds: [15, -50379, 93, -50357])
-    String inputFixture = UiautomatorWindowDumpTestHelper.createDumpSkeleton(UiautomatorWindowDumpTestHelper.dump(w1) + UiautomatorWindowDumpTestHelper.dump(w2))
+    @Test
+    fun `Gets GUI state from window dump and parses widgets with negative bounds`() {
+        // Arrange
+        val w1 = WidgetTestHelper.newClickableWidget(mutableMapOf("text" to "fake_control", "bounds" to arrayListOf(-100, -5, 90, -3)))
+        val w2 = WidgetTestHelper.newClickableWidget(mutableMapOf("text" to "dummy_button", "bounds" to arrayListOf(15, -50379, 93, -50357)))
+        val inputFixture = UiautomatorWindowDumpTestHelper.createDumpSkeleton(UiautomatorWindowDumpTestHelper.dump(w1) + UiautomatorWindowDumpTestHelper.dump(w2))
 
-    final sut = UiautomatorWindowDumpTestHelper.newWindowDump(inputFixture)
+        val sut = UiautomatorWindowDumpTestHelper.newWindowDump(inputFixture)
 
-    // Act
-    final guiState = sut.getGuiState()
+        // Act
+        val guiState = sut.guiState
 
-    // Assert
+        // Assert
 
-    assert guiState?.widgets?.size() == 2
-    assert w1 == guiState.widgets[0]
-    assert w2 == guiState.widgets[1]
-  }
+        assert(guiState.widgets.size == 2)
+        assert(w1 == guiState.widgets[0])
+        assert(w2 == guiState.widgets[1])
+    }
 
-  @Test
-  void "Gets GUI state from 'app has stopped' dialog box"()
-  {
-    // Act
-    final sut = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump()
+    @Test
+    fun `Gets GUI state from 'app has stopped' dialog box`() {
+        // Act
+        val sut = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump()
 
-    final guiState = sut.getGuiState()
+        val guiState = sut.guiState
 
-    List<Integer> nexus7vertAppHasStoppedDialogBoxBounds = [138,620,661,692] as List<Integer>
+        val nexus7vertAppHasStoppedDialogBoxBounds = arrayListOf(138, 620, 661, 692)
 
-    Widget expected = WidgetTestHelper.newClickableWidget(bounds: nexus7vertAppHasStoppedDialogBoxBounds, text: "OK")
-    assert guiState?.actionableWidgets?.size() == 1
-    assert expected.bounds == guiState?.actionableWidgets[0].bounds
-    assert expected.text == guiState?.actionableWidgets[0].text
+        val expected = WidgetTestHelper.newClickableWidget(mutableMapOf("bounds" to nexus7vertAppHasStoppedDialogBoxBounds, "text" to "OK"))
+        assert(guiState.getActionableWidgets().size == 1)
+        assert(expected.bounds == guiState.getActionableWidgets()[0].bounds)
+        assert(expected.text == guiState.getActionableWidgets()[0].text)
+    }
 
-  }
+    @Test
+    fun `Gets GUI state from home screen`() {
+        // Arrange
 
-  @Test
-  void "Gets GUI state from home screen"()
-  {
-    // Arrange
+        val sut = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump()
 
-    final sut = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump()
+        // Act
 
-    // Act
+        val guiState = sut.guiState
 
-    final guiState = sut.getGuiState()
+        // Assert
 
-    // Assert
+        assert(guiState.isHomeScreen)
+    }
 
-    assert guiState.isHomeScreen()
+    @Test
+    fun `Parses bounds`() {
+        assert(Rectangle(100, 150, 1, 3) == Widget.parseBounds("[100,150][101,153]"))
+    }
 
-  }
-
-  @Test
-  void "Parses bounds"()
-  {
-    assert new Rectangle(100, 150, 1, 3) == Widget.parseBounds("[100,150][101,153]")
-  }
-
-  @Test
-  void "Recognizes 'Select a Home app' dialog box"()
-  {
-    UiautomatorWindowDump gs = UiautomatorWindowDumpTestHelper.newSelectAHomeAppWindowDump()
-    assert gs.guiState.isSelectAHomeAppDialogBox()
-  }
-
+    @Test
+    fun `Recognizes 'Select a Home app' dialog box`() {
+        val gs = UiautomatorWindowDumpTestHelper.newSelectAHomeAppWindowDump()
+        assert(gs.guiState.isSelectAHomeAppDialogBox)
+    }
 }

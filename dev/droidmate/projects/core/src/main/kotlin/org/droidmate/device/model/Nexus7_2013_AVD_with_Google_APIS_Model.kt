@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,13 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.device.model
 
-import java.awt.*
+import java.awt.Dimension
 
-class Nexus7_2013 extends NexusModel
-{
-  @Override
-  Dimension getDeviceDisplayDimensionsForTesting()
-  {
-    return new Dimension(1200, 1920)
-  }
+class Nexus7_2013 : NexusModel() {
+    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1200, 1920)
 }

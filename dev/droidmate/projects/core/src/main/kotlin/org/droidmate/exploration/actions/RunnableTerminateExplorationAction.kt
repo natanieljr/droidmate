@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,55 +18,41 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import groovy.util.logging.Slf4j
-import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
 
-import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-@Slf4j
-class RunnableTerminateExplorationAction extends RunnableExplorationAction
-{
+class RunnableTerminateExplorationAction(action: TerminateExplorationAction, timestamp: LocalDateTime, takeScreenshot: Boolean)
+    : RunnableExplorationAction(action, timestamp, takeScreenshot) {
 
-  private static final long serialVersionUID = 1
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  RunnableTerminateExplorationAction(TerminateExplorationAction action, LocalDateTime timestamp)
-  {
-    super(action, timestamp)
-  }
+    override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+        log.debug("1. Read background API logs, if any.")
+        val logsHandler = DeviceLogsHandler(device)
+        logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
+        this.logs = logsHandler.getLogs()
 
-  @Override
-  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException
-  {
-    log.debug("1. Read background API logs, if any.")
-    IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
-    logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
-    this.logs = logsHandler.getLogs()
-    
-    log.debug("2. Take a screenshot.")
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-    Path screenshotPath = device.takeScreenshot(app, timestamp.format(formatter))
-    if (screenshotPath != null)
-      this.screenshot = screenshotPath.toUri()
+        log.debug("2. Take a screenshot.")
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+        this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
 
-    log.debug("3. Close monitor servers, if any.")
-    device.closeMonitorServers()
+        log.debug("3. Close monitor servers, if any.")
+        device.closeMonitorServers()
 
-    log.debug("4. Clear package ${app.packageName}}.")
-    device.clearPackage(app.packageName)
+        log.debug("4. Clear package ${app.packageName}}.")
+        device.clearPackage(app.packageName)
 
-    log.debug("5. Assert app is not running.")
-    assertAppIsNotRunning(device, app)
+        log.debug("5. Assert app is not running.")
+        assertAppIsNotRunning(device, app)
 
-    log.debug("6. Ensure home screen is displayed.")
-    this.snapshot = device.ensureHomeScreenIsDisplayed()
+        log.debug("6. Ensure home screen is displayed.")
+        this.snapshot = device.ensureHomeScreenIsDisplayed()
 
-  }
-
+    }
 }
-

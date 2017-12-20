@@ -19,12 +19,9 @@
 
 package org.droidmate.errors
 
-class UnexpectedIfElseFallthroughError extends DroidmateError
-{
-  UnexpectedIfElseFallthroughError() {
-    super()
-  }
+open class UnexpectedIfElseFallthroughError : DroidmateError {
+    constructor() : super()
 
-  UnexpectedIfElseFallthroughError(String message) {super(message)}
+    constructor(message: String) : super(message)
 }
 

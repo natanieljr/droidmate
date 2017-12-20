@@ -18,35 +18,23 @@
 // web: www.droidmate.org
 package org.droidmate.apis
 
-class MonitoredInlinedApkFixtureApiLogs
-{
+class MonitoredInlinedApkFixtureApiLogs(private val apiLogs: List<List<IApiLogcatMessage>> = ArrayList()) {
+    fun assertCheck() {
+        assert(apiLogs.size == 3)
 
-  private final List<List<IApiLogcatMessage>> apiLogs
+        //val resetAppApiLogs = apiLogs[0]
+        val clickApiLogs = apiLogs[1]
+        val terminateAppApiLogs = apiLogs[2]
 
-  MonitoredInlinedApkFixtureApiLogs(List<List<IApiLogcatMessage>> apiLogs)
-  {
-    this.apiLogs = apiLogs
-  }
-
-
-  void assertCheck()
-  {
-    assert apiLogs.size() == 3
-
-    //noinspection GroovyUnusedAssignment
-    def resetAppApiLogs = apiLogs[0]
-    def clickApiLogs = apiLogs[1]
-    def terminateAppApiLogs = apiLogs[2]
-
-    // In the legacy API set using PScout APIs the
-    // <java.net.URLConnection: void <init>(java.net.URL)>
-    // was monitored, now it isn't. The commented out asserts are from the legacy monitored set of pscout APIs:
+        // In the legacy API set using PScout APIs the
+        // <java.net.URLConnection: void <init>(java.net.URL)>
+        // was monitored, now it isn't. The commented out asserts are from the legacy monitored set of pscout APIs:
 //    assert clickApiLogs.size() == 2
 //    assert clickApiLogs*.methodName == ["openConnection", "<init>"]
 
-    assert clickApiLogs.size() == 1
-    assert clickApiLogs*.methodName == ["openConnection"]
+        assert(clickApiLogs.size == 1)
+        assert(clickApiLogs.first().methodName == "openConnection")
 
-    assert terminateAppApiLogs.size() == 0
-  }
+        assert(terminateAppApiLogs.isEmpty())
+    }
 }

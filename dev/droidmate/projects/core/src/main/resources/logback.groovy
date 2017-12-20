@@ -23,7 +23,6 @@ import ch.qos.logback.classic.boolex.GEventEvaluator
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.filter.LevelFilter
 import ch.qos.logback.classic.filter.ThresholdFilter
-import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.filter.EvaluatorFilter
 import org.droidmate.logging.*
 import org.droidmate.misc.SysCmdExecutor
@@ -229,16 +228,16 @@ def mainAppenders = mainFileAppenders + [
 
 // Setting additivity to true makes the logs be appended to all appenders attached to root, including master appender and warnings appender.
 List loggersWithLazyFileAppenders = [
-  // We cannot refer here to the classes directly as they would make SLF4J create substitute loggers and thus, issue warning to stderr.
-  //@formatter:off
-  // Uncomment if a detailed SysCmdExecutor log is needed.
+        // We cannot refer here to the classes directly as they would make SLF4J create substitute loggers and thus, issue warning to stderr.
+        //@formatter:off
+        // Uncomment if a detailed SysCmdExecutor log is needed.
 //  [loggerName: "SysCmdExecutor",                                              additivity: false, pattern: pat_date_level],
 //  [loggerName: "org.droidmate.android_sdk.AaptWrapper",                       additivity: true,  pattern: pat_date_level],
-  // Has to be commented out to prevent it from polluting master log (prevented by additivity set to false)
-  [loggerName: "org.droidmate.exploration.strategy.WidgetStrategy",           additivity: false, pattern: pat_date_level, additionalAppenders: warnAppenders],
+        // Has to be commented out to prevent it from polluting master log (prevented by additivity set to false)
+        [loggerName: "WidgetStrategy", additivity: false, pattern: pat_date_level, additionalAppenders: warnAppenders],
 //  [loggerName: "org.droidmate.exploration",                                   additivity: true,  pattern: pat_date_level_logger],//, additionalAppenders: warnAppenders],
 //  [loggerName: "org.droidmate.device",                                        additivity: true,  pattern: pat_date_level_logger]//, additionalAppenders: warnAppenders],
-  //@formatter:on
+        //@formatter:on
 ]
 
 loggersWithLazyFileAppenders.each {Map it ->
@@ -278,7 +277,7 @@ root(TRACE, mainAppenders + [
 
 // Ensure these loggers log to the given appenders even if the "exploration" package logger has additivity set to false.
 //logger("org.droidmate.command.exploration.Exploration", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
-//logger("org.droidmate.exploration.strategy.ExplorationStrategy", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
+//logger("ExplorationStrategy", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
 //logger("org.droidmate.exploration.output", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
 
 

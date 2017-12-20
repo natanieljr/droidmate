@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,11 +19,15 @@
 
 package org.droidmate.logging
 
-class LogbackUtils
-{
-  public static String getLogFilePath(String logName) {"${LogbackConstants.LOGS_DIR_PATH}${File.separator}${logName}"}
+import java.io.File
 
-  public static String getLogFilePathForLastElement(String className) {getLogFilePath("${className.substring(className.lastIndexOf(".")+1)}.txt")}
+class LogbackUtils {
+    companion object {
+        @JvmStatic
+        public fun getLogFilePath(logName: String): String = "${LogbackConstants.LOGS_DIR_PATH}${File.separator}$logName"
 
+        @JvmStatic
+        public fun getLogFilePathForLastElement(className: String): String = getLogFilePath("${className.substring(className.lastIndexOf(".") + 1)}.txt")
+    }
 }
 

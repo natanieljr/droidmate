@@ -25,68 +25,60 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
-import java.util.regex.Matcher
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(JUnit4)
-class ClassFileFormatTest
-{
+@RunWith(JUnit4::class)
+class ClassFileFormatTest {
+    @Test
+    fun `Parses java parameter descriptors`() {
+        // Act 1
+        ClassFileFormat.matchClassFieldDescriptors("")
 
-  @Test
-  public void "Parses java parameter descriptors"()
-  {
-    // Act 1
-    ClassFileFormat.matchClassFieldDescriptors("")
+        val expected = arrayListOf(
+                "Z",
+                "C",
+                "[[D",
+                "Landroid/net/Uri;",
+                "[Lclass1;",
+                "[Lclas/s2s/x;",
+                "J",
+                "Landroid/content/ContentValues;",
+                "[Z",
+                "F",
+                "S",
+                "[V",
+                "[[Ljava/lang/String;",
+                "Landroid/location/GpsStatus\$Listener\$SubListener;")
 
-    List<String> expected = [
-      "Z",
-      "C",
-      "[[D",
-      "Landroid/net/Uri;",
-      "[Lclass1;",
-      "[Lclas/s2s/x;",
-      "J",
-      "Landroid/content/ContentValues;",
-      "[Z",
-      "F",
-      "S",
-      "[V",
-      "[[Ljava/lang/String;",
-      "Landroid/location/GpsStatus\$Listener\$SubListener;"]
+        // Act 2
+        val descriptors = ClassFileFormat.matchClassFieldDescriptors(expected.joinToString(""))
 
-    // Act 2
-    List<String> descriptors = ClassFileFormat.matchClassFieldDescriptors(expected.join(""))
-
-    expected.eachWithIndex {String expectedItem, int i ->
-      assert expectedItem == descriptors[i]
+        expected.forEachIndexed { i, expectedItem ->
+            assert(expectedItem == descriptors[i])
+        }
+        assert(expected == descriptors)
     }
-    assert expected == descriptors
-  }
 
-  @Test
-  void "Matches java type patterns"()
-  {
-    Matcher m
+    @Test
+    fun `Matches java type patterns`()
+    {
+        val m = ClassFileFormat.javaTypePattern.toRegex()
 
-    ["boolean",
-     "int",
-     "some.class.name",
-     "java.lang.String[][]",
-     "java.util.List<java.util.String[]>[]",
-     "org.apache.http.client.ResponseHandler<?_extends_T>",
-     "java.util.List<?_extends_Integer[][]>[]"
+        arrayListOf("boolean",
+                "int",
+                "some.class.name",
+                "java.lang.String[][]",
+                "java.util.List<java.util.String[]>[]",
+                "org.apache.http.client.ResponseHandler<?_extends_T>",
+                "java.util.List<?_extends_Integer[][]>[]"
 
-    ].each {
-      // Act
-      m = it =~ ClassFileFormat.javaTypePattern
-      assert m.matches(): it
+        ).forEach {
+            // Act
+            assert(m.matches(it))
+        }
+
+        arrayListOf("intx", "[]<>?").forEach {
+            // Act
+            assert(!m.matches(it))
+        }
     }
-    ["intx", "[]<>?"].each {
-      // Act
-      m = it =~ ClassFileFormat.javaTypePattern
-      assert !m.matches(): it
-    }
-  }
-
-
 }

@@ -18,8 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.monitor
 
-enum AndroidAPI {
-
-  API_23
-
+enum class AndroidAPI {
+    API_23
 }

@@ -19,93 +19,86 @@
 
 package org.droidmate.monitor
 
-import com.google.gson.JsonArray
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import groovy.util.logging.Slf4j
 import org.droidmate.apis.ApiMethodSignature
+import org.slf4j.LoggerFactory
+import java.nio.file.Files
 
-import static java.nio.file.Files.readAllLines
+class MonitorGeneratorFrontend {
+    companion object {
+        private val log = LoggerFactory.getLogger(MonitorGeneratorFrontend::class.java)
 
-@Slf4j
-public class MonitorGeneratorFrontend
-{
+        @JvmStatic
+        fun main(args: Array<String>) {
+            try {
+                val res = MonitorGeneratorResources(args)
 
-  public static void main(String[] args)
-  {
-    try
-    {
-      MonitorGeneratorResources res = new MonitorGeneratorResources(args)
+                generateMonitorSrc(res)
 
-      generateMonitorSrc(res)
+            } catch (e: Exception) {
+                handleException(e)
+            }
+        }
 
-    } catch (Exception e)
-    {
-      handleException(e)
-    }
-  }
-
-  private static void generateMonitorSrc(MonitorGeneratorResources res)
-  {
-    def monitorGenerator = new MonitorGenerator(
-      new RedirectionsGenerator(res.androidApi),
-      new MonitorSrcTemplate(res.monitorSrcTemplatePath, res.androidApi)
-    )
+        @JvmStatic
+        private fun generateMonitorSrc(res: MonitorGeneratorResources): MonitorSrcFile {
+            val monitorGenerator = MonitorGenerator(RedirectionsGenerator(res.androidApi),
+                    MonitorSrcTemplate(res.monitorSrcTemplatePath, res.androidApi))
 
 
 //    List<ApiMethodSignature> signatures = getLegacyMethodSignatures(res)
-    List<ApiMethodSignature> signatures = getMethodSignatures(res)
+            val signatures = getMethodSignatures(res)
 
-    String monitorSrc = monitorGenerator.generate(signatures)
+            val monitorSrc = monitorGenerator.generate(signatures)
 
-    new MonitorSrcFile(res.monitorSrcOutPath, monitorSrc)
-  }
+            return MonitorSrcFile(res.monitorSrcOutPath, monitorSrc)
+        }
 
-  private static List<ApiMethodSignature> readMonitoredApisJSON(MonitorGeneratorResources res)
-  {
-    String fileData = readAllLines(res.monitoredApis).join("\n")
-    List<ApiMethodSignature> apiList = new ArrayList<>()
-    JsonObject jsonApiList = new JsonParser().parse(fileData).getAsJsonObject();
+        @JvmStatic
+        private fun readMonitoredApisJSON(res: MonitorGeneratorResources): List<ApiMethodSignature> {
+            val fileData = Files.readAllLines(res.monitoredApis).joinToString("\n")
+            val apiList: MutableList<ApiMethodSignature> = ArrayList()
+            val jsonApiList = JsonParser().parse(fileData).asJsonObject
 
-    JsonElement apis = jsonApiList.get("apis");
+            val apis = jsonApiList.get("apis").asJsonArray
 
-    for(JsonElement item : (JsonArray)apis) {
-      JsonObject objApi = (JsonObject) item;
-      String className = objApi.get("className").getAsString();
-      String hookedMethod = objApi.get("hookedMethod").getAsString();
-      String signature = objApi.get("signature").getAsString();
-      String invokeAPICode = objApi.get("invokeAPICode").getAsString();
-      String defaultReturnValue = objApi.get("defaultReturnValue").getAsString();
-      String exceptionType = objApi.get("exceptionType").getAsString();
-      String logID = objApi.get("logID").getAsString();
-      String methodName = objApi.get("methodName").getAsString();
-      List<String> paramList = new ArrayList<>();
-      for (JsonElement param : objApi.get("paramList").getAsJsonArray())
-        paramList.add(param.getAsString());
-      String returnType = objApi.get("returnType").getAsString();
-      boolean isStatic = objApi.get("isStatic").getAsBoolean();
-      String platformVersion = objApi.get("platformVersion").getAsString();
+            apis.forEach { item ->
+                val objApi = item as JsonObject
+                val className = objApi.get("className").asString
+                val hookedMethod = objApi.get("hookedMethod").asString
+                val signature = objApi.get("signature").asString
+                val invokeAPICode = objApi.get("invokeAPICode").asString
+                val defaultReturnValue = objApi.get("defaultReturnValue").asString
+                val exceptionType = objApi.get("exceptionType").asString
+                val logID = objApi.get("logID").asString
+                val methodName = objApi.get("methodName").asString
+                val paramList = objApi.get("paramList").asJsonArray.map { it.asString }
+                val returnType = objApi.get("returnType").asString
+                val isStatic = objApi.get("isStatic").asBoolean
+                val platformVersion = objApi.get("platformVersion").asString
 
-      if ((res.androidApi == AndroidAPI.API_23) && (platformVersion.startsWith("!API23")))
-        continue
+                if (res.androidApi != AndroidAPI.API_23 && (platformVersion.startsWith("!API23"))) {
 
-      ApiMethodSignature api = ApiMethodSignature.fromDescriptor(className, returnType, methodName, paramList,
-              isStatic, hookedMethod, signature, logID, invokeAPICode, defaultReturnValue, exceptionType)
-      apiList.add(api)
+                    val api = ApiMethodSignature.fromDescriptor(className, returnType, methodName, paramList,
+                            isStatic, hookedMethod, signature, logID, invokeAPICode, defaultReturnValue, exceptionType)
+                    apiList.add(api)
+                }
+            }
+
+            return apiList
+        }
+
+        @JvmStatic
+        private fun getMethodSignatures(res: MonitorGeneratorResources): List<ApiMethodSignature> {
+            return readMonitoredApisJSON(res)
+        }
+
+        @JvmStatic
+        var handleException: (Exception) -> Any =
+                {
+                    log.error("Exception was thrown and propagated to the frontend.", it)
+                    System.exit(1)
+                }
     }
-
-    return apiList
-  }
-
-  static List<ApiMethodSignature> getMethodSignatures(MonitorGeneratorResources res)
-  {
-    List<ApiMethodSignature> signatures = readMonitoredApisJSON(res)
-    return signatures
-  }
-
-  static handleException = {Exception e ->
-    log.error("Exception was thrown and propagated to the frontend.", e)
-    System.exit(1)
-  }
 }

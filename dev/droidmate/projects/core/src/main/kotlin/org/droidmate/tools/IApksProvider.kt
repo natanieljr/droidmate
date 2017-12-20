@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,8 +22,7 @@ import org.droidmate.android_sdk.Apk
 
 import java.nio.file.Path
 
-interface IApksProvider
-{
+interface IApksProvider {
 
-  List<Apk> getApks(Path apksDir, int apksLimit, List<String> apksNames, boolean shuffle)
+    fun getApks(apksDir: Path, apksLimit: Int, apksNames: List<String>, shuffle: Boolean): List<Apk>
 }

@@ -19,33 +19,16 @@
 
 package org.droidmate.monitor
 
-import groovy.util.logging.Slf4j
 import org.droidmate.apis.ApiMethodSignature
 
-@Slf4j
-class MonitorGenerator implements IMonitorGenerator
-{
+class MonitorGenerator constructor(val redirectionsGenerator: IRedirectionsGenerator,
+                                   val monitorSrcTemplate: MonitorSrcTemplate) : IMonitorGenerator {
 
-  private final IRedirectionsGenerator redirectionsGenerator
-  private final MonitorSrcTemplate     monitorSrcTemplate
+    override fun generate(signatures: List<ApiMethodSignature>): String {
+        val genMethodTargets = redirectionsGenerator.generateMethodTargets(signatures)
 
-  MonitorGenerator(
-    IRedirectionsGenerator redirectionsGenerator,
-    MonitorSrcTemplate monitorSrcTemplate)
-  {
-    this.redirectionsGenerator = redirectionsGenerator
-    this.monitorSrcTemplate = monitorSrcTemplate
-  }
-
-  @Override
-  String generate(List<ApiMethodSignature> signatures)
-  {
-    String genMethodTargets = redirectionsGenerator.generateMethodTargets(signatures)
-
-    return monitorSrcTemplate.injectGeneratedCode(genMethodTargets)
-  }
-
-
+        return monitorSrcTemplate.injectGeneratedCode(genMethodTargets)
+    }
 }
 
 

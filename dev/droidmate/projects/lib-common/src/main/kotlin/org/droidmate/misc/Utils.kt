@@ -19,102 +19,94 @@
 
 package org.droidmate.misc
 
-import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.SystemUtils
-
+import org.slf4j.LoggerFactory
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.reflect.KClass
 
-@Slf4j
 class Utils
 {
+    companion object {
+        private val log = LoggerFactory.getLogger(Utils::class.java)
 
-  static String quoteIfIsPathToExecutable(String path)
-  {
-    if (SystemUtils.IS_OS_WINDOWS)
-    {
-      if (Files.isExecutable(Paths.get(path)))
-        return '"' + path + '"'
-      else
-        return path
-    } else
-    {
-      return path
+        @JvmStatic
+        @Throws(Throwable::class)
+        fun <T> retryOnException(target: () -> T, retryableExceptionClass: KClass<out DroidmateException>, attempts: Int, delay: Int, targetName: String): T {
+            assert(attempts > 0)
+            var attemptsLeft = attempts
+            var succeeded = false
+            var exception: Throwable? = null
+            var out: T? = null
+
+
+            while (!succeeded && attemptsLeft > 0) {
+                try {
+                    out = target.invoke()
+                    succeeded = true
+                    exception = null
+                } catch (e: Throwable) {
+                    if (retryableExceptionClass.java.isAssignableFrom(e.javaClass)) {
+                        exception = e
+                        attemptsLeft--
+
+                        if (attemptsLeft > 0) {
+                            log.trace("Discarded $e from \"$targetName\". Sleeping for $delay and retrying.")
+                            Thread.sleep(delay.toLong())
+                        } else
+                            log.trace("Discarded $e from \"$targetName\". Giving up.")
+                    } else
+                        throw e
+                }
+            }
+
+            if (succeeded) {
+                assert(exception == null)
+                return out!!
+            } else {
+                assert(exception != null)
+                throw exception!!
+            }
+        }
+
+        @JvmStatic
+        @Throws(Throwable::class)
+        fun retryOnFalse(target: () -> Boolean, attempts: Int, delay: Int): Boolean {
+            assert(attempts > 0)
+            var attemptsLeft = attempts
+
+            var succeeded = target.invoke()
+            attemptsLeft--
+            while (!succeeded && attemptsLeft > 0) {
+                Thread.sleep(delay.toLong())
+                succeeded = target.invoke()
+                attemptsLeft--
+            }
+
+            assert((attemptsLeft <= 0) || succeeded)
+            return succeeded
+        }
+
+        @JvmStatic
+        fun quoteIfIsPathToExecutable(path: String): String {
+            if (SystemUtils.IS_OS_WINDOWS) {
+                if (Files.isExecutable(Paths.get(path)))
+                    return '"' + path + '"'
+                else
+                    return path
+            } else {
+                return path
+            }
+        }
+
+        @JvmStatic
+        fun quoteAbsolutePaths(stringArray: Array<String>): Array<String> {
+            stringArray.forEachIndexed { idx, it ->
+                if (File(it).isAbsolute())
+                    stringArray[idx] = '"' + it + '"'
+            }
+            return stringArray
+        }
     }
-  }
-
-   static String[] quoteAbsolutePaths(String[] stringArray)
-  {
-    stringArray.eachWithIndex {it, idx ->
-      if (new File(it).isAbsolute())
-        stringArray[idx] = '"' + it + '"'
-    }
-    return stringArray
-  }
-
-  // WISH make an extension method (on Closure?) and move to github/utilities. The same with this.retryOnFalse()
-  static <T> T retryOnException(Closure<T> target, Class retryableExceptionClass, int attempts, int delay, String targetName) 
-    throws Throwable
-  {
-    assert attempts > 0
-    int attemptsLeft = attempts
-    Throwable exception = null
-    boolean succeeded = false
-    T out = null
-
-    while (!succeeded && attemptsLeft > 0)
-    {
-      try
-      {
-        out = target.call()
-        succeeded = true
-        exception = null
-      } catch (Throwable e)
-      {
-        if (retryableExceptionClass.isAssignableFrom(e.class))
-        {
-          exception = e
-          attemptsLeft--
-
-          if (attemptsLeft > 0)
-          {
-            log.trace("Discarded $e from \"$targetName\". Sleeping for $delay and retrying.")
-            sleep(delay)
-          }
-          else
-            log.trace("Discarded $e from \"$targetName\". Giving up.")
-        } else
-          throw e
-      }
-    }
-
-    if (succeeded)
-    {
-      assert exception == null
-      return out
-    } else
-    {
-      assert exception != null
-      throw exception
-    }
-  }
-
-  static Boolean retryOnFalse(Closure<Boolean> target, int attempts, int delay) throws Throwable
-  {
-    assert attempts > 0
-    int attemptsLeft = attempts
-
-    Boolean succeeded = target.call()
-    attemptsLeft--
-    while (!succeeded && attemptsLeft > 0)
-    {
-      sleep(delay)
-      succeeded = target.call()
-      attemptsLeft--
-    }
-
-    assert (attemptsLeft > 0).implies(succeeded)
-    return succeeded
-  }
-
 }

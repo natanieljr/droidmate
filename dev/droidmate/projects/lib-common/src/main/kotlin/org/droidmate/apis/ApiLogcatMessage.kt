@@ -19,136 +19,163 @@
 
 package org.droidmate.apis
 
-import groovy.transform.Canonical
-import groovy.util.logging.Slf4j
-import org.apache.commons.lang3.StringUtils
 import org.droidmate.misc.DroidmateException
-
-import java.util.stream.Collectors
-import java.util.stream.Stream
+import java.time.LocalDateTime
+import java.util.regex.Pattern
 
 /**
  * See {@link IApiLogcatMessage}
  */
-@Canonical
-@Slf4j
-class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
+class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
+                       val api: IApi) : IApiLogcatMessage {
+    companion object {
+        private const val serialVersionUID: Long = 1
 
-    private static final long serialVersionUID = 1
+        @JvmStatic
+        private val FRAGMENT_SPLITTER_CHAR = ';'
+        @JvmStatic
+        private val KEYVALUE_SPLITTER_CHAR = ':'
+        @JvmStatic
+        private val PARAM_SPLITTER_CHAR = ' '
 
-    private static final String nonQuotedOccruencesFormat =
-            "(?x)   " +
-                    "%s          " +   // Split on semi-colon
-                    "(?=        " +   // Followed by
-                    "  (?:      " +   // Start a non-capture group
-                    "    [^\"]* " +   // 0 or more non-quote characters
-                    "    \"     " +   // 1 quote
-                    "    [^\"]* " +   // 0 or more non-quote characters
-                    "    \"     " +   // 1 quote
-                    "  )*       " +   // 0 or more repetition of non-capture group (multiple of 2 quotes will be even)
-                    "  [^\"]*   " +   // Finally 0 or more non-quotes
-                    "  \$        " +   // Till the end  (This is necessary, else every comma will satisfy the condition)
-                    ")          "     // End look-ahead
+        /**
+         * Character used for escaping values so that are not considered during the parsing process
+         */
+        private val VALUESTRING_ENCLOSCHAR = '\''
+        private val ESCAPE_CHAR = '\\'
 
-    private static final String FRAGMENT_SPLITTER = ";"
-    private static final String KEYVALUE_SPLITTER = ":\\ "
-    private static final String PARAM_SPLITTER = "\\ "
-    private static final String VALUE_ESCAPECHAR = "\""
+        private val UNESCAPE_PATTERN = Pattern.compile("\\\\" + VALUESTRING_ENCLOSCHAR)
 
 
-    private static String[] splitOnChar(String value, String splitter, String format = nonQuotedOccruencesFormat) {
-        return value.split(String.format(format, splitter))
-    }
+        @JvmStatic
+        fun from(logcatMessage: ITimeFormattedLogcatMessage): ApiLogcatMessage {
+            assert(logcatMessage.messagePayload.isNotEmpty())
 
-    @Delegate
-    ITimeFormattedLogcatMessage message
+            val monitoredApiCallData = from(logcatMessage.messagePayload)
 
-    @Delegate
-    IApi api
-
-    static ApiLogcatMessage from(ITimeFormattedLogcatMessage logcatMessage) {
-        assert logcatMessage?.messagePayload?.size() > 0
-
-        IApi monitoredApiCallData = from(logcatMessage.messagePayload)
-
-        return new ApiLogcatMessage(logcatMessage, monitoredApiCallData)
-    }
-
-    /**
-     *
-     * All non primitive values have to be escaped by {@link ApiLogcatMessage#VALUE_ESCAPECHAR}! (except null).
-     * Separate fragments by {@link ApiLogcatMessage#FRAGMENT_SPLITTER}.
-     * Separate keyword and values by {@link ApiLogcatMessage#KEYVALUE_SPLITTER}.
-     * Separate param types and values by {@link ApiLogcatMessage#PARAM_SPLITTER}.
-     * <p>
-     * Example string to parse:
-     * <pre><code>
-     *   objCls: "java.net.URLConnection";mthd: "&lt;init>";retCls: "void";params: java.net.URL "http://www.google.com"
-     * </code></pre>
-     */
-    static IApi from(String logcatMessagePayload) {
-        assert logcatMessagePayload?.size() > 0
-
-        def payload = new ApiLogcatMessagePayload(logcatMessagePayload)
-        return new Api(payload.objectClass, payload.methodName, payload.returnClass, payload.paramTypes, payload.paramValues, payload.threadId, payload.stackTrace)
-    }
-
-
-    @Override
-    public String toString() {
-        message.toString()
-    }
-
-    /**
-     * <p>
-     * If {@code useVarNames} is true, the output string, when treated as code, will evaluate
-     * {@code api.paramValues} and {@code api.stackTrace} as variable names instead of constants in a string.
-     *
-     * </p><p>
-     * As an example, if {@code useVarNames} is false, the method will return a string like (not an actual implementation, but similar):
-     * <pre><code>"lorem ipsum param1: param1value param2: param2value stackTrace: contents"</code></pre>
-     * but if set to true it will return:
-     * <pre><code>"lorem ipsum param1: "+param1Value+" param2: "+param2Value+" stackTrace: "+stackTrace+""</pre></code>
-     *
-     * </p>
-     */
-    static String toLogcatMessagePayload(IApi api, boolean useVarNames = false) {
-        assert api.paramTypes.size() == api.paramValues.size()
-
-        List<String> processedParamTypes = api.paramTypes.collect { it.replace(" ", ClassFileFormat.genericTypeEscape) }
-        List<String> processedParamValues = api.paramValues.collect {
-            useVarNames ? /"+/ + it + /+"/ : it
+            return ApiLogcatMessage(logcatMessage, monitoredApiCallData)
         }
-        String actualThreadId = useVarNames ? /"+/ + api.threadId + /+"/ : api.threadId
-        String actualStackTrace = useVarNames ? /"+/ + api.stackTrace + /+"/ : api.stackTrace
 
-        return new ApiLogcatMessagePayload(
-                actualThreadId, api.objectClass, api.methodName, api.returnClass, processedParamTypes, processedParamValues, actualStackTrace)
-                .toString()
+        /**
+         * All non primitive values have to be escaped by {@link ApiLogcatMessage#VALUE_ESCAPECHAR}! (except null).
+         * Separate fragments by {@link ApiLogcatMessage#FRAGMENT_SPLITTER}.
+         * Separate keyword and values by {@link ApiLogcatMessage#KEYVALUE_SPLITTER}.
+         * Separate param types and values by {@link ApiLogcatMessage#PARAM_SPLITTER}.
+         * <p>
+         * Example string to parse:
+         * <pre><code>
+         *   objCls: "java.net.URLConnection";mthd: "&lt;init>";retCls: "void";params: java.net.URL "http://www.google.com"
+         * </code></pre>
+         */
+        @JvmStatic
+        fun from(logcatMessagePayload: String): IApi {
+            assert(logcatMessagePayload.isNotEmpty())
+
+            val payload = ApiLogcatMessagePayload(logcatMessagePayload)
+            return Api(payload.objectClass, payload.methodName, payload.returnClass, payload.paramTypes, payload.paramValues, payload.threadId, payload.stackTrace)
+        }
+
+        /**
+         * <p>
+         * If {@code useVarNames} is true, the output string, when treated as code, will evaluate
+         * {@code api.paramValues} and {@code api.stackTrace} as variable names instead of constants in a string.
+         *
+         * </p><p>
+         * As an example, if {@code useVarNames} is false, the method will return a string like (not an actual implementation, but similar):
+         * <pre><code>"lorem ipsum param1: param1value param2: param2value stackTrace: contents"</code></pre>
+         * but if set to true it will return:
+         * <pre><code>"lorem ipsum param1: "+param1Value+" param2: "+param2Value+" stackTrace: "+stackTrace+""</pre></code>
+         *
+         * </p>
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun toLogcatMessagePayload(api: IApi, useVarNames: Boolean = false): String {
+            assert(api.paramTypes.size == api.paramValues.size)
+
+            val processedParamTypes = api.paramTypes.map { it.replace(" ", ClassFileFormat.genericTypeEscape) }
+            val processedParamValues = api.paramValues.map {
+                if (useVarNames)
+                    "\"+/ + it + /+\""
+                else
+                    it
+            }
+
+            val actualThreadId = if (useVarNames) "\"+/ + api.threadId + /+\"" else api.threadId
+            val actualStackTrace = if (useVarNames) "\"+/ + api.stackTrace + /+\"" else api.stackTrace
+
+            return ApiLogcatMessagePayload(
+                    actualThreadId,
+                    api.objectClass,
+                    api.methodName,
+                    api.returnClass,
+                    processedParamTypes,
+                    processedParamValues,
+                    actualStackTrace).toString()
+        }
     }
 
-    private static class ApiLogcatMessagePayload {
+    override val time: LocalDateTime
+        get() = message.time
+    override val level: String
+        get() = message.level
+    override val tag: String
+        get() = message.tag
+    override val pidString: String
+        get() = message.pidString
+    override val messagePayload: String
+        get() = message.messagePayload
+    override val toLogcatMessageString: String
+        get() = message.toLogcatMessageString
+    override val objectClass: String
+        get() = api.objectClass
+    override val methodName: String
+        get() = api.methodName
+    override val returnClass: String
+        get() = api.returnClass
+    override val paramTypes: List<String>
+        get() = api.paramTypes
+    override val paramValues: List<String>
+        get() = api.paramValues
+    override val threadId: String
+        get() = api.threadId
+    override val stackTrace: String
+        get() = api.stackTrace
 
-        private static final String keyword_TId = "TId"
-        private static final String keyword_objCls = "objCls"
-        private static final String keyword_mthd = "mthd"
-        private static final String keyword_retCls = "retCls"
-        private static final String keyword_params = "params"
-        private static final String keyword_stacktrace = "stacktrace"
+    override fun getIntents(): List<String> = api.getIntents()
+    override fun parseUri(): String = api.parseUri()
 
-        private static
-        final List<String> keywords = [keyword_TId, keyword_objCls, keyword_mthd, keyword_retCls, keyword_params, keyword_stacktrace]
+    override fun getStackTraceFrames(): List<String> = api.getStackTraceFrames()
 
-        private final String threadId
-        private final String objectClass
-        private final String methodName
-        private final String returnClass
-        private final List<String> paramTypes
-        private final List<String> paramValues
-        private final String stackTrace
+    override val uniqueString: String
+        get() = api.uniqueString
 
+    override fun toString(): String = message.toString()
 
-        ApiLogcatMessagePayload(String threadId, String objectClass, String methodName, String returnClass, List<String> paramTypes, List<String> paramValues, String stackTrace) {
+    private class ApiLogcatMessagePayload {
+        companion object {
+            private val keyword_TId = "TId"
+            private val keyword_objCls = "objCls"
+            private val keyword_mthd = "mthd"
+            private val keyword_retCls = "retCls"
+            private val keyword_params = "params"
+            private val keyword_stacktrace = "stacktrace"
+
+            private val keywords = arrayListOf(keyword_TId, keyword_objCls, keyword_mthd,
+                    keyword_retCls, keyword_params, keyword_stacktrace)
+
+        }
+
+        val threadId: String
+        val objectClass: String
+        val methodName: String
+        val returnClass: String
+        val paramTypes: List<String>
+        val paramValues: List<String>
+        val stackTrace: String
+
+        constructor(threadId: String, objectClass: String, methodName: String, returnClass: String,
+                    paramTypes: List<String>, paramValues: List<String>, stackTrace: String) {
             this.threadId = threadId
             this.objectClass = objectClass
             this.methodName = methodName
@@ -158,102 +185,139 @@ class ApiLogcatMessage implements IApiLogcatMessage, Serializable {
             this.stackTrace = stackTrace
         }
 
-        ApiLogcatMessagePayload(String payload) {
+        constructor(payload: String) {
             /* WISH instead of this complex process of extracting the API method signature from a serialized string, the monitor should
-            send through TCP a list of strings, not a string. See: org.droidmate.lib_android.MonitorJavaTemplate.addCurrentLogs
+        send through TCP a list of strings, not a string. See: org.droidmate.lib_android.MonitorJavaTemplate.addCurrentLogs
 
-            Currently such implementation is in place because in the past the API logs were read from logcat, not from TCP socket.
-            So far I decided just adapt the new TCP interface to send the same data type as it went through logcat. I did it because
-            then editing the monitor source file was a pain. Since then I streamlined the process so it should be easier to fulfill
-            this wish now.
-             */
+        Currently such implementation is in place because in the past the API logs were read from logcat, not from TCP socket.
+        So far I decided just adapt the new TCP interface to send the same data type as it went through logcat. I did it because
+        then editing the monitor source file was a pain. Since then I streamlined the process so it should be easier to fulfill
+        this wish now.
+         */
 
-            List<String> elements = Stream.of(splitOnChar(payload, FRAGMENT_SPLITTER))
-                    .flatMap({ s -> Stream.of(splitOnChar(s, KEYVALUE_SPLITTER)) })
-                    .flatMap({ s -> Stream.of(splitOnChar(s, PARAM_SPLITTER)) })
-                    .collect(Collectors.toList())
-            assert !elements.empty
+            val elements = splitPayload(payload)
 
             addThreadIdIfNecessary(elements)
-            Map<String, List<String>> keywordToValues = computeKeywordToValues(elements, payload)
-            Tuple2<List<String>, List<String>> params = splitAndValidateParams(keywordToValues)
+            val keywordToValues = computeKeywordToValues(elements, payload)
+            val params = splitAndValidateParams(keywordToValues)
 
-            this.threadId = keywordToValues[keyword_TId].findSingle()
 
-            this.objectClass = StringUtils.strip(keywordToValues[keyword_objCls].findSingle(), VALUE_ESCAPECHAR)
-            this.methodName = StringUtils.strip(keywordToValues[keyword_mthd].findSingle(), VALUE_ESCAPECHAR)
-            this.returnClass = StringUtils.strip(keywordToValues[keyword_retCls].findSingle(), VALUE_ESCAPECHAR)
+            this.threadId = keywordToValues[keyword_TId]!!.single()
+            this.objectClass = keywordToValues[keyword_objCls]!!.single()
+            this.methodName = keywordToValues[keyword_mthd]!!.single()
+            this.returnClass = keywordToValues[keyword_retCls]!!.single()
             this.paramTypes = params.first
-            this.paramValues = params.second.stream().map({ s -> StringUtils.strip(s, VALUE_ESCAPECHAR) }).collect(Collectors.toList())
-            this.stackTrace = StringUtils.strip(keywordToValues[keyword_stacktrace].findSingle(), VALUE_ESCAPECHAR)
+            this.paramValues = params.second.map { s -> unescape(s) }
+            this.stackTrace = keywordToValues[keyword_stacktrace]!!.single()
         }
 
-        private void addThreadIdIfNecessary(List<String> elements) {
-            if (!(elements.first() == keyword_TId)) {
+        fun unescape(s: String): String {
+            return UNESCAPE_PATTERN.matcher(s).replaceAll(VALUESTRING_ENCLOSCHAR.toString())
+        }
+
+        fun splitPayload(payload: String): MutableList<String> {
+            val res: MutableList<String> = ArrayList()
+            val builder = StringBuilder()
+            var inValueString = false
+            var wasEscaped = false
+
+            payload.forEach { c ->
+                if (!inValueString && (c == FRAGMENT_SPLITTER_CHAR || c == KEYVALUE_SPLITTER_CHAR || c == PARAM_SPLITTER_CHAR)) {
+                    if (builder.isNotEmpty()) {
+                        res.add(builder.toString())
+                        builder.setLength(0)
+                    }
+                } else if (!inValueString && Character.isWhitespace(c)) {
+                    // we ignore whitespace outside of value strings
+                } else if (!wasEscaped && c == VALUESTRING_ENCLOSCHAR) {
+                    if (inValueString) {
+                        inValueString = false
+                        res.add(builder.toString())
+                        builder.setLength(0)
+                    } else {
+                        inValueString = true
+                    }
+                } else {
+                    if (c == ESCAPE_CHAR)
+                        wasEscaped = true
+                    else
+                        wasEscaped = false
+
+                    builder.append(c)
+                }
+            }
+
+            return res
+        }
+
+        private fun addThreadIdIfNecessary(elements: MutableList<String>) {
+            if (elements.first() != keyword_TId) {
                 elements.add(0, "?")
                 elements.add(0, keyword_TId)
             }
         }
 
-        private static Map<String, List<String>> computeKeywordToValues(List<String> elements, String payload) {
-            Map<Integer, String> indexToKeyword = keywords.collectEntries { String keyword ->
+        private fun computeKeywordToValues(elements: List<String>, payload: String): Map<String, List<String>> {
+            val keyValuePairs = keywords.map { keyword ->
 
-                List<Number> indexes = elements.findIndexValues { it == keyword }
-                assert indexes.size() >= 1
+                val index = elements.indexOfFirst { it == keyword }
+                assert(index >= 0)
+                val indexLast = elements.indexOfLast { it == keyword }
 
-                if (indexes.size() > 1)
-                    throw new DroidmateException("An API logcat message payload contains the keyword $keyword more than once. " +
+                if (index != indexLast)
+                    throw DroidmateException("An API logcat message payload contains the keyword $keyword more than once. " +
                             "DroidMate doesn't support such case yet. The offending payload:\n$payload")
 
-                assert indexes.size() == 1
-
-                [(elements.findIndexOf { it == keyword }): keyword]
+                val ret = Pair(index, keyword)
+                ret
             }
-            Set<Integer> keywordIndexes = indexToKeyword.keySet()
+            val indexToKeyword = hashMapOf(*keyValuePairs.toTypedArray())
 
-            Map<String, List<String>> keywordToValues = keywords.collectEntries { [(it): []] }
-            elements.eachWithIndex { String element, int i ->
+            val keywordIndexes = indexToKeyword.keys.toList()
 
-                if (element in keywords)
-                    return
+            val keywordToValues = hashMapOf(*keywords
+                    .map { keyword -> Pair<String, MutableList<String>>(keyword, ArrayList()) }
+                    .toTypedArray())
 
-                int elementKeywordIndex = keywordIndexes.findAll { it < i }.max()
-                keywordToValues[indexToKeyword[elementKeywordIndex]].add(element)
-
+            elements.forEachIndexed { i, element ->
+                if (element !in keywords) {
+                    val elementKeywordIndex = keywordIndexes.filter { it < i }.max()!!
+                    keywordToValues[indexToKeyword[elementKeywordIndex]]!!.add(element)
+                }
             }
             return keywordToValues
         }
 
-        private Tuple2<List<String>, List<String>> splitAndValidateParams(Map<String, List<String>> keywordToValues) {
-            if (keywordToValues[keyword_params].size() == 1 && keywordToValues[keyword_params][0] == "")
-                return new Tuple2([], [])
+        private fun splitAndValidateParams(keywordToValues: Map<String, List<String>>): Pair<List<String>, List<String>> {
+            val item = keywordToValues[keyword_params]
+            if ((item == null) || ((item.size == 1) && (item[0] == "")))
+                return Pair(ArrayList(), ArrayList())
 
-            assert keywordToValues[keyword_params].size() % 2 == 0
+            assert(item.size % 2 == 0)
 
-            List<String> paramTypes = keywordToValues[keyword_params].indexed().findAll {
-                it.key % 2 == 0
-            }.values() as List<String>
-            List<String> paramValues = keywordToValues[keyword_params].indexed().findAll {
-                it.key % 2 == 1
-            }.values() as List<String>
-            paramTypes.each { assert it.matches(ClassFileFormat.javaTypePattern) }
-            Tuple2<List<String>, List<String>> params = new Tuple2(paramTypes, paramValues)
-            return params
+            val paramTypes = item.filterIndexed { index, _ -> index % 2 == 0 }
+            val paramValues = item.filterIndexed { index, _ -> index % 2 == 1 }
+            paramTypes.forEach { assert(it.matches(ClassFileFormat.javaTypePattern.toRegex())) }
+            return Pair(paramTypes, paramValues)
         }
 
-        @Override
-        String toString() {
-            String.format("""$keyword_TId: %s;$keyword_objCls: "%s";$keyword_mthd: "%s";$keyword_retCls: "%s";$keyword_params: %s;$keyword_stacktrace: "%s\"""",
-                    this.threadId, this.objectClass, this.methodName, this.returnClass, this.params, this.stackTrace)
+        override fun toString(): String {
+            return String.format("""$keyword_TId:%s;$keyword_objCls:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR;$keyword_mthd:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR;$keyword_retCls:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR;$keyword_params:%s;$keyword_stacktrace:$VALUESTRING_ENCLOSCHAR%s$VALUESTRING_ENCLOSCHAR""",
+                    this.threadId, this.objectClass, this.methodName, this.returnClass, this.getParams(), this.stackTrace)
         }
 
-        String getParams() {
-            [this.paramTypes,
-             this.paramValues.stream().map({ p -> p.equals("null") ? p : "\"" + p + "\"" }).collect(Collectors.toList())
-            ].transpose().flatten().join(" ")
-        }
+        private fun getParams(): String
+                = this.paramTypes.mapIndexed { index, paramType ->
+            var paramVal = this.paramValues[index]
+
+            if (!paramVal.equals("null"))
+                paramVal = VALUESTRING_ENCLOSCHAR + paramVal.replace("\\\'", "'") + VALUESTRING_ENCLOSCHAR
+            //else
+            //    paramVal = VALUESTRING_ENCLOSCHAR + "" + VALUESTRING_ENCLOSCHAR
+
+            "$VALUESTRING_ENCLOSCHAR$paramType$VALUESTRING_ENCLOSCHAR $paramVal"
+        }.joinToString(PARAM_SPLITTER_CHAR.toString())
     }
-
 }
 
 

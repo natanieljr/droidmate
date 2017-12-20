@@ -18,50 +18,43 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import groovy.util.logging.Slf4j
+import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.android_sdk.AaptWrapper
 import org.droidmate.android_sdk.Apk
 import org.droidmate.apk_inliner.ApkInliner
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.SysCmdExecutor
-import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.tools.ApksProvider
+import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.Path
 
-@Slf4j
-class InlineCommand extends DroidmateCommand
-{
-  private final ApkInliner inliner
+class InlineCommand constructor(private val inliner: ApkInliner) : DroidmateCommand() {
 
-  InlineCommand(ApkInliner inliner)
-  {
-    this.inliner = inliner
+    companion object {
+        private val log = LoggerFactory.getLogger(InlineCommand::class.java)
+
+        @JvmStatic
+        fun build(): InlineCommand
+                = InlineCommand(ApkInliner.build())
   }
 
-  static InlineCommand build()
-  {
-    return new InlineCommand(ApkInliner.build())
-  }
+    override fun execute(cfg: Configuration) {
+        val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
+        val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
-  @Override
-  void execute(Configuration cfg) throws ThrowablesCollection
-  {
-    def apksProvider = new ApksProvider(new AaptWrapper(cfg, new SysCmdExecutor()))
-    List<Apk> apks = apksProvider.getApks(cfg.apksDirPath)
-    
-    if (apks.every { it.inlined } )
+        if (apks.all { it.inlined })
     {
       log.warn("No non-inlined apks found. Aborting.")
       return
     }
 
-    Path originalsDir = cfg.apksDirPath.resolve("originals")
+        val originalsDir = cfg.apksDirPath.resolve("originals")
     if (originalsDir.createDirIfNotExists())
       log.info("Created directory to hold original apks, before inlining: "+originalsDir.toAbsolutePath().toString())
 
-    apks.findAll { !it.inlined }.each { Apk apk ->
+        apks.filter { !it.inlined }.forEach { apk ->
 
       inliner.inline(apk.path, apk.path.parent)
       log.info("Inlined ${apk.fileName}")
@@ -69,17 +62,16 @@ class InlineCommand extends DroidmateCommand
     }
   }
 
-  private void moveOriginal(Apk apk, Path originalsDir)
-  {
-    Path original = originalsDir.resolve(apk.fileName)
+    private fun moveOriginal(apk: Apk, originalsDir: Path) {
+        val original = originalsDir.resolve(apk.fileName)
 
     if (!Files.exists(original))
     {
       Files.move(apk.path, original)
-      log.info("Moved $original.fileName to '${originalsDir.fileName}' subdir.")
+        log.info("Moved ${original.fileName} to '${originalsDir.fileName}' sub dir.")
     } else
     {
-      log.info("Skipped moving $original.fileName to '${originalsDir.fileName}' subdir: it already exists there.")
+        log.info("Skipped moving ${original.fileName} to '${originalsDir.fileName}' sub dir: it already exists there.")
     }
   }
 }

@@ -20,82 +20,83 @@
 package org.droidmate.test_tools.device.datatypes
 
 import org.droidmate.device.datatypes.GuiState
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.device.model.DeviceModel
-
-import static WidgetTestHelper.newTopLevelWidget
-import static org.droidmate.test_tools.ApkFixtures.apkFixture_simple_packageName
+import org.droidmate.test_tools.ApkFixtures.Companion.apkFixture_simple_packageName
+import org.droidmate.test_tools.device.datatypes.WidgetTestHelper.Companion.newTopLevelWidget
 
 class GuiStateTestHelper
 {
 
-  static GuiState newEmptyGuiState(String appPackageName = apkFixture_simple_packageName, String id = null)
-  {
-    return new GuiState(appPackageName, id, [] as List<Widget>, DeviceModel.buildDefault().androidLauncherPackageName)
-  }
+    companion object {
+        @JvmStatic
+        @JvmOverloads
+        @Suppress("unused")
+        fun newEmptyGuiState(appPackageName: String = apkFixture_simple_packageName, id: String = ""): IGuiState =
+                GuiState(appPackageName, id, ArrayList(), DeviceModel.buildDefault().getAndroidLauncherPackageName())
 
-   static GuiState newGuiStateWithTopLevelNodeOnly(String appPackageName = apkFixture_simple_packageName, String id = null)
-  {
-    return new GuiState(appPackageName, id, [newTopLevelWidget(appPackageName)] as List<Widget>, DeviceModel.buildDefault().androidLauncherPackageName)
-  }
+        @JvmStatic
+        @JvmOverloads
+        fun newGuiStateWithTopLevelNodeOnly(appPackageName: String = apkFixture_simple_packageName, id: String = ""): IGuiState
+                =
+                GuiState(appPackageName, id, arrayListOf(newTopLevelWidget(appPackageName)), DeviceModel.buildDefault().getAndroidLauncherPackageName())
+
+        @JvmStatic
+        @Suppress("unused")
+        fun newGuiStateWithDisabledWidgets(widgetCount: Int): IGuiState
+                = newGuiStateWithWidgets(widgetCount, apkFixture_simple_packageName, false)
+
+        @JvmStatic
+        @JvmOverloads
+        fun newGuiStateWithWidgets(widgetCount: Int,
+                                   packageName: String = apkFixture_simple_packageName,
+                                   enabled: Boolean = true,
+                                   guiStateId: String = "",
+                                   widgetIds: List<String> = ArrayList()): IGuiState {
+            assert(widgetCount >= 0, { "Widget count cannot be zero. To create GUI state without widgets, call newEmptyGuiState()" })
+            assert(widgetIds.isEmpty() || widgetIds.size == widgetCount)
+
+            val gs = GuiState(packageName, guiStateId, WidgetTestHelper.newWidgets(
+                    widgetCount,
+                    packageName,
+                    mapOf(
+                            "idsList" to widgetIds,
+                            "enabledList" to (0 until widgetCount).map { enabled }
+                    ),
+                    if (guiStateId.isEmpty()) guiStateId else getNextGuiStateName()),
+                    DeviceModel.buildDefault().getAndroidLauncherPackageName())
+            assert(gs.widgets.all { it.packageName == gs.topNodePackageName })
+            return gs
+        }
+
+        @JvmStatic
+        @Suppress("unused")
+        fun newAppHasStoppedGuiState(): IGuiState
+                = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump().guiState
+
+        @JvmStatic
+        @Suppress("unused")
+        fun newCompleteActionUsingGuiState(): IGuiState
+                = UiautomatorWindowDumpTestHelper.newCompleteActionUsingWindowDump().guiState
 
 
-   static GuiState newGuiStateWithDisabledWidgets(int widgetCount)
-  {
-    return newGuiStateWithWidgets(widgetCount, apkFixture_simple_packageName, false)
-  }
+        @JvmStatic
+        @Suppress("unused")
+        fun newHomeScreenGuiState(): IGuiState
+                = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump().guiState
 
-   static GuiState newGuiStateWithWidgets(
-    int widgetCount,
-    String packageName = apkFixture_simple_packageName,
-    boolean enabled = true,
-    String guiStateId = null,
-    List<String> widgetIds = null)
-  {
-    assert widgetCount >= 0
-    assert !(widgetCount == 0): "Widget count cannot be zero. To create GUI state without widgets, call newEmptyGuiState()"
-    assert widgetIds == null || widgetIds.size() == widgetCount
+        @JvmStatic
+        @Suppress("unused")
+        fun newOutOfAppScopeGuiState(): IGuiState
+                = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump().guiState
 
-    def gs = new GuiState(packageName, guiStateId, WidgetTestHelper.newWidgets(
-      widgetCount,
-      packageName,
-      [
-        idsList    : widgetIds,
-        enabledList: [enabled] * widgetCount
-      ],
-      /* widgetIdPrefix */ guiStateId ?: getNextGuiStateName()),
-      DeviceModel.buildDefault().androidLauncherPackageName)
-    assert gs.widgets.every {it.packageName == gs.topNodePackageName}
-    return gs
-  }
+        @JvmStatic
+        var nextGuiStateIndex = 0
 
-   static GuiState newAppHasStoppedGuiState()
-  {
-    return UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump().guiState
-  }
-
-   static GuiState newCompleteActionUsingGuiState()
-  {
-    return UiautomatorWindowDumpTestHelper.newCompleteActionUsingWindowDump().guiState
-  }
-
-
-   static GuiState newHomeScreenGuiState()
-  {
-    return UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump().guiState
-
-  }
-
-   static GuiState newOutOfAppScopeGuiState()
-  {
-    return UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump().guiState
-  }
-
-  static int nextGuiStateIndex = 0
-
-   static getNextGuiStateName()
-  {
-    nextGuiStateIndex++
-    return "GS$nextGuiStateIndex"
-  }
+        @JvmStatic
+        fun getNextGuiStateName(): String {
+            nextGuiStateIndex++
+            return "GS$nextGuiStateIndex"
+        }
+    }
 }

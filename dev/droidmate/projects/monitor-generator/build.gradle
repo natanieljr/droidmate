@@ -19,7 +19,7 @@
 
 import org.droidmate.buildsrc.BuildKt
 
-apply plugin: 'groovy'
+apply plugin: 'kotlin'
 apply from: project(":projects").file("debug.gradle")
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -33,7 +33,6 @@ dependencies {
   compile project(":projects:lib-kotlin")
 
   compile 'com.google.code.gson:gson:2.4'
-  compile 'org.codehaus.groovy:groovy-all:2.4.10'
 
   compile 'ch.qos.logback:logback-classic:1.0.13'
   compile 'ch.qos.logback:logback-core:1.0.13'

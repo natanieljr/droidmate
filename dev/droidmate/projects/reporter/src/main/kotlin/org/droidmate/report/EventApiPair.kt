@@ -19,75 +19,76 @@
 package org.droidmate.report
 
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import java.time.LocalDateTime
 
 class EventApiPair(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogcatMessage) {
 
-  val pair: Pair<String, IApiLogcatMessage>
-  
-  operator fun component1() = pair.first
-  operator fun component2() = pair.second
-  
-  val time: LocalDateTime get() = pair.second.time
-  
-  init { pair = build(actRes, apiLog) }
+    val pair: Pair<String, IApiLogcatMessage>
 
-  private fun build(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogcatMessage): Pair<String, IApiLogcatMessage> {
+    operator fun component1() = pair.first
+    operator fun component2() = pair.second
 
-    fun extractEvent(action: ExplorationAction, thread: Int): String {
+    val time: LocalDateTime get() = pair.second.time
 
-      fun extractWidgetEventString(action: ExplorationAction): String {
-        require(action is WidgetExplorationAction || action is EnterTextExplorationAction)
-        val w: Widget
-        val prefix: String
-        when (action) {
-          is WidgetExplorationAction -> {
-            w = action.widget
-            prefix = (if (action.isLongClick) "l-click:" else "click") + ":"
-          }
-          is EnterTextExplorationAction -> {
-            w = action.widget
-            prefix = "enterText:"
-          }
-          else -> throw UnexpectedIfElseFallthroughError()
-        }
-        checkNotNull(w)
-        val widgetString =
-          if (w.resourceId?.length ?: 0 > 0)
-            "[res:${w.strippedResourceId}]"
-          else if (w?.contentDesc?.length ?: 0 > 0)
-            "[dsc:${w.contentDesc}]"
-          else if (w?.text?.length ?: 0 > 0)
-            "[txt:${w.text}]"
-          else ""
-
-        if (widgetString.isEmpty())
-          return "unlabeled"
-        else
-          return prefix + widgetString
-      }
-
-      return when (action) {
-        is ResetAppExplorationAction, is TerminateExplorationAction -> "<reset>"
-        is WidgetExplorationAction, is EnterTextExplorationAction ->
-          if (thread == 1) extractWidgetEventString(action) else "background"
-        is PressBackExplorationAction -> "<press back>"
-      // Kotlin BUG: this else should not be necessary. Groovy's fault?
-      // Maybe this is the reason: https://discuss.kotlinlang.org/t/algebraic-data-types-are-not-exhaustive/1857/4
-        else -> throw UnexpectedIfElseFallthroughError()
-      }
+    init {
+        pair = build(actRes, apiLog)
     }
 
-    return Pair(
-      extractEvent(action = actRes.action.base, thread = apiLog.threadId.toInt()),
-      apiLog)
-  }
+    private fun build(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogcatMessage): Pair<String, IApiLogcatMessage> {
 
-  val uniqueString: String get() = pair.first + pair.second.uniqueString
+        fun extractEvent(action: ExplorationAction, thread: Int): String {
 
-  
+            fun extractWidgetEventString(action: ExplorationAction): String {
+                require(action is WidgetExplorationAction || action is EnterTextExplorationAction)
+                val w: IWidget
+                val prefix: String
+                when (action) {
+                    is WidgetExplorationAction -> {
+                        w = action.widget
+                        prefix = (if (action.longClick) "l-click:" else "click") + ":"
+                    }
+                    is EnterTextExplorationAction -> {
+                        w = action.widget
+                        prefix = "enterText:"
+                    }
+                    else -> throw UnexpectedIfElseFallthroughError()
+                }
+                checkNotNull(w)
+                val widgetString =
+                        if (w.resourceId.isNotEmpty())
+                            "[res:${w.getStrippedResourceId()}]"
+                        else if (w.contentDesc.isNotEmpty())
+                            "[dsc:${w.contentDesc}]"
+                        else if (w.text.isNotEmpty())
+                            "[txt:${w.text}]"
+                        else ""
+
+                if (widgetString.isEmpty())
+                    return "unlabeled"
+                else
+                    return prefix + widgetString
+            }
+
+            return when (action) {
+                is ResetAppExplorationAction, is TerminateExplorationAction -> "<reset>"
+                is WidgetExplorationAction, is EnterTextExplorationAction ->
+                    if (thread == 1)
+                        extractWidgetEventString(action)
+                    else
+                        "background"
+                is PressBackExplorationAction -> "<press back>"
+                else -> throw UnexpectedIfElseFallthroughError()
+            }
+        }
+
+        return Pair(
+                extractEvent(action = actRes.getAction().base, thread = apiLog.threadId.toInt()),
+                apiLog)
+    }
+
+    val uniqueString: String get() = pair.first + pair.second.uniqueString
 }
 

@@ -25,13 +25,8 @@ import java.awt.Dimension
  *
  * @author Nataniel Borges Jr.
  */
-class PixelC_API25_Model implements IDeviceModel
-{
-    final String androidLauncherPackageName = "com.google.android.apps.pixelclauncher"
+class PixelC_API25_Model : IDeviceModel {
+    override fun getAndroidLauncherPackageName(): String = "com.google.android.apps.pixelclauncher"
 
-    @Override
-    Dimension getDeviceDisplayDimensionsForTesting()
-    {
-        return new Dimension(1800, 2485)
-    }
+    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1800, 2485)
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,36 +19,30 @@
 
 package org.droidmate.device.datatypes
 
-import groovy.transform.Canonical
 import org.droidmate.uiautomator_daemon.guimodel.GuiAction
+import org.slf4j.LoggerFactory
 
-@Canonical
-class ClickGuiAction extends AndroidDeviceAction
-{
-  GuiAction guiAction
+class ClickGuiAction constructor(val guiAction: GuiAction) : AndroidDeviceAction() {
+    companion object {
+        private val log = LoggerFactory.getLogger(ClickGuiAction::class.java)
+    }
 
-  @Override
-  public String toString()
-  {
-    return "${this.class.simpleName}{${guiAction.toString()}}"
-  }
+    override fun toString(): String = "${this.javaClass.simpleName}{$guiAction}"
 
-  Widget getSingleMatchingWidget(Set<Widget> widgets)
-  {
-    int x = this.guiAction.clickXCoor
-    int y = this.guiAction.clickYCoor
-    assert x != null
-    assert y != null
+    fun getSingleMatchingWidget(widgets: List<IWidget>): IWidget {
+        //TODO Nataniel Review later
+        val x = this.guiAction.clickXCoor
+        val y = this.guiAction.clickYCoor
 
-    Set<Widget> matchedWidgets = widgets.findAll {it.bounds.contains(x, y)}
+        val matchedWidgets = widgets.filter { it.bounds.contains(x, y) }
 
-    assert matchedWidgets.size() >= 1: "Expected to match at least one widget to coordinates $x $y"
-    assert matchedWidgets.size() <= 1: "Expected to match at most one widget to coordinates $x $y. " +
-      "Instead matched ${matchedWidgets.size()} widgets. " +
-      "The matched widgets bounds:\n" +
-      matchedWidgets.collect {it.boundsString}.join("\n")
+        assert(!matchedWidgets.isEmpty(), { "Expected to match at least one widget to coordinates $x $y" })
+        if (matchedWidgets.size > 1)
+            log.warn("Expected to match at most one widget to coordinates $x $y. " +
+                    "Instead matched ${matchedWidgets.size} widgets. " +
+                    "The matched widgets bounds:\n" +
+                    matchedWidgets.joinToString("\n") { it.boundsString })
 
-    return matchedWidgets[0]
-  }
-
+        return matchedWidgets[0]
+    }
 }

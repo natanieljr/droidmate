@@ -92,13 +92,13 @@ class ApkSummary() {
     )
 
     private constructor(
-      data: IApkExplorationOutput2,
-      uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
-      uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
+            data: IApkExplorationOutput2,
+            uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
+            uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
     ) : this(
       appPackageName = data.packageName,
-      totalRunTime = data.explorationDuration,
-      totalActionsCount = data.actRess.size,
+            totalRunTime = data.getExplorationDuration(),
+            totalActionsCount = data.actRes.size,
       totalResetsCount = data.resetActionsCount,
       exception = data.exception,
       uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
@@ -129,15 +129,15 @@ class ApkSummary() {
 
     companion object {
       val IApkExplorationOutput2.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int> get() {
-        return this.actRess.uniqueItemsWithFirstOccurrenceIndex(
-          extractItems = { it.result.deviceLogs.apiLogsOrEmpty },
+          return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
+                  extractItems = { it.getResult().deviceLogs.apiLogs },
           extractUniqueString = { it.uniqueString }
         )
       }
 
       val IApkExplorationOutput2.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int> get() {
-        
-        return this.actRess.uniqueItemsWithFirstOccurrenceIndex(
+
+          return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
           extractItems = RunnableExplorationActionWithResult::extractEventApiPairs,
           extractUniqueString = EventApiPair::uniqueString
         )

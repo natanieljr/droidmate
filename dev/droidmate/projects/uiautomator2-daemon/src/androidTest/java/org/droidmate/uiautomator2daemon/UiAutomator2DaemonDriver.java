@@ -154,11 +154,14 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     if (action.guiActionCommand != null)
     {
-
+      if(action.guiActionCommand.equals(guiActionCommand_wait)){
+        Log.d(uiaDaemon_logcatTag, "Wait for element to exist"+action.toString());
+        waitForElementExists(action);
+      }
       // Explanation for turning off the 'IfCanBeSwitch' inspection:
       // the ant script used for building this source uses Java 1.5 in which switch over strings is not supported.
       //noinspection IfCanBeSwitch
-      if (action.guiActionCommand.equals(guiActionCommand_pressBack))
+      else if (action.guiActionCommand.equals(guiActionCommand_pressBack))
       {
         Log.d(uiaDaemon_logcatTag, "Pressing 'back' button.");
         this.device.pressBack();
@@ -359,7 +362,46 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
   	return swipeResult;
   }
 
-  // WISH maybe waitForIdle can be set by http://developer.android.com/tools/help/uiautomator/Configurator.html#setWaitForIdleTimeout%28long%29
+    private void waitForElementExists(GuiAction action){
+        String selector = action.textToEnter;
+        String id = action.resourceId;
+        UiSelector s = null;
+        Log.d(uiaDaemon_logcatTag,"Wait for UI element");
+        switch(selector){
+            case "ResourceId" : s = new UiSelector().resourceId(id);
+                Log.d(uiaDaemon_logcatTag,"wait for ResourceId "+id);
+                break;
+            case "ClassName" : s = new UiSelector().className(id); break;
+            case "ContentDesc":
+                Log.d(uiaDaemon_logcatTag,"wait for ContentDesc "+id);
+                s = new UiSelector().descriptionContains(id); break;
+            case "XPath" :  // FIXME xpath visitor would be safer but for now use quick and dirty string operations
+                // TODO XPath (for this we need to visit the xpath and check for each visitStep if an element with this classname and given parent exists
+                // e.g. step.localName,numberLiteral:num.num().toInt() => 'new UiSelector().className("step.localName").instance(0)'
+                Log.d(uiaDaemon_logcatTag,"wait for XPath "+id);
+                // //android.widget.FrameLayout[1]/android.widget.FrameLayout[1]/android.widget.FrameLayout[1]/android.widget.RelativeLayout[1]/android.webkit.WebView[1]/android.webkit.WebView[1]/android.view.View[1]/android.view.View[2]/android.view.View[4]/android.widget.EditText[1]
+                String[] nodes = id.split("/");
+                for(String n:nodes){
+                    Log.d(uiaDaemon_logcatTag,"iterate: "+n);
+                    if(n.length()<4) continue;  // the initial '//' creates two empty strings which we have to skip
+                    int sIdx = n.indexOf('[');  // FIXME this only works as long as classNames don't contain '[' or ']' characters
+                    int eIdx = n.indexOf(']');
+                    int idx = Integer.parseInt(n.substring(sIdx+1,eIdx))-1;
+                    String className = n.substring(0,sIdx);
+                    if(s==null) s = new UiSelector().className(className).instance(idx);
+                    else s = s.childSelector(new UiSelector().className(className).instance(idx));
+                }
+                break;
+            default:
+                throw new RuntimeException("ERROR in UiAutomator2DaemonDriver invalid condition for wait action");
+        }
+
+        UiObject elem = device.findObject(s);
+        Log.v(uiaDaemon_logcatTag, "wait up to 10s to find widget for "+ (s != null ? s.toString() : "null"));
+        elem.waitForExists(10000);  // waits until the view becomes visible on the display, or until the timeout (ms) has elapsed
+    }
+
+    // WISH maybe waitForIdle can be set by http://developer.android.com/tools/help/uiautomator/Configurator.html#setWaitForIdleTimeout%28long%29
 
   /**
    * <p>

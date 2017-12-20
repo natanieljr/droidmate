@@ -18,59 +18,70 @@
 // web: www.droidmate.org
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'project-report'
+
 buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath 'com.android.tools.build:gradle:2.3.3'
-  }
+    ext.kotlin_version = "1.2.0"
+
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.3'
+
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
+    }
 }
 
 android {
-  compileSdkVersion 23
-  buildToolsVersion "25.0.1"
-  defaultConfig {
-    applicationId "org.droidmate.monitor"
-    minSdkVersion 23
-    targetSdkVersion 23
-    versionCode 1
-    versionName "1.0"
+    compileSdkVersion 23
+    buildToolsVersion "25.0.1"
+    defaultConfig {
+        applicationId "org.droidmate.monitor"
+        minSdkVersion 23
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
 
-    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-    lintOptions {
-      abortOnError false
+        lintOptions {
+            abortOnError false
+        }
     }
-  }
-  buildTypes {
-    release {
-      minifyEnabled false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
-  }
-  
-  // Based on: https://developer.android.com/studio/build/build-variants.html#product-flavors
-  productFlavors {
-    api23 { }
-  }
+
+    // Based on: https://developer.android.com/studio/build/build-variants.html#product-flavors
+    productFlavors {
+        api23 {}
+    }
 }
 
 // Based on: http://stackoverflow.com/a/34337260/986533
 android.variantFilter { variant ->
-  if(variant.buildType.name.equals('debug')) {
-    variant.setIgnore(true)
-  }
+    if (variant.buildType.name.equals('debug')) {
+        variant.setIgnore(true)
+    }
 }
+
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-  compile fileTree(dir: 'libs_built', include: ['*.jar'])
-  compile fileTree(dir: 'libs_common', include: ['*.jar'])
-  // Based on: https://developer.android.com/studio/build/build-variants.html#sourcesets
-  api23Compile fileTree(dir: 'libs_api23', include: ['*.jar'])
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    compile fileTree(dir: 'libs_built', include: ['*.jar'])
+    compile fileTree(dir: 'libs_common', include: ['*.jar'])
+    // Based on: https://developer.android.com/studio/build/build-variants.html#sourcesets
+    api23Compile fileTree(dir: 'libs_api23', include: ['*.jar'])
 }
  

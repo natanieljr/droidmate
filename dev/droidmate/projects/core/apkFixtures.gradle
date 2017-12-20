@@ -16,7 +16,6 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-import com.konradjamrozik.IterableExtensions
 import org.droidmate.buildsrc.BuildKt
 
 // !!! DUPLICATION WARNING !!!
@@ -28,7 +27,7 @@ String apkFixturesBuildTask = "stageForDroidmate"
 // end of DUPLICATION WARNING
 
 ext.apkFixturesDir = new File(
-  IterableExtensions.findSingle(sourceSets.test.resources.srcDirs as Set<File>),
+  (sourceSets.test.resources.srcDirs as Set<File>).first(),
   BuildKt.apk_fixtures)
 assert apkFixturesDir.directory
 

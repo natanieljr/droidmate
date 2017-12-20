@@ -18,9 +18,13 @@
 // web: www.droidmate.org
 package org.droidmate.storage
 
+import org.nustaq.serialization.FSTObjectInput
+import java.io.InputStream
+import java.util.*
+
 /**
- * <p>An {@link ObjectInputStream} that can account for changes in fully qualified names of the read/deserialized classes. 
- * If this stream reads a class whose fully qualified name is a key in the {@link LegacyObjectInputStream#classNameMapping}, 
+ * <p>An {@link ObjectInputStream} that can account for changes in fully qualified names of the read/deserialized classes.
+ * If this stream reads a class whose fully qualified name is a key in the {@link LegacyObjectInputStream#classNameMapping},
  * then it will be instead read as class whose fully qualified name is given in the value of that key.
  *
  * </p><p>
@@ -33,33 +37,32 @@ package org.droidmate.storage
  * a fully qualified name (current), as given in the value of that key.
  * </p>
  */
-class LegacyObjectInputStream extends ObjectInputStream
-{
+class LegacyObjectInputStream constructor(ins: InputStream) : FSTObjectInput(ins) {
+    companion object {
+        @JvmStatic
+        private val classNameMapping: Map<String, String> = initClassNameMapping()
 
-  LegacyObjectInputStream(InputStream ins) throws IOException
-  {
-    super(ins)
-  }
-
-  public static Map<String, String> classNameMapping = initClassNameMapping()
-
-  private static Map<String, String> initClassNameMapping()
-  {
-    Map<String, String> classNameMapping = [
-      "org.droidmate.exceptions.DeviceExceptionMissing": "org.droidmate.exploration.actions.DeviceExceptionMissing",
-    ]
-    return Collections.unmodifiableMap(classNameMapping)
-  }
-
-  @Override
-  protected ObjectStreamClass readClassDescriptor()
-    throws IOException, ClassNotFoundException
-  {
-    ObjectStreamClass desc = super.readClassDescriptor()
-    if (classNameMapping.containsKey(desc.name))
-    {
-      return ObjectStreamClass.lookup(Class.forName(classNameMapping[desc.name]))
+        @JvmStatic
+        private fun initClassNameMapping(): Map<String, String> {
+            val classNameMapping = HashMap<String, String>()
+            classNameMapping.put("org.droidmate.exceptions.DeviceExceptionMissing", "DeviceExceptionMissing")
+            return Collections.unmodifiableMap(classNameMapping)
+        }
     }
-    return desc
-  }
+
+    override fun getClassForName(name: String?): Class<*> {
+        return if (classNameMapping.containsKey(name)) {
+            Class.forName(classNameMapping[name])
+        } else
+            Class.forName(name)
+    }
+
+    /*@Throws(IOException::class, ClassNotFoundException::class)
+    override fun readClassDescriptor(): ObjectStreamClass {
+        val desc = super.readClassDescriptor()
+        return if (classNameMapping.containsKey(desc.name)) {
+            ObjectStreamClass.lookup(Class.forName(classNameMapping[desc.name]))
+        } else
+            desc
+    }*/
 }

@@ -18,16 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-class ThrowablesCollection extends DroidmateException
-{
-
-  private static final long serialVersionUID = 1
-
-  final List<Throwable> throwables
-
-  ThrowablesCollection(List<Throwable> throwables)
-  {
-    super("An aggregating exception holding a collection of ${Throwable.simpleName}s.")
-    this.throwables = throwables
-  }
+class ThrowablesCollection constructor(val throwables: List<Throwable>)
+    : DroidmateException("An aggregating exception holding a collection of ${Throwable::class.java.simpleName}s.") {
+    companion object {
+        private const val serialVersionUID: Long = -3644688474512679196L;
+    }
 }

@@ -19,8 +19,8 @@
 
 package org.droidmate.monitor
 
-import groovy.transform.TypeChecked
 import org.droidmate.misc.BuildConstants
+import org.droidmate.text
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,15 +28,11 @@ import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 
-import static groovy.transform.TypeCheckingMode.SKIP
-
-@TypeChecked(SKIP)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(JUnit4)
-public class MonitorGeneratorFrontendTest
+@RunWith(JUnit4::class)
+class MonitorGeneratorFrontendTest
 {
   /**
    * Running this test as a part of a regression test suite is redundant, full rebuild will run the monitor-generator anyway.
@@ -44,20 +40,19 @@ public class MonitorGeneratorFrontendTest
    * Use this test when working on the class.
    */
   @Test
-  public void "Generates DroidMate monitor"()
-  {
-    Path actualMonitorJava = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
-    assert Files.notExists(actualMonitorJava) || Files.isWritable(actualMonitorJava)
+  fun `Generates DroidMate monitor`() {
+      val actualMonitorJava = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
+      assert(Files.notExists(actualMonitorJava) || Files.isWritable(actualMonitorJava))
 
-    MonitorGeneratorFrontend.handleException = { Exception e -> throw e }
+      MonitorGeneratorFrontend.handleException = { throw it }
 
     // Act
-    MonitorGeneratorFrontend.main(["api23"] as String[])
+      MonitorGeneratorFrontend.main(arrayOf("api23"))
 
-    assert Files.isRegularFile(actualMonitorJava)
-    String actualText = actualMonitorJava.text
-    assert !actualText.contains("public class MonitorJavaTemplate")
-    assert actualText.contains("public class Monitor")
+      assert(Files.isRegularFile(actualMonitorJava))
+      val actualText = actualMonitorJava.text
+      assert(!actualText.contains("public class MonitorJavaTemplate"))
+      assert(actualText.contains("public class Monitor"))
   }
 }
 

@@ -18,25 +18,23 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 
-class ViewCountTable : CountsPartitionedByTimeTable {
+class ViewCountTable(data: IApkExplorationOutput2) : CountsPartitionedByTimeTable(
+        data.getExplorationTimeInMs(),
+        listOf(
+                headerTime,
+                headerViewsSeen,
+                headerViewsClicked
+        ),
+        listOf(
+                data.uniqueSeenActionableViewsCountByTime,
+                data.uniqueClickedViewsCountByTime
+        )
+) {
 
-  constructor(data: IApkExplorationOutput2) : super(
-    data.explorationTimeInMs,
-    listOf(
-      headerTime,
-      headerViewsSeen,
-      headerViewsClicked
-    ),
-    listOf(
-      data.uniqueSeenActionableViewsCountByTime,
-      data.uniqueClickedViewsCountByTime
-    )
-  )
-  
   companion object {
     
     val headerTime = "Time_seconds"
@@ -54,12 +52,12 @@ class ViewCountTable : CountsPartitionedByTimeTable {
     }
 
     private fun IApkExplorationOutput2.uniqueViewCountByPartitionedTime(
-      extractItems: (RunnableExplorationActionWithResult) -> Iterable<Widget>
+            extractItems: (RunnableExplorationActionWithResult) -> Iterable<IWidget>
     ): Map<Long, Iterable<String>> {
 
-      return this.actRess.itemsAtTime(
+        return this.actRes.itemsAtTime(
         startTime = this.explorationStartTime,
-        extractTime = { it.action.timestamp },
+                extractTime = { it.getAction().timestamp },
         extractItems = extractItems
       ).mapValues {
         val widgets = it.value

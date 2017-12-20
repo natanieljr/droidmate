@@ -21,7 +21,7 @@ package org.droidmate.apis
 /**
  * Types of policy enforcement supported by DroidMate
  */
-enum ApiPolicy {
+enum class ApiPolicy {
     Allow,
     Deny,
     Mock

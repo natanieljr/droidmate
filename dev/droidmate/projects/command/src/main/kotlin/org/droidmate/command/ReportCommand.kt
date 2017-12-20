@@ -19,17 +19,12 @@
 package org.droidmate.command
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.report.ExplorationOutput2Report
 import org.droidmate.report.OutputDir
 
-class ReportCommand extends DroidmateCommand
-{
-  @Override
-  void execute(Configuration cfg) throws ThrowablesCollection
-  {
-    ExplorationOutput2 out = new OutputDir(cfg.reportInputDirPath).explorationOutput2
-    new ExplorationOutput2Report(out, cfg.reportOutputDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
+class ReportCommand : DroidmateCommand() {
+    override fun execute(cfg: Configuration) {
+        val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
+        return ExplorationOutput2Report(out, cfg.reportOutputDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
   }
 }

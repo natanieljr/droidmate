@@ -27,25 +27,23 @@ import java.nio.file.Path
 
 class OutputDir(val dir: Path) {
 
-  val explorationOutput2: List<IApkExplorationOutput2> by lazy {
-    ExplorationOutput2.from(Storage2(dir))
-  }
-
-  val notEmptyExplorationOutput2: List<IApkExplorationOutput2> by lazy {
-    check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
-    explorationOutput2
-  }
-
-  fun clearContents()
-  {
-    if (Files.exists(dir))
-    {
-      Files.list(dir).forEach {
-        if (Files.isDirectory(it))
-          it.deleteDir()
-        else
-          Files.delete(it)
-      }
+    val explorationOutput2: List<IApkExplorationOutput2> by lazy {
+        ExplorationOutput2.from(Storage2(dir))
     }
-  }
+
+    val notEmptyExplorationOutput2: List<IApkExplorationOutput2> by lazy {
+        check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
+        explorationOutput2
+    }
+
+    fun clearContents() {
+        if (Files.exists(dir)) {
+            Files.list(dir).forEach {
+                if (Files.isDirectory(it))
+                    it.deleteDir()
+                else
+                    Files.delete(it)
+            }
+        }
+    }
 }

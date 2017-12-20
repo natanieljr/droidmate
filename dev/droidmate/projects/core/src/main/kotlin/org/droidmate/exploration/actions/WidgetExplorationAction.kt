@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,48 +19,23 @@
 
 package org.droidmate.exploration.actions
 
-import groovy.transform.Canonical
-import groovy.transform.TupleConstructor
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.IWidget
 
-@Canonical
-@TupleConstructor(includeSuperProperties = true)
-class WidgetExplorationAction extends ExplorationAction
-{
+class WidgetExplorationAction @JvmOverloads constructor(val widget: IWidget,
+                                                        val longClick: Boolean = false,
+                                                        val delay: Int = 0,
+                                                        val swipe: Boolean = false,
+                                                        val direction: Direction = Direction.UP) : ExplorationAction() {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-	public enum Direction { LEFT, RIGHT, UP, DOWN}
+    fun getSelectedWidget(): IWidget
+            = widget
 
-  private static final long serialVersionUID = 1
+    override fun toShortString(): String
+            = "SW? ${if (swipe) 1 else 0} LC? ${if (longClick) 1 else 0} " + widget.toShortString()
 
-  Widget  widget
-  boolean longClick
-	boolean swipe
-	Direction direction
-  int     delay = 0
-
-  @SuppressWarnings("unused")
-  public Widget getSelectedWidget(){
-    return widget
-  }
-
-  @Override
-  String toString()
-  {
-    return super.toString()
-  }
-
-  @Override
-  String toShortString()
-  {
-    "SW? ${swipe ? 1 : 0 } LC? ${longClick ? 1 : 0} " + widget.toShortString()
-  }
-
-  @Override
-  String toTabulatedString()
-  {
-    "SW? ${swipe ? 1 : 0 } LC? ${longClick ? 1 : 0} " + widget.toTabulatedString()
-  }
+    override fun toTabulatedString(): String
+            = "SW? ${if (swipe) 1 else 0} LC? ${if (longClick) 1 else 0} " + widget.toTabulatedString()
 }
-
-
-

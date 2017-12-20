@@ -25,14 +25,14 @@ import org.junit.runners.JUnit4
 
 import java.nio.file.Paths
 
-@RunWith(JUnit4)
+@RunWith(JUnit4::class)
 class GroovyScratchpadTestClass
 {
 
   @Test
-  void groovyTest()
+  fun groovyTest()
   {
-    println Paths.get(".","ah").toString()
+    println(Paths.get(".","ah").toString())
   }
 
 }

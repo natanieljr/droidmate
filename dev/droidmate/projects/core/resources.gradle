@@ -16,7 +16,6 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-import com.konradjamrozik.IterableExtensions
 
 // Ensure BuildKt.monitored_apis_txt is available at runtime as a resource.
 processResources.configure { Copy copy -> copy.from(project(":projects").file("resources"))}
@@ -38,8 +37,7 @@ clean.dependsOn(
   "cleanApkFixtures"
 )
 
-ext.coreResDir = IterableExtensions.findSingle(
-  sourceSets.main.resources.srcDirs.findAll {it.path.contains(project.name)} as Set<File>)
+ext.coreResDir = sourceSets.main.resources.srcDirs.findAll {it.path.contains(project.name)}.first()
 apply from: file("monitor.gradle")
 apply from: file("uia2daemon.gradle")
 apply from: file("apkFixtures.gradle")

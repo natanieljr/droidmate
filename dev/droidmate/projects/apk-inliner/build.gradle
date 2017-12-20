@@ -19,7 +19,7 @@
 
 import org.droidmate.buildsrc.BuildKt
 
-apply plugin: 'groovy'
+apply plugin: 'kotlin'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -29,8 +29,6 @@ mainClassName = "org.droidmate.apk_inliner.ApkInlinerFrontend"
 dependencies {
 
   compile project(":projects:lib-common")
-
-  compile 'org.codehaus.groovy:groovy-all:2.4.10'
 
   testCompile 'junit:junit:4.12'
 

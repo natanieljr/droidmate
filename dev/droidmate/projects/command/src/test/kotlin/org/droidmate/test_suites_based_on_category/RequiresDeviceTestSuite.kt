@@ -24,11 +24,8 @@ import org.junit.experimental.categories.Categories
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Categories)
-@Categories.IncludeCategory(RequiresDevice)
-@Suite.SuiteClasses([
-  RegressionTestSuite
-])
+@RunWith(Categories::class)
+@Categories.IncludeCategory(RequiresDevice::class)
+@Suite.SuiteClasses(
+        RegressionTestSuite::class)
 class RequiresDeviceTestSuite
-{
-}

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,22 +16,15 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-
 package org.droidmate.exploration.device
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
-import org.droidmate.apis.ApiLogcatMessage
-import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.apis.TimeFormattedLogcatMessage
+import org.droidmate.apis.*
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.MonitorConstants
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -39,104 +32,82 @@ import java.time.format.DateTimeFormatter
  * See {@link DeviceMessagesReader}
  */
 
-@Slf4j
-class ApiLogsReader implements IApiLogsReader
-{
-
-  private final IExplorableAndroidDevice device
-
-  ApiLogsReader(IExplorableAndroidDevice device)
-  {
-    this.device = device
-  }
-
-  /**
-   * <p>
-   * The logs logged with the monitor logger will have different timestamps than the logged monitor logs, even though
-   * {@link IDeviceTimeDiff} is applied. This is because the method that logs is executed a couple of seconds after the monitor
-   * logs were logged on the device. Empirical observation shows up to 5 seconds delay for API logs.
-   *
-   * </p>
-   */
-  private Logger monitorLogger = LoggerFactory.getLogger(LogbackConstants.logger_name_monitor)
-
-  @Deprecated
-  @Override
-  List<IApiLogcatMessage> getCurrentApiLogsFromLogcat(IDeviceTimeDiff deviceTimeDiff) throws DeviceException
-  {
-    log.debug("getCurrentApiLogsFromLogcat(deviceTimeDiff)")
-    assert deviceTimeDiff != null
-    return readApiLogcatMessages(this.&getMessagesFromLogcat.curry(deviceTimeDiff))
-  }
-
-  @Override
-  List<IApiLogcatMessage> getAndClearCurrentApiLogsFromMonitorTcpServer(IDeviceTimeDiff deviceTimeDiff) throws DeviceException
-  {
-    log.debug("getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)")
-    assert deviceTimeDiff != null
-
-    List<IApiLogcatMessage> logs = readApiLogcatMessages(this.&getAndClearMessagesFromMonitorTcpServer.curry(deviceTimeDiff))
-
-    assert logs != null
-    log.debug("apiLogs# ${logs.size()}")
-    return logs
-  }
-
-  List<IApiLogcatMessage> readApiLogcatMessages(Closure<List<ITimeFormattedLogcatMessage>> messagesProvider) throws DeviceException
-  {
-    List<ITimeFormattedLogcatMessage> messages = messagesProvider.call()
-
-    messages.each {monitorLogger.trace("${it.toLogcatMessageString()}")}
-
-    List<IApiLogcatMessage> apiLogs
-    try
-    {
-      apiLogs = messages.collect {ApiLogcatMessage.from(it) as IApiLogcatMessage }
-    } catch (DroidmateException e)
-    {
-      throw new DeviceException("Failed to parse API call logs from one of the messages obtained from logcat.", e)
+class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : IApiLogsReader {
+    companion object {
+        private val log = LoggerFactory.getLogger(ApiLogsReader::class.java)
     }
 
-    assert apiLogs.sortedByTimePerPID()
+    /**
+     * <p>
+     * The logs logged with the monitor logger will have different timestamps than the logged monitor logs, even though
+     * {@link IDeviceTimeDiff} is applied. This is because the method that logs is executed a couple of seconds after the monitor
+     * logs were logged on the device. Empirical observation shows up to 5 seconds delay for API logs.
+     *
+     * </p>
+     */
+    private val monitorLogger = LoggerFactory.getLogger(LogbackConstants.logger_name_monitor)
 
-    assert apiLogs != null
-    return apiLogs
-  }
+    @Suppress("OverridingDeprecatedMember")
+    override fun getCurrentApiLogsFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
+        log.debug("getCurrentApiLogsFromLogcat(deviceTimeDiff)")
+        return readApiLogcatMessages { this.getCurrentApiLogsFromLogcat(deviceTimeDiff) }
+    }
 
-  @Deprecated
-  List<ITimeFormattedLogcatMessage> getMessagesFromLogcat(IDeviceTimeDiff deviceTimeDiff) throws DeviceException
-  {
-    def messages = device.readLogcatMessages(MonitorConstants.tag_api)
+    override fun getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
+        log.debug("getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)")
 
-    return deviceTimeDiff.syncMessages(messages)
-  }
+        val logs = readApiLogcatMessages { this.getAndClearMessagesFromMonitorTcpServer(deviceTimeDiff) }
 
-  private List<ITimeFormattedLogcatMessage> getAndClearMessagesFromMonitorTcpServer(IDeviceTimeDiff deviceTimeDiff) throws DeviceException
-  {
-    List<List<String>> messages = device.readAndClearMonitorTcpMessages()
+        log.debug("apiLogs# ${logs.size}")
+        return logs
+    }
 
-    return extractLogcatMessagesFromTcpMessages(messages, deviceTimeDiff)
-  }
+    @Throws(DeviceException::class)
+    private fun readApiLogcatMessages(messagesProvider: () -> List<ITimeFormattedLogcatMessage>): List<IApiLogcatMessage> {
+        val messages = messagesProvider.invoke()
 
-  private List<ITimeFormattedLogcatMessage> extractLogcatMessagesFromTcpMessages(List<List<String>> messages, IDeviceTimeDiff deviceTimeDiff) throws DeviceException
-  {
-    return deviceTimeDiff.syncMessages(messages.collect {List<String> msg ->
+        messages.forEach { monitorLogger.trace(it.toLogcatMessageString) }
 
-      String pid = msg[0]
+        try {
+            val apiLogs = messages.map { ApiLogcatMessage.from(it) }
+            val ret = ApiLogcatMessageListExtensions.sortedByTimePerPID(apiLogs)
+            assert(ret)
 
-      LocalDateTime deviceTime = LocalDateTime.parse(msg[1],
-        DateTimeFormatter.ofPattern(
-          MonitorConstants.monitor_time_formatter_pattern,
-          MonitorConstants.monitor_time_formatter_locale))
+            return apiLogs
+        } catch (e: DroidmateException) {
+            throw DeviceException("Failed to parse API call logs from one of the messages obtained from logcat.", e)
+        }
+    }
 
-      String payload = msg[2]
+    @Throws(DeviceException::class)
+    @Deprecated("Method is deprecated. It is recommended to get logs from TCP server")
+    fun getMessagesFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<ITimeFormattedLogcatMessage> {
+        val messages = device.readLogcatMessages(MonitorConstants.tag_api)
 
-      return TimeFormattedLogcatMessage.from(
-        deviceTime,
-        MonitorConstants.loglevel.toUpperCase(),
-        "[Adapted]" + MonitorConstants.tag_api,
-        pid,
-        payload)
-    })
-  }
+        return deviceTimeDiff.syncMessages(messages)
+    }
+
+    @Throws(DeviceException::class)
+    private fun getAndClearMessagesFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<ITimeFormattedLogcatMessage> {
+        val messages = device.readAndClearMonitorTcpMessages()
+
+        return extractLogcatMessagesFromTcpMessages(messages, deviceTimeDiff)
+    }
+
+    @Throws(DeviceException::class)
+    private fun extractLogcatMessagesFromTcpMessages(messages: List<List<String>>, deviceTimeDiff: IDeviceTimeDiff): List<ITimeFormattedLogcatMessage> {
+        return deviceTimeDiff.syncMessages(messages.map { msg ->
+
+            val pid = msg[0]
+
+            val deviceTime = LocalDateTime.parse(msg[1],
+                    DateTimeFormatter.ofPattern(MonitorConstants.monitor_time_formatter_pattern,
+                            MonitorConstants.monitor_time_formatter_locale))
+
+            val payload = msg[2]
+
+            TimeFormattedLogcatMessage.from(
+                    deviceTime, MonitorConstants.loglevel.toUpperCase(), "[Adapted]" + MonitorConstants.tag_api, pid, payload)
+        })
+    }
 }

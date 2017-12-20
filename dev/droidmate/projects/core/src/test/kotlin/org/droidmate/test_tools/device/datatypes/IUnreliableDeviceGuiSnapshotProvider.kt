@@ -21,11 +21,10 @@ package org.droidmate.test_tools.device.datatypes
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 
 
-interface IUnreliableDeviceGuiSnapshotProvider
-{
-  IDeviceGuiSnapshot provide()
+interface IUnreliableDeviceGuiSnapshotProvider {
+    fun provide(): IDeviceGuiSnapshot
 
-  void pressOkOnAppHasStopped()
+    fun pressOkOnAppHasStopped()
 
-  IDeviceGuiSnapshot getCurrentWithoutChange()
+    fun getCurrentWithoutChange(): IDeviceGuiSnapshot
 }

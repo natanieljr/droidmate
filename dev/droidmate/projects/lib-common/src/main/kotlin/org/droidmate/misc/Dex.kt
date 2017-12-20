@@ -22,17 +22,9 @@ package org.droidmate.misc
 import java.nio.file.Files
 import java.nio.file.Path
 
-class Dex
-{
-
-  @Delegate
-  private final Path path
-
-  Dex(Path path)
-  {
-    assert path != null
-    assert Files.isRegularFile(path)
-    assert path.fileName.toString().endsWith(".dex")
-    this.path = path
-  }
+class Dex constructor(val path: Path) {
+    init {
+        assert(Files.isRegularFile(path))
+        assert(path.fileName.toString().endsWith(".dex"))
+    }
 }

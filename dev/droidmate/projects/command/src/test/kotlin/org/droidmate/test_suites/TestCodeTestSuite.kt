@@ -22,10 +22,7 @@ import org.droidmate.tests.logging.LogbackAppendersTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Suite)
-@Suite.SuiteClasses([
-  LogbackAppendersTest,
-])
+@RunWith(Suite::class)
+@Suite.SuiteClasses(
+        LogbackAppendersTest::class)
 class TestCodeTestSuite
-{
-}

@@ -18,7 +18,5 @@
 // web: www.droidmate.org
 package org.droidmate.test_suite_categories
 
-
-public interface ExcludedFromFastRegressionTests
-{ /* JUnit test Category marker interface */
-}
+/* JUnit test Category marker interface */
+interface ExcludedFromFastRegressionTests

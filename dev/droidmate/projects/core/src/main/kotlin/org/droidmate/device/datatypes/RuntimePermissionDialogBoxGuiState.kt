@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,30 +19,21 @@
 
 package org.droidmate.device.datatypes
 
-import groovy.transform.Canonical
-
 /**
  * Specialized GuiState class that represents an application with an active "Runtime permission" dialog box
  */
-@Canonical
-class RuntimePermissionDialogBoxGuiState extends GuiState implements Serializable
-{
-  private static final long serialVersionUID = 1
-  private static final String resId_runtimePermissionAllow  = "com.android.packageinstaller:id/permission_allow_button"
+class RuntimePermissionDialogBoxGuiState(topNodePackageName: String, widgets: List<IWidget>, androidLauncherPackageName: String) :
+        GuiState(topNodePackageName, "", widgets, androidLauncherPackageName) {
+    companion object {
+        private const val serialVersionUID: Long = 1
+        @JvmStatic
+        private val resId_runtimePermissionAllow = "com.android.packageinstaller:id/permission_allow_button"
+    }
 
-  RuntimePermissionDialogBoxGuiState(String topNodePackageName, List<Widget> widgets, String androidLauncherPackageName)
-  {
-    super(topNodePackageName, /* id = */ null, widgets, androidLauncherPackageName)
-  }
-
-  Widget getAllowWidget() {
-    Widget allowWidget = this.widgets.find{ it.resourceId != null && it.resourceId == resId_runtimePermissionAllow};
-
-    // Failsafe: If some manufacturer replaces the resource name, this should work as well
-    if (allowWidget == null)
-      return this.widgets.find { it.text != null && it.text.toUpperCase() == "ALLOW" }
-
-    return allowWidget;
-  }
-
+    // Default: Resource ID
+    // Fail-safe: If some manufacturer replaces the resource name, this should work as well
+    val allowWidget: IWidget
+        get() {
+            return widgets.firstOrNull { it.resourceId == resId_runtimePermissionAllow } ?: return widgets.first { it.text.toUpperCase() == "ALLOW" }
+        }
 }

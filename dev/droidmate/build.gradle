@@ -19,7 +19,9 @@
 
 buildscript {
 
-  ext.utilities_version = '69e2f87ea6'
+  ext.utilities_version = '1.0'
+  ext.kotlin_version = '1.2.0'
+  ext.serialization_version = '0.3'
 
   repositories {
     mavenLocal()
@@ -31,14 +33,14 @@ buildscript {
     classpath "com.github.konrad-jamrozik:utilities:$utilities_version"
   }
 }
+
 plugins {
-  id "org.jetbrains.kotlin.jvm" version "1.1.51"
+  id "org.jetbrains.kotlin.jvm" version "1.2.0"
 }
-ext.kotlin_version = '1.1.51'
 
 allprojects {
   group = "org.droidmate"
-  version = "dev-SNAPSHOT"
+  version = "3.0-unstable"
 }
 
 subprojects {

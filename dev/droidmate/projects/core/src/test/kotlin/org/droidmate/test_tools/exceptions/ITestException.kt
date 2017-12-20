@@ -20,5 +20,5 @@ package org.droidmate.test_tools.exceptions
 
 interface ITestException
 {
-  IExceptionSpec getExceptionSpec()
+  val exceptionSpec: IExceptionSpec
 }

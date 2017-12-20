@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,38 +19,39 @@
 
 package org.droidmate.tools
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.AaptWrapper
 import org.droidmate.android_sdk.AdbWrapper
 import org.droidmate.android_sdk.IAaptWrapper
 import org.droidmate.android_sdk.IAdbWrapper
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.SysCmdExecutor
+import java.util.*
 
-@Slf4j
-class DeviceTools implements IDeviceTools
-{
+class DeviceTools @JvmOverloads constructor(cfg: Configuration = Configuration.getDefault(),
+                                            substitutes: Map<Any, Any> = HashMap()) : IDeviceTools {
 
-  IAaptWrapper           aapt
-  IAdbWrapper            adb
-  IAndroidDeviceDeployer deviceDeployer
-  IApkDeployer           apkDeployer
-  IAndroidDeviceFactory  deviceFactory
+    override val aapt: IAaptWrapper
+    override val adb: IAdbWrapper
+    override val deviceDeployer: IAndroidDeviceDeployer
+    override val apkDeployer: IApkDeployer
+    override val deviceFactory: IAndroidDeviceFactory
 
+    init {
+        val sysCmdExecutor = SysCmdExecutor()
+        aapt = if (substitutes.containsKey(IAaptWrapper::class))
+            substitutes[IAaptWrapper::class] as IAaptWrapper
+        else
+            AaptWrapper(cfg, sysCmdExecutor)
+        adb = if (substitutes.containsKey(IAdbWrapper::class))
+            substitutes[IAdbWrapper::class] as IAdbWrapper
+        else
+            AdbWrapper(cfg, sysCmdExecutor)
+        deviceFactory = if (substitutes.containsKey(IAndroidDeviceFactory::class))
+            substitutes[IAndroidDeviceFactory::class] as IAndroidDeviceFactory
+        else
+            AndroidDeviceFactory(cfg, adb)
+        deviceDeployer = AndroidDeviceDeployer(cfg, adb, deviceFactory)
+        apkDeployer = ApkDeployer(cfg)
+    }
 
-  DeviceTools(Configuration cfg = Configuration.default, Map substitutes = [:])
-  {
-    def sysCmdExecutor = new SysCmdExecutor()
-
-    aapt = substitutes[IAaptWrapper] as IAaptWrapper ?: new AaptWrapper(cfg, sysCmdExecutor)
-
-    adb = substitutes[IAdbWrapper] as IAdbWrapper ?: new AdbWrapper(cfg, sysCmdExecutor)
-
-    deviceFactory = substitutes[IAndroidDeviceFactory] as IAndroidDeviceFactory ?:
-      new AndroidDeviceFactory(cfg, adb)
-
-    deviceDeployer = new AndroidDeviceDeployer(cfg, adb, deviceFactory)
-
-    apkDeployer = new ApkDeployer(cfg)
-  }
 }

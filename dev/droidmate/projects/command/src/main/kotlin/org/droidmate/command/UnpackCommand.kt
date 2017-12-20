@@ -18,60 +18,62 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import groovy.io.FileType
-import groovy.util.logging.Slf4j
+import com.konradjamrozik.createDirIfNotExists
+import com.konradjamrozik.isRegularFile
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.storage.Storage2
-
 import java.nio.file.FileSystems
+
 import java.nio.file.Files
 
 
-@Slf4j
-class UnpackCommand extends DroidmateCommand {
-    static UnpackCommand build(){
-        return new UnpackCommand()
+class UnpackCommand : DroidmateCommand() {
+    companion object {
+        @JvmStatic
+        fun build(): UnpackCommand = UnpackCommand()
     }
 
-    @Override
-    void execute(Configuration cfg) throws ThrowablesCollection {
+    @Throws(ThrowablesCollection::class)
+    override fun execute(cfg: Configuration) {
         // Parameters
-        def dirStr = cfg.apksDirName
-        def outputStr = 'raw_data'
-        def fs = FileSystems.default
+        val dirStr = cfg.apksDirName
+        val outputStr = "raw_data"
+        val fs = FileSystems.getDefault()
 
         // Setup output dir
-        def outputDir = fs.getPath(dirStr, outputStr)
+        var outputDir = fs.getPath(dirStr, outputStr)
         outputDir.createDirIfNotExists()
 
         // Initialize storage
-        def droidmateOutputDirPath = fs.getPath(dirStr)
-        def storage2 = new Storage2(droidmateOutputDirPath)
+        val droidmateOutputDirPath = fs.getPath(dirStr)
+        val storage2 = Storage2(droidmateOutputDirPath)
 
         // Process files
-        droidmateOutputDirPath.eachFileRecurse(FileType.FILES) { file ->
-            if (((String) (file + "")).contains('.ser2')) {
-                outputDir = fs.getPath((String) file.getParent(), outputStr)
+        Files.walk(droidmateOutputDirPath)
+                .filter { it.isRegularFile }
+                .forEach { file ->
+
+                    if (file.toString().endsWith(".ser2")) {
+                        outputDir = fs.getPath(file.parent.toString(), outputStr)
                 outputDir.createDirIfNotExists()
 
-                // Get data
-                IApkExplorationOutput2 obj = storage2.deserialize(file)
+                        val obj = storage2.deserialize(file) as IApkExplorationOutput2
 
-                for (int i = 0; i < obj.actRess.size(); ++i) {
-                    def newActionFile = fs.getPath((String) file.getParent(), outputStr, "action" + i + ".txt")
-                    def action = obj.actRess[i].action.toString()
-                    Files.write(newActionFile, action.getBytes())
+                        for (i in 0 until obj.actRes.size) {
+                            val newActionFile = fs.getPath(file.parent.toString(), outputStr, "action$i.txt")
+                            val action = obj.actRes[i].getAction().toString()
+                            Files.write(newActionFile, action.toByteArray())
 
-                    def newResultFile = fs.getPath((String) file.getParent(), outputStr, "windowHierarchyDump" + i + ".xml")
-                    String result
-                    if (obj.actRess[i].result.successful)
-                        result = obj.actRess[i].result.guiSnapshot.windowHierarchyDump
+                            val newResultFile = fs.getPath(file.parent.toString(), outputStr, "windowHierarchyDump$i.xml")
+
+                            val result = if (obj.actRes[i].getResult().successful)
+                                obj.actRes[i].getResult().guiSnapshot.windowHierarchyDump
                     else
-                        result = ""
+                                ""
 
-                    Files.write(newResultFile, result.getBytes());
+                            Files.write(newResultFile, result.toByteArray())
                 }
             }
         }

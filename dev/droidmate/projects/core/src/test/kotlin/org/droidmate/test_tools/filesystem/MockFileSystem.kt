@@ -21,46 +21,42 @@ package org.droidmate.test_tools.filesystem
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import org.droidmate.android_sdk.IApk
+import org.droidmate.configuration.Configuration.Companion.defaultApksDir
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 
 import java.nio.file.FileSystem
 import java.nio.file.Files
-import java.nio.file.Path
 
-import static org.droidmate.configuration.Configuration.defaultApksDir
+class MockFileSystem constructor(appNames: List<String>) {
 
-class MockFileSystem
-{
+    val fs: FileSystem
+    val apks: List<IApk>
 
-  final FileSystem fs
-  final List<IApk> apks
+    init {
+        appNames.forEach { assert(!it.endsWith(".apk")) }
 
-  MockFileSystem(List<String> appNames)
-  {
-    appNames.each { assert !it.endsWith(".apk") }
+        val apkNames = appNames.map { it + ".apk" }
 
-    def apkNames = appNames.collect { it + ".apk" }
+        val res = this.build(apkNames)
+        this.fs = res.first
+        val filePaths = res.second
 
-    def res = this.build(apkNames)
-    this.fs = res.first
-    List<String> filePaths = res.second
-
-    this.apks = filePaths.collect {
-      ApkTestHelper.build(this.fs.getPath(it))}
-  }
-
-  private Tuple2<FileSystem, List<String>> build(List<String> apkNames)
-  {
-    FileSystem fs = Jimfs.newFileSystem(Configuration.unix())
-
-    Path apksDir = fs.getPath(defaultApksDir)
-
-    Files.createDirectories(apksDir)
-
-    List<String> apkFilePaths = apkNames.collect {
-      def apkFilePath = Files.createFile(apksDir.resolve(it))
-      apkFilePath.toAbsolutePath().toString()
+        this.apks = filePaths.map {
+            ApkTestHelper.build(this.fs.getPath(it))
+        }
     }
-    return [fs, apkFilePaths]
-  }
+
+    private fun build(apkNames: List<String>): Pair<FileSystem, List<String>> {
+        val fs = Jimfs.newFileSystem(Configuration.unix())
+
+        val apksDir = fs.getPath(defaultApksDir)
+
+        Files.createDirectories(apksDir)
+
+        val apkFilePaths = apkNames.map {
+            val apkFilePath = Files.createFile(apksDir.resolve(it))
+            apkFilePath.toAbsolutePath().toString()
+        }
+        return Pair(fs, apkFilePaths)
+    }
 }

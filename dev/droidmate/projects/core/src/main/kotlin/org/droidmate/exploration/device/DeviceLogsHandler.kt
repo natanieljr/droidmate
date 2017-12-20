@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,70 +18,49 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.device
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.errors.ForbiddenOperationError
 
-@Slf4j
-class DeviceLogsHandler implements IDeviceLogsHandler
-{
+class DeviceLogsHandler constructor(val device: IRobustDevice) : IDeviceLogsHandler {
 
-  IRobustDevice device
+    companion object {
+        private val uiThreadId = "1"
+    }
 
-  IDeviceLogs logs = new DeviceLogs()
+    private var gotLogs = false
 
-  DeviceLogsHandler(IRobustDevice device)
-  {
-    this.device = device
-  }
+    val logs = DeviceLogs()
 
-  @Override
-  void readAndClearApiLogs() throws DeviceException
-  {
-    List<IApiLogcatMessage> apiLogs = _readAndClearApiLogs()
-    addApiLogs(apiLogs)
-  }
+    override fun readAndClearApiLogs() {
+        val apiLogs = _readAndClearApiLogs()
+        addApiLogs(apiLogs)
+    }
 
-  private static final String uiThreadId = "1"
+    override fun readClearAndAssertOnlyBackgroundApiLogsIfAny() {
+        val apiLogs = _readAndClearApiLogs()
+        assert(this.logs.apiLogs.all { it.threadId != uiThreadId })
 
-  @Override
-  void readClearAndAssertOnlyBackgroundApiLogsIfAny() throws DeviceException
-  {
-    List<IApiLogcatMessage> apiLogs = _readAndClearApiLogs()
-    assert this.logs.apiLogsOrNull.every {it.threadId != uiThreadId}
+        addApiLogs(apiLogs)
+    }
 
-    addApiLogs(apiLogs)
-  }
+    private fun addApiLogs(apiLogs: List<IApiLogcatMessage>) {
+        if (this.logs.apiLogs.isEmpty())
+            this.logs.apiLogs = ArrayList()
 
-  private void addApiLogs(List<IApiLogcatMessage> apiLogs)
-  {
-    assert apiLogs != null
+        if (this.logs.apiLogs.isNotEmpty() && apiLogs.isNotEmpty())
+            assert(this.logs.apiLogs.last().time <= apiLogs.first().time)
 
-    if (this.logs.apiLogsOrNull == null)
-      this.logs.apiLogs = []
+        this.logs.apiLogs.addAll(apiLogs)
+    }
 
-    if (!this.logs.apiLogsOrNull.empty && !apiLogs.empty)
-      assert this.logs.apiLogsOrNull.last().time <= apiLogs.first().time
+    override fun getLogs(): IDeviceLogs {
+        if (gotLogs)
+            throw ForbiddenOperationError()
+        this.gotLogs = true
+        return this.logs
+    }
 
-    this.logs.apiLogsOrNull.addAll(apiLogs)
-  }
-
-  boolean gotLogs = false
-  @Override
-  IDeviceLogs getLogs()
-  {
-    if (gotLogs)
-      throw new ForbiddenOperationError()
-    this.gotLogs = true
-    return this.logs
-  }
-
-  private List<IApiLogcatMessage> _readAndClearApiLogs() throws DeviceException
-  {
-    def logs = this.device.getAndClearCurrentApiLogs()
-    assert logs != null
-    return logs
-  }
-
+    @Throws(DeviceException::class)
+    private fun _readAndClearApiLogs(): List<IApiLogcatMessage> = device.getAndClearCurrentApiLogs()
 }

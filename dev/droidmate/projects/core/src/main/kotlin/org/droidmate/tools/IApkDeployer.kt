@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,8 +26,7 @@ import org.droidmate.device.IDeployableAndroidDevice
 /**
  * @see ApkDeployer
  */
-public interface IApkDeployer
-{
+public interface IApkDeployer {
 
-  public List<ApkExplorationException> withDeployedApk(IDeployableAndroidDevice device, IApk apk, Closure closure)
+    fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: (IApk) -> Any): List<ApkExplorationException>
 }

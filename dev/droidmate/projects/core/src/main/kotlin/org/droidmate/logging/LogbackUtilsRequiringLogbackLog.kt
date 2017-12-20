@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,46 +19,54 @@
 
 package org.droidmate.logging
 
-import groovy.util.logging.Slf4j
+import com.konradjamrozik.isDirectory
+import com.konradjamrozik.isRegularFile
+import com.konradjamrozik.toList
+import com.konradjamrozik.writeText
+import org.slf4j.LoggerFactory
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
-import static groovy.io.FileType.FILES
+class LogbackUtilsRequiringLogbackLog {
+    companion object {
+        private val log = LoggerFactory.getLogger(LogbackUtilsRequiringLogbackLog::class.java)
 
-@Slf4j
-class LogbackUtilsRequiringLogbackLog
-{
 
-  public static void cleanLogsDir()
-  {
-    File logsDir = new File(LogbackConstants.LOGS_DIR_PATH)
-    if (!logsDir.directory)
-      logsDir.mkdirs()
+        @JvmStatic
+        fun cleanLogsDir() {
+            val logsDir = Paths.get(LogbackConstants.LOGS_DIR_PATH)
+            if (!logsDir.isDirectory)
+                Files.createDirectories(logsDir)
 
-    String msg_notDeletedLogFileNames = ""
+            var msgNotDeletedLogFileNames = ""
 
-    logsDir.eachFile(FILES) {File logFile ->
+            val invalidNames = mutableListOf(".", "..").apply { addAll(LogbackConstants.fileAppendersUsedBeforeCleanLogsDir()) }
+            Files.walk(logsDir).toList()
+                    .filter { it.isRegularFile }
+                    .forEach { logFile ->
+                        if (logFile.fileName.toString() !in invalidNames) {
 
-      if (logFile.name in LogbackConstants.fileAppendersUsedBeforeCleanLogsDir)
-        return
+                            if (!Files.deleteIfExists(logFile)) {
+                                msgNotDeletedLogFileNames += " $logFile.name,"
+                                logFile.writeText("")
+                            }
+                        }
+                    }
 
-      if (!logFile.delete())
-      {
-        msg_notDeletedLogFileNames += " $logFile.name,"
-        logFile.write("")
-      }
+            log(logsDir, msgNotDeletedLogFileNames)
+        }
+
+        @JvmStatic
+        private fun log(logsDir: Path, logNotDeleted: String) {
+            var newLogNotDeleted = logNotDeleted
+            var logMsgPrefix = "Deleted old logs in directory $logsDir."
+
+            if (!newLogNotDeleted.isEmpty()) {
+                newLogNotDeleted = newLogNotDeleted.dropLast(2) // Remove trailing comma.
+                logMsgPrefix += " Files that couldn't be deleted and thus had their content was instead erased:"
+            }
+            log.trace(logMsgPrefix + newLogNotDeleted)
+        }
     }
-
-    log(logsDir, msg_notDeletedLogFileNames)
-  }
-
-  private static void log(File logsDir, String logNotDeleted)
-  {
-    String logMsgPrefix = "Deleted old logs in directory $logsDir."
-    if (!logNotDeleted.empty)
-    {
-      //noinspection GroovyAssignmentToMethodParameter
-      logNotDeleted = logNotDeleted[0..-2] // Remove trailing comma.
-      logMsgPrefix += " Files that couldn't be deleted and thus had their content was instead erased:"
-    }
-    log.trace(logMsgPrefix + logNotDeleted)
-  }
 }

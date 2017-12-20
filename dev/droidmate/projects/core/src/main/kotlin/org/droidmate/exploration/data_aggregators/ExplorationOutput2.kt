@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,23 +18,22 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.data_aggregators
 
-import groovy.util.logging.Slf4j
 import org.droidmate.storage.IStorage2
+import org.slf4j.LoggerFactory
 
-@Slf4j
-class ExplorationOutput2 extends ArrayList<IApkExplorationOutput2>
-{
-  private static final long serialVersionUID = 1
+class ExplorationOutput2(private val list: MutableList<IApkExplorationOutput2> = ArrayList()) : MutableList<IApkExplorationOutput2> by list {
+    companion object {
+        private val log = LoggerFactory.getLogger(ExplorationOutput2::class.java)
+        private const val serialVersionUID: Long = 1
 
-  public static List<IApkExplorationOutput2> from(IStorage2 storage)
-  {
-    return storage.getSerializedRuns2().collect {
-      def apkout2 = storage.deserialize(it) as IApkExplorationOutput2
-      log.info("Deserialized exploration output of $apkout2.packageName from $it")
-      apkout2.verify()
-      return apkout2
-
-    } as ExplorationOutput2
-  }
+        @JvmStatic
+        fun from(storage: IStorage2): List<IApkExplorationOutput2> {
+            return storage.getSerializedRuns2().map {
+                val apkout2 = storage.deserialize(it) as IApkExplorationOutput2
+                log.info("Deserialized exploration output of $apkout2.packageName from $it")
+                apkout2.verify()
+                apkout2
+            }
+        }
+    }
 }
-

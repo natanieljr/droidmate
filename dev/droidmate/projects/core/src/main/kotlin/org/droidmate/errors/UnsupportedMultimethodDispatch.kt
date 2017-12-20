@@ -18,13 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.errors
 
-class UnsupportedMultimethodDispatch extends UnexpectedIfElseFallthroughError
-{
-
-  UnsupportedMultimethodDispatch(param)
-  {
-    super("Unsupported multimethod dispatch for param of class: ${param.class}")
-  }
-
+class UnsupportedMultimethodDispatch(param: Any) : UnexpectedIfElseFallthroughError("Unsupported multimethod dispatch for param of class: ${param.javaClass}") {
 
 }

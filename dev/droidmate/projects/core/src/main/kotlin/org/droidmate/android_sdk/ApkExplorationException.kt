@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,43 +18,32 @@
 // web: www.droidmate.org
 package org.droidmate.android_sdk
 
-import groovy.util.logging.Slf4j
 import org.droidmate.logging.Markers
+import org.slf4j.LoggerFactory
 
-@Slf4j
- class ApkExplorationException extends ExplorationException
-{
-
-  private static final long serialVersionUID = 1
-
-  final IApk apk
-  final boolean stopFurtherApkExplorations
-
-  ApkExplorationException(IApk apk, Throwable cause, boolean stopFurtherApkExplorations = false)
-  {
-    super(cause)
-    this.apk = apk
-    this.stopFurtherApkExplorations = stopFurtherApkExplorations
-
-    assert apk != null
-    assert cause != null
-
-    if (this.shouldStopFurtherApkExplorations())
-    {
-      log.warn(Markers.appHealth, 
-        "An ${this.class.simpleName} demanding stopping further apk explorations was just constructed!")
+class ApkExplorationException @JvmOverloads constructor(val apk: IApk,
+                                                        cause: Throwable,
+                                                        private val stopFurtherApkExplorations: Boolean = false) : ExplorationException(cause) {
+    companion object {
+        private const val serialVersionUID: Long = 1
+        private val log = LoggerFactory.getLogger(ApkExplorationException::class.java)
     }
-  }
 
-  boolean shouldStopFurtherApkExplorations()
-  {
-    if (this.stopFurtherApkExplorations)
-      return true
+    fun shouldStopFurtherApkExplorations(): kotlin.Boolean {
+        if (this.stopFurtherApkExplorations)
+            return true
 
-    if (this.cause instanceof DeviceException)
-      if ((this.cause as DeviceException).stopFurtherApkExplorations)
-        return true
+        if (this.cause is DeviceException)
+            if (this.cause.stopFurtherApkExplorations)
+                return true
 
-    return false
-  }
+        return false
+    }
+
+    init {
+        if (this.shouldStopFurtherApkExplorations()) {
+            log.warn(Markers.appHealth,
+                    "An ${this.javaClass.simpleName} demanding stopping further apk explorations was just constructed!")
+        }
+    }
 }

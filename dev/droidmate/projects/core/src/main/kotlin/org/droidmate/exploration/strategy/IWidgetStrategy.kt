@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,9 +22,8 @@ package org.droidmate.exploration.strategy
 import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.exploration.actions.ExplorationAction
 
-public interface IWidgetStrategy
-{
-  ExplorationAction decide(IGuiState guiState)
+interface IWidgetStrategy {
+    fun decide(guiState: IGuiState): ExplorationAction
 
-  boolean updateState(IGuiState guiState, String exploredAppPackageName)
+    fun updateState(guiState: IGuiState, exploredAppPackageName: String): Boolean
 }

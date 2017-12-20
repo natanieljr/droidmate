@@ -24,11 +24,8 @@ import org.junit.experimental.categories.Categories
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Categories)
-@Categories.ExcludeCategory(ExcludedFromFastRegressionTests)
-@Suite.SuiteClasses([
-  ExplorationTestSuite
-])
+@RunWith(Categories::class)
+@Categories.ExcludeCategory(ExcludedFromFastRegressionTests::class)
+@Suite.SuiteClasses(
+        ExplorationTestSuite::class)
 class ExplorationTestSuiteWithoutDevice
-{
-}

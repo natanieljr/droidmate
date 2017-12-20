@@ -19,20 +19,20 @@
 
 package org.droidmate.storage
 
+import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
 import java.nio.file.Path
 
 /**
  * See {@link org.droidmate.storage.Storage2}
  */
-public interface IStorage2
-{
-  void delete(String deletionTargetNameSuffix)
+public interface IStorage2 {
+    fun delete(deletionTargetNameSuffix: String)
 
-  void serializeToFile(def obj, Path file)
+    fun serializeToFile(obj: ApkExplorationOutput2, file: Path)
 
-  Collection<Path> getSerializedRuns2()
+    fun getSerializedRuns2(): Collection<Path>
 
-  Object deserialize(Path serPath)
+    fun deserialize(serPath: Path): ApkExplorationOutput2
 
-  void serialize(Object obj, String namePart)
+    fun serialize(obj: ApkExplorationOutput2, namePart: String)
 }

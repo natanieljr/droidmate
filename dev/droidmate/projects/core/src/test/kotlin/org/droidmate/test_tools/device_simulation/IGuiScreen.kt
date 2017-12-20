@@ -20,25 +20,24 @@ package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import java.io.Serializable
 
-interface IGuiScreen extends Serializable
-{
+interface IGuiScreen : Serializable {
 
-  IScreenTransitionResult perform(IAndroidDeviceAction action)
+    fun perform(action: IAndroidDeviceAction): IScreenTransitionResult
 
-  IDeviceGuiSnapshot getGuiSnapshot()
+    fun getGuiSnapshot(): IDeviceGuiSnapshot
+    fun getId(): String
 
-  String getId()
+    fun addHomeScreenReference(home: IGuiScreen)
 
-  void addHomeScreenReference(IGuiScreen home)
+    fun addMainScreenReference(main: IGuiScreen)
 
-  void addMainScreenReference(IGuiScreen main)
+    fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen)
+    fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen, ignoreDuplicates: Boolean)
 
-  void addWidgetTransition(String widgetId, IGuiScreen targetScreen)
-  void addWidgetTransition(String widgetId, IGuiScreen targetScreen, boolean ignoreDuplicates)
+    fun buildInternals()
 
-  void buildInternals()
-
-  void verify()
+    fun verify()
 }
 

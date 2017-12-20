@@ -26,8 +26,8 @@ import org.droidmate.buildsrc.BuildKt
 
 apply plugin: 'java'
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 compileJava.configure { JavaCompile jc ->
   /*
     Suppresses the following warning:

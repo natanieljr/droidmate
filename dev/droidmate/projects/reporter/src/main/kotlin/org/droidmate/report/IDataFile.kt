@@ -21,9 +21,8 @@ package org.droidmate.report
 import java.nio.file.Path
 
 interface IDataFile : Path {
-  
-  fun writeOut()
 
-  val path: Path
+    fun writeOut()
+
+    val path: Path
 }
-

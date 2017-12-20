@@ -21,12 +21,9 @@ package org.droidmate.test_suites
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Suite)
-@Suite.SuiteClasses([
-  TestCodeTestSuite,
-  UnitTestSuite,
-  IntegrationTestSuite,
-])
+@RunWith(Suite::class)
+@Suite.SuiteClasses(
+        TestCodeTestSuite::class,
+        UnitTestSuite::class,
+        IntegrationTestSuite::class)
 class RegressionTestSuite
-{
-}

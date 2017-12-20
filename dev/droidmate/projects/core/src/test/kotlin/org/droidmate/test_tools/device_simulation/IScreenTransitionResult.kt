@@ -23,7 +23,7 @@ import org.droidmate.apis.ITimeFormattedLogcatMessage
 interface IScreenTransitionResult
 {
 
-  IGuiScreen getScreen()
+  val screen: IGuiScreen
 
-  ArrayList<ITimeFormattedLogcatMessage> getLogs()
+  val logs: List<ITimeFormattedLogcatMessage>
 }

@@ -19,22 +19,14 @@
 package org.droidmate.test_tools.device_simulation
 
 import com.google.common.base.MoreObjects
-import groovy.transform.Canonical
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 
-@Canonical
-class ScreenTransitionResult implements IScreenTransitionResult
-{
-
-  IGuiScreen                             screen
-  ArrayList<ITimeFormattedLogcatMessage> logs
-
-  @Override
-   String toString()
-  {
-    return MoreObjects.toStringHelper(this)
-      .add("logs", logs*.messagePayload.collect { it.truncate(100) })
-      .add("screen", screen)
-      .toString()
-  }
+class ScreenTransitionResult(override val screen: IGuiScreen,
+                             override val logs: List<ITimeFormattedLogcatMessage>) : IScreenTransitionResult {
+    override fun toString(): String {
+        return MoreObjects.toStringHelper(this)
+                .add("logs", logs.flatMap { it.messagePayload.map { it.toString().substring(0, 100) } })
+                .add("screen", screen)
+                .toString()
+    }
 }

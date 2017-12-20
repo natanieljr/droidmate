@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,59 +19,53 @@
 
 package org.droidmate.device.datatypes
 
-import org.droidmate.exploration.actions.WidgetExplorationAction.Direction
+import org.droidmate.exploration.actions.Direction
 import org.droidmate.uiautomator_daemon.guimodel.GuiAction
+import java.awt.Point
 
-import java.awt.*
+abstract class AndroidDeviceAction : IAndroidDeviceAction {
 
-abstract class AndroidDeviceAction implements IAndroidDeviceAction
-{
-  static ClickGuiAction newSwipeGuiDeviceAction(Widget widget, Direction direction){
-		double swipe_percentage = 0.8
-		def (Point startPoint , Point targetPoint) = widget.getSwipePoints(direction, swipe_percentage)
-		return new ClickGuiAction(new GuiAction(startPoint.x as int, startPoint.y as int, targetPoint.x as int, targetPoint.y as int))
-  }
+    companion object {
 
-  static ClickGuiAction newClickGuiDeviceAction(Widget clickedWidget, boolean longClick = false)
-  {
-    newClickGuiDeviceAction(clickedWidget.clickPoint, longClick)
-  }
+        @JvmStatic
+        fun newSwipeGuiDeviceAction(widget: IWidget, direction: Direction): ClickGuiAction {
+            val swipe_percentage = 0.8
+            val points = widget.getSwipePoints(direction, swipe_percentage)
+            val startPoint = points[0]
+            val targetPoint = points[1]
+            return ClickGuiAction(GuiAction(startPoint.x, startPoint.y, targetPoint.x, targetPoint.y))
+        }
 
-   static ClickGuiAction newClickGuiDeviceAction(Point p, boolean longClick = false)
-  {
-    newClickGuiDeviceAction(p.x as int, p.y as int, longClick)
-  }
+        @JvmStatic
+        fun newClickGuiDeviceAction(clickedWidget: IWidget, longClick: Boolean = false): ClickGuiAction
+                = newClickGuiDeviceAction(clickedWidget.getClickPoint(), longClick)
 
-   static ClickGuiAction newClickGuiDeviceAction(int clickX, int clickY, boolean longClick = false)
-  {
-    return new ClickGuiAction(new GuiAction(clickX, clickY, longClick))
-  }
+        @JvmStatic
+        fun newClickGuiDeviceAction(p: Point, longClick: Boolean = false): ClickGuiAction
+                = newClickGuiDeviceAction(p.x, p.y, longClick)
 
-   static ClickGuiAction newEnterTextDeviceAction(String resourceId, String textToEnter)
-  {
-    return new ClickGuiAction(GuiAction.createEnterTextGuiAction(resourceId, textToEnter))
-  }
+        @JvmStatic
+        fun newClickGuiDeviceAction(clickX: Int, clickY: Int, longClick: Boolean = false): ClickGuiAction
+                = ClickGuiAction(GuiAction(clickX, clickY, longClick))
 
+        @JvmStatic
+        fun newEnterTextDeviceAction(resourceId: String, textToEnter: String): ClickGuiAction
+                = ClickGuiAction(GuiAction.createEnterTextGuiAction(resourceId, textToEnter))
 
-   static ClickGuiAction newPressBackDeviceAction()
-  {
-    return new ClickGuiAction(GuiAction.createPressBackGuiAction())
-  }
+        @JvmStatic
+        fun newPressBackDeviceAction(): ClickGuiAction
+                = ClickGuiAction(GuiAction.createPressBackGuiAction())
 
-   static ClickGuiAction newPressHomeDeviceAction()
-  {
-    return new ClickGuiAction(GuiAction.createPressHomeGuiAction())
-  }
+        @JvmStatic
+        fun newPressHomeDeviceAction(): ClickGuiAction
+                = ClickGuiAction(GuiAction.createPressHomeGuiAction())
 
-   static ClickGuiAction newTurnWifiOnDeviceAction()
-  {
-    return new ClickGuiAction(GuiAction.createTurnWifiOnGuiAction())
-  }
+        @JvmStatic
+        fun newTurnWifiOnDeviceAction(): ClickGuiAction
+                = ClickGuiAction(GuiAction.createTurnWifiOnGuiAction())
 
-   static ClickGuiAction newLaunchAppDeviceAction(String iconLabel)
-  {
-    return new ClickGuiAction(GuiAction.createLaunchAppGuiAction(iconLabel))
-  }
-
-
+        @JvmStatic
+        fun newLaunchAppDeviceAction(iconLabel: String): ClickGuiAction
+                = ClickGuiAction(GuiAction.createLaunchAppGuiAction(iconLabel))
+    }
 }

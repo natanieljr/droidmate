@@ -18,21 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-import groovy.transform.Canonical
+import java.io.Serializable
 
-@Canonical
-class Failable<TResult extends Serializable, TException extends Exception> implements Serializable
-{
-
-  private static final long serialVersionUID = 1
-
-  TResult    result
-  TException exception
-
-  Failable(TResult result, TException exception)
-  {
-    this.result = result
-    this.exception = exception
-    assert (this.result == null).implies(this.exception != null)
-  }
+class Failable<out TResult : Serializable, out TException : Exception> constructor(val result: TResult?, val exception: TException?) : Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 }

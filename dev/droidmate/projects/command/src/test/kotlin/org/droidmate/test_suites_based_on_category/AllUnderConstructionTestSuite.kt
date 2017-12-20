@@ -24,11 +24,9 @@ import org.junit.experimental.categories.Categories
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Categories)
-@Categories.IncludeCategory(UnderConstruction)
-@Suite.SuiteClasses([
-  AllTestSuites
-])
+@RunWith(Categories::class)
+@Categories.IncludeCategory(UnderConstruction::class)
+@Suite.SuiteClasses(
+        AllTestSuites::class
+)
 class AllUnderConstructionTestSuite
-{
-}

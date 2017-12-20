@@ -23,20 +23,19 @@ import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 
-interface IDeviceSimulation
-{
-  void updateState(IAndroidDeviceAction deviceAction)
+interface IDeviceSimulation {
+    fun updateState(deviceAction: IAndroidDeviceAction)
 
-  IDeviceGuiSnapshot getCurrentGuiSnapshot()
+    fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot
 
-  List<ITimeFormattedLogcatMessage> getCurrentLogs()
+    fun getCurrentLogs(): List<ITimeFormattedLogcatMessage>
 
-  String getPackageName()
+    val packageName: String
 
-  @VisibleForTesting
-  List<IGuiScreen> getGuiScreens()
+    @VisibleForTesting
+    val guiScreens: List<IGuiScreen>
 
-  void assertEqual(IDeviceSimulation other)
+    fun assertEqual(other: IDeviceSimulation)
 
-  boolean getAppIsRunning()
+    fun getAppIsRunning(): Boolean
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,15 +26,20 @@ import java.nio.file.Path
 /**
  * See {@link org.droidmate.android_sdk.AaptWrapper}
  */
-public interface IAaptWrapper {
+interface IAaptWrapper {
 
-  String getPackageName(Path apk) throws DroidmateException
+    @Throws(DroidmateException::class)
+    fun getPackageName(apk: Path): String
 
-  String getLaunchableActivityName(Path apk) throws DroidmateException
+    @Throws(DroidmateException::class)
+    fun getLaunchableActivityName(apk: Path): String
 
-  String getLaunchableActivityComponentName(Path apk) throws DroidmateException
+    @Throws(DroidmateException::class)
+    fun getLaunchableActivityComponentName(apk: Path): String
 
-  String getApplicationLabel(Path apk) throws DroidmateException
+    @Throws(DroidmateException::class)
+    fun getApplicationLabel(apk: Path): String
 
-  List<String> getMetadata(Path apk) throws DroidmateException
+    @Throws(DroidmateException::class)
+    fun getMetadata(apk: Path): List<String>
 }

@@ -22,46 +22,39 @@ package org.droidmate.monitor
 import com.konradjamrozik.ResourcePath
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.IConfiguration
+import java.nio.file.Files
 
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import static java.nio.file.Files.isWritable
-import static java.nio.file.Files.notExists
+class MonitorGeneratorResources constructor(args: Array<String>) : IConfiguration {
 
-@SuppressWarnings("GrFinalVariableAccess")
-class MonitorGeneratorResources implements IConfiguration
-{
+    val monitorSrcTemplatePath: Path
+    val monitorSrcOutPath: Path
+    val monitoredApis: Path
 
-  final Path monitorSrcTemplatePath
-  final Path monitorSrcOutPath
-  final Path monitoredApis
+    val androidApi: AndroidAPI
 
-  final AndroidAPI androidApi
-
-  MonitorGeneratorResources(String[] args)
-  {
+    init {
     if (args.contains("api23"))
       this.androidApi = AndroidAPI.API_23
     else
-      throw new IllegalStateException()
+        throw IllegalStateException()
 
-    Path monitorSrcOut
+        val monitorSrcOut: Path
 
-    if (this.androidApi == AndroidAPI.API_23)
-    {
-      monitorSrcOut = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
+        if (this.androidApi == AndroidAPI.API_23) {
+            monitorSrcOut = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
     } else
-      throw new IllegalStateException()
+            throw IllegalStateException()
 
-    assert monitorSrcOut != null
-    assert notExists(monitorSrcOut) || isWritable(monitorSrcOut)
+        assert(Files.notExists(monitorSrcOut) || Files.isWritable(monitorSrcOut))
     this.monitorSrcOutPath = monitorSrcOut
 
-    Path monitorSrcTemplatePath = new ResourcePath(BuildConstants.monitor_generator_res_name_monitor_template).path
+        val monitorSrcTemplatePath = ResourcePath(BuildConstants.monitor_generator_res_name_monitor_template).path
     this.monitorSrcTemplatePath = monitorSrcTemplatePath
 
-    Path monitoredApis = new ResourcePath("monitored_apis.json").path
+        val monitoredApis = ResourcePath("monitored_apis.json").path
     this.monitoredApis = monitoredApis
   }
 }

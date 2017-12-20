@@ -24,37 +24,38 @@ import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.exploration.device.IDeviceLogs
+import java.net.URI
 
 // WISH use instead lazy extension property implemented with workaround: https://youtrack.jetbrains.com/issue/KT-13053#comment=27-1510399
 val List<IApkExplorationOutput2>.withFilteredApiLogs: List<IApkExplorationOutput2> get() {
 
-  fun filterApiLogs(output: IApkExplorationOutput2): IApkExplorationOutput2 {
+    fun filterApiLogs(output: IApkExplorationOutput2): IApkExplorationOutput2 {
 
-    fun filterApiLogs(results: List<RunnableExplorationActionWithResult>): List<RunnableExplorationActionWithResult> {
+        fun filterApiLogs(results: List<RunnableExplorationActionWithResult>): MutableList<RunnableExplorationActionWithResult> {
 
-      fun filterApiLogs(result: IExplorationActionRunResult): IExplorationActionRunResult {
+            fun filterApiLogs(result: IExplorationActionRunResult): IExplorationActionRunResult {
 
-        fun filterApiLogs(deviceLogs: IDeviceLogs): IDeviceLogs {
+                fun filterApiLogs(deviceLogs: IDeviceLogs): IDeviceLogs = FilteredDeviceLogs(deviceLogs.apiLogs)
 
-          return FilteredDeviceLogs(deviceLogs.apiLogsOrEmpty)
+                return ExplorationActionRunResult(
+                        result.successful,
+                        result.exploredAppPackageName,
+                        filterApiLogs(result.deviceLogs),
+                        result.guiSnapshot,
+                        result.exception,
+                        URI.create("file://."))
+            }
+
+            return results.map { RunnableExplorationActionWithResult(it.first, filterApiLogs(it.second)) }.toMutableList()
         }
 
-        return ExplorationActionRunResult(
-          result.successful,
-          result.exploredAppPackageName,
-          filterApiLogs(result.deviceLogs),
-          result.guiSnapshot,
-          result.exception,
-          result.screenshot
-        )
-      }
-
-      return results.map { RunnableExplorationActionWithResult(it.first, filterApiLogs(it.second)) }
+        return ApkExplorationOutput2(output.apk,
+                filterApiLogs(output.actRes),
+                output.explorationStartTime,
+                output.explorationEndTime)
+                .apply { exception = output.exception }
     }
 
-    return ApkExplorationOutput2(output.apk, filterApiLogs(output.actRess), output.explorationStartTime, output.explorationEndTime)
-  }
-
-  return this.map { filterApiLogs(it) }
+    return this.map { filterApiLogs(it) }
 }
 

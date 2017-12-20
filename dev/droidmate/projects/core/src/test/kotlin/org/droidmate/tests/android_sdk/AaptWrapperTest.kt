@@ -19,71 +19,60 @@
 
 package org.droidmate.tests.android_sdk
 
-import groovy.transform.TypeChecked
 import org.droidmate.android_sdk.AaptWrapper
-import org.droidmate.android_sdk.Apk
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.test_tools.ApkFixtures
-import org.droidmate.test_tools.DroidmateGroovyTestCase
-import org.droidmate.tests.FixturesKt
+import org.droidmate.test_tools.DroidmateTestCase
+import org.droidmate.tests.fixture_aaptBadgingDump
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
-
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import static groovy.transform.TypeCheckingMode.SKIP
-
-@TypeChecked
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(JUnit4)
- class AaptWrapperTest extends DroidmateGroovyTestCase
-{
-  @Test
-  void "Gets launchable activity component name from badging dump"()
-  {
-    String aaptBadgingDump = aaptBadgingDump
+@RunWith(JUnit4::class)
+ class AaptWrapperTest : DroidmateTestCase() {
+    companion object {
+        //region Helper methods
+        @JvmStatic
+        val newAaptBadgingDump: (Path) -> String = {
+            val aaptBadgingDump = fixture_aaptBadgingDump
+            assert(aaptBadgingDump.contains("package: name='com.box.android'"))
+            assert(aaptBadgingDump.contains("launchable-activity: name='com.box.android.activities.SplashScreenActivity'"))
+            aaptBadgingDump
+        }
 
-    // Act
-    String launchableActivityName = AaptWrapper.tryGetLaunchableActivityComponentNameFromBadgingDump(aaptBadgingDump)
+        @JvmStatic
+        private val expectedLaunchableActivityName: String = "com.box.android/com.box.android.activities.SplashScreenActivity"
 
-    assert launchableActivityName == expectedLaunchableActivityName
-  }
+        //endregion Helper methods
+    }
 
-  @TypeChecked(SKIP)
-  @Test
-  void "Gets launchable activity component name"()
-  {
+    @Test
+    fun `Gets launchable activity component name from badging dump`() {
+        val aaptBadgingDump = newAaptBadgingDump(Paths.get("."))
 
-    AaptWrapper sut = new AaptWrapper(Configuration.default, new SysCmdExecutor())
-    sut.metaClass.aaptDumpBadging = {Path _ -> aaptBadgingDump}
+        // Act
+        val launchableActivityName = AaptWrapper.tryGetLaunchableActivityComponentNameFromBadgingDump(aaptBadgingDump)
 
-    Apk ignoredApk = ApkFixtures.build().monitoredInlined_api23
+        assert(launchableActivityName == expectedLaunchableActivityName)
+    }
 
-    // Act
-    String launchableActivityName = sut.getLaunchableActivityComponentName(Paths.get(ignoredApk.absolutePath))
+    @Test
+    fun `Gets launchable activity component name`() {
 
-    assert launchableActivityName == expectedLaunchableActivityName
-  }
+        val sut = AaptWrapper(Configuration.getDefault(), SysCmdExecutor())
+        sut.aaptDumpBadgingInstr = newAaptBadgingDump
 
-  //region Helper methods
-  private static String getAaptBadgingDump()
-  {
-    String aaptBadgingDump = FixturesKt.fixture_aaptBadgingDump
-    assert aaptBadgingDump.contains("package: name='com.box.android'")
-    assert aaptBadgingDump.contains("launchable-activity: name='com.box.android.activities.SplashScreenActivity'")
-    return aaptBadgingDump
-  }
+        val ignoredApk = ApkFixtures.build().monitoredInlined_api23
 
-  private static String getExpectedLaunchableActivityName()
-  {
-    return "com.box.android/com.box.android.activities.SplashScreenActivity"
-  }
+        // Act
+        val launchableActivityName = sut.getLaunchableActivityComponentName(Paths.get(ignoredApk.absolutePath))
 
-  //endregion Helper methods
-
+        assert(launchableActivityName == expectedLaunchableActivityName)
+    }
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,19 +19,13 @@
 
 package org.droidmate.android_sdk
 
-class NoAndroidDevicesAvailableException extends AdbWrapperException
-{
-  private static final long serialVersionUID = 1
+class NoAndroidDevicesAvailableException : AdbWrapperException {
+    companion object {
+        private const val serialVersionUID: Long = 1
+        private const val message = "No android devices available, i.e. command \"<android sdk>/platform-tools/adb devices\" returns no devices."
+    }
 
-  private static String message = "No android devices available, i.e. command \"<android sdk>/platform-tools/adb devices\" returns no devices."
+    constructor() : super(NoAndroidDevicesAvailableException.message)
 
-  NoAndroidDevicesAvailableException()
-  {
-    super(message)
-  }
-
-  NoAndroidDevicesAvailableException(Throwable cause)
-  {
-    super(message, cause)
-  }
+    constructor(cause: Throwable) : super(NoAndroidDevicesAvailableException.message, cause)
 }

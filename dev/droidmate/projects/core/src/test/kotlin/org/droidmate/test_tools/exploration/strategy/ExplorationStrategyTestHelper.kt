@@ -24,19 +24,16 @@ import org.droidmate.exploration.strategy.ExplorationStrategy
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.test_tools.configuration.ConfigurationForTests
 
-class ExplorationStrategyTestHelper
-{
+class ExplorationStrategyTestHelper {
+    companion object {
+        @JvmStatic
+        fun buildStrategy(actionsLimit: Int, resetEveryNthExplorationForward: Int): IExplorationStrategy {
+            val cfg = ConfigurationForTests().apply {
+                setArg(arrayListOf(Configuration.pn_actionsLimit, "$actionsLimit"))
+                setArg(arrayListOf(Configuration.pn_resetEveryNthExplorationForward, "$resetEveryNthExplorationForward"))
+            }.get()
 
-  static IExplorationStrategy buildStrategy(
-    Integer actionsLimit, Integer resetEveryNthExplorationForward)
-  {
-    Configuration cfg = new ConfigurationForTests().setArgs([
-      Configuration.pn_actionsLimit, "$actionsLimit",
-      Configuration.pn_resetEveryNthExplorationForward, "$resetEveryNthExplorationForward",
-    ]).get()
-
-    IExplorationStrategy strategy = ExplorationStrategy.build(cfg)
-    return strategy
-
-  }
+            return ExplorationStrategy.build(cfg)
+        }
+    }
 }

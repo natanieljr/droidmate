@@ -22,10 +22,7 @@ import org.droidmate.frontend.DroidmateFrontendTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Suite)
-@Suite.SuiteClasses([
-  DroidmateFrontendTest
-])
+@RunWith(Suite::class)
+@Suite.SuiteClasses(
+        DroidmateFrontendTest::class)
 class IntegrationTestSuite
-{
-}

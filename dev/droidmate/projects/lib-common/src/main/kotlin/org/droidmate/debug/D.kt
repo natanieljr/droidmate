@@ -19,46 +19,53 @@
 
 package org.droidmate.debug
 
-class D
-{
-  // Debug counter
-  public static int C = 0
+import java.io.File
+import java.lang.Thread.sleep
 
-  public static File debugFile = new File("./temp_debug.txt")
-  static {
-    debugFile.delete()
-  }
+class D {
+    companion object {
+        // Debug counter
+        @JvmStatic
+        var C = 0
 
-  public static void e(int dc, Closure c)
-  {
-    if (dc == C)
-      c()
-  }
+        @JvmStatic
+        val debugFile = File("./temp_debug.txt")
 
-  public static void Dprintln(String debugContent)
-  {
-    debugFile.append(debugContent + "\n")
-    // println debugContent
-  }
+        /*static {
+          debugFile.delete()
+      }*/
 
-  public static void wait8seconds()
-  {
-    println "waiting 8 seconds"
-    sleep(1000)
-    println "7"
-    sleep(1000)
-    println "6"
-    sleep(1000)
-    println "5"
-    sleep(1000)
-    println "4"
-    sleep(1000)
-    println "3"
-    sleep(1000)
-    println "2"
-    sleep(1000)
-    println "1"
-    sleep(1000)
-    println "continue"
-  }
+        @JvmStatic
+        fun e(dc: Int, c: () -> Any) {
+            if (dc == C)
+                c()
+        }
+
+        @JvmStatic
+        fun Dprintln(debugContent: String) {
+            debugFile.appendText(debugContent + "\n")
+            // println(debugContent
+        }
+
+        @JvmStatic
+        fun wait8seconds() {
+            println("waiting 8 seconds")
+            sleep(1000)
+            println("7")
+            sleep(1000)
+            println("6")
+            sleep(1000)
+            println("5")
+            sleep(1000)
+            println("4")
+            sleep(1000)
+            println("3")
+            sleep(1000)
+            println("2")
+            sleep(1000)
+            println("1")
+            sleep(1000)
+            println("continue")
+        }
+    }
 }

@@ -24,110 +24,81 @@ import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
-class UiautomatorDaemonClient implements IUiautomatorDaemonClient
-{
+class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
+                                          private val deviceSerialNumber: String,
+                                          private val port: Int,
+                                          socketTimeout: Int,
+                                          private val serverStartTimeout: Int,
+                                          private val serverStartQueryDelay: Int) : IUiautomatorDaemonClient {
 
-  private final ITcpClientBase<DeviceCommand, DeviceResponse> client
-
-  private final IAdbWrapper adbWrapper
-  private final String      deviceSerialNumber
-  private final int         port
-  private final int         serverStartTimeout
-  private final int         serverStartQueryDelay
-
-  private Thread uiaDaemonThread
-
-  UiautomatorDaemonClient(IAdbWrapper adbWrapper, String deviceSerialNumber, int port, int socketTimeout, int serverStartTimeout, int serverStartQueryDelay)
-  {
-    this.adbWrapper = adbWrapper
-    this.deviceSerialNumber = deviceSerialNumber
-    this.port = port
-    this.serverStartTimeout = serverStartTimeout
-    this.serverStartQueryDelay = serverStartQueryDelay
-
-    this.client = new TcpClientBase<DeviceCommand, DeviceResponse>(socketTimeout)
-  }
-
-  @Override
-  DeviceResponse sendCommandToUiautomatorDaemon(DeviceCommand deviceCommand) throws DeviceException
-  {
-    this.client.queryServer(deviceCommand, this.port)
-  }
-
-  @Override
-  void forwardPort() throws DeviceException
-  {
-    this.adbWrapper.forwardPort(this.deviceSerialNumber, this.port)
-  }
-
-  @Override
-  void startUiaDaemon() throws DeviceException
-  {
-    this.uiaDaemonThread = startUiaDaemonThread(this.adbWrapper, this.deviceSerialNumber, this.port)
-
-    validateUiaDaemonServerStartLogcatMessages()
-
-    assert uiaDaemonThreadIsAlive
-
-  }
-
-  private void validateUiaDaemonServerStartLogcatMessages()
-  {
-    List<String> msgs = this.adbWrapper.waitForMessagesOnLogcat(
-      this.deviceSerialNumber,
-      UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG,
-      1,
-      this.serverStartTimeout,
-      this.serverStartQueryDelay)
-
-    assert !msgs?.empty
-    // On Huawei devices many logs are disabled by default to increase performance,
-    // if this message appears it's ok, the relevant informaiton will still be logged.
-    //     int logctl_get(): open '/dev/hwlog_switch' fail -1, 13. Permission denied
-    //     Note: log switch off, only log_main and log_events will have logs!
-    int nrMessages = 1
-    if (msgs.join("\n").contains("Note: log switch off, only log_main and log_events will have logs!"))
-      nrMessages = 3
-
-    assert (msgs.size() == nrMessages):
-      "Expected exactly one message on logcat (with tag $UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG) " +
-        "confirming that uia-daemon server has started. Instead, got ${msgs.size()} messages. Msgs:\n${msgs.join("\n")}"
-    assert msgs.last().contains(UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG)
-  }
-
-  @Override
-  boolean getUiaDaemonThreadIsNull()
-  {
-    return this.uiaDaemonThread == null
-  }
-
-
-  @Override
-  boolean getUiaDaemonThreadIsAlive()
-  {
-    assert this.uiaDaemonThread != null
-    return this.uiaDaemonThread.alive
-  }
-
-  private static Thread startUiaDaemonThread(IAdbWrapper adbWrapper, String deviceSerialNumber, int port)
-  {
-    return Thread.startDaemon(new UiAutomatorDaemonThread(adbWrapper, deviceSerialNumber, port).&run)
-  }
-
-  @Override
-  void waitForUiaDaemonToClose() throws DeviceException
-  {
-    assert (uiaDaemonThread != null)
-    try
-    {
-      uiaDaemonThread.join()
-      assert !uiaDaemonThreadIsAlive
-    } catch (InterruptedException e)
-    {
-      throw new DeviceException(e)
+    companion object {
+        @JvmStatic
+        private fun startUiaDaemonThread(adbWrapper: IAdbWrapper, deviceSerialNumber: String, port: Int): Thread {
+            val thread = Thread(UiAutomatorDaemonThread(adbWrapper, deviceSerialNumber, port))
+            thread.isDaemon = true
+            thread.start()
+            return thread
+        }
     }
-  }
 
+    private val client = TcpClientBase<DeviceCommand, DeviceResponse>(socketTimeout)
+
+    private var uiaDaemonThread: Thread? = null
+
+    override fun sendCommandToUiautomatorDaemon(deviceCommand: DeviceCommand): DeviceResponse =
+            this.client.queryServer(deviceCommand, this.port)
+
+    override fun forwardPort() {
+        this.adbWrapper.forwardPort(this.deviceSerialNumber, this.port)
+    }
+
+    override fun startUiaDaemon() {
+        this.uiaDaemonThread = startUiaDaemonThread(this.adbWrapper, this.deviceSerialNumber, this.port)
+
+        validateUiaDaemonServerStartLogcatMessages()
+
+        assert(this.getUiaDaemonThreadIsAlive())
+
+    }
+
+    private fun validateUiaDaemonServerStartLogcatMessages() {
+        val msgs = this.adbWrapper.waitForMessagesOnLogcat(
+                this.deviceSerialNumber,
+                UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG,
+                1,
+                this.serverStartTimeout,
+                this.serverStartQueryDelay)
+
+        assert(msgs.isNotEmpty())
+        // On Huawei devices many logs are disabled by default to increase performance,
+        // if this message appears it's ok, the relevant informaiton will still be logged.
+        //     int logctl_get(): open '/dev/hwlog_switch' fail -1, 13. Permission denied
+        //     Note: log switch off, only log_main and log_events will have logs!
+        var nrMessages = 1
+        if (msgs.joinToString("\n").contains("Note: log switch off, only log_main and log_events will have logs!"))
+            nrMessages = 3
+
+        assert(msgs.size == nrMessages, {
+            "Expected exactly one message on logcat (with tag ${UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG}) " +
+                    "confirming that uia-daemon server has started. Instead, got ${msgs.size} messages. Msgs:\n${msgs.joinToString("\n")}"
+        })
+        assert(msgs.last().contains(UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG))
+    }
+
+    override fun getUiaDaemonThreadIsNull(): Boolean = this.uiaDaemonThread == null
+
+    override fun getUiaDaemonThreadIsAlive(): Boolean {
+        assert(this.uiaDaemonThread != null)
+        return this.uiaDaemonThread!!.isAlive
+    }
+
+    override fun waitForUiaDaemonToClose() {
+        assert(uiaDaemonThread != null)
+        try {
+            uiaDaemonThread?.join()
+            assert(!this.getUiaDaemonThreadIsAlive())
+        } catch (e: InterruptedException) {
+            throw DeviceException(e)
+        }
+    }
 }
-
-

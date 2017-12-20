@@ -18,34 +18,22 @@
 // web: www.droidmate.org
 package org.droidmate.device
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.IAdbWrapper
+import org.slf4j.LoggerFactory
 
-@Slf4j
-class UiAutomatorDaemonThread implements Runnable
-{
+class UiAutomatorDaemonThread constructor(private val adbWrapper: IAdbWrapper,
+                                          private val deviceSerialNumber: String,
+                                          private val port: Int) : Runnable {
 
-  private final String      deviceSerialNumber
-  private final IAdbWrapper adbWrapper
-  private final int         port
-
-  UiAutomatorDaemonThread(IAdbWrapper adbWrapper, String deviceSerialNumber, int port)
-  {
-    this.adbWrapper = adbWrapper
-    this.deviceSerialNumber = deviceSerialNumber
-    this.port = port
-  }
-
-  @Override
-  public void run()
-  {
-    try
-    {
-      this.adbWrapper.startUiautomatorDaemon(this.deviceSerialNumber, this.port)
-    } catch (Throwable e)
-    {
-      log.error("$UiAutomatorDaemonThread.simpleName threw ${e.class.simpleName}. The exception:\n", e)
+    companion object {
+        private val log = LoggerFactory.getLogger(MonitorsClient::class.java)
     }
-  }
 
+    override fun run() {
+        try {
+            this.adbWrapper.startUiautomatorDaemon(this.deviceSerialNumber, this.port)
+        } catch (e: Throwable) {
+            log.error("$UiAutomatorDaemonThread.simpleName threw ${e.javaClass.simpleName}. The exception:\n", e)
+        }
+    }
 }

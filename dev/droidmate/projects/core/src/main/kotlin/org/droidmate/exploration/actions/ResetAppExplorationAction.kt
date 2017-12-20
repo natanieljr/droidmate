@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,24 +19,11 @@
 
 package org.droidmate.exploration.actions
 
-import groovy.transform.Canonical
+class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Boolean = false) : ExplorationAction() {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-@Canonical
-class ResetAppExplorationAction extends ExplorationAction
-{
-  private static final long serialVersionUID = 1
-
-  final isFirst = false
-
-  @Override
-  String toString()
-  {
-    return super.toString()
-  }
-
-  @Override
-  String toShortString()
-  {
-    "Reset app"
-  }
+    override fun toShortString(): String
+            = "Reset app"
 }

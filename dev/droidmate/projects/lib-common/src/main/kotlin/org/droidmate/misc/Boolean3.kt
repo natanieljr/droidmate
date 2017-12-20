@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-enum Boolean3
+enum class Boolean3
 {
   True,
   False,

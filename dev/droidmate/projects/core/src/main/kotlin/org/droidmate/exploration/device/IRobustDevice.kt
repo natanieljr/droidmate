@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,13 +23,16 @@ import org.droidmate.android_sdk.IApk
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 
-interface IRobustDevice extends IAndroidDevice, IDeviceMessagesReader
-{
-  IDeviceGuiSnapshot ensureHomeScreenIsDisplayed() throws DeviceException
+interface IRobustDevice : IAndroidDevice, IDeviceMessagesReader {
+    @Throws(DeviceException::class)
+    fun ensureHomeScreenIsDisplayed(): IDeviceGuiSnapshot
 
-  Boolean appIsNotRunning(IApk apk) throws DeviceException
+    @Throws(DeviceException::class)
+    fun appIsNotRunning(apk: IApk): Boolean
 
-  void launchApp(IApk apk) throws DeviceException
+    @Throws(DeviceException::class)
+    fun launchApp(apk: IApk)
 
-  void rebootAndRestoreConnection() throws DeviceException
+    @Throws(DeviceException::class)
+    fun rebootAndRestoreConnection()
 }

@@ -19,143 +19,123 @@
 
 package org.droidmate.command.exploration
 
-import groovy.transform.TypeChecked
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.exploration.actions.IExplorationActionRunResult
-import org.droidmate.exploration.actions.IRunnableExplorationAction
-import org.droidmate.exploration.actions.RunnableExplorationAction
-import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
+import org.droidmate.device.datatypes.MissingGuiSnapshot
+import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.strategy.ExplorationStrategy
 import org.droidmate.exploration.strategy.IExplorationStrategy
-import org.droidmate.exploration.strategy.IExplorationStrategyProvider
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
+import org.slf4j.LoggerFactory
+import java.net.URI
 
-import static org.droidmate.exploration.actions.ExplorationAction.newResetAppExplorationAction
-
-@TypeChecked
-@Slf4j
-class Exploration implements IExploration
-{
-
-  private final Configuration                cfg
-  private final ITimeProvider                timeProvider
-  private final IExplorationStrategyProvider strategyProvider
+class Exploration constructor(private val cfg: Configuration,
+                              private val timeProvider: ITimeProvider,
+                              private val strategyProvider: () -> IExplorationStrategy) : IExploration {
+    companion object {
+        private val log = LoggerFactory.getLogger(Exploration::class.java)
 
 
-  Exploration(Configuration cfg, ITimeProvider timeProvider, IExplorationStrategyProvider strategyProvider)
-  {
-    this.timeProvider = timeProvider
-    this.cfg = cfg
-    this.strategyProvider = strategyProvider
-  }
-
-   static Exploration build(Configuration cfg,
-                                  ITimeProvider timeProvider = new TimeProvider(),
-                                  IExplorationStrategyProvider strategyProvider = {ExplorationStrategy.build(cfg)})
-  {
-    return new Exploration(cfg, timeProvider, strategyProvider)
-  }
-
-  @Override
-  Failable<IApkExplorationOutput2, DeviceException> run(IApk app, IRobustDevice device)
-  {
-    log.info("run(${app?.packageName}, device)")
-
-    assert app != null
-    assert device != null
-    device.resetTimeSync()
-
-    try
-    {
-      tryDeviceHasPackageInstalled(device, app.packageName)
-      tryWarnDeviceDisplaysHomeScreen(device, app.fileName)
-    } catch (DeviceException e)
-    {
-      return new Failable<IApkExplorationOutput2, DeviceException>(null, e)
+        @JvmStatic
+        fun build(cfg: Configuration,
+                  timeProvider: ITimeProvider = TimeProvider(),
+                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategy.build(cfg) }): Exploration
+                = Exploration(cfg, timeProvider, strategyProvider)
     }
 
-    IApkExplorationOutput2 output = explorationLoop(app, device)
+    override fun run(app: IApk, device: IRobustDevice): Failable<IApkExplorationOutput2, DeviceException> {
+        log.info("run(${app.packageName}, device)")
 
-    output.verify()
+        device.resetTimeSync()
 
-    if (output.exceptionIsPresent)
-      log.warn(Markers.appHealth, "! Encountered ${output.exception.class.simpleName} during the exploration of ${app.packageName} " +
-        "after already obtaining some exploration output.")
+        try {
+            tryDeviceHasPackageInstalled(device, app.packageName)
+            tryWarnDeviceDisplaysHomeScreen(device, app.fileName)
+        } catch (e: DeviceException) {
+            return Failable<IApkExplorationOutput2, DeviceException>(null, e)
+        }
 
-    return new Failable<IApkExplorationOutput2, DeviceException>(output, output.exceptionIsPresent ? output.exception : null)
-  }
+        val output = explorationLoop(app, device)
 
-  IApkExplorationOutput2 explorationLoop(IApk app, IRobustDevice device)
-  {
-    log.debug("explorationLoop(app=${app?.fileName}, device)")
+        output.verify()
 
-    assert app != null
-    assert device != null
+        if (output.exceptionIsPresent)
+            log.warn(Markers.appHealth, "! Encountered ${output.exception.javaClass.simpleName} during the exploration of ${app.packageName} " +
+                    "after already obtaining some exploration output.")
 
-    // Construct the object that will hold the exploration output and that will be returned from this method.
-    IApkExplorationOutput2 output = new ApkExplorationOutput2(app)
-
-    output.explorationStartTime = timeProvider.now
-    log.debug("Exploration start time: " + output.explorationStartTime)
-
-    // Construct initial action and run it on the device to obtain initial result.
-    IRunnableExplorationAction action = null
-    IExplorationActionRunResult result = null
-
-    boolean isFirst = true
-    IExplorationStrategy strategy = strategyProvider.provideNewInstance()
-
-    // Execute the exploration loop proper, starting with the values of initial reset action and its result.
-    while (isFirst || (result.successful && !(action instanceof RunnableTerminateExplorationAction)))
-    {
-      action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.now, cfg.takeScreenshots)
-      result = action.run(app, device)
-      output.add(action, result)
-
-      if (isFirst){
-        log.info("Initial action: ${action.base}")
-        isFirst = false
-      }
+        return Failable<IApkExplorationOutput2, DeviceException>(output, if (output.exceptionIsPresent) output.exception else null)
     }
-    
-    assert !result.successful || action instanceof RunnableTerminateExplorationAction
 
-    output.explorationEndTime = timeProvider.now
 
-    assert output != null
-    return output
-  }
+    private fun explorationLoop(app: IApk, device: IRobustDevice): IApkExplorationOutput2 {
+        log.debug("explorationLoop(app=${app.fileName}, device)")
 
-  private void tryDeviceHasPackageInstalled(IExplorableAndroidDevice device, String packageName) throws DeviceException
-  {
-    log.trace("tryDeviceHasPackageInstalled(device, $packageName)")
+        // Construct the object that will hold the exploration output and that will be returned from this method.
+        val output = ApkExplorationOutput2(app)
 
-    if (!device.hasPackageInstalled(packageName))
-      throw new DeviceException()
-  }
+        output.explorationStartTime = timeProvider.getNow()
+        log.debug("Exploration start time: " + output.explorationStartTime)
 
-  private void tryWarnDeviceDisplaysHomeScreen(IExplorableAndroidDevice device, String fileName) throws DeviceException
-  {
-    log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
+        // Construct initial action and run it on the device to obtain initial result.
+        var action: IRunnableExplorationAction? = null
+        var result: IExplorationActionRunResult = ExplorationActionRunResult(true, app.packageName,
+                DeviceLogs(ArrayList()), MissingGuiSnapshot(), DeviceExceptionMissing(),
+                URI.create("test://empty"), true)
 
-    IDeviceGuiSnapshot initialGuiSnapshot = device.guiSnapshot
+        var isFirst = true
+        val strategy: IExplorationStrategy = strategyProvider.invoke()
 
-    if (!initialGuiSnapshot.guiState.isHomeScreen())
-      log.warn(Markers.appHealth, 
-        "An exploration process for $fileName is about to start but the device doesn't display home screen. " +
-        "Instead, its GUI state is: $initialGuiSnapshot.guiState. " +
-        "Continuing the exploration nevertheless, hoping that the first \"reset app\" " +
-        "exploration action will force the device into the home screen.")
-  }
+        // Execute the exploration loop proper, starting with the values of initial reset action and its result.
+        while (isFirst || (result.successful && !(action is RunnableTerminateExplorationAction))) {
+            action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots)
+            result = action.run(app, device)
+            output.add(action, result)
+
+            if (isFirst) {
+                log.info("Initial action: ${action.base}")
+                isFirst = false
+            }
+        }
+
+        assert(!result.successful || action is RunnableTerminateExplorationAction)
+
+        // Propagate exception if there was any
+        if (!result.successful)
+            output.exception = result.exception
+
+        output.explorationEndTime = timeProvider.getNow()
+
+        return output
+    }
+
+    @Throws(DeviceException::class)
+    private fun tryDeviceHasPackageInstalled(device: IExplorableAndroidDevice, packageName: String) {
+        log.trace("tryDeviceHasPackageInstalled(device, $packageName)")
+
+        if (!device.hasPackageInstalled(packageName))
+            throw DeviceException()
+    }
+
+    @Throws(DeviceException::class)
+    private fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
+        log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
+
+        val initialGuiSnapshot = device.getGuiSnapshot()
+
+        if (!initialGuiSnapshot.guiState.isHomeScreen)
+            log.warn(Markers.appHealth,
+                    "An exploration process for $fileName is about to start but the device doesn't display home screen. " +
+                            "Instead, its GUI state is: $initialGuiSnapshot.guiState. " +
+                            "Continuing the exploration nevertheless, hoping that the first \"reset app\" " +
+                            "exploration action will force the device into the home screen.")
+    }
 }

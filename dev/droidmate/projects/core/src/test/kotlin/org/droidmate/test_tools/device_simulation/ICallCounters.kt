@@ -20,7 +20,7 @@ package org.droidmate.test_tools.device_simulation
 
 interface ICallCounters
 {
-  int increment(String packageName, String methodName)
+  fun increment(packageName: String, methodName: String): Int
 
-  int get(String packageName, String methodName)
+  fun get(packageName: String, methodName: String): Int
 }

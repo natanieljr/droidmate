@@ -22,17 +22,20 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 
-interface IUiautomatorDaemonClient
-{
-  DeviceResponse sendCommandToUiautomatorDaemon(DeviceCommand deviceCommand) throws DeviceException
+interface IUiautomatorDaemonClient {
+    @Throws(DeviceException::class)
+    fun sendCommandToUiautomatorDaemon(deviceCommand: DeviceCommand): DeviceResponse
 
-  void forwardPort() throws DeviceException
+    @Throws(DeviceException::class)
+    fun forwardPort()
 
-  void startUiaDaemon() throws DeviceException
+    @Throws(DeviceException::class)
+    fun startUiaDaemon()
 
-  void waitForUiaDaemonToClose() throws DeviceException
+    @Throws(DeviceException::class)
+    fun waitForUiaDaemonToClose()
 
-  boolean getUiaDaemonThreadIsNull()
-  
-  boolean getUiaDaemonThreadIsAlive()
+    fun getUiaDaemonThreadIsNull(): Boolean
+
+    fun getUiaDaemonThreadIsAlive(): Boolean
 }

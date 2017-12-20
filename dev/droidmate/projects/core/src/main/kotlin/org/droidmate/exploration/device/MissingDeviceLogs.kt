@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,40 +20,18 @@ package org.droidmate.exploration.device
 
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.errors.ForbiddenOperationError
+import java.io.Serializable
 
-class MissingDeviceLogs implements IDeviceLogs, Serializable
-{
-  private static final long serialVersionUID = 1
+class MissingDeviceLogs : IDeviceLogs, Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
+    override var apiLogs: MutableList<IApiLogcatMessage>
+        get() = ArrayList()
+        set(value) {
+            throw ForbiddenOperationError()
+        }
 
-  @Override
-  List<IApiLogcatMessage> getApiLogsOrNull()
-  {
-    throw new ForbiddenOperationError()
-  }
-
-  @Override
-  List<IApiLogcatMessage> getApiLogsOrEmpty()
-  {
-    return []
-  }
-
-  @Override
-  boolean getReadAnyApiLogsSuccessfully()
-  {
-    throw new ForbiddenOperationError()
-  }
-
-  @Override
-  void setApiLogs(List<IApiLogcatMessage> apiLogs)
-  {
-    throw new ForbiddenOperationError()
-  }
-
-  @Override
-   String toString()
-  {
-    return "N/A (lack of ${IDeviceLogs.class.simpleName})"
-  }
-
+    override fun toString(): String = "N/A (lack of ${IDeviceLogs::class.java.simpleName})"
 }

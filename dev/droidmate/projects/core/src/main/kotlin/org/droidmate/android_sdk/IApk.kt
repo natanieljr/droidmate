@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,21 +19,20 @@
 
 package org.droidmate.android_sdk
 
-interface IApk
-{
-  String getAbsolutePath()
+import java.io.Serializable
+import java.nio.file.Path
 
-  String getFileName()
+interface IApk : Serializable {
+    val path: Path
+    val packageName: String
+    val launchableActivityName: String
+    val launchableActivityComponentName: String
+    val applicationLabel: String
+    val fileName: String
+    val fileNameWithoutExtension: String
+    val absolutePath: String
 
-  String getFileNameWithoutExtension()
+    val inlined: Boolean
 
-  String getPackageName()
-
-  String getLaunchableActivityName()
-
-  String getLaunchableActivityComponentName()
-
-  String getApplicationLabel()
-
-  Boolean getInlined()
+    val isDummy: Boolean
 }

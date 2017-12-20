@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,36 +24,48 @@ import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-
 import java.nio.file.Path
+
 import java.time.LocalDateTime
 
-interface IExplorableAndroidDevice
-{
-  boolean hasPackageInstalled(String packageName) throws DeviceException
+interface IExplorableAndroidDevice {
+    @Throws(DeviceException::class)
+    fun hasPackageInstalled(packageName: String): Boolean
 
-  IDeviceGuiSnapshot getGuiSnapshot() throws DeviceException
+    @Throws(DeviceException::class)
+    fun getGuiSnapshot(): IDeviceGuiSnapshot
 
-  void perform(IAndroidDeviceAction action) throws DeviceException
+    @Throws(DeviceException::class)
+    fun perform(action: IAndroidDeviceAction)
 
-  List<ITimeFormattedLogcatMessage> readLogcatMessages(String messageTag) throws DeviceException
+    @Throws(DeviceException::class)
+    fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage>
 
-  List<ITimeFormattedLogcatMessage> waitForLogcatMessages(String messageTag, int minMessagesCount, int waitTimeout, int queryDelay) throws DeviceException
+    @Throws(DeviceException::class)
+    fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage>
 
-  void clearLogcat() throws DeviceException
+    @Throws(DeviceException::class)
+    fun clearLogcat()
 
-  List<List<String>> readAndClearMonitorTcpMessages() throws DeviceException
+    @Throws(DeviceException::class)
+    fun readAndClearMonitorTcpMessages(): List<List<String>>
 
-  LocalDateTime getCurrentTime() throws DeviceException
+    @Throws(DeviceException::class)
+    fun getCurrentTime(): LocalDateTime
 
-  Boolean anyMonitorIsReachable() throws DeviceException
+    @Throws(DeviceException::class)
+    fun anyMonitorIsReachable(): Boolean
 
-  void launchMainActivity(String launchableActivityComponentName) throws DeviceException
+    @Throws(DeviceException::class)
+    fun launchMainActivity(launchableActivityComponentName: String)
 
-  Boolean appIsRunning(String appPackageName) throws DeviceException
+    @Throws(DeviceException::class)
+    fun appIsRunning(appPackageName: String): Boolean
 
-  void clickAppIcon(String iconLabel) throws DeviceException
+    @Throws(DeviceException::class)
+    fun clickAppIcon(iconLabel: String)
 
-  Path takeScreenshot(IApk app, String suffix) throws DeviceException
+    @Throws(DeviceException::class)
+    fun takeScreenshot(app: IApk, suffix: String): Path
 }
 

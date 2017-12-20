@@ -20,12 +20,9 @@ package org.droidmate.misc
 
 import org.junit.Test
 
-public class BuildConstantsTest
-{
-  @Test
-  void "initializes"()
-  {
-    BuildConstants.properties
-  }
-
+class BuildConstantsTest {
+    @Test
+    fun `initializes`() {
+        BuildConstants.properties
+    }
 }

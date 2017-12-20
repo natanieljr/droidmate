@@ -23,12 +23,10 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
 
-class ExplorationActionTestHelper
-{
-
-  static WidgetExplorationAction newWidgetClickExplorationAction(Map args = [:])
-  {
-    return ExplorationAction.newWidgetExplorationAction(WidgetTestHelper.newClickableButton(args))
-  }
+class ExplorationActionTestHelper {
+    companion object {
+        @JvmStatic
+        fun newWidgetClickExplorationAction(args: Map<String, Any> = hashMapOf()): WidgetExplorationAction
+                = ExplorationAction.newWidgetExplorationAction(WidgetTestHelper.newClickableButton(args.toMutableMap()))
+    }
 }
-

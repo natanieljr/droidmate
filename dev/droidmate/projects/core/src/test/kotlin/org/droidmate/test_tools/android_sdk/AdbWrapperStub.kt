@@ -19,161 +19,122 @@
 
 package org.droidmate.test_tools.android_sdk
 
-import org.droidmate.android_sdk.AdbWrapperException
 import org.droidmate.android_sdk.AndroidDeviceDescriptor
 import org.droidmate.android_sdk.IAdbWrapper
 import org.droidmate.android_sdk.IApk
 
 import java.nio.file.Path
 
-class AdbWrapperStub implements IAdbWrapper
-{
+class AdbWrapperStub : IAdbWrapper {
 
-  @Override
-  void startAdbServer() throws AdbWrapperException
-  {
-    return
-  }
-
-  @Override
-  void killAdbServer() throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-  @Override
-  List<AndroidDeviceDescriptor> getAndroidDevicesDescriptors() throws AdbWrapperException
-  {
-    [new AndroidDeviceDescriptor("fake-serial-number", false)]
-  }
-
-  @Override
-  List<String> waitForMessagesOnLogcat(String deviceSerialNumber, String messageTag, int minMessagesCount, int waitTimeout, int queryDelay) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun startAdbServer() {
+    }
 
 
-  @Override
-  void forwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun killAdbServer() {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  void reverseForwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun getAndroidDevicesDescriptors(): List<AndroidDeviceDescriptor> {
+        return arrayListOf(AndroidDeviceDescriptor("fake-serial-number", false))
+    }
 
-  @Override
-  void pushFile(String deviceSerialNumber, Path jarFile, String targetFileName = null) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-  @Override
-  void removeJar(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-  @Override
-  void installApk(String deviceSerialNumber, IApk apkToInstall) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-  @Override
-  void installApk(String deviceSerialNumber, Path apkToInstall) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-  @Override
-  void uninstallApk(String deviceSerialNumber, String apkPackageName, boolean ignoreFailure) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-  @Override
-  void launchMainActivity(String deviceSerialNumber, String launchableActivityName) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
-
-  @Override
-  void clearLogcat(String deviceSerialNumber) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun waitForMessagesOnLogcat(deviceSerialNumber: String, messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<String> {
+        assert(false, { "Not yet implemented!" })
+        return ArrayList()
+    }
 
 
-  @Override
-  boolean clearPackage(String deviceSerialNumber, String apkPackageName)
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun forwardPort(deviceSerialNumber: String, port: Int) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  List<String> readMessagesFromLogcat(String deviceSerialNumber, String messagesTag)
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun reverseForwardPort(deviceSerialNumber: String, port: Int) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  String listPackages(String deviceSerialNumber) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun pushFile(deviceSerialNumber: String, jarFile: Path) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  String listPackage(String deviceSerialNumber, String packageName) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun pushFile(deviceSerialNumber: String, jarFile: Path, targetFileName: String) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  String ps(String deviceSerialNumber) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun removeJar(deviceSerialNumber: String, jarFile: Path) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  void reboot(String deviceSerialNumber) throws AdbWrapperException
-  {
-    assert false: "Not yet implemented!"
-  }
+    override fun installApk(deviceSerialNumber: String, apkToInstall: IApk) {
+        assert(false, { "Not yet implemented!" })
+    }
 
+    override fun installApk(deviceSerialNumber: String, apkToInstall: Path) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  void startUiautomatorDaemon(String deviceSerialNumber, int port) throws AdbWrapperException
-  {
-  }
+    override fun uninstallApk(deviceSerialNumber: String, apkPackageName: String, ignoreFailure: Boolean) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  void removeFile_api23(String deviceSerialNumber, String fileName, String shellPackageName) throws AdbWrapperException
-  {
-  }
-  
-  @Override
-  void pullFile_api23(String deviceSerialNumber, String pulledFileName, String destinationFilePath, String shellPackageName) throws AdbWrapperException
-  {
-  }
+    override fun launchMainActivity(deviceSerialNumber: String, launchableActivityName: String) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  void takeScreenshot(String deviceSerialNumber, String targetPath) throws AdbWrapperException
-  {
-  }
+    override fun clearLogcat(deviceSerialNumber: String) {
+        assert(false, { "Not yet implemented!" })
+    }
 
-  @Override
-  String executeCommand(String deviceSerialNumber, String successfulOutput, String commandDescription, String... cmdLineParams) throws AdbWrapperException
-  {
-    return ""
-  }
+    override fun clearPackage(deviceSerialNumber: String, apkPackageName: String): Boolean {
+        assert(false, { "Not yet implemented!" })
+        return false
+    }
 
-  @Override
-  void reconnect(String deviceSerialNumber) throws AdbWrapperException
-  {
-  }
+    override fun readMessagesFromLogcat(deviceSerialNumber: String, messageTag: String): List<String> {
+        assert(false, { "Not yet implemented!" })
+        return ArrayList()
+    }
+
+    override fun listPackage(deviceSerialNumber: String, packageName: String): String {
+        assert(false, { "Not yet implemented!" })
+        return ""
+    }
+
+    override fun listPackages(deviceSerialNumber: String): String {
+        assert(false, { "Not yet implemented!" })
+        return ""
+    }
+
+    override fun ps(deviceSerialNumber: String): String {
+        assert(false, { "Not yet implemented!" })
+        return ""
+    }
+
+    override fun reboot(deviceSerialNumber: String) {
+
+        assert(false, { "Not yet implemented!" })
+    }
+
+    override fun startUiautomatorDaemon(deviceSerialNumber: String, port: Int) {
+    }
+
+    override fun removeFile_api23(deviceSerialNumber: String, fileName: String, shellPackageName: String) {
+    }
+
+    override fun pullFile_api23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: String, shellPackageName: String) {
+
+    }
+
+    override fun takeScreenshot(deviceSerialNumber: String, targetPath: String) {
+
+    }
+
+    override fun executeCommand(deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String {
+
+        return ""
+    }
+
+    override fun reconnect(deviceSerialNumber: String) {
+
+    }
 }

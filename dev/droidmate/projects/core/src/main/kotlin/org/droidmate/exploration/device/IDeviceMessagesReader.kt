@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@ package org.droidmate.exploration.device
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 
-interface IDeviceMessagesReader
-{
-  List<IApiLogcatMessage> getAndClearCurrentApiLogs() throws DeviceException
+interface IDeviceMessagesReader {
+    @Throws(DeviceException::class)
+    fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage>
 
-  void resetTimeSync()
+    fun resetTimeSync()
 }

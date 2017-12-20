@@ -21,24 +21,21 @@ package org.droidmate.test_tools.device_simulation
 
 import java.time.LocalDateTime
 
-class TimeGenerator implements ITimeGenerator
+class TimeGenerator : ITimeGenerator
 {
-  private LocalDateTime time = LocalDateTime.now()
+  private val time = LocalDateTime.now()
 
-  @Override
-  LocalDateTime getNow()
-  {
-    return shiftAndGet(milliseconds: 10)
-  }
+    override fun getNow(): LocalDateTime {
+        return shiftAndGet(mapOf("milliseconds" to 10))
+    }
 
-  @Override
-  LocalDateTime shiftAndGet(Map<String, Integer> timeShift)
-  {
-    assert timeShift?.milliseconds != null
+    override fun shiftAndGet(timeShift: Map<String, Int>): LocalDateTime {
+        assert(timeShift["milliseconds"] != null)
 
-    time = time.plusNanos(timeShift.milliseconds * 1000000)
+        val milliseconds = timeShift["milliseconds"]!!.toLong()
+        val time = time.plusNanos(milliseconds * 1000000)
 
-    return time
-  }
+        return time
+    }
 }
 

@@ -27,22 +27,19 @@ import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RunWith(JUnit4)
-class ApiTest
-{
+@RunWith(JUnit4::class)
+class ApiTest {
 
-  @Test
-  public void "Gets unique string on non-content-prefix uri"()
-  {
-    // Before this test passed, only "content://" was allowed.
-    String offendingVal = "android.resource://com.twitter.android/2130837752"
+    @Test
+    public fun `Gets unique string on non-content-prefix uri`() {
+        // Before this test passed, only "content://" was allowed.
+        val offendingVal = "android.resource://com.twitter.android/2130837752"
 
-    def api = new Api("ContentResolver", "someMethod", "void", ["android.net.Uri"],
-      [offendingVal],
-      "1", "dalvik.system.VMStack.getThreadStackTrace(Native Method)->dalvik.system.NativeStart.main(Native Method)")
+        val api = Api("ContentResolver", "someMethod", "void",
+                arrayListOf("android.net.Uri"), arrayListOf(offendingVal), "1",
+                "dalvik.system.VMStack.getThreadStackTrace(Native Method)->dalvik.system.NativeStart.main(Native Method)")
 
-    // Act
-    api.getUniqueString()
-  }
-
+        // Act
+        api.uniqueString
+    }
 }

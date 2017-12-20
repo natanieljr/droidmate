@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,17 +19,6 @@
 
 package org.droidmate.device.datatypes
 
-import groovy.transform.Immutable
-
-@Deprecated
-@Immutable
-class LaunchMainActivityDeviceAction extends AndroidDeviceAction
-{
-   String launchableActivityComponentName
-
-  @Override
-   String toString()
-  {
-    return "${this.class.simpleName}{$launchableActivityComponentName}"
-  }
+class LaunchMainActivityDeviceAction constructor(val launchableActivityComponentName: String) : AndroidDeviceAction() {
+    override fun toString(): String = "${this.javaClass.simpleName}{$launchableActivityComponentName}"
 }

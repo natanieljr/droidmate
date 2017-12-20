@@ -19,116 +19,78 @@
 
 package org.droidmate.device
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
+import java.io.EOFException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
+import java.net.ConnectException
+import java.net.Socket
+import java.net.SocketTimeoutException
 
-@Slf4j
- class TcpClientBase<InputToServerT extends Serializable, OutputFromServerT extends Serializable> 
-  implements ITcpClientBase<InputToServerT, OutputFromServerT>
-{
+class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable> constructor(private val socketTimeout: Int)
+    : ITcpClientBase<InputToServerT, OutputFromServerT> {
+    /*companion object {
+        private val log = LoggerFactory.getLogger(TcpClientBase::class.java)
+    }*/
 
-  private final String serverAddress = "localhost"
-  private final int    socketTimeout
+    private val serverAddress = "localhost"
 
-
-  TcpClientBase(int socketTimeout)
-  {
-    this.socketTimeout = socketTimeout
-  }
-
-
-  /**
-   * Sends through TCP socket the serialized {@code input} to server under {@link #serverAddress}:{@code port}.<br/>
-   * Next, waits until server returns his answer and returns it.
-   */
-  @SuppressWarnings("unchecked")
-   OutputFromServerT queryServer(InputToServerT input, int port) throws TcpServerUnreachableException, DeviceException
-  {
-
-    OutputFromServerT output
-    try
-    {
-      //log.trace("Socket socket = this.tryGetSocket($serverAddress, $port)")
-      Socket socket = this.tryGetSocket(serverAddress, port)
+    @Suppress("UNCHECKED_CAST")
+    @Throws(TcpServerUnreachableException::class, DeviceException::class)
+    override fun queryServer(input: InputToServerT, port: Int): OutputFromServerT {
+        try {
+            //log.trace("Socket socket = this.tryGetSocket($serverAddress, $port)")
+            val socket = this.tryGetSocket(serverAddress, port)
 //      log.trace("Got socket: $serverAddress:$port timeout: ${this.socketTimeout}")
-      
-      socket.soTimeout = this.socketTimeout
 
-      ObjectInputStream inputStream
+            socket.soTimeout = this.socketTimeout
 
-      try
-      {
-        // This will block until corresponding socket output stream (located on server) is flushed.
-        //
-        // Reference:
-        // 1. the ObjectInputStream constructor comment.
-        // 2. search for: "Note - The ObjectInputStream constructor blocks until" in:
-        // http://docs.oracle.com/javase/7/docs/platform/serialization/spec/input.html
-        //
+            // This will block until corresponding socket output stream (located on server) is flushed.
+            //
+            // Reference:
+            // 1. the ObjectInputStream constructor comment.
+            // 2. search for: "Note - The ObjectInputStream constructor blocks until" in:
+            // http://docs.oracle.com/javase/7/docs/platform/serialization/spec/input.html
+            //
 //        log.trace("inputStream = new ObjectInputStream(socket<$serverAddress:$port>.inputStream)")
-        inputStream = new ObjectInputStream(socket.inputStream)
+            val inputStream = ObjectInputStream(socket.inputStream)
 //        log.trace("Got input stream")
-      } catch (EOFException e)
-      {
-        throw new TcpServerUnreachableException(e)
-      } catch (SocketTimeoutException e)
-      {
-        throw new TcpServerUnreachableException(e)
-      }
-      assert inputStream != null
 
-      ObjectOutputStream outputStream
-      try
-      {
-        outputStream = new ObjectOutputStream(socket.outputStream)
+            val outputStream = ObjectOutputStream(socket.outputStream)
 //        log.trace("got outputStream")
-        
-      } catch (EOFException e)
-      {
-        throw new TcpServerUnreachableException(e)
-      }
-      assert outputStream != null
 
-      outputStream.writeObject(input)
-      outputStream.flush()
-
-      try
-      {
-        output = (OutputFromServerT) inputStream.readObject()
-      } catch (EOFException e)
-      {
-        throw new TcpServerUnreachableException(e)
-      }
+            outputStream.writeObject(input)
+            outputStream.flush()
+            val output = inputStream.readObject() as OutputFromServerT
 
 //      log.trace("socket.close()")
-      socket.close()
+            socket.close()
 
-    }
-    catch (TcpServerUnreachableException e)
-    {
-      throw e
-    }
-    catch (Throwable t)
-    {
-      throw new DeviceException("TcpClientBase has thrown a ${t.class.simpleName} while querying server. " +
-        "Requesting to stop further apk explorations.", t, true)
+            return output
+
+        } catch (e: EOFException) {
+            throw TcpServerUnreachableException(e)
+        } catch (e: SocketTimeoutException) {
+            throw TcpServerUnreachableException(e)
+        } catch (e: TcpServerUnreachableException) {
+            throw e
+        } catch (t: Throwable) {
+            throw DeviceException("TcpClientBase has thrown a ${t.javaClass.simpleName} while querying server. " +
+                    "Requesting to stop further apk explorations.", t, true)
+        }
     }
 
-    return output
-  }
+    @Throws(TcpServerUnreachableException::class)
+    private fun tryGetSocket(serverAddress: String, port: Int): Socket {
+        try {
+            val socket = Socket(serverAddress, port)
+            assert(socket.isConnected)
 
-  private Socket tryGetSocket(String serverAddress, int port) throws TcpServerUnreachableException
-  {
-    Socket socket
-    try
-    {
-      socket = new Socket(serverAddress, port)
-      assert socket.connected
-      
-    } catch (ConnectException e)
-    {
-      throw new TcpServerUnreachableException(e)
+            return socket
+
+        } catch (e: ConnectException) {
+            throw TcpServerUnreachableException(e)
+        }
     }
-    return socket
-  }
 }

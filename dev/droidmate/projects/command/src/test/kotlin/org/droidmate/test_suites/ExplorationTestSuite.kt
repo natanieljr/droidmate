@@ -25,13 +25,10 @@ import org.droidmate.tests.exploration.strategy.ExplorationStrategyTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-@RunWith(Suite)
-@Suite.SuiteClasses([
-  UiautomatorWindowDumpFunctionsTest,
-  UiautomatorWindowDumpTest,
-  ExplorationStrategyTest,
-  ExplorationTest
-])
+@RunWith(Suite::class)
+@Suite.SuiteClasses(
+        UiautomatorWindowDumpFunctionsTest::class,
+        UiautomatorWindowDumpTest::class,
+        ExplorationStrategyTest::class,
+        ExplorationTest::class)
 class ExplorationTestSuite
-{
-}

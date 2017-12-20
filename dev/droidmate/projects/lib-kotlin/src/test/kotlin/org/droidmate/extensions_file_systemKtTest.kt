@@ -19,7 +19,7 @@
 package org.droidmate
 
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
+import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Test
 import java.nio.file.Paths
 

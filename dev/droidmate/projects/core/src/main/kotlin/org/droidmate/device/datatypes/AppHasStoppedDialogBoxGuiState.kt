@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,23 +19,15 @@
 
 package org.droidmate.device.datatypes
 
-import groovy.transform.Canonical
-
 /**
  * Specialized GuiState class that represents an application with an active "App has stopped" dialog box
  */
-@Canonical
-class AppHasStoppedDialogBoxGuiState extends GuiState implements Serializable
-{
-  private static final long serialVersionUID = 1
+class AppHasStoppedDialogBoxGuiState(topNodePackageName: String, widgets: List<IWidget>, androidLauncherPackageName: String) :
+        GuiState(topNodePackageName, "", widgets, androidLauncherPackageName) {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  AppHasStoppedDialogBoxGuiState(String topNodePackageName, List<Widget> widgets, String androidLauncherPackageName)
-  {
-    super(topNodePackageName, /* id = */ null, widgets, androidLauncherPackageName)
-  }
-
-  Widget getOKWidget() {
-    return this.widgets.find { it.text == "OK" }
-  }
-
+    val okWidget: IWidget
+        get() = this.widgets.first { it.text == "OK" }
 }

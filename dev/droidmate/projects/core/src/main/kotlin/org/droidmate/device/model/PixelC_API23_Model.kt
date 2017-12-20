@@ -25,10 +25,6 @@ import java.awt.Dimension
  *
  * @author Nataniel Borges Jr.
  */
-class PixelC_API23_Model extends NexusModel{
-    @Override
-    Dimension getDeviceDisplayDimensionsForTesting()
-    {
-        return new Dimension(1800, 2485)
-    }
+class PixelC_API23_Model : NexusModel() {
+    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1800, 2485)
 }

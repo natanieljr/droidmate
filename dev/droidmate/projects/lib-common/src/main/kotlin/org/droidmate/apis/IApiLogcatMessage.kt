@@ -28,8 +28,5 @@ package org.droidmate.apis
  * implementing this interface.
  * </p>
  */
-public interface IApiLogcatMessage extends ITimeFormattedLogcatMessage, IApi
-{
-}
-
+interface IApiLogcatMessage : ITimeFormattedLogcatMessage, IApi
 

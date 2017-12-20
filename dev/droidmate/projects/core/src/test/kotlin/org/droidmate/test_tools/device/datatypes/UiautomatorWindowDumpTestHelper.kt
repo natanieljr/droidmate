@@ -19,176 +19,153 @@
 
 package org.droidmate.test_tools.device.datatypes
 
-import groovy.transform.TypeChecked
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.device.datatypes.IGuiState
-import org.droidmate.device.datatypes.UiautomatorWindowDump
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.*
 import org.droidmate.device.model.DeviceModel
-import org.droidmate.device.model.IDeviceModel
-import org.droidmate.tests.FixturesKt
+import org.droidmate.test_tools.ApkFixtures.Companion.apkFixture_simple_packageName
+import org.droidmate.tests.*
 
 import java.awt.*
 
-import static groovy.transform.TypeCheckingMode.SKIP
-import static org.droidmate.test_tools.ApkFixtures.apkFixture_simple_packageName
-
-@TypeChecked(SKIP)
-class UiautomatorWindowDumpTestHelper
-{
-  private static final IDeviceModel deviceModel = DeviceModel.buildDefault()
-
-  //region Fixture dumps
-
-  static UiautomatorWindowDump newNullWindowDump()
-  {
-    return new UiautomatorWindowDump(null, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
-
-   static UiautomatorWindowDump newEmptyWindowDump()
-  {
-    return new UiautomatorWindowDump("", deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
-
-   static UiautomatorWindowDump newEmptyActivityWindowDump()
-  {
-    return new UiautomatorWindowDump(FixturesKt.windowDump_tsa_emptyAct, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
-
-   static UiautomatorWindowDump newAppHasStoppedDialogWindowDump()
-  {
-    return new UiautomatorWindowDump(FixturesKt.windowDump_app_stopped_dialogbox, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
-
-   static UiautomatorWindowDump newAppHasStoppedDialogOKDisabledWindowDump()
-  {
-    return new UiautomatorWindowDump(FixturesKt.windowDump_app_stopped_OK_disabled, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
-
-   static UiautomatorWindowDump newSelectAHomeAppWindowDump()
-  {
-    return new UiautomatorWindowDump(FixturesKt.windowDump_selectAHomeApp, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
+class UiautomatorWindowDumpTestHelper {
+    companion object {
 
 
+        private val deviceModel = DeviceModel.buildDefault()
 
-   static UiautomatorWindowDump newCompleteActionUsingWindowDump()
-  {
-    return new UiautomatorWindowDump(FixturesKt.windowDump_complActUsing_dialogbox, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
+        //region Fixture dumps
 
+        @JvmStatic
+        fun newEmptyWindowDump(): UiautomatorWindowDump =
+                UiautomatorWindowDump("", deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName())
 
-   static UiautomatorWindowDump newHomeScreenWindowDump(String id = null)
-  {
-    return new UiautomatorWindowDump(FixturesKt.windowDump_nexus7_home_screen, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName, id)
-  }
+        @JvmStatic
+        fun newEmptyActivityWindowDump(): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowDump_tsa_emptyAct, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName())
 
+        @JvmStatic
+        fun newAppHasStoppedDialogWindowDump(): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowDump_app_stopped_dialogbox, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName())
 
-   static UiautomatorWindowDump newAppOutOfScopeWindowDump(String id = null)
-  {
-    return new UiautomatorWindowDump(FixturesKt.windowDump_chrome_offline, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName, id)
-  }
+        @JvmStatic
+        fun newAppHasStoppedDialogOKDisabledWindowDump(): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowDump_app_stopped_OK_disabled, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName())
 
-  //endregion Fixture dumps
-
-
-  static UiautomatorWindowDump newWindowDump(String windowHierarchyDump)
-  {
-    return new UiautomatorWindowDump(windowHierarchyDump, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName)
-  }
+        @JvmStatic
+        fun newSelectAHomeAppWindowDump(): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowDump_selectAHomeApp, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName())
 
 
-  @SuppressWarnings("GroovyUnusedDeclaration")
-   static UiautomatorWindowDump newEmptyActivityWithPackageWindowDump(String appPackageName)
-  {
-    def payload = ""
-    skeletonWithPayload(topNode(appPackageName, payload))
-  }
+        @JvmStatic
+        fun newCompleteActionUsingWindowDump(): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowDump_complActUsing_dialogbox, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName())
 
-  @SuppressWarnings("GroovyUnusedDeclaration")
-   static UiautomatorWindowDump new1ButtonWithPackageWindowDump(String appPackageName)
-  {
-    skeletonWithPayload(defaultButtonDump(appPackageName))
-  }
 
-  private static UiautomatorWindowDump skeletonWithPayload(String payload, String id = null)
-  {
-    new UiautomatorWindowDump(createDumpSkeleton(payload), deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.androidLauncherPackageName, id)
-  }
+        @JvmStatic
+        fun newHomeScreenWindowDump(id: String = ""): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowDump_nexus7_home_screen, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName(), id)
 
-  static String createDumpSkeleton(String payload)
-  {
-    $/<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0">$payload</hierarchy>/$ as String
-  }
 
-  static String topNode(String appPackageName = apkFixture_simple_packageName, String payload)
-  {
-    $/<node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="$appPackageName"
+        @JvmStatic
+        fun newAppOutOfScopeWindowDump(id: String = ""): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowDump_chrome_offline, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName(), id)
+
+        //endregion Fixture dumps
+
+
+        @JvmStatic
+        fun newWindowDump(windowHierarchyDump: String): UiautomatorWindowDump =
+                UiautomatorWindowDump(windowHierarchyDump, deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName())
+
+
+        @Suppress("unused")
+        @JvmStatic
+        fun newEmptyActivityWithPackageWindowDump(appPackageName: String): UiautomatorWindowDump {
+            val payload = ""
+            return skeletonWithPayload(topNode(appPackageName, payload))
+        }
+
+        @Suppress("unused")
+        @JvmStatic
+        fun new1ButtonWithPackageWindowDump(appPackageName: String): UiautomatorWindowDump =
+                skeletonWithPayload(defaultButtonDump(appPackageName))
+
+        @JvmStatic
+        private fun skeletonWithPayload(payload: String, id: String = ""): UiautomatorWindowDump =
+                UiautomatorWindowDump(createDumpSkeleton(payload), deviceModel.getDeviceDisplayDimensionsForTesting(), deviceModel.getAndroidLauncherPackageName(), id)
+
+        @JvmStatic internal fun createDumpSkeleton(payload: String): String
+                =
+                """<?xml version = '1.0' encoding = 'UTF-8' standalone = 'yes' ?><hierarchy rotation = "0">$payload</hierarchy>"""
+
+        @JvmStatic
+        private fun topNode(appPackageName: String = apkFixture_simple_packageName, payload: String): String {
+            return """<node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="$appPackageName"
 content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false"
-scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][800,1205]">$payload</node>/$ as String
-  }
+scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][800,1205]">$payload</node>"""
+        }
 
-  private static String defaultButtonDump(String packageName = apkFixture_simple_packageName)
-  {
-    String buttonBounds = createConstantButtonBounds()
-    String buttonDump = createButtonDump(0, "dummyText", buttonBounds, packageName)
-    return buttonDump
-  }
+        @JvmStatic
+        private fun defaultButtonDump(packageName: String = apkFixture_simple_packageName): String {
+            val buttonBounds = createConstantButtonBounds()
+            return  createButtonDump(0, "dummyText", buttonBounds, packageName)
+        }
 
-  private static String createConstantButtonBounds()
-  {
-    int x = 10, y = 20, width = 100, height = 200
-    String bounds = "[$x,$y][${x + width},${y + height}]"
-    return bounds.toString()
-  }
+        @JvmStatic
+        private fun createConstantButtonBounds(): String {
+            val x = 10
+            val y = 20
+            val width = 100
+            val height = 200
+            return "[$x,$y][${x + width},${y + height}]"
+        }
 
-  static String dump(Widget w)
-  {
-    String idString = w.id != null ? "id=\"$w.id\"" : ""
-    String out = $/<node
- index="$w.index"
- text="$w.text"
- resource-id="$w.resourceId"
- class="$w.className"
- package="$w.packageName"
- content-desc="$w.contentDesc"
- checkable="$w.checkable"
- checked="$w.checked"
- clickable="$w.clickable"
- enabled="$w.enabled"
- focusable="$w.focusable"
- focused="$w.focused"
- scrollable="$w.scrollable"
- long-clickable="$w.longClickable"
- password="$w.password"
- selected="$w.selected"
+        @JvmStatic
+        fun dump(w: IWidget): String {
+            val idString = if (w.id.isNotEmpty()) "id=\"${w.id}\"" else ""
+            return """<node
+ index="${w.index}"
+ text="${w.text}"
+ resource-id="${w.resourceId}"
+ class="${w.className}"
+ package="${w.packageName}"
+ content-desc="${w.contentDesc}"
+ checkable="${w.checkable}"
+ checked="${w.checked}"
+ clickable="${w.clickable}"
+ enabled="${w.enabled}"
+ focusable="${w.focusable}"
+ focused="${w.focused}"
+ scrollable="${w.scrollable}"
+ long-clickable="${w.longClickable}"
+ password="${w.password}"
+ selected="${w.selected}"
  bounds="${rectShortString(w.bounds)}"
  $idString
- />/$ as String
-    return out
-  }
-  // WISH deprecated as well as calling methods. Instead, use org.droidmate.test.device.datatypes.UiautomatorWindowDumpTestHelper.dump
-  static String createButtonDump(int index, String text, String bounds, String packageName = apkFixture_simple_packageName)
-  {
-    $/<node index="$index" text="$text" resource-id="dummy.package.ExampleApp:id/button_$text"
+ />"""
+        }
+
+        // WISH deprecated as well as calling methods. Instead, use org.droidmate.test.device.datatypes.UiautomatorWindowDumpTestHelper.dump
+        @JvmStatic
+        private fun createButtonDump(index: Int, text: String, bounds: String, packageName: String = apkFixture_simple_packageName): String =
+                """<node index="$index" text="$text" resource-id="dummy.package.ExampleApp:id/button_$text"
 class="android.widget.Button" package="$packageName" content-desc="" checkable="false" checked="false"
 clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false"
-selected="false" bounds="$bounds"/>/$ as String
-  }
+selected="false" bounds="$bounds"/>"""
 
-  /**
-   * Returns the same value as {@code android.graphics.Rect.toShortString (java.lang.StringBuilder)}
-   */
-  static String rectShortString(Rectangle r)
-  {
-    r.with {
-      return "[${minX as int},${minY as int}][${maxX as int},${maxY as int}]"
+        /**
+         * Returns the same value as {@code android.graphics.Rect.toShortString (java.lang.StringBuilder)}
+         */
+        @JvmStatic
+        private fun rectShortString(r: Rectangle): String {
+            with(r) {
+                return "[${minX.toInt()},${minY.toInt()}][${maxX.toInt()},${maxY.toInt()}]"
+            }
+        }
+
+        @JvmStatic
+        fun fromGuiState(guiState: IGuiState): IDeviceGuiSnapshot {
+            return skeletonWithPayload(
+                    guiState.widgets.joinToString("\n") { dump(it) }, guiState.id)
+        }
     }
-  }
-
-  static IDeviceGuiSnapshot fromGuiState(IGuiState guiState)
-  {
-    return skeletonWithPayload(
-      guiState.widgets.collect {dump(it)}.join("\n"), guiState.id)
-  }
 }

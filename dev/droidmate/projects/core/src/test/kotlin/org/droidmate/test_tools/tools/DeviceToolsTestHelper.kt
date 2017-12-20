@@ -21,6 +21,7 @@ package org.droidmate.test_tools.tools
 import org.droidmate.android_sdk.IAaptWrapper
 import org.droidmate.android_sdk.IAdbWrapper
 import org.droidmate.configuration.Configuration
+import org.droidmate.device.IAndroidDevice
 import org.droidmate.test_tools.android_sdk.AdbWrapperStub
 import org.droidmate.test_tools.device_simulation.AndroidDeviceSimulator
 import org.droidmate.tools.DeviceTools
@@ -29,21 +30,24 @@ import org.droidmate.tools.IDeviceTools
 
 class DeviceToolsTestHelper
 {
+  companion object {
+      @JvmStatic
+      fun buildForTesting(
+              deviceToolsCfg : Configuration = Configuration.getDefault(),
+              aaptWrapper: IAaptWrapper?,
+              simulator: AndroidDeviceSimulator): IDeviceTools {
+          val substitutes = mutableMapOf(
+                  IAdbWrapper::class to AdbWrapperStub(),
+                        IAndroidDeviceFactory::class to SimulatorFactory(simulator))
 
-  static IDeviceTools buildForTesting(
-    Configuration deviceToolsCfg = Configuration.default,
-    IAaptWrapper aaptWrapper,
-    AndroidDeviceSimulator simulator)
-  {
-    Map substitutes = [
-      (IAdbWrapper)          : new AdbWrapperStub(),
-      (IAndroidDeviceFactory): {serialNumber -> simulator} as IAndroidDeviceFactory
-    ]
+          if (aaptWrapper != null)
+              substitutes[IAaptWrapper::class] = aaptWrapper
 
-    if (aaptWrapper != null)
-      substitutes[(IAaptWrapper)] = aaptWrapper
-
-    return new DeviceTools(deviceToolsCfg, substitutes)
+          return DeviceTools(deviceToolsCfg, substitutes.toMap())
+      }
   }
 
+    class SimulatorFactory(private val simulator: AndroidDeviceSimulator): IAndroidDeviceFactory {
+        override fun create(serialNumber: String): IAndroidDevice = simulator
+    }
 }

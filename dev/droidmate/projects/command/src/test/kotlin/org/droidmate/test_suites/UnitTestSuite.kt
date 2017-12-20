@@ -35,17 +35,14 @@ import org.junit.runners.Suite
   https://github.com/junit-team/junit/wiki/Aggregating-tests-in-suites
 */
 
-@RunWith(Suite)
-@Suite.SuiteClasses([
-  ConfigurationBuilderTest,
-  AaptWrapperTest,
-  AdbWrapperTest,
-  DeviceTest,
-  ExplorationTestSuite,
-  ReporterTestSuite
-])
+@RunWith(Suite::class)
+@Suite.SuiteClasses(
+        ConfigurationBuilderTest::class,
+        AaptWrapperTest::class,
+        AdbWrapperTest::class,
+        DeviceTest::class,
+        ExplorationTestSuite::class,
+        ReporterTestSuite::class)
 class UnitTestSuite
-{
-}
 
 

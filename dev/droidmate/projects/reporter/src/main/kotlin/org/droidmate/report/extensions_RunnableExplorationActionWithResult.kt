@@ -18,36 +18,35 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.EnterTextExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.actions.WidgetExplorationAction
 
-val RunnableExplorationActionWithResult.clickedWidget: Set<Widget> get() {
-  val action = this.action.base
-  return when (action) {
-    is WidgetExplorationAction -> setOf(action.widget)
-    is EnterTextExplorationAction -> setOf(action.widget)
-    else -> emptySet()
-  }
-}
-
-val RunnableExplorationActionWithResult.actionableWidgets: Iterable<Widget>
-  get() {
-
-    return when (result.guiSnapshot) {
-      is MissingGuiSnapshot -> this.clickedWidget
-      else -> {
-        if (!(result.guiSnapshot.guiState.belongsToApp(result.exploredAppPackageName)))
-          return this.clickedWidget
-        else
-          return result.guiSnapshot.guiState.actionableWidgets.union(this.clickedWidget)
-      }
+val RunnableExplorationActionWithResult.clickedWidget: Set<IWidget>
+    get() {
+        val action = this.getAction().base
+        return when (action) {
+            is WidgetExplorationAction -> setOf(action.widget)
+            is EnterTextExplorationAction -> setOf(action.widget)
+            else -> emptySet()
+        }
     }
+
+val RunnableExplorationActionWithResult.actionableWidgets: Iterable<IWidget>
+  get() {
+      val result = getResult()
+      return when (result.guiSnapshot) {
+          is MissingGuiSnapshot -> this.clickedWidget
+          else -> {
+              if (!(result.guiSnapshot.guiState.belongsToApp(result.exploredAppPackageName)))
+                  return this.clickedWidget
+              else
+                  return result.guiSnapshot.guiState.getActionableWidgets().union(this.clickedWidget)
+          }
+      }
   }
 
-fun RunnableExplorationActionWithResult.extractEventApiPairs(): List<EventApiPair> {
-  return this.result.deviceLogs.apiLogsOrEmpty.map { apiLog -> EventApiPair(this, apiLog) }
-}
-
+fun RunnableExplorationActionWithResult.extractEventApiPairs(): List<EventApiPair> =
+        this.getResult().deviceLogs.apiLogs.map { apiLog -> EventApiPair(this, apiLog) }

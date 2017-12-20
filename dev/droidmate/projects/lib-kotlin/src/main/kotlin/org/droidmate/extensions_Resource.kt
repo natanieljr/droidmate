@@ -24,7 +24,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 val Resource.extractedPath: Path get() {
-  val resDir = Paths.get(BuildConstants.getDir_name_temp_extracted_resources())
+    val resDir = Paths.get(BuildConstants.dir_name_temp_extracted_resources)
   return this.extractTo(resDir).toAbsolutePath()
 }
 

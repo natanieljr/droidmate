@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,17 +20,21 @@ package org.droidmate.device
 
 import org.droidmate.android_sdk.DeviceException
 
-interface IMonitorsClient
-{
-  boolean anyMonitorIsReachable() throws DeviceException
+interface IMonitorsClient {
+    @Throws(DeviceException::class)
+    fun anyMonitorIsReachable(): Boolean
 
-  ArrayList<ArrayList<String>> getCurrentTime() throws DeviceException
+    @Throws(DeviceException::class)
+    fun getCurrentTime(): List<List<String>>
 
-  ArrayList<ArrayList<String>> getLogs() throws DeviceException
+    @Throws(DeviceException::class)
+    fun getLogs(): List<List<String>>
 
-  void closeMonitorServers() throws DeviceException
+    @Throws(DeviceException::class)
+    fun closeMonitorServers()
 
-  List<Integer> getPorts()
+    fun getPorts(): List<Int>
 
-  void forwardPorts() throws DeviceException
+    @Throws(DeviceException::class)
+    fun forwardPorts()
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,208 +19,224 @@
 
 package org.droidmate.device.datatypes
 
-import groovy.transform.AutoClone
-import groovy.transform.Canonical
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
+import org.droidmate.exploration.actions.Direction
+import java.awt.Point
+import java.awt.Rectangle
 
-import java.awt.*
-import java.util.regex.Matcher
-import org.droidmate.exploration.actions.WidgetExplorationAction.Direction
 
-@Canonical
-@AutoClone
-class Widget implements Serializable
-{
+open class Widget @JvmOverloads constructor(override var id: String = "",
+                                            override var index: Int = -1,
+                                            override var text: String = "",
+                                            override var resourceId: String = "",
+                                            override var className: String = "",
+                                            override var packageName: String = "",
+                                            override var contentDesc: String = "",
+                                            override var xpath: String = "",
+                                            override var checkable: Boolean = false,
+                                            override var checked: Boolean = false,
+                                            override var clickable: Boolean = false,
+                                            override var enabled: Boolean = false,
+                                            override var focusable: Boolean = false,
+                                            override var focused: Boolean = false,
+                                            override var scrollable: Boolean = false,
+                                            override var longClickable: Boolean = false,
+                                            override var password: Boolean = false,
+                                            override var selected: Boolean = false,
+                                            override var bounds: Rectangle = Rectangle(),
+                                            override var parent: IWidget? = null) : IWidget {
+    /** Id is used only for tests, for:
+     * - easy determination by human which widget is which when looking at widget string representation
+     * - For asserting actual widgets match expected.
+     * */
 
-  private static final long serialVersionUID = 1
+    companion object {
+        private const val serialVersionUID: Long = 1
 
-	static final double ONTOUCH_DISPLAY_RELATION = 0.7
+        val ONTOUCH_DISPLAY_RELATION = 0.7
 
-  /** Id is used only for tests, for:
-   * - easy determination by human which widget is which when looking at widget string representation
-   * - For asserting actual widgets match expected.
-   * */
-  String id = null
+        /**
+         * <p>
+         * Parses into a {@link java.awt.Rectangle} the {@code bounds} string, having format as output by
+         * {@code android.graphics.Rect #toShortString(java.lang.StringBuilder)},
+         * that is having form {@code [Xlow ,Ylow][Xhigh,Yhigh]}
+         *
+         * </p><p>
+         * Such rectangle bounds format is being used internally by<br/>
+         * {@code com.android.uiautomator.core.UiDevice #dumpWindowHierarchy(java.lang.String)}
+         *
+         * </p>
+         */
+        @JvmStatic
+        fun parseBounds(bounds: String): Rectangle {
+            assert(bounds.isNotEmpty())
 
-  int       index         = -1
-  String    text          = ""
-  String    resourceId    = ""
-  String    className     = ""
-  String    packageName   = ""
-  String    contentDesc   = ""
-  Boolean   checkable     = false
-  Boolean   checked       = false
-  Boolean   clickable     = false
-  Boolean   enabled       = false
-  Boolean   focusable     = false
-  Boolean   focused       = false
-  Boolean   scrollable    = false
-  Boolean   longClickable = false
-  Boolean   password      = false
-  Boolean   selected      = false
-  Rectangle bounds        = new Rectangle()
-  Widget    parent        = null;
+            // The input is of form "[xLow,yLow][xHigh,yHigh]" and the regex below will capture four groups: xLow yLow xHigh yHigh
+            val boundsMatcher = Regex("\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]")
+            val foundResults = boundsMatcher.findAll(bounds).toList()
+            if (foundResults.isEmpty())
+                throw InvalidWidgetBoundsException("The window hierarchy bounds matcher was unable to match $bounds against the regex")
 
-  /* WISH this actually shouldn't be necessary as the [dump] call is supposed to already return only the visible part, as
-    it makes call to [visible-bounds] to obtain the "bounds" property of widget. I had problems with negative coordinates in
-    com.indeed.android.jobsearch in.
-    [dump] com.android.uiautomator.core.UiDevice.dumpWindowHierarchy
-    [visible-bounds] com.android.uiautomator.core.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen
-    */
-  /**
-   * The widget is associated with a rectangle representing visible device display. This is the same visible display from whose
-   * GUI structure this widget was parsed.
-   *
-   * The field is necessary to determine if at least one pixel of the widget is within the visible display and so, can be clicked.
-   *
-   * Later on DroidMate might add the ability to scroll first to make invisible widgets visible.
-   */
-  Rectangle deviceDisplayBounds = null
+            val matchedGroups = foundResults[0].groups
 
-	public double getAreaSize(){
-		return bounds.height * bounds.width
-	}
-	
-	public double getDeviceAreaSize(){
-		if (deviceDisplayBounds != null)
-			return deviceDisplayBounds.height * deviceDisplayBounds.width
-		else
-			return -1
-	}
-	
-  public Point center()
-  {
-    return new Point(bounds.getCenterX() as int, bounds.getCenterY() as int)
-  }
+            val lowX = matchedGroups[1]!!.value.toInt()
+            val lowY = matchedGroups[2]!!.value.toInt()
+            val highX = matchedGroups[3]!!.value.toInt()
+            val highY = matchedGroups[4]!!.value.toInt()
 
-  @Override
-  public String toString()
-  {
-    assert deviceDisplayBounds != null
+            return Rectangle(lowX, lowY, highX - lowX, highY - lowY)
+        }
+    }
 
-    return "Widget: $className ID: $id, text: $text, $boundsString, clickable: $clickable enabled: $enabled checkable: $checkable deviceDisplayBounds: [x=${deviceDisplayBounds.x},y=${deviceDisplayBounds},dx=${deviceDisplayBounds.width},dy=${deviceDisplayBounds.height}]"
-  }
+    /* WISH this actually shouldn't be necessary as the [dump] call is supposed to already return only the visible part, as
+      it makes call to [visible-bounds] to obtain the "bounds" property of widget. I had problems with negative coordinates in
+      com.indeed.android.jobsearch in.
+      [dump] com.android.uiautomator.core.UiDevice.dumpWindowHierarchy
+      [visible-bounds] com.android.uiautomator.core.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen
+      */
+    /**
+     * The widget is associated with a rectangle representing visible device display. This is the same visible display from whose
+     * GUI structure this widget was parsed.
+     *
+     * The field is necessary to determine if at least one pixel of the widget is within the visible display and so, can be clicked.
+     *
+     * Later on DroidMate might add the ability to scroll first to make invisible widgets visible.
+     */
+    override var deviceDisplayBounds: Rectangle? = null
 
-  public String getBoundsString()
-  {
-    return "[x=${bounds.x as int},y=${bounds.y as int},dx=${bounds.width as int},dy=${bounds.height as int}]"
-  }
+    override fun center(): Point
+            = Point(bounds.centerX.toInt(), bounds.centerY.toInt())
 
-  public String getStrippedResourceId()
-  {
-    return this.resourceId - (this.packageName + ":")
-  }
+    override fun toString(): String =
+            "Widget: $className ResourceID: $resourceId, text: $text, $boundsString, clickable: $clickable enabled: $enabled checkable: $checkable deviceDisplayBounds: [x=${deviceDisplayBounds?.x},y=${deviceDisplayBounds?.y},dx=${deviceDisplayBounds?.width},dy=${deviceDisplayBounds?.height}]"
 
-	public String getResourceIdName(){
-		return this.resourceId - (this.packageName + ":id/")
-	}
+    override val boundsString: String
+        get() = "[x=${bounds.x},y=${bounds.y},dx=${bounds.width},dy=${bounds.height}]"
 
-  public String toShortString()
-  {
-    String classSimpleName = className.substring(className.lastIndexOf(".") + 1)
-    return "Wdgt:$classSimpleName/\"$text\"/\"$resourceId\"/[${bounds.centerX as int},${bounds.centerY as int}]"
-  }
+    override fun getStrippedResourceId(): String
+            = this.resourceId.removePrefix(this.packageName + ":")
 
-  public String toTabulatedString(boolean includeClassName = true)
-  {
-    String classSimpleName = className.substring(className.lastIndexOf(".") + 1)
-    String pCls = classSimpleName.padRight(20, ' ')
-    String pResId = resourceId.padRight(64, ' ')
-    String pText = text.padRight(40, ' ')
-    String pContDesc = contentDesc.padRight(40, ' ')
-    String px = "${bounds.centerX as int}".padLeft(4, ' ')
-    String py = "${bounds.centerY as int}".padLeft(4, ' ')
+    override fun toShortString(): String {
+        val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
+        return "Wdgt:$classSimpleName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
+    }
 
-    String clsPart = includeClassName ? "Wdgt: $pCls / " : ""
+    override fun toTabulatedString(includeClassName: Boolean): String {
+        val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
+        val pCls = classSimpleName.padEnd(20, ' ')
+        val pResId = resourceId.padEnd(64, ' ')
+        val pText = text.padEnd(40, ' ')
+        val pContDesc = contentDesc.padEnd(40, ' ')
+        val px = "${bounds.centerX.toInt()}".padStart(4, ' ')
+        val py = "${bounds.centerY.toInt()}".padStart(4, ' ')
 
-    return "${clsPart}resId: $pResId / text: $pText / contDesc: $pContDesc / click xy: [$px,$py]"
-  }
+        val clsPart = if (includeClassName) "Wdgt: $pCls / " else ""
 
-  boolean canBeActedUpon()
-  {
-    boolean canBeActedUpon = this.enabled && (this.clickable || this.checkable || this.longClickable || this.scrollable) && isVisibleOnCurrentDeviceDisplay()
-    return canBeActedUpon
-  }
+        return "${clsPart}resId: $pResId / text: $pText / contDesc: $pContDesc / click xy: [$px,$py]"
+    }
 
-  boolean isVisibleOnCurrentDeviceDisplay()
-  {
-    assert deviceDisplayBounds != null
+    override fun canBeActedUpon(): Boolean {
+        return this.enabled && (this.clickable || this.checkable || this.longClickable || this.scrollable) && isVisibleOnCurrentDeviceDisplay()
+    }
 
-    if (deviceDisplayBounds == null)
-      return true;
+    override fun isVisibleOnCurrentDeviceDisplay(): Boolean {
+        if (deviceDisplayBounds == null)
+            return true
 
-    return bounds.intersects(deviceDisplayBounds)
-  }
+        return bounds.intersects(deviceDisplayBounds)
+    }
 
-  Point getClickPoint()
-  {
-    if (deviceDisplayBounds == null)
-      return new Point(this.center().x as int, this.center().y as int)
+    override fun getClickPoint(): Point {
+        if (deviceDisplayBounds == null) {
+            val center = this.center()
+            return Point(center.x, center.y)
+        }
 
-    assert bounds.intersects(deviceDisplayBounds)
+        assert(bounds.intersects(deviceDisplayBounds))
 
-    def clickRectangle = bounds.intersection(deviceDisplayBounds)
+        val clickRectangle = bounds.intersection(deviceDisplayBounds)
 
-    return new Point(clickRectangle.centerX as int, clickRectangle.centerY as int)
-  }
-	
-	def getSwipePoints(Direction direction, double percent){
-		
-		assert bounds.intersects(deviceDisplayBounds)
-		
-		Rectangle swipeRectangle = bounds.intersection(deviceDisplayBounds)
-		double offsetHor = (swipeRectangle.getWidth() *  (1 - percent ) ) / 2
-		double offsetVert =(swipeRectangle.getHeight() * (1 - percent ) ) / 2
-		switch (direction)
-		{
-			case Direction.LEFT:
-				return [ new Point((swipeRectangle.getMaxX() - offsetHor ) as int, swipeRectangle.getCenterY() as int ), new Point((swipeRectangle.getMinX() + offsetHor) as int, swipeRectangle.getCenterY() as int )  ]
-				break
-			case Direction.RIGHT:
-				return [ new Point((this.bounds.getMinX() + offsetHor ) as int, this.bounds.getCenterY() as int ) , new Point((this.bounds.getMaxX() - offsetHor) as int, this.bounds.getCenterY() as int ) ]
-				break
-			case Direction.UP:
-				return [ new Point(this.bounds.getCenterX() as int, (this.bounds.getMaxY() - offsetVert ) as int ), new Point(this.bounds.getCenterX() as int, ( this.bounds.getMinY() + offsetVert ) as int )]
-				break
-			
-			case Direction.DOWN:
-				return [ new Point(this.bounds.getCenterX() as int, ( this.bounds.getMinY() + offsetVert ) as int ), new Point(this.bounds.getCenterX() as int, ( this.bounds.getMaxY() - offsetVert ) as int ) ]
-				break
-			default:
-				throw new UnexpectedIfElseFallthroughError()
-		}
-  }
+        return Point(clickRectangle.centerX.toInt(), clickRectangle.centerY.toInt())
+    }
 
-  /**
-   * <p>
-   * Parses into a {@link java.awt.Rectangle} the {@code bounds} string, having format as output by
-   * {@code android.graphics.Rect #toShortString(java.lang.StringBuilder)},
-   * that is having form {@code [Xlow ,Ylow][Xhigh,Yhigh]}
-   *
-   * </p><p>
-   * Such rectangle bounds format is being used internally by<br/>
-   * {@code com.android.uiautomator.core.UiDevice #dumpWindowHierarchy(java.lang.String)}
-   *
-   * </p>
-   */
-  public static Rectangle parseBounds(String bounds)
-  {
-    assert bounds?.size() > 0
+    override fun getAreaSize(): Double {
+        return bounds.height.toDouble() * bounds.width
+    }
 
-    Matcher boundsMatcher =
-      // The input is of form "[xLow,yLow][xHigh,yHigh]" and the regex below will capture four groups: xLow yLow xHigh yHigh
-      bounds =~ /\[(-?\p{Digit}+),(-?\p{Digit}+)\]\[(-?\p{Digit}+),(-?\p{Digit}+)\]/
-    if (!boundsMatcher.matches())
-      throw new InvalidWidgetBoundsException("The window hierarchy bounds matcher was unable to match $bounds against the regex")
+    override fun getDeviceAreaSize(): Double {
+        return if (deviceDisplayBounds != null)
+            deviceDisplayBounds!!.height.toDouble() * deviceDisplayBounds!!.width
+        else
+            -1.0
+    }
 
-    java.util.List<String> matchedGroups = boundsMatcher[0] as java.util.List<String>
+    override fun getResourceIdName(): String {
+        return this.resourceId.removeSuffix(this.packageName + ":id/")
+    }
 
-    int lowX = matchedGroups[1] as int
-    int lowY = matchedGroups[2] as int
-    int highX = matchedGroups[3] as int
-    int highY = matchedGroups[4] as int
+    override fun getSwipePoints(direction: Direction, percent: Double): List<Point> {
 
-    return new Rectangle(lowX, lowY, highX - lowX, highY - lowY);
-  }
+        assert(bounds.intersects(deviceDisplayBounds))
 
+        val swipeRectangle = bounds.intersection(deviceDisplayBounds)
+        val offsetHor = (swipeRectangle.getWidth() * (1 - percent)) / 2
+        val offsetVert = (swipeRectangle.getHeight() * (1 - percent)) / 2
+
+        when (direction) {
+            Direction.LEFT -> return arrayListOf(Point((swipeRectangle.maxX - offsetHor).toInt(), swipeRectangle.centerY.toInt()),
+                    Point((swipeRectangle.minX + offsetHor).toInt(), swipeRectangle.centerY.toInt()))
+            Direction.RIGHT -> return arrayListOf(Point((this.bounds.minX + offsetHor).toInt(), this.bounds.getCenterY().toInt()),
+                    Point((this.bounds.getMaxX() - offsetHor).toInt(), this.bounds.getCenterY().toInt()))
+            Direction.UP -> return arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()),
+                    Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()))
+            Direction.DOWN -> return arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()),
+                    Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()))
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is Widget)
+            return false
+
+        return this.index == other.index &&
+                this.text == other.text &&
+                this.resourceId == other.resourceId &&
+                this.className == other.className &&
+                this.packageName == other.packageName &&
+                this.contentDesc == other.contentDesc &&
+                this.checkable == other.checkable &&
+                this.checked == other.checked &&
+                this.clickable == other.clickable &&
+                this.enabled == other.enabled &&
+                this.focusable == other.focusable &&
+                this.focused == other.focused &&
+                this.scrollable == other.scrollable &&
+                this.longClickable == other.longClickable &&
+                this.password == other.password &&
+                this.selected == other.selected &&
+                this.bounds == other.bounds &&
+                this.parent == other.parent
+    }
+
+    override fun hashCode(): Int {
+        var result = index.hashCode()
+        result = 31 * result + text.hashCode()
+        result = 31 * result + resourceId.hashCode()
+        result = 31 * result + className.hashCode()
+        result = 31 * result + packageName.hashCode()
+        result = 31 * result + contentDesc.hashCode()
+        result = 31 * result + checkable.hashCode()
+        result = 31 * result + checked.hashCode()
+        result = 31 * result + clickable.hashCode()
+        result = 31 * result + enabled.hashCode()
+        result = 31 * result + focusable.hashCode()
+        result = 31 * result + focused.hashCode()
+        result = 31 * result + scrollable.hashCode()
+        result = 31 * result + longClickable.hashCode()
+        result = 31 * result + password.hashCode()
+        result = 31 * result + selected.hashCode()
+        result = 31 * result + bounds.hashCode()
+        result = 31 * result + (parent?.hashCode() ?: 0)
+        result = 31 * result + (deviceDisplayBounds?.hashCode() ?: 0)
+        return result
+    }
 }

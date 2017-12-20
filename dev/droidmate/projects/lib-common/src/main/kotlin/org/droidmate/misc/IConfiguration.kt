@@ -19,5 +19,4 @@
 
 package org.droidmate.misc
 
-public interface IConfiguration
-{}
+interface IConfiguration

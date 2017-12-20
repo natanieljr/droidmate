@@ -20,29 +20,48 @@
 package org.droidmate.test_tools
 
 import com.konradjamrozik.Resource
-import org.droidmate.Extensions_ResourceKt
 import org.droidmate.android_sdk.AaptWrapper
 import org.droidmate.android_sdk.Apk
 import org.droidmate.android_sdk.IAaptWrapper
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.SysCmdExecutor
+import org.droidmate.text
+import java.nio.file.Path
+import java.nio.file.Paths
 
-class ApkFixtures
-{
-  public static String apkFixture_simple_packageName = "org.droidmate.fixtures.apks.simple"
+class ApkFixtures(aapt: IAaptWrapper) {
+    companion object {
+        @JvmStatic
+        val apkFixture_simple_packageName = "org.droidmate.fixtures.apks.simple"
 
-  public final Apk gui
-  public final Apk monitoredInlined_api23
-  
-  static ApkFixtures build()
-  {
-    return new ApkFixtures(new AaptWrapper(Configuration.default, new SysCmdExecutor()))
-  }
+        @JvmStatic
+        fun build(): ApkFixtures
+                = ApkFixtures(AaptWrapper(Configuration.getDefault(), SysCmdExecutor()))
 
-  ApkFixtures(IAaptWrapper aapt)
-  {
-    gui = Apk.build(aapt, Extensions_ResourceKt.getExtractedPath(new Resource("${BuildConstants.apk_fixtures}/GuiApkFixture-debug.apk")))
-    monitoredInlined_api23 = Apk.build(aapt, Extensions_ResourceKt.getExtractedPath(new Resource("${BuildConstants.apk_fixtures}/${BuildConstants.monitored_inlined_apk_fixture_api23_name}")))
-  }
+    }
+
+    val gui: Apk
+    val monitoredInlined_api23: Apk
+
+    val Resource.extractedPath: Path
+        get() {
+            val resDir = Paths.get(BuildConstants.dir_name_temp_extracted_resources)
+            return this.extractTo(resDir).toAbsolutePath()
+        }
+
+    val Resource.extractedPathString: String
+        get() {
+            return this.extractedPath.toString()
+        }
+
+    val Resource.extractedText: String
+        get() {
+            return extractedPath.text
+        }
+
+    init {
+        gui = Apk.build(aapt, Resource("${BuildConstants.apk_fixtures}/GuiApkFixture-debug.apk").extractedPath)
+        monitoredInlined_api23 = Apk.build(aapt, Resource("${BuildConstants.apk_fixtures}/${BuildConstants.monitored_inlined_apk_fixture_api23_name}").extractedPath)
+    }
 }

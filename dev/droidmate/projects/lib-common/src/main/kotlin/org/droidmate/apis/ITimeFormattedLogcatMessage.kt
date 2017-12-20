@@ -19,24 +19,22 @@
 
 package org.droidmate.apis
 
+import java.io.Serializable
 import java.time.LocalDateTime
 
 /**
  * See {@link TimeFormattedLogcatMessage}
  */
-interface ITimeFormattedLogcatMessage extends Serializable
-{
+interface ITimeFormattedLogcatMessage : Serializable {
+    val time: LocalDateTime
 
-  LocalDateTime getTime()
+    val level: String
 
-  String getLevel()
+    val tag: String
 
-  String getTag()
+    val pidString: String
 
-  String getPidString()
+    val messagePayload: String
 
-  String getMessagePayload()
-
-  String toLogcatMessageString()
-
+    val toLogcatMessageString: String
 }

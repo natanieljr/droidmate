@@ -18,40 +18,23 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import groovy.util.logging.Slf4j
-import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
+import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newPressBackDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
 
-import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import static org.droidmate.device.datatypes.AndroidDeviceAction.newClickGuiDeviceAction
-import static org.droidmate.device.datatypes.AndroidDeviceAction.newPressBackDeviceAction
-
-@Slf4j
-class RunnablePressBackExplorationAction extends RunnableExplorationAction
-{
-
-    private static final long serialVersionUID = 1
-
-    private final PressBackExplorationAction action
-    private final boolean takeScreenShot
-
-    RunnablePressBackExplorationAction(PressBackExplorationAction action, LocalDateTime timestamp, Boolean takeScreenShot = false)
-    {
-        super(action, timestamp)
-        this.action = action
-        this.takeScreenShot = takeScreenShot
+class RunnablePressBackExplorationAction constructor(action: PressBackExplorationAction, timestamp: LocalDateTime, takescreenshot: Boolean)
+    : RunnableExplorationAction(action, timestamp, takescreenshot) {
+    companion object {
+        private const val serialVersionUID: Long = 1
     }
 
-	@Override
-    protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException {
+    override fun performDeviceActions(app: IApk, device: IRobustDevice) {
         log.debug("1. Assert only background API logs are present, if any.")
-        IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
+        val logsHandler = DeviceLogsHandler(device)
         logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
         log.debug("2. Press back.")
@@ -62,15 +45,12 @@ class RunnablePressBackExplorationAction extends RunnableExplorationAction
         this.logs = logsHandler.getLogs()
 
         log.debug("4. Get GUI snapshot.")
-        this.snapshot = device.guiSnapshot
+        this.snapshot = device.getGuiSnapshot()
 
-        if (this.takeScreenShot) {
+        if (this.takeScreenshot) {
             log.debug("5. Get GUI screenshot.")
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-            Path screenshotPath = device.takeScreenshot(app, timestamp.format(formatter))
-            if (screenshotPath != null)
-                this.screenshot = screenshotPath.toUri()
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
+            this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
         }
     }
-
 }

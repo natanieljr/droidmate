@@ -23,19 +23,11 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.test_tools.device_simulation.AndroidDeviceSimulator
 import org.droidmate.tools.IDeviceTools
 
-class DeviceToolsMock
-{
-  @SuppressWarnings("GrFinalVariableAccess")
-  @Delegate
-  public final IDeviceTools deviceTools
-
-  DeviceToolsMock(Configuration cfg, IAaptWrapper aaptWrapper, AndroidDeviceSimulator simulator)
-  {
-    assert cfg.randomSeed == 0 as Long
-
-    this.deviceTools = DeviceToolsTestHelper.buildForTesting(cfg, aaptWrapper, simulator)
-
-
-  }
-
+class DeviceToolsMock constructor(cfg: Configuration,
+                                  aaptWrapper: IAaptWrapper,
+                                  simulator: AndroidDeviceSimulator,
+                                  private val deviceTools : IDeviceTools = DeviceToolsTestHelper.buildForTesting(cfg, aaptWrapper, simulator)): IDeviceTools by deviceTools {
+    init {
+        assert(cfg.randomSeed == 0)
+    }
 }

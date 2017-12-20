@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,12 +24,8 @@ import java.nio.file.FileSystem
 /**
  * @see ConfigurationBuilder
  */
-interface IConfigurationBuilder
-{
+interface IConfigurationBuilder {
+    fun build(args: Array<String>): Configuration
 
-  Configuration build(String[] args) throws ConfigurationException
-
-  Configuration build(String[] args, FileSystem fs) throws ConfigurationException
-
+    fun build(args: Array<String>, fs: FileSystem): Configuration
 }
-

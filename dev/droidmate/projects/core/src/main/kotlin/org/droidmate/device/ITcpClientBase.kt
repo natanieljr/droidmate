@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 package org.droidmate.device
 
 import org.droidmate.android_sdk.DeviceException
+import java.io.Serializable
 
-interface ITcpClientBase<InputToServerT extends Serializable, OutputFromServerT extends Serializable>
-{
-
-  OutputFromServerT queryServer(InputToServerT input, int port) throws TcpServerUnreachableException, DeviceException
+interface ITcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable> {
+    @Throws(TcpServerUnreachableException::class, DeviceException::class)
+    fun queryServer(input: InputToServerT, port: Int): OutputFromServerT
 }

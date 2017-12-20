@@ -30,12 +30,8 @@ import org.junit.runners.Suite
 */
 
 
-@RunWith(Suite)
-@Suite.SuiteClasses([
-])
+@RunWith(Suite::class)
 class UnsolvedThirdPartyBugsTestSuite
-{
-}
 
 
 

@@ -19,8 +19,12 @@
 
 package org.droidmate.storage
 
-import groovy.util.logging.Slf4j
-
+import com.konradjamrozik.isRegularFile
+import com.konradjamrozik.toList
+import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
+import org.nustaq.serialization.FSTConfiguration
+import org.slf4j.LoggerFactory
+import java.net.URI
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -28,154 +32,140 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 /**
  * Persistent storage. Allows for serializing to HDD and back.
  */
-@Slf4j
-class Storage2 implements IStorage2
-{
-
-  private static final DateTimeFormatter serializedFileTimestampPattern = DateTimeFormatter.ofPattern("yyyy MMM dd HHmm")
-
-  private final Path droidmateOutputDirPath
-
-  static final String ser2FileExt = ".ser2"
-
-  private String timestamp
-
-
-  Storage2(Path droidmateOutputDirPath)
-  {
-    this.droidmateOutputDirPath = droidmateOutputDirPath
-  }
-
-  @Override
-  void serializeToFile(obj, Path file)
-  {
-    ObjectOutputStream serOut = new ObjectOutputStream(
-      Channels.newOutputStream(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)))
-    serOut.writeObject(obj)
-    serOut.close()
-  }
-
-  @Override
-  Collection<Path> getSerializedRuns2()
-  {
-    Collection<Path> paths = Files.list(droidmateOutputDirPath)
-      .findAll {Path p -> p.isRegularFile() && p.fileName.toString().endsWith(ser2FileExt)}
-
-    return paths
-  }
-
-  @Override
-   Object deserialize(Path file)
-  {
-    ObjectInputStream input =
-      new LegacyObjectInputStream(Channels.newInputStream(FileChannel.open(file, StandardOpenOption.READ)))
-    def obj = input.readObject()
-    input.close()
-    return obj
-  }
-
-  @Override
-  void serialize(obj, String namePart)
-  {
-    if (timestamp == null)
-      timestamp = LocalDateTime.now().format(serializedFileTimestampPattern)
-    Path ser2 = getNewPath("$timestamp ${namePart}$ser2FileExt")
-    log.info("Serializing ${obj.class.simpleName} to $ser2")
-    serializeToFile(obj, ser2)
-  }
-
-  private Path getNewPath(String fileName)
-  {
-    ensureDroidmateOutputDirExists()
-
-    Path path = droidmateOutputDirPath.resolve(fileName)
-
-    if (!Files.exists(path.parent))
-    {
-      Files.createDirectories(path.parent)
-      if (!Files.isDirectory(path.parent))
-        assert false
+class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2 {
+    companion object {
+        private val log = LoggerFactory.getLogger(Storage2::class.java)
+        private val serializationConfig = FSTConfiguration.createJsonConfiguration(true, false)
+                .apply {
+                    registerSerializer(URI::class.java, FSTURISerializer(), false)
+                    registerSerializer(LocalDateTime::class.java, FSTLocalDateTimeSerializer(), false)
+                    //registerSerializer(DeviceExceptionMissing::class.java, FSTDeviceExceptionMissingSerializer(), false)
+                }
+        private val serializedFileTimestampPattern = DateTimeFormatter.ofPattern("yyyy MMM dd HHmm")
+        val ser2FileExt = ".ser2"
     }
 
-    path = ensurePathDoesntExist(path)
-    assert Files.isDirectory(path.parent)
-    assert !Files.exists(path)
-    return path
-  }
+    private var timestamp: String = ""
 
-  @Override
-  void delete(String deletionTargetNamePart)
-  {
-    Files.list(droidmateOutputDirPath).each {Path p ->
-      if (p.fileName.toString().contains(deletionTargetNamePart))
-      {
-        boolean success = Files.delete(p)
-        if (success)
-          log.debug("Deleted: " + p.getFileName().toString())
-        else
-          log.debug("Failed to delete: " + p.getFileName().toString())
-      }
-    }
-  }
+    override fun serializeToFile(obj: ApkExplorationOutput2, file: Path) {
+        //val serializer = ApkExplorationOutput2::class.serializer()
+        //val data = JSON.indented.stringify(serializer, obj)
+        //Files.write(file, data.toByteArray())
 
-  private void ensureDroidmateOutputDirExists()
-  {
-    assert droidmateOutputDirPath != null
+        //val serOut = ObjectOutputStream(
+        val serOut = serializationConfig.getObjectOutput(
+                Channels.newOutputStream(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)))
+        serOut.writeObject(obj)
+        serOut.close()
 
-    if (!Files.isDirectory(droidmateOutputDirPath))
-    {
-      Files.createDirectories(droidmateOutputDirPath)
-
-      if (!Files.isDirectory(droidmateOutputDirPath))
-        assert false: "Failed to create droidmate output directory. Path: ${droidmateOutputDirPath.toString()}"
-
-      log.info("Created directory: ${droidmateOutputDirPath.toString()}")
+        val ob = deserialize(file)
+        println(ob.exception)
     }
 
-    assert Files.isDirectory(droidmateOutputDirPath)
-  }
-
-  private Path makeFallbackOutputFileWithRandomUUIDInName(Path targetOutPath)
-  {
-    assert targetOutPath != null
-
-    def actualOutPath = targetOutPath
-
-    def fallbackOutPath = droidmateOutputDirPath.resolve("fallback-copy-${UUID.randomUUID()}")
-    log.warn("Failed to delete ${actualOutPath.toString()}. Trying to create a pointer to nonexisting file with path: ${fallbackOutPath.toString()}")
-
-
-    assert !Files.exists(fallbackOutPath): "The ${fallbackOutPath.toString()} exists. This shouldn't be possible, " +
-      "as its file path was just created with a random UUID"
-
-
-    assert Files.isDirectory(fallbackOutPath.parent)
-    assert !Files.exists(fallbackOutPath)
-    return fallbackOutPath
-  }
-
-  private Path ensurePathDoesntExist(Path path)
-  {
-    assert path != null
-
-    if (Files.exists(path))
-    {
-      log.trace("Deleting ${path.toString()}")
-      Files.delete(path)
-      if (Files.exists(path))
-      {
-        //noinspection GroovyAssignmentToMethodParameter
-        path = makeFallbackOutputFileWithRandomUUIDInName(path)
-      }
+    override fun getSerializedRuns2(): Collection<Path> {
+        return Files.list(droidmateOutputDirPath)
+                .filter { p -> p.isRegularFile && p.fileName.toString().endsWith(ser2FileExt) }
+                .toList()
     }
 
-    assert Files.isDirectory(path.parent)
-    assert !Files.exists(path)
-    return path
-  }
+    override fun deserialize(serPath: Path): ApkExplorationOutput2 {
+        //val serializer = ApkExplorationOutput2::class.serializer()
+        //val data = Files.readAllLines(serPath).joinToString(System.lineSeparator())
+        //return JSON.indented.parse(serializer, data)
 
+        //val input =  LegacyObjectInputStream(Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
+        val input = serializationConfig.getObjectInput(
+                Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
+        val obj = input.readObject()
+        input.close()
+        return obj as ApkExplorationOutput2
+    }
+
+    override fun serialize(obj: ApkExplorationOutput2, namePart: String) {
+        if (timestamp.isEmpty())
+            timestamp = LocalDateTime.now().format(serializedFileTimestampPattern)
+
+        val ser2 = getNewPath("$timestamp $namePart$ser2FileExt")
+        log.info("Serializing ${obj.javaClass.simpleName} to $ser2")
+        serializeToFile(obj, ser2)
+    }
+
+    private fun getNewPath(fileName: String): Path {
+        ensureDroidmateOutputDirExists()
+
+        var path = droidmateOutputDirPath.resolve(fileName)
+
+        if (!Files.exists(path.parent)) {
+            Files.createDirectories(path.parent)
+            if (!Files.isDirectory(path.parent))
+                assert(false)
+        }
+
+        path = ensurePathDoesntExist(path)
+        assert(Files.isDirectory(path.parent))
+        assert(!Files.exists(path))
+        return path
+    }
+
+    override fun delete(deletionTargetNameSuffix: String) {
+        Files.list(droidmateOutputDirPath).forEach { p ->
+            if (p.fileName.toString().contains(deletionTargetNameSuffix)) {
+                val success = Files.deleteIfExists(p)
+                if (success)
+                    log.debug("Deleted: " + p.fileName.toString())
+                else
+                    log.debug("Failed to delete: " + p.fileName.toString())
+            }
+        }
+    }
+
+    private fun ensureDroidmateOutputDirExists() {
+        if (!Files.isDirectory(droidmateOutputDirPath)) {
+            Files.createDirectories(droidmateOutputDirPath)
+
+            if (!Files.isDirectory(droidmateOutputDirPath))
+                assert(false, { "Failed to create droidmate output directory. Path: $droidmateOutputDirPath" })
+
+            log.info("Created directory: $droidmateOutputDirPath")
+        }
+
+        assert(Files.isDirectory(droidmateOutputDirPath))
+    }
+
+    private fun makeFallbackOutputFileWithRandomUUIDInName(targetOutPath: Path): Path {
+
+        val fallbackOutPath = droidmateOutputDirPath.resolve("fallback-copy-${UUID.randomUUID()}")
+        log.warn("Failed to delete $targetOutPath. Trying to create a pointer to nonexistent file with path: $fallbackOutPath")
+
+
+        assert(!Files.exists(fallbackOutPath), {
+            "The $fallbackOutPath exists. This shouldn't be possible, " +
+                    "as its file path was just created with a random UUID"
+        })
+
+
+        assert(Files.isDirectory(fallbackOutPath.parent))
+        assert(Files.notExists(fallbackOutPath))
+        return fallbackOutPath
+    }
+
+    private fun ensurePathDoesntExist(path: Path): Path {
+        var newPath = path
+        if (Files.exists(newPath)) {
+            log.trace("Deleting $newPath")
+            Files.delete(newPath)
+            if (Files.exists(newPath)) {
+                newPath = makeFallbackOutputFileWithRandomUUIDInName(path)
+            }
+        }
+
+        assert(Files.isDirectory(newPath.parent))
+        assert(Files.notExists(newPath))
+        return newPath
+    }
 }

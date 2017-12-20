@@ -24,95 +24,73 @@ import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 
-class DeviceSimulation implements IDeviceSimulation
-{
+class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder,
+                                           override val packageName: String): IDeviceSimulation {
 
-  final         String           packageName
-  final         List<IGuiScreen> guiScreens
-  private final IGuiScreen       initialScreen
+    override val guiScreens: List<IGuiScreen> = guiScreensBuilder.build()
+    private val initialScreen: IGuiScreen
 
-  private IScreenTransitionResult currentTransitionResult = null
+    private var currentTransitionResult: IScreenTransitionResult? = null
 
-  private IAndroidDeviceAction lastAction = null
-
-
-  DeviceSimulation(ITimeGenerator timeGenerator, String packageName, String specString)
-  {
-    this(new GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
-  }
-
-  DeviceSimulation(IApkExplorationOutput2 out)
-  {
-    this(new GuiScreensBuilderFromApkExplorationOutput2(out), out.packageName)
-  }
+    private var lastAction: IAndroidDeviceAction? = null
 
 
-  private DeviceSimulation(IGuiScreensBuilder guiScreensBuilder, String packageName)
-  {
-    this.packageName = packageName
-    this.guiScreens = guiScreensBuilder.build()
-    this.initialScreen = guiScreens.findSingle {it.id == GuiScreen.idHome}
-  }
+    constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
+            this(GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
 
+    constructor(out: IApkExplorationOutput2) :
+            this(GuiScreensBuilderFromApkExplorationOutput2(out), out.packageName)
 
-  @Override
-  void updateState(IAndroidDeviceAction action)
-  {
-    this.currentTransitionResult = this.currentScreen.perform(action)
-    this.lastAction = action
-  }
-
-  boolean getAppIsRunning()
-  {
-    if ((this.lastAction == null) || (this.lastAction instanceof AdbClearPackageAction))
-      return false
-
-    if (this.currentGuiSnapshot.guiState.belongsToApp(this.packageName))
-    {
-      assert !(this.lastAction instanceof AdbClearPackageAction)
-      return true
+    init {
+        this.initialScreen = guiScreens.single { it.getId() == GuiScreen.idHome }
     }
 
-    return false
-  }
-
-  @Override
-  IDeviceGuiSnapshot getCurrentGuiSnapshot()
-  {
-    if (this.currentTransitionResult == null)
-      return this.initialScreen.guiSnapshot
-
-    return this.currentScreen.guiSnapshot
-  }
-
-  @Override
-  List<ITimeFormattedLogcatMessage> getCurrentLogs()
-  {
-    if (this.currentTransitionResult == null)
-      return []
-
-    return this.currentTransitionResult.logs
-  }
-
-  private IGuiScreen getCurrentScreen()
-  {
-    if (currentTransitionResult == null)
-      return this.initialScreen
-
-    return this.currentTransitionResult.screen
-  }
-
-
-  @Override
-  void assertEqual(IDeviceSimulation other)
-  {
-    assert this.guiScreens*.id.sort() == other.guiScreens*.id.sort()
-
-    this.guiScreens.each {IGuiScreen thisScreen ->
-      IGuiScreen otherScreen = other.guiScreens.findSingle {thisScreen.id == it.id}
-      assert thisScreen.id == otherScreen.id
-      assert thisScreen.guiSnapshot.id == otherScreen.guiSnapshot.id
-      assert thisScreen.guiSnapshot.guiState.widgets*.id.sort() == otherScreen.guiSnapshot.guiState.widgets*.id.sort()
+    override fun updateState(deviceAction: IAndroidDeviceAction) {
+        this.currentTransitionResult = this.getCurrentScreen().perform(deviceAction)
+        this.lastAction = deviceAction
     }
-  }
+
+    override fun getAppIsRunning(): Boolean {
+        if ((this.lastAction == null) || (this.lastAction is AdbClearPackageAction))
+            return false
+
+        if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
+            assert(this.lastAction !is AdbClearPackageAction)
+            return true
+        }
+
+        return false
+    }
+
+    override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot {
+        if (this.currentTransitionResult == null)
+            return this.initialScreen.getGuiSnapshot()
+
+        return this.getCurrentScreen().getGuiSnapshot()
+    }
+
+    override fun getCurrentLogs(): List<ITimeFormattedLogcatMessage> {
+        if (this.currentTransitionResult == null)
+            return ArrayList()
+
+        return this.currentTransitionResult!!.logs
+    }
+
+    private fun getCurrentScreen(): IGuiScreen {
+        if (currentTransitionResult == null)
+            return this.initialScreen
+        else
+            return this.currentTransitionResult!!.screen
+    }
+
+    override fun assertEqual(other: IDeviceSimulation) {
+        assert(this.guiScreens.map { it.getId() }.sorted() == other.guiScreens.map { it.getId() }.sorted())
+
+        this.guiScreens.forEach { thisScreen ->
+            val otherScreen = other.guiScreens.single { thisScreen.getId() == it.getId() }
+            assert(thisScreen.getId() == otherScreen.getId())
+            assert(thisScreen.getGuiSnapshot().id == otherScreen.getGuiSnapshot().id)
+            assert(thisScreen.getGuiSnapshot().guiState.widgets.map { it.id }.sorted() == otherScreen.getGuiSnapshot().guiState.widgets.map { it.id }.sorted())
+        }
+    }
 }

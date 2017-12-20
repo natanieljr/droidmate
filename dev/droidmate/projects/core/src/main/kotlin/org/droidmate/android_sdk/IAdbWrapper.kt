@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,57 +23,81 @@ import java.nio.file.Path
 
 interface IAdbWrapper {
 
-  void startAdbServer() throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun startAdbServer()
 
-  void killAdbServer() throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun killAdbServer()
 
-  List<AndroidDeviceDescriptor> getAndroidDevicesDescriptors() throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun getAndroidDevicesDescriptors(): List<AndroidDeviceDescriptor>
 
-  List<String> waitForMessagesOnLogcat(String deviceSerialNumber, String messageTag, int minMessagesCount, int waitTimeout, int queryDelay)
-    throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun waitForMessagesOnLogcat(deviceSerialNumber: String, messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<String>
 
-  void forwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun forwardPort(deviceSerialNumber: String, port: Int)
 
-  void reverseForwardPort(String deviceSerialNumber, int port) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun reverseForwardPort(deviceSerialNumber: String, port: Int)
 
-  void pushFile(String deviceSerialNumber, Path jarFile) throws AdbWrapperException
-  void pushFile(String deviceSerialNumber, Path jarFile, String targetFileName) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun pushFile(deviceSerialNumber: String, jarFile: Path)
 
-  void removeJar(String deviceSerialNumber, Path  jarFile) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun pushFile(deviceSerialNumber: String, jarFile: Path, targetFileName: String)
 
-  void installApk(String deviceSerialNumber, Path apkToInstall) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun removeJar(deviceSerialNumber: String, jarFile: Path)
 
-  void installApk(String deviceSerialNumber, IApk apkToInstall) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun installApk(deviceSerialNumber: String, apkToInstall: Path)
 
-  void uninstallApk(String deviceSerialNumber, String apkPackageName, boolean ignoreFailure) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun installApk(deviceSerialNumber: String, apkToInstall: IApk)
 
-  void launchMainActivity(String deviceSerialNumber, String launchableActivityName) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun uninstallApk(deviceSerialNumber: String, apkPackageName: String, ignoreFailure: Boolean)
 
-  void clearLogcat(String deviceSerialNumber) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun launchMainActivity(deviceSerialNumber: String, launchableActivityName: String)
 
-  boolean clearPackage(String deviceSerialNumber, String apkPackageName)
+    @Throws(AdbWrapperException::class)
+    fun clearLogcat(deviceSerialNumber: String)
 
-  List<String> readMessagesFromLogcat(String deviceSerialNumber, String messagesTag)
+    fun clearPackage(deviceSerialNumber: String, apkPackageName: String): Boolean
 
-  String listPackages(String deviceSerialNumber) throws AdbWrapperException
+    fun readMessagesFromLogcat(deviceSerialNumber: String, messageTag: String): List<String>
 
-  String listPackage(String deviceSerialNumber, String packageName) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun listPackages(deviceSerialNumber: String): String
 
-  String ps(String deviceSerialNumber) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun listPackage(deviceSerialNumber: String, packageName: String): String
 
-  void reboot(String deviceSerialNumber) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun ps(deviceSerialNumber: String): String
 
-  void startUiautomatorDaemon(String deviceSerialNumber, int port) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun reboot(deviceSerialNumber: String)
 
-  //void stopUiautomatorDaemon(String deviceSerialNumber) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun startUiautomatorDaemon(deviceSerialNumber: String, port: Int)
 
-  void removeFile_api23(String deviceSerialNumber, String fileName, String shellPackageName) throws AdbWrapperException
+    //void stopUiautomatorDaemon(deviceSerialNumber: String) throws AdbWrapperException
 
-  void pullFile_api23(String deviceSerialNumber, String pulledFileName, String destinationFilePath, String shellPackageName) throws AdbWrapperException
-  
-  void takeScreenshot(String deviceSerialNumber, String targetPath) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun removeFile_api23(deviceSerialNumber: String, fileName: String, shellPackageName: String)
 
-  String executeCommand(String deviceSerialNumber, String successfulOutput, String commandDescription, String... cmdLineParams) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun pullFile_api23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: String, shellPackageName: String)
 
-  void reconnect(String deviceSerialNumber) throws AdbWrapperException
+    @Throws(AdbWrapperException::class)
+    fun takeScreenshot(deviceSerialNumber: String, targetPath: String)
+
+    @Throws(AdbWrapperException::class)
+    fun executeCommand(deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String
+
+    @Throws(AdbWrapperException::class)
+    fun reconnect(deviceSerialNumber: String)
 }

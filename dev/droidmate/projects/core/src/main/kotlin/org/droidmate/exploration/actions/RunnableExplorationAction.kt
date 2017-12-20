@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,152 +18,141 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import groovy.util.logging.Slf4j
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.WaitAction
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.MissingDeviceLogs
 import org.droidmate.logging.Markers
+import org.slf4j.LoggerFactory
+import java.net.URI
 
-import java.nio.file.Path
 import java.time.LocalDateTime
 
-@Slf4j
-abstract class RunnableExplorationAction implements IRunnableExplorationAction
-{
+abstract class RunnableExplorationAction(override val base: ExplorationAction,
+                                         override val timestamp: LocalDateTime,
+                                         override val takeScreenshot: Boolean = false) : IRunnableExplorationAction, ExplorationAction() {
 
-  private static final long serialVersionUID = 1
+    companion object {
+        private const val serialVersionUID: Long = 1
+        internal val log = LoggerFactory.getLogger(RunnableExplorationAction::class.java)
 
+        @JvmStatic
+        @JvmOverloads
+        fun from(action: ExplorationAction, timestamp: LocalDateTime, takeScreenShot: Boolean = false): RunnableExplorationAction
+                =//    log.trace("Building exploration action ${action.class} with timestamp: $timestamp")
 
-  @Delegate
-  ExplorationAction base
+                when (action) {
+                    is ResetAppExplorationAction -> RunnableResetAppExplorationAction(action, timestamp, takeScreenShot)
+                    is WidgetExplorationAction -> RunnableWidgetExplorationAction(action, timestamp, takeScreenShot)
+                    is TerminateExplorationAction -> RunnableTerminateExplorationAction(action, timestamp, takeScreenShot)
+                    is EnterTextExplorationAction -> RunnableEnterTextExplorationAction(action, timestamp, takeScreenShot)
+                    is PressBackExplorationAction -> RunnablePressBackExplorationAction(action, timestamp, takeScreenShot)
+                    is WaitAction -> RunnableWaitForWidget(action, timestamp, takeScreenShot)
 
-  LocalDateTime timestamp
-
-  URI screenshot
-
-
-  RunnableExplorationAction(ExplorationAction base, LocalDateTime timestamp)
-  {
-    this.base = base
-    this.timestamp = timestamp
-  }
-
-  static RunnableExplorationAction from(ExplorationAction action, LocalDateTime timestamp, Boolean takeScreenShot = false)
-  {
-//    log.trace("Building exploration action ${action.class} with timestamp: $timestamp")
-    
-    switch (action.class)
-    {
-      case ResetAppExplorationAction:
-        return new RunnableResetAppExplorationAction(action as ResetAppExplorationAction, timestamp, takeScreenShot)
-        break
-
-      case WidgetExplorationAction:
-        return new RunnableWidgetExplorationAction(action as WidgetExplorationAction, timestamp, takeScreenShot)
-
-      case TerminateExplorationAction:
-        return new RunnableTerminateExplorationAction(action as TerminateExplorationAction, timestamp)
-
-      case EnterTextExplorationAction:
-        return new RunnableEnterTextExplorationAction(action as EnterTextExplorationAction, timestamp)
-
-      case PressBackExplorationAction:
-        return new RunnablePressBackExplorationAction(action as PressBackExplorationAction, timestamp, takeScreenShot)
-
-      default:
-        throw new UnexpectedIfElseFallthroughError("Unhandled ExplorationAction class. The class: ${action.class}")
-    }
-  }
-
-  protected IDeviceGuiSnapshot snapshot
-  protected IDeviceLogs        logs
-  protected DeviceException    exception
-
-  IExplorationActionRunResult run(IApk app, IRobustDevice device)
-  {
-    assert app != null
-    assert device != null
-
-    boolean successful = true
-
-    // @formatter:off
-    this.logs      = new MissingDeviceLogs()
-    this.snapshot  = new MissingGuiSnapshot()
-    this.exception = new DeviceExceptionMissing()
-    // @formatter:on
-
-    try
-    {
-      log.trace("${this.class.simpleName}.performDeviceActions(app=${app.fileName}, device)")
-      this.performDeviceActions(app, device)
-      log.trace("${this.class.simpleName}.performDeviceActions(app=${app.fileName}, device) - DONE")
-    } catch (DeviceException e)
-    {
-      successful = false
-      this.exception = e
-      log.warn(Markers.appHealth, "! Caught ${e.class.simpleName} while performing device actions of ${this.class.simpleName}. " +
-        "Returning failed ${ExplorationActionRunResult.class.simpleName} with the exception assigned to a field.")
+                    else -> throw UnexpectedIfElseFallthroughError("Unhandled ExplorationAction class. The class: ${action.javaClass}")
+                }
     }
 
-    // For post-conditions, see inside the constructor call made line below.
-    ExplorationActionRunResult result = new ExplorationActionRunResult(successful, app.packageName, this.logs, this.snapshot, this.exception, this.screenshot)
+    protected lateinit var snapshot: IDeviceGuiSnapshot
+    protected lateinit var logs: IDeviceLogs
+    protected lateinit var exception: DeviceException
+    override var screenshot: URI = URI.create("test://empty")
 
-    frontendHook(result)
 
-    return result
-  }
+    override fun run(app: IApk, device: IRobustDevice): IExplorationActionRunResult {
+        var successful = true
 
-  /**
-   * Allows to hook into the result of interacting with the device after an ExplorationAction has been executed on it.
-   */
-  void frontendHook(IExplorationActionRunResult result)
-  {
-    base.notifyResult(result)
+        // @formatter:off
+        this.logs = MissingDeviceLogs()
+        this.snapshot = MissingGuiSnapshot()
+        this.exception = DeviceExceptionMissing()
+        // @formatter:on
 
-    if (!(result.guiSnapshot instanceof MissingGuiSnapshot))
-    {
-      List<Widget> widgets = result.guiSnapshot.guiState.widgets
-      boolean isANR = result.guiSnapshot.guiState.isAppHasStoppedDialogBox()
-      // And so on. see org.droidmate.device.datatypes.IGuiState
+        try {
+            log.trace("${this.javaClass.simpleName}.performDeviceActions(app=${app.fileName}, device)")
+            this.performDeviceActions(app, device)
+            log.trace("${this.javaClass.simpleName}.performDeviceActions(app=${app.fileName}, device) - DONE")
+        } catch (e: DeviceException) {
+            successful = false
+            this.exception = e
+            log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device actions of ${this.javaClass.simpleName}. " +
+                    "Returning failed ${ExplorationActionRunResult::class.java.simpleName} with the exception assigned to a field.")
+        }
+
+        // For post-conditions, see inside the constructor call made line below.
+        val result = ExplorationActionRunResult(successful, app.packageName, this.logs, this.snapshot, this.exception, this.screenshot)
+
+        frontendHook(result)
+
+        return result
     }
 
-    if (!(result.deviceLogs instanceof MissingDeviceLogs))
-    {
-      List<IApiLogcatMessage> logs = result.deviceLogs.apiLogsOrEmpty
-      logs.each { IApiLogcatMessage log ->
-        String time = log.time
-        String methodName = log.methodName
-        // And so on. See org.droidmate.apis.ITimeFormattedLogcatMessage
-        // and org.droidmate.apis.IApi
-      }
+    /**
+     * Allows to hook into the result of interacting with the device after an ExplorationAction has been executed on it.
+     */
+    fun frontendHook(result: IExplorationActionRunResult) {
+        base.notifyResult(result)
+
+        /*if (!(result.guiSnapshot is MissingGuiSnapshot)) {
+            val widgets = result.guiSnapshot.guiState.widgets
+            val isANR = result.guiSnapshot.guiState.isAppHasStoppedDialogBox
+            // And so on. see IGuiState
+        }
+
+        if (!(result.deviceLogs is MissingDeviceLogs)) {
+            val logs = result.deviceLogs.apiLogs
+            logs.forEach { log ->
+                val time = log.time
+                val methodName = log.methodName
+                // And so on. See org.droidmate.apis.ITimeFormattedLogcatMessage
+                // and org.droidmate.apis.IApi
+            }
+        }
+
+        if (!(result.successful)) {
+            val exception = result.exception
+        }*/
+
+        // To-do for SE team
     }
 
-    if (!(result.successful))
-    {
-      DeviceException exception = result.exception
+    @Throws(DeviceException::class)
+    abstract protected fun performDeviceActions(app: IApk, device: IRobustDevice)
+
+    @Throws(DeviceException::class)
+    protected fun assertAppIsNotRunning(device: IRobustDevice, apk: IApk) {
+        assert(device.appIsNotRunning(apk))
     }
 
-    // To-do for SE team
-  }
+    override fun toString(): String = "Runnable " + base.toString()
 
-  abstract protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException
+    override fun isEndorseRuntimePermission(): Boolean
+            = base.isEndorseRuntimePermission()
 
-  protected void assertAppIsNotRunning(IRobustDevice device, IApk apk) throws DeviceException
-  {
-    assert device.appIsNotRunning(apk)
-  }
+    override fun toShortString(): String
+            = base.toShortString()
 
-  @Override
-   String toString()
-  {
-    return "Runnable " + base.toString()
-  }
+    override fun toTabulatedString(): String
+            = base.toShortString()
+
+    override fun notifyResult(result: IExplorationActionRunResult) {
+        base.notifyResult(result)
+    }
+
+    override fun notifyObservers(result: IExplorationActionRunResult) {
+        base.notifyObservers(result)
+    }
+
+    override fun unregisterObserver(observer: IExplorationActionResultObserver) {
+        base.unregisterObserver(observer)
+    }
+
+    override fun registerObserver(observer: IExplorationActionResultObserver) {
+        base.registerObserver(observer)
+    }
 }
-

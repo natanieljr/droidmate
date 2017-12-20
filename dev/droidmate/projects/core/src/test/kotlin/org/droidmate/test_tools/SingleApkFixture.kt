@@ -18,31 +18,19 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools
 
-import org.droidmate.android_sdk.Apk
 import org.droidmate.android_sdk.IAaptWrapper
+import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
-import org.droidmate.misc.BuildConstants
 import org.droidmate.tools.ApksProvider
 
-class SingleApkFixture
-{
-  @SuppressWarnings("GrFinalVariableAccess")
-  @Delegate
-  final Apk apk
+class SingleApkFixture constructor(aapt: IAaptWrapper,
+                                   cfg: Configuration,
+                                   apksProvider : ApksProvider = ApksProvider(aapt),
+                                   apks : List<IApk> = apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks),
+                                   private val apk : IApk = apks.first()
+                                   ): IApk by apk {
 
-  SingleApkFixture(IAaptWrapper aapt, Configuration cfg)
-  {
-    assert aapt != null
-    assert cfg != null
-    assert cfg.useApkFixturesDir
-
-    ApksProvider apksProvider = new ApksProvider(aapt)
-
-    List<Apk> apks = apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks)
-    assert apks.size() == 1
-
-    this.apk = apks.first()
-  }
-
-
+    init {
+        assert(apks.size == 1)
+    }
 }

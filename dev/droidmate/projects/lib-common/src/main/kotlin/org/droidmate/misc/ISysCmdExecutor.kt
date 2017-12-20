@@ -17,14 +17,16 @@
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
 
-package org.droidmate.misc;
+package org.droidmate.misc
 
-public interface ISysCmdExecutor {
+interface ISysCmdExecutor {
 
-  String[] execute(String commandDescription, String... cmdLineParams) throws SysCmdExecutorException
+    @Throws(SysCmdExecutorException::class)
+    fun execute(commandDescription: String, vararg cmdLineParams: String): Array<String>
 
-  String[] executeWithoutTimeout(String commandDescription, String... cmdLineParams) throws SysCmdExecutorException
+    @Throws(SysCmdExecutorException::class)
+    fun executeWithoutTimeout(commandDescription: String, vararg cmdLineParams: String): Array<String>
 
-  String[] executeWithTimeout(String commandDescription, int timeout, String... cmdLineParams) throws SysCmdExecutorException
-
+    @Throws(SysCmdExecutorException::class)
+    fun executeWithTimeout(commandDescription: String, timeout: Int, vararg cmdLineParams: String): Array<String>
 }

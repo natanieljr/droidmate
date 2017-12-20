@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,40 +21,32 @@ package org.droidmate.android_sdk
 
 import org.droidmate.misc.DroidmateException
 
-class DeviceException extends DroidmateException
-{
-  private static final long serialVersionUID = 1
+open class DeviceException : DroidmateException {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  final boolean stopFurtherApkExplorations
+    val stopFurtherApkExplorations: Boolean
 
-  DeviceException()
-  {
-    super()
-    stopFurtherApkExplorations = false
-  }
+    constructor() : super() {
+        stopFurtherApkExplorations = false
+    }
 
-  DeviceException(Throwable cause)
-  {
-    super(cause)
-    stopFurtherApkExplorations = false
-  }
+    constructor(cause: Throwable) : super(cause) {
+        stopFurtherApkExplorations = false
+    }
 
-  DeviceException(String message)
-  {
-    super(message)
-    stopFurtherApkExplorations = false
-  }
+    constructor(message: String) : super(message) {
+        stopFurtherApkExplorations = false
+    }
 
-  DeviceException(String message, boolean stopFurtherApkExplorations)
-  {
-    super(message)
-    this.stopFurtherApkExplorations = stopFurtherApkExplorations
-  }
+    constructor(message: String, stopFurtherApkExplorations: Boolean) : super(message) {
+        this.stopFurtherApkExplorations = stopFurtherApkExplorations
+    }
 
-  DeviceException(String message, Throwable cause, boolean stopFurtherApkExplorations = false)
-  {
-    super(message, cause)
-    this.stopFurtherApkExplorations = stopFurtherApkExplorations
-  }
+    @JvmOverloads
+    constructor(message: String, cause: Throwable, stopFurtherApkExplorations: Boolean = false) : super(message, cause) {
+        this.stopFurtherApkExplorations = stopFurtherApkExplorations
+    }
 
 }

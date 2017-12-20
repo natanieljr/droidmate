@@ -39,11 +39,8 @@ import org.junit.runners.Suite
 */
 
 
-@RunWith(Categories)
-@Categories.IncludeCategory(RequiresSimulator)
-@Suite.SuiteClasses([
-  AllTestSuites
-])
+@RunWith(Categories::class)
+@Categories.IncludeCategory(RequiresSimulator::class)
+@Suite.SuiteClasses(
+        AllTestSuites::class)
 class RequiresSimulatorTestSuite
-{
-}

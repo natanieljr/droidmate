@@ -19,29 +19,16 @@
 
 package org.droidmate.misc
 
-public class DroidmateException extends Exception
-{
-
-  private static final long serialVersionUID = 1
-
-  public DroidmateException()
-  {
-    super()
+open class DroidmateException : Exception {
+    companion object {
+        private const val serialVersionUID: Long = 1
   }
 
-  public DroidmateException(Throwable cause)
-  {
-    super(cause)
-  }
+    constructor() : super()
 
-  public DroidmateException(String message, Throwable cause)
-  {
-    super(message, cause)
-  }
+    constructor(cause: Throwable) : super(cause)
 
-  public DroidmateException(String message)
-  {
-    super(message)
-  }
+    constructor(message: String, cause: Throwable) : super(message, cause)
 
+    constructor(message: String) : super(message)
 }

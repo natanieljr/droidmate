@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,146 +20,113 @@
 package org.droidmate.apk_inliner
 
 import com.konradjamrozik.Resource
-import groovy.util.logging.Slf4j
 import org.droidmate.misc.*
+import org.slf4j.LoggerFactory
+import java.nio.file.Files
 
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
-import static java.nio.file.Files.*
 
-@Slf4j
-class ApkInliner implements IApkInliner
-{
-  private final ISysCmdExecutor   sysCmdExecutor
-  private final IJarsignerWrapper jarsignerWrapper
+class ApkInliner constructor(private val sysCmdExecutor: ISysCmdExecutor,
+                             private val jarsignerWrapper: IJarsignerWrapper,
+                             private val inlinerJar: Jar,
+                             private val appGuardLoader: Dex,
+                             private val monitorClassName: String,
+                             private val pathToMonitorApkOnAndroidDevice: String) : IApkInliner {
+    override fun inline(inputPath: Path, outputDir: Path) {
+        if (!Files.exists(inputPath))
+            Files.createDirectories(inputPath)
+        if (!Files.isDirectory(inputPath))
+            assert(Files.exists(inputPath))
+        assert(Files.isDirectory(outputDir))
 
-  private final Jar    inlinerJar
-  private final Dex    appGuardLoader
-  private final String monitorClassName
-  private final String pathToMonitorApkOnAndroidDevice
+        if (Files.isDirectory(inputPath)) {
+            if (Files.list(inputPath).count() == 0L) {
+                log.warn("No target apks for inlining found. Searched directory: ${inputPath.toRealPath().toString()}.\nAborting inlining.")
+                return
+            }
 
-  ApkInliner(
-    ISysCmdExecutor sysCmdExecutor,
-    IJarsignerWrapper jarsignerWrapper,
-    Jar inlinerJar,
-    Dex appGuardLoader,
-    String monitorClassName,
-    String pathToMonitorApkOnAndroidDevice)
-  {
-    this.sysCmdExecutor = sysCmdExecutor
-    this.jarsignerWrapper = jarsignerWrapper
-    this.inlinerJar = inlinerJar
-    this.appGuardLoader = appGuardLoader
-    this.monitorClassName = monitorClassName
-    this.pathToMonitorApkOnAndroidDevice = pathToMonitorApkOnAndroidDevice
-  }
+            Files.list(inputPath).filter { p -> p.fileName.toString() != ".gitignore" }
+                    .forEach { apkPath -> inlineApkIntoDir(apkPath, outputDir) }
 
-  static ApkInliner build()
-  {
-    def sysCmdExecutor = new SysCmdExecutor()
-
-    def resDir = Paths.get(BuildConstants.dir_name_temp_extracted_resources)
-    return new ApkInliner(
-      sysCmdExecutor,
-      new JarsignerWrapper(
-        sysCmdExecutor,
-        Paths.get(BuildConstants.jarsigner),
-        new Resource("debug.keystore").extractTo(resDir)
-      ),
-      new Jar(new Resource("appguard-inliner.jar").extractTo(resDir)),
-      new Dex(new Resource("appguard-loader.dex").extractTo(resDir)),
-      "org.droidmate.monitor.Monitor",
-      BuildConstants.AVD_dir_for_temp_files + BuildConstants.monitor_on_avd_apk_name)
-  }
-
-  @Override
-  void inline(Path inputPath, Path outputDir)
-  {
-    assert inputPath != null
-    assert outputDir != null
-    if (!isDirectory(inputPath))
-      assert new ApkPath(inputPath)
-    assert isDirectory(outputDir)
-
-    if (isDirectory(inputPath))
-    {
-      if (list(inputPath).count() == 0)
-      {
-        log.warn("No target apks for inlining found. Searched directory: ${inputPath.toRealPath().toString()}.\nAborting inlining.")
-        return
-      }
-
-      (list(inputPath).collect() as Collection<Path>)
-        .findAll { Path p -> p.fileName.toString() != ".gitignore" }
-        .each {Path apkPath -> inlineApkIntoDir(apkPath, outputDir)}
-
-      assert list(inputPath)
-        .findAll { Path p -> p.extension == "apk" }
-        .size() <=
-        list(outputDir)
-          .findAll { Path p -> p.extension == "apk" }
-          .size()
+            assert(Files.list(inputPath)
+                    .filter { p -> p.endsWith(".apk") }
+                    .count() <=
+                    Files.list(outputDir)
+                            .filter { p -> p.endsWith(".apk") }
+                            .count())
+        } else
+            inlineApkIntoDir(inputPath, outputDir)
     }
-    else
-      inlineApkIntoDir(inputPath, outputDir)
-  }
 
-/**
- * <p>
- * Inlines apk at path {@code apkPath} and puts its inlined version in {@code outputDir}.
- *
- * </p><p>
- * For example, if {@code apkPath} is:
- *
- *   /abc/def/calc.apk
- *
- * and {@code outputDir} is:
- *
- *   /abc/def/out/
- *
- * then the output inlined apk will have path
- *
- *   /abc/def/out/calc-inlined.apk
- *
- * </p>
- *
- * @param apkPath
- * @param outputDir
- * @return
- */
-  private ApkPath inlineApkIntoDir(Path apkPath, Path outputDir)
-  {
-    ApkPath apk = new ApkPath(apkPath)
+    /**
+     * <p>
+     * Inlines apk at path {@code apkPath} and puts its inlined version in {@code outputDir}.
+     *
+     * </p><p>
+     * For example, if {@code apkPath} is:
+     *
+     *   /abc/def/calc.apk
+     *
+     * and {@code outputDir} is:
+     *
+     *   /abc/def/out/
+     *
+     * then the output inlined apk will have path
+     *
+     *   /abc/def/out/calc-inlined.apk
+     *
+     * </p>
+     *
+     * @param apk
+     * @param outputDir
+     * @return
+     */
+    private fun inlineApkIntoDir(apk: Path, outputDir: Path): Path {
+        val unsignedInlinedApk = executeInlineApk(apk)
+        assert(unsignedInlinedApk.fileName.toString().endsWith("-inlined.apk"))
 
-    ApkPath unsignedInlinedApk = executeInlineApk(apk)
-    assert unsignedInlinedApk.name.endsWith("-inlined.apk")
+        val signedInlinedApk = jarsignerWrapper.signWithDebugKey(unsignedInlinedApk)
 
-    ApkPath signedInlinedApk = jarsignerWrapper.signWithDebugKey(unsignedInlinedApk)
+        return Files.move(signedInlinedApk, outputDir.resolve(signedInlinedApk.fileName.toString()),
+                StandardCopyOption.REPLACE_EXISTING)
+    }
 
-    Path signedInlinedApkPathAfterMove = move(signedInlinedApk.path, outputDir.resolve(signedInlinedApk.name),
-      StandardCopyOption.REPLACE_EXISTING)
-    signedInlinedApk = new ApkPath(signedInlinedApkPathAfterMove)
+    private fun executeInlineApk(targetApk: Path): Path {
+        val inlinedApkPath = targetApk.resolveSibling(targetApk.fileName.toString().replace(".apk", "-inlined.apk"))
+        assert(Files.notExists(inlinedApkPath))
 
-    return signedInlinedApk
-  }
+        sysCmdExecutor.execute(
+                "Inlining ${targetApk.toRealPath().toString()}",
+                "java", "-jar",
+                inlinerJar.path.toRealPath().toString(),
+                targetApk.toRealPath().toString(),
+                appGuardLoader.path.toRealPath().toString(),
+                pathToMonitorApkOnAndroidDevice,
+                monitorClassName)
 
-  private ApkPath executeInlineApk(/* in */ ApkPath targetApk)
-  {
-    Path inlinedApkPath = targetApk.resolveSibling(targetApk.fileName.toString().replace(".apk", "-inlined.apk"))
-    assert notExists(inlinedApkPath)
+        assert(Files.exists(inlinedApkPath))
+        return inlinedApkPath
+    }
 
-    sysCmdExecutor.execute(
-      "Inlining ${targetApk.toRealPath().toString()}",
-      "java", "-jar",
-      inlinerJar.toRealPath().toString(),
-      targetApk.toRealPath().toString(),
-      appGuardLoader.toRealPath().toString(),
-      pathToMonitorApkOnAndroidDevice,
-      monitorClassName)
+    companion object {
+        private val log = LoggerFactory.getLogger(ApkInliner::class.java)
 
-    assert exists(inlinedApkPath)
-    return new ApkPath(inlinedApkPath)
-  }
+        @JvmStatic
+        fun build(): ApkInliner {
+            val sysCmdExecutor = SysCmdExecutor()
+
+            val resDir = Paths.get(BuildConstants.dir_name_temp_extracted_resources)
+            return ApkInliner(sysCmdExecutor,
+                    JarsignerWrapper(sysCmdExecutor,
+                            Paths.get(BuildConstants.jarsigner),
+                            Resource("debug.keystore").extractTo(resDir)),
+                    Jar(Resource("appguard-inliner.jar").extractTo(resDir)),
+                    Dex(Resource("appguard-loader.dex").extractTo(resDir)),
+                    "org.droidmate.monitor.Monitor",
+                    BuildConstants.AVD_dir_for_temp_files + BuildConstants.monitor_on_avd_apk_name)
+        }
+    }
 }

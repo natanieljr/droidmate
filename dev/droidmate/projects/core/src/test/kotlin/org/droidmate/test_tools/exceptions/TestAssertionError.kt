@@ -18,16 +18,11 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.exceptions
 
-class TestAssertionError extends AssertionError implements ITestException
+class TestAssertionError(override val exceptionSpec: IExceptionSpec)
+  : AssertionError("Test-enforced assertion error. Package name: $exceptionSpec.packageName Method name: " +
+        "$exceptionSpec.methodName Call index: $exceptionSpec.callIndex"), ITestException
 {
-  private static final long serialVersionUID = 1
-
-  final IExceptionSpec exceptionSpec
-
-  TestAssertionError(IExceptionSpec exceptionSpec)
-  {
-    super("Test-enforced assertion error. Package name: $exceptionSpec.packageName Method name: $exceptionSpec.methodName Call index: $exceptionSpec.callIndex" as Object)
-    this.exceptionSpec = exceptionSpec
+  companion object {
+    private const val serialVersionUID: Long = 1
   }
-
 }

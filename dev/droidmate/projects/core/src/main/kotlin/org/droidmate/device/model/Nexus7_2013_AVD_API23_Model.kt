@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,16 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.device.model
 
-import java.awt.*
+import java.awt.Dimension
 
-class Nexus7_2013_AVD_API23_Model implements IDeviceModel
-{
+class Nexus7_2013_AVD_API23_Model : IDeviceModel {
+    override fun getAndroidLauncherPackageName(): String = "com.android.launcher3"
 
-  final String androidLauncherPackageName = "com.android.launcher3"
-
-  @Override
-  Dimension getDeviceDisplayDimensionsForTesting()
-  {
-    return new Dimension(1200, 1920)
-  }
+    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1200, 1920)
 }

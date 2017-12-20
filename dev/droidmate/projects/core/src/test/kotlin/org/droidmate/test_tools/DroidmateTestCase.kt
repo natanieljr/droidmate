@@ -20,12 +20,14 @@
 package org.droidmate.test_tools
 
 import ch.qos.logback.classic.Level
+import junit.framework.TestCase
 import org.droidmate.logging.LogbackAppenders
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.misc.BuildConstants
 import org.junit.Before
+import java.util.*
 
-class DroidmateGroovyTestCase extends GroovyTestCase
+open class DroidmateTestCase : TestCase()
 {
   /*
     Used for profiling the JUnit test runs with VisualVM. Uncomment, run the tests with -Xverify:none JVM option and make sure
@@ -38,17 +40,19 @@ class DroidmateGroovyTestCase extends GroovyTestCase
 //    Thread.sleep(5000)
 //    println "Done waiting!"
 //  }
+  companion object {
+      @JvmStatic
+      private val stdoutAppendersLogLevelForTesting: Level = Level.ERROR
 
-  public static Level       stdoutAppendersLogLevelForTesting = Level.ERROR
-  static {
-    Locale.setDefault(BuildConstants.locale)
-    // WISH maybe better solution is to use @Rule: https://edgblog.wordpress.com/2013/10/21/a-junit-rule-to-turn-test-logging-onoff/
-    LogbackAppenders.setThresholdLevelOfStdStreamsAppenders(stdoutAppendersLogLevelForTesting)
+      init {
+          Locale.setDefault(BuildConstants.locale)
+          // WISH maybe better solution is to use @Rule: https://edgblog.wordpress.com/2013/10/21/a-junit-rule-to-turn-test-logging-onoff/
+          LogbackAppenders.setThresholdLevelOfStdStreamsAppenders(stdoutAppendersLogLevelForTesting)
+      }
   }
 
-  @Before
-  void setUp()
-  {
-    LogbackUtilsRequiringLogbackLog.cleanLogsDir()
-  }
+    @Before
+    public override fun setUp() {
+        LogbackUtilsRequiringLogbackLog.cleanLogsDir()
+    }
 }

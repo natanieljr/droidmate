@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,67 +18,45 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import groovy.util.logging.Slf4j
-import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.IAndroidDeviceAction
+import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newClickGuiDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IDeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
-
-import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import static org.droidmate.device.datatypes.AndroidDeviceAction.newClickGuiDeviceAction
-import static org.droidmate.device.datatypes.AndroidDeviceAction.newSwipeGuiDeviceAction
+class RunnableWidgetExplorationAction constructor(action: WidgetExplorationAction,
+                                                  timestamp: LocalDateTime,
+                                                  takeScreenshot: Boolean) : RunnableExplorationAction(action, timestamp, takeScreenshot) {
 
-@Slf4j
-class RunnableWidgetExplorationAction extends RunnableExplorationAction
-{
-
-  private static final long serialVersionUID = 1
-
-  private final WidgetExplorationAction action
-  private final boolean takeScreenShot
-
-  RunnableWidgetExplorationAction(WidgetExplorationAction action, LocalDateTime timestamp, Boolean takeScreenShot = false)
-  {
-    super(action, timestamp)
-    this.action = action
-    this.takeScreenShot = takeScreenShot
-  }
-
-  protected void performDeviceActions(IApk app, IRobustDevice device) throws DeviceException
-  {
-    log.debug("1. Assert only background API logs are present, if any.")
-    IDeviceLogsHandler logsHandler = new DeviceLogsHandler(device)
-    logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
-
-		if(action.swipe){
-			log.debug("2. Perform widget swipe: ${action}.")
-			device.perform(newSwipeGuiDeviceAction(action.widget, action.direction))
-		} else {
-    log.debug("2. Perform widget click: ${action}.")
-			device.perform(newClickGuiDeviceAction(action.widget, action.longClick))
-		}
-    log.debug("3. Read and clear API logs if any, then seal logs reading.")
-    logsHandler.readAndClearApiLogs()
-    this.logs = logsHandler.getLogs()
-
-    Thread.sleep(action.delay)
-
-    log.debug("4. Get GUI snapshot.")
-    this.snapshot = device.guiSnapshot
-
-    if (this.takeScreenShot) {
-      log.debug("5. Get GUI screenshot.")
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-      Path screenshotPath = device.takeScreenshot(app, timestamp.format(formatter))
-      if (screenshotPath != null)
-        this.screenshot = screenshotPath.toUri()
+    companion object {
+        private const val serialVersionUID: Long = 1
     }
-  }
 
+    override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+        log.debug("1. Assert only background API logs are present, if any.")
+        val logsHandler = DeviceLogsHandler(device)
+        logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
+
+        val action = base as WidgetExplorationAction
+        log.debug("2. Perform widget click: ${action}.")
+        device.perform(newClickGuiDeviceAction(action.widget, action.longClick))
+
+        log.debug("3. Read and clear API logs if any, then seal logs reading.")
+        logsHandler.readAndClearApiLogs()
+        this.logs = logsHandler.getLogs()
+
+        Thread.sleep(action.delay.toLong())
+
+        if (this.takeScreenshot) {
+            // this was moved before the snapshot, as otherwise the screen may show the loaded page but the snapshot does not contain the elements
+            log.debug("4. Get GUI screenshot.")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+            this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
+        }
+
+        log.debug("4. Get GUI snapshot.")
+        this.snapshot = device.getGuiSnapshot()
+    }
 }
 

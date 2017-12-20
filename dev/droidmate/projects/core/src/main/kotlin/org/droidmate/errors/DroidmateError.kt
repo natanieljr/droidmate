@@ -19,26 +19,12 @@
 
 package org.droidmate.errors
 
-class DroidmateError extends Error
-{
+open class DroidmateError : Error {
+    constructor(message: String, cause: Throwable) : super(message, cause)
 
-  DroidmateError(String message, Throwable cause)
-  {
-    super(message, cause)
-  }
+    constructor(message: String) : super(message)
 
-  DroidmateError(String message)
-  {
-    super(message)
-  }
+    constructor(cause: Throwable) : super(cause)
 
-  DroidmateError(Throwable cause)
-  {
-    super(cause)
-  }
-
-  DroidmateError()
-  {
-    super()
-  }
+    constructor() : super()
 }

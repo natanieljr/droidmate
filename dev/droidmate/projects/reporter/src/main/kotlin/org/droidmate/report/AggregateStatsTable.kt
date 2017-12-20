@@ -58,7 +58,7 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
           listOf(
             apkData.apk.fileName,
             apkData.packageName,
-            apkData.explorationDuration.seconds.toString(),
+                  apkData.getExplorationDuration().seconds.toString(),
             apkData.actions.size.toString(),
             apkData.resetActionsCount.toString(),
             apkData.uniqueActionableWidgets.size.toString(),

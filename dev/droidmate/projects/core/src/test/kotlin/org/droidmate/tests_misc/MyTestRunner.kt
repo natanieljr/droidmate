@@ -25,25 +25,21 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 import org.slf4j.LoggerFactory;
 
-public class MyTestRunner extends BlockJUnit4ClassRunner
-{
+class MyTestRunner @Throws(InitializationError::class) constructor(klass: Class<*>) : BlockJUnit4ClassRunner(klass) {
 
-  public MyTestRunner(Class<?> klass) throws InitializationError
-  {
-    super(klass);
-  }
+    override fun run(notifier: RunNotifier?) {
+        if (notifier == null)
+            return
 
-  @Override
-  public void run(RunNotifier notifier) {
-    notifier.addFirstListener(new RunListener() {
-      @Override
-      public void testFailure(Failure failure) throws Exception {
-        Throwable exception = failure.getException();
-        // The root logger is configured to print out the "root cause first' stack trace.
-        LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).error("err: ", exception);
-      }
-    });
-    super.run(notifier);
-  }
+        notifier.addFirstListener(CustomRunListener())
+        super.run(notifier)
+    }
 
+    class CustomRunListener() : RunListener() {
+        override fun testFailure(failure: Failure?) {
+            val exception = failure?.exception
+            // The root logger is configured to print out the "root cause first' stack trace.
+            LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).error("err: ", exception)
+        }
+    }
 }

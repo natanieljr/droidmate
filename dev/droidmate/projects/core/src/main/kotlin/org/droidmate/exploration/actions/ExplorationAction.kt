@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,114 +19,98 @@
 
 package org.droidmate.exploration.actions
 
+import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.exploration.actions.WidgetExplorationAction.Direction
-import org.droidmate.misc.TextUtilsCategory
+import java.io.Serializable
 
-abstract class ExplorationAction implements Serializable
-{
+abstract class ExplorationAction : Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1
 
-  private static final long serialVersionUID = 1
-  protected Boolean runtimePermission = false
-  private List<IExplorationActionResultObserver> observers = new ArrayList<>()
+        @JvmStatic
+        @JvmOverloads
+        fun newResetAppExplorationAction(isFirst: Boolean = false): ResetAppExplorationAction
+                = ResetAppExplorationAction(isFirst)
 
-  @Override
-  String toString()
-  {
-    use(TextUtilsCategory) {
-      return "ExplAct ${toShortString()}".wrapWith("<>")
+        @JvmStatic
+        fun newTerminateExplorationAction(): TerminateExplorationAction
+                = TerminateExplorationAction()
+
+        @JvmStatic
+        fun newWidgetExplorationAction(widget: IWidget, delay: Int): WidgetExplorationAction
+                = WidgetExplorationAction(widget, false, delay).apply { runtimePermission = false }
+
+        @JvmStatic
+        fun newWidgetExplorationAction(widget: IWidget, longClick: Boolean = false): WidgetExplorationAction
+                = WidgetExplorationAction(widget, longClick)
+
+        @JvmStatic
+        @JvmOverloads
+        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, longClick: Boolean = false): WidgetExplorationAction
+                = WidgetExplorationAction(widget, longClick).apply { runtimePermission = true }
+
+        @JvmStatic
+        fun newEnterTextExplorationAction(textToEnter: String, resId: String): EnterTextExplorationAction
+                = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId })
+
+        @JvmStatic
+        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget): EnterTextExplorationAction
+                = EnterTextExplorationAction(textToEnter, widget)
+
+        @JvmStatic
+        fun newPressBackExplorationAction(): PressBackExplorationAction
+                = PressBackExplorationAction()
+
+        @JvmStatic
+        fun newWidgetSwipeExplorationAction(widget: IWidget, direction: Direction): WidgetExplorationAction {
+            return WidgetExplorationAction(widget, false, 0, true, direction)
+        }
+
     }
-  }
 
-  Boolean isEndorseRuntimePermission()
-  {
-    return runtimePermission
-  }
+    protected var runtimePermission: Boolean = false
+    private val observers: MutableList<IExplorationActionResultObserver> = ArrayList();
 
-  abstract String toShortString()
+    override fun toString(): String = "<ExplAct ${toShortString()}>"
 
-  String toTabulatedString()
-  {
-    return toShortString()
-  }
+    open fun isEndorseRuntimePermission(): Boolean
+            = runtimePermission
 
-  void notifyResult(IExplorationActionRunResult result)
-  {
-    this.notifyObservers(result)
-  }
+    abstract fun toShortString(): String
 
-  private void notifyObservers(IExplorationActionRunResult result){
-    List<IExplorationActionResultObserver> toRemove = new ArrayList<>()
-    this.observers.forEach{ p ->
-        if (p.notifyActionExecuted(result))
-          toRemove.add(p)
+    open fun toTabulatedString(): String
+            = toShortString()
+
+    open fun notifyResult(result: IExplorationActionRunResult) {
+        this.notifyObservers(result)
     }
 
-    toRemove.forEach{ p -> this.unregisterObserver(p) }
-  }
+    internal open fun notifyObservers(result: IExplorationActionRunResult) {
+        val toRemove: MutableList<IExplorationActionResultObserver> = ArrayList()
+        this.observers.forEach { p ->
+            if (p.notifyActionExecuted(result))
+                toRemove.add(p)
+        }
 
-  @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
-  public void unregisterObserver(IExplorationActionResultObserver observer){
-    if (this.observers.contains(observer))
-      this.observers.remove(observer)
-  }
+        toRemove.forEach { p -> this.unregisterObserver(p) }
+    }
 
-  @SuppressWarnings(["GrUnnecessaryPublicModifier", "GroovyUnusedDeclaration"])
-  public void registerObserver(IExplorationActionResultObserver observer){
-    if (!this.observers.contains(observer))
-      this.observers.add(observer)
-  }
+    @Suppress("MemberVisibilityCanPrivate", "RedundantVisibilityModifier")
+    public open fun unregisterObserver(observer: IExplorationActionResultObserver) {
+        if (this.observers.contains(observer))
+            this.observers.remove(observer)
+    }
 
-  static ResetAppExplorationAction newResetAppExplorationAction(boolean isFirst = false)
-  {
-    return new ResetAppExplorationAction(isFirst)
-  }
+    @Suppress("MemberVisibilityCanPrivate", "RedundantVisibilityModifier")
+    public open fun registerObserver(observer: IExplorationActionResultObserver) {
+        if (!this.observers.contains(observer))
+            this.observers.add(observer)
+    }
 
-  static TerminateExplorationAction newTerminateExplorationAction()
-  {
-    return new TerminateExplorationAction()
-  }
-
-  static WidgetExplorationAction newWidgetExplorationAction(Widget widget, int delay)
-  {
-    return new WidgetExplorationAction(widget: widget, runtimePermission: false, delay: delay)
-  }
-
-  static WidgetExplorationAction newWidgetExplorationAction(Widget widget, boolean longClick = false)
-  {
-    assert widget != null
-
-    return new WidgetExplorationAction(widget: widget, longClick: longClick)
-  }
-	
-	static WidgetExplorationAction newWidgetSwipeExplorationAction(Widget widget, Direction direction){
-		assert widget != null
-		
-		return new WidgetExplorationAction(widget: widget, swipe : true, direction : direction)
-  }
-
-  static WidgetExplorationAction newIgnoreActionForTerminationWidgetExplorationAction(Widget widget, boolean longClick = false)
-  {
-    assert widget != null
-
-    return new WidgetExplorationAction(widget: widget, runtimePermission: true, longClick: longClick)
-  }
-
-  static EnterTextExplorationAction newEnterTextExplorationAction(String textToEnter, String resourceId)
-  {
-    return new EnterTextExplorationAction(textToEnter, new Widget(resourceId: resourceId))
-  }
-
-  static EnterTextExplorationAction newEnterTextExplorationAction(String textToEnter, Widget widget)
-  {
-    return new EnterTextExplorationAction(textToEnter, widget)
-  }
-
-
-  static PressBackExplorationAction newPressBackExplorationAction()
-  {
-    return new PressBackExplorationAction()
-  }
-
-
+    override fun equals(other: Any?): Boolean = this.toString() == other?.toString() ?: ""
+    override fun hashCode(): Int {
+        var result = runtimePermission.hashCode()
+        result = 31 * result + observers.hashCode()
+        return result
+    }
 }

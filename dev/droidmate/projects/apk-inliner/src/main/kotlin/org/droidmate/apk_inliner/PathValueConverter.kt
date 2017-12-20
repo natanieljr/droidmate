@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,54 +24,22 @@ import joptsimple.ValueConverter
 import java.nio.file.FileSystem
 import java.nio.file.Path
 
-class PathValueConverter implements ValueConverter<Path>
-{
+class PathValueConverter(private val fs: FileSystem) : ValueConverter<Path> {
 
-  private final FileSystem fs
+    companion object {
+        fun pathIn(fs: FileSystem): ValueConverter<Path> = PathValueConverter(fs)
+    }
 
-  PathValueConverter(FileSystem fs)
-  {
-    this.fs = fs
-  }
+    /**
+     * Converts the given string value into a Java type.
+     *
+     * @param value the string to convert
+     * @return the converted value
+     * @throws ValueConversionException if a problem occurs while converting the value
+     */
+    override fun convert(value: String): Path = fs.getPath(value)
 
-  static ValueConverter<Path> pathIn(FileSystem fs)
-  {
-    return new PathValueConverter(fs)
-  }
+    override fun valueType(): Class<out Path> = Path::class.java
 
-  /**
-   * Converts the given string value into a Java type.
-   *
-   * @param value the string to convert
-   * @return the converted value
-   * @throws ValueConversionException if a problem occurs while converting the value
-   */
-  @Override
-  Path convert(String value)
-  {
-    fs.getPath(value)
-  }
-
-  /**
-   * Gives the class of the type of values this converter converts to.
-   *
-   * @return the target class for conversion
-   */
-  @Override
-  Class<? extends Path> valueType()
-  {
-    return Path
-  }
-
-  /**
-   * Gives a string that describes the pattern of the values this converter expects, if any.  For example, a date
-   * converter can respond with a {@link java.text.SimpleDateFormat date format string}.
-   *
-   * @return a value pattern, or {@code null} if there's nothing interesting here
-   */
-  @Override
-  String valuePattern()
-  {
-    return null
-  }
+    override fun valuePattern(): String = ""
 }

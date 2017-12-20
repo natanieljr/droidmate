@@ -106,7 +106,7 @@ fun <T> Map<Long, T>.accumulateMaxes(
   extractMax: (T) -> Int
 ): Map<Long, Int>
 {
-  var currMaxVal: Int = 0
+    var currMaxVal = 0
 
   return this.mapValues {
     currMaxVal = max(extractMax(it.value), currMaxVal)

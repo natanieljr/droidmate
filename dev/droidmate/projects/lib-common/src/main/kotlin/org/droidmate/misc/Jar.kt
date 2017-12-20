@@ -22,17 +22,10 @@ package org.droidmate.misc
 import java.nio.file.Files
 import java.nio.file.Path
 
-class Jar
-{
+class Jar(val path: Path) {
 
-  @Delegate
-  private final Path path
-
-  Jar(Path path)
-  {
-    assert path != null
-    assert Files.isRegularFile(path)
-    assert path.fileName.toString().endsWith(".jar")
-    this.path = path
+    init {
+        assert(Files.isRegularFile(path))
+        assert(path.fileName.toString().endsWith(".jar"))
   }
 }

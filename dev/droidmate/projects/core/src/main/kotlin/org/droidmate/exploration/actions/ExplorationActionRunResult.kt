@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,50 +24,37 @@ import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
+import java.net.URI
 
-import java.nio.file.Path
+class ExplorationActionRunResult @JvmOverloads constructor(override val successful: Boolean,
+                                                           override val exploredAppPackageName: String,
+                                                           override val deviceLogs: IDeviceLogs,
+                                                           override val guiSnapshot: IDeviceGuiSnapshot,
+                                                           override val exception: DeviceException,
+                                                           override val screenshot: URI,
+                                                           missingSnapshot: Boolean = false) : IExplorationActionRunResult {
 
-class ExplorationActionRunResult implements IExplorationActionRunResult
-{
+    companion object {
+        private const val serialVersionUID: Long = 1
 
-  private static final long serialVersionUID = 1
+    }
 
-  final boolean            successful
-  final String             exploredAppPackageName
-  final IDeviceLogs        deviceLogs
-  final IDeviceGuiSnapshot guiSnapshot
-  final DeviceException    exception
-  final URI                screenshot
+    init {
+        assert(exploredAppPackageName.isNotEmpty())
 
+        assert(!successful || this.deviceLogs !is MissingDeviceLogs)
 
-  ExplorationActionRunResult(boolean successful, String exploredAppPackageName, IDeviceLogs deviceLogs, IDeviceGuiSnapshot guiSnapshot,
-                             DeviceException exception, URI screenshot)
-  {
-    this.successful = successful
-    this.exploredAppPackageName = exploredAppPackageName
-    this.deviceLogs = deviceLogs
-    this.guiSnapshot = guiSnapshot
-    this.exception = exception
-    this.screenshot = screenshot
+        if (!missingSnapshot)
+            assert(!successful || this.guiSnapshot !is MissingGuiSnapshot)
+        assert(successful == (this.exception is DeviceExceptionMissing))
+    }
 
-    assert exploredAppPackageName?.size() >= 1
-    assert deviceLogs != null
-    assert guiSnapshot != null
-    assert exception != null
-
-    assert successful.implies(!(this.deviceLogs instanceof MissingDeviceLogs))
-    assert successful.implies(!(this.guiSnapshot instanceof MissingGuiSnapshot))
-    assert successful == (this.exception instanceof DeviceExceptionMissing)
-  }
-
-  @Override
-   String toString()
-  {
-    return MoreObjects.toStringHelper(this)
-      .add("successful", successful)
-      .add("snapshot", guiSnapshot)
-      .addValue(deviceLogs)
-      .add("exception", exception)
-      .toString()
-  }
+    override fun toString(): String {
+        return MoreObjects.toStringHelper(this)
+                .add("successful", successful)
+                .add("snapshot", guiSnapshot)
+                .addValue(deviceLogs)
+                .add("exception", exception)
+                .toString()
+    }
 }

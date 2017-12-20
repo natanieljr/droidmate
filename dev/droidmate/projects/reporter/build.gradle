@@ -18,11 +18,11 @@
 // web: www.droidmate.org
 /*
   This project contains classes reused by multiple projects, none of which are run on an Android device.
-  Because none of them are run on an Android Device, the classes in this project can and are compiled with Groovy and Java 8.
+  Because none of them are run on an Android Device, the classes in this project can and are compiled with Java 8.
 */
 
 buildscript {
-    ext.kotlin_version = '1.1.51'
+    ext.kotlin_version = '1.2.0'
     repositories {
     mavenCentral()
   }
@@ -39,7 +39,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 dependOnJunit(project)
 dependWithTest(project, ":projects:lib-kotlin", "kotlin")
-dependWithTest(project, ":projects:core", "groovy")
+dependWithTest(project, ":projects:core", "kotlin")
 
 dependencies {
 

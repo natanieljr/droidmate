@@ -19,20 +19,14 @@
 
 package org.droidmate.test_tools.exceptions
 
-import groovy.util.logging.Slf4j
 import org.droidmate.misc.DroidmateException
 
-@Slf4j
- class TestSaboteurException extends DroidmateException
-{
-  TestSaboteurException()
-  {
-    super()
-  }
+class TestSaboteurException : DroidmateException {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  TestSaboteurException(String message)
-  {
-    super(message)
-  }
+    constructor() : super()
 
+    constructor(message: String) : super(message)
 }

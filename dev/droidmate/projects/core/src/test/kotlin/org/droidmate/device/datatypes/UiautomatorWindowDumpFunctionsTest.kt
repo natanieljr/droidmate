@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,50 +16,54 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-
 package org.droidmate.device.datatypes
 
 import org.droidmate.tests.windowDump_nexus7_2013_home_empty
 import org.droidmate.tests.windowDump_nexus7_2013_home_removed_systemui
+import org.junit.FixMethodOrder
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.junit.runners.MethodSorters
 import org.w3c.dom.Attr
 import org.w3c.dom.Node
 import org.xmlunit.builder.Input
-import kotlin.test.assertFalse
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@RunWith(JUnit4::class)
 class UiautomatorWindowDumpFunctionsTest {
 
-  /* 
+    /*
     Implemented with the help of: 
     http://stackoverflow.com/questions/141993/best-way-to-compare-2-xml-documents-in-java
     https://github.com/xmlunit/user-guide/wiki/Migrating-from-XMLUnit-1.x-to-2.x
     https://github.com/xmlunit/user-guide/wiki
    */
-  @Test
-  fun `removes systemui nodes`() {
+    @Test
+    fun `removes systemui nodes`() {
 
-    // Act 
-    val withRemovedNodes = removeSystemuiNodes(windowDump_nexus7_2013_home_empty)
+        // Act
+        val withRemovedNodes = UiautomatorWindowDump.removeSystemuiNodes(windowDump_nexus7_2013_home_empty)
 
-    val diff = org.xmlunit.builder.DiffBuilder
-      .compare(Input.fromString(windowDump_nexus7_2013_home_removed_systemui))
-      .withTest(Input.fromString(withRemovedNodes))
-      .withAttributeFilter { attr: Attr -> attr.name != "bounds" }
-      .withNodeFilter { node: Node -> depth(node) <= 9 }
-      .ignoreWhitespace()
-      .build()
+        val diff = org.xmlunit.builder.DiffBuilder
+                .compare(Input.fromString(windowDump_nexus7_2013_home_removed_systemui))
+                .withTest(Input.fromString(withRemovedNodes))
+                .withAttributeFilter { attr: Attr -> attr.name != "bounds" }
+                .withNodeFilter { node: Node -> depth(node) <= 9 }
+                .ignoreWhitespace()
+                .build()
 
-    assertFalse(diff.hasDifferences(), diff.toString())
-  }
-
-  private fun depth(node: Node): Int {
-    var depth = 1
-    var currNode = node
-    while (currNode.parentNode != null) {
-      currNode = currNode.parentNode
-      depth++
+        assert(!diff.hasDifferences(), {diff.toString()})
     }
-    return depth
-  }
+
+    private fun depth(node: Node): Int {
+        var depth = 1
+        var currNode = node
+        while (currNode.parentNode != null) {
+            currNode = currNode.parentNode
+            depth++
+        }
+        return depth
+    }
 }
 

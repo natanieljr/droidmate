@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,16 +22,13 @@ package org.droidmate.configuration;
 
 import org.droidmate.misc.DroidmateException;
 
-public class ConfigurationException extends DroidmateException
-{
+public class ConfigurationException : DroidmateException {
+    companion object {
+        private const val serialVersionUID: Long = 1
 
-  private static final long serialVersionUID = 1;
+    }
 
-  public ConfigurationException(String message) {
-    super(message);
-  }
+    constructor(message: String) : super(message)
 
-  public ConfigurationException(Throwable cause) {
-    super(cause);
-  }
+    constructor(cause: Throwable) : super(cause)
 }

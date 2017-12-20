@@ -19,23 +19,24 @@
 
 package org.droidmate.frontend
 
-import groovy.time.TimeCategory
-import groovy.time.TimeDuration
-import groovy.util.logging.Slf4j
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.logging.LogbackConstants
+import org.droidmate.logging.LogbackConstants.Companion.system_prop_stdout_loglevel
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.logging.Markers
+import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.DroidmateException
+import org.slf4j.LoggerFactory
+import java.io.File
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.time.LocalDate
+import java.util.*
+import java.util.concurrent.TimeUnit
 
-import static LogbackConstants.system_prop_stdout_loglevel
-import static org.droidmate.logging.Markers.runData
 
 /**
  * <p>
@@ -43,103 +44,98 @@ import static org.droidmate.logging.Markers.runData
  * (i.e. the class containing the {@code main} method).
  * </p>
  */
-@Slf4j
- class DroidmateFrontend
-{
-  /**
-   * @see DroidmateFrontend
-   */
-   static void main(String[] args)
-  {
-    int exitStatus = main(args, null)
-    System.exit(exitStatus)
-  }
+class DroidmateFrontend {
+    companion object {
+        private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
 
-   static int main(String[] args, ICommandProvider commandProvider, FileSystem fs = FileSystems.getDefault(),
-                   IExceptionHandler exceptionHandler = new ExceptionHandler(), Configuration receivedCfg = null)
-  {
-    println "DroidMate, an automated execution generator for Android apps."
-    println "Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik"
-    println "This program is free software licensed under GNU GPL v3."
-    println ""
-    println "You should have received a copy of the GNU General Public License"
-    println "along with this program.  If not, see <http://www.gnu.org/licenses/>."
-    println ""
-    println "email: jamrozik@st.cs.uni-saarland.de"
-    println "web: www.droidmate.org"
+        /**
+         * @see DroidmateFrontend
+         */
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val exitStatus = main(args, null)
+            System.exit(exitStatus)
+        }
 
-    int exitStatus = 0
-    Date runStart = new Date()
+        @JvmStatic
+        @JvmOverloads
+        fun main(args: Array<String>,
+                 commandProvider: ICommandProvider?,
+                 fs: FileSystem = FileSystems.getDefault(),
+                 exceptionHandler: IExceptionHandler = ExceptionHandler(),
+                 receivedCfg: Configuration? = null): Int {
+            println("DroidMate, an automated execution generator for Android apps.")
+            println("Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik")
+            println("This program is free software licensed under GNU GPL v3.")
+            println("")
+            println("You should have received a copy of the GNU General Public License")
+            println("along with this program.  If not, see <http://www.gnu.org/licenses/>.")
+            println("")
+            println("email: jamrozik@st.cs.uni-saarland.de")
+            println("web: www.droidmate.org")
 
-    try
-    {
-      validateStdoutLoglevel()
-      LogbackUtilsRequiringLogbackLog.cleanLogsDir()
-      log.info("Bootstrapping DroidMate: building ${Configuration.simpleName} from args " +
-        "and instantiating objects for ${DroidmateCommand.simpleName}.")
-      log.info("IMPORTANT: for help on how to configure DroidMate, run it with -help")
-      log.info("IMPORTANT: for detailed logs from DroidMate run, please see ${LogbackConstants.LOGS_DIR_PATH}.")
+            var exitStatus = 0
+            val runStart = Date()
 
-      Configuration cfg
-      if (receivedCfg == null)
-        cfg = new ConfigurationBuilder().build(args, fs)
-      else
-        cfg = receivedCfg
+            try {
+                validateStdoutLogLevel()
+                LogbackUtilsRequiringLogbackLog.cleanLogsDir()
+                log.info("Bootstrapping DroidMate: building ${Configuration::class.java.simpleName} from args " +
+                        "and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
+                log.info("IMPORTANT: for help on how to configure DroidMate, run it with -help")
+                log.info("IMPORTANT: for detailed logs from DroidMate run, please see ${LogbackConstants.LOGS_DIR_PATH}.")
 
-      DroidmateCommand command
-      if (commandProvider != null)
-        command = commandProvider.provide(cfg)
-      else 
-        command = determineAndBuildCommand(cfg)
+                val cfg = receivedCfg ?: ConfigurationBuilder().build(args, fs)
 
-      log.info("Successfully instantiated ${command.class.simpleName}. Welcome to DroidMate. Lie back, relax and enjoy.")
-      log.info("Run start timestamp: " + runStart)
-      log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
+                val command = commandProvider?.provide(cfg) ?: determineAndBuildCommand(cfg)
 
-      command.execute(cfg)
+                log.info("Successfully instantiated ${command.javaClass.simpleName}. Welcome to DroidMate. Lie back, relax and enjoy.")
+                log.info("Run start timestamp: " + runStart)
+                log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
-    } catch (Throwable e)
-    {
-      exitStatus = exceptionHandler.handle(e)
+                command.execute(cfg)
+
+            } catch (e: Throwable) {
+                exitStatus = exceptionHandler.handle(e)
+            }
+
+            logDroidmateRunEnd(runStart, /* boolean encounteredExceptionsDuringTheRun = */ exitStatus > 0)
+            return exitStatus
+        }
+
+        @JvmStatic
+        private fun determineAndBuildCommand(cfg: Configuration): DroidmateCommand
+                = DroidmateCommand.build(cfg.report, cfg.inline, cfg.unpack, cfg)
+
+        @JvmStatic
+        private fun validateStdoutLogLevel() {
+            if (!System.getProperties().contains(system_prop_stdout_loglevel))
+                return
+
+            if (System.getProperty(system_prop_stdout_loglevel).toUpperCase() !in arrayListOf("TRACE", "DEBUG", "INFO", "WARN", "ERROR"))
+                throw DroidmateException("The $system_prop_stdout_loglevel environment variable has to be set to TRACE, " +
+                        "DEBUG, INFO, WARN or ERROR. Instead, it is set to ${System.getProperty(system_prop_stdout_loglevel)}.")
+        }
+
+        private fun logDroidmateRunEnd(runStart: Date, encounteredExceptionsDuringTheRun: Boolean) {
+            val runEnd = Date()
+            val diffInMillis = runEnd.time - runStart.time
+            val runDuration = TimeUnit.MINUTES.convert(diffInMillis, TimeUnit.MILLISECONDS)
+            val timestampFormat = "yyyy MMM dd HH:mm:ss"
+
+            if (encounteredExceptionsDuringTheRun)
+                log.warn(Markers.appHealth,
+                        "DroidMate run finished, but some exceptions have been thrown and handled during the run. See previous logs for details.")
+            else
+                log.info("DroidMate run finished successfully.")
+
+            log.info("Run finish timestamp: ${runEnd.toString().format(timestampFormat)}. DroidMate ran for $runDuration.")
+            log.info("By default, the results from the run can be found in .${File.separator}${Configuration.defaultDroidmateOutputDir} directory.")
+            log.info("By default, for detailed diagnostics logs from the run, see ${LogbackConstants.LOGS_DIR_PATH} directory.")
+
+            log.info(runData, "Run start  timestamp: ${runStart.toString().format(timestampFormat)}")
+            log.info(runData, "Run finish timestamp: ${runEnd.toString().format(timestampFormat)}")
+            log.info(runData, "DroidMate ran for: $runDuration")
+        }
     }
-
-    logDroidmateRunEnd(runStart, /* boolean encounteredExceptionsDuringTheRun = */ exitStatus > 0)
-    return exitStatus
-  }
-
-  private static DroidmateCommand determineAndBuildCommand(Configuration cfg)
-  {
-    return DroidmateCommand.build(cfg.report, cfg.inline, cfg.unpack, cfg)
-  }
-
-  private static void validateStdoutLoglevel()
-  {
-    if (!System.hasProperty(system_prop_stdout_loglevel))
-      return
-
-    if (!(System.getProperty(system_prop_stdout_loglevel).toUpperCase() in ["TRACE", "DEBUG", "INFO"]))
-      throw new DroidmateException("The $system_prop_stdout_loglevel environment variable has to be set to TRACE, " +
-        "DEBUG or INFO. Instead, it is set to ${System.getProperty(system_prop_stdout_loglevel)}.")
-  }
-
-  private static void logDroidmateRunEnd(Date runStart, boolean encounteredExceptionsDuringTheRun)
-  {
-    Date runEnd = new Date()
-    TimeDuration runDuration = TimeCategory.minus(runEnd, runStart)
-    String timestampFormat = "yyyy MMM dd HH:mm:ss"
-
-    if (encounteredExceptionsDuringTheRun)
-      log.warn(Markers.appHealth, 
-        "DroidMate run finished, but some exceptions have been thrown and handled during the run. See previous logs for details.")
-    else
-      log.info("DroidMate run finished successfully.")
-
-    log.info("Run finish timestamp: ${runEnd.format(timestampFormat)}. DroidMate ran for ${runDuration}.")
-    log.info("By default, the results from the run can be found in .${File.separator}${Configuration.defaultDroidmateOutputDir} directory.")
-    log.info("By default, for detailed diagnostics logs from the run, see $LogbackConstants.LOGS_DIR_PATH directory.")
-
-    log.info(runData, "Run start  timestamp: ${runStart.format(timestampFormat)}")
-    log.info(runData, "Run finish timestamp: ${runEnd.format(timestampFormat)}")
-    log.info(runData, "DroidMate ran for: $runDuration")
-  }
 }

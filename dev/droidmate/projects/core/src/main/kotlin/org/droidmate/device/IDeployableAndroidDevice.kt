@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,60 +24,85 @@ import org.droidmate.android_sdk.IApk
 
 import java.nio.file.Path
 
-interface IDeployableAndroidDevice
-{
-  void pushFile(Path jar) throws DeviceException
+interface IDeployableAndroidDevice {
+    @Throws(DeviceException::class)
+    fun pushFile(jar: Path)
 
-  void pushFile(Path jar, String targetFileName) throws DeviceException
+    @Throws(DeviceException::class)
+    fun pushFile(jar: Path, targetFileName: String)
 
-  void removeJar(Path jar) throws DeviceException
+    @Throws(DeviceException::class)
+    fun removeJar(jar: Path)
 
-  void installApk(Path apk) throws DeviceException
+    @Throws(DeviceException::class)
+    fun installApk(apk: Path)
 
-  void installApk(IApk apk) throws DeviceException
+    @Throws(DeviceException::class)
+    fun installApk(apk: IApk)
 
-  void uninstallApk(String apkPackageName, boolean ignoreFailure) throws DeviceException
+    @Throws(DeviceException::class)
+    fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean)
 
-  void closeMonitorServers() throws DeviceException
+    @Throws(DeviceException::class)
+    fun closeMonitorServers()
 
-  void clearPackage(String apkPackageName) throws DeviceException
+    @Throws(DeviceException::class)
+    fun clearPackage(apkPackageName: String)
 
-  boolean appProcessIsRunning(String appPackageName) throws DeviceException
+    @Throws(DeviceException::class)
+    fun appProcessIsRunning(appPackageName: String): Boolean
 
-  void clearLogcat() throws DeviceException
+    @Throws(DeviceException::class)
+    fun clearLogcat()
 
-  void closeConnection() throws DeviceException
+    @Throws(DeviceException::class)
+    fun closeConnection()
 
-  void reboot() throws DeviceException
+    @Throws(DeviceException::class)
+    fun reboot()
 
-  void stopUiaDaemon(boolean uiaDaemonThreadIsNull) throws DeviceException
+    @Throws(DeviceException::class)
+    fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean)
 
-  boolean isAvailable() throws DeviceException
+    @Throws(DeviceException::class)
+    fun isAvailable(): Boolean
 
-  boolean uiaDaemonClientThreadIsAlive()
+    @Throws(DeviceException::class)
+    fun uiaDaemonClientThreadIsAlive(): Boolean
 
-  void restartUiaDaemon(boolean uiaDaemonThreadIsNull)
-  
-  void startUiaDaemon()
+    @Throws(DeviceException::class)
+    fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean)
 
-  void removeLogcatLogFile() throws DeviceException
+    @Throws(DeviceException::class)
+    fun startUiaDaemon()
 
-  void pullLogcatLogFile() throws DeviceException
+    @Throws(DeviceException::class)
+    fun removeLogcatLogFile()
 
-  void reinstallUiautomatorDaemon() throws DeviceException
+    @Throws(DeviceException::class)
+    fun pullLogcatLogFile()
 
-  void pushMonitorJar() throws DeviceException
+    @Throws(DeviceException::class)
+    fun reinstallUiautomatorDaemon()
 
-  void setupConnection() throws DeviceException
+    @Throws(DeviceException::class)
+    fun pushMonitorJar()
 
-  void initModel() throws DeviceException
-  
-  void reconnectAdb() throws DeviceException
-  
-  void executeAdbCommand(String command, String successfulOutput, String commandDescription) throws DeviceException
+    @Throws(DeviceException::class)
+    fun setupConnection()
 
-  boolean uiaDaemonIsRunning()
+    @Throws(DeviceException::class)
+    fun initModel()
 
-  boolean isPackageInstalled(String packageName)
+    @Throws(DeviceException::class)
+    fun reconnectAdb()
 
+    @Throws(DeviceException::class)
+    fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String)
+
+    @Throws(DeviceException::class)
+    fun uiaDaemonIsRunning(): Boolean
+
+    @Throws(DeviceException::class)
+    fun isPackageInstalled(packageName: String): Boolean
 }

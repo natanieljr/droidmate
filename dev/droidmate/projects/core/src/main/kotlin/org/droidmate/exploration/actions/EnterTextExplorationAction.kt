@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,38 +19,21 @@
 
 package org.droidmate.exploration.actions
 
-import groovy.transform.Canonical
-import groovy.transform.TupleConstructor
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.IWidget
 
-@Canonical
-@TupleConstructor(includeSuperProperties = true)
-class EnterTextExplorationAction extends ExplorationAction
-{
+class EnterTextExplorationAction constructor(val textToEnter: String,
+                                             val widget: IWidget) : ExplorationAction() {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-  private static final long serialVersionUID = 1
+    override fun toShortString(): String {
+        val paddedTextToEnter = textToEnter.padEnd(22, ' ')
+        return "EnterTxt: ${paddedTextToEnter} / resId: ${widget.resourceId}"
+    }
 
-  String textToEnter
-
-  Widget widget
-
-  @Override
-  String toString()
-  {
-    return super.toString()
-  }
-
-  @Override
-  String toShortString()
-  {
-    String paddedTextToEnter = "${textToEnter}".padRight(22, ' ')
-    "EnterTxt: ${paddedTextToEnter} / resId: ${widget.resourceId}"
-  }
-
-  @Override
-  String toTabulatedString()
-  {
-    String paddedTextToEnter = "${textToEnter}".padRight(22, ' ')
-    return "EnterTxt: ${paddedTextToEnter} / " + widget.toTabulatedString(false)
-  }
+    override fun toTabulatedString(): String {
+        val paddedTextToEnter = textToEnter.padEnd(22, ' ')
+        return "EnterTxt: $paddedTextToEnter / " + widget.toTabulatedString(false)
+    }
 }

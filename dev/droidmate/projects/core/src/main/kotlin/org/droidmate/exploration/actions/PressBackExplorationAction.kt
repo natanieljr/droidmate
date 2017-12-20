@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,28 +16,13 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
+package org.droidmate.exploration.actions;
 
-package org.droidmate.exploration.actions
+class PressBackExplorationAction : ExplorationAction() {
 
-import groovy.transform.Canonical
-import groovy.transform.TupleConstructor
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 
-@Canonical
-@TupleConstructor(includeSuperProperties = true)
-class PressBackExplorationAction extends ExplorationAction
-{
-
-  private static final long serialVersionUID = 1
-
-  @Override
-  String toString()
-  {
-    return super.toString()
-  }
-
-  @Override
-  String toShortString()
-  {
-    "Press back"
-  }
+    override fun toShortString(): String = "Press back"
 }

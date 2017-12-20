@@ -18,28 +18,24 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-class CallCounters implements ICallCounters
-{
-  Map<String, Map<String, Integer>> packageCounters = [:]
+class CallCounters : ICallCounters {
+    private val packageCounters: MutableMap<String, MutableMap<String, Int>> = hashMapOf()
 
-  @Override
-  int increment(String packageName, String methodName)
-  {
-    packageCounters.putIfAbsent(packageName, [:])
-    Map<String, Integer> methodCounters = packageCounters[packageName]
+    override fun increment(packageName: String, methodName: String): Int {
+        packageCounters.putIfAbsent(packageName, hashMapOf())
+        val methodCounters = packageCounters[packageName]!!
 
+        methodCounters.putIfAbsent(methodName, 0)
+        methodCounters[methodName] = methodCounters[methodName]!! + 1
 
-    methodCounters.putIfAbsent(methodName, 0)
-    methodCounters[methodName] += 1
-  }
+        return methodCounters[methodName]!!
+    }
 
-  @Override
-  int get(String packageName, String methodName)
-  {
-    assert packageCounters.containsKey(packageName)
-    Map<String, Integer> methodCounters = packageCounters[packageName]
-    assert methodCounters.containsKey(methodName)
+    override fun get(packageName: String, methodName: String): Int {
+        assert(packageCounters.containsKey(packageName))
+        val methodCounters = packageCounters[packageName]!!
+        assert(methodCounters.containsKey(methodName))
 
-    return methodCounters[methodName]
-  }
+        return methodCounters[methodName]!!
+    }
 }

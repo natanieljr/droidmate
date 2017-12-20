@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2017 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,91 +18,94 @@
 // web: www.droidmate.org
 package org.droidmate.android_sdk
 
-import groovy.transform.Canonical
-import groovy.util.logging.Slf4j
+import org.apache.commons.io.FilenameUtils
 import org.droidmate.logging.Markers
-
+import org.slf4j.LoggerFactory
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 // Suppresses warnings incorrectly caused by assertion checks in ctor.
-@SuppressWarnings("GrFinalVariableAccess")
-@Canonical
-@Slf4j
-class Apk implements IApk, Serializable
-{
+class Apk constructor(internalPath: Path,
+                      override val packageName: String,
+                      override val launchableActivityName: String,
+                      override val launchableActivityComponentName: String,
+                      override val applicationLabel: String) : IApk {
 
-  private static final long serialVersionUID = 1
+    companion object {
+        private const val serialVersionUID: Long = 1
+        private val log = LoggerFactory.getLogger(Apk::class.java)
 
-  transient final Path path
-  final String fileName
-  final String fileNameWithoutExtension
-  final String absolutePath
-  final String packageName
-  final String launchableActivityName
-  final String launchableActivityComponentName
-  final String applicationLabel
+        private val dummyVal = "DUMMY"
+        private val dummyApk = Apk(Paths.get("./dummy.apk"), dummyVal, dummyVal, dummyVal, dummyVal)
 
-   static Apk build(IAaptWrapper aapt, Path path)
-  {
-    assert aapt != null
-    assert path != null
-    assert Files.isRegularFile(path)
+        @JvmStatic
+        fun build(aapt: IAaptWrapper, path: Path): Apk {
+            assert(Files.isRegularFile(path))
 
-    String packageName, launchableActivityName, launchableActivityComponentName, applicationLabel
-    try
-    {
-      (packageName, launchableActivityName, launchableActivityComponentName, applicationLabel) = aapt.getMetadata(path)
-    } catch (LaunchableActivityNameProblemException | NotEnoughDataToStartAppException e)
-    {
-      log.warn(Markers.appHealth, "! While getting metadata for ${path.toString()}, got an: $e Returning null apk.")
-      assert !(e instanceof LaunchableActivityNameProblemException) || ((e as LaunchableActivityNameProblemException).isFatal)
-      return null
+            val packageName: String
+            val launchableActivityName: String
+            val launchableActivityComponentName: String
+            val applicationLabel: String
+            try {
+                val data = aapt.getMetadata(path)
+                packageName = data[0]
+                launchableActivityName = data[1]
+                launchableActivityComponentName = data[2]
+                applicationLabel = data[3]
+            } catch (e: LaunchableActivityNameProblemException) {
+                log.warn(Markers.appHealth, "! While getting metadata for $path, got an: $e Returning null apk.")
+                assert(e.isFatal)
+                return dummyApk
+            } catch (e: NotEnoughDataToStartAppException) {
+                log.warn(Markers.appHealth, "! While getting metadata for $path, got an: $e Returning null apk.")
+                return dummyApk
+            }
+
+            if (arrayListOf(launchableActivityName, launchableActivityComponentName).any { it.isEmpty() }) {
+                assert(arrayListOf(launchableActivityName, launchableActivityComponentName).all { it.isEmpty() })
+                log.debug("$Apk.simpleName class instance for $path has null launchableActivityName and thus also " +
+                        "launchableActivityComponentName.")
+            }
+
+            return Apk(path, packageName, launchableActivityName, launchableActivityComponentName, applicationLabel)
+        }
     }
 
-    if ([launchableActivityName, launchableActivityComponentName].any {it == null})
-    {
-      assert [launchableActivityName, launchableActivityComponentName].every { it == null }
-      log.debug("$Apk.simpleName class instance for ${path.toString()} has null launchableActivityName and thus also " +
-        "launchableActivityComponentName.")
+    private val fileURI: URI
+
+    override val fileName: String
+    override val fileNameWithoutExtension: String
+    override val absolutePath: String
+
+    init {
+        fileURI = internalPath.toUri()
+        val fileName = path.fileName.toString()
+        val absolutePath = path.toAbsolutePath().toString()
+
+        assert(fileName.isNotEmpty(), fileName::toString)
+        assert(fileName.endsWith(".apk"), fileName::toString)
+        assert(absolutePath.isNotEmpty(), absolutePath::toString)
+        assert(packageName.isNotEmpty(), packageName::toString)
+
+        this.fileName = fileName
+        this.fileNameWithoutExtension = FilenameUtils.getBaseName(path.fileName.toString())
+        this.absolutePath = absolutePath
+
+        assert(this.launchableActivityName.isNotEmpty() || this.applicationLabel.isNotEmpty())
     }
 
-    return new Apk(path, packageName, launchableActivityName, launchableActivityComponentName, applicationLabel)
-  }
+    override val path: Path
+        get() = Paths.get(fileURI)
 
-  Apk(Path path, String packageName, String launchableActivityName, String launchableActivityComponentName, String applicationLabel)
-  {
-    assert path != null
-    String fileName = path.fileName.toString()
-    String absolutePath = path.toAbsolutePath().toString()
+    override val inlined: Boolean
+        get() = this.fileName.endsWith("-inlined.apk")
 
-    assert fileName?.size() > 0
-    assert fileName.endsWith(".apk")
-    assert absolutePath?.size() > 0
-    assert packageName?.size() > 0
+    override val isDummy: Boolean
+        get() = this.packageName == Apk.dummyVal
 
-    this.path = path
-    this.fileName = fileName
-    this.fileNameWithoutExtension = fileName.withoutExtension()
-    this.absolutePath = absolutePath
-    this.packageName = packageName
-    this.launchableActivityName = launchableActivityName
-    this.launchableActivityComponentName = launchableActivityComponentName
-    this.applicationLabel = applicationLabel
-    
-    assert this.launchableActivityName?.length() > 0 || this.applicationLabel?.length() > 0
-  }
-
-  @Override
-  Boolean getInlined()
-  {
-    this.fileName.endsWith("-inlined.apk")
-  }
-
-  @Override
-  String toString() {
-    return this.fileName
-  }
+    override fun toString(): String = this.fileName
 }
 
 
