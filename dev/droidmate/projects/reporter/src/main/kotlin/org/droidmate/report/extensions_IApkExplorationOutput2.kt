@@ -25,25 +25,25 @@ import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 
 val IApkExplorationOutput2.uniqueActionableWidgets: Set<IWidget>
-    get() = this.actRes.setByUniqueString(
+  get() = this.actRes.setByUniqueString(
     extractItems = RunnableExplorationActionWithResult::actionableWidgets,
-            uniqueString = IWidget::uniqueString
+          uniqueString = IWidget::uniqueString
   )
 
 val IApkExplorationOutput2.uniqueClickedWidgets: Set<IWidget>
-    get() = this.actRes.setByUniqueString(
+  get() = this.actRes.setByUniqueString(
     extractItems = RunnableExplorationActionWithResult::clickedWidget,
-            uniqueString = IWidget::uniqueString
+          uniqueString = IWidget::uniqueString
   )
 
 val IApkExplorationOutput2.uniqueApis: Set<IApiLogcatMessage>
-    get() = this.actRes.setByUniqueString(
-            extractItems = { it.getResult().deviceLogs.apiLogs },
+  get() = this.actRes.setByUniqueString(
+          extractItems = { it.getResult().deviceLogs.apiLogs },
     uniqueString = { it.uniqueString } 
   )
 
 val IApkExplorationOutput2.uniqueEventApiPairs: Set<EventApiPair>
-    get() = this.actRes.setByUniqueString(
+  get() = this.actRes.setByUniqueString(
     extractItems = RunnableExplorationActionWithResult::extractEventApiPairs,
     uniqueString = { it.uniqueString }
   )

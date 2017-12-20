@@ -46,7 +46,6 @@ public class Activity1 extends HelperActivity
       return;
     }
 
-    @SuppressWarnings("UnusedAssignment") 
     String leakedData = tmgr.getDeviceId();
     Log.i("A6SOSI", "leak dev. id: "+leakedData);
     
