@@ -32,7 +32,7 @@ dependWithTest(project, ":projects:lib-common", "kotlin")
 
 dependencies {
 
-  compile("com.github.konrad-jamrozik:utilities:$utilities_version") {
+  compile("com.github.natanieljr:konrads_utilities:$utilities_version") {
     exclude group: "org.slf4j", module: "slf4j-simple"
   }
 

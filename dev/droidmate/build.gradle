@@ -19,9 +19,8 @@
 
 buildscript {
 
-  ext.utilities_version = '1.0'
+  ext.utilities_version = '19115bab35'
   ext.kotlin_version = '1.2.0'
-  ext.serialization_version = '0.3'
 
   repositories {
     mavenLocal()
@@ -30,7 +29,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.github.konrad-jamrozik:utilities:$utilities_version"
+    classpath "com.github.natanieljr:konrads_utilities:$utilities_version"
   }
 }
 

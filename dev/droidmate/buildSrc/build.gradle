@@ -38,7 +38,7 @@ apply plugin: 'kotlin'
 
 ext.kotlin_version = '1.2.0'
 
-ext.utilities_version = '1.0'
+ext.utilities_version = '19115bab35'
 
 repositories {
   mavenCentral()
@@ -48,7 +48,7 @@ repositories {
 
 dependencies {
 
-  compile("com.github.konrad-jamrozik:utilities:$utilities_version") {
+  compile("com.github.natanieljr:konrads_utilities:$utilities_version") {
     exclude group: "org.slf4j", module: "slf4j-simple"
   }
 
