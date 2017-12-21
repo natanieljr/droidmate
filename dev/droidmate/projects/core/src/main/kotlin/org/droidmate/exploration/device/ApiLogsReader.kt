@@ -50,7 +50,7 @@ class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : 
     @Suppress("OverridingDeprecatedMember")
     override fun getCurrentApiLogsFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
         log.debug("getCurrentApiLogsFromLogcat(deviceTimeDiff)")
-        return readApiLogcatMessages { this.getCurrentApiLogsFromLogcat(deviceTimeDiff) }
+        return readApiLogcatMessages { this.getMessagesFromLogcat(deviceTimeDiff) }
     }
 
     override fun getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
