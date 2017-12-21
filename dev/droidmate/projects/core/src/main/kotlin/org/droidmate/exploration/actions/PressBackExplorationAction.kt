@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions;
 
-class PressBackExplorationAction : ExplorationAction() {
+open class PressBackExplorationAction : ExplorationAction() {
 
     companion object {
         private const val serialVersionUID: Long = 1

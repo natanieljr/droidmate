@@ -19,7 +19,7 @@
 
 package org.droidmate.exploration.actions
 
-class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Boolean = false) : ExplorationAction() {
+open class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Boolean = false) : ExplorationAction() {
     companion object {
         private const val serialVersionUID: Long = 1
     }

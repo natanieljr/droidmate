@@ -20,7 +20,7 @@
 package org.droidmate.exploration.actions
 
 
-class TerminateExplorationAction : ExplorationAction() {
+open class TerminateExplorationAction : ExplorationAction() {
 
     companion object {
         private const val serialVersionUID: Long = 1
