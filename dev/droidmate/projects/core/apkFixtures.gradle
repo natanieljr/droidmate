@@ -32,9 +32,8 @@ ext.apkFixturesDir = new File(
 assert apkFixturesDir.directory
 
 task pullApkFixtures(type: Copy, dependsOn: "buildApkFixtures") {
-
-  from fileTree(dir: apkFixturesDroidmateStagingDir, include: "*.apk", exclude: [BuildKt.monitored_apk_fixture_api23_name])
-  into apkFixturesDir
+    from fileTree(dir: apkFixturesDroidmateStagingDir, include: "*.apk", exclude: [BuildKt.monitored_apk_fixture_api23_name])
+    into apkFixturesDir
 }
 
 /*
@@ -44,36 +43,34 @@ task pullApkFixtures(type: Copy, dependsOn: "buildApkFixtures") {
 evaluationDependsOn(":projects:apk-inliner")
 JavaExec inlinerExec = project(":projects:apk-inliner").tasks.run as JavaExec
 def inlineMonitoredApkFixture = { JavaExec je, String apkName, String inlinedApkName ->
-  group = "build"
-  ["main", "classpath", "standardOutput"].each {je."$it" = inlinerExec."$it"}
+    group = "build"
+    ["main", "classpath", "standardOutput"].each { je."$it" = inlinerExec."$it" }
 
-  File inputApk = new File(apkFixturesDroidmateStagingDir, apkName)
-  je.args = [
-    BuildKt.apk_inliner_param_input, inputApk.canonicalPath,
-    BuildKt.apk_inliner_param_output_dir, apkFixturesDir
-  ]
+    File inputApk = new File(apkFixturesDroidmateStagingDir, apkName)
+    je.args = [
+            BuildKt.apk_inliner_param_input, inputApk.canonicalPath,
+            BuildKt.apk_inliner_param_output_dir, apkFixturesDir
+    ]
 
-  je.inputs.file inputApk
-  je.outputs.file new File(apkFixturesDir as File, inlinedApkName)
+    je.inputs.file inputApk
+    je.outputs.file new File(apkFixturesDir as File, inlinedApkName)
 }
 
-task inlineMonitoredApkFixture_api23(type: JavaExec, dependsOn: "buildApkFixtures") {JavaExec je ->
-  inlineMonitoredApkFixture(je, 
-    BuildKt.monitored_apk_fixture_api23_name,
-    BuildKt.monitored_inlined_apk_fixture_api23_name
-  )
+task inlineMonitoredApkFixture_api23(type: JavaExec, dependsOn: "buildApkFixtures") { JavaExec je ->
+    inlineMonitoredApkFixture(je,
+            BuildKt.monitored_apk_fixture_api23_name,
+            BuildKt.monitored_inlined_apk_fixture_api23_name
+    )
 }
-
-
 
 task buildApkFixtures(type: GradleBuild) {
-  buildFile = apkFixturesProjectDir.path + "/build.gradle"
-  tasks = [apkFixturesBuildTask]
+    buildFile = apkFixturesProjectDir.path + "/build.gradle"
+    tasks = [apkFixturesBuildTask]
 }
 
 task cleanApkFixtures(dependsOn: "cleanExternalBuild_apkFixtures")
 
 task cleanExternalBuild_apkFixtures(type: GradleBuild) {
-  buildFile = apkFixturesProjectDir.path + "/build.gradle"
-  tasks = ["clean"]
+    buildFile = apkFixturesProjectDir.path + "/build.gradle"
+    tasks = ["clean"]
 }

@@ -40,11 +40,9 @@ class ApkInlinerFrontend {
                 val outputPath = paths[1]
                 val apkInliner = ApkInliner.build()
                 apkInliner.inline(inputPath, outputPath)
-
             } catch (e: Exception) {
                 handleException(e)
             }
-
         }
 
         @JvmStatic
@@ -60,7 +58,7 @@ class ApkInlinerFrontend {
             parser.accepts(inputParam).withOptionalArg().defaultsTo(path.convert(BuildConstants.apk_inliner_param_input_default).toString()).withValuesConvertedBy(path)
             parser.accepts(outputParam).withRequiredArg().defaultsTo(path.convert(BuildConstants.apk_inliner_param_output_dir_default).toString()).withValuesConvertedBy(path)
 
-            val options = parser.parse(args.joinToString { " " })
+            val options = parser.parse(*args)
 
             val inputPath = Paths.get(options.valueOf(inputParam).toString())
             val outputPath = Paths.get(options.valueOf(outputParam).toString())
