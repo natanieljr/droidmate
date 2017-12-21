@@ -70,7 +70,7 @@ fun IWidget.isEquivalentIgnoreLocation(other: IWidget, ignoreCase: Boolean = tru
   else
     other.uniqueString
 
-  return uniqueThis.takeWhile { it -> it != '[' } == uniqueOther.takeWhile { it -> it != '[' }
+  return uniqueThis.dropLastWhile { it -> it != '[' } == uniqueOther.dropLastWhile { it -> it != '[' }
 }
 
 fun <T, TItem> Iterable<T>.setByUniqueString(
