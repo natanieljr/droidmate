@@ -98,7 +98,7 @@ class MonitorsClient(socketTimeout: Int,
         }
     }
 
-    override fun getPorts(): List<Int> = MonitorConstants.serverPorts.map { it }
+    override fun getPorts(): List<Int> = MonitorConstants.serverPorts
 
     override fun forwardPorts() {
         this.getPorts().forEach { this.adbWrapper.forwardPort(this.deviceSerialNumber, it) }
