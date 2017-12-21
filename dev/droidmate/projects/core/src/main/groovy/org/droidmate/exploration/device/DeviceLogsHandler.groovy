@@ -61,10 +61,14 @@ class DeviceLogsHandler implements IDeviceLogsHandler
     if (this.logs.apiLogsOrNull == null)
       this.logs.apiLogs = []
 
-    if (!this.logs.apiLogsOrNull.empty && !apiLogs.empty)
-      assert this.logs.apiLogsOrNull.last().time <= apiLogs.first().time
+    // FIXME this was commented as quick fix for the sorting problem
+    //if (!this.logs.apiLogsOrNull.empty && !apiLogs.empty) {
+    //  assert this.logs.apiLogsOrNull.last().time <= apiLogs.first().time
+    //}
 
     this.logs.apiLogsOrNull.addAll(apiLogs)
+    // FIXME this was introduced as quick fix for the sorting problem
+    this.logs.apiLogsOrNull.sort{it.getTime()}
   }
 
   boolean gotLogs = false
