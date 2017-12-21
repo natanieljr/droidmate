@@ -59,6 +59,20 @@ val IWidget.uniqueString: String
   return WidgetStrategy.WidgetInfo(this).uniqueString
 }
 
+@Suppress("unused")
+fun IWidget.isEquivalentIgnoreLocation(other: IWidget, ignoreCase: Boolean = true): Boolean {
+  val uniqueThis = if (ignoreCase)
+    this.uniqueString.toLowerCase()
+  else
+    this.uniqueString
+  val uniqueOther = if (ignoreCase)
+    other.uniqueString.toLowerCase()
+  else
+    other.uniqueString
+
+  return uniqueThis.takeWhile { it -> it != '[' } == uniqueOther.takeWhile { it -> it != '[' }
+}
+
 fun <T, TItem> Iterable<T>.setByUniqueString(
   extractItems: (T) -> Iterable<TItem>,
   uniqueString: (TItem) -> String
