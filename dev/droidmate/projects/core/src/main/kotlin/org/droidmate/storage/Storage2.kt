@@ -44,7 +44,6 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
                 .apply {
                     registerSerializer(URI::class.java, FSTURISerializer(), false)
                     registerSerializer(LocalDateTime::class.java, FSTLocalDateTimeSerializer(), false)
-                    //registerSerializer(DeviceExceptionMissing::class.java, FSTDeviceExceptionMissingSerializer(), false)
                 }
         private val serializedFileTimestampPattern = DateTimeFormatter.ofPattern("yyyy MMM dd HHmm")
         val ser2FileExt = ".ser2"
