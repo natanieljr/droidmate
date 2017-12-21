@@ -120,7 +120,7 @@ class DroidmateFrontend {
         private fun logDroidmateRunEnd(runStart: Date, encounteredExceptionsDuringTheRun: Boolean) {
             val runEnd = Date()
             val diffInMillis = runEnd.time - runStart.time
-            val runDuration = TimeUnit.MINUTES.convert(diffInMillis, TimeUnit.MILLISECONDS)
+            val runDuration = TimeUnit.SECONDS.convert(diffInMillis, TimeUnit.MILLISECONDS)
             val timestampFormat = "yyyy MMM dd HH:mm:ss"
 
             if (encounteredExceptionsDuringTheRun)
