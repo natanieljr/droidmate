@@ -51,7 +51,7 @@ class DeviceLogsHandler constructor(val device: IRobustDevice) : IDeviceLogsHand
         if (this.logs.apiLogs.isNotEmpty() && apiLogs.isNotEmpty())
             assert(this.logs.apiLogs.last().time <= apiLogs.first().time)
 
-        this.logs.apiLogs.addAll(apiLogs)
+        this.logs.apiLogs.addAll(apiLogs.sortedBy { it.toString() })
     }
 
     override fun getLogs(): IDeviceLogs {
