@@ -39,7 +39,7 @@ plugins {
 
 allprojects {
   group = "org.droidmate"
-  version = "3.0-unstable"
+  version = "3.0"
 }
 
 subprojects {
