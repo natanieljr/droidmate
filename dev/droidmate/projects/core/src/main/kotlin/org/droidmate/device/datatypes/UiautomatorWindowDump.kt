@@ -277,7 +277,7 @@ data class UiautomatorWindowDump @JvmOverloads constructor(override val windowHi
         // When the application starts with an active keyboard, look for the proper application instead of the keyboard
         // This problem was identified on the app "com.hykwok.CurrencyConverter"
         // https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
-        if (topNodePackage.startsWith("com.google.android.inputmethod.") && (hierarchy.childNodes.length > 1))
+        if (topNodePackage.startsWith("com.google.android.inputmethod.") && (childNodes.size > 1))
             topNodePackage = childNodes.drop(1).first().attributes.getNamedItem("package").nodeValue
 
         assert(topNodePackage.isNotEmpty())
