@@ -304,7 +304,8 @@ public class MonitorJavaTemplate
             }
             if (serverSocketException != null) {
 
-                if ("bind failed: EADDRINUSE (Address already in use)".equals(serverSocketException.getCause().getMessage())) {
+                String cause = (serverSocketException.getCause() != null) ? serverSocketException.getCause().getMessage() : serverSocketException.getMessage();
+                if ("bind failed: EADDRINUSE (Address already in use)".equals(cause)) {
                     Log.v(MonitorConstants.Companion.getTag_srv(), "tryStart(port:" + port + "): FAILURE Failed to start TCP server because " +
                             "'bind failed: EADDRINUSE (Address already in use)'. " +
                             "Returning null Thread.");

@@ -78,8 +78,8 @@ class MonitorGeneratorFrontend {
                 val isStatic = objApi.get("isStatic").asBoolean
                 val platformVersion = objApi.get("platformVersion").asString
 
-                if (res.androidApi != AndroidAPI.API_23 && (platformVersion.startsWith("!API23"))) {
-
+                if ((res.androidApi == AndroidAPI.API_23) ||
+                        ((res.androidApi != AndroidAPI.API_23) && platformVersion.startsWith("!API23"))) {
                     val api = ApiMethodSignature.fromDescriptor(className, returnType, methodName, paramList,
                             isStatic, hookedMethod, signature, logID, invokeAPICode, defaultReturnValue, exceptionType)
                     apiList.add(api)
