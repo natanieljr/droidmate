@@ -36,25 +36,25 @@ class MonitorGeneratorResources constructor(args: Array<String>) : IConfiguratio
     val androidApi: AndroidAPI
 
     init {
-    if (args.contains("api23"))
-      this.androidApi = AndroidAPI.API_23
-    else
-        throw IllegalStateException()
+        if (args.contains("api23"))
+            this.androidApi = AndroidAPI.API_23
+        else
+            throw IllegalStateException()
 
         val monitorSrcOut: Path
 
         if (this.androidApi == AndroidAPI.API_23) {
             monitorSrcOut = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
-    } else
+        } else
             throw IllegalStateException()
 
         assert(Files.notExists(monitorSrcOut) || Files.isWritable(monitorSrcOut))
-    this.monitorSrcOutPath = monitorSrcOut
+        this.monitorSrcOutPath = monitorSrcOut
 
         val monitorSrcTemplatePath = ResourcePath(BuildConstants.monitor_generator_res_name_monitor_template).path
-    this.monitorSrcTemplatePath = monitorSrcTemplatePath
+        this.monitorSrcTemplatePath = monitorSrcTemplatePath
 
         val monitoredApis = ResourcePath("monitored_apis.json").path
-    this.monitoredApis = monitoredApis
-  }
+        this.monitoredApis = monitoredApis
+    }
 }
