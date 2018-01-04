@@ -272,16 +272,19 @@ data class UiautomatorWindowDump @JvmOverloads constructor(override val windowHi
                 .toList()
                 .filter { it.nodeName == "node" }
                 .filterNot { it.isSystemUINode() }
-        var topNodePackage = childNodes.first().attributes.getNamedItem("package").nodeValue
 
-        // When the application starts with an active keyboard, look for the proper application instead of the keyboard
-        // This problem was identified on the app "com.hykwok.CurrencyConverter"
-        // https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
-        if (topNodePackage.startsWith("com.google.android.inputmethod.") && (childNodes.size > 1))
-            topNodePackage = childNodes.drop(1).first().attributes.getNamedItem("package").nodeValue
+        var topNodePackage: String = "ERROR"
+        if (childNodes.isNotEmpty()) {
+            topNodePackage = childNodes.first().attributes.getNamedItem("package").nodeValue
 
-        assert(topNodePackage.isNotEmpty())
+            // When the application starts with an active keyboard, look for the proper application instead of the keyboard
+            // This problem was identified on the app "com.hykwok.CurrencyConverter"
+            // https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
+            if (topNodePackage.startsWith("com.google.android.inputmethod.") && (childNodes.size > 1))
+                topNodePackage = childNodes.drop(1).first().attributes.getNamedItem("package").nodeValue
 
+            assert(topNodePackage.isNotEmpty())
+        }
         val widgets: MutableList<IWidget> = ArrayList()
 
         childNodes.forEach {
