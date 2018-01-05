@@ -224,9 +224,11 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
                         out.append(ind4 + nl)
                     }
 
-                    return out.toString()
+                    out.toString()
                 }.joinToString("")
-        /*
+    }
+
+    /*
     
     Note: Redirection fails on classes from android.test.*
     Snippet of observed exception stack trace:
@@ -237,5 +239,4 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
     (...)
 
     */
-    }
 }

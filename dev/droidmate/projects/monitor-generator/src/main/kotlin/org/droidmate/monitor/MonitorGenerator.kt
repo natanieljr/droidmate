@@ -25,7 +25,9 @@ class MonitorGenerator constructor(val redirectionsGenerator: IRedirectionsGener
                                    val monitorSrcTemplate: MonitorSrcTemplate) : IMonitorGenerator {
 
     override fun generate(signatures: List<ApiMethodSignature>): String {
+        println("XXX - " + signatures.size)
         val genMethodTargets = redirectionsGenerator.generateMethodTargets(signatures)
+        print(genMethodTargets)
 
         return monitorSrcTemplate.injectGeneratedCode(genMethodTargets)
     }
