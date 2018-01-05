@@ -43,7 +43,7 @@ class D {
 
         @JvmStatic
         fun Dprintln(debugContent: String) {
-            debugFile.appendText(debugContent + "\n")
+            debugFile.appendText(debugContent + System.lineSeparator())
             // println(debugContent
         }
 

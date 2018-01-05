@@ -21,6 +21,7 @@ package org.droidmate.misc
 import com.konradjamrozik.Resource
 import com.konradjamrozik.asEnvDir
 import com.konradjamrozik.resolveRegularFile
+import org.apache.commons.lang3.StringUtils
 import java.util.*
 
 /**
@@ -78,7 +79,7 @@ class BuildConstants {
         private fun loadProperties(fileName: String): Map<String, String> {
             val text = Resource(fileName).text
             val out: MutableMap<String, String> = hashMapOf()
-            text.split("\n").forEach { line ->
+            StringUtils.split(text, "\r\n").forEach { line ->
                 if (line.isNotEmpty()) {
                     val splitLine = line.split("=")
                     assert(splitLine.size == 2)

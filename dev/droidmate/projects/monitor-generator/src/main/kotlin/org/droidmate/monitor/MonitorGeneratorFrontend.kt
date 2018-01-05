@@ -57,7 +57,7 @@ class MonitorGeneratorFrontend {
 
         @JvmStatic
         private fun readMonitoredApisJSON(res: MonitorGeneratorResources): List<ApiMethodSignature> {
-            val fileData = Files.readAllLines(res.monitoredApis).joinToString("\n")
+            val fileData = Files.readAllLines(res.monitoredApis).joinToString(System.lineSeparator())
             val apiList: MutableList<ApiMethodSignature> = ArrayList()
             val jsonApiList = JsonParser().parse(fileData).asJsonObject
 

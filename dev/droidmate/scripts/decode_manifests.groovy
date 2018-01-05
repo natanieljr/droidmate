@@ -40,9 +40,9 @@ inputDir.listFiles().findAll {it.name.endsWith(".apk")}.each { File apk ->
   File manifest = new File(outDir, "androidManifest.xml")
   assert manifest.file
 
-  permissions.append( apk.name +"\n" )
+  permissions.append( apk.name + System.lineSeparator() )
   manifest.readLines()
     .findAll { it.contains("uses-permission") }
-    .each { String permission -> permissions.append ( permission + "\n" )}
+    .each { String permission -> permissions.append ( permission + System.lineSeparator() )}
 }
 

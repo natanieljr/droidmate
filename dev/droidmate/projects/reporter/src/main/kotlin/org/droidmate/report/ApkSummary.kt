@@ -47,9 +47,9 @@ class ApkSummary() {
         .replaceVariable("total_resets_count"           , totalResetsCount.toString().padStart(4, ' '))
         .replaceVariable("exception"                    , exception.messageIfAny())
         .replaceVariable("unique_apis_count"            , uniqueApisCount.toString())
-        .replaceVariable("api_entries"                  , apiEntries.joinToString(separator = "\n"))
+              .replaceVariable("api_entries", apiEntries.joinToString(separator = System.lineSeparator()))
         .replaceVariable("unique_api_event_pairs_count" , uniqueEventApiPairsCount.toString())
-        .replaceVariable("api_event_entries"            , apiEventEntries.joinToString(separator = "\n"))
+              .replaceVariable("api_event_entries", apiEventEntries.joinToString(separator = System.lineSeparator()))
         .toString()
         }
       // @formatter:on
@@ -66,7 +66,7 @@ class ApkSummary() {
         "\n* * * * * * * * * *\n" +
           "WARNING! This exploration threw an exception.\n\n" +
           "Exception message: '${this.message}'.\n\n" +
-          LogbackConstants.err_log_msg + "\n" +
+                LogbackConstants.err_log_msg + System.lineSeparator() +
           "* * * * * * * * * *\n"
       }
     }

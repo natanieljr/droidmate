@@ -29,7 +29,7 @@ List<File> summaries = dataStagingDir.listFiles().findAll { it.name.startsWith("
 println "False positives for API calls only"
 summaries.each {
   String pkgName = (it.name - "summary-" - ".txt")
-  String onlyApis = it.readLines().takeWhile { !it.contains("[API call, event]") }.join("\n")
+  String onlyApis = it.readLines().takeWhile { !it.contains("[API call, event]") }.join(System.lineSeparator())
   println pkgName.padRight(34) + " " + onlyApis.count("None!")
 }
 
@@ -37,7 +37,7 @@ println ""
 println "False positives for [API call, event] pairs"
 summaries.each {
   String pkgName = (it.name - "summary-" - ".txt")
-  String apiAndEvents = it.readLines().dropWhile { !it.contains("[API call, event]") }.join("\n")
+  String apiAndEvents = it.readLines().dropWhile { !it.contains("[API call, event]") }.join(System.lineSeparator())
   println pkgName.padRight(34) + " " + apiAndEvents.count("None!")
 }
 

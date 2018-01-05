@@ -165,7 +165,7 @@ selected="false" bounds="$bounds"/>"""
         @JvmStatic
         fun fromGuiState(guiState: IGuiState): IDeviceGuiSnapshot {
             return skeletonWithPayload(
-                    guiState.widgets.joinToString("\n") { dump(it) }, guiState.id)
+                    guiState.widgets.joinToString(System.lineSeparator()) { dump(it) }, guiState.id)
         }
     }
 }

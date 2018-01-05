@@ -38,10 +38,10 @@ class ApkViewsFile(val data: IApkExplorationOutput2, dir: Path) : DataFile(build
   private val IApkExplorationOutput2.apkViewsString: String
     get() {
       return "Unique actionable widget\n" +
-        this.uniqueActionableWidgets.map { it.uniqueString }.joinToString(separator = "\n") +
+              this.uniqueActionableWidgets.map { it.uniqueString }.joinToString(separator = System.lineSeparator()) +
         "\n====================\n" +
         "Unique clicked widgets\n" +
-        this.uniqueClickedWidgets.map { it.uniqueString }.joinToString(separator = "\n")
+              this.uniqueClickedWidgets.map { it.uniqueString }.joinToString(separator = System.lineSeparator())
     }
   
   companion object {

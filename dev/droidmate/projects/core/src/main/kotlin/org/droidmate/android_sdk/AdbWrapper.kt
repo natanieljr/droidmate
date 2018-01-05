@@ -228,7 +228,7 @@ class AdbWrapper constructor(private val cfg: Configuration,
                     "logcat -d -b main -v time *:s", messageTag)
 
             return stdStreams[0]
-                    .split("\n")
+                    .split(System.lineSeparator())
                     .map { it.trim() }
                     .filter { it.isNotEmpty() }
 

@@ -253,7 +253,7 @@ class AndroidDevice constructor(private val serialNumber: String,
     override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> {
         log.debug("waitForLogcatMessages(tag: $messageTag, minMessagesCount: $minMessagesCount, waitTimeout: $waitTimeout, queryDelay: $queryDelay)")
         val messages = adbWrapper.waitForMessagesOnLogcat(this.serialNumber, messageTag, minMessagesCount, waitTimeout, queryDelay)
-        log.debug("waitForLogcatMessages(): obtained messages: ${messages.joinToString("\n")}")
+        log.debug("waitForLogcatMessages(): obtained messages: ${messages.joinToString(System.lineSeparator())}")
         return messages.map { TimeFormattedLogcatMessage.from(it) }
     }
 

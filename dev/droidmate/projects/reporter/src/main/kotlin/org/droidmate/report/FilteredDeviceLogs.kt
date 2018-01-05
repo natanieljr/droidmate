@@ -122,8 +122,8 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
 
             if (possiblyRedundantMethods.isNotEmpty()) {
                 log.warn("Possibly redundant API call discovered!\n" +
-                        "The possibly redundant API calls (except the first one):\n" + monitoredMethods.joinToString(separator = "\n") + "\n" +
-                        "All methods on the stack trace:\n" + this.getStackTraceFrames().joinToString(separator = "\n"))
+                        "The possibly redundant API calls (except the first one):\n" + monitoredMethods.joinToString(separator = System.lineSeparator()) + System.lineSeparator() +
+                        "All methods on the stack trace:\n" + this.getStackTraceFrames().joinToString(separator = System.lineSeparator()))
             }
 
         }

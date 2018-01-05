@@ -31,7 +31,7 @@ import java.nio.file.Files.newDirectoryStream
 import java.nio.file.Path
 
 val Path.text: String get() {
-    return Files.readAllLines(this).joinToString("\n")
+    return Files.readAllLines(this).joinToString(System.lineSeparator())
 }
 
 fun Path.deleteDir(): Boolean {

@@ -381,7 +381,7 @@ data class UiautomatorWindowDump @JvmOverloads constructor(override val windowHi
         // Uncomment when necessary for debugging.
 //    List<Widget> widgets = this.guiState.widgets
 //    final int displayedWidgetsLimit = 50
-//    returnString += widgets.take(displayedWidgetsLimit).collect {it.toShortString() }.join("\n") + "\n"
+//    returnString += widgets.take(displayedWidgetsLimit).collect {it.toShortString() }.join(System.lineSeparator()) + System.lineSeparator()
 //    if (widgets.size() > displayedWidgetsLimit)
 //      returnString += "...\n...skipped displaying remaining ${widgets.size()-displayedWidgetsLimit} widgets...\n"
 //    returnString += "----- end of widgets ----\n"

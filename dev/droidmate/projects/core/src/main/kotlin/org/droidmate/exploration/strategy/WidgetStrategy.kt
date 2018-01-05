@@ -229,7 +229,7 @@ class WidgetStrategy constructor(randomSeed: Long,
 
         override fun toString(): String {
             return "WC:[seenCount=$seenCount, package=$packageName\n" +
-                    this.joinToString("\n") + "]"
+                    this.joinToString(System.lineSeparator()) + "]"
         }
     }
 

@@ -30,9 +30,9 @@ class LabeledEdge<out TSource : Serializable, out TLabel : Serializable, out TTa
 
     override fun toString(): String {
         return "LabeledEdge{\n" +
-                "source = " + source + "\n" +
-                "label  = " + label + "\n" +
-                "target = " + target + "\n" +
+                "source = " + source + System.lineSeparator() +
+                "label  = " + label + System.lineSeparator() +
+                "target = " + target + System.lineSeparator() +
                 "} " + super.toString()
     }
 }

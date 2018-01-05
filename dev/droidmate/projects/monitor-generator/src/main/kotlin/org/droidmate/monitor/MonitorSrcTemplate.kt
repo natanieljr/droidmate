@@ -54,10 +54,10 @@ class MonitorSrcTemplate constructor(monitorSrcTemplatePath: Path, androidApi: A
                 uncomment = false
             } else {
                 if (!remove && !uncomment)
-                    builder.append(line + "\n")
+                    builder.append(line + System.lineSeparator())
                 else if (!remove && uncomment) {
                     if (!line.contains("KJA")) // To-do comments Konrad Jamrozik frequently uses. Doesn't want to have them copied.
-                        builder.append(line.replace("// ", "") + "\n")
+                        builder.append(line.replace("// ", "") + System.lineSeparator())
                 } else {
                     assert(remove)
                     // Do nothing.

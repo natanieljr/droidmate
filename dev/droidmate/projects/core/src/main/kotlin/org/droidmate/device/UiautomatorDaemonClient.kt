@@ -75,12 +75,12 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
         //     int logctl_get(): open '/dev/hwlog_switch' fail -1, 13. Permission denied
         //     Note: log switch off, only log_main and log_events will have logs!
         var nrMessages = 1
-        if (msgs.joinToString("\n").contains("Note: log switch off, only log_main and log_events will have logs!"))
+        if (msgs.joinToString(System.lineSeparator()).contains("Note: log switch off, only log_main and log_events will have logs!"))
             nrMessages = 3
 
         assert(msgs.size == nrMessages, {
             "Expected exactly one message on logcat (with tag ${UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG}) " +
-                    "confirming that uia-daemon server has started. Instead, got ${msgs.size} messages. Msgs:\n${msgs.joinToString("\n")}"
+                    "confirming that uia-daemon server has started. Instead, got ${msgs.size} messages. Msgs:\n${msgs.joinToString(System.lineSeparator())}"
         })
         assert(msgs.last().contains(UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG))
     }

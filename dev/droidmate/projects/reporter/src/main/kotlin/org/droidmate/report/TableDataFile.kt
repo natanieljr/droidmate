@@ -44,7 +44,7 @@ class TableDataFile<R, C, V>(val table: Table<R, C, V>, file: Path) : DataFile(f
       rowValues.joinToString(separator = "\t")
     }
 
-    val tableString = headerRowString + "\n" + dataRowsStrings.joinToString(separator = "\n")
+    val tableString = headerRowString + System.lineSeparator() + dataRowsStrings.joinToString(separator = System.lineSeparator())
     tableString
   }
 

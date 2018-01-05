@@ -41,7 +41,7 @@ class ClickGuiAction constructor(val guiAction: GuiAction) : AndroidDeviceAction
             log.warn("Expected to match at most one widget to coordinates $x $y. " +
                     "Instead matched ${matchedWidgets.size} widgets. " +
                     "The matched widgets bounds:\n" +
-                    matchedWidgets.joinToString("\n") { it.boundsString })
+                    matchedWidgets.joinToString(System.lineSeparator()) { it.boundsString })
 
         return matchedWidgets[0]
     }

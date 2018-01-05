@@ -237,10 +237,10 @@ class ConfigurationBuilder : IConfigurationBuilder {
             displayStyle.isUseIdentityHashCode = false
             displayStyle.contentStart = ""
             displayStyle.contentEnd = ""
-            displayStyle.fieldSeparator = "\n"
+            displayStyle.fieldSeparator = System.lineSeparator()
 
             var configurationDump = ReflectionToStringBuilder(config, displayStyle).toString()
-            configurationDump = configurationDump.split('\n').sorted().joinToString("\n")
+            configurationDump = configurationDump.split(System.lineSeparator()).sorted().joinToString(System.lineSeparator())
 
             log.info(runData, "--------------------------------------------------------------------------------")
             log.info(runData, "")
