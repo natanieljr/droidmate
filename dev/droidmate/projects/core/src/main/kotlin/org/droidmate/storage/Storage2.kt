@@ -40,7 +40,7 @@ import java.util.*
 class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2 {
     companion object {
         private val log = LoggerFactory.getLogger(Storage2::class.java)
-        private val serializationConfig = FSTConfiguration.createDefaultConfiguration()
+        private val serializationConfig = FSTConfiguration.createJsonConfiguration(true, false)
                 .apply {
                     registerSerializer(URI::class.java, FSTURISerializer(), false)
                     registerSerializer(LocalDateTime::class.java, FSTLocalDateTimeSerializer(), false)
