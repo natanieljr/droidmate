@@ -36,7 +36,7 @@ class RunnableEnterTextExplorationAction constructor(action: EnterTextExploratio
         this.snapshot = device.getGuiSnapshot()
 
         log.debug("5. Take a screenshot.")
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
         this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
     }
 

@@ -64,7 +64,7 @@ class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, times
 
         if (this.isFirst || this.takeScreenshot) {
             log.debug("7.firstReset: Take a screenshot of first reset action.")
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
             this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
         }
 

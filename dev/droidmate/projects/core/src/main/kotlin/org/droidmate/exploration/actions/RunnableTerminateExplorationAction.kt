@@ -39,7 +39,7 @@ class RunnableTerminateExplorationAction(action: TerminateExplorationAction, tim
         this.logs = logsHandler.getLogs()
 
         log.debug("2. Take a screenshot.")
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss_SSS")
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
         this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
 
         log.debug("3. Close monitor servers, if any.")

@@ -204,8 +204,10 @@ class ConfigurationBuilder : IConfigurationBuilder {
             if (cfg.apksDirPath.createDirIfNotExists())
                 log.info("Created directory from which DroidMate will read input apks: " + cfg.apksDirPath.toAbsolutePath().toString())
 
-            if (cfg.droidmateOutputDirPath.createDirIfNotExists())
+            if (Files.notExists(cfg.droidmateOutputDirPath)) {
+                Files.createDirectories(cfg.droidmateOutputDirPath)
                 log.info("Created directory to which DroidMate will output: " + cfg.droidmateOutputDirPath.toAbsolutePath().toString())
+            }
         }
 
         @JvmStatic
