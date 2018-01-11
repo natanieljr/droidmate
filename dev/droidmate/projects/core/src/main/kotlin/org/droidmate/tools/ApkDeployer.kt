@@ -38,9 +38,6 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
     override fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: (IApk) -> Any): List<ApkExplorationException> {
         log.debug("withDeployedApk(device, $apk.fileName, computation)")
 
-        //TODO: Nataniel (Review later)
-        //Assert.checkClosureFirstParameterSignature(computation, IApk)
-
         val apkExplorationExceptions: MutableList<ApkExplorationException> = ArrayList()
         val deployApkException = deployApk(device, apk)
         if (deployApkException != null) {

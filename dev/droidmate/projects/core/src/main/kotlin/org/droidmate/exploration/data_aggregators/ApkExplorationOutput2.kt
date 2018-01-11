@@ -74,8 +74,6 @@ class ApkExplorationOutput2 @JvmOverloads constructor(override val apk: IApk,
 
     private fun assertLogsAreSortedByTime() {
         val apiLogs = this.actRes.flatMap { it.getResult().deviceLogs.apiLogs }
-        //TODO Nataniel Review later
-        //val apiLogsSortedTimes = apiLogs.map { it.time }.sorted()
 
         assert(explorationStartTime <= explorationEndTime)
 
