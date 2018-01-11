@@ -37,7 +37,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
 
 // org.droidmate.monitor.MonitorSrcTemplate:API_19_UNCOMMENT_LINES
 // import de.uds.infsec.instrumentation.Instrumentation;
@@ -437,10 +436,9 @@ public class MonitorJavaTemplate
     private final static String ESCACPE_CHAR = "\\";
     private final static String VALUESTRING_ENCLOSCHAR = "'";
     private static final String FORMAT_STRING = "TId:%s;objCls:'%s';mthd:'%s';retCls:'void';params:'java.lang.String' '%s' 'java.lang.Object[]' %s;stacktrace:'%s'";
-    private static final Pattern UNESCAPED_ENCLOSERS_MATCHER = Pattern.compile("(?!\\\\)" + VALUESTRING_ENCLOSCHAR);
 
     private static String escapeEnclosings(String paramString) {
-        return UNESCAPED_ENCLOSERS_MATCHER.matcher(paramString).replaceAll(ESCACPE_CHAR + VALUESTRING_ENCLOSCHAR);
+        return paramString.replace(VALUESTRING_ENCLOSCHAR, ESCACPE_CHAR + VALUESTRING_ENCLOSCHAR);
     }
 
     private static String trimToLogSize(String paramString) {
@@ -460,19 +458,22 @@ public class MonitorJavaTemplate
         return paramString;
     }
 
-    public static String objectToString(Object param) {
+    static String objectToString(Object param) {
+        String result = "";
         if (param == null)
-            return "null";
-
-        if (param instanceof android.content.Intent) {
+            result = "null";
+        else if (param instanceof android.content.Intent) {
             String paramStr = ((android.content.Intent) param).toUri(1);
             if (!paramStr.endsWith("end")) throw new AssertionError();
-            return paramStr;
+            result = paramStr;
         } else if (param.getClass().isArray()) {
-            return Arrays.deepToString(convertToObjectArray(param));
+            result = Arrays.deepToString(convertToObjectArray(param));
         } else {
-            return param.toString();
+            result = param.toString();
         }
+
+        //result = trimToLogSize(result);
+        return escapeEnclosings(result);
     }
 
     // Copied from http://stackoverflow.com/a/16428065/986533

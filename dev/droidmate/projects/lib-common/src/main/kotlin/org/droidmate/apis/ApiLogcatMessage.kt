@@ -194,11 +194,11 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
         then editing the monitor source file was a pain. Since then I streamlined the process so it should be easier to fulfill
         this wish now.
          */
-
             val elements = splitPayload(payload)
 
             addThreadIdIfNecessary(elements)
             val keywordToValues = computeKeywordToValues(elements, payload)
+            println(payload)
             val params = splitAndValidateParams(keywordToValues)
 
 
