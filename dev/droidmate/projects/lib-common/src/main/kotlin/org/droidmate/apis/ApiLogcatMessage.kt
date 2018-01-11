@@ -21,7 +21,6 @@ package org.droidmate.apis
 
 import org.droidmate.misc.DroidmateException
 import java.time.LocalDateTime
-import java.util.regex.Pattern
 
 /**
  * See {@link IApiLogcatMessage}
@@ -43,9 +42,6 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
          */
         private val VALUESTRING_ENCLOSCHAR = '\''
         private val ESCAPE_CHAR = '\\'
-
-        private val UNESCAPE_PATTERN = Pattern.compile("\\\\" + VALUESTRING_ENCLOSCHAR)
-
 
         @JvmStatic
         fun from(logcatMessage: ITimeFormattedLogcatMessage): ApiLogcatMessage {
@@ -212,7 +208,7 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
         }
 
         fun unescape(s: String): String {
-            return UNESCAPE_PATTERN.matcher(s).replaceAll(VALUESTRING_ENCLOSCHAR.toString())
+            return s.replace(ESCAPE_CHAR.toString() + VALUESTRING_ENCLOSCHAR, VALUESTRING_ENCLOSCHAR.toString())
         }
 
         fun splitPayload(payload: String): MutableList<String> {
@@ -238,10 +234,7 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
                         inValueString = true
                     }
                 } else {
-                    if (c == ESCAPE_CHAR)
-                        wasEscaped = true
-                    else
-                        wasEscaped = false
+                    wasEscaped = c == ESCAPE_CHAR
 
                     builder.append(c)
                 }

@@ -433,12 +433,12 @@ public class MonitorJavaTemplate
 
     //region Helper code
 
-    private final static String ESCACPE_CHAR = "\\";
+    private final static String ESCAPE_CHAR = "\\";
     private final static String VALUESTRING_ENCLOSCHAR = "'";
     private static final String FORMAT_STRING = "TId:%s;objCls:'%s';mthd:'%s';retCls:'void';params:'java.lang.String' '%s' 'java.lang.Object[]' %s;stacktrace:'%s'";
 
     private static String escapeEnclosings(String paramString) {
-        return paramString.replace(VALUESTRING_ENCLOSCHAR, ESCACPE_CHAR + VALUESTRING_ENCLOSCHAR);
+        return paramString.replace(VALUESTRING_ENCLOSCHAR, ESCAPE_CHAR + VALUESTRING_ENCLOSCHAR);
     }
 
     private static String trimToLogSize(String paramString) {
