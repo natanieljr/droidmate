@@ -112,20 +112,22 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
             val monitoredMethods = this.getStackTraceFrames()
                     .filter { it.startsWith(Api.monitorRedirectionPrefix) }
 
-            check(monitoredMethods.isNotEmpty())
+            // When using the API through logcat, the app can be instrumented and the monitor unused,
+            // thus having no monitor APIs in the stack trace
+            if (monitoredMethods.isNotEmpty()) {
 
-            val possiblyRedundantMethods = monitoredMethods
-                    .filterNot { (apisManuallyCheckedForRedundancy.any { manuallyChecked -> it.contains(manuallyChecked) }) }
-                    // We drop the first frame as it is the end of stack trace and thus not a candidate for redundancy in this particular
-                    // stack trace.
-                    .drop(1)
+                val possiblyRedundantMethods = monitoredMethods
+                        .filterNot { (apisManuallyCheckedForRedundancy.any { manuallyChecked -> it.contains(manuallyChecked) }) }
+                        // We drop the first frame as it is the end of stack trace and thus not a candidate for redundancy in this particular
+                        // stack trace.
+                        .drop(1)
 
-            if (possiblyRedundantMethods.isNotEmpty()) {
-                log.warn("Possibly redundant API call discovered!\n" +
-                        "The possibly redundant API calls (except the first one):\n" + monitoredMethods.joinToString(separator = System.lineSeparator()) + System.lineSeparator() +
-                        "All methods on the stack trace:\n" + this.getStackTraceFrames().joinToString(separator = System.lineSeparator()))
+                if (possiblyRedundantMethods.isNotEmpty()) {
+                    log.warn("Possibly redundant API call discovered!\n" +
+                            "The possibly redundant API calls (except the first one):\n" + monitoredMethods.joinToString(separator = System.lineSeparator()) + System.lineSeparator() +
+                            "All methods on the stack trace:\n" + this.getStackTraceFrames().joinToString(separator = System.lineSeparator()))
+                }
             }
-
         }
 
         /**
@@ -144,19 +146,24 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
 
                 val monitoredMethods = getStackTraceFrames().filter { it.startsWith(Api.monitorRedirectionPrefix) }
 
-                check(monitoredMethods.isNotEmpty())
+                // When using the API through logcat, the app can be instrumented and the monitor unused,
+                // thus having no monitor APIs in the stack trace
+                if (monitoredMethods.isNotEmpty()) {
 
-                /*
+                    /*
         We take only the first monitored call, as this is the bottom of the stack trace, i.e. this method doesn't call any other 
         monitored methods. All other monitored calls in the stack trace will be present again in the logs, at the bottom of their
         own stack traces. They will be checked for redundancy then, so they don't have to be checked here.
        */
-                val monitoredCall = monitoredMethods.first()
-                return if (apisManuallyConfirmedToBeRedundant.any { monitoredCall.contains(it) }) {
-                    log.warn("Redundant API call discovered. The reported data was obtained using monitor that was monitoring API methods which are redundant. The API call: " + monitoredCall)
-                    true
-                } else
-                    false
+                    val monitoredCall = monitoredMethods.first()
+                    return if (apisManuallyConfirmedToBeRedundant.any { monitoredCall.contains(it) }) {
+                        log.warn("Redundant API call discovered. The reported data was obtained using monitor that was monitoring API methods which are redundant. The API call: " + monitoredCall)
+                        true
+                    } else
+                        false
+                }
+
+                return false
             }
 
         // This list is to be updated as the warnings are observed, while comparing to the legacy lists
