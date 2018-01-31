@@ -78,7 +78,7 @@ class ExplorationTest : DroidmateTestCase() {
     @Test
     fun `Collects monitored API calls logs during device exploration`() {
         val cfg = ConfigurationForTests().forDevice().setArgs(arrayListOf(
-                Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
+                Configuration.pn_apksNames, "[${BuildConstants.monitored_inlined_apk_fixture_api23_name}]",
                 Configuration.pn_widgetIndexes, "[0]"
         )).get()
 
