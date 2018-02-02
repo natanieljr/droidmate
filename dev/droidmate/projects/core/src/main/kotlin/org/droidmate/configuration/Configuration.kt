@@ -263,7 +263,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = arrayOf(pn_resetEveryNthExplorationForward))
     public var resetEveryNthExplorationForward = defaultResetEveryNthExplorationForward
 
-    @Parameter(names = arrayOf(pn_runOnNotInlined), description =
+    @Parameter(names = arrayOf(pn_runOnNotInlined), arity = 1, description =
     "Allow DroidMate to run on non-inlined apks.")
     public var runOnNotInlined = false
 
