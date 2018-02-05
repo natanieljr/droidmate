@@ -20,7 +20,7 @@
 buildscript {
 
   ext.utilities_version = '19115bab35'
-  ext.kotlin_version = '1.2.10'
+  ext.kotlin_version = '1.2.20'
 
   repositories {
     mavenLocal()
@@ -34,12 +34,12 @@ buildscript {
 }
 
 plugins {
-  id "org.jetbrains.kotlin.jvm" version "1.2.10"
+  id "org.jetbrains.kotlin.jvm" version "1.2.20"
 }
 
 allprojects {
   group = "org.droidmate"
-  version = "3.0.2-SNAPSHOT"
+  version = "3.0.3"
 }
 
 subprojects {

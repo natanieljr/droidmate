@@ -29,7 +29,7 @@ public class ListOfIntegersConverter : IStringConverter<List<Int>> {
                 throw DroidmateException("Null parameter value")
 
             return arg.replace("[", "")
-                    .replace("[", "")
+                    .replace("]", "")
                     .split(",")
                     .map { it.trim().toInt() }
         } catch (e: Exception) {

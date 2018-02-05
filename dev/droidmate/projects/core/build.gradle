@@ -27,8 +27,8 @@ evaluationDependsOn(':projects:lib-common')
 evaluationDependsOn(':projects:lib-kotlin')
 compileTestJava.dependsOn tasks.getByPath(':projects:lib-common:testClasses')
 compileTestJava.dependsOn tasks.getByPath(':projects:lib-kotlin:testClasses')
-dependWithTest(project, ":projects:lib-kotlin", "kotlin")
-dependWithTest(project, ":projects:lib-common", "kotlin")
+dependWithTest([project, ":projects:lib-kotlin", "kotlin"])
+dependWithTest([project, ":projects:lib-common", "kotlin"])
 
 dependencies {
 
@@ -67,7 +67,7 @@ dependencies {
 
 apply from: file("resources.gradle")
 
-configureTest(project, ['**/LibKotlinTestSuite.class'])
+configureTest([project, ['**/LibKotlinTestSuite.class']])
 test.configure {
   inputs.dir apkFixturesDir.absolutePath
 }
@@ -82,3 +82,22 @@ apply from: project(":projects").file("maven.gradle")
  should not be in the jar at all, nor in the distribution ('application' plugin / 'installDist' task). See the links above
  on the better setup.
 */
+
+sourceSets {
+  integrationTest {
+    kotlin {
+      resources {
+        srcDir 'src/main/resources'
+      }
+//      compileClasspath += sourceSets.main.runtimeClasspath
+    }
+    test {
+      resources {
+        srcDir 'src/test/resources'
+      }
+//      compileClasspath += sourceSets.test.runtimeClasspath
+ //     runtimeClasspath += sourceSets.test.runtimeClasspath // ***)
+    }
+  }
+}
+
