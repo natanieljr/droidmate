@@ -20,25 +20,26 @@ package org.droidmate.device
 
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.configuration.Configuration
 import org.droidmate.misc.MonitorConstants
 import org.slf4j.LoggerFactory
 
 class MonitorsClient(socketTimeout: Int,
                      private val deviceSerialNumber: String,
-                     private val adbWrapper: IAdbWrapper) : IMonitorsClient {
+                     private val adbWrapper: IAdbWrapper,
+                     private val port: Int) : IMonitorsClient {
 
     companion object {
         private val log = LoggerFactory.getLogger(MonitorsClient::class.java)
     }
 
+    // remove this.getPorts from all methods
     private val monitorTcpClient: ITcpClientBase<String, ArrayList<ArrayList<String>>> = TcpClientBase(socketTimeout)
 
     override fun anyMonitorIsReachable(): Boolean {
-        val out = this.getPorts().any {
-            this.isServerReachable(it)
-        }
+        val out = this.isServerReachable(this.getPort())
         if (out)
-            log.trace("At least one monitor is reachable.")
+            log.trace("The monitor is reachable.")
         else
             log.trace("No monitor is reachable.")
         return out
@@ -60,47 +61,36 @@ class MonitorsClient(socketTimeout: Int,
     }
 
     override fun getCurrentTime(): List<List<String>> {
-        for (port in this.getPorts()) {
-            try {
-                return monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_time, port)
-
-            } catch (ignored: TcpServerUnreachableException) {
-                // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_time} request.")
-                assert(!this.anyMonitorIsReachable())
-                throw DeviceException("None of the monitor TCP servers were available.", true)
-            }
+        try {
+            return monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_time, this.getPort())
+        } catch (ignored: TcpServerUnreachableException) {
+            // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_time} request.")
+            assert(!this.anyMonitorIsReachable())
+            throw DeviceException("None of the monitor TCP servers were available.", true)
         }
-
-        throw DeviceException("No monitors available.", true)
     }
 
     override fun getLogs(): List<List<String>> {
-        for (port in this.getPorts()) {
-            return try {
-                monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_logs, port)
-            } catch (ignored: TcpServerUnreachableException) {
-                // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_logs} request.")
-                log.trace("None of the monitor TCP servers were available while obtaining API logs.")
-                ArrayList()
-            }
+        return try {
+            monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_logs, this.getPort())
+        } catch (ignored: TcpServerUnreachableException) {
+            // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_logs} request.")
+            log.trace("None of the monitor TCP servers were available while obtaining API logs.")
+            ArrayList()
         }
-
-        throw DeviceException("No monitors available.", true)
     }
 
     override fun closeMonitorServers() {
-        this.getPorts().forEach {
-            try {
-                monitorTcpClient.queryServer(MonitorConstants.srvCmd_close, it)
-            } catch (ignored: TcpServerUnreachableException) {
-                // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_close} request.")
-            }
+        try {
+            monitorTcpClient.queryServer(MonitorConstants.srvCmd_close, this.getPort())
+        } catch (ignored: TcpServerUnreachableException) {
+            // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_close} request.")
         }
     }
 
-    override fun getPorts(): List<Int> = MonitorConstants.serverPorts
+    override fun getPort(): Int = port
 
     override fun forwardPorts() {
-        this.getPorts().forEach { this.adbWrapper.forwardPort(this.deviceSerialNumber, it) }
+        this.adbWrapper.forwardPort(this.deviceSerialNumber, this.getPort())
     }
 }
