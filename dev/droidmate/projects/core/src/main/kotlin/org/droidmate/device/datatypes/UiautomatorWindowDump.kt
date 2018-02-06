@@ -231,7 +231,7 @@ data class UiautomatorWindowDump @JvmOverloads constructor(override val windowHi
             if (parent == null)
                 w.xpath = "//"
             else
-                w.xpath = "$parent.xpath/"
+                w.xpath = "${parent.xpath}/"
 
             w.xpath += "${w.className}[${w.index + 1}]"
 

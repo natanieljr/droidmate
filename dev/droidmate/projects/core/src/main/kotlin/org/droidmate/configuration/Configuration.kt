@@ -110,6 +110,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_uninstallApk = "-uninstallApk"
         const val pn_useApkFixturesDir = "-useApkFixturesDir"
         const val pn_report = "-report"
+        const val pn_replay = "-replay"
         const val pn_stopAppRetryAttempts = "-stopAppRetryAttempts"
         const val pn_stopAppSuccessCheckDelay = "-stopAppSuccessCheckDelay"
         const val pn_waitForCanRebootDelay = "-waitForCanRebootDelay"
@@ -265,6 +266,10 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = arrayOf(pn_runOnNotInlined), description =
     "Allow DroidMate to run on non-inlined apks.")
     public var runOnNotInlined = false
+
+    @Parameter(names = arrayOf(pn_replay), description =
+    "Path do a previously recorded exploration for replay.")
+    public var replayFile = ""
 
     @Parameter(names = arrayOf(pn_uiautomatorDaemonServerStartTimeout), description =
     "How long DroidMate should wait, in milliseconds, for message on logcat confirming that UiAutomatorDaemonServer has started on android (virtual) device.")

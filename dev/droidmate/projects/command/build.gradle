@@ -42,10 +42,10 @@ mainClassName = "org.droidmate.frontend.DroidmateFrontend"
 
 dependOnJunit(project)
 
-dependWithTest(project, ":projects:core", "kotlin")
-dependWithTest(project, ":projects:reporter", "kotlin")
-dependWithTest(project, ":projects:lib-kotlin", "kotlin")
-dependWithTest(project, ":projects:lib-common", "kotlin")
+dependWithTest([project, ":projects:core", "kotlin"])
+dependWithTest([project, ":projects:reporter", "kotlin"])
+dependWithTest([project, ":projects:lib-kotlin", "kotlin"])
+dependWithTest([project, ":projects:lib-common", "kotlin"])
 
 dependencies {
     // Necessary to make tests from 'lib-kotlin' work.

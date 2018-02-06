@@ -21,7 +21,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer
 
 buildscript {
-    ext.kotlin_version = '1.2.10'
+    ext.kotlin_version = '1.2.20'
     repositories {
     mavenCentral()
   }
@@ -31,12 +31,12 @@ buildscript {
 }
 
 plugins {
-  id "org.jetbrains.kotlin.jvm" version "1.2.10"
+  id "org.jetbrains.kotlin.jvm" version "1.2.20"
 }
 
 apply plugin: 'kotlin'
 
-ext.kotlin_version = '1.2.10'
+ext.kotlin_version = '1.2.20'
 
 ext.utilities_version = '19115bab35'
 

@@ -20,6 +20,7 @@
       <module name="buildSrc_test" target="1.8" />
       <module name="command_main" target="1.8" />
       <module name="command_test" target="1.8" />
+      <module name="core_integrationTest" target="1.8" />
       <module name="core_main" target="1.8" />
       <module name="core_test" target="1.8" />
       <module name="droidmate_main" target="1.8" />

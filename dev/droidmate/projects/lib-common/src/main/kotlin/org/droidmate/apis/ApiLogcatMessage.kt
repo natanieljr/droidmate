@@ -194,7 +194,6 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
 
             addThreadIdIfNecessary(elements)
             val keywordToValues = computeKeywordToValues(elements, payload)
-            println(payload)
             val params = splitAndValidateParams(keywordToValues)
 
 
