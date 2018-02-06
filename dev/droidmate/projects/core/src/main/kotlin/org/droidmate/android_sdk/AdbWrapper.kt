@@ -84,7 +84,7 @@ class AdbWrapper constructor(private val cfg: Configuration,
         }
     }
 
-    override fun getAndroidDevicesDescriptors(): List<AndroidDeviceDescriptor> {
+    private fun internalGetAndroidDevicesDescriptors(): List<AndroidDeviceDescriptor> {
         val commandDescription = String
                 .format("Executing adb (Android Debug Bridge) to get the list of available Android (Virtual) Devices.")
 
@@ -97,7 +97,19 @@ class AdbWrapper constructor(private val cfg: Configuration,
 
         removeAdbStartedMsgIfPresent(stdStreams)
 
-        val deviceDescriptors = parseDeviceInformation(stdStreams[0])
+        return parseDeviceInformation(stdStreams[0])
+    }
+
+    override fun getAndroidDevicesDescriptors(): List<AndroidDeviceDescriptor> {
+        var deviceDescriptors = internalGetAndroidDevicesDescriptors()
+
+        if (cfg.waitForDevice) {
+            log.warn("No devices connected. Waiting for device.")
+            while (deviceDescriptors.isEmpty()) {
+                Thread.sleep(1000)
+                deviceDescriptors = internalGetAndroidDevicesDescriptors()
+            }
+        }
 
         if (deviceDescriptors.isEmpty())
             throw NoAndroidDevicesAvailableException()

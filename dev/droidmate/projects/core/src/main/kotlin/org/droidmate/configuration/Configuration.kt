@@ -118,6 +118,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_stopAppSuccessCheckDelay = "-stopAppSuccessCheckDelay"
         const val pn_waitForCanRebootDelay = "-waitForCanRebootDelay"
         const val pn_widgetIndexes = "-widgetIndexes"
+        const val pn_waitForDevice = "-waitForDevice"
         // @formatter:on
         //endregion
 
@@ -351,6 +352,10 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
     @Parameter(names = arrayOf(pn_waitForCanRebootDelay))
     public var waitForCanRebootDelay = 30 * 1000
+
+    @Parameter(names = arrayOf(pn_waitForDevice), description =
+    "Wait for a device to be connected to the PC instead of cancelling the exploration.")
+    public var waitForDevice = false
 
     //endregion
 
