@@ -27,14 +27,14 @@ String uia2DaemonName = BuildKt.uia2_daemon_project_name
 String uia2DaemonApkOriginalName = "${uia2DaemonName}-debug.apk"
 task pullUiautomator2DaemonApk(type: Copy, dependsOn: "assembleUiautomator2Daemon") {
   Copy copy ->
-    def uiaDaemonApk = file(new File(uia2DaemonBuildDir.absolutePath + "/outputs/apk/", uia2DaemonApkOriginalName))
+    def uiaDaemonApk = file(new File(uia2DaemonBuildDir.absolutePath + "/outputs/apk/debug/", uia2DaemonApkOriginalName))
     copy.from(uiaDaemonApk).into(coreResDir).rename("-debug.apk", ".apk")
 }
 
 String uia2DaemonTestApkOriginalName = "${uia2DaemonName}-debug-androidTest.apk"
 task pullUiautomator2DaemonTestApk(type: Copy, dependsOn: "assembleUiautomator2Daemon") {
   Copy copy ->
-    def uiaDaemonTestApk = file(new File(uia2DaemonBuildDir.absolutePath + "/outputs/apk/", uia2DaemonTestApkOriginalName))
+    def uiaDaemonTestApk = file(new File(uia2DaemonBuildDir.absolutePath + "/outputs/apk/androidTest/debug/", uia2DaemonTestApkOriginalName))
     copy.from(uiaDaemonTestApk).into(coreResDir).rename("debug-androidTest.apk", "test.apk")
 }
 

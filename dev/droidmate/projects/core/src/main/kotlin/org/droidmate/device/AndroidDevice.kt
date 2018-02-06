@@ -133,12 +133,12 @@ class AndroidDevice constructor(private val serialNumber: String,
 
     override fun perform(action: IAndroidDeviceAction) {
         log.debug("perform($action)")
-        assert(action::class in arrayListOf(ClickGuiAction::class, WaitAction::class,
+        assert(action::class in arrayListOf(ClickGuiAction::class, WaitA::class,
                 AdbClearPackageAction::class, LaunchMainActivityDeviceAction::class))
 
         when (action) {
             is ClickGuiAction -> performGuiClick(action)
-            is WaitAction -> performWaitAction(action)
+            is WaitA -> performWaitAction(action)
             is LaunchMainActivityDeviceAction -> assert(false, { "call .launchMainActivity() directly instead" })
             is AdbClearPackageAction -> assert(false, { "call .clearPackage() directly instead" })
             else -> throw UnexpectedIfElseFallthroughError()
@@ -146,7 +146,7 @@ class AndroidDevice constructor(private val serialNumber: String,
     }
 
     @Throws(DeviceException::class)
-    private fun performWaitAction(action: WaitAction): DeviceResponse {
+    private fun performWaitAction(action: WaitA): DeviceResponse {
         log.debug("perform wait action")
         return issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action.action))
     }

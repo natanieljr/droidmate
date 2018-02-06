@@ -37,12 +37,14 @@
 package org.droidmate.device.datatypes
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.uiautomator_daemon.guimodel.GuiAction
+import org.droidmate.uiautomator_daemon.guimodel.WaitAction
+import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.uiautomator_daemon.guimodel.WidgetSelector
 
-class WaitAction(private val selector: WidgetSelector, private val criteria: String) :
+class WaitA(private val selector: WidgetSelector, private val criteria: String) :
         ExplorationAction(), IAndroidDeviceAction {
 
-    val action: GuiAction = GuiAction("waitFor", this.criteria, this.selector.name)
+    val action: Action = WaitAction(this.criteria,this.selector)
 
     override fun toShortString(): String {
         return "WaitForWidgetAction(selector: ${this.selector.name},criteria:' ${this.criteria}')"

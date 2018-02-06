@@ -20,8 +20,7 @@
 package org.droidmate.device.datatypes
 
 import org.droidmate.exploration.actions.Direction
-import org.droidmate.uiautomator_daemon.guimodel.GuiAction
-import java.awt.Point
+import org.droidmate.uiautomator_daemon.guimodel.*
 
 abstract class AndroidDeviceAction : IAndroidDeviceAction {
 
@@ -33,39 +32,41 @@ abstract class AndroidDeviceAction : IAndroidDeviceAction {
             val points = widget.getSwipePoints(direction, swipe_percentage)
             val startPoint = points[0]
             val targetPoint = points[1]
-            return ClickGuiAction(GuiAction(startPoint.x, startPoint.y, targetPoint.x, targetPoint.y))
+            return ClickGuiAction(SwipeAction(_start=Pair(startPoint.x, startPoint.y), _dst=Pair(targetPoint.x, targetPoint.y)))
         }
 
         @JvmStatic
-        fun newClickGuiDeviceAction(clickedWidget: IWidget, longClick: Boolean = false): ClickGuiAction
-                = newClickGuiDeviceAction(clickedWidget.getClickPoint(), longClick)
+        fun newClickGuiDeviceAction(clickedWidget: IWidget, longClick: Boolean = false): ClickGuiAction{
+            return if(longClick) ClickGuiAction(LongClickAction(clickedWidget.xpath,clickedWidget.resourceId))
+                else ClickGuiAction(ClickAction(clickedWidget.xpath,clickedWidget.resourceId))
+        }
 
-        @JvmStatic
-        fun newClickGuiDeviceAction(p: Point, longClick: Boolean = false): ClickGuiAction
-                = newClickGuiDeviceAction(p.x, p.y, longClick)
-
-        @JvmStatic
-        fun newClickGuiDeviceAction(clickX: Int, clickY: Int, longClick: Boolean = false): ClickGuiAction
-                = ClickGuiAction(GuiAction(clickX, clickY, longClick))
+//        @JvmStatic
+//        fun newClickGuiDeviceAction(p: Point, longClick: Boolean = false): ClickAction
+//                = newClickGuiDeviceAction(p.x, p.y, longClick)
+//
+//        @JvmStatic
+//        fun newClickGuiDeviceAction(clickX: Int, clickY: Int, longClick: Boolean = false): LongClickAction
+//                = ClickAction(Action(clickX, clickY, longClick))
 
         @JvmStatic
         fun newEnterTextDeviceAction(resourceId: String, textToEnter: String): ClickGuiAction
-                = ClickGuiAction(GuiAction.createEnterTextGuiAction(resourceId, textToEnter))
+                = ClickGuiAction(TextAction(xPath = "",resId = resourceId,text = textToEnter))
 
         @JvmStatic
         fun newPressBackDeviceAction(): ClickGuiAction
-                = ClickGuiAction(GuiAction.createPressBackGuiAction())
+                = ClickGuiAction(PressBack())
 
         @JvmStatic
         fun newPressHomeDeviceAction(): ClickGuiAction
-                = ClickGuiAction(GuiAction.createPressHomeGuiAction())
+                = ClickGuiAction(PressHome())
 
         @JvmStatic
         fun newTurnWifiOnDeviceAction(): ClickGuiAction
-                = ClickGuiAction(GuiAction.createTurnWifiOnGuiAction())
+                = ClickGuiAction(EnableWifi())
 
         @JvmStatic
         fun newLaunchAppDeviceAction(iconLabel: String): ClickGuiAction
-                = ClickGuiAction(GuiAction.createLaunchAppGuiAction(iconLabel))
+                = ClickGuiAction(LaunchApp(iconLabel))
     }
 }
