@@ -19,8 +19,6 @@
 
 package org.droidmate.device.datatypes
 
-import org.droidmate.uiautomator_daemon.guimodel.Action
-
-class LaunchMainActivityDeviceAction constructor(val launchableActivityComponentName: String) : Action,AndroidDeviceAction() {
+class LaunchMainActivityDeviceAction constructor(val launchableActivityComponentName: String) : AndroidDeviceAction() {
     override fun toString(): String = "${this.javaClass.simpleName}{$launchableActivityComponentName}"
 }
