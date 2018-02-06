@@ -10,7 +10,7 @@ import org.droidmate.uiautomator_daemon.guimodel.*
 /**
  * Created by J.H. on 05.02.2018.
  */
-internal sealed class  DeviceAction:Action{
+internal sealed class  DeviceAction{
     val defaultTimeout:Long=2000
     abstract fun execute(device: UiDevice, context: Context)
     protected fun waitForChanges(device: UiDevice, actionSuccessful:Boolean){
@@ -35,7 +35,6 @@ internal sealed class  DeviceAction:Action{
                 is PressHome -> DevicePressHome()
                 is EnableWifi -> DeviceEnableWifi()
                 is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
-                else -> throw RuntimeException("Action $a is not implemented in the device driver")
             }
         }
     }
