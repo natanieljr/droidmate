@@ -22,7 +22,7 @@
 
 
 buildscript {
-    ext.kotlin_version = '1.2.20'
+    ext.kotlin_version = '1.2.21'
 
     repositories {
     mavenCentral()
@@ -54,7 +54,7 @@ dependencies {
 
   compile 'com.google.jimfs:jimfs:1.0'
 
-  compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
   compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
   testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
   testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
@@ -67,7 +67,7 @@ dependencies {
   compile project(":projects:lib-common")
 }
 
-configureTest(project, ['**/LibKotlinTestSuite.class'])
+configureTest([project, ['**/LibKotlinTestSuite.class']])
 
 apply from: project(":projects").file("maven.gradle")
 repositories {

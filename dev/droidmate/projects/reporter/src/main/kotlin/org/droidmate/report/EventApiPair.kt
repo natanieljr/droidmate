@@ -20,7 +20,7 @@ package org.droidmate.report
 
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.IWidget
-import org.droidmate.device.datatypes.WaitAction
+import org.droidmate.device.datatypes.WaitA
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import java.time.LocalDateTime
@@ -75,11 +75,12 @@ class EventApiPair(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogc
 
             return when (action) {
                 is ResetAppExplorationAction, is TerminateExplorationAction -> "<reset>"
-                is WidgetExplorationAction, is EnterTextExplorationAction, is WaitAction ->
+                is WidgetExplorationAction, is EnterTextExplorationAction ->
                     if (thread == 1)
                         extractWidgetEventString(action)
                     else
                         "background"
+                is WaitA -> "<wait ${action.toShortString()}>"
                 is PressBackExplorationAction -> "<press back>"
                 else -> throw UnexpectedIfElseFallthroughError("Error on report creation: the $action is not implemented in ${this.javaClass.name}")
             }

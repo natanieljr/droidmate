@@ -21,9 +21,9 @@ package org.droidmate.uiautomator2daemon;
 import android.annotation.TargetApi;
 import android.app.Instrumentation;
 import android.content.Context;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 
+import android.os.RemoteException;
 import android.view.accessibility.AccessibilityWindowInfo;
 
 import android.support.test.InstrumentationRegistry;
@@ -34,7 +34,6 @@ import org.droidmate.uiautomator_daemon.DeviceCommand;
 import org.droidmate.uiautomator_daemon.DeviceResponse;
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException;
 import org.droidmate.uiautomator_daemon.UiautomatorWindowHierarchyDumpDeviceResponse;
-import org.droidmate.uiautomator_daemon.guimodel.GuiAction;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,10 +44,9 @@ import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*;
 class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 {
   private final UiDevice device;
-  private static final String APP_LIST_RES_ID = "com.google.android.googlequicksearchbox:id/apps_list_view";
 
   /**
-   * Decides if {@link #UiAutomator2DaemonDriver} should wait for the window to go to idle state after each click.
+   * Decides if UiAutomator2DaemonDriver should wait for the window to go to idle state after each click.
    */
   private final boolean waitForGuiToStabilize;
   private final int     waitForWindowUpdateTimeout;
@@ -69,7 +67,12 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     
     this.device = UiDevice.getInstance(instr);
     if (device == null) throw new AssertionError();
-    
+    try {
+      device.setOrientationNatural();
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    }
+
     this.waitForGuiToStabilize = waitForGuiToStabilize;
     this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
   }
@@ -90,12 +93,11 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     if (deviceCommand.command.equals(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP))
       return getWindowHierarchyDump();
 
-    if (deviceCommand.command.equals(DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE))
-      return getIsNaturalOrientation();
-
-
     if (deviceCommand.command.equals(DEVICE_COMMAND_PERFORM_ACTION))
       return performAction(deviceCommand);
+
+    if (deviceCommand.command.equals(DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE))
+      return getIsNaturalOrientation();
 
     if (deviceCommand.command.equals(DEVICE_COMMAND_GET_DEVICE_MODEL))
       return getDeviceModel();
@@ -150,172 +152,10 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
   {
     Log.v(uiaDaemon_logcatTag, "Performing GUI action");
 
-    GuiAction action = deviceCommand.guiAction;
+    DeviceAction.Companion.fromAction(deviceCommand.guiAction).execute(device,context);
 
-    if (action.guiActionCommand != null)
-    {
-      if(action.guiActionCommand.equals(guiActionCommand_wait)){
-        Log.d(uiaDaemon_logcatTag, "Wait for element to exist"+action.toString());
-        waitForElementExists(action);
-      }
-      // Explanation for turning off the 'IfCanBeSwitch' inspection:
-      // the ant script used for building this source uses Java 1.5 in which switch over strings is not supported.
-      //noinspection IfCanBeSwitch
-      else if (action.guiActionCommand.equals(guiActionCommand_pressBack))
-      {
-        Log.d(uiaDaemon_logcatTag, "Pressing 'back' button.");
-        this.device.pressBack();
-        waitForGuiToStabilize();
-      } else if (action.guiActionCommand.equals(guiActionCommand_pressHome))
-      {
-        Log.d(uiaDaemon_logcatTag, "Pressing 'home' button.");
-        this.device.pressHome();
-        waitForGuiToStabilize();
-      } else if (action.guiActionCommand.equals(guiActionCommand_turnWifiOn))
-      {
-        turnWifiOn();
-      } else if (action.guiActionCommand.equals(guiActionCommand_launchApp))
-      {
-        launchApp(action.resourceId);
-
-      } else
-      {
-        throw new UiAutomatorDaemonException(String.format("Unrecognized GUI action command: %s",
-          action.guiActionCommand));
-      }
-
-    } else if (deviceCommand.guiAction.resourceId != null)
-    {
-      inputText(deviceCommand);
-    } else if (deviceCommand.guiAction.swipe)
-    {
-    	swipe(deviceCommand);
-    } else
-    {
-      click(deviceCommand);
-    }
-
-    DeviceResponse deviceResponse = new DeviceResponse();
-    deviceResponse.isNaturalOrientation = this.device.isNaturalOrientation();
-
-    return deviceResponse;
+    return new DeviceResponse();
   }
-
-  private void swipe(DeviceCommand deviceCommand){
-      int startSwipeXCoor = deviceCommand.guiAction.startSwipeXCoor;
-      int startSwipeYCoor = deviceCommand.guiAction.startSwipeYCoor;
-      int targetSwipeXCoor = deviceCommand.guiAction.targetSwipeXCoor;
-      int targetSwipeYCoor = deviceCommand.guiAction.targetSwipeYCoor;
-      Log.d(uiaDaemon_logcatTag, String.format("Swiping from (x,y) coordinates (%d,%d) to (%d,%d)", startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor));
-
-      if (startSwipeXCoor < 0 ) throw new AssertionError("assert startSwipeXCoor >= 0");
-      if (startSwipeYCoor < 0 ) throw new AssertionError("assert startSwipeYCoor >= 0");
-      if (targetSwipeXCoor < 0 ) throw new AssertionError("assert targetSwipeXCoor >= 0");
-      if (targetSwipeYCoor < 0 ) throw new AssertionError("assert targetSwipeYCoor >= 0");
-
-      if(startSwipeXCoor > this.device.getDisplayWidth())
-          throw new AssertionError("assert startSwipeXCoor <= device.getDisplayWidth()");
-      if(startSwipeYCoor > this.device.getDisplayHeight())
-          throw new AssertionError("assert startSwipeYCoor <= device.getDisplayHeigth()");
-      if(targetSwipeXCoor > this.device.getDisplayWidth())
-          throw new AssertionError("assert targetSwipeXCoor <= device.getDisplayWidth()");
-      if(targetSwipeYCoor > this.device.getDisplayHeight())
-          throw new AssertionError("assert targetSwipeYCoor <= device.getDisplayHeigth()");
-
-      boolean swipeResult = swipe(startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor);
-
-      if (!swipeResult)
-      {
-          Log.d(uiaDaemon_logcatTag, (String.format("The operation device.swipe(%d, %d, %d, %d) failed (the 'swipe' method returned 'false'). Retrying after 2 seconds.", startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor)));
-
-          try
-          {
-              Thread.sleep(2000);
-          } catch (InterruptedException e)
-          {
-              Log.w(uiaDaemon_logcatTag, "InterruptedException while sleeping before repeating a swipe.");
-          }
-
-          swipeResult = swipe(startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor);
-
-          // WISH what does it actually mean that click failed?
-          if (!swipeResult)
-          {
-              Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().swipe(%d, %d, %d, %d) failed for the second time. Giving up.", startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor)));
-          }
-          else
-              Log.d(uiaDaemon_logcatTag, "The swipe retry attempt succeeded.");
-      }
-  }
-
-  // NEED FIX: In some cases the setting of text does open the keyboard and is hiding some widgets
-  // but these widgets are still in the uiautomator dump. Therefore it may be that droidmate
-  // clicks on the keyboard thinking it clicked one of the widgets below it.
-  // http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
-  // -> It seems there is no reliable way to suppress the keyboard.
-  private void inputText(DeviceCommand deviceCommand){
-    Log.d(uiaDaemon_logcatTag, String.format("Setting text of widget with resource ID %s to %s.", deviceCommand.guiAction.resourceId, deviceCommand.guiAction.textToEnter));
-    try
-    {
-      boolean enterResult = this.device.findObject(
-              new UiSelector().resourceId(deviceCommand.guiAction.resourceId)
-      ).setText(deviceCommand.guiAction.textToEnter);
-
-        if (enterResult)
-          waitForGuiToStabilize();
-
-        if (!enterResult)
-          Log.w(uiaDaemon_logcatTag, String.format(
-            "Failed to enter text in widget with resource id: %s", deviceCommand.guiAction.resourceId));
-
-
-
-    } catch (UiObjectNotFoundException e)
-    {
-      throw new AssertionError("Assertion error:  UIObject not found. ResourceId: " + deviceCommand.guiAction.resourceId);
-    }
-  }
-
-  private void click(DeviceCommand deviceCommand){
-    int clickXCoor = deviceCommand.guiAction.clickXCoor;
-    int clickYCoor = deviceCommand.guiAction.clickYCoor;
-
-      Log.d(uiaDaemon_logcatTag, String.format("Clicking on (x,y) coordinates of (%d,%d)", clickXCoor, clickYCoor));
-
-      if (clickXCoor < 0) throw new AssertionError("assert clickXCoor >= 0");
-      if (clickYCoor < 0) throw new AssertionError("assert clickYCoor >= 0");
-
-      if (clickXCoor > this.device.getDisplayWidth())
-        throw new AssertionError("assert clickXCoor <= device.getDisplayWidth()");
-      if (clickYCoor > this.device.getDisplayHeight())
-        throw new AssertionError("assert clickXCoor <= device.getDisplayHeight()");
-
-      // WISH return clickResult in deviceResponse, so we can try to click again on 'app has stopped' and other dialog boxes. Right now there is just last chance attempt in org.droidmate.exploration.VerifiableDeviceActionsExecutor.executeAndVerify()
-      boolean clickResult;
-      clickResult = click(deviceCommand, clickXCoor, clickYCoor);
-      if (!clickResult)
-      {
-        Log.d(uiaDaemon_logcatTag, (String.format("The operation device.click(%d, %d) failed (the 'click' method returned 'false'). Retrying after 2 seconds.", clickXCoor, clickYCoor)));
-
-        try
-        {
-          Thread.sleep(2000);
-        } catch (InterruptedException e)
-        {
-          Log.w(uiaDaemon_logcatTag, "InterruptedException while sleeping before repeating a click.");
-        }
-
-        clickResult = click(deviceCommand, clickXCoor, clickYCoor);
-
-        // WISH what does it actually mean that click failed?
-        if (!clickResult)
-        {
-          Log.w(uiaDaemon_logcatTag, (String.format("The operation ui.getUiDevice().click(%d, %d) failed for the second time. Giving up.", clickXCoor, clickYCoor)));
-        }
-        else
-          Log.d(uiaDaemon_logcatTag, "The click retry attempt succeeded.");
-      }
-    }
 
   boolean isKeyboardOpened(){
     for(AccessibilityWindowInfo window: InstrumentationRegistry.getInstrumentation().getUiAutomation().getWindows()){
@@ -326,80 +166,10 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     return false;
 }
 
-  /**
-   * Based on: http://stackoverflow.com/a/12420590/986533
-   */
-  private void turnWifiOn()
-  {
-    Log.d(uiaDaemon_logcatTag, "Ensuring WiFi is turned on.");
-    WifiManager wfm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-    
-    boolean wifiEnabled = wfm.setWifiEnabled(true);
 
-    if (!wifiEnabled)
-      Log.w(uiaDaemon_logcatTag, "Failed to ensure WiFi is enabled!");
-  }
 
-  private boolean click(DeviceCommand deviceCommand, int clickXCoor, int clickYCoor)
-  {
-    boolean clickResult;
-    if (deviceCommand.guiAction.longClick)
-      clickResult = this.device.swipe(clickXCoor, clickYCoor, clickXCoor, clickYCoor, 100); // 100 ~ 2s. Empirical evaluation.
-    else
-      clickResult = this.device.click(clickXCoor, clickYCoor);
 
-    if (clickResult)
-      waitForGuiToStabilize();
 
-    return clickResult;
-  }
-
-  private boolean swipe(int startSwipeXCoor, int startSwipeYCoor, int targetSwipeXCoor, int targetSwipeYCoor){
-
-  	boolean swipeResult = this.device.swipe(startSwipeXCoor, startSwipeYCoor, targetSwipeXCoor, targetSwipeYCoor, 35);
-  	if (swipeResult)
-  		waitForGuiToStabilize();
-  	return swipeResult;
-  }
-
-    private void waitForElementExists(GuiAction action){
-        String selector = action.textToEnter;
-        String id = action.resourceId;
-        UiSelector s = null;
-        Log.d(uiaDaemon_logcatTag,"Wait for UI element");
-        switch(selector){
-            case "ResourceId" : s = new UiSelector().resourceId(id);
-                Log.d(uiaDaemon_logcatTag,"wait for ResourceId "+id);
-                break;
-            case "ClassName" : s = new UiSelector().className(id); break;
-            case "ContentDesc":
-                Log.d(uiaDaemon_logcatTag,"wait for ContentDesc "+id);
-                s = new UiSelector().descriptionContains(id); break;
-            case "XPath" :  // FIXME xpath visitor would be safer but for now use quick and dirty string operations
-                // TODO XPath (for this we need to visit the xpath and check for each visitStep if an element with this classname and given parent exists
-                // e.g. step.localName,numberLiteral:num.num().toInt() => 'new UiSelector().className("step.localName").instance(0)'
-                Log.d(uiaDaemon_logcatTag,"wait for XPath "+id);
-                // //android.widget.FrameLayout[1]/android.widget.FrameLayout[1]/android.widget.FrameLayout[1]/android.widget.RelativeLayout[1]/android.webkit.WebView[1]/android.webkit.WebView[1]/android.view.View[1]/android.view.View[2]/android.view.View[4]/android.widget.EditText[1]
-                String[] nodes = id.split("/");
-                for(String n:nodes){
-                    Log.d(uiaDaemon_logcatTag,"iterate: "+n);
-                    if(n.length()<4) continue;  // the initial '//' creates two empty strings which we have to skip
-                    int sIdx = n.indexOf('[');  // FIXME this only works as long as classNames don't contain '[' or ']' characters
-                    int eIdx = n.indexOf(']');
-                    int idx = Integer.parseInt(n.substring(sIdx+1,eIdx))-1;
-                    String className = n.substring(0,sIdx);
-                    if(s==null) s = new UiSelector().className(className).instance(idx);
-                    else s = s.childSelector(new UiSelector().className(className).instance(idx));
-                }
-                break;
-            default:
-                throw new RuntimeException("ERROR in UiAutomator2DaemonDriver invalid condition for wait action");
-        }
-
-        UiObject elem = device.findObject(s);
-        Log.v(uiaDaemon_logcatTag, "wait up to 10s to find widget for "+ (s != null ? s.toString() : "null"));
-        elem.waitForExists(10000);  // waits until the view becomes visible on the display, or until the timeout (ms) has elapsed
-    }
 
     // WISH maybe waitForIdle can be set by http://developer.android.com/tools/help/uiautomator/Configurator.html#setWaitForIdleTimeout%28long%29
 
@@ -432,13 +202,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
    * <br/>
    * -----<br/>
    * </p>
-   * [wfi]: {@link android.support.test.uiautomator.UiDevice#waitForIdle()}<br/>
-   * [wfi2]: {@code android.support.test.uiautomator.UiAutomatorBridge#waitForIdle(long)}<br/>
-   * [wfi3]: {@link android.app.UiAutomation#waitForIdle(long, long)}<br/>
-   * [qti]: {@code android.support.test.uiautomator.UiAutomatorBridge#QUIET_TIME_TO_BE_CONSIDERD_IDLE_STATE}<br/>
-   * [wfwu]: {@link android.support.test.uiautomator.UiDevice#waitForWindowUpdate(String, long)}<br/>
-   * [wue]: {@link android.view.accessibility.AccessibilityEvent#TYPE_WINDOW_CONTENT_CHANGED}<br/>
-   * [clck]: {@link android.support.test.uiautomator.UiDevice#click(int, int)}<br/>
    */
   private void waitForGuiToStabilize()
   {
@@ -543,7 +306,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     String windowHierarchyDump;
     try
     {
-      windowHierarchyDump = FileUtils.readFileToString(windowDumpFile);
+      windowHierarchyDump = FileUtils.readFileToString(windowDumpFile,"UTF-8");
     } catch (IOException e)
     {
       throw new UiAutomatorDaemonException(e);
@@ -568,7 +331,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
    * There is a bug in com.android.uiautomator.core.UiDevice#dumpWindowHierarchy(java.lang.String)
    * that sometimes manifest itself with an Exception. This method  protects against it, making a couple of
    * attempts at getting the dump and if all of them fail, throwing an
-   * {@link UiAutomatorDaemonException}.
+   * UiAutomatorDaemonException.
    *
    * </p><p>
    * Example stack trace of possible NPE:<br/>
@@ -733,97 +496,5 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     return file;
   }
 
-  //region Launching app
-  private void launchApp(String appLaunchIconText) throws UiAutomatorDaemonException
-  {
-    Log.d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text "+appLaunchIconText);
 
-    boolean clickResult;
-    try
-    {
-      UiObject app = navigateToAppLaunchIcon(appLaunchIconText);
-      Log.v(uiaDaemon_logcatTag, "Pressing the " + appLaunchIconText + " app icon to launch it.");
-      clickResult = app.clickAndWaitForNewWindow();
-
-    } catch (UiObjectNotFoundException e)
-    {
-      Log.w(uiaDaemon_logcatTag,
-        String.format("Attempt to navigate to and click on the icon labeled '%s' to launch the app threw an exception: %s: %s",
-          appLaunchIconText, e.getClass().getSimpleName(), e.getLocalizedMessage()));
-      Log.d(uiaDaemon_logcatTag, "Pressing 'home' button after failed app launch.");
-      this.device.pressHome();
-      waitForGuiToStabilize();
-      return;
-    }
-
-    if (clickResult)
-        waitForGuiToStabilize();
-    else
-      Log.w(uiaDaemon_logcatTag, (String.format("A click on the icon labeled '%s' to launch the app returned false", appLaunchIconText)));
-  }
-
-
-  private UiObject navigateToAppLaunchIcon(String appLaunchIconName) throws UiObjectNotFoundException {
-    // Simulate a short press on the HOME button.
-    this.device.pressHome();
-
-    // We’re now in the home screen. Next, we want to simulate
-    // a user bringing up the All Apps screen.
-    // If you use the uiautomatorviewer tool to capture a snapshot
-    // of the Home screen, notice that the All Apps button’s
-    // content-description property has the value "Apps".  We can
-    // use this property to create a UiSelector to find the button.
-    UiObject allAppsButton = this.device.findObject(new UiSelector().description("Apps"));
-
-    // Simulate a click to bring up the All Apps screen.
-    allAppsButton.clickAndWaitForNewWindow();
-
-
-    // In the All Apps screen, the app launch icon is located in
-    // the Apps tab. To simulate the user bringing up the Apps tab,
-    // we create a UiSelector to find a tab with the text
-    // label "Apps".
-    try {
-      UiObject appsTab = this.device.findObject(new UiSelector().text("Apps"));
-
-      // Simulate a click to enter the Apps tab.
-      appsTab.click();
-    } catch (UiObjectNotFoundException e) {
-      Log.w(uiaDaemon_logcatTag, "This device does not have an 'Apps' and a 'Widgets' tab, skipping.");
-    }
-
-    // Next, in the apps tabs, we can simulate a user swiping until
-    // they come to the app launch icon. Since the container view
-    // is scrollable, we can use a UiScrollable object.
-    UiScrollable appViews;
-
-    try {
-      Log.i(uiaDaemon_logcatTag, "Attempting to locate app list by resourceId.");
-      appViews = new UiScrollable(new UiSelector().resourceId(APP_LIST_RES_ID));
-
-      // Set the swiping mode to horizontal (the default is vertical)
-      appViews.setAsHorizontalList();
-
-      // Create a UiSelector to find the app launch icon and simulate
-      // a user click to launch the app.
-      return appViews.getChildByText(
-              new UiSelector().className(android.widget.TextView.class.getName()),
-              appLaunchIconName);
-    }
-    catch (UiObjectNotFoundException e){
-      Log.i(uiaDaemon_logcatTag, "It was not possible to locate app list by resourceId, using heuristic.");
-      appViews = new UiScrollable(new UiSelector().scrollable(true));
-    }
-
-    // Set the swiping mode to horizontal (the default is vertical)
-    appViews.setAsHorizontalList();
-
-    // Create a UiSelector to find the app launch icon and simulate
-    // a user click to launch the app.
-    return appViews.getChildByText(
-      new UiSelector().className(android.widget.TextView.class.getName()),
-      appLaunchIconName);
-  }
-
-  //endregion
 }

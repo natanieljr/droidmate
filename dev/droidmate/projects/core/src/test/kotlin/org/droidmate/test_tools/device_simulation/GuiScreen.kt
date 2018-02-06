@@ -29,7 +29,11 @@ import org.droidmate.misc.MonitorConstants
 import org.droidmate.test_tools.device.datatypes.GuiStateTestHelper
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
+import org.droidmate.test_tools.device_simulation.GuiScreen.Companion.reservedIds
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
+import org.droidmate.uiautomator_daemon.guimodel.PressBack
+import org.droidmate.uiautomator_daemon.guimodel.PressHome
 
 /**
  * <p>
@@ -105,21 +109,20 @@ class GuiScreen constructor(private val internalId: String,
   private fun internalPerform(click: ClickGuiAction): IScreenTransitionResult {
       val guiAction = click.guiAction
 
-      return if (guiAction.guiActionCommand != null) {
-          when (guiAction.guiActionCommand) {
-              UiautomatorDaemonConstants.guiActionCommand_pressHome -> ScreenTransitionResult(home!!, ArrayList())
-              UiautomatorDaemonConstants.guiActionCommand_turnWifiOn -> {
+      return when (guiAction) {
+              is PressHome -> ScreenTransitionResult(home!!, ArrayList())
+              is EnableWifi -> {
                   assert(this == home)
                   ScreenTransitionResult(this, ArrayList())
               }
-              UiautomatorDaemonConstants.guiActionCommand_pressBack -> ScreenTransitionResult(this, ArrayList())
+              is PressBack -> ScreenTransitionResult(this, ArrayList())
               else -> throw UnexpectedIfElseFallthroughError()
           }
-      } else {
-
-          val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
-          ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
-      }
+//      } else {
+//
+//          val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
+//          ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
+//      }
   }
 
   //endregion internalPerform multimethod

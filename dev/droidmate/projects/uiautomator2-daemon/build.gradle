@@ -17,25 +17,28 @@
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 apply plugin: 'project-report'
 
 buildscript {
-    repositories {
+  ext.kotlin_version = '1.2.21'
+  repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
+      classpath 'com.android.tools.build:gradle:3.0.1'
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.1"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "org.droidmate.uiautomator2daemon.UiAutomator2Daemon"
         minSdkVersion 23
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
 
@@ -63,16 +66,17 @@ repositories {
 }
 
 dependencies {
-    androidTestCompile project(':uiautomator-daemon-lib')
+  androidTestImplementation project(':uiautomator-daemon-lib')
 
-    androidTestCompile 'commons-io:commons-io:2.4'
-    androidTestCompile 'com.google.guava:guava:19.0'
+    androidTestImplementation 'commons-io:commons-io:2.6'
+//    androidTestCompile 'com.google.guava:guava:19.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.
-    androidTestCompile 'com.android.support:support-annotations:23.3.0'
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
+  androidTestImplementation 'com.android.support:support-annotations:27.0.2'
+  androidTestImplementation 'com.android.support.test:runner:1.0.1'
+  androidTestImplementation 'com.android.support.test:rules:1.0.1'
     // UiAutomator Testing
-    androidTestCompile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
-    androidTestCompile 'org.hamcrest:hamcrest-integration:1.3'
+  androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
+  androidTestImplementation 'org.hamcrest:hamcrest-integration:1.3'
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
