@@ -204,6 +204,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 /* exceptionsSpec */ ArrayList(), /* unreliableSimulation */ true)
         val deviceToolsMock = DeviceToolsMock(cfg, AaptWrapperStub(apks), simulator)
 
+        val handler = ExceptionHandler()
         // Act
         val exitStatus = DroidmateFrontend.main(
                 cfg.args,
@@ -212,7 +213,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                             ExploreCommand.build(cfg, { ExplorationStrategy.build(cfg) }, timeGenerator, deviceToolsMock)
                 },
                 mockedFs.fs,
-                ExceptionHandler()
+                handler
         )
 
         assert(exitStatus == 0)

@@ -31,6 +31,7 @@ import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
 import org.droidmate.test_tools.device_simulation.GuiScreen.Companion.reservedIds
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
 import org.droidmate.uiautomator_daemon.guimodel.PressBack
 import org.droidmate.uiautomator_daemon.guimodel.PressHome
@@ -110,19 +111,18 @@ class GuiScreen constructor(private val internalId: String,
       val guiAction = click.guiAction
 
       return when (guiAction) {
-              is PressHome -> ScreenTransitionResult(home!!, ArrayList())
-              is EnableWifi -> {
-                  assert(this == home)
-                  ScreenTransitionResult(this, ArrayList())
-              }
-              is PressBack -> ScreenTransitionResult(this, ArrayList())
-              else -> throw UnexpectedIfElseFallthroughError()
+          is PressHome -> ScreenTransitionResult(home!!, ArrayList())
+          is EnableWifi -> {
+              assert(this == home)
+              ScreenTransitionResult(this, ArrayList())
           }
-//      } else {
-//
-//          val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
-//          ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
-//      }
+          is PressBack -> ScreenTransitionResult(this, ArrayList())
+          is ClickAction -> {
+              val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
+              ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
+          }
+          else -> throw UnexpectedIfElseFallthroughError("Found action $guiAction")
+      }
   }
 
   //endregion internalPerform multimethod

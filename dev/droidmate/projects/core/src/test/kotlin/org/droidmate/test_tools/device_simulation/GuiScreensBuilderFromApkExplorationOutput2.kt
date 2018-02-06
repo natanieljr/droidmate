@@ -97,7 +97,7 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IApkExplor
         assert(i > 0)
         val sourceScreen = guiScreens.single { output.guiSnapshots[i - 1].id == it.getId() }
         val targetScreen = guiScreens.single { output.guiSnapshots[i].id == it.getId() }
-        sourceScreen.addWidgetTransition(widget.id, targetScreen, /* ignoreDuplicates */ true)
+        sourceScreen.addWidgetTransition(widget.id, targetScreen, true)
     }
 }
 

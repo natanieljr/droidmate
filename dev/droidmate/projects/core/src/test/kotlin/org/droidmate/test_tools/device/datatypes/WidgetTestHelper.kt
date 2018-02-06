@@ -192,6 +192,8 @@ class WidgetTestHelper {
         @JvmStatic
         private fun newWidget(args: MutableMap<String, Any>): IWidget {
             val bounds = if (args["bounds"] != null) args["bounds"] as List<Int> else arrayListOf(10, 20, 101, 202)
+            if (args["className"] == null)
+                args["className"] = androidWidgetClassesForTesting[1]
 
             assert(bounds.size == 4)
             assert(bounds[0] < bounds[2])
@@ -201,6 +203,7 @@ class WidgetTestHelper {
             val lowY = bounds[1]
             val highX = bounds[2]
             val highY = bounds[3]
+            val xpath = "//${args["className"] as String? ?: "fix_cls"}[${(args["index"] as Int? ?: 0) + 1}]"
 
             return Widget(args["id"] as String? ?: "",
                     args["index"] as Int? ?: 0,
@@ -209,7 +212,7 @@ class WidgetTestHelper {
                     args["className"] as String? ?: "fix_cls",
                     args["packageName"] as String? ?: "fix_pkg",
                     args["contentDesc"] as String? ?: "fix_contDesc",
-                    args["xpath"] as String? ?: "",
+                    args["xpath"] as String? ?: xpath,
                     args["checkable"] as Boolean? ?: false,
                     args["checked"] as Boolean? ?: false,
                     args["clickable"] as Boolean? ?: false,
