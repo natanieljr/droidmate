@@ -87,6 +87,12 @@ class DroidmateFrontend {
 
                 val cfg = receivedCfg ?: ConfigurationBuilder().build(args, fs)
 
+                if (!cfg.installApk)
+                    log.warn("DroidMate will not reinstall the target APK(s). If the APK(s) are not previously installed on the device the exploration will fail.")
+
+                if (!cfg.installAux)
+                    log.warn("DroidMate will not reinstall its auxiliary components (UIAutomator and Monitor). If the they are not previously installed on the device the exploration will fail.")
+
                 val command = commandProvider?.provide(cfg) ?: determineAndBuildCommand(cfg)
 
                 log.info("Successfully instantiated ${command.javaClass.simpleName}. Welcome to DroidMate. Lie back, relax and enjoy.")
