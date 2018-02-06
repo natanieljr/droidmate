@@ -40,11 +40,15 @@ import java.util.*
 class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2 {
     companion object {
         private val log = LoggerFactory.getLogger(Storage2::class.java)
-        private val serializationConfig = FSTConfiguration.createJsonConfiguration(true, false)
-                .apply {
-                    registerSerializer(URI::class.java, FSTURISerializer(), false)
-                    registerSerializer(LocalDateTime::class.java, FSTLocalDateTimeSerializer(), false)
-                }
+
+        val serializationConfig: FSTConfiguration
+            get() {
+                return FSTConfiguration.createJsonConfiguration(true, false)
+                        .apply {
+                            registerSerializer(URI::class.java, FSTURISerializer(), false)
+                            registerSerializer(LocalDateTime::class.java, FSTLocalDateTimeSerializer(), false)
+                        }
+            }
         private val serializedFileTimestampPattern = DateTimeFormatter.ofPattern("yyyy MMM dd HHmm")
         val ser2FileExt = ".ser2"
     }
