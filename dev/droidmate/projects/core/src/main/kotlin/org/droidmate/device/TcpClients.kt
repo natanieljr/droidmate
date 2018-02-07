@@ -29,8 +29,9 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
                              uiautomatorDaemonSocketTimeout: Int,
                              uiautomatorDaemonTcpPort: Int,
                              uiautomatorDaemonServerStartTimeout: Int,
-                             uiautomatorDaemonServerStartQueryDelay: Int) : ITcpClients {
-    private val monitorsClient: IMonitorsClient = MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper)
+                             uiautomatorDaemonServerStartQueryDelay: Int,
+                             portOffset: Int) : ITcpClients {
+    private val monitorsClient: IMonitorsClient = MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, portOffset)
     private val uiautomatorClient: IUiautomatorDaemonClient = UiautomatorDaemonClient(
             adbWrapper,
             deviceSerialNumber,
@@ -49,7 +50,7 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
 
     override fun getLogs(): List<List<String>> = monitorsClient.getLogs()
 
-    override fun getPorts(): List<Int> = monitorsClient.getPorts()
+    override fun getPort(): Int = monitorsClient.getPort()
 
     override fun getUiaDaemonThreadIsAlive(): Boolean = uiautomatorClient.getUiaDaemonThreadIsAlive()
 

@@ -97,7 +97,8 @@ class AndroidDevice constructor(private val serialNumber: String,
             cfg.uiautomatorDaemonSocketTimeout,
             cfg.uiautomatorDaemonTcpPort,
             cfg.uiautomatorDaemonServerStartTimeout,
-            cfg.uiautomatorDaemonServerStartQueryDelay)
+            cfg.uiautomatorDaemonServerStartQueryDelay,
+            cfg.port)
     private lateinit var deviceModel: IDeviceModel
 
     @Throws(DeviceException::class)
@@ -400,6 +401,7 @@ class AndroidDevice constructor(private val serialNumber: String,
         } else throw UnexpectedIfElseFallthroughError()
 
         this.pushFile(this.cfg.apiPoliciesFile, BuildConstants.api_policies_file_name)
+        this.pushFile(this.cfg.portFile, BuildConstants.port_file_name)
     }
 
     override fun reconnectAdb() {

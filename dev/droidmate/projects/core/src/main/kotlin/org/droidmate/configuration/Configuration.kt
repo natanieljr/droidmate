@@ -357,6 +357,10 @@ class Configuration(val args: Array<String>) : IConfiguration {
     "Wait for a device to be connected to the PC instead of cancelling the exploration.")
     public var waitForDevice = false
 
+    val basePort = 59701
+
+    public val port = basePort + deviceIndex
+
     //endregion
 
     //region Values set by ConfigurationBuilder
@@ -393,6 +397,11 @@ class Configuration(val args: Array<String>) : IConfiguration {
      * to define which APIs will be accessible
      */
     public lateinit var apiPoliciesFile: Path
+
+    /**
+     * File with the port for the monitor connection. This file will be deployed be on the android (virtual) device.
+     */
+    public lateinit var portFile: Path
 
     //endregion
 }

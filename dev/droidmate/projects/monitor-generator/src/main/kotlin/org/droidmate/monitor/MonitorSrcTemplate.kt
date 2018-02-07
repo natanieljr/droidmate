@@ -21,7 +21,6 @@ package org.droidmate.monitor
 
 import org.droidmate.misc.BuildConstants
 import java.nio.file.Files
-
 import java.nio.file.Path
 
 class MonitorSrcTemplate constructor(monitorSrcTemplatePath: Path, androidApi: AndroidAPI) {
@@ -72,9 +71,12 @@ class MonitorSrcTemplate constructor(monitorSrcTemplatePath: Path, androidApi: A
         return monitorSrcTemplate.split(System.lineSeparator()).map {
             if (it.contains(injectionPoints_methodTargets))
                 genMethodsTargets
-            else
+            else {
                 it.replace("#POLICIES_FILE_PATH",
                         BuildConstants.AVD_dir_for_temp_files + BuildConstants.api_policies_file_name)
+                it.replace("#PORT_FILE_PATH",
+                        BuildConstants.AVD_dir_for_temp_files + BuildConstants.port_file_name)
+            }
         }
                 .joinToString(System.lineSeparator())
     }

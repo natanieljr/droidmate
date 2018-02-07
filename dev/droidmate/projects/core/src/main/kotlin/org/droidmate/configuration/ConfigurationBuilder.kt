@@ -22,16 +22,14 @@ package org.droidmate.configuration
 import ch.qos.logback.classic.Level
 import com.beust.jcommander.JCommander
 import com.beust.jcommander.ParameterException
-import com.konradjamrozik.Resource
-import com.konradjamrozik.ResourcePath
-import com.konradjamrozik.createDirIfNotExists
-import com.konradjamrozik.toList
+import com.konradjamrozik.*
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.apache.commons.lang3.builder.StandardToStringStyle
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.BuildConstants
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
 
 import java.lang.management.ManagementFactory
 import java.nio.file.FileSystem
@@ -191,6 +189,12 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
             cfg.apiPoliciesFile = getResourcePath(cfg, fs, BuildConstants.api_policies_file_name)
             log.info("Using ${BuildConstants.api_policies_file_name} located at " + cfg.apiPoliciesFile.toAbsolutePath().toString())
+
+            val portFile = File.createTempFile(BuildConstants.port_file_name, ".tmp")
+            portFile.writeText(Integer.toString(cfg.port))
+            portFile.deleteOnExit()
+            cfg.portFile = portFile.toPath()
+            log.info("Using ${BuildConstants.port_file_name} located at " + cfg.portFile.toAbsolutePath().toString())
 
             cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir).toAbsolutePath()
             cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubDir).toAbsolutePath()
