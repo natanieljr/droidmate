@@ -26,10 +26,12 @@ buildscript {
     mavenLocal()
     mavenCentral()
     maven { url "https://jitpack.io" }
+    jcenter()
   }
 
   dependencies {
     classpath "com.github.natanieljr:konrads_utilities:$utilities_version"
+    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
   }
 }
 

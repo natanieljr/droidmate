@@ -27,6 +27,12 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 apply plugin: 'application'
 mainClassName = "org.droidmate.frontend.DroidmateFrontend"
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
+shadowJar {
+    baseName = 'shadow'
+}
+
 (tasks.run as JavaExec).configure {
 
   assert sourceSets.main.runtimeClasspath == classpath
