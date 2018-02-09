@@ -59,6 +59,7 @@ class EventApiPair(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogc
                 }
                 checkNotNull(w)
                 val widgetString =
+                            "xPath:${w.xpath}:" +
                         if (w.resourceId.isNotEmpty())
                             "[res:${w.getStrippedResourceId()}]"
                         else if (w.contentDesc.isNotEmpty())
