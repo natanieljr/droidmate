@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.wifi.WifiManager
 import android.support.test.uiautomator.*
 import android.util.Log
+import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
 
@@ -12,8 +13,9 @@ import org.droidmate.uiautomator_daemon.guimodel.*
  */
 internal sealed class  DeviceAction{
     val defaultTimeout:Long=2000
+    @Throws(UiAutomatorDaemonException::class)
     abstract fun execute(device: UiDevice, context: Context)
-    protected fun waitForChanges(device: UiDevice, actionSuccessful:Boolean){
+    protected fun waitForChanges(device: UiDevice, actionSuccessful:Boolean = true){
         if(actionSuccessful){
             device.waitForWindowUpdate(null,defaultTimeout)
             device.waitForIdle(defaultTimeout)
@@ -38,41 +40,6 @@ internal sealed class  DeviceAction{
             }
         }
     }
-}
-
-private sealed class DeviceObjectAction:DeviceAction(){
-    lateinit var bySel:BySelector   // selector used for wait conditions
-    protected fun targetSelector(xPath: String,resId: String=""): UiSelector {
-        if(resId.isNotEmpty()){
-            bySel = By.res(resId)
-            return findByResId(resId)
-        }
-        return findByXPath(xPath)
-    }
-    // FIXME xpath visitor would be safer but for now use quick and dirty string operations
-    // XPath (for this we need to visit the xpath and check for each visitStep if an element with this classname and given parent exists
-    protected fun findByXPath(xPath: String): UiSelector {
-        var s:UiSelector? = null
-        val nodes = xPath.split("/".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
-        for (n in nodes) {
-            if (n.length < 4) continue  // the initial '//' creates two empty strings which we have to skip
-            val sIdx = n.indexOf('[')  // REMARK this only works as long as classNames don't contain '[' or ']' characters
-            val eIdx = n.indexOf(']')
-            val idx = Integer.parseInt(n.substring(sIdx + 1, eIdx)) - 1
-            val className = n.substring(0, sIdx)
-            if (s == null) {
-                bySel = By.clazz(className)
-                s = UiSelector().className(className).instance(idx)
-            }else {
-                bySel.hasChild(By.clazz(className))
-                s = s.childSelector(UiSelector().className(className).instance(idx))
-            }
-        }
-        return s!!
-    }
-    protected fun findByResId(resourceId:String): UiSelector = UiSelector().resourceId(resourceId)
-    protected fun findByClassName(id:String): UiSelector = UiSelector().className(id)
-    protected fun findByDescription(id:String): UiSelector = UiSelector().descriptionContains(id)
 }
 
 private class DevicePressBack:DeviceAction() {
@@ -126,7 +93,6 @@ private data class DeviceLaunchApp(val appLaunchIconName: String):DeviceAction()
             Log.w(uiaDaemon_logcatTag, "A click on the icon labeled '$appLaunchIconName' to launch the app returned false")
     }
 
-    @Throws(UiObjectNotFoundException::class)
     private fun navigateToAppLaunchIcon(appLaunchIconName: String,device: UiDevice): UiObject {
         // Simulate a short press on the HOME button.
         device.pressHome()
@@ -147,14 +113,11 @@ private data class DeviceLaunchApp(val appLaunchIconName: String):DeviceAction()
         // the Apps tab. To simulate the user bringing up the Apps tab,
         // we create a UiSelector to find a tab with the text
         // label "Apps".
-        try {
-            val appsTab = device.findObject(UiSelector().text("Apps"))
-
+        val appsTab = device.findObject(UiSelector().text("Apps"))
+        if(!appsTab.exists()) Log.w (uiaDaemon_logcatTag, "This device does not have an 'Apps' and a 'Widgets' tab, skipping.")
             // Simulate a click to enter the Apps tab.
-            appsTab.click()
-        } catch (e: UiObjectNotFoundException) {
-            Log.w(uiaDaemon_logcatTag, "This device does not have an 'Apps' and a 'Widgets' tab, skipping.")
-        }
+        else    appsTab.click()
+
 
         // Next, in the apps tabs, we can simulate a user swiping until
         // they come to the app launch icon. Since the container view
@@ -207,65 +170,47 @@ private data class DeviceSwipeAction(val start:Pair<Int,Int>, val dst:Pair<Int,I
     }
 }
 
-private data class DeviceWaitAction(private val id:String, private val criteria:WidgetSelector):DeviceObjectAction() {
+private data class DeviceWaitAction(private val id:String, private val criteria:WidgetSelector):DeviceAction() {
     override fun execute(device: UiDevice, context: Context) {
         Log.d(uiaDaemon_logcatTag, "Wait for element to exist"+this.toString())
-        val target:UiObject = when (criteria) {
-            WidgetSelector.ResourceId -> findByResId(id)
-            WidgetSelector.ClassName -> findByClassName(id)
-            WidgetSelector.ContentDesc -> findByDescription(id)
-            WidgetSelector.XPath  -> findByXPath(id)
-        }.let{device.findObject(it)}
-
-        Log.v(uiaDaemon_logcatTag, "wait up to 10s to find widget $target")
-        target.waitForExists(10000)  // waits until the view becomes visible on the display, or until the timeout (ms) has elapsed
+        when (criteria) {
+            WidgetSelector.ResourceId -> findByResId
+            WidgetSelector.ClassName -> findByClassName
+            WidgetSelector.ContentDesc -> findByDescription
+            WidgetSelector.XPath  -> findByXPath
+        }.let{ executeAction(device,{o->o.waitForExists(10000)},id,it)} // wait up to 10 seconds
     }
 }
 
-private data class DeviceClickAction(val xPath: String, val resId:String):DeviceObjectAction() {
+private data class DeviceClickAction(val xPath: String, val resId:String):DeviceAction(){
     override fun execute(device: UiDevice, context: Context) {
-        val target = device.findObject(targetSelector(xPath,resId))
-        var success = target.click()
-        if(!success){
-            Log.e(uiaDaemon_logcatTag,"The operation click for widget with appLaunchIconName=$resId xPath=$xPath failed (the 'click' method returned 'false'). Try to wait for exist for up to 2 seconds")
-            target.waitForExists(1000)
-            success = target.click()
-            Log.i(uiaDaemon_logcatTag, "Second Try returned $success")
+        if(!executeAction(device,{o->o.click()}, xPath)){
+            executeAction2(device,{o->o.click()},resId)
         }
-        waitForChanges(device,success)
+        waitForChanges(device)
     }
 }
 
-private data class DeviceLongClickAction(val xPath: String, val resId:String):DeviceObjectAction() {
+private data class DeviceLongClickAction(val xPath: String, val resId:String):DeviceAction() {
     override fun execute(device: UiDevice, context: Context) {
-        val target = device.findObject(targetSelector(xPath,resId))
-        var success = target.longClick()
-        if(!success){
-            Log.e(uiaDaemon_logcatTag,"The operation long-click for widget with appLaunchIconName=$resId xPath=$xPath failed (the 'longClick' method returned 'false'). Try to wait for exist for up to 2 seconds")
-            target.waitForExists(1000)
-            success = target.longClick()
-            Log.i(uiaDaemon_logcatTag, "Second Try returned $success")
+        if(!executeAction(device,{o->o.longClick()}, xPath)){
+            executeAction2(device,{o->o.longClick()},resId)
         }
-        waitForChanges(device,success)
+        waitForChanges(device)
     }
 }
 
-private data class DeviceTextAction(val xPath: String, val resId:String, val text:String):DeviceObjectAction() {
+private data class DeviceTextAction(val xPath: String, val resId:String, val text:String):DeviceAction() {
     // TODO check if this is still an issue at all
     // NEED FIX: In some cases the setting of text does open the keyboard and is hiding some widgets
-    // but these widgets are still in the uiautomator dump. Therefore it may be that droidmate
+    // but these widgets are still in the uiautomator dump. Therefore it may be that DroidMate
     // clicks on the keyboard thinking it clicked one of the widgets below it.
     // http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
     // -> It seems there is no reliable way to suppress the keyboard.
     override fun execute(device: UiDevice, context: Context) {
-        try {
-            device.findObject(targetSelector(xPath,resId)).also { elem ->
-                val success = elem.setText(text)
-                if (success) device.findObject(bySel).wait(Until.textContains(text), defaultTimeout)
-                else Log.w(uiaDaemon_logcatTag, "Failed to enter text in widget with resource id: $resId, xPath: $xPath")
-            }
-        } catch (e: UiObjectNotFoundException) {
-            throw AssertionError("Assertion error:  UIObject not found. ResourceId: $resId, xPath: $xPath")
+        if(!executeAction(device,{o->o.setText(text)}, xPath)){
+            executeAction2(device,{o->o.setText(text)},resId)
         }
+        device.findObject(findByXPath(xPath).text(text)).waitForExists(defaultTimeout)  // wait until the text is set
     }
 }
