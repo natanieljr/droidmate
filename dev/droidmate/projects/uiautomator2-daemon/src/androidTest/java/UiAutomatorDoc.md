@@ -28,6 +28,8 @@
     ```
   * supports selection by index
   * `parent_UiSelector.childSelector(<child UiSelector))` can be used to traverse the UI tree, i.e. to retrieve the child node (fulfilling the child selector criteria) from the selected parent node 
+  * `d(**A).from_parent(**B)` means from A's parent find its child B
+  * `d(**A).child_selector(**B)` means from A find its child B
 
 ## UiObject2 ##
   * BySelector does not support selection via index

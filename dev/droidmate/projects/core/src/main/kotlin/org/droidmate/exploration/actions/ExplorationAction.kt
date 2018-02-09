@@ -50,8 +50,8 @@ abstract class ExplorationAction : Serializable {
                 = WidgetExplorationAction(widget, longClick).apply { runtimePermission = true }
 
         @JvmStatic
-        fun newEnterTextExplorationAction(textToEnter: String, resId: String): EnterTextExplorationAction
-                = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId })
+        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String=""): EnterTextExplorationAction
+                = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath })
 
         @JvmStatic
         fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget): EnterTextExplorationAction

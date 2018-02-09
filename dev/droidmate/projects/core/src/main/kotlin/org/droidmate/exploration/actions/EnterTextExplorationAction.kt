@@ -29,7 +29,7 @@ open class EnterTextExplorationAction constructor(val textToEnter: String,
 
     override fun toShortString(): String {
         val paddedTextToEnter = textToEnter.padEnd(22, ' ')
-        return "EnterTxt: ${paddedTextToEnter} / resId: ${widget.resourceId}"
+        return "EnterTxt: ${paddedTextToEnter} / resId: ${widget.resourceId} / xPath: ${widget.xpath}"
     }
 
     override fun toTabulatedString(): String {

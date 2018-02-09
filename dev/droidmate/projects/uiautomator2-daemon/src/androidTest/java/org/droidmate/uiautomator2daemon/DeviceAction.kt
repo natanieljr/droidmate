@@ -174,43 +174,51 @@ private data class DeviceWaitAction(private val id:String, private val criteria:
     override fun execute(device: UiDevice, context: Context) {
         Log.d(uiaDaemon_logcatTag, "Wait for element to exist"+this.toString())
         when (criteria) {
-            WidgetSelector.ResourceId -> findByResId
-            WidgetSelector.ClassName -> findByClassName
-            WidgetSelector.ContentDesc -> findByDescription
-            WidgetSelector.XPath  -> findByXPath
-        }.let{ executeAction(device,{o->o.waitForExists(10000)},id,it)} // wait up to 10 seconds
+            WidgetSelector.ResourceId -> findByResId(id)
+            WidgetSelector.ClassName -> findByClassName(id)
+            WidgetSelector.ContentDesc -> findByDescription(id)
+            WidgetSelector.XPath  -> findByXPath(id)
+        }.let{ device.findObject(it).waitForExists(10000)} // wait up to 10 seconds
     }
 }
 
-private data class DeviceClickAction(val xPath: String, val resId:String):DeviceAction(){
-    override fun execute(device: UiDevice, context: Context) {
-        if(!executeAction(device,{o->o.click()}, xPath)){
-            executeAction2(device,{o->o.click()},resId)
+private sealed class DeviceObjectAction:DeviceAction(){
+    abstract val xPath:String
+    abstract val resId:String
+
+    protected fun executeAction(device: UiDevice,action:(UiObject)->Boolean,action2:(UiObject2)->Unit){
+        Log.d(uiaDaemon_logcatTag,"execute action on target element with resId=$resId xPath=$xPath")
+        val success = if(xPath.isNotEmpty()) executeAction(device,action,xPath) else executeAction(device,action,resId,findByResId)
+        if(!success){
+            executeAction2(device,action2,resId)
         }
+    }
+}
+
+private data class DeviceClickAction(override val xPath: String, override val resId:String):DeviceObjectAction(){
+    override fun execute(device: UiDevice, context: Context) {
+        executeAction(device,{o->o.click()},{o->o.click()})
         waitForChanges(device)
     }
 }
 
-private data class DeviceLongClickAction(val xPath: String, val resId:String):DeviceAction() {
+private data class DeviceLongClickAction(override val xPath: String, override val resId:String):DeviceObjectAction(){
     override fun execute(device: UiDevice, context: Context) {
-        if(!executeAction(device,{o->o.longClick()}, xPath)){
-            executeAction2(device,{o->o.longClick()},resId)
-        }
+        executeAction(device,{o->o.longClick()},{o->o.longClick()})
         waitForChanges(device)
     }
 }
 
-private data class DeviceTextAction(val xPath: String, val resId:String, val text:String):DeviceAction() {
-    // TODO check if this is still an issue at all
-    // NEED FIX: In some cases the setting of text does open the keyboard and is hiding some widgets
-    // but these widgets are still in the uiautomator dump. Therefore it may be that DroidMate
-    // clicks on the keyboard thinking it clicked one of the widgets below it.
-    // http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
-    // -> It seems there is no reliable way to suppress the keyboard.
+// TODO check if this is still an issue at all
+// NEED FIX: In some cases the setting of text does open the keyboard and is hiding some widgets
+// but these widgets are still in the uiautomator dump. Therefore it may be that DroidMate
+// clicks on the keyboard thinking it clicked one of the widgets below it.
+// http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
+// -> It seems there is no reliable way to suppress the keyboard.
+private data class DeviceTextAction(override val xPath: String, override val resId:String, val text:String):DeviceObjectAction(){
+    val selector by lazy { if(xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
     override fun execute(device: UiDevice, context: Context) {
-        if(!executeAction(device,{o->o.setText(text)}, xPath)){
-            executeAction2(device,{o->o.setText(text)},resId)
-        }
-        device.findObject(findByXPath(xPath).text(text)).waitForExists(defaultTimeout)  // wait until the text is set
+        executeAction(device,{o->o.setText(text)},{o->o.setText(text)})
+        device.findObject(selector.text(text)).waitForExists(defaultTimeout)  // wait until the text is set
     }
 }
