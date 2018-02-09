@@ -33,6 +33,8 @@ import java.io.File
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -53,7 +55,22 @@ class DroidmateFrontend {
          */
         @JvmStatic
         fun main(args: Array<String>) {
-            val exitStatus = main(args, null)
+            val currArgs = if (args.isEmpty()) {
+                println("Parameters not provided. Trying to read from args.txt file.")
+                val argsFile = Paths.get("args.txt")
+
+                if (Files.exists(argsFile))
+                    Files.readAllLines(argsFile)
+                            .joinToString(" ")
+                            .split(" ")
+                            .filter { it.isNotEmpty() }
+                            .toTypedArray()
+                else
+                    emptyArray()
+            } else
+                args
+
+            val exitStatus = main(currArgs, null)
             System.exit(exitStatus)
         }
 
