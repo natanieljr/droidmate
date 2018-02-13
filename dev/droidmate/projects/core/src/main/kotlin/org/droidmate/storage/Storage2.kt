@@ -65,9 +65,6 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
                 Channels.newOutputStream(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)))
         serOut.writeObject(obj)
         serOut.close()
-
-        val ob = deserialize(file)
-        println(ob.exception)
     }
 
     override fun getSerializedRuns2(): Collection<Path> {
