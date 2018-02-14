@@ -58,11 +58,15 @@ private typealias Action<O,R> = (O)->R
  */
 fun executeAction(device:UiDevice, action: Action<UiObject,Boolean>, id:String, selector: Selector = findByXPath):Boolean{
     assert(id.isNotEmpty(),{"parameter id must not be empty to use this function"})
-    return device.findObject(selector(id)).let{
-        if (it.exists()) action(it) else {
-            Log.w(uiaDaemon_logcatTag,"Target element could not be found with $id $selector")
-            false }
-    }
+    return device.findObject(selector(id))
+            .let {
+                if (it.exists())
+                    action(it)
+                else {
+                    Log.w(uiaDaemon_logcatTag, "Target element could not be found with $id $selector")
+                    false
+                }
+            }
 }
 
 /**
