@@ -12,7 +12,7 @@ import org.droidmate.uiautomator_daemon.guimodel.*
  * Created by J.H. on 05.02.2018.
  */
 internal sealed class  DeviceAction{
-    val defaultTimeout:Long=2000
+    val defaultTimeout: Long = 10000
     @Throws(UiAutomatorDaemonException::class)
     abstract fun execute(device: UiDevice, context: Context)
     protected fun waitForChanges(device: UiDevice, actionSuccessful:Boolean = true){
