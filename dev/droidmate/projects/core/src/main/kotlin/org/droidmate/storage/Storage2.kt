@@ -22,9 +22,9 @@ package org.droidmate.storage
 import com.konradjamrozik.isRegularFile
 import com.konradjamrozik.toList
 import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
-import org.nustaq.serialization.FSTConfiguration
 import org.slf4j.LoggerFactory
-import java.net.URI
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -41,14 +41,14 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
     companion object {
         private val log = LoggerFactory.getLogger(Storage2::class.java)
 
-        val serializationConfig: FSTConfiguration
+        /*val serializationConfig: FSTConfiguration
             get() {
                 return FSTConfiguration.createJsonConfiguration(true, false)
                         .apply {
                             registerSerializer(URI::class.java, FSTURISerializer(), false)
                             registerSerializer(LocalDateTime::class.java, FSTLocalDateTimeSerializer(), false)
                         }
-            }
+            }*/
         private val serializedFileTimestampPattern = DateTimeFormatter.ofPattern("yyyy MMM dd HHmm")
         val ser2FileExt = ".ser2"
     }
@@ -60,8 +60,8 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
         //val data = JSON.indented.stringify(serializer, obj)
         //Files.write(file, data.toByteArray())
 
-        //val serOut = ObjectOutputStream(
-        val serOut = serializationConfig.getObjectOutput(
+        val serOut = ObjectOutputStream(
+                //val serOut = serializationConfig.getObjectOutput(
                 Channels.newOutputStream(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)))
         serOut.writeObject(obj)
         serOut.close()
@@ -78,9 +78,10 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
         //val data = Files.readAllLines(serPath).joinToString(System.lineSeparator())
         //return JSON.indented.parse(serializer, data)
 
-        //val input =  LegacyObjectInputStream(Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
-        val input = serializationConfig.getObjectInput(
-                Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
+        val input = ObjectInputStream(Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
+        //val input = LegacyObjectInputStream(Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
+        //val input = serializationConfig.getObjectInput(
+        //        Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
         val obj = input.readObject()
         input.close()
         return obj as ApkExplorationOutput2
