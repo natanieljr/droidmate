@@ -182,22 +182,47 @@ private data class DeviceWaitAction(private val id:String, private val criteria:
     }
 }
 
-private sealed class DeviceObjectAction:DeviceAction(){
-    abstract val xPath:String
-    abstract val resId:String
+private sealed class DeviceObjectAction : DeviceAction() {
+    abstract val xPath: String
+    abstract val resId: String
 
-    protected fun executeAction(device: UiDevice,action:(UiObject)->Boolean,action2:(UiObject2)->Unit){
-        Log.d(uiaDaemon_logcatTag,"execute action on target element with resId=$resId xPath=$xPath")
-        val success = if(xPath.isNotEmpty()) executeAction(device,action,xPath) else executeAction(device,action,resId,findByResId)
-        if(!success){
-            executeAction2(device,action2,resId)
+    protected fun executeAction(device: UiDevice, action: (UiObject) -> Boolean, action2: (UiObject2) -> Unit) {
+        Log.d(uiaDaemon_logcatTag, "execute action on target element with resId=$resId xPath=$xPath javaClass=${this::class}")
+        val success = if (xPath.isNotEmpty()) {
+            Log.d(uiaDaemon_logcatTag, "xPath isNotEmpty")
+            executeAction(device, action, xPath)
+        } else {
+            Log.d(uiaDaemon_logcatTag, "xPath isEmpty")
+            executeAction(device, action, resId, findByResId)
+        }
+
+        if (!success) {
+            executeAction2(device, action2, resId)
         }
     }
 }
 
 private data class DeviceClickAction(override val xPath: String, override val resId:String):DeviceObjectAction(){
     override fun execute(device: UiDevice, context: Context) {
-        executeAction(device,{o->o.click()},{o->o.click()})
+        executeAction(device,
+                { o ->
+                    val bounds = o.getBounds()
+                    val hCenter = bounds.centerX()
+                    val vCenter = bounds.centerY()
+                    Log.d(uiaDaemon_logcatTag, "Clicking ${hCenter}, ${vCenter} (Bounds: ${bounds.toString()})")
+                    device.click(hCenter, vCenter)
+                    Log.d(uiaDaemon_logcatTag, "Clicked ${hCenter}, ${vCenter}")
+                    true
+                },
+                { o ->
+                    val bounds = o.getVisibleBounds()
+                    val hCenter = bounds.centerX()
+                    val vCenter = bounds.centerY()
+                    Log.d(uiaDaemon_logcatTag, "Clicking ${hCenter}, ${vCenter} (Bounds: ${bounds.toString()})")
+                    device.click(hCenter, vCenter)
+                    Log.d(uiaDaemon_logcatTag, "Clicked ${hCenter}, ${vCenter}")
+                    true
+                })
         waitForChanges(device)
     }
 }
