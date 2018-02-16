@@ -36,18 +36,19 @@ abstract class AndroidDeviceAction : IAndroidDeviceAction {
         }
 
         @JvmStatic
-        fun newClickGuiDeviceAction(clickedWidget: IWidget, longClick: Boolean = false): ClickGuiAction{
-            return if(longClick) ClickGuiAction(LongClickAction(clickedWidget.xpath,clickedWidget.resourceId))
-                else ClickGuiAction(ClickAction(clickedWidget.xpath,clickedWidget.resourceId))
+        @JvmOverloads
+        fun newClickGuiDeviceAction(clickedWidget: IWidget, longClick: Boolean = false, useCoordinates: Boolean = false): ClickGuiAction {
+            return if (longClick)
+                if (useCoordinates)
+                    ClickGuiAction(CoordinateLongClickAction(clickedWidget.bounds.centerX.toInt(), clickedWidget.bounds.centerY.toInt()))
+                else
+                    ClickGuiAction(LongClickAction(clickedWidget.xpath, clickedWidget.resourceId))
+            else
+                if (useCoordinates)
+                    ClickGuiAction(CoordinateClickAction(clickedWidget.bounds.centerX.toInt(), clickedWidget.bounds.centerY.toInt()))
+                else
+                    ClickGuiAction(ClickAction(clickedWidget.xpath, clickedWidget.resourceId))
         }
-
-//        @JvmStatic
-//        fun newClickGuiDeviceAction(p: Point, longClick: Boolean = false): ClickAction
-//                = newClickGuiDeviceAction(p.x, p.y, longClick)
-//
-//        @JvmStatic
-//        fun newClickGuiDeviceAction(clickX: Int, clickY: Int, longClick: Boolean = false): LongClickAction
-//                = ClickAction(Action(clickX, clickY, longClick))
 
         @JvmStatic
         fun newEnterTextDeviceAction(resourceId: String, textToEnter: String): ClickGuiAction

@@ -11,28 +11,31 @@ import org.droidmate.uiautomator_daemon.guimodel.*
 /**
  * Created by J.H. on 05.02.2018.
  */
-internal sealed class  DeviceAction{
+internal sealed class DeviceAction {
     val defaultTimeout: Long = 10000
     @Throws(UiAutomatorDaemonException::class)
     abstract fun execute(device: UiDevice, context: Context)
-    protected fun waitForChanges(device: UiDevice, actionSuccessful:Boolean = true){
-        if(actionSuccessful){
-            device.waitForWindowUpdate(null,defaultTimeout)
+
+    protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
+        if (actionSuccessful) {
+            device.waitForWindowUpdate(null, defaultTimeout)
             device.waitForIdle(defaultTimeout)
         }
     }
 
     companion object {
-        fun fromAction(a:Action):DeviceAction = with(a){
-            return when(this){
-                is WaitAction -> DeviceWaitAction(target,criteria)
-                is LongClickAction -> DeviceLongClickAction(xPath,resId)
+        fun fromAction(a: Action): DeviceAction = with(a) {
+            return when (this) {
+                is WaitAction -> DeviceWaitAction(target, criteria)
+                is LongClickAction -> DeviceLongClickAction(xPath, resId)
+                is CoordinateLongClickAction -> DeviceCoordinateLongClickAction(x, y)
                 is SwipeAction -> {
-                    if(start==null||dst==null) throw NotImplementedError("swipe executions currently only support point to point execution (TODO)")
-                    else DeviceSwipeAction(start!!,dst!!)
+                    if (start == null || dst == null) throw NotImplementedError("swipe executions currently only support point to point execution (TODO)")
+                    else DeviceSwipeAction(start!!, dst!!)
                 }
-                is TextAction -> DeviceTextAction(xPath,resId,text)
-                is ClickAction -> DeviceClickAction(xPath,resId)
+                is TextAction -> DeviceTextAction(xPath, resId, text)
+                is ClickAction -> DeviceClickAction(xPath, resId)
+                is CoordinateClickAction -> DeviceCoordinateClickAction(x, y)
                 is PressBack -> DevicePressBack()
                 is PressHome -> DevicePressHome()
                 is EnableWifi -> DeviceEnableWifi()
@@ -42,19 +45,19 @@ internal sealed class  DeviceAction{
     }
 }
 
-private class DevicePressBack:DeviceAction() {
+private class DevicePressBack : DeviceAction() {
     override fun execute(device: UiDevice, context: Context) {
-        waitForChanges(device,device.pressBack())
+        waitForChanges(device, device.pressBack())
     }
 }
 
-private class DevicePressHome:DeviceAction() {
+private class DevicePressHome : DeviceAction() {
     override fun execute(device: UiDevice, context: Context) {
-        waitForChanges(device,device.pressHome())
+        waitForChanges(device, device.pressHome())
     }
 }
 
-private class DeviceEnableWifi:DeviceAction() {
+private class DeviceEnableWifi : DeviceAction() {
     /**
      * Based on: http://stackoverflow.com/a/12420590/986533
      */
@@ -67,14 +70,14 @@ private class DeviceEnableWifi:DeviceAction() {
     }
 }
 
-private data class DeviceLaunchApp(val appLaunchIconName: String):DeviceAction() {
+private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction() {
     private val APP_LIST_RES_ID = "com.google.android.googlequicksearchbox:id/apps_list_view"
     override fun execute(device: UiDevice, context: Context) {
         Log.d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text " + appLaunchIconName)
 
         val clickResult: Boolean
         try {
-            val app = navigateToAppLaunchIcon(appLaunchIconName,device)
+            val app = navigateToAppLaunchIcon(appLaunchIconName, device)
             Log.v(uiaDaemon_logcatTag, "Pressing the $appLaunchIconName app icon to launch it.")
             clickResult = app.clickAndWaitForNewWindow()
 
@@ -83,17 +86,17 @@ private data class DeviceLaunchApp(val appLaunchIconName: String):DeviceAction()
                     String.format("Attempt to navigate to and click on the icon labeled '%s' to launch the app threw an exception: %s: %s",
                             appLaunchIconName, e.javaClass.simpleName, e.localizedMessage))
             Log.d(uiaDaemon_logcatTag, "Pressing 'home' button after failed app launch.")
-            waitForChanges(device,device.pressHome())
+            waitForChanges(device, device.pressHome())
             return
         }
 
         if (clickResult)
-            waitForChanges(device,clickResult)
+            waitForChanges(device, clickResult)
         else
             Log.w(uiaDaemon_logcatTag, "A click on the icon labeled '$appLaunchIconName' to launch the app returned false")
     }
 
-    private fun navigateToAppLaunchIcon(appLaunchIconName: String,device: UiDevice): UiObject {
+    private fun navigateToAppLaunchIcon(appLaunchIconName: String, device: UiDevice): UiObject {
         // Simulate a short press on the HOME button.
         device.pressHome()
 
@@ -114,9 +117,9 @@ private data class DeviceLaunchApp(val appLaunchIconName: String):DeviceAction()
         // we create a UiSelector to find a tab with the text
         // label "Apps".
         val appsTab = device.findObject(UiSelector().text("Apps"))
-        if(!appsTab.exists()) Log.w (uiaDaemon_logcatTag, "This device does not have an 'Apps' and a 'Widgets' tab, skipping.")
-            // Simulate a click to enter the Apps tab.
-        else    appsTab.click()
+        if (!appsTab.exists()) Log.w(uiaDaemon_logcatTag, "This device does not have an 'Apps' and a 'Widgets' tab, skipping.")
+        // Simulate a click to enter the Apps tab.
+        else appsTab.click()
 
 
         // Next, in the apps tabs, we can simulate a user swiping until
@@ -152,33 +155,33 @@ private data class DeviceLaunchApp(val appLaunchIconName: String):DeviceAction()
     }
 }
 
-private data class DeviceSwipeAction(val start:Pair<Int,Int>, val dst:Pair<Int,Int>,val xPath: String="",val direction:String=""):DeviceAction() {
-    private val x0:Int inline get()=start.first
-    private val y0:Int inline get()=start.second
-    private val x1:Int inline get()=dst.first
-    private val y1:Int inline get()=dst.second
+private data class DeviceSwipeAction(val start: Pair<Int, Int>, val dst: Pair<Int, Int>, val xPath: String = "", val direction: String = "") : DeviceAction() {
+    private val x0: Int inline get() = start.first
+    private val y0: Int inline get() = start.second
+    private val x1: Int inline get() = dst.first
+    private val y1: Int inline get() = dst.second
     override fun execute(device: UiDevice, context: Context) {
         Log.d(uiaDaemon_logcatTag, "Swiping from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
-        assert(x0>=0 && x0<device.displayWidth,{"Error on swipe invalid x0:$x0"})
-        assert(y0>=0 && y0<device.displayHeight,{"Error on swipe invalid y0:$y0"})
-        assert(x1>=0 && x1<device.displayWidth,{"Error on swipe invalid x1:$x1"})
-        assert(y1>=0 && y1<device.displayHeight,{"Error on swipe invalid y1:$y1"})
+        assert(x0 >= 0 && x0 < device.displayWidth, { "Error on swipe invalid x0:$x0" })
+        assert(y0 >= 0 && y0 < device.displayHeight, { "Error on swipe invalid y0:$y0" })
+        assert(x1 >= 0 && x1 < device.displayWidth, { "Error on swipe invalid x1:$x1" })
+        assert(y1 >= 0 && y1 < device.displayHeight, { "Error on swipe invalid y1:$y1" })
 
-        val success = device.swipe(x0,y0,x1,y1,35)
+        val success = device.swipe(x0, y0, x1, y1, 35)
         if (!success) Log.e(uiaDaemon_logcatTag, "Swipe failed: from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
         // we could issue a wait action on failure (e.g. waitExist for widget at position)
     }
 }
 
-private data class DeviceWaitAction(private val id:String, private val criteria:WidgetSelector):DeviceAction() {
+private data class DeviceWaitAction(private val id: String, private val criteria: WidgetSelector) : DeviceAction() {
     override fun execute(device: UiDevice, context: Context) {
-        Log.d(uiaDaemon_logcatTag, "Wait for element to exist"+this.toString())
+        Log.d(uiaDaemon_logcatTag, "Wait for element to exist" + this.toString())
         when (criteria) {
             WidgetSelector.ResourceId -> findByResId(id)
             WidgetSelector.ClassName -> findByClassName(id)
             WidgetSelector.ContentDesc -> findByDescription(id)
-            WidgetSelector.XPath  -> findByXPath(id)
-        }.let{ device.findObject(it).waitForExists(10000)} // wait up to 10 seconds
+            WidgetSelector.XPath -> findByXPath(id)
+        }.let { device.findObject(it).waitForExists(10000) } // wait up to 10 seconds
     }
 }
 
@@ -202,34 +205,52 @@ private sealed class DeviceObjectAction : DeviceAction() {
     }
 }
 
-private data class DeviceClickAction(override val xPath: String, override val resId:String):DeviceObjectAction(){
+private data class DeviceClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
     override fun execute(device: UiDevice, context: Context) {
         executeAction(device,
                 { o ->
-                    val bounds = o.getBounds()
-                    val hCenter = bounds.centerX()
-                    val vCenter = bounds.centerY()
-                    Log.d(uiaDaemon_logcatTag, "Clicking ${hCenter}, ${vCenter} (Bounds: ${bounds.toString()})")
-                    device.click(hCenter, vCenter)
-                    Log.d(uiaDaemon_logcatTag, "Clicked ${hCenter}, ${vCenter}")
+                    Log.d(uiaDaemon_logcatTag, "Clicking object")
+                    o.click()
+                    Log.d(uiaDaemon_logcatTag, "Clicked object")
                     true
                 },
                 { o ->
-                    val bounds = o.getVisibleBounds()
-                    val hCenter = bounds.centerX()
-                    val vCenter = bounds.centerY()
-                    Log.d(uiaDaemon_logcatTag, "Clicking ${hCenter}, ${vCenter} (Bounds: ${bounds.toString()})")
-                    device.click(hCenter, vCenter)
-                    Log.d(uiaDaemon_logcatTag, "Clicked ${hCenter}, ${vCenter}")
+                    Log.d(uiaDaemon_logcatTag, "Clicking object")
+                    o.click()
+                    Log.d(uiaDaemon_logcatTag, "Clicked object")
                     true
                 })
         waitForChanges(device)
     }
 }
 
-private data class DeviceLongClickAction(override val xPath: String, override val resId:String):DeviceObjectAction(){
+private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceAction() {
     override fun execute(device: UiDevice, context: Context) {
-        executeAction(device,{o->o.longClick()},{o->o.longClick()})
+        Log.d(uiaDaemon_logcatTag, "Clicking coordinates ($x,$y)")
+        assert(x >= 0 && x < device.displayWidth, { "Error on coordinate click invalid x:$x" })
+        assert(y >= 0 && y < device.displayHeight, { "Error on coordinate click invalid y:$y" })
+        device.click(x, y)
+        Log.d(uiaDaemon_logcatTag, "Clicked coordinates $x, $y")
+        waitForChanges(device)
+    }
+}
+
+private data class DeviceLongClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
+    override fun execute(device: UiDevice, context: Context) {
+        executeAction(device, { o -> o.longClick() }, { o -> o.longClick() })
+        waitForChanges(device)
+    }
+}
+
+private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : DeviceAction() {
+    override fun execute(device: UiDevice, context: Context) {
+        Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
+
+        assert(x >= 0 && x < device.displayWidth, { "Error on coordinate long click invalid x:$x" })
+        assert(y >= 0 && y < device.displayHeight, { "Error on coordinate long click invalid y:$y" })
+
+        device.swipe(x, y, x, y, 100); // 100 ~ 2s. Empirical evaluation.
+        Log.d(uiaDaemon_logcatTag, "Long clicked coordinates ($x, $y)")
         waitForChanges(device)
     }
 }
@@ -240,10 +261,10 @@ private data class DeviceLongClickAction(override val xPath: String, override va
 // clicks on the keyboard thinking it clicked one of the widgets below it.
 // http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
 // -> It seems there is no reliable way to suppress the keyboard.
-private data class DeviceTextAction(override val xPath: String, override val resId:String, val text:String):DeviceObjectAction(){
-    val selector by lazy { if(xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
+private data class DeviceTextAction(override val xPath: String, override val resId: String, val text: String) : DeviceObjectAction() {
+    val selector by lazy { if (xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
     override fun execute(device: UiDevice, context: Context) {
-        executeAction(device,{o->o.setText(text)},{o->o.setText(text)})
+        executeAction(device, { o -> o.setText(text) }, { o -> o.setText(text) })
         device.findObject(selector.text(text)).waitForExists(defaultTimeout)  // wait until the text is set
     }
 }
