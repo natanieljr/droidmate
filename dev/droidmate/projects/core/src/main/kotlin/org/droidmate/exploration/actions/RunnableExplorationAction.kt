@@ -22,7 +22,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.device.datatypes.WaitAction
+import org.droidmate.device.datatypes.WaitA
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
@@ -52,7 +52,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
                     is TerminateExplorationAction -> RunnableTerminateExplorationAction(action, timestamp, takeScreenShot)
                     is EnterTextExplorationAction -> RunnableEnterTextExplorationAction(action, timestamp, takeScreenShot)
                     is PressBackExplorationAction -> RunnablePressBackExplorationAction(action, timestamp, takeScreenShot)
-                    is WaitAction -> RunnableWaitForWidget(action, timestamp, takeScreenShot)
+                    is WaitA -> RunnableWaitForWidget(action, timestamp, takeScreenShot)
 
                     else -> throw UnexpectedIfElseFallthroughError("Unhandled ExplorationAction class. The class: ${action.javaClass}")
                 }

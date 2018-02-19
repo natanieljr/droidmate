@@ -159,8 +159,8 @@ class DeviceTest : DroidmateTestCase()
           assert(device.anyMonitorIsReachable())
 
           // Act 3
-          device.perform(newClickGuiDeviceAction(100, 100))
-          assert(device.getGuiSnapshot().guiState.belongsToApp(deployedApk.packageName))
+//          device.perform(newClickGuiDeviceAction(100, 100))
+//          assert(device.getGuiSnapshot().guiState.belongsToApp(deployedApk.packageName))
 
           // Act 4
           device.clearPackage(deployedApk.packageName)

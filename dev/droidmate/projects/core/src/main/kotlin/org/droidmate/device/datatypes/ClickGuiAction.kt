@@ -19,10 +19,11 @@
 
 package org.droidmate.device.datatypes
 
-import org.droidmate.uiautomator_daemon.guimodel.GuiAction
+import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.slf4j.LoggerFactory
 
-class ClickGuiAction constructor(val guiAction: GuiAction) : AndroidDeviceAction() {
+class ClickGuiAction constructor(val guiAction: Action) : AndroidDeviceAction() {
     companion object {
         private val log = LoggerFactory.getLogger(ClickGuiAction::class.java)
     }
@@ -30,19 +31,6 @@ class ClickGuiAction constructor(val guiAction: GuiAction) : AndroidDeviceAction
     override fun toString(): String = "${this.javaClass.simpleName}{$guiAction}"
 
     fun getSingleMatchingWidget(widgets: List<IWidget>): IWidget {
-        //TODO Nataniel Review later
-        val x = this.guiAction.clickXCoor
-        val y = this.guiAction.clickYCoor
-
-        val matchedWidgets = widgets.filter { it.bounds.contains(x, y) }
-
-        assert(!matchedWidgets.isEmpty(), { "Expected to match at least one widget to coordinates $x $y" })
-        if (matchedWidgets.size > 1)
-            log.warn("Expected to match at most one widget to coordinates $x $y. " +
-                    "Instead matched ${matchedWidgets.size} widgets. " +
-                    "The matched widgets bounds:\n" +
-                    matchedWidgets.joinToString(System.lineSeparator()) { it.boundsString })
-
-        return matchedWidgets[0]
+        return widgets.find { w->w.xpath==(guiAction as? ClickAction)?.xPath }!!
     }
 }

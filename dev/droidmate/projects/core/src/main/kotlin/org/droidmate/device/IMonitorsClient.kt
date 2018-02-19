@@ -33,7 +33,7 @@ interface IMonitorsClient {
     @Throws(DeviceException::class)
     fun closeMonitorServers()
 
-    fun getPorts(): List<Int>
+    fun getPort(): Int
 
     @Throws(DeviceException::class)
     fun forwardPorts()

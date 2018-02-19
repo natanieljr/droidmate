@@ -23,10 +23,6 @@ import java.util.*
 class MonitorConstants {
     companion object {
 
-        // WISH known limitation: if running droidmate with multiple devices, each will have the same set of server ports.
-        // Suggested fix: make monitor.java read the port number from a .txt file; deploy different .txt file to each device.
-        @JvmStatic
-        val serverPorts = arrayListOf(59701, 59702, 59703, 59704)
         @JvmStatic
         val tag_api = "Monitor_API_method_call"
 

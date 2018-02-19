@@ -160,27 +160,17 @@ public class MonitorJavaTemplate
 
         MonitorTcpServer tcpServer = new MonitorTcpServer();
 
-        Thread serverThread = null;
-        Integer portUsed = null;
+        final int port = getPort();
+        Thread serverThread = tcpServer.tryStart(port);
 
-        final Iterator<Integer> portsIterator = MonitorConstants.Companion.getServerPorts().iterator();
-
-        while (portsIterator.hasNext() && serverThread == null) {
-            int port = portsIterator.next();
-            serverThread = tcpServer.tryStart(port);
-            if (serverThread != null)
-                portUsed = port;
-        }
         if (serverThread == null) {
-            if (portsIterator.hasNext()) throw new AssertionError();
-            throw new Exception("startMonitorTCPServer(): no available ports.");
+            throw new Exception("startMonitorTCPServer(): Port is not available.");
         }
 
         if (serverThread == null) throw new AssertionError();
-        if (portUsed == null) throw new AssertionError();
         if (tcpServer.isClosed()) throw new AssertionError();
 
-        Log.d(MonitorConstants.Companion.getTag_mjt(), "startMonitorTCPServer(): SUCCESS portUsed: " + portUsed + " PID: " + getPid());
+        Log.d(MonitorConstants.Companion.getTag_mjt(), "startMonitorTCPServer(): SUCCESS port: " + port + " PID: " + getPid());
         return tcpServer;
     }
 
@@ -720,6 +710,16 @@ public class MonitorJavaTemplate
         }
 
         return ApiPolicy.Allow;
+    }
+
+    private static int getPort() throws Exception {
+        File file = new File("#PORT_FILE_PATH");
+        FileInputStream fis = new FileInputStream(file);
+        byte[] data = new byte[(int) file.length()];
+        fis.read(data);
+        fis.close();
+
+        return Integer.parseInt(new String(data, "UTF-8"));
     }
 
     //endregion

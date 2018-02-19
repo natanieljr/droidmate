@@ -33,6 +33,8 @@ import java.io.File
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -53,7 +55,22 @@ class DroidmateFrontend {
          */
         @JvmStatic
         fun main(args: Array<String>) {
-            val exitStatus = main(args, null)
+            val currArgs = if (args.isEmpty()) {
+                println("Parameters not provided. Trying to read from args.txt file.")
+                val argsFile = Paths.get("args.txt")
+
+                if (Files.exists(argsFile))
+                    Files.readAllLines(argsFile)
+                            .joinToString(" ")
+                            .split(" ")
+                            .filter { it.isNotEmpty() }
+                            .toTypedArray()
+                else
+                    emptyArray()
+            } else
+                args
+
+            val exitStatus = main(currArgs, null)
             System.exit(exitStatus)
         }
 
@@ -86,6 +103,12 @@ class DroidmateFrontend {
                 log.info("IMPORTANT: for detailed logs from DroidMate run, please see ${LogbackConstants.LOGS_DIR_PATH}.")
 
                 val cfg = receivedCfg ?: ConfigurationBuilder().build(args, fs)
+
+                if (!cfg.installApk)
+                    log.warn("DroidMate will not reinstall the target APK(s). If the APK(s) are not previously installed on the device the exploration will fail.")
+
+                if (!cfg.installAux)
+                    log.warn("DroidMate will not reinstall its auxiliary components (UIAutomator and Monitor). If the they are not previously installed on the device the exploration will fail.")
 
                 val command = commandProvider?.provide(cfg) ?: determineAndBuildCommand(cfg)
 

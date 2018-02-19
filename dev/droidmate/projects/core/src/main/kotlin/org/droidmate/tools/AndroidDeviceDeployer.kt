@@ -97,7 +97,7 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
     /**
      * <p>
      * Setups android device for DroidMate purposes. Starts adb server if necessary, forwards ports, pushes uiautomator-daemon jar,
-     * pushes monitor apk and starts uiautomator-daemon server.
+     * pushes monitor apk, pushes apiPoliciesFile, pushes portFile and starts uiautomator-daemon server.
      *
      * </p><p>
      * Remember to call {@link #tryTearDown} when done with the device.
@@ -110,8 +110,10 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
         this.adbWrapper.startAdbServer()
 
         // Nataniel: Had to invert order, otherwise it crashes on the first time it's executed because the UiAutomator2Daemon was never installed on the device
-        device.reinstallUiautomatorDaemon()
-        device.pushMonitorJar()
+        if (cfg.installAux) {
+            device.reinstallUiautomatorDaemon()
+            device.pushMonitorJar()
+        }
         device.setupConnection()
         device.initModel()
 
@@ -133,12 +135,15 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
             log.trace("Tearing down.")
             device.pullLogcatLogFile()
             device.closeConnection()
-            if (cfg.androidApi == Configuration.api23) {
-                device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, true)
-                device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, true)
-            } else
-                throw UnexpectedIfElseFallthroughError()
-            device.removeJar(Paths.get(BuildConstants.monitor_on_avd_apk_name))
+
+            if (cfg.uninstallAux) {
+                if (cfg.androidApi == Configuration.api23) {
+                    device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, true)
+                    device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, true)
+                } else
+                    throw UnexpectedIfElseFallthroughError()
+                device.removeJar(Paths.get(BuildConstants.monitor_on_avd_apk_name))
+            }
         } else
             log.trace("Device is not available. Skipping tear down.")
     }
@@ -148,7 +153,6 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
             log.info("Setup device with deviceSerialNumber of $deviceSerialNumber")
         else
             log.info("Setup device with deviceIndex of $deviceIndex")
-
 
         val explorationExceptions: MutableList<ExplorationException> = ArrayList()
 

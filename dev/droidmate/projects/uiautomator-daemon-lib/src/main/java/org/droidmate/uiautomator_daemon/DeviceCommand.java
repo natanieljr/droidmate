@@ -19,34 +19,33 @@
 
 package org.droidmate.uiautomator_daemon;
 
-import org.droidmate.uiautomator_daemon.guimodel.GuiAction;
+import org.droidmate.uiautomator_daemon.guimodel.Action;
 
 import java.io.Serializable;
 
 public class DeviceCommand implements Serializable {
 
+  private static final long serialVersionUID = 8439619323391358530L;
   public String command;
-  public GuiAction guiAction;
+  public Action guiAction;
 
   public DeviceCommand(String command) {
     this(command, null);
   }
 
-  public DeviceCommand(String command, GuiAction guiAction) {
+  public DeviceCommand(String command, Action guiAction) {
     this.command = command;
     this.guiAction = guiAction;
   }
 
   @Override
-  public boolean equals(Object o)
-  {
+  public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof DeviceCommand)) return false;
 
     DeviceCommand that = (DeviceCommand) o;
 
-    if (command != null ? !command.equals(that.command) : that.command != null) return false;
-    return guiAction != null ? guiAction.equals(that.guiAction) : that.guiAction == null;
+    return (command != null ? command.equals(that.command) : that.command == null) && (guiAction != null ? guiAction.equals(that.guiAction) : that.guiAction == null);
 
   }
 

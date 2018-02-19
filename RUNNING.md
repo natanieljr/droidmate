@@ -27,12 +27,15 @@ Note that to run any tests first you will have to deploy the code to local Maven
 
 Ensure you have built DroidMate as described in `repo/BUILDING.md`.
 
-To run DroidMate:  
+To run DroidMate you can create an executable jar with all dependencies using:  
 `cd repo/dev/droidmate`  
-`gradlew :projects:command:run` or `gradlew :p:com:run` for short.
+`gradlew :projects:shadowJar`
 
-DroidMate will read command line arguments from the first line of
-`repo/dev/droidmate/args.txt`
+The executable jar will be generated under `repo/dev/droidmate/projects/command/build/libs` with the name `shadow-*-all.jar`.  
+
+This jar can be executed using `java -jar shadow-*-all.jar`, plus command line arguments. 
+
+If not command line arguments are provided, DroidMate will read command line arguments from a local `args.txt` file if available
 
 Most likely, the input apks will be taken from `repo/dev/droidmate/apks` (as determined by the first line of `args.txt`)
 

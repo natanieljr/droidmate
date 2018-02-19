@@ -75,14 +75,17 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
     }
 
     private fun deployApk(device: IDeployableAndroidDevice, apk: IApk): ApkExplorationException? {
-        try {
-            tryReinstallApk(device, apk)
 
-        } catch (deployThrowable: Throwable) {
-            log.warn(Markers.appHealth,
-                    "! Caught ${deployThrowable.javaClass.simpleName} in deployApk($device, $apk.fileName). " +
-                            "Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
-            return ApkExplorationException(apk, deployThrowable)
+        if (cfg.installApk) {
+            try {
+                tryReinstallApk(device, apk)
+
+            } catch (deployThrowable: Throwable) {
+                log.warn(Markers.appHealth,
+                        "! Caught ${deployThrowable.javaClass.simpleName} in deployApk($device, $apk.fileName). " +
+                                "Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
+                return ApkExplorationException(apk, deployThrowable)
+            }
         }
         return null
     }

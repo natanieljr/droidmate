@@ -25,9 +25,20 @@ apply plugin: 'project-report' // http://www.gradle.org/docs/current/userguide/p
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-apply plugin: 'application'
-mainClassName = "org.droidmate.frontend.DroidmateFrontend"
-(tasks.run as JavaExec).configure {
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
+shadowJar {
+    baseName = 'shadow'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
+    }
+}
+
+// TODO Nataniel Check later
+/*(tasks.run as JavaExec).configure {
 
   assert sourceSets.main.runtimeClasspath == classpath
 
@@ -38,7 +49,7 @@ mainClassName = "org.droidmate.frontend.DroidmateFrontend"
     List<String> appArgs = argsFile.text.readLines().first().split(" ") as List<String>
     args appArgs
   }
-}
+}*/
 
 dependOnJunit(project)
 

@@ -87,6 +87,8 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_getValidGuiSnapshotRetryAttempts = "-getValidGuiSnapshotRetryAttempts"
         const val pn_getValidGuiSnapshotRetryDelay = "-getValidGuiSnapshotRetryDelay"
         const val pn_inline = "-inline"
+        const val pn_installAux = "-installAux"
+        const val pn_installApk = "-installApk"
         const val pn_unpack = "-unpack"
         const val pn_launchActivityDelay = "-launchActivityDelay"
         const val pn_launchActivityTimeout = "-launchActivityTimeout"
@@ -107,6 +109,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_uiautomatorDaemonTcpPort = "-tcpPort"
         const val pn_uiautomatorDaemonWaitForGuiToStabilize = "-waitForGuiToStabilize"
         const val pn_uiautomatorDaemonWaitForWindowUpdateTimeout = "-waitForWindowUpdateTimeout"
+        const val pn_uninstallAux = "-uninstallAux"
         const val pn_uninstallApk = "-uninstallApk"
         const val pn_useApkFixturesDir = "-useApkFixturesDir"
         const val pn_report = "-report"
@@ -115,6 +118,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_stopAppSuccessCheckDelay = "-stopAppSuccessCheckDelay"
         const val pn_waitForCanRebootDelay = "-waitForCanRebootDelay"
         const val pn_widgetIndexes = "-widgetIndexes"
+        const val pn_waitForDevice = "-waitForDevice"
         // @formatter:on
         //endregion
 
@@ -197,6 +201,14 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = arrayOf(pn_device))
     public var deviceIndex = 0
 
+    @Parameter(names = arrayOf(pn_installAux), arity = 1, description =
+    "Reinstall the auxiliary files (UIAutomator and Monitor) to the device. If the auxiliary files are not previously installed the exploration will fail.")
+    public var installAux: Boolean = true
+
+    @Parameter(names = arrayOf(pn_installApk), arity = 1, description =
+    "Reinstall the app to the device. If the app is not previously installed the exploration will fail.")
+    public var installApk: Boolean = true
+
     @Parameter(names = arrayOf("-displayHelp", "-help", "-h", "-?"), help = true, description =
     "Displays command line parameters description.")
     public var displayHelp: Boolean = false
@@ -242,7 +254,12 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = arrayOf(Configuration.pn_monitorUseLogcat), arity = 1)
     public var monitorUseLogcat = false
 
-    @Parameter(names = arrayOf(pn_uninstallApk), arity = 1)
+    @Parameter(names = arrayOf(pn_uninstallAux), arity = 1, description =
+    "Uninstall auxiliary files (UIAutomator and Monitor) after the exploration.")
+    public var uninstallAux = true
+
+    @Parameter(names = arrayOf(pn_uninstallApk), arity = 1, description =
+    "Uninstall the APK after the exploration.")
     public var uninstallApk = true
 
     @Parameter(names = arrayOf(pn_randomSeed, "-seed"), description =
@@ -336,6 +353,14 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = arrayOf(pn_waitForCanRebootDelay))
     public var waitForCanRebootDelay = 30 * 1000
 
+    @Parameter(names = arrayOf(pn_waitForDevice), description =
+    "Wait for a device to be connected to the PC instead of cancelling the exploration.")
+    public var waitForDevice = false
+
+    val basePort = 59701
+
+    public val port = basePort + deviceIndex
+
     //endregion
 
     //region Values set by ConfigurationBuilder
@@ -372,6 +397,11 @@ class Configuration(val args: Array<String>) : IConfiguration {
      * to define which APIs will be accessible
      */
     public lateinit var apiPoliciesFile: Path
+
+    /**
+     * File with the port for the monitor connection. This file will be deployed be on the android (virtual) device.
+     */
+    public lateinit var portFile: Path
 
     //endregion
 }
