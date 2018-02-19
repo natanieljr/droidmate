@@ -53,6 +53,7 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
                     "! Caught ${computationThrowable.javaClass.simpleName} in withDeployedApk($device, ${apk.fileName})->computation(). " +
                             "Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.\n" +
                             "The ${computationThrowable.javaClass.simpleName}: $computationThrowable")
+            log.error(Markers.appHealth, computationThrowable.message, computationThrowable)
 
             apkExplorationExceptions.add(ApkExplorationException(apk, computationThrowable))
         } finally {
@@ -64,6 +65,7 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
                         "! Caught ${undeployApkThrowable.javaClass.simpleName} in withDeployedApk($device, ${apk.fileName})->tryUndeployApk(). " +
                                 "Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.\n" +
                                 "The ${undeployApkThrowable.javaClass.simpleName}: $undeployApkThrowable")
+                log.error(Markers.appHealth, undeployApkThrowable.message, undeployApkThrowable)
 
                 apkExplorationExceptions.add(ApkExplorationException(apk, undeployApkThrowable, true))
             }
@@ -84,6 +86,7 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
                 log.warn(Markers.appHealth,
                         "! Caught ${deployThrowable.javaClass.simpleName} in deployApk($device, $apk.fileName). " +
                                 "Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
+                log.error(Markers.appHealth, deployThrowable.message, deployThrowable)
                 return ApkExplorationException(apk, deployThrowable)
             }
         }
