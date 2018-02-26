@@ -65,6 +65,8 @@ dependencies {
 
   // Only for org.droidmate.tests_misc.JavaReprosTest.BBoxError
   testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
+
+  testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
 }
 
 apply from: file("resources.gradle")

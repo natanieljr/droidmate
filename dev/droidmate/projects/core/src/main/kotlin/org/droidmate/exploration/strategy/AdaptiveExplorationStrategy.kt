@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 /**
  * Adaptive exploration strategy that selects an exploration for a pool
  * of possible strategies based on their fitness for the solution
-
+ *
  * @author Nataniel P. Borges Jr.
  */
 class AdaptiveExplorationStrategy(private val strategyPool: IStrategyPool) : IExplorationStrategy {
