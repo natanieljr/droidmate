@@ -27,7 +27,7 @@ class MissingGuiSnapshot : IDeviceGuiSnapshot, Serializable {
         private const val serialVersionUID: Long = 1
     }
 
-    private val internalGuiState = EmptyGuiState("EMPTY")
+    private val internalGuiState = EmptyGuiState()
 
     override val androidLauncherPackageName: String
         get() = internalGuiState.androidLauncherPackageName

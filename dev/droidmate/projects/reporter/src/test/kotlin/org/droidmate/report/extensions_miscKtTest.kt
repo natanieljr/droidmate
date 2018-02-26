@@ -18,6 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import org.droidmate.misc.replaceVariable
+import org.droidmate.misc.setByUniqueString
+import org.droidmate.misc.zeroLeastSignificantDigits
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Test

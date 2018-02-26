@@ -20,6 +20,7 @@ package org.droidmate.report
 
 import com.konradjamrozik.isDirectory
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.misc.uniqueString
 import java.nio.file.Files
 import java.nio.file.Path
 

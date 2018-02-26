@@ -18,32 +18,40 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-class EmptyGuiState(private val packageName: String) : IGuiState {
+class EmptyGuiState : IGuiState {
     override val topNodePackageName: String
-        get() = packageName
-    override val widgets: List<IWidget>
-        get() = ArrayList()
+        get() = this.javaClass.name
+
     override val id: String
         get() = "EMPTY"
-    override val androidLauncherPackageName: String
-        get() = "EMPTY"
 
-    override fun getActionableWidgets(): List<IWidget> = ArrayList()
-
-    override val isHomeScreen: Boolean
-        get() = false
-    override val isAppHasStoppedDialogBox: Boolean
-        get() = false
-    override val isRequestRuntimePermissionDialogBox: Boolean
-        get() = false
     override val isCompleteActionUsingDialogBox: Boolean
         get() = false
-    override val isSelectAHomeAppDialogBox: Boolean
-        get() = false
+
     override val isUseLauncherAsHomeDialogBox: Boolean
         get() = false
 
-    override fun belongsToApp(appPackageName: String): Boolean = false
+    override val isHomeScreen: Boolean
+        get() = true
+
+    override val widgets: List<IWidget>
+        get() = ArrayList()
+
+    override val isAppHasStoppedDialogBox: Boolean
+        get() = false
+
+    override fun getActionableWidgets(): MutableList<IWidget> = ArrayList()
 
     override fun debugWidgets(): String = ""
+
+    override fun belongsToApp(appPackageName: String): Boolean = false
+
+    override val isRequestRuntimePermissionDialogBox: Boolean
+        get() = false
+
+    override val isSelectAHomeAppDialogBox: Boolean
+        get() = false
+
+    override val androidLauncherPackageName: String
+        get() = this.javaClass.name
 }
