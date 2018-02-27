@@ -30,20 +30,6 @@ import org.droidmate.exploration.actions.ExplorationAction
  */
 interface IStrategyPool : IControlObserver {
     /**
-     * Selects an exploration strategy based on the [current GUI][guiState] and on the
-     * [top level package element on UIAutomator dump][appPackageName] and requests from it
-     * and exploration action
-     *
-     * @return Exploration action to be sent to the device (has to be supported by DroidMate)
-     */
-    fun decide(guiState: IGuiState, appPackageName: String): ExplorationAction
-
-    /**
-     * Initialize all strategies with the shared memory
-     */
-    fun initialize()
-
-    /**
      * Registers a new exploration strategy in the pool if it is not already there.
      *
      * @return If the strategy has been successfully registered

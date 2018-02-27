@@ -19,25 +19,74 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.IExplorationActionRunResult
+import org.droidmate.exploration.strategy.termination.Terminate
+import org.droidmate.exploration.strategy.termination.criterion.CriterionProvider
+import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
+import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
+import org.droidmate.exploration.strategy.widget.ModelBased
+import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
 /**
- * Pool of exploration strategies that can be selected
- * of exploration strategies
-
+ * Exploration strategy pool that selects an exploration for a pool
+ * of possible strategies based on their fitness for the solution.
+ *
  * @author Nataniel P. Borges Jr.
  */
-class StrategyPool : IStrategyPool, IControlObserver {
+class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>) : IExplorationStrategy, IStrategyPool, IControlObserver {
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
+
+        fun build(cfg: Configuration): ExplorationStrategyPool {
+
+            val strategies = ArrayList<ISelectableExplorationStrategy>()
+
+            // Default strategies
+            val terminationCriteria = CriterionProvider.build(cfg, ArrayList())
+            terminationCriteria.forEach { p -> strategies.add(Terminate.build(p)) }
+            strategies.add(Reset.build(cfg))
+
+            // Random exploration
+            if (cfg.explorationStategies.contains(StrategyTypes.RandomWidget.strategyName))
+                strategies.add(RandomWidget.build(cfg))
+
+            // Model based
+            if (cfg.explorationStategies.contains(StrategyTypes.ModelBased.strategyName))
+                strategies.add(ModelBased.build(cfg))
+
+            // Pressback
+            if (cfg.explorationStategies.contains(StrategyTypes.PressBack.strategyName))
+                strategies.add(PressBack.build(0.10, cfg))
+
+            // Allow runtime dialogs
+            if (cfg.explorationStategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
+                strategies.add(AllowRuntimePermission.build())
+
+            // Seek targets
+            if (cfg.explorationStategies.contains(StrategyTypes.SeekTargets.strategyName)) {
+                val targetedStrategies = SeekTarget.build(ArrayList(), "")
+                targetedStrategies.forEach { p -> strategies.add(p) }
+            }
+
+            // Fitness Proportionate Selection
+            if (cfg.explorationStategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+                strategies.add(FitnessProportionateSelection.build(cfg))
+
+            return ExplorationStrategyPool(strategies)
+        }
+    }
+
     // region properties
 
     /**
      * Internal list of strategies
      */
-    private val strategies = ArrayList<ISelectableExplorationStrategy>()
+    private val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
 
     /**
      * Strategy which is currently active
@@ -76,12 +125,12 @@ class StrategyPool : IStrategyPool, IControlObserver {
      * Givers control to an internal exploration strategy given the [current UI][widgetContext]
      */
     private fun handleControl(widgetContext: WidgetContext) {
-        logger.debug("Attempting to handle control to exploration strategy")
+        ExplorationStrategyPool.logger.debug("Attempting to handle control to exploration strategy")
         assert(this.hasControl())
         this.activeStrategy = this.selectStrategy(widgetContext)
 
         assert(!this.hasControl())
-        logger.debug("Control handled to strategy ${this.activeStrategy!!}")
+        ExplorationStrategyPool.logger.debug("Control handled to strategy ${this.activeStrategy!!}")
     }
 
     /**
@@ -93,13 +142,13 @@ class StrategyPool : IStrategyPool, IControlObserver {
      * @return Exploration strategy with highest fitness.
      */
     private fun selectStrategy(widgetContext: WidgetContext): ISelectableExplorationStrategy {
-        logger.debug("Selecting best strategy.")
+        ExplorationStrategyPool.logger.debug("Selecting best strategy.")
         val maxFitness = this.strategies
                 .map { Pair(it, it.getFitness(widgetContext)) }
                 .maxBy { it.second.value }
 
         val bestStrategy = maxFitness!!.first
-        logger.debug("Best strategy is $bestStrategy with fitness ${maxFitness.second}.")
+        ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy with fitness ${maxFitness.second}.")
 
         return bestStrategy
     }
@@ -117,11 +166,11 @@ class StrategyPool : IStrategyPool, IControlObserver {
                                        widgetContext: WidgetContext, startTimestamp: LocalDateTime) {
         this.memory.logProgress(selectedAction, explorationType, widgetContext, startTimestamp)
 
-        logger.debug(selectedAction.toString())
+        ExplorationStrategyPool.logger.debug(selectedAction.toString())
     }
 
     override fun takeControl(strategy: ISelectableExplorationStrategy) {
-        logger.debug("Receiving back control from strategy $strategy")
+        ExplorationStrategyPool.logger.debug("Receiving back control from strategy $strategy")
         assert(this.strategies.contains(strategy))
         this.activeStrategy = null
     }
@@ -129,6 +178,11 @@ class StrategyPool : IStrategyPool, IControlObserver {
     // endregion
 
     // region initialization
+
+
+    init {
+        receivedStrategies.forEach { this.registerStrategy(it) }
+    }
 
     /**
      * Notifies all internal strategies that the exploration will start
@@ -139,22 +193,18 @@ class StrategyPool : IStrategyPool, IControlObserver {
     }
 
     override fun registerStrategy(strategy: ISelectableExplorationStrategy): Boolean {
-        logger.info("Registering strategy $strategy.")
+        ExplorationStrategyPool.logger.info("Registering strategy $strategy.")
 
         if (this.strategies.contains(strategy)) {
-            logger.warn("Strategy already registered, skipping.")
+            ExplorationStrategyPool.logger.warn("Strategy already registered, skipping.")
             return false
         }
 
         strategy.registerListener(this)
+        strategy.initialize(this.memory)
         this.strategies.add(strategy)
 
         return true
-    }
-
-    override fun initialize() {
-        for (strategy in this.strategies)
-            strategy.initialize(this.memory)
     }
 
     //endregion
@@ -178,8 +228,16 @@ class StrategyPool : IStrategyPool, IControlObserver {
         this.updateStrategiesState()
     }
 
-    override fun decide(guiState: IGuiState, appPackageName: String): ExplorationAction {
+    override fun decide(result: IExplorationActionRunResult): ExplorationAction {
+
+        logger.debug("decide($result)")
+
+        assert(result.successful)
+
+        val guiState = result.guiSnapshot.guiState
+        val appPackageName = result.exploredAppPackageName
         val startTimestamp = LocalDateTime.now()
+
         logger.debug("pool decide")
         assert(!this.strategies.isEmpty())
 
@@ -197,6 +255,8 @@ class StrategyPool : IStrategyPool, IControlObserver {
         val selectedAction = this.activeStrategy!!.decide(widgetContext)
 
         this.updateState(selectedAction, explorationType, widgetContext, startTimestamp)
+
+        logger.info("(${this.memory.getSize()}) $selectedAction")
 
         return selectedAction
     }
@@ -221,7 +281,4 @@ class StrategyPool : IStrategyPool, IControlObserver {
         this.allWidgetsBlackListed = false
     }
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(StrategyPool::class.java)
-    }
 }

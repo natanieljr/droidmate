@@ -20,7 +20,7 @@
 package org.droidmate.test_tools.exploration.strategy
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.strategy.ExplorationStrategy
+import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.test_tools.configuration.ConfigurationForTests
 
@@ -33,7 +33,7 @@ class ExplorationStrategyTestHelper {
                 setArg(arrayListOf(Configuration.pn_resetEveryNthExplorationForward, "$resetEveryNthExplorationForward"))
             }.get()
 
-            return ExplorationStrategy.build(cfg)
+            return ExplorationStrategyPool.build(cfg)
         }
     }
 }

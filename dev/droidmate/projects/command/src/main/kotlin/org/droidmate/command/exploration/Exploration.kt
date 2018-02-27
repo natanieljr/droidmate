@@ -29,7 +29,7 @@ import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
-import org.droidmate.exploration.strategy.ExplorationStrategy
+import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
@@ -48,7 +48,7 @@ class Exploration constructor(private val cfg: Configuration,
         @JvmStatic
         fun build(cfg: Configuration,
                   timeProvider: ITimeProvider = TimeProvider(),
-                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategy.build(cfg) }): Exploration
+                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategyPool.build(cfg) }): Exploration
                 = Exploration(cfg, timeProvider, strategyProvider)
     }
 

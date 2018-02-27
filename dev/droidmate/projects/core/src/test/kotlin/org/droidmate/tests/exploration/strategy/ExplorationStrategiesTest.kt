@@ -58,14 +58,14 @@ class ExplorationStrategiesTest {
         val nrOfActions = 10
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
         cfg.actionsLimit = nrOfActions
-        val strategyPool = StrategyPool()
+        val strategy = ExplorationStrategyPool(ArrayList())
         val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
         assertTrue(terminationCriterionList.size == 1)
         val terminationCriterion = terminationCriterionList[0]
-        strategyPool.registerStrategy(Terminate.build(terminationCriterion))
-        strategyPool.registerStrategy(Reset.build(cfg))
-        strategyPool.registerStrategy(RandomWidget.build(cfg))
-        strategyPool.registerStrategy(TripleActionExploration.build())
+        strategy.registerStrategy(Terminate.build(terminationCriterion))
+        strategy.registerStrategy(Reset.build(cfg))
+        strategy.registerStrategy(RandomWidget.build(cfg))
+        strategy.registerStrategy(TripleActionExploration.build())
 
         // Mocking
         val inputData = mock<IExplorationActionRunResult>()
@@ -81,7 +81,6 @@ class ExplorationStrategiesTest {
         whenever(guiState.widgets).thenReturn(Auxiliary.createTestWidgets())
 
         // 11 calls to the decide function
-        val strategy = AdaptiveExplorationStrategy(strategyPool)
         val actions = ArrayList<ExplorationAction>()
 
         for (i in 0..nrOfActions) {
@@ -111,16 +110,16 @@ class ExplorationStrategiesTest {
     @Test
     fun actionBasedTerminationStrategyTest() {
         // Initialization
-        val strategyPool = StrategyPool()
+        val strategy = ExplorationStrategyPool(ArrayList())
 
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
         cfg.actionsLimit = 1
         val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
         assertTrue(terminationCriterionList.size == 1)
         val terminationCriterion = terminationCriterionList[0]
-        strategyPool.registerStrategy(Terminate.build(terminationCriterion))
-        strategyPool.registerStrategy(Reset.build(cfg))
-        strategyPool.registerStrategy(RandomWidget.build(cfg))
+        strategy.registerStrategy(Terminate.build(terminationCriterion))
+        strategy.registerStrategy(Reset.build(cfg))
+        strategy.registerStrategy(RandomWidget.build(cfg))
 
         // Mocking
         val inputData = mock<IExplorationActionRunResult>()
@@ -136,8 +135,6 @@ class ExplorationStrategiesTest {
         whenever(guiState.widgets).thenReturn(Auxiliary.createTestWidgets())
 
         // Criterion = 1 action
-        val strategy = AdaptiveExplorationStrategy(strategyPool)
-
         // First is valid
         assertFalse(terminationCriterion.met())
         strategy.decide(inputData)
@@ -148,7 +145,7 @@ class ExplorationStrategiesTest {
     @Test
     fun timeBasedTerminationStrategyTest() {
         // Initialization
-        val strategyPool = StrategyPool()
+        val strategy = ExplorationStrategyPool(ArrayList())
 
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
         cfg.actionsLimit = 0
@@ -156,8 +153,8 @@ class ExplorationStrategiesTest {
         val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
         assertTrue(terminationCriterionList.size == 1)
         val terminationCriterion = terminationCriterionList[0]
-        strategyPool.registerStrategy(Terminate.build(terminationCriterion))
-        strategyPool.registerStrategy(Reset.build(cfg))
+        strategy.registerStrategy(Terminate.build(terminationCriterion))
+        strategy.registerStrategy(Reset.build(cfg))
 
         // Mocking
         val inputData = mock<IExplorationActionRunResult>()
@@ -173,7 +170,6 @@ class ExplorationStrategiesTest {
         whenever(guiState.widgets).thenReturn(Auxiliary.createTestWidgets())
 
         // Criterion = 1 action
-        val strategy = AdaptiveExplorationStrategy(strategyPool)
         // The timer starts here
         strategy.decide(EmptyExplorationActionRunResult())
         // Reset the clock, since it had to wait the exploration action to be done
@@ -199,7 +195,7 @@ class ExplorationStrategiesTest {
     fun duplicateStrategyRegistrationTest() {
         // Initialization
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
-        val strategyPool = StrategyPool()
+        val strategyPool = ExplorationStrategyPool(ArrayList())
         val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
         assertTrue(terminationCriterionList.size == 1)
         val terminationCriterion = terminationCriterionList[0]
