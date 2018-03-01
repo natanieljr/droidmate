@@ -53,7 +53,7 @@ open class GuiState constructor(final override val topNodePackageName: String,
     }
 
     override val isHomeScreen: Boolean
-        get() = topNodePackageName == androidLauncherPackageName && !widgets.any { it.text == "Widgets" }
+        get() = topNodePackageName.startsWith(androidLauncherPackageName) && !widgets.any { it.text == "Widgets" }
 
     override val isAppHasStoppedDialogBox: Boolean
         get() = topNodePackageName == androidPackageName &&
