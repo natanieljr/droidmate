@@ -37,17 +37,14 @@ abstract class ExplorationAction : Serializable {
                 = TerminateExplorationAction()
 
         @JvmStatic
-        fun newWidgetExplorationAction(widget: IWidget, delay: Int): WidgetExplorationAction
-                = WidgetExplorationAction(widget, false, delay).apply { runtimePermission = false }
+        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
 
         @JvmStatic
-        fun newWidgetExplorationAction(widget: IWidget, longClick: Boolean = false): WidgetExplorationAction
-                = WidgetExplorationAction(widget, longClick)
+        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
 
         @JvmStatic
         @JvmOverloads
-        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, longClick: Boolean = false): WidgetExplorationAction
-                = WidgetExplorationAction(widget, longClick).apply { runtimePermission = true }
+        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
 
         @JvmStatic
         fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String=""): EnterTextExplorationAction
@@ -62,8 +59,8 @@ abstract class ExplorationAction : Serializable {
                 = PressBackExplorationAction()
 
         @JvmStatic
-        fun newWidgetSwipeExplorationAction(widget: IWidget, direction: Direction): WidgetExplorationAction {
-            return WidgetExplorationAction(widget, false, 0, true, direction)
+        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean, direction: Direction): WidgetExplorationAction {
+            return WidgetExplorationAction(widget, false, useCoordinates, 0, true, direction)
         }
 
     }

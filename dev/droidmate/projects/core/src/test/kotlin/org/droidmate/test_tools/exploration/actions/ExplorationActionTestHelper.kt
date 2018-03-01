@@ -27,6 +27,6 @@ class ExplorationActionTestHelper {
     companion object {
         @JvmStatic
         fun newWidgetClickExplorationAction(args: Map<String, Any> = hashMapOf()): WidgetExplorationAction
-                = ExplorationAction.newWidgetExplorationAction(WidgetTestHelper.newClickableButton(args.toMutableMap()))
+                = ExplorationAction.newWidgetExplorationAction(WidgetTestHelper.newClickableButton(args.toMutableMap()), true)
     }
 }

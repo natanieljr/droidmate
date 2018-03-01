@@ -168,7 +168,7 @@ class ForwardExplorationSpecialCases : IForwardExplorationSpecialCases {
         when (currentStep) {
             Step.CLICK_TO_GO_TO_LOGIN_ENTRY_PAGE -> {
                 val w = guiState.widgets.find { it.text == "LOG IN" }
-                action = newWidgetExplorationAction(w!!)
+                action = newWidgetExplorationAction(w!!, true)
             }
 
             Step.ENTER_USER -> {
@@ -198,7 +198,7 @@ class ForwardExplorationSpecialCases : IForwardExplorationSpecialCases {
             Step.LOG_INTO_THE_APP -> {
                 // Works for both versions of snapchat
                 val w = guiState.widgets.find { it.text == "LOG IN" }
-                action = newWidgetExplorationAction(w!!, loginDelay)
+                action = newWidgetExplorationAction(w!!, loginDelay, true)
             }
 
             Step.NONE -> {
@@ -208,7 +208,7 @@ class ForwardExplorationSpecialCases : IForwardExplorationSpecialCases {
             Step.CLICK_TRY_AGAIN_POPUP -> {
                 // Works for both versions of snapchat
                 val w = guiState.widgets.find { it.text == "Try again" }
-                action = newWidgetExplorationAction(w!!)
+                action = newWidgetExplorationAction(w!!, true)
             }
 
             Step.TERMINATE -> action = newTerminateExplorationAction()

@@ -99,7 +99,7 @@ class WidgetStrategy constructor(randomSeed: Long,
                 repeatLastAction = true
             } else if (alwaysClickFirstWidget) {
                 lastWidgetInfo = currentWidgetContext!![0]
-                action = newWidgetExplorationAction(currentWidgetContext!![0].widget)
+                action = newWidgetExplorationAction(currentWidgetContext!![0].widget, true)
             } else if (widgetIndexes.size > 0)
                 action = clickWidgetByIndex()
             else
@@ -118,7 +118,7 @@ class WidgetStrategy constructor(randomSeed: Long,
         if (lastWidgetInfo != null)
             lastWidgetInfo!!.blackListed = false
 
-        return newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
+        return newIgnoreActionForTerminationWidgetExplorationAction(allowButton, true)
     }
 
     private fun clickWidgetByIndex(): WidgetExplorationAction {
@@ -131,7 +131,7 @@ class WidgetStrategy constructor(randomSeed: Long,
         val chosenWidgetInfo = currentWidgetContext!!.first { it.index == widgetIndex }
 
         lastWidgetInfo = chosenWidgetInfo
-        return newWidgetExplorationAction(chosenWidget)
+        return newWidgetExplorationAction(chosenWidget, true)
     }
 
     private fun biasedRandomAction(): ExplorationAction = chooseWidgetAndAction(currentWidgetContext!!)
@@ -198,12 +198,12 @@ class WidgetStrategy constructor(randomSeed: Long,
             // C, LC, C, C, LC, C, C, LC, ..., C, C, LC, ...
             if (chosenWidgetInfo.actedUponCount % 3 == 1) {
                 chosenWidgetInfo.longClickedCount++
-                action = newWidgetExplorationAction(chosenWidget, /* longClick */ true)
+                action = newWidgetExplorationAction(chosenWidget, true, true)
             } else
-                action = newWidgetExplorationAction(chosenWidget)
+                action = newWidgetExplorationAction(chosenWidget, true)
 
         } else
-            action = newWidgetExplorationAction(chosenWidget)
+            action = newWidgetExplorationAction(chosenWidget, true)
 
         chosenWidgetInfo.actedUponCount++
 
