@@ -74,10 +74,10 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IApkExplor
             when (explAction) {
             // Do not any transition: all GuiScreens already know how to transition on device actions resulting from
             // this exploration action.
-                is ResetAppExplorationAction -> { /* Do nothing */
-                }
+                is ResetAppExplorationAction -> { /* Do nothing */ }
                 is WidgetExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
                 is EnterTextExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
+                is PressBackExplorationAction -> { /* Do nothing */ }
                 is TerminateExplorationAction -> {
                     assert(i == output.actRes.size - 1)
                     // Do not add any transition: all GuiScreens already know how to transition on device actions resulting from

@@ -105,30 +105,50 @@ class ExplorationStrategyTest : DroidmateTestCase() {
     }
 
     @Test
-    fun `Given no clickable widgets after app was initialized or reset, requests termination`() {
+    fun `Given no clickable widgets after app was initialized or reset, attempts ot press back then requests termination`() {
         // Act 1 & Assert
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(getStrategy(), newGuiStateWithTopLevelNodeOnly())
+        var strategy = getStrategy()
+        makeIntoNormalExplorationMode(strategy)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
 
         // Act 2 & Assert
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(getStrategy(), newGuiStateWithDisabledWidgets(1))
+        strategy = getStrategy()
+        makeIntoNormalExplorationMode(strategy)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, newGuiStateWithDisabledWidgets(1))
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newGuiStateWithDisabledWidgets(1))
     }
 
     @Test
-    fun `Given no clickable widgets during normal exploration, requests app reset`() {
+    fun `Given no clickable widgets during normal exploration, press back, it doesn't work then requests app reset`() {
         val strategy = getStrategy()
         makeIntoNormalExplorationMode(strategy)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
         verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
     }
 
     @Test
-    fun `Given home screen, other app or 'app has stopped' screen during normal exploration, requests app reset`() {
+    fun `Given other app during normal exploration, requests press back`() {
         // ----- Test 1 -----
 
         var strategy = getStrategy()
         makeIntoNormalExplorationMode(strategy)
 
         // Act & assert(1
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newHomeScreenGuiState())
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, newHomeScreenGuiState())
+    }
+
+    @Test
+    fun `Given other app or 'app has stopped' screen during normal exploration, requests press back`() {
+        // ----- Test 1 -----
+
+        var strategy = getStrategy()
+        makeIntoNormalExplorationMode(strategy)
+
+        // Act & assert(1
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, newHomeScreenGuiState())
 
         // ----- Test 2 -----
 
@@ -136,11 +156,13 @@ class ExplorationStrategyTest : DroidmateTestCase() {
         makeIntoNormalExplorationMode(strategy)
 
         // Act & assert(2
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newOutOfAppScopeGuiState())
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, newOutOfAppScopeGuiState())
+    }
 
-        // ----- Test 3 -----
 
-        strategy = getStrategy()
+    @Test
+    fun `Given 'app has stopped' screen during normal exploration, requests app reset`() {
+        val strategy = getStrategy()
         makeIntoNormalExplorationMode(strategy)
 
         // Act & assert(3
@@ -148,13 +170,13 @@ class ExplorationStrategyTest : DroidmateTestCase() {
     }
 
     @Test
-    fun `Given 'complete action using' dialog box, requests reset`() {
+    fun `Given 'complete action using' dialog box, requests press back`() {
         val strategy = getStrategy()
         makeIntoNormalExplorationMode(strategy)
 
         // Act & Assert
         val actionWithGUIState = newCompleteActionUsingGuiState()
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, actionWithGUIState)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, actionWithGUIState)
     }
 
 
@@ -163,8 +185,9 @@ class ExplorationStrategyTest : DroidmateTestCase() {
         val strategy = getStrategy()
         makeIntoNormalExplorationMode(strategy)
 
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newAppHasStoppedGuiState())
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newAppHasStoppedGuiState())
+        //verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newAppHasStoppedGuiState())
+        //verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
     }
 
     @Test
@@ -181,8 +204,8 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 
     @Test
     fun `When exploring forward and configured so, resets exploration every third time`() {
-        val strategy = getStrategy(/* actionsLimit */ 8, /* resetEveryNthExplorationForward */ 3
-        )
+        val strategy = getStrategy( 10, 3)
+        makeIntoNormalExplorationMode(strategy)
         val gs = newGuiStateWithWidgets(3, ApkFixtures.apkFixture_simple_packageName)
         val egs = newGuiStateWithTopLevelNodeOnly()
 
@@ -191,10 +214,11 @@ class ExplorationStrategyTest : DroidmateTestCase() {
         verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs) // 3rd exploration forward: reset
 
         verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 1st exploration forward: widget click
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, egs) // press back because cannot move forward
         verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, egs) // reset because cannot move forward
         verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 1st exploration forward: widget click
         verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 2nd exploration forward: widget click
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, egs) // 3rd exploration forward: reset
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs) // 3rd exploration forward: reset
 
         // At this point all 8 actions have been executed.
 

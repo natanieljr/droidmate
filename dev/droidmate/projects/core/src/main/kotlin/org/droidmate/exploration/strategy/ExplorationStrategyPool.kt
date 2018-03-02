@@ -18,12 +18,17 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import com.google.common.base.Ticker
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.IExplorationActionRunResult
-import org.droidmate.exploration.strategy.termination.Terminate
-import org.droidmate.exploration.strategy.termination.criterion.CriterionProvider
+import org.droidmate.exploration.strategy.reset.AppCrashedReset
+import org.droidmate.exploration.strategy.reset.CannotExploreReset
+import org.droidmate.exploration.strategy.reset.InitialReset
+import org.droidmate.exploration.strategy.reset.IntervalReset
+import org.droidmate.exploration.strategy.termination.ActionBasedTerminate
+import org.droidmate.exploration.strategy.termination.TimeBasedTerminate
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
 import org.droidmate.exploration.strategy.widget.ModelBased
@@ -42,14 +47,38 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     companion object {
         private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
 
+        private fun getTerminationStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
+            val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+
+            if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0)
+                strategies.add(ActionBasedTerminate(cfg))
+
+            if (cfg.timeLimit > 0)
+                strategies.add(TimeBasedTerminate(cfg.timeLimit, Ticker.systemTicker()))
+
+            return strategies
+        }
+
+        private fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
+            val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+
+            strategies.add(InitialReset())
+            strategies.add(AppCrashedReset())
+            strategies.add(CannotExploreReset())
+
+            // Interval reset
+            if (cfg.resetEveryNthExplorationForward > 0)
+                strategies.add(IntervalReset(cfg.resetEveryNthExplorationForward))
+            return strategies
+        }
+
         fun build(cfg: Configuration): ExplorationStrategyPool {
 
             val strategies = ArrayList<ISelectableExplorationStrategy>()
 
             // Default strategies
-            val terminationCriteria = CriterionProvider.build(cfg, ArrayList())
-            terminationCriteria.forEach { p -> strategies.add(Terminate.build(p)) }
-            strategies.add(Reset.build(cfg))
+            strategies.addAll(getTerminationStrategies(cfg))
+            strategies.addAll(getResetStrategies(cfg))
 
             // Random exploration
             if (cfg.explorationStategies.contains(StrategyTypes.RandomWidget.strategyName))
@@ -59,7 +88,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             if (cfg.explorationStategies.contains(StrategyTypes.ModelBased.strategyName))
                 strategies.add(ModelBased.build(cfg))
 
-            // Pressback
+            // Press back
             if (cfg.explorationStategies.contains(StrategyTypes.PressBack.strategyName))
                 strategies.add(PressBack.build(0.10, cfg))
 

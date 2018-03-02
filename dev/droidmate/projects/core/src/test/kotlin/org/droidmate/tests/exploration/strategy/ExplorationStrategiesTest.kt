@@ -22,14 +22,19 @@ package org.droidmate.tests.exploration.strategy
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
+import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.EmptyGuiState
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.termination.Terminate
-import org.droidmate.exploration.strategy.termination.criterion.CriterionProvider
-import org.droidmate.exploration.strategy.termination.criterion.TimeBasedCriterion
+import org.droidmate.exploration.strategy.reset.AppCrashedReset
+import org.droidmate.exploration.strategy.reset.CannotExploreReset
+import org.droidmate.exploration.strategy.reset.InitialReset
+import org.droidmate.exploration.strategy.reset.IntervalReset
+import org.droidmate.exploration.strategy.termination.ActionBasedTerminate
+import org.droidmate.exploration.strategy.termination.CannotExploreTerminate
+import org.droidmate.exploration.strategy.termination.TimeBasedTerminate
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.AlwaysFirstWidget
 import org.droidmate.exploration.strategy.widget.RandomWidget
@@ -52,6 +57,19 @@ import java.time.LocalDateTime
 @RunWith(JUnit4::class)
 class ExplorationStrategiesTest {
 
+    private fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy>{
+        val strategies : MutableList<ISelectableExplorationStrategy> = ArrayList()
+        strategies.add(InitialReset())
+        strategies.add(AppCrashedReset())
+        strategies.add(CannotExploreReset())
+
+        // Interval reset
+        if (cfg.resetEveryNthExplorationForward > 0)
+            strategies.add(IntervalReset(cfg.resetEveryNthExplorationForward))
+
+        return strategies
+    }
+
     @Test
     fun strategySelectionTest() {
         // Initialization
@@ -59,11 +77,8 @@ class ExplorationStrategiesTest {
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
         cfg.actionsLimit = nrOfActions
         val strategy = ExplorationStrategyPool(ArrayList())
-        val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
-        assertTrue(terminationCriterionList.size == 1)
-        val terminationCriterion = terminationCriterionList[0]
-        strategy.registerStrategy(Terminate.build(terminationCriterion))
-        strategy.registerStrategy(Reset.build(cfg))
+        strategy.registerStrategy(ActionBasedTerminate(cfg))
+        getResetStrategies(cfg).forEach { strategy.registerStrategy(it) }
         strategy.registerStrategy(RandomWidget.build(cfg))
         strategy.registerStrategy(TripleActionExploration.build())
 
@@ -85,7 +100,7 @@ class ExplorationStrategiesTest {
 
         for (i in 0..nrOfActions) {
             // Only in the last should the termination criterion be met
-            assertTrue(i < nrOfActions || terminationCriterion.met())
+            assertTrue(i < nrOfActions || actions.last() is TerminateExplorationAction)
             if (i == 0)
                 actions.add(strategy.decide(EmptyExplorationActionRunResult()))
             else
@@ -104,7 +119,6 @@ class ExplorationStrategiesTest {
         assertTrue(actions[8] is WidgetExplorationAction)
         assertTrue(actions[9] is WidgetExplorationAction)
         assertTrue(actions[10] is TerminateExplorationAction)
-        assertTrue(terminationCriterion.met())
     }
 
     @Test
@@ -114,11 +128,9 @@ class ExplorationStrategiesTest {
 
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
         cfg.actionsLimit = 1
-        val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
-        assertTrue(terminationCriterionList.size == 1)
-        val terminationCriterion = terminationCriterionList[0]
-        strategy.registerStrategy(Terminate.build(terminationCriterion))
-        strategy.registerStrategy(Reset.build(cfg))
+        val terminateStrategy = ActionBasedTerminate(cfg)
+        strategy.registerStrategy(terminateStrategy)
+        getResetStrategies(cfg).forEach { strategy.registerStrategy(it) }
         strategy.registerStrategy(RandomWidget.build(cfg))
 
         // Mocking
@@ -136,10 +148,11 @@ class ExplorationStrategiesTest {
 
         // Criterion = 1 action
         // First is valid
-        assertFalse(terminationCriterion.met())
+        val widgetContext = strategy.memory.getWidgetContext(inputData.guiSnapshot.guiState, inputData.exploredAppPackageName)
+        assertFalse(terminateStrategy.met(widgetContext))
         strategy.decide(inputData)
         // Now should meet termination
-        assertTrue(terminationCriterion.met())
+        assertTrue(terminateStrategy.met(widgetContext))
     }
 
     @Test
@@ -150,11 +163,9 @@ class ExplorationStrategiesTest {
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
         cfg.actionsLimit = 0
         cfg.timeLimit = 1
-        val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
-        assertTrue(terminationCriterionList.size == 1)
-        val terminationCriterion = terminationCriterionList[0]
-        strategy.registerStrategy(Terminate.build(terminationCriterion))
-        strategy.registerStrategy(Reset.build(cfg))
+        val terminateStrategy = TimeBasedTerminate(cfg.timeLimit)
+        strategy.registerStrategy(terminateStrategy)
+        getResetStrategies(cfg).forEach { strategy.registerStrategy(it) }
 
         // Mocking
         val inputData = mock<IExplorationActionRunResult>()
@@ -173,9 +184,10 @@ class ExplorationStrategiesTest {
         // The timer starts here
         strategy.decide(EmptyExplorationActionRunResult())
         // Reset the clock, since it had to wait the exploration action to be done
-        (terminationCriterion as TimeBasedCriterion).resetClock()
+        terminateStrategy.resetClock()
         // First is valid
-        assertFalse(terminationCriterion.met())
+        val widgetContext = strategy.memory.getWidgetContext(inputData.guiSnapshot.guiState, inputData.exploredAppPackageName)
+        assertFalse(terminateStrategy.met(widgetContext))
 
         // Sleep for one second, state is updated after deciding last action
         try {
@@ -188,7 +200,7 @@ class ExplorationStrategiesTest {
         strategy.decide(inputData)
 
         // Now should meet termination
-        assertTrue(terminationCriterion.met())
+        assertTrue(terminateStrategy.met(widgetContext))
     }
 
     @Test
@@ -196,18 +208,15 @@ class ExplorationStrategiesTest {
         // Initialization
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
         val strategyPool = ExplorationStrategyPool(ArrayList())
-        val terminationCriterionList = CriterionProvider.build(cfg, ArrayList())
-        assertTrue(terminationCriterionList.size == 1)
-        val terminationCriterion = terminationCriterionList[0]
         // Cannot registers 2x the same strategy
-        assertTrue(strategyPool.registerStrategy(Terminate.build(terminationCriterion)))
-        assertFalse(strategyPool.registerStrategy(Terminate.build(terminationCriterion)))
+        assertTrue(strategyPool.registerStrategy(ActionBasedTerminate(cfg)))
+        assertFalse(strategyPool.registerStrategy(ActionBasedTerminate(cfg)))
 
         assertTrue(strategyPool.registerStrategy(RandomWidget.build(cfg)))
         assertFalse(strategyPool.registerStrategy(RandomWidget.build(cfg)))
 
-        assertTrue(strategyPool.registerStrategy(Reset.build(cfg)))
-        assertFalse(strategyPool.registerStrategy(Reset.build(cfg)))
+        assertTrue(strategyPool.registerStrategy(IntervalReset(cfg.resetEveryNthExplorationForward)))
+        assertFalse(strategyPool.registerStrategy(IntervalReset(cfg.resetEveryNthExplorationForward)))
 
         assertTrue(strategyPool.registerStrategy(PressBack.build(0.10, cfg)))
         assertFalse(strategyPool.registerStrategy(PressBack.build(0.10, cfg)))
@@ -223,12 +232,9 @@ class ExplorationStrategiesTest {
     fun strategyComparisonTest() {
         // Initialization
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
-        val terminationCriteriaList = CriterionProvider.build(cfg, ArrayList())
-        assertTrue(terminationCriteriaList.size == 1)
-
-        val terminateStrategy = Terminate.build(terminationCriteriaList[0])
-        val randomStrategy = RandomWidget.build(cfg)
-        val resetStrategy = Reset.build(cfg)
+        val terminateStrategy : ISelectableExplorationStrategy = ActionBasedTerminate(cfg)
+        val randomStrategy : ISelectableExplorationStrategy = RandomWidget.build(cfg)
+        val resetStrategy : ISelectableExplorationStrategy = IntervalReset(0)
 
         // Not equal (instanceOf check)
         assertFalse(terminateStrategy == randomStrategy)
@@ -237,16 +243,15 @@ class ExplorationStrategiesTest {
         assertFalse(resetStrategy == terminateStrategy)
 
         // Equal (different objects)
-        val terminateStrategy2 = Terminate.build(terminationCriteriaList[0])
+        val terminateStrategy2 = ActionBasedTerminate(cfg)
         val randomStrategy2 = RandomWidget.build(cfg)
-        val resetStrategy2 = Reset.build(cfg)
+        val resetStrategy2 = IntervalReset(0)
         assertTrue(terminateStrategy == terminateStrategy2)
         assertTrue(randomStrategy == randomStrategy2)
         assertTrue(resetStrategy == resetStrategy2)
 
         // Not equal
-        cfg.resetEveryNthExplorationForward++
-        val resetStrategy3 = Reset.build(cfg)
+        val resetStrategy3 = IntervalReset(1)
         assertFalse(resetStrategy == resetStrategy3)
     }
 
@@ -254,8 +259,7 @@ class ExplorationStrategiesTest {
     fun terminateStrategyDoesNotBelongToAppTest() {
         // Initialization
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
-        val terminationCriterion = CriterionProvider.build(cfg, ArrayList())[0]
-        val strategy = Terminate.build(terminationCriterion)
+        val strategy = CannotExploreTerminate()
         val memory = Memory()
         strategy.initialize(memory)
         val guiState = Auxiliary.createGuiStateFromFile()
@@ -266,7 +270,7 @@ class ExplorationStrategiesTest {
         assertTrue(fitness == StrategyPriority.NONE)
 
         // First action is always reset
-        val resetStrategy = Reset.build(cfg)
+        val resetStrategy = InitialReset()
         resetStrategy.initialize(memory)
         widgetContext = memory.getWidgetContext(EmptyGuiState(), "")
         memory.logProgress(resetStrategy.decide(widgetContext),
@@ -286,16 +290,12 @@ class ExplorationStrategiesTest {
         // Produced a termination action
         val action = strategy.decide(widgetContext)
         assertTrue(action is TerminateExplorationAction)
-        // Did not reach termination criteria
-        assertFalse(terminationCriterion.met())
     }
 
     @Test
     fun terminateStrategyNoActionableWidgetsTest() {
         // Initialization
-        val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
-        val terminationCriterion = CriterionProvider.build(cfg, ArrayList())[0]
-        val strategy = Terminate.build(terminationCriterion)
+        val strategy = CannotExploreTerminate()
         val memory = Memory()
         strategy.initialize(memory)
         val guiState = Auxiliary.createGuiStateFromFile()
@@ -308,7 +308,7 @@ class ExplorationStrategiesTest {
         assertTrue(fitness == StrategyPriority.NONE)
 
         // First action is always reset
-        val resetStrategy = Reset.build(cfg)
+        val resetStrategy = InitialReset()
         resetStrategy.initialize(memory)
         widgetContext = memory.getWidgetContext(EmptyGuiState(), "")
         memory.logProgress(resetStrategy.decide(widgetContext),
@@ -322,8 +322,6 @@ class ExplorationStrategiesTest {
         // Produced a termination action
         val action = strategy.decide(widgetContext)
         assertTrue(action is TerminateExplorationAction)
-        // Did not reach termination criteria
-        assertFalse(terminationCriterion.met())
     }
 
     companion object {
