@@ -189,13 +189,14 @@ class ExplorationStrategyTest : DroidmateTestCase() {
     }
 
     @Test
-    fun `When exploring forward and configured so, resets exploration every time`() {
-        val strategy = getStrategy(3, 1
-        )
+    fun `When exploring forward and configured so, resets exploration every second time`() {
+        val strategy = getStrategy(5, 2)
         val gs = newGuiStateWithWidgets(3, ApkFixtures.apkFixture_simple_packageName)
 
         verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs)
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs)
         verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs)
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs)
         verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs)
         verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, gs)
     }
