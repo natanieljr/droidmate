@@ -43,7 +43,8 @@ class CannotExploreTerminate : Terminate() {
 
         return !widgetContext.explorationCanMoveForwardOn() &&
                 lastActionWasOfType(ExplorationType.Reset) &&
-                this.getSecondLastActionType() == ExplorationType.Back
+                ((this.getSecondLastActionType() == ExplorationType.Back) ||
+                        (widgetContext.guiState.isAppHasStoppedDialogBox))
         // or during initial attempt (just after first launch, which is also a reset) then it shall be terminated.
     }
 
@@ -63,5 +64,13 @@ class CannotExploreTerminate : Terminate() {
             "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${widgetContext.guiState}"
         } else
             throw UnexpectedIfElseFallthroughError()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is CannotExploreTerminate
+    }
+
+    override fun hashCode(): Int {
+        return this.javaClass.hashCode()
     }
 }

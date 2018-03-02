@@ -28,6 +28,7 @@ import org.droidmate.exploration.strategy.reset.CannotExploreReset
 import org.droidmate.exploration.strategy.reset.InitialReset
 import org.droidmate.exploration.strategy.reset.IntervalReset
 import org.droidmate.exploration.strategy.termination.ActionBasedTerminate
+import org.droidmate.exploration.strategy.termination.CannotExploreTerminate
 import org.droidmate.exploration.strategy.termination.TimeBasedTerminate
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
@@ -55,6 +56,8 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 
             if (cfg.timeLimit > 0)
                 strategies.add(TimeBasedTerminate(cfg.timeLimit, Ticker.systemTicker()))
+
+            strategies.add(CannotExploreTerminate())
 
             return strategies
         }

@@ -186,13 +186,11 @@ class ExplorationStrategyTest : DroidmateTestCase() {
         makeIntoNormalExplorationMode(strategy)
 
         verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newAppHasStoppedGuiState())
-        //verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newAppHasStoppedGuiState())
-        //verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
     }
 
     @Test
     fun `When exploring forward and configured so, resets exploration every time`() {
-        val strategy = getStrategy(/* actionsLimit */ 3, /* resetEveryNthExplorationForward */ 1
+        val strategy = getStrategy(3, 1
         )
         val gs = newGuiStateWithWidgets(3, ApkFixtures.apkFixture_simple_packageName)
 
