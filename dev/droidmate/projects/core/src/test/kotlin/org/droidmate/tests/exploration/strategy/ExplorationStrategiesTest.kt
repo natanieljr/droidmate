@@ -38,6 +38,7 @@ import org.droidmate.exploration.strategy.termination.TimeBasedTerminate
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.AlwaysFirstWidget
 import org.droidmate.exploration.strategy.widget.RandomWidget
+import org.droidmate.test_tools.DroidmateTestCase
 import org.droidmate.tests.exploration.strategy.stubs.DummyExplorationAction
 import org.droidmate.tests.exploration.strategy.stubs.TripleActionExploration
 import org.junit.Assert
@@ -55,7 +56,7 @@ import java.time.LocalDateTime
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class ExplorationStrategiesTest {
+class ExplorationStrategiesTest: DroidmateTestCase() {
 
     private fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy>{
         val strategies : MutableList<ISelectableExplorationStrategy> = ArrayList()

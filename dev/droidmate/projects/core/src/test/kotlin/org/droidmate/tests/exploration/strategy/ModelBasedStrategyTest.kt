@@ -23,6 +23,7 @@ import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.strategy.Memory
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.misc.uniqueString
+import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,7 +35,7 @@ import org.junit.runners.MethodSorters
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class ModelBasedStrategyTest {
+class ModelBasedStrategyTest: DroidmateTestCase() {
 
     @Test
     fun selectWidgetTest() {

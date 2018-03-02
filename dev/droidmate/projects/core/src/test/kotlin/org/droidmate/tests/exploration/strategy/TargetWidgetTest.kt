@@ -22,6 +22,7 @@ package org.droidmate.tests.exploration.strategy
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.strategy.ITargetWidget
 import org.droidmate.exploration.strategy.TargetWidget
+import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.Assert
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -38,7 +39,7 @@ import java.util.*
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class TargetWidgetTest {
+class TargetWidgetTest: DroidmateTestCase() {
     private fun createWidget(id: String): Widget {
         val w = Widget(id)
         w.packageName = "STUB!"

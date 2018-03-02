@@ -133,7 +133,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
     fun `Given other app during normal exploration, requests press back`() {
         // ----- Test 1 -----
 
-        var strategy = getStrategy()
+        val strategy = getStrategy()
         makeIntoNormalExplorationMode(strategy)
 
         // Act & assert(1
