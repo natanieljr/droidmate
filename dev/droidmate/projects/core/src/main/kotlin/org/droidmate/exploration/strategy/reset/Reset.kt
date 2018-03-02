@@ -29,7 +29,7 @@ import org.droidmate.exploration.strategy.WidgetContext
  *
  * @author Nataniel P. Borges Jr.
  */
-abstract class Reset protected constructor() : AbstractStrategy() {
+abstract class Reset : AbstractStrategy() {
     override val type: ExplorationType
         get() = ExplorationType.Reset
 
@@ -54,5 +54,12 @@ abstract class Reset protected constructor() : AbstractStrategy() {
 
     override fun start() {
         // Nothing to do here.
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+        return true
     }
 }

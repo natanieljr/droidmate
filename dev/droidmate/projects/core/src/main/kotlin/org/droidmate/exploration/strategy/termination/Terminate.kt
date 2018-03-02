@@ -18,33 +18,25 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
-import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.AbstractStrategy
+import org.droidmate.exploration.strategy.ExplorationType
+import org.droidmate.exploration.strategy.StrategyPriority
+import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.logging.Markers
 
 /**
- * Determines if exploration shall be terminated. Obviously, exploration shall be terminated when the terminationCriterion is
- * met. However, two more cases justify termination:
- *
- * - If exploration cannot move forward after reset. Resetting is supposed to unstuck exploration, and so if it doesn't help,
- * exploration cannot proceed forward at all.
- *
- * - A special case of the above, if exploration cannot move at the first time exploration strategy makes a decision. This
- * is a special case because first time exploration strategy makes a decision is immediately after the initial app launch,
- * which is technically also a kind of reset.
- *
- * @constructor Creates a new class instance using a [predetermined termination criterion][terminationCriterion]
+ * Determines if exploration shall be terminated based on the terminate criteria
  *
  * @author Nataniel P. Borges Jr.
  */
-class Terminate private constructor(private val terminationCriterion: ITerminationCriterion) : AbstractStrategy() {
+abstract class Terminate : AbstractStrategy() {
 
     override val type: ExplorationType
         get() = ExplorationType.Terminate
 
-    private fun getSecondLastActionType(): ExplorationType {
+    protected fun getSecondLastActionType(): ExplorationType {
         if (this.memory.getSize() < 2)
             return ExplorationType.None
 
@@ -52,18 +44,7 @@ class Terminate private constructor(private val terminationCriterion: ITerminati
     }
 
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
-        if (this.terminationCriterion.met())
-            return StrategyPriority.TERMINATE
-
-        // If the exploration cannot move forward after reset or during initial attempt (just after first launch,
-        // which is also a reset) then it shall be terminated.
-        if (!widgetContext.explorationCanMoveForwardOn() &&
-                lastActionWasOfType(ExplorationType.Reset) &&
-                this.getSecondLastActionType() == ExplorationType.Back)
-            return StrategyPriority.TERMINATE
-
-        // All widgets have been explored, no need to continue exploration
-        if (memory.areAllWidgetsExplored())
+        if (this.met(widgetContext))
             return StrategyPriority.TERMINATE
 
         return StrategyPriority.NONE
@@ -74,63 +55,24 @@ class Terminate private constructor(private val terminationCriterion: ITerminati
     }
 
     override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
-        // If the exploration cannot move forward after reset or during initial attempt (just after first launch,
-        // which is also a reset) then it shall be terminated.
-        if (!this.terminationCriterion.met() &&
-                !widgetContext.explorationCanMoveForwardOn() &&
-                (lastActionWasOfType(ExplorationType.Reset) || firstDecisionIsBeingMade())) {
-            val guiStateMsgPart = if (firstDecisionIsBeingMade()) "Initial GUI state" else "GUI state after reset"
-
-            // This case is observed when e.g. the app shows empty screen at startup.
-            if (!widgetContext.belongsToApp())
-                logger.info(Markers.appHealth, "Terminating exploration: $guiStateMsgPart doesn't belong to the app. The GUI state: ${widgetContext.guiState}")
-            else if (!widgetContext.hasActionableWidgets()) {
-                logger.info(Markers.appHealth, "Terminating exploration: $guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${widgetContext.guiState}")
-                // log.info(guiState.debugWidgets())
-            } else
-                throw UnexpectedIfElseFallthroughError()// This case is observed when e.g. the app has nonstandard GUI, e.g. game native interface.
-            // Also when all widgets have been blacklisted because they e.g. crash the app.
-        }
-
+        logger.info(Markers.appHealth, "Terminating exploration: ${this.metReason(widgetContext)}")
         return newTerminateExplorationAction()
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is Terminate)
-            return false
-
-        return this.terminationCriterion == other.terminationCriterion
-    }
-
     override fun toString(): String {
-        return "${this.javaClass}\t${this.terminationCriterion}"
+        return "${this.javaClass}\t${this.getLogMessage()}"
     }
 
-    override fun hashCode(): Int {
-        return this.terminationCriterion.hashCode()
-    }
+    abstract fun getLogMessage(): String
+    abstract fun met(widgetContext: WidgetContext): Boolean
+    abstract fun metReason(widgetContext: WidgetContext): String
 
-    override fun start() {
-        this.terminationCriterion.initDecideCall(true)
-    }
-
-    override fun updateState(actionNr: Int) {
-        super.updateState(actionNr)
-
-        if (!this.memory.isEmpty()) {
-            val selectedAction = this.memory.getLastAction()?.action!!
-            this.terminationCriterion.updateState()
-            this.terminationCriterion.assertPostDecide(selectedAction)
-        }
-    }
-
-    companion object {
+    /*companion object {
         /**
          * Creates a new exploration strategy instance
          */
         fun build(terminationCriterion: ITerminationCriterion): ISelectableExplorationStrategy {
             return Terminate(terminationCriterion)
         }
-    }
-
+    }*/
 }
