@@ -141,7 +141,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
     }
 
     @Test
-    fun `Given other app or 'app has stopped' screen during normal exploration, requests press back`() {
+    fun `Given other app or 'home screen' screen during normal exploration, requests press back`() {
         // ----- Test 1 -----
 
         var strategy = getStrategy()
@@ -166,6 +166,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
         makeIntoNormalExplorationMode(strategy)
 
         // Act & assert(3
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, newGuiStateWithWidgets(3, ApkFixtures.apkFixture_simple_packageName))
         verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newAppHasStoppedGuiState())
     }
 
