@@ -21,6 +21,7 @@ package org.droidmate.report
 import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.misc.uniqueString
 
 class ViewCountTable(data: IApkExplorationOutput2) : CountsPartitionedByTimeTable(
         data.getExplorationTimeInMs(),

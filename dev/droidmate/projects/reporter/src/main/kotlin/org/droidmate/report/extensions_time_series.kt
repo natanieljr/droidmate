@@ -20,6 +20,7 @@ package org.droidmate.report
 
 import com.konradjamrozik.associateMany
 import com.konradjamrozik.flatten
+import org.droidmate.misc.zeroLeastSignificantDigits
 import java.lang.Math.max
 import java.time.Duration
 import java.time.LocalDateTime

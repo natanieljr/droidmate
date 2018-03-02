@@ -23,6 +23,8 @@ import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.misc.setByUniqueString
+import org.droidmate.misc.uniqueString
 
 val IApkExplorationOutput2.uniqueActionableWidgets: Set<IWidget>
   get() = this.actRes.setByUniqueString(

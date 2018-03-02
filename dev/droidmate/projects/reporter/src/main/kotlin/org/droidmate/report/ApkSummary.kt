@@ -26,6 +26,8 @@ import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
 import org.droidmate.logging.LogbackConstants
+import org.droidmate.misc.minutesAndSeconds
+import org.droidmate.misc.replaceVariable
 import java.time.Duration
 
 class ApkSummary() {

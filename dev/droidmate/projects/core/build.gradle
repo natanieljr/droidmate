@@ -59,10 +59,14 @@ dependencies {
   // Filesystem stubbing
   compile 'com.google.jimfs:jimfs:1.0'
 
+  compile 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
+
   testCompile 'org.xmlunit:xmlunit-core:2.1.1'
 
   // Only for org.droidmate.tests_misc.JavaReprosTest.BBoxError
   testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
+
+  testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
 }
 
 apply from: file("resources.gradle")
