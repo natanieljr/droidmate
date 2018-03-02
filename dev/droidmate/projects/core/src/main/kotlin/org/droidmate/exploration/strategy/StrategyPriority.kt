@@ -34,6 +34,7 @@ enum class StrategyPriority(val value: Double) {
     FIRST_RESET(0.9),
     BACK_BEFORE_TERMINATE(0.81),
     TERMINATE(0.8),
+    APP_CRASHED_RESET(0.75),
     SPECIFIC_WIDGET(0.7),
     BACK(0.6),
     RESET(0.5),

@@ -31,7 +31,7 @@ class AppCrashedReset : Reset() {
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         // Exploration crashed
         if (widgetContext.guiState.isAppHasStoppedDialogBox)
-            return StrategyPriority.RESET
+            return StrategyPriority.APP_CRASHED_RESET
 
         // Any other action
         return StrategyPriority.NONE
