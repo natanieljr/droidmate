@@ -16,27 +16,22 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.exploration.strategy
+package org.droidmate.exploration.strategy.reset
 
-import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.ExplorationAction.Companion.newResetAppExplorationAction
+import org.droidmate.exploration.strategy.ExplorationType
+import org.droidmate.exploration.strategy.StrategyPriority
+import org.droidmate.exploration.strategy.WidgetContext
 
 /**
- * Exploration strategy that reset and exploration when:
- * - Exploration can't move forward (or)
- * - Reached configured reset interval (nr. of actions)
+ * Reset the app on timed intervals to avoid getting stuck
  *
- *
- * It doesn't reset if:
- * - If first action (or)
- * - Last action was a reset
+ * It doesn't reset if the last action was a reset
  *
  * @constructor Creates a new class instance with a [predefined reset interval][resetEveryNthExplorationForward]
  *
  * @author Nataniel P. Borges Jr.
  */
-class Reset private constructor(private val resetEveryNthExplorationForward: Int) : AbstractStrategy() {
+class IntervalReset constructor(private val resetEveryNthExplorationForward: Int) : Reset() {
     /**
      * Number of actions that have been performed since the last reset
      */
@@ -44,18 +39,8 @@ class Reset private constructor(private val resetEveryNthExplorationForward: Int
 
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         // First action or following a reset
-        if (this.lastActionWasOfType(org.droidmate.exploration.strategy.ExplorationType.Reset))
+        if (this.lastActionWasOfType(ExplorationType.Reset))
             return StrategyPriority.NONE
-
-        // First action is always reset
-        if (this.firstDecisionIsBeingMade())
-            return StrategyPriority.FIRST_RESET
-
-        // If can' move forward and have already tried to press back reset,
-        // however, reset is never as good as a specific exploration
-        if (!widgetContext.explorationCanMoveForwardOn() &&
-                this.lastActionWasOfType(org.droidmate.exploration.strategy.ExplorationType.Back))
-            return StrategyPriority.RESET
 
         // Reset due to predefined interval,
         // however, reset is never as good as a specific exploration
@@ -64,16 +49,6 @@ class Reset private constructor(private val resetEveryNthExplorationForward: Int
 
         // Any other action
         return StrategyPriority.NONE
-    }
-
-    override val type: ExplorationType
-        get() = ExplorationType.Reset
-
-    override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
-        // There' no previous widget after a reset
-        this.memory.lastWidgetInfo = null
-
-        return newResetAppExplorationAction()
     }
 
     override fun updateState(actionNr: Int) {
@@ -88,12 +63,8 @@ class Reset private constructor(private val resetEveryNthExplorationForward: Int
             this.nrActionsWithoutReset = 0
     }
 
-    override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
-        return false
-    }
-
     override fun equals(other: Any?): Boolean {
-        if (other !is Reset)
+        if (other !is IntervalReset)
             return false
 
         return other.resetEveryNthExplorationForward == this.resetEveryNthExplorationForward
@@ -105,18 +76,5 @@ class Reset private constructor(private val resetEveryNthExplorationForward: Int
 
     override fun hashCode(): Int {
         return Integer.valueOf(this.resetEveryNthExplorationForward)!!.hashCode()
-    }
-
-    override fun start() {
-        // Nothing to do here.
-    }
-
-    companion object {
-        /**
-         * Creates a new exploration strategy instance with reset interval provided by [DroidMate's configuration][cfg]
-         */
-        fun build(cfg: Configuration): ISelectableExplorationStrategy {
-            return Reset(cfg.resetEveryNthExplorationForward)
-        }
     }
 }
