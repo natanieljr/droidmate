@@ -62,9 +62,5 @@ interface IApkExplorationOutput2 : Serializable {
 
     fun getExplorationDuration(): Duration
 
-    fun getContainsExplorationStartTime(): Boolean
-
-    fun getContainsExplorationEndTime(): Boolean
-
     fun serialize(storage2: IStorage2)
 }

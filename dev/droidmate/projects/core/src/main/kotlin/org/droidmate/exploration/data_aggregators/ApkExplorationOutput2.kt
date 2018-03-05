@@ -153,11 +153,6 @@ class ApkExplorationOutput2 @JvmOverloads constructor(override val apk: IApk,
 
     override fun getExplorationDuration(): Duration = Duration.between(explorationStartTime, explorationEndTime)
 
-    override fun getContainsExplorationStartTime(): Boolean = this.explorationStartTime > LocalDateTime.MIN
-
-    override fun getContainsExplorationEndTime(): Boolean = this.explorationEndTime > LocalDateTime.MIN
-
-
     override val exceptionIsPresent: Boolean
         get() = exception !is DeviceExceptionMissing
 
