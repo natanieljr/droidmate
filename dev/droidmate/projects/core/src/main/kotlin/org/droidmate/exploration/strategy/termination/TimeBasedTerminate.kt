@@ -73,4 +73,9 @@ class TimeBasedTerminate @JvmOverloads constructor(private val timeLimit: Int,
 
         this.currentDecideElapsedSeconds = this.stopwatch.elapsed(TimeUnit.SECONDS)
     }
+
+    override fun equals(other: Any?): Boolean {
+        return (other is TimeBasedTerminate) &&
+                (other.timeLimit == this.timeLimit)
+    }
 }
