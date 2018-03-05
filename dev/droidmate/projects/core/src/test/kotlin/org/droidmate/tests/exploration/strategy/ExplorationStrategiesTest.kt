@@ -101,7 +101,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
 
         for (i in 0..nrOfActions) {
             // Only in the last should the termination criterion be met
-            assertTrue(i < nrOfActions || actions.last() is TerminateExplorationAction)
+            assertTrue(i <= nrOfActions || actions.last() is TerminateExplorationAction)
             if (i == 0)
                 actions.add(strategy.decide(EmptyExplorationActionRunResult()))
             else
@@ -118,7 +118,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         assertTrue(actions[6] is ResetAppExplorationAction)
         assertTrue(actions[7] is WidgetExplorationAction)
         assertTrue(actions[8] is WidgetExplorationAction)
-        assertTrue(actions[9] is WidgetExplorationAction)
+        assertTrue(actions[9] is ResetAppExplorationAction)
         assertTrue(actions[10] is TerminateExplorationAction)
     }
 
@@ -312,6 +312,10 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         val resetStrategy = InitialReset()
         resetStrategy.initialize(memory)
         widgetContext = memory.getWidgetContext(EmptyGuiState(), "")
+        memory.logProgress(resetStrategy.decide(widgetContext),
+                ExplorationType.Reset, widgetContext, LocalDateTime.now())
+        memory.logProgress(resetStrategy.decide(widgetContext),
+                ExplorationType.Back, widgetContext, LocalDateTime.now())
         memory.logProgress(resetStrategy.decide(widgetContext),
                 ExplorationType.Reset, widgetContext, LocalDateTime.now())
 
