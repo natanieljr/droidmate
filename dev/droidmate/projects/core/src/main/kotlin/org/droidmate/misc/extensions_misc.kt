@@ -19,7 +19,7 @@
 package org.droidmate.misc
 
 import org.droidmate.device.datatypes.IWidget
-import org.droidmate.exploration.strategy.WidgetStrategy
+import org.droidmate.exploration.strategy.WidgetInfo
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Duration
@@ -56,7 +56,7 @@ val Duration.minutesAndSeconds: String get() {
 
 val IWidget.uniqueString: String
     get() {
-  return WidgetStrategy.WidgetInfo(this).uniqueString
+        return WidgetInfo.from(this).uniqueString
 }
 
 @Suppress("unused")
