@@ -19,12 +19,12 @@
 package org.droidmate.report
 
 import com.konradjamrozik.isDirectory
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.misc.uniqueString
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ApkViewsFile(val data: IApkExplorationOutput2, dir: Path) : DataFile(buildFilePath(data, dir)) {
+class ApkViewsFile(val data: IExplorationLog, dir: Path) : DataFile(buildFilePath(data, dir)) {
 
   init {
     require(dir.isDirectory)
@@ -36,7 +36,7 @@ class ApkViewsFile(val data: IApkExplorationOutput2, dir: Path) : DataFile(build
 
   val apkViewsString: String by lazy { data.apkViewsString }
 
-  private val IApkExplorationOutput2.apkViewsString: String
+  private val IExplorationLog.apkViewsString: String
     get() {
       return "Unique actionable widget\n" +
               this.uniqueActionableWidgets.map { it.uniqueString }.joinToString(separator = System.lineSeparator()) +
@@ -48,8 +48,8 @@ class ApkViewsFile(val data: IApkExplorationOutput2, dir: Path) : DataFile(build
   companion object {
     
     val fileNameSuffix = "_views.txt"
-    
-    private fun buildFilePath(data: IApkExplorationOutput2, dir: Path): Path {
+
+    private fun buildFilePath(data: IExplorationLog, dir: Path): Path {
       require(dir.isDirectory)
       return dir.resolve("${data.apkFileNameWithUnderscoresForDots}$fileNameSuffix")
     }

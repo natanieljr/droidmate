@@ -24,7 +24,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable
@@ -34,7 +34,7 @@ class ApkSummary() {
 
   companion object {
 
-    fun build(data: IApkExplorationOutput2): String {
+    fun build(data: IExplorationLog): String {
       return build(Payload(data))
     }
 
@@ -87,14 +87,14 @@ class ApkSummary() {
     val apiEventEntries: List<ApiEventEntry>
   ) {
 
-    constructor(data: IApkExplorationOutput2) : this(
+    constructor(data: IExplorationLog) : this(
       data,
       data.uniqueApiLogsWithFirstTriggeringActionIndex,
       data.uniqueEventApiPairsWithFirstTriggeringActionIndex
     )
 
     private constructor(
-            data: IApkExplorationOutput2,
+            data: IExplorationLog,
             uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
             uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
     ) : this(
@@ -130,14 +130,16 @@ class ApkSummary() {
     )
 
     companion object {
-      val IApkExplorationOutput2.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int> get() {
+      val IExplorationLog.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
+        get() {
           return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
                   extractItems = { it.getResult().deviceLogs.apiLogs },
           extractUniqueString = { it.uniqueString }
         )
       }
 
-      val IApkExplorationOutput2.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int> get() {
+      val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
+        get() {
 
           return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
           extractItems = RunnableExplorationActionWithResult::extractEventApiPairs,

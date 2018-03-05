@@ -22,36 +22,36 @@ import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.misc.setByUniqueString
 import org.droidmate.misc.uniqueString
 
-val IApkExplorationOutput2.uniqueActionableWidgets: Set<IWidget>
+val IExplorationLog.uniqueActionableWidgets: Set<IWidget>
   get() = this.actRes.setByUniqueString(
     extractItems = RunnableExplorationActionWithResult::actionableWidgets,
           uniqueString = IWidget::uniqueString
   )
 
-val IApkExplorationOutput2.uniqueClickedWidgets: Set<IWidget>
+val IExplorationLog.uniqueClickedWidgets: Set<IWidget>
   get() = this.actRes.setByUniqueString(
     extractItems = RunnableExplorationActionWithResult::clickedWidget,
           uniqueString = IWidget::uniqueString
   )
 
-val IApkExplorationOutput2.uniqueApis: Set<IApiLogcatMessage>
+val IExplorationLog.uniqueApis: Set<IApiLogcatMessage>
   get() = this.actRes.setByUniqueString(
           extractItems = { it.getResult().deviceLogs.apiLogs },
     uniqueString = { it.uniqueString } 
   )
 
-val IApkExplorationOutput2.uniqueEventApiPairs: Set<EventApiPair>
+val IExplorationLog.uniqueEventApiPairs: Set<EventApiPair>
   get() = this.actRes.setByUniqueString(
     extractItems = RunnableExplorationActionWithResult::extractEventApiPairs,
     uniqueString = { it.uniqueString }
   )
 
-val IApkExplorationOutput2.resetActionsCount: Int
+val IExplorationLog.resetActionsCount: Int
   get() = actions.count { it.base is ResetAppExplorationAction }
 
-val IApkExplorationOutput2.apkFileNameWithUnderscoresForDots: String
+val IExplorationLog.apkFileNameWithUnderscoresForDots: String
   get() = apk.fileName.replace(".", "_")

@@ -31,7 +31,7 @@ import java.io.Serializable
 import java.time.Duration
 import java.time.LocalDateTime
 
-interface IApkExplorationOutput2 : Serializable {
+interface IExplorationLog : Serializable {
 
     fun add(action: IRunnableExplorationAction, result: IExplorationActionRunResult)
 

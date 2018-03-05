@@ -21,7 +21,7 @@ package org.droidmate.storage
 
 import com.konradjamrozik.isRegularFile
 import com.konradjamrozik.toList
-import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.ExplorationLog
 import org.nustaq.serialization.FSTConfiguration
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -55,7 +55,7 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
 
     private var timestamp: String = ""
 
-    override fun serializeToFile(obj: ApkExplorationOutput2, file: Path) {
+    override fun serializeToFile(obj: ExplorationLog, file: Path) {
         //val serializer = ApkExplorationOutput2::class.serializer()
         //val data = JSON.indented.stringify(serializer, obj)
         //Files.write(file, data.toByteArray())
@@ -73,7 +73,7 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
                 .toList()
     }
 
-    override fun deserialize(serPath: Path): ApkExplorationOutput2 {
+    override fun deserialize(serPath: Path): ExplorationLog {
         //val serializer = ApkExplorationOutput2::class.serializer()
         //val data = Files.readAllLines(serPath).joinToString(System.lineSeparator())
         //return JSON.indented.parse(serializer, data)
@@ -83,10 +83,10 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
                 Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
         val obj = input.readObject()
         input.close()
-        return obj as ApkExplorationOutput2
+        return obj as ExplorationLog
     }
 
-    override fun serialize(obj: ApkExplorationOutput2, namePart: String) {
+    override fun serialize(obj: ExplorationLog, namePart: String) {
         if (timestamp.isEmpty())
             timestamp = LocalDateTime.now().format(serializedFileTimestampPattern)
 

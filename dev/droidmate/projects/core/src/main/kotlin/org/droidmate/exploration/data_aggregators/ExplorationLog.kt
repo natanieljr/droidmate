@@ -30,10 +30,10 @@ import org.droidmate.storage.IStorage2
 import java.time.Duration
 import java.time.LocalDateTime
 
-class ApkExplorationOutput2 @JvmOverloads constructor(override val apk: IApk,
-                                                      override val actRes: MutableList<RunnableExplorationActionWithResult> = ArrayList(),
-                                                      override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
-                                                      override var explorationEndTime: LocalDateTime = LocalDateTime.MIN) : IApkExplorationOutput2 {
+class ExplorationLog @JvmOverloads constructor(override val apk: IApk,
+                                               override val actRes: MutableList<RunnableExplorationActionWithResult> = ArrayList(),
+                                               override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
+                                               override var explorationEndTime: LocalDateTime = LocalDateTime.MIN) : IExplorationLog {
     companion object {
         private const val serialVersionUID: Long = 1
     }

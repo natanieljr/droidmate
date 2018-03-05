@@ -26,7 +26,7 @@ import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ThrowablesCollection
@@ -261,7 +261,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 outputDir.createDirIfNotExists()
 
                 // Get data
-                val obj = storage2.deserialize(file) as IApkExplorationOutput2
+                val obj = storage2.deserialize(file) as IExplorationLog
                 //val packageName = obj.apk.packageName
 
                 // Create output dir
