@@ -44,7 +44,7 @@ class IntervalReset constructor(private val resetEveryNthExplorationForward: Int
 
         // Reset due to predefined interval,
         // however, reset is never as good as a specific exploration
-        if (this.nrActionsWithoutReset == (this.resetEveryNthExplorationForward - 1))
+        if (this.nrActionsWithoutReset >= (this.resetEveryNthExplorationForward - 1))
             return StrategyPriority.RESET
 
         // Any other action
