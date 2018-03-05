@@ -65,14 +65,14 @@ class Memory : Serializable {
     private val apk: IApk?
 
     /**
-     * Constructor which does not set an APK. Used when the [strategy pool][IStrategyPool] creates initializes the memory
+     * Constructor which does not set an APK. Used when the [strategy pool][ExplorationStrategyPool] creates initializes the memory
      */
     constructor () {
         this.apk = null
     }
 
     /**
-     * Constructor with an APK. Used when the [strategy pool][IStrategyPool] begins an exploration
+     * Constructor with an APK. Used when the [strategy pool][ExplorationStrategyPool] begins an exploration
      */
     constructor (apk: IApk) {
         this.apk = apk

@@ -19,7 +19,6 @@
 package org.droidmate.exploration.strategy
 
 import com.google.common.base.Ticker
-import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.IExplorationActionRunResult
@@ -43,7 +42,7 @@ import java.time.LocalDateTime
  *
  * @author Nataniel P. Borges Jr.
  */
-class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>) : IExplorationStrategy, IStrategyPool, IControlObserver {
+class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>) : IExplorationStrategy, IControlObserver {
 
     companion object {
         private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
@@ -135,10 +134,10 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
      */
     private var allWidgetsBlackListed = false
 
-    override val size: Int
+    val size: Int
         get() = this.strategies.size
 
-    override var memory = Memory()
+    var memory = Memory()
 
     // endregion
 
@@ -224,7 +223,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             strategy.start()
     }
 
-    override fun registerStrategy(strategy: ISelectableExplorationStrategy): Boolean {
+    fun registerStrategy(strategy: ISelectableExplorationStrategy): Boolean {
         ExplorationStrategyPool.logger.info("Registering strategy $strategy.")
 
         if (this.strategies.contains(strategy)) {
@@ -302,11 +301,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         this.strategies.forEach { it.onTargetFound(strategy, targetWidget, result) }
     }
 
-    override fun resetMemory(apk: IApk) {
-        this.memory = Memory(apk)
-    }
-
-    override fun clear() {
+    fun clear() {
         this.strategies.clear()
         this.activeStrategy = null
         this.actionNr = 0
