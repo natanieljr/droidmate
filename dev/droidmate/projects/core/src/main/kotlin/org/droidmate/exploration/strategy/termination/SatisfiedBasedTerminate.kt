@@ -16,11 +16,10 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.exploration.strategy.termination.criterion
+package org.droidmate.exploration.strategy.termination
 
 import org.droidmate.exploration.strategy.ITargetWidget
 import org.droidmate.exploration.strategy.WidgetContext
-import org.droidmate.exploration.strategy.termination.Terminate
 
 /**
  * Termination based on the number of non-reached targets
