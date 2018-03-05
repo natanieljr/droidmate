@@ -142,7 +142,7 @@ class Memory : Serializable {
     // region widget info
 
     /**
-     * Get the widget context refering to the [current UI][guiState] and to the
+     * Get the widget context referring to the [current UI][guiState] and to the
      * [top level package element on UIAutomator dump][exploredAppPackageName].
      *
      * Creates a new unique context when it doesn't exist.
