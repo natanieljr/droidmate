@@ -18,16 +18,29 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination.criterion
 
-import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ITargetWidget
-import org.droidmate.exploration.strategy.ITerminationCriterion
+import org.droidmate.exploration.strategy.WidgetContext
+import org.droidmate.exploration.strategy.termination.Terminate
 
 /**
- * Termination termination based on the number of non-reached targets
+ * Termination based on the number of non-reached targets
  *
  * @author Nataniel P. Borges Jr.
  */
-class SatisfiedBasedCriterion internal constructor(private val targets: List<ITargetWidget>) : ITerminationCriterion {
+class SatisfiedBasedTerminate constructor(private val targets: List<ITargetWidget>) : Terminate() {
+
+    override fun met(widgetContext: WidgetContext): Boolean {
+        // All widgets have been explored, no need to continue exploration
+        return this.unsatisfied.isEmpty()
+    }
+
+    override fun start() {
+        // Do nothing
+    }
+
+    override fun metReason(widgetContext: WidgetContext): String {
+        return "All target widgets have been explored"
+    }
 
     init {
         assert(!targets.isEmpty())
@@ -44,27 +57,12 @@ class SatisfiedBasedCriterion internal constructor(private val targets: List<ITa
         return "${this.targets.size - unsatisfied.size}/${this.targets.size}"
     }
 
-    override fun initDecideCall(firstCallToDecideFinished: Boolean) {
-        assert(!this.unsatisfied.isEmpty())
+    override fun equals(other: Any?): Boolean {
+        return (other is SatisfiedBasedTerminate) &&
+                (other.targets == this.targets)
     }
 
-    override fun assertPostDecide(outExplAction: ExplorationAction) {
-        // Nothing to do here.
-    }
-
-    override fun met(): Boolean {
-        return this.unsatisfied.isEmpty()
-    }
-
-    override fun metReason(): String {
-        return "No actions left."
-    }
-
-    override fun updateState() {
-        // Nothing to do here.
-    }
-
-    override fun toString(): String {
-        return "${this.javaClass}\t${this.getLogMessage()}"
+    override fun hashCode(): Int {
+        return targets.hashCode()
     }
 }

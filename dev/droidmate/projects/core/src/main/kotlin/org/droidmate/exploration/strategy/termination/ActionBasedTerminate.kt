@@ -38,6 +38,7 @@ class ActionBasedTerminate(cfg: Configuration) : Terminate() {
             this.startingActionsLeft = cfg.actionsLimit
 
         this.actionsLeft = this.startingActionsLeft
+        assert(actionsLeft >= 0)
     }
 
     override fun getLogMessage(): String {
@@ -45,7 +46,7 @@ class ActionBasedTerminate(cfg: Configuration) : Terminate() {
     }
 
     override fun start() {
-        assert(actionsLeft >= 0)
+        // Nothing to do here
     }
 
     override fun updateState(actionNr: Int) {
