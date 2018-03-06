@@ -29,8 +29,6 @@ import org.droidmate.misc.MonitorConstants
 import org.droidmate.test_tools.device.datatypes.GuiStateTestHelper
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
-import org.droidmate.test_tools.device_simulation.GuiScreen.Companion.reservedIds
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import org.droidmate.uiautomator_daemon.guimodel.*
 
 /**
@@ -114,17 +112,12 @@ class GuiScreen constructor(private val internalId: String,
                 ScreenTransitionResult(this, ArrayList())
             }
             is PressBack -> ScreenTransitionResult(this, ArrayList())
-            is ClickAction -> processClick(click)
-            is CoordinateClickAction -> processClick(click)
-            is LongClickAction -> processClick(click)
-            is CoordinateLongClickAction -> processClick(click)
+            is CoordinateClickAction -> {
+                val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
+                ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
+            }
             else -> throw UnexpectedIfElseFallthroughError("Found action $guiAction")
         }
-    }
-
-    private fun processClick(click: ClickGuiAction): IScreenTransitionResult {
-        val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
-        return ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
     }
 
     //endregion internalPerform multimethod

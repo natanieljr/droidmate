@@ -199,9 +199,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         val cfg = ConfigurationForTests().withFileSystem(mockedFs.fs).get()
         val apks = mockedFs.apks
         val timeGenerator = TimeGenerator()
-        val simulator = AndroidDeviceSimulator.build(
-                timeGenerator, apks.map { it.packageName },
-                /* exceptionsSpec */ ArrayList(), /* unreliableSimulation */ true)
+        val simulator = AndroidDeviceSimulator.build(timeGenerator, apks.map { it.packageName }, ArrayList(), true)
         val deviceToolsMock = DeviceToolsMock(cfg, AaptWrapperStub(apks), simulator)
 
         val handler = ExceptionHandler()
