@@ -22,7 +22,8 @@ package org.droidmate.exploration.actions
 import org.droidmate.device.datatypes.IWidget
 
 open class WidgetExplorationAction @JvmOverloads constructor(val widget: IWidget,
-                                                             val longClick: Boolean = false,
+                                                             val longClick: Boolean,
+                                                             val useCoordinates: Boolean,
                                                              val delay: Int = 0,
                                                              val swipe: Boolean = false,
                                                              val direction: Direction = Direction.UP,

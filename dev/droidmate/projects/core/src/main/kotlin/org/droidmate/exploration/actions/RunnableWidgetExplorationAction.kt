@@ -39,8 +39,16 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
         logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
         val action = base as WidgetExplorationAction
-        log.debug("2. Perform widget click: ${action}.")
-        device.perform(newClickGuiDeviceAction(action.widget, action.longClick))
+        log.debug("2. Perform widget click: $action.")
+        try {
+            device.perform(newClickGuiDeviceAction(action.widget, action.longClick, action.useCoordinates))
+        } catch (e: Exception) {
+            if (!action.useCoordinates) {
+                log.warn("2.1. Failed to click using XPath and resourceID, attempting restart UIAutomatorDaemon and to click coordinates: $action.")
+                device.restartUiaDaemon(false);
+                device.perform(newClickGuiDeviceAction(action.widget, action.longClick, useCoordinates = true))
+            }
+        }
 
         log.debug("3. Read and clear API logs if any, then seal logs reading.")
         logsHandler.readAndClearApiLogs()

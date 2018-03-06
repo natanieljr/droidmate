@@ -36,9 +36,11 @@ abstract class AndroidDeviceAction : IAndroidDeviceAction {
         }
 
         @JvmStatic
-        fun newClickGuiDeviceAction(clickedWidget: IWidget, longClick: Boolean = false): ClickGuiAction{
-            return if(longClick) ClickGuiAction(LongClickAction(clickedWidget.xpath,clickedWidget.resourceId))
-                else ClickGuiAction(ClickAction(clickedWidget.xpath,clickedWidget.resourceId))
+        fun newClickGuiDeviceAction(clickedWidget: IWidget, longClick: Boolean = false, useCoordinates: Boolean): ClickGuiAction {
+            return if (longClick)
+                ClickGuiAction(LongClickAction(clickedWidget.xpath, clickedWidget.resourceId))
+            else
+                ClickGuiAction(ClickAction(clickedWidget.xpath, clickedWidget.resourceId))
         }
 
 //        @JvmStatic

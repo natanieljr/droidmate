@@ -112,7 +112,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
             if (w == null)
                 assert(true)
             else
-                assert(action == newWidgetExplorationAction(w))
+                assert(action == newWidgetExplorationAction(w, true))
         }
 
         @JvmStatic
