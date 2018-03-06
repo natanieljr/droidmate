@@ -57,6 +57,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
 
         log.debug("4. Get GUI snapshot.")
         this.snapshot = device.getGuiSnapshot()
+        //TODO take screenshot before and after dump to ensure they are matching, if not equal => take another device GuiSnapshot
     }
 }
 

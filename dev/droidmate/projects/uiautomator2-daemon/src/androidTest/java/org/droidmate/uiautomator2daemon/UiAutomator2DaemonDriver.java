@@ -57,6 +57,10 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
   UiAutomator2DaemonDriver(boolean waitForGuiToStabilize, int waitForWindowUpdateTimeout)
   {
+    // Disabling waiting for selector implicit timeout
+    Configurator.getInstance().setWaitForSelectorTimeout(0L);
+
+
     // The instrumentation required to run uiautomator2-daemon is
     // provided by the command: adb shell instrument <PACKAGE>/<RUNNER>
     Instrumentation instr = InstrumentationRegistry.getInstrumentation();
@@ -80,7 +84,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
   @Override
   public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException
-  {
+  { //TODO can use UiAutomator to create screenshot bitmap instead of adb
     Log.v(uiaDaemon_logcatTag, "Executing device command: " + deviceCommand.command);
 
     if (deviceCommand.command.equals(DEVICE_COMMAND_STOP_UIADAEMON))

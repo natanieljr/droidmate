@@ -74,7 +74,7 @@ class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime,
     }
 
     companion object {
-        private val serialVersionUID = 4343512671602419674L
+        private const val serialVersionUID = 4343512671602419674L
     }
 
 }
