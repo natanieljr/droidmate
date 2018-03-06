@@ -16,20 +16,18 @@ private typealias Selector = (String) -> UiSelector
 
 // FIXME xpath visitor would be safer but for now use quick and dirty string operations
 // XPath (for this we need to visit the xpath and check for each visitStep if an element with this classname and given parent exists
+private val processNode = { s: UiSelector?,n:String ->
+    assert(n.count{c->c=='['}==1 && n.count{c->c==']'}==1,{"xPath error there are to many [ or ] chars in the node $n"})
+    val sIdx = n.indexOf('[')  // REMARK this only works as long as classNames don't contain '[' or ']' characters
+    val eIdx = n.indexOf(']')
+    val idx = Integer.parseInt(n.substring(sIdx + 1, eIdx)) - 1
+    val className = n.substring(0, sIdx)
+    if (s == null) {
+        UiSelector().index(idx).className(className)    //REMARK the index HAS TO BE the first criteria, otherwise the selector may target the wrong element
+    }else {s.childSelector(UiSelector().index(idx).className(className)) }
+}
 val findByXPath:Selector = {xPath ->
     val nodes = with(xPath.split("/".toRegex()).dropLastWhile({ it.isEmpty() })){subList(2,size).toTypedArray()}    // the initial '//' creates two empty strings which we have to skip
-    val processNode = { s: UiSelector?,n:String ->
-        assert(n.count{c->c=='['}==1 && n.count{c->c==']'}==1,{"xPath error there are to many [ or ] chars in the node $n from $xPath"})
-        val sIdx = n.indexOf('[')  // REMARK this only works as long as classNames don't contain '[' or ']' characters
-        val eIdx = n.indexOf(']')
-        val idx = Integer.parseInt(n.substring(sIdx + 1, eIdx)) - 1
-        val className = n.substring(0, sIdx)
-        if (s == null) {
-            UiSelector().index(idx).className(className)
-        }else {
-            s.childSelector(UiSelector().index(idx).className(className))
-        }
-    }
     nodes.fold(null,processNode)!!
 }
 val findByResId:Selector = {id -> UiSelector().resourceId(id)}
@@ -58,15 +56,10 @@ private typealias Action<O,R> = (O)->R
  */
 fun executeAction(device:UiDevice, action: Action<UiObject,Boolean>, id:String, selector: Selector = findByXPath):Boolean{
     assert(id.isNotEmpty(),{"parameter id must not be empty to use this function"})
-    Log.d(uiaDaemon_logcatTag, "Entered executeAction function")
-    val foundObject = device.findObject(selector(id))
-    Log.d(uiaDaemon_logcatTag, "Object found. Checking if it exists")
-    return if (foundObject.exists()) {
-        Log.d(uiaDaemon_logcatTag, "Target element found with $id $selector")
-        action(foundObject)
-    } else {
-        Log.w(uiaDaemon_logcatTag, "Target element could not be found with $id $selector")
-        false
+    return device.findObject(selector(id)).let{
+        if (it.exists()) action(it) else {
+            Log.w(uiaDaemon_logcatTag,"Target element could not be found with $id: $it")
+            false }
     }
 }
 
