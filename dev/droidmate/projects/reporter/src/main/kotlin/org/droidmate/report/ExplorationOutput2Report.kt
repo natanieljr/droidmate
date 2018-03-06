@@ -30,10 +30,8 @@ class ExplorationOutput2Report(rawData: List<IExplorationLog>, val dir: Path) {
 
   private val log: Logger = LoggerFactory.getLogger(ExplorationOutput2Report::class.java)
 
-  val data: List<IExplorationLog>
+    val data: List<IExplorationLog> = rawData.withFilteredApiLogs
 
-  init { data = rawData.withFilteredApiLogs }
-  
   fun writeOut(includePlots : Boolean = true, includeSummary: Boolean = true) {
 
     log.info("Writing out exploration report to $dir")

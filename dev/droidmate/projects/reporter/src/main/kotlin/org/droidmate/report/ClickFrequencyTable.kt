@@ -53,7 +53,7 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
       private val IExplorationLog.countOfViewsHavingNoOfClicks: Map<Int, Int>
           get() {
 
-        val clickedWidgets: List<IWidget> = this.actRes.flatMap { it.clickedWidget }
+              val clickedWidgets: List<IWidget> = this.logRecords.flatMap { it.clickedWidget }
         val noOfClicksPerWidget: Map<IWidget, Int> = clickedWidgets.frequencies
         val widgetsHavingNoOfClicks: Map<Int, Set<IWidget>> = noOfClicksPerWidget.transpose
       val widgetsCountPerNoOfClicks: Map<Int, Int> = widgetsHavingNoOfClicks.mapValues { it.value.size }

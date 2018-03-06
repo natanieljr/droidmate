@@ -20,6 +20,7 @@ package org.droidmate.exploration.strategy.termination
 
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
+import org.droidmate.exploration.strategy.IMemoryRecord
 import org.droidmate.exploration.strategy.WidgetContext
 import java.util.concurrent.TimeUnit
 
@@ -68,8 +69,8 @@ class TimeBasedTerminate @JvmOverloads constructor(private val timeLimit: Int,
         return "Allocated exploration time exhausted."
     }
 
-    override fun updateState(actionNr: Int) {
-        super.updateState(actionNr)
+    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+        super.updateState(actionNr, record)
 
         this.currentDecideElapsedSeconds = this.stopwatch.elapsed(TimeUnit.SECONDS)
     }

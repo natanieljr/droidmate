@@ -21,7 +21,7 @@ package org.droidmate.exploration.strategy
 import com.google.common.base.Ticker
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionRunResult
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.reset.AppCrashedReset
 import org.droidmate.exploration.strategy.reset.CannotExploreReset
 import org.droidmate.exploration.strategy.reset.InitialReset
@@ -34,7 +34,6 @@ import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
 
 /**
  * Exploration strategy pool that selects an exploration for a pool
@@ -42,7 +41,8 @@ import java.time.LocalDateTime
  *
  * @author Nataniel P. Borges Jr.
  */
-class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>) : IExplorationStrategy, IControlObserver {
+class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>,
+                              private val memory: IExplorationLog) : IExplorationStrategy, IControlObserver {
 
     companion object {
         private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
@@ -74,7 +74,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             return strategies
         }
 
-        fun build(cfg: Configuration): ExplorationStrategyPool {
+        fun build(explorationLog: IExplorationLog, cfg: Configuration): ExplorationStrategyPool {
 
             val strategies = ArrayList<ISelectableExplorationStrategy>()
 
@@ -108,7 +108,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             if (cfg.explorationStategies.contains(StrategyTypes.FitnessProportionate.strategyName))
                 strategies.add(FitnessProportionateSelection.build(cfg))
 
-            return ExplorationStrategyPool(strategies)
+            return ExplorationStrategyPool(strategies, explorationLog)
         }
     }
 
@@ -136,8 +136,6 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 
     val size: Int
         get() = this.strategies.size
-
-    var memory = Memory()
 
     // endregion
 
@@ -184,22 +182,6 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         return bestStrategy
     }
 
-    /**
-     * Log the exploration progress after and internal strategy has selected it containing the
-     * [action sent to the device][selectedAction], the [type of the strategy which create the action][explorationType],
-     * the [state of the UI when the action was created][widgetContext] and the
-     * [moment in which the strategy started selecting an action][startTimestamp] to send to the device
-     *
-     * @param selectedAction Action selected be an internal strategy
-     * @param
-     */
-    private fun logExplorationProgress(selectedAction: ExplorationAction, explorationType: ExplorationType,
-                                       widgetContext: WidgetContext, startTimestamp: LocalDateTime) {
-        this.memory.logProgress(selectedAction, explorationType, widgetContext, startTimestamp)
-
-        ExplorationStrategyPool.logger.debug(selectedAction.toString())
-    }
-
     override fun takeControl(strategy: ISelectableExplorationStrategy) {
         ExplorationStrategyPool.logger.debug("Receiving back control from strategy $strategy")
         assert(this.strategies.contains(strategy))
@@ -243,31 +225,24 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     /**
      * Notify the internal strategies to update their state
      */
-    private fun updateStrategiesState() {
+    private fun updateStrategiesState(record: IMemoryRecord) {
         for (strategy in this.strategies)
-            strategy.updateState(this.actionNr)
+            strategy.updateState(this.actionNr, record)
     }
 
-    /**
-     * Update the internal state of the pool and then notify the internal strategies to do the same
-     */
-    private fun updateState(selectedAction: ExplorationAction, explorationType: ExplorationType,
-                            widgetContext: WidgetContext, startTimestamp: LocalDateTime) {
+    override fun update(record: IMemoryRecord) {
         this.actionNr++
 
-        logExplorationProgress(selectedAction, explorationType, widgetContext, startTimestamp)
-        this.updateStrategiesState()
+        this.updateStrategiesState(record)
     }
 
-    override fun decide(result: IExplorationActionRunResult): ExplorationAction {
+    override fun decide(result: IMemoryRecord): ExplorationAction {
 
         logger.debug("decide($result)")
 
         assert(result.successful)
 
-        val guiState = result.guiSnapshot.guiState
-        val appPackageName = result.exploredAppPackageName
-        val startTimestamp = LocalDateTime.now()
+        val guiState = result.guiState
 
         logger.debug("pool decide")
         assert(!this.strategies.isEmpty())
@@ -275,17 +250,17 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         if (this.memory.isEmpty())
             this.startStrategies()
 
-        val widgetContext = this.memory.getWidgetContext(guiState, appPackageName)
+        val widgetContext = this.memory.getWidgetContext(guiState)
 
         if (this.hasControl())
             this.handleControl(widgetContext)
         else
             logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
-        val explorationType = this.activeStrategy!!.type
+        //val explorationType = this.activeStrategy!!.type
         val selectedAction = this.activeStrategy!!.decide(widgetContext)
 
-        this.updateState(selectedAction, explorationType, widgetContext, startTimestamp)
+        //this.updateState(selectedAction, explorationType, widgetContext, startTimestamp)
 
         logger.info("(${this.memory.getSize()}) $selectedAction")
 
@@ -297,7 +272,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     }
 
     override fun onTargetFound(strategy: ISelectableExplorationStrategy, targetWidget: ITargetWidget,
-                               result: IExplorationActionRunResult) {
+                               result: IMemoryRecord) {
         this.strategies.forEach { it.onTargetFound(strategy, targetWidget, result) }
     }
 

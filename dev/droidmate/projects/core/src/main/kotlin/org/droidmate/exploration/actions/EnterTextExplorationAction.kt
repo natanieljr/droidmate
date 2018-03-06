@@ -21,8 +21,9 @@ package org.droidmate.exploration.actions
 
 import org.droidmate.device.datatypes.IWidget
 
-open class EnterTextExplorationAction constructor(val textToEnter: String,
-                                                  val widget: IWidget) : ExplorationAction() {
+open class EnterTextExplorationAction @JvmOverloads constructor(val textToEnter: String,
+                                                                val widget: IWidget,
+                                                                actionType: ActionType = ActionType.EnterText) : ExplorationAction(actionType) {
     companion object {
         private const val serialVersionUID: Long = 1
     }

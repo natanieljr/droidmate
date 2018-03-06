@@ -19,7 +19,7 @@
 package org.droidmate.report
 
 import org.droidmate.device.datatypes.IWidget
-import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
+import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.misc.uniqueString
 
@@ -55,10 +55,10 @@ class ViewCountTable(data: IExplorationLog) : CountsPartitionedByTimeTable(
     }
 
     private fun IExplorationLog.uniqueViewCountByPartitionedTime(
-            extractItems: (RunnableExplorationActionWithResult) -> Iterable<IWidget>
+            extractItems: (ExplorationRecord) -> Iterable<IWidget>
     ): Map<Long, Iterable<String>> {
 
-        return this.actRes.itemsAtTime(
+        return this.logRecords.itemsAtTime(
         startTime = this.explorationStartTime,
                 extractTime = { it.getAction().timestamp },
         extractItems = extractItems

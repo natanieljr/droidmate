@@ -18,15 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import com.google.common.base.MoreObjects
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.exploration.device.IDeviceLogs
-import org.droidmate.exploration.device.MissingDeviceLogs
-import java.net.URI
-
-class ExplorationActionRunResult @JvmOverloads constructor(override val successful: Boolean,
+/*class ExplorationActionRunResult @JvmOverloads constructor(override val successful: Boolean,
                                                            override val exploredAppPackageName: String,
                                                            override val deviceLogs: IDeviceLogs,
                                                            override val guiSnapshot: IDeviceGuiSnapshot,
@@ -57,4 +49,4 @@ class ExplorationActionRunResult @JvmOverloads constructor(override val successf
                 .add("exception", exception)
                 .toString()
     }
-}
+}*/

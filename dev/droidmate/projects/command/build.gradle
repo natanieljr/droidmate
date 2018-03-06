@@ -37,20 +37,6 @@ jar {
     }
 }
 
-// TODO Nataniel Check later
-/*(tasks.run as JavaExec).configure {
-
-  assert sourceSets.main.runtimeClasspath == classpath
-
-  workingDir rootDir
-  java.nio.file.Path argsFile = Paths.get("$rootDir/args.txt")
-  if (Files.exists(argsFile))
-  {
-    List<String> appArgs = argsFile.text.readLines().first().split(" ") as List<String>
-    args appArgs
-  }
-}*/
-
 dependOnJunit(project)
 
 dependWithTest([project, ":projects:core", "kotlin"])

@@ -165,7 +165,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 cfg.args,
                 object : ICommandProvider {
                     override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(cfg) }, timeGenerator, deviceToolsMock)
+                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock)
                 },
                 mockedFs.fs,
                 spy
@@ -210,7 +210,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 cfg.args,
                 object : ICommandProvider {
                     override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(cfg) }, timeGenerator, deviceToolsMock)
+                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock)
                 },
                 mockedFs.fs,
                 handler
@@ -270,15 +270,15 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 //newDir.createDirIfNotExists()
 
                 // For each action
-                //for (int i = 15; i < obj.actRes.size(); ++i)
-                (0 until obj.actRes.size).forEach { i ->
+                //for (int i = 15; i < obj.logRecords.size(); ++i)
+                (0 until obj.logRecords.size).forEach { i ->
                     val newActionFile = file.parent.resolve(outputStr).resolve("action$i.txt")
-                    val action = obj.actRes[i].getAction().toString()
+                    val action = obj.logRecords[i].getAction().toString()
                     Files.write(newActionFile, action.toByteArray())
 
                     val newResultFile = file.parent.resolve(outputStr).resolve("windowHierarchyDump$i.xml")
-                    val result = if (obj.actRes[i].getResult().successful)
-                        obj.actRes[i].getResult().guiSnapshot.windowHierarchyDump
+                    val result = if (obj.logRecords[i].getResult().successful)
+                        obj.logRecords[i].getResult().guiSnapshot.windowHierarchyDump
                     else
                         ""
                     Files.write(newResultFile, result.toByteArray())

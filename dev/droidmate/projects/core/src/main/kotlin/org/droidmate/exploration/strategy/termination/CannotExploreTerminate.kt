@@ -19,7 +19,7 @@
 package org.droidmate.exploration.strategy.termination
 
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.strategy.ExplorationType
+import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.strategy.WidgetContext
 
 /**
@@ -42,8 +42,8 @@ class CannotExploreTerminate : Terminate() {
         // If the exploration cannot move forward after a reset + press back it should be terminated.
 
         return !widgetContext.explorationCanMoveForwardOn() &&
-                lastActionWasOfType(ExplorationType.Reset) &&
-                ((this.getSecondLastActionType() == ExplorationType.Back) ||
+                lastActionWasOfType(ActionType.Reset) &&
+                ((this.getSecondLastActionType() == ActionType.Back) ||
                         (widgetContext.guiState.isAppHasStoppedDialogBox))
         // or during initial attempt (just after first launch, which is also a reset) then it shall be terminated.
     }

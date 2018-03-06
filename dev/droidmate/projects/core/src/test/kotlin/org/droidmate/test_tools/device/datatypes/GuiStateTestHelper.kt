@@ -42,7 +42,6 @@ class GuiStateTestHelper
                 GuiState(appPackageName, id, arrayListOf(newTopLevelWidget(appPackageName)), DeviceModel.buildDefault().getAndroidLauncherPackageName())
 
         @JvmStatic
-        @Suppress("unused")
         fun newGuiStateWithDisabledWidgets(widgetCount: Int): IGuiState
                 = newGuiStateWithWidgets(widgetCount, apkFixture_simple_packageName, false)
 
@@ -70,23 +69,19 @@ class GuiStateTestHelper
         }
 
         @JvmStatic
-        @Suppress("unused")
         fun newAppHasStoppedGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump().guiState
 
         @JvmStatic
-        @Suppress("unused")
         fun newCompleteActionUsingGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newCompleteActionUsingWindowDump().guiState
 
 
         @JvmStatic
-        @Suppress("unused")
         fun newHomeScreenGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump().guiState
 
         @JvmStatic
-        @Suppress("unused")
         fun newOutOfAppScopeGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump().guiState
 
@@ -94,7 +89,7 @@ class GuiStateTestHelper
         var nextGuiStateIndex = 0
 
         @JvmStatic
-        fun getNextGuiStateName(): String {
+        private fun getNextGuiStateName(): String {
             nextGuiStateIndex++
             return "GS$nextGuiStateIndex"
         }

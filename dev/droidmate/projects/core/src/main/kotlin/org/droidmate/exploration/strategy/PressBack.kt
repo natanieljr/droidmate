@@ -19,6 +19,7 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.configuration.Configuration
+import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
 import java.util.*
@@ -46,13 +47,13 @@ class PressBack private constructor(private val probability: Double,
         // If it can' move forward and last action was not to reset
         // On the first action the reset will have a priority of 1.0, so this is not a problem
         if (!widgetContext.explorationCanMoveForwardOn() &&
-                !this.lastActionWasOfType(org.droidmate.exploration.strategy.ExplorationType.Back))
+                !this.lastActionWasOfType(ActionType.Back))
             return StrategyPriority.BACK
 
         // If it can' move forward, is the second action and last action was not to reset
         // Try to press back because sometimes an account selection dialog pops up
         if (!widgetContext.explorationCanMoveForwardOn() &&
-                this.lastActionWasOfType(org.droidmate.exploration.strategy.ExplorationType.Reset) &&
+                this.lastActionWasOfType(ActionType.Reset) &&
                 this.memory.getSize() == 1)
             return StrategyPriority.BACK_BEFORE_TERMINATE
 
@@ -60,14 +61,11 @@ class PressBack private constructor(private val probability: Double,
         // this can allow the exploration to unstuck before the reset timeout
         val value = this.random.nextDouble()
 
-        return if ((this.memory.getLastAction()?.type == ExplorationType.Reset) || (value > probability))
+        return if ((this.memory.getLastAction().type == ActionType.Reset) || (value > probability))
             StrategyPriority.NONE
         else
             StrategyPriority.BACK
     }
-
-    override val type: ExplorationType
-        get() = ExplorationType.Back
 
     override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
         return false

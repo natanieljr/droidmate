@@ -22,27 +22,34 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.errors.DroidmateError
-import org.droidmate.exploration.actions.IExplorationActionRunResult
+import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.actions.IRunnableExplorationAction
-import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
+import org.droidmate.exploration.strategy.*
 import org.droidmate.storage.IStorage2
 import java.io.Serializable
 import java.time.Duration
 import java.time.LocalDateTime
 
+/**
+ * Exploration memory containing executed actions, log (memory records), all explored widget contexts and
+ * last explored widget
+ *
+ * @author Nataniel P. Borges Jr.
+ */
 interface IExplorationLog : Serializable {
 
-    fun add(action: IRunnableExplorationAction, result: IExplorationActionRunResult)
+    fun add(action: IRunnableExplorationAction, result: IMemoryRecord)
 
     var explorationStartTime: LocalDateTime
 
     var explorationEndTime: LocalDateTime
 
-    val actRes: MutableList<RunnableExplorationActionWithResult>
-
-    @Throws(DroidmateError::class)
-    fun verify()
+    /**
+     * List of [GUI states and actions][IMemoryRecord] which were sent to the device
+     */
+    val logRecords: MutableList<ExplorationRecord>
 
     val exceptionIsPresent: Boolean
 
@@ -58,9 +65,66 @@ interface IExplorationLog : Serializable {
 
     val guiSnapshots: List<IDeviceGuiSnapshot>
 
+    /**
+     * Get the last widget the exploration has interacted with
+     *
+     * @returns Last widget interacted with or instance of [EmptyWidgetInfo] when none
+     */
+    var lastWidgetInfo: WidgetInfo
+
+    /**
+     * Returns the information of the last action performed
+     *
+     * @return Information of the last action performed or instance of [EmptyMemoryRecord]
+     */
+    fun getLastAction(): IMemoryRecord
+
+    @Throws(DroidmateError::class)
+    fun verify()
+
+    /**
+     * Get the exploration duration in miliseconds
+     */
     fun getExplorationTimeInMs(): Int
 
+    /**
+     * Get the exploration duration
+     */
     fun getExplorationDuration(): Duration
+
+    /**
+     * Get the number of actions which exist in the log
+     */
+    fun getSize(): Int
+
+    /**
+     * Checks if any action has been performed
+     *
+     * @return If the memory is empty
+     */
+    fun isEmpty(): Boolean
+
+    /**
+     * Get the widget context referring to the [current UI][guiState] and to the
+     * [top level package element on UIAutomator dump][exploredAppPackageName].
+     *
+     * Creates a new unique context when it doesn't exist.
+     *
+     * @return Unique widget context which refers to the current screen
+     */
+    fun getWidgetContext(guiState: IGuiState): WidgetContext
+
+    /**
+     * Check if all widgets that have been found up to now have been already explored
+     */
+    fun areAllWidgetsExplored(): Boolean
+
+    /**
+     * Get data stored during this information
+     *
+     * @return List of memory records (or empty list when empty)
+     */
+    fun getRecords(): List<IMemoryRecord>
 
     fun serialize(storage2: IStorage2)
 }

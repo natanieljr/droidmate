@@ -39,9 +39,6 @@ class TripleActionExploration : AbstractStrategy() {
         return StrategyPriority.NONE
     }
 
-    override val type: ExplorationType
-        get() = ExplorationType.Explore
-
     override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
         return this.actionNr >= 3 && this.actionNr < 5
     }

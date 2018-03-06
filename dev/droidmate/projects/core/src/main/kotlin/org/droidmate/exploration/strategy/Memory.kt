@@ -18,30 +18,16 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.IGuiState
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionRunResult
-import org.droidmate.storage.FSTLocalDateTimeSerializer
-import org.droidmate.storage.FSTURISerializer
-import org.nustaq.serialization.FSTConfiguration
-import org.slf4j.LoggerFactory
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.Serializable
-import java.net.URI
-import java.nio.file.Path
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-
 /**
  * Exploration memory containing action log (memory records), all explored widget contexts and
  * last explored widget
  *
  * @author Nataniel P. Borges Jr.
- */
-class Memory : Serializable {
+ *
+class Memory
+/**
+ * Constructor with an APK. Used when the [strategy pool][ExplorationStrategyPool] begins an exploration
+ *(apk: IApk) : Serializable {
 
 
     /**
@@ -62,41 +48,16 @@ class Memory : Serializable {
     /**
      * Application linked to the exploration
      */
-    private val apk: IApk?
-
-    /**
-     * Constructor which does not set an APK. Used when the [strategy pool][ExplorationStrategyPool] creates initializes the memory
-     */
-    constructor () {
-        this.apk = null
-    }
-
-    /**
-     * Constructor with an APK. Used when the [strategy pool][ExplorationStrategyPool] begins an exploration
-     */
-    constructor (apk: IApk) {
-        this.apk = apk
-    }
+private val apk: IApk? = apk
 
     // region exploration progress
 
     /**
-     * Creates a log entry containing the [action sent to the device][action],
-     * [type of the strategy which create the action][type], [state of the UI when the action was created][widgetContext]
-     * and [moment in which the strategy started selecting an action][startTimestamp] to send to the device
+ * Add the [explored action with result][record] to the memory
      */
-    fun logProgress(action: ExplorationAction, type: ExplorationType, widgetContext: WidgetContext,
-                    startTimestamp: LocalDateTime) {
-        val endTimestamp = LocalDateTime.now()
-        val decisionTime = ChronoUnit.MILLIS.between(startTimestamp, endTimestamp)
-        val record = MemoryRecord(action, type, widgetContext, startTimestamp, endTimestamp, decisionTime)
+fun logProgress(record: IMemoryRecord) {
         logger.debug("Writing memory record $record")
         memoryRecords.add(record)
-    }
-
-    fun addResultToLastAction(result: IExplorationActionRunResult) {
-        val last = this.memoryRecords.last()
-        last.actionResult = result
     }
 
     /**
@@ -213,4 +174,4 @@ class Memory : Serializable {
             return memoryData
         }
     }
-}
+}*/

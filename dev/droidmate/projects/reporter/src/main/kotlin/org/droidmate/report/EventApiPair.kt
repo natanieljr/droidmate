@@ -25,7 +25,7 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import java.time.LocalDateTime
 
-class EventApiPair(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogcatMessage) {
+class EventApiPair(actRes: ExplorationRecord, apiLog: IApiLogcatMessage) {
 
     val pair: Pair<String, IApiLogcatMessage>
 
@@ -38,7 +38,7 @@ class EventApiPair(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogc
         pair = build(actRes, apiLog)
     }
 
-    private fun build(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogcatMessage): Pair<String, IApiLogcatMessage> {
+    private fun build(actRes: ExplorationRecord, apiLog: IApiLogcatMessage): Pair<String, IApiLogcatMessage> {
 
         fun extractEvent(action: ExplorationAction, thread: Int): String {
 

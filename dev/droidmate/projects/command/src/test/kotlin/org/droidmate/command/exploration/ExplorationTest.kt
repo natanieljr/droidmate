@@ -22,7 +22,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.MonitoredInlinedApkFixtureApiLogs
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
+import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.misc.BuildConstants
@@ -104,7 +104,7 @@ class ExplorationTest : DroidmateTestCase() {
         assert(outData.isNotEmpty())
         val out = outData.first()
 
-        val apiLogs = MonitoredInlinedApkFixtureApiLogs(extractApiLogsList(out!!.actRes))
+        val apiLogs = MonitoredInlinedApkFixtureApiLogs(extractApiLogsList(out!!.logRecords))
         apiLogs.assertCheck()
     }
 
@@ -156,6 +156,6 @@ class ExplorationTest : DroidmateTestCase() {
 
     }
 
-    private fun extractApiLogsList(actions: List<RunnableExplorationActionWithResult>): List<List<IApiLogcatMessage>> =
+    private fun extractApiLogsList(actions: List<ExplorationRecord>): List<List<IApiLogcatMessage>> =
             actions.map { pair -> pair.getResult().deviceLogs.apiLogs }
 }

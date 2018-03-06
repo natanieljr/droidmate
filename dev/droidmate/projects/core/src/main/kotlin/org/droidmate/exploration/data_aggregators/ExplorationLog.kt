@@ -24,56 +24,55 @@ import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
+import org.droidmate.exploration.strategy.*
 import org.droidmate.storage.IStorage2
 import java.time.Duration
 import java.time.LocalDateTime
 
 class ExplorationLog @JvmOverloads constructor(override val apk: IApk,
-                                               override val actRes: MutableList<RunnableExplorationActionWithResult> = ArrayList(),
+                                               override val logRecords: MutableList<ExplorationRecord> = ArrayList(),
                                                override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                override var explorationEndTime: LocalDateTime = LocalDateTime.MIN) : IExplorationLog {
     companion object {
         private const val serialVersionUID: Long = 1
     }
 
+
+    /**
+     * List of distinct [UI contexts][WidgetContext] which have been found during the exploration
+     */
+    private var foundWidgetContexts: MutableList<WidgetContext> = ArrayList()
+
     override var exception: DeviceException = DeviceExceptionMissing()
+
+    override var lastWidgetInfo: WidgetInfo = EmptyWidgetInfo()
+
+    override val packageName: String
+        get() = this.apk.packageName
+
+    override val exceptionIsPresent: Boolean
+        get() = exception !is DeviceExceptionMissing
+
+    override val apiLogs: List<List<IApiLogcatMessage>>
+        get() = this.logRecords.map { it.getResult().deviceLogs.apiLogs }
+
+    override val actions: List<IRunnableExplorationAction>
+        get() = this.logRecords.map { it.getAction() }
+
+
+    override val guiSnapshots: List<IDeviceGuiSnapshot>
+        get() = this.logRecords.map { it.getResult().guiSnapshot }
 
     init {
         if (explorationStartTime > LocalDateTime.MIN)
             this.verify()
     }
 
-    override val packageName: String
-        get() = this.apk.packageName
-
-    override fun add(action: IRunnableExplorationAction, result: IExplorationActionRunResult) {
-        actRes.add(RunnableExplorationActionWithResult(action, result))
-    }
-
-    override fun verify() {
-        try {
-            assert(this.actRes.isNotEmpty())
-            assert(this.explorationStartTime > LocalDateTime.MIN)
-            assert(this.explorationEndTime > LocalDateTime.MIN)
-
-            assertFirstActionIsReset()
-            assertLastActionIsTerminateOrResultIsFailure()
-            assertLastGuiSnapshotIsHomeOrResultIsFailure()
-            assertOnlyLastActionMightHaveDeviceException()
-            assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull()
-
-            assertLogsAreSortedByTime()
-            warnIfTimestampsAreIncorrectWithGivenTolerance()
-
-        } catch (e: AssertionError) {
-            throw DroidmateError(e)
-        }
-    }
-
     private fun assertLogsAreSortedByTime() {
-        val apiLogs = this.actRes.flatMap { it.getResult().deviceLogs.apiLogs }
+        val apiLogs = this.logRecords.flatMap { it.getResult().deviceLogs.apiLogs }
 
         assert(explorationStartTime <= explorationEndTime)
 
@@ -82,12 +81,12 @@ class ExplorationLog @JvmOverloads constructor(override val apk: IApk,
     }
 
     private fun assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull() {
-        val lastResultSuccessful = actRes.last().getResult().successful
+        val lastResultSuccessful = logRecords.last().getResult().successful
         assert(lastResultSuccessful == (exception is DeviceExceptionMissing) || !lastResultSuccessful)
     }
 
     private fun assertOnlyLastActionMightHaveDeviceException() {
-        assert(this.actRes.dropLast(1).all { pair -> pair.getResult().successful })
+        assert(this.logRecords.dropLast(1).all { pair -> pair.getResult().successful })
     }
 
     private fun warnIfTimestampsAreIncorrectWithGivenTolerance() {
@@ -139,7 +138,7 @@ class ExplorationLog @JvmOverloads constructor(override val apk: IApk,
     }
 
     private fun warnIfLogsAreNotAfterAction(diff: TimeDiffWithTolerance, apkFileName: String) {
-        this.actRes.forEach {
+        this.logRecords.forEach {
             if (!it.getResult().deviceLogs.apiLogs.isEmpty()) {
                 val actionTime = it.getAction().timestamp
                 val firstLogTime = it.getResult().deviceLogs.apiLogs.first().time
@@ -148,36 +147,91 @@ class ExplorationLog @JvmOverloads constructor(override val apk: IApk,
         }
     }
 
+    private fun assertFirstActionIsReset() {
+        assert(logRecords.first().getAction() is RunnableResetAppExplorationAction)
+    }
+
+    private fun assertLastActionIsTerminateOrResultIsFailure() {
+        val lastActionPair = logRecords.last()
+        assert(!lastActionPair.getResult().successful || lastActionPair.getAction() is RunnableTerminateExplorationAction)
+    }
+
+    private fun assertLastGuiSnapshotIsHomeOrResultIsFailure() {
+        val lastActionPair = logRecords.last()
+        assert(!lastActionPair.getResult().successful || lastActionPair.getResult().guiSnapshot.guiState.isHomeScreen)
+    }
+
+    override fun add(action: IRunnableExplorationAction, result: IMemoryRecord) {
+        logRecords.add(ExplorationRecord(action, result))
+    }
+
+    override fun verify() {
+        try {
+            assert(this.logRecords.isNotEmpty())
+            assert(this.explorationStartTime > LocalDateTime.MIN)
+            assert(this.explorationEndTime > LocalDateTime.MIN)
+
+            assertFirstActionIsReset()
+            assertLastActionIsTerminateOrResultIsFailure()
+            assertLastGuiSnapshotIsHomeOrResultIsFailure()
+            assertOnlyLastActionMightHaveDeviceException()
+            assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull()
+
+            assertLogsAreSortedByTime()
+            warnIfTimestampsAreIncorrectWithGivenTolerance()
+
+        } catch (e: AssertionError) {
+            throw DroidmateError(e)
+        }
+    }
+
     override fun getExplorationTimeInMs(): Int =
             Duration.between(explorationStartTime, explorationEndTime).toMillis().toInt()
 
     override fun getExplorationDuration(): Duration = Duration.between(explorationStartTime, explorationEndTime)
 
-    override val exceptionIsPresent: Boolean
-        get() = exception !is DeviceExceptionMissing
+    override fun getWidgetContext(guiState: IGuiState): WidgetContext {
+        val widgetInfo = guiState.widgets
+                //.filter { it.canBeActedUpon() }
+                .map { widget -> WidgetInfo.from(widget) }
 
-    override val apiLogs: List<List<IApiLogcatMessage>>
-        get() = this.actRes.map { it.getResult().deviceLogs.apiLogs }
+        val newContext = WidgetContext(widgetInfo, guiState, this.apk.packageName)
+        var context = this.foundWidgetContexts
+                .firstOrNull { p -> p.uniqueString == newContext.uniqueString }
 
-    override val actions: List<IRunnableExplorationAction>
-        get() = this.actRes.map { it.getAction() }
+        if (context == null) {
+            context = newContext
+            this.foundWidgetContexts.add(context)
+        }
 
-
-    override val guiSnapshots: List<IDeviceGuiSnapshot>
-        get() = this.actRes.map { it.getResult().guiSnapshot }
-
-    private fun assertFirstActionIsReset() {
-        assert(actRes.first().getAction() is RunnableResetAppExplorationAction)
+        return context
     }
 
-    private fun assertLastActionIsTerminateOrResultIsFailure() {
-        val lastActionPair = actRes.last()
-        assert(!lastActionPair.getResult().successful || lastActionPair.getAction() is RunnableTerminateExplorationAction)
+    override fun areAllWidgetsExplored(): Boolean {
+        return (!this.isEmpty()) &&
+                this.foundWidgetContexts.isNotEmpty() &&
+                this.foundWidgetContexts.all { context ->
+                    context.actionableWidgetsInfo.all { it.actedUponCount > 0 }
+                }
     }
 
-    private fun assertLastGuiSnapshotIsHomeOrResultIsFailure() {
-        val lastActionPair = actRes.last()
-        assert(!lastActionPair.getResult().successful || lastActionPair.getResult().guiSnapshot.guiState.isHomeScreen)
+    override fun getLastAction(): IMemoryRecord {
+        if (this.logRecords.isEmpty())
+            return EmptyMemoryRecord()
+        else
+            return this.logRecords.last().getResult()
+    }
+
+    override fun getSize(): Int {
+        return this.logRecords.size
+    }
+
+    override fun isEmpty(): Boolean {
+        return this.logRecords.isEmpty()
+    }
+
+    override fun getRecords(): List<IMemoryRecord> {
+        return this.logRecords.map { it.getResult() }
     }
 
     override fun serialize(storage2: IStorage2) {

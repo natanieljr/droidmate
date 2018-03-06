@@ -23,7 +23,7 @@ import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
+import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
@@ -100,7 +100,7 @@ class ApkSummary() {
     ) : this(
       appPackageName = data.packageName,
             totalRunTime = data.getExplorationDuration(),
-            totalActionsCount = data.actRes.size,
+            totalActionsCount = data.logRecords.size,
       totalResetsCount = data.resetActionsCount,
       exception = data.exception,
       uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
@@ -132,7 +132,7 @@ class ApkSummary() {
     companion object {
       val IExplorationLog.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
         get() {
-          return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
+            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
                   extractItems = { it.getResult().deviceLogs.apiLogs },
           extractUniqueString = { it.uniqueString }
         )
@@ -141,8 +141,8 @@ class ApkSummary() {
       val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
         get() {
 
-          return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
-          extractItems = RunnableExplorationActionWithResult::extractEventApiPairs,
+            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
+                    extractItems = ExplorationRecord::extractEventApiPairs,
           extractUniqueString = EventApiPair::uniqueString
         )
       }

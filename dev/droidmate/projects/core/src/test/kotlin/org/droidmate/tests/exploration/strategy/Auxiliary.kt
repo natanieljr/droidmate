@@ -61,13 +61,15 @@ object Auxiliary {
         return result
     }
 
-    fun createGuiStateFromFile(): IGuiState {
+    @JvmOverloads
+    fun createGuiStateFromFile(packageName: String = "ch.bailu.aat"): IGuiState {
         try {
             val fileData = ResourceManager.getResourceAsStringList("ch.bailu.aat_18.xml")
             val fileStr = fileData.joinToString(separator = "")
             val dump = UiautomatorWindowDump(fileStr,
                     Dimension(1800, 2485),
-                    "ch.bailu.aat")
+                    packageName
+                    )
 
             return dump.guiState
 

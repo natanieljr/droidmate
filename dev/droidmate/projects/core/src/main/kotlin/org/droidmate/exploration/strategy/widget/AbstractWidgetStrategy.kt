@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils
 import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.exploration.strategy.ExplorationType
 import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.exploration.strategy.WidgetInfo
 import org.droidmate.misc.uniqueString
@@ -37,9 +36,6 @@ import org.droidmate.misc.uniqueString
 abstract class AbstractWidgetStrategy : AbstractStrategy() {
 
     // region overrides
-
-    override val type: ExplorationType
-        get() = ExplorationType.Explore
 
     override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
         return false

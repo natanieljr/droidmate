@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
-import org.droidmate.exploration.strategy.ExplorationType
+import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.WidgetContext
 
@@ -32,7 +32,7 @@ class CannotExploreReset : Reset() {
         // If can' move forward and have already tried to press back reset,
         // however, reset is never as good as a specific exploration
         if (!widgetContext.explorationCanMoveForwardOn() &&
-                this.lastActionWasOfType(ExplorationType.Back))
+                this.lastActionWasOfType(ActionType.Back))
             return StrategyPriority.RESET
 
         // Any other action

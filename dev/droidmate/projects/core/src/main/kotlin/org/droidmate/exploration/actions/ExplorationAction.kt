@@ -23,53 +23,50 @@ import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.Widget
 import java.io.Serializable
 
-abstract class ExplorationAction : Serializable {
+abstract class ExplorationAction(val type: ActionType) : Serializable {
     companion object {
         private const val serialVersionUID: Long = 1
 
         @JvmStatic
         @JvmOverloads
-        fun newResetAppExplorationAction(isFirst: Boolean = false): ResetAppExplorationAction
-                = ResetAppExplorationAction(isFirst)
-
-        @JvmStatic
-        fun newTerminateExplorationAction(): TerminateExplorationAction
-                = TerminateExplorationAction()
-
-        @JvmStatic
-        fun newWidgetExplorationAction(widget: IWidget, delay: Int): WidgetExplorationAction
-                = WidgetExplorationAction(widget, false, delay).apply { runtimePermission = false }
-
-        @JvmStatic
-        fun newWidgetExplorationAction(widget: IWidget, longClick: Boolean = false): WidgetExplorationAction
-                = WidgetExplorationAction(widget, longClick)
+        fun newResetAppExplorationAction(isFirst: Boolean = false, actionType: ActionType = ActionType.Reset): ResetAppExplorationAction = ResetAppExplorationAction(isFirst, actionType)
 
         @JvmStatic
         @JvmOverloads
-        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, longClick: Boolean = false): WidgetExplorationAction
-                = WidgetExplorationAction(widget, longClick).apply { runtimePermission = true }
+        fun newTerminateExplorationAction(actionType: ActionType = ActionType.Terminate): TerminateExplorationAction = TerminateExplorationAction(actionType)
 
         @JvmStatic
-        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String=""): EnterTextExplorationAction
-                = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath })
+        @JvmOverloads
+        fun newWidgetExplorationAction(widget: IWidget, delay: Int, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, false, delay, actionType = actionType).apply { runtimePermission = false }
 
         @JvmStatic
-        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget): EnterTextExplorationAction
-                = EnterTextExplorationAction(textToEnter, widget)
+        @JvmOverloads
+        fun newWidgetExplorationAction(widget: IWidget, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, actionType = actionType)
 
         @JvmStatic
-        fun newPressBackExplorationAction(): PressBackExplorationAction
-                = PressBackExplorationAction()
+        @JvmOverloads
+        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, actionType = actionType).apply { runtimePermission = true }
 
         @JvmStatic
-        fun newWidgetSwipeExplorationAction(widget: IWidget, direction: Direction): WidgetExplorationAction {
-            return WidgetExplorationAction(widget, false, 0, true, direction)
+        @JvmOverloads
+        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = "", actionType: ActionType = ActionType.EnterText): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath }, actionType = actionType)
+
+        @JvmStatic
+        @JvmOverloads
+        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget, actionType: ActionType = ActionType.EnterText): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget, actionType = actionType)
+
+        @JvmStatic
+        @JvmOverloads
+        fun newPressBackExplorationAction(actionType: ActionType = ActionType.Back): PressBackExplorationAction = PressBackExplorationAction(actionType)
+
+        @JvmStatic
+        @JvmOverloads
+        fun newWidgetSwipeExplorationAction(widget: IWidget, direction: Direction, actionType: ActionType = ActionType.Explore): WidgetExplorationAction {
+            return WidgetExplorationAction(widget, false, 0, true, direction, actionType)
         }
-
     }
 
     protected var runtimePermission: Boolean = false
-    private val observers: MutableList<IExplorationActionResultObserver> = ArrayList();
 
     override fun toString(): String = "<ExplAct ${toShortString()}>"
 
@@ -81,36 +78,9 @@ abstract class ExplorationAction : Serializable {
     open fun toTabulatedString(): String
             = toShortString()
 
-    open fun notifyResult(result: IExplorationActionRunResult) {
-        this.notifyObservers(result)
-    }
-
-    internal open fun notifyObservers(result: IExplorationActionRunResult) {
-        val toRemove: MutableList<IExplorationActionResultObserver> = ArrayList()
-        this.observers.forEach { p ->
-            if (p.notifyActionExecuted(result))
-                toRemove.add(p)
-        }
-
-        toRemove.forEach { p -> this.unregisterObserver(p) }
-    }
-
-    @Suppress("MemberVisibilityCanPrivate", "RedundantVisibilityModifier")
-    public open fun unregisterObserver(observer: IExplorationActionResultObserver) {
-        if (this.observers.contains(observer))
-            this.observers.remove(observer)
-    }
-
-    @Suppress("MemberVisibilityCanPrivate", "RedundantVisibilityModifier")
-    public open fun registerObserver(observer: IExplorationActionResultObserver) {
-        if (!this.observers.contains(observer))
-            this.observers.add(observer)
-    }
-
     override fun equals(other: Any?): Boolean = this.toString() == other?.toString() ?: ""
+
     override fun hashCode(): Int {
-        var result = runtimePermission.hashCode()
-        result = 31 * result + observers.hashCode()
-        return result
+        return this.runtimePermission.hashCode()
     }
 }

@@ -23,24 +23,25 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.exploration.actions.*
+import org.droidmate.exploration.actions.IRunnableExplorationAction
+import org.droidmate.exploration.actions.RunnableExplorationAction
+import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
 import org.droidmate.exploration.data_aggregators.ExplorationLog
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.exploration.strategy.EmptyMemoryRecord
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
+import org.droidmate.exploration.strategy.IMemoryRecord
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
 import org.slf4j.LoggerFactory
-import java.net.URI
 
 class Exploration constructor(private val cfg: Configuration,
                               private val timeProvider: ITimeProvider,
-                              private val strategyProvider: () -> IExplorationStrategy) : IExploration {
+                              private val strategyProvider: (IExplorationLog) -> IExplorationStrategy) : IExploration {
     companion object {
         private val log = LoggerFactory.getLogger(Exploration::class.java)
 
@@ -48,7 +49,7 @@ class Exploration constructor(private val cfg: Configuration,
         @JvmStatic
         fun build(cfg: Configuration,
                   timeProvider: ITimeProvider = TimeProvider(),
-                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategyPool.build(cfg) }): Exploration
+                  strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) }): Exploration
                 = Exploration(cfg, timeProvider, strategyProvider)
     }
 
@@ -75,7 +76,6 @@ class Exploration constructor(private val cfg: Configuration,
         return Failable<IExplorationLog, DeviceException>(output, if (output.exceptionIsPresent) output.exception else null)
     }
 
-
     private fun explorationLoop(app: IApk, device: IRobustDevice): IExplorationLog {
         log.debug("explorationLoop(app=${app.fileName}, device)")
 
@@ -87,18 +87,20 @@ class Exploration constructor(private val cfg: Configuration,
 
         // Construct initial action and run it on the device to obtain initial result.
         var action: IRunnableExplorationAction? = null
-        var result: IExplorationActionRunResult = ExplorationActionRunResult(true, app.packageName,
-                DeviceLogs(ArrayList()), MissingGuiSnapshot(), DeviceExceptionMissing(),
-                URI.create("test://empty"), true)
+        var result: IMemoryRecord = EmptyMemoryRecord()
 
         var isFirst = true
-        val strategy: IExplorationStrategy = strategyProvider.invoke()
+        val strategy: IExplorationStrategy = strategyProvider.invoke(output)
 
         // Execute the exploration loop proper, starting with the values of initial reset action and its result.
         while (isFirst || (result.successful && !(action is RunnableTerminateExplorationAction))) {
+            // decide for an action
             action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots)
+            // execute action
             result = action.run(app, device)
             output.add(action, result)
+            // update strategy
+            strategy.update(result)
 
             if (isFirst) {
                 log.info("Initial action: ${action.base}")

@@ -19,7 +19,8 @@
 package org.droidmate.exploration.strategy.termination
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.actions.TerminateExplorationAction
+import org.droidmate.exploration.actions.ActionType
+import org.droidmate.exploration.strategy.IMemoryRecord
 import org.droidmate.exploration.strategy.WidgetContext
 
 /**
@@ -49,14 +50,12 @@ class ActionBasedTerminate(cfg: Configuration) : Terminate() {
         // Nothing to do here
     }
 
-    override fun updateState(actionNr: Int) {
-        super.updateState(actionNr)
+    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+        super.updateState(actionNr, record)
 
-        if (!this.memory.isEmpty()) {
-            val selectedAction = this.memory.getLastAction()?.action!!
-            actionsLeft--
-            assert(actionsLeft >= 0 || actionsLeft == -1 && selectedAction is TerminateExplorationAction)
-        }
+        val selectedAction = record.action
+        actionsLeft--
+        assert(actionsLeft >= 0 || (actionsLeft == -1 && selectedAction.type == ActionType.Terminate))
     }
 
     override fun metReason(widgetContext: WidgetContext): String {

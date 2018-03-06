@@ -18,10 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
+import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.exploration.strategy.ExplorationType
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.logging.Markers
@@ -33,12 +33,9 @@ import org.droidmate.logging.Markers
  */
 abstract class Terminate : AbstractStrategy() {
 
-    override val type: ExplorationType
-        get() = ExplorationType.Terminate
-
-    protected fun getSecondLastActionType(): ExplorationType {
+    protected fun getSecondLastActionType(): ActionType {
         if (this.memory.getSize() < 2)
-            return ExplorationType.None
+            return ActionType.None
 
         return this.memory.getRecords().dropLast(1).last().type
     }

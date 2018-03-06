@@ -28,9 +28,9 @@ import java.io.Serializable
  *
  * @author Nataniel P. Borges Jr.
  */
-class WidgetContext constructor(val widgetsInfo: List<WidgetInfo>,
-                                val guiState: IGuiState,
-                                val packageName: String) : Serializable {
+open class WidgetContext constructor(val widgetsInfo: List<WidgetInfo>,
+                                     val guiState: IGuiState,
+                                     val packageName: String) : Serializable {
     /**
      * Number of times this state has been seen
      */

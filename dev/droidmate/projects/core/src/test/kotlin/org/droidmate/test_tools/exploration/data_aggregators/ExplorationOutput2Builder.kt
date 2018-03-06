@@ -24,14 +24,13 @@ import org.droidmate.apis.Api
 import org.droidmate.apis.ApiLogcatMessageTestHelper
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.ExplorationActionRunResult
-import org.droidmate.exploration.actions.RunnableExplorationAction
+import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.ExplorationLog
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IDeviceLogs
+import org.droidmate.exploration.strategy.IMemoryRecord
+import org.droidmate.exploration.strategy.MemoryRecord
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.exploration.actions.ExplorationActionTestHelper
@@ -92,7 +91,7 @@ class ExplorationOutput2Builder {
         return parseRunnableAction(attributes["action"] as String, timestamp)
     }
 
-    internal fun buildActionResult(attributes: Map<String, Any>): ExplorationActionRunResult {
+    internal fun buildActionResult(attributes: Map<String, Any>): IMemoryRecord {
         val deviceLogs = buildDeviceLogs(attributes)
         val guiSnapshot = attributes["guiSnapshot"] as IDeviceGuiSnapshot? ?: UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump()
 
@@ -104,7 +103,7 @@ class ExplorationOutput2Builder {
         val packageName = attributes["packageName"] as String? ?: currentlyBuiltApkOut2.packageName
         assert(packageName.isNotEmpty())
 
-        return ExplorationActionRunResult(successful, packageName, deviceLogs, guiSnapshot,
+        return MemoryRecord(EmptyAction(), LocalDateTime.now(), LocalDateTime.now(), deviceLogs, guiSnapshot,
                 exception, URI.create("file://."))
     }
 

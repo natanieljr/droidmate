@@ -19,7 +19,6 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionRunResult
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.droidmate.misc.isEquivalentIgnoreLocation
 
@@ -64,7 +63,7 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
     }
 
     override fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-                               result: IExplorationActionRunResult) {
+                               result: IMemoryRecord) {
         if ((this == strategy) || (strategy !is SeekTarget))
             return
 
@@ -77,14 +76,15 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
         return super.chooseActionForWidget(chosenWidgetInfo)
     }
 
-    override fun notifyActionExecuted(result: IExplorationActionRunResult): Boolean {
-        super.notifyActionExecuted(result)
+    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+        super.updateState(actionNr, record)
 
-        this.acquiredTarget.satisfy()
-        this.notifyTargetFound(this.acquiredTarget, result)
+        if (this.acquiredTarget !is DummyTarget) {
+            this.acquiredTarget.satisfy()
+            this.notifyTargetFound(this.acquiredTarget, record)
 
-        this.acquiredTarget = DummyTarget()
-        return true
+            this.acquiredTarget = DummyTarget()
+        }
     }
 
     override fun equals(other: Any?): Boolean {

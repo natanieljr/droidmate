@@ -18,19 +18,51 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import com.google.common.base.MoreObjects
+import org.droidmate.android_sdk.DeviceException
+import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.device.datatypes.MissingGuiSnapshot
+import org.droidmate.exploration.actions.ActionType
+import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionRunResult
-import java.io.Serializable
+import org.droidmate.exploration.device.IDeviceLogs
+import org.droidmate.exploration.device.MissingDeviceLogs
+import java.net.URI
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 /**
  * Performed action record to be consumed by exploration strategies if necessary
  */
-internal class MemoryRecord(override val action: ExplorationAction, override val type: ExplorationType,
-                            override val widgetContext: WidgetContext, override val startTimestamp: LocalDateTime,
-                            override val endTimestamp: LocalDateTime, override val decisionTime: Long) : IMemoryRecord, Serializable {
+class MemoryRecord(override val action: ExplorationAction,
+                   override val startTimestamp: LocalDateTime,
+                   override val endTimestamp: LocalDateTime,
+                   override val deviceLogs: IDeviceLogs = MissingDeviceLogs(),
+                   override val guiSnapshot: IDeviceGuiSnapshot = MissingGuiSnapshot(),
+                   override val exception: DeviceException = DeviceExceptionMissing(),
+                   override val screenshot: URI = URI.create("test://empty")) : IMemoryRecord {
 
-    override var actionResult: IExplorationActionRunResult? = null
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
+
+    override var widgetContext: WidgetContext = EmptyWidgetContext()
+
+    override val type: ActionType
+        get() = action.type
+
+    override val decisionTime: Long
+        get() = ChronoUnit.MILLIS.between(startTimestamp, endTimestamp)
+
+    override val successful: Boolean
+        get() = exception is DeviceExceptionMissing
+
+    override val guiState: IGuiState
+        get() = guiSnapshot.guiState
+
+    override val appPackageName: String
+        get() = guiSnapshot.getPackageName()
 
     override fun equals(other: Any?): Boolean {
         if (other !is MemoryRecord)
@@ -38,7 +70,6 @@ internal class MemoryRecord(override val action: ExplorationAction, override val
 
         return this.action.toString() == other.action.toString() && this.type == other.type
         // TODO Add check on exploration state as well
-
     }
 
     override fun hashCode(): Int {
@@ -46,7 +77,13 @@ internal class MemoryRecord(override val action: ExplorationAction, override val
     }
 
     override fun toString(): String {
-        return "${this.type}\t${this.action}"
-        // TODO Add check on exploration state as well
+        return MoreObjects.toStringHelper(this)
+                .add("type", type)
+                .add("action", action)
+                .add("successful", successful)
+                .add("snapshot", guiSnapshot)
+                .addValue(deviceLogs)
+                .add("exception", exception)
+                .toString()
     }
 }

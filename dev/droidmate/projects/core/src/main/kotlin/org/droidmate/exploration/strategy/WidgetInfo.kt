@@ -26,7 +26,7 @@ import java.io.Serializable
  *
  * @author Nataniel P. Borges Jr.
  */
-class WidgetInfo private constructor(val widget: IWidget) : Serializable {
+open class WidgetInfo protected constructor(val widget: IWidget) : Serializable {
     /**
      * Number of times the widget has ben clicked (including checked or unchecked) + long clicked
      */

@@ -18,9 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionResultObserver
-import org.droidmate.exploration.actions.IExplorationActionRunResult
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.widget.AbstractWidgetStrategy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -32,8 +32,7 @@ import org.slf4j.LoggerFactory
 
  * @author Nataniel P. Borges Jr.
  */
-@SuppressWarnings("WeakerAccess")
-abstract class AbstractStrategy : ISelectableExplorationStrategy, IExplorationActionResultObserver {
+abstract class AbstractStrategy : ISelectableExplorationStrategy {
     /**
      * List of observers to be notified when widgets get blacklisted or
      * when a target is found
@@ -43,7 +42,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy, IExplorationAc
     /**
      * Internal memory of the strategy. Syncronized with exploration memory upon initialization.
      */
-    protected var memory: Memory = Memory()
+    protected lateinit var memory: IExplorationLog
         private set
 
     /**
@@ -72,9 +71,9 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy, IExplorationAc
      * Check if last performed action in the [memory] was to reset the app
      * @return If the last action was a reset
      */
-    internal fun lastActionWasOfType(type: ExplorationType): Boolean {
+    internal fun lastActionWasOfType(type: ActionType): Boolean {
         val lastAction = this.memory.getLastAction()
-        return lastAction != null && lastAction.type == type
+        return lastAction.type == type
     }
 
     /**
@@ -90,15 +89,15 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy, IExplorationAc
      * @param targetWidget Widget that has been found
      * @param result Exploration action that triggered the target
      */
-    protected fun notifyTargetFound(targetWidget: ITargetWidget, result: IExplorationActionRunResult) {
+    protected fun notifyTargetFound(targetWidget: ITargetWidget, result: IMemoryRecord) {
         this.listeners.forEach { listener -> listener.onTargetFound(this, targetWidget, result) }
     }
 
-    override fun updateState(actionNr: Int) {
+    override fun updateState(actionNr: Int, record: IMemoryRecord) {
         this.actionNr = actionNr
     }
 
-    override fun initialize(memory: Memory) {
+    override fun initialize(memory: IExplorationLog) {
         this.memory = memory
     }
 
@@ -112,27 +111,14 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy, IExplorationAc
         if (!this.mustPerformMoreActions(widgetContext))
             this.handleControl()
 
-        action.registerObserver(this)
         return action
     }
 
     override fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-                               result: IExplorationActionRunResult) {
-        this.memory.getRecords()[0]
+                               result: IMemoryRecord) {
         // By default does nothing
     }
 
-    /**
-     * Notification fired when the action has been executed on the device, include
-     * [results of executing exploration action][result]
-     *
-     * @return If observer should be unassociated with the action (always true)
-     */
-    override fun notifyActionExecuted(result: IExplorationActionRunResult): Boolean {
-        this.memory.addResultToLastAction(result)
-
-        return true
-    }
 
     override fun equals(other: Any?): Boolean {
         throw UnsupportedOperationException()

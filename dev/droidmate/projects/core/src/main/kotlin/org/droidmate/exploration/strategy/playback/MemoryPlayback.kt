@@ -20,32 +20,32 @@ package org.droidmate.exploration.strategy.playback
 
 import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.strategy.StrategyPriority
+import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.exploration.strategy.widget.AbstractWidgetStrategy
 import org.droidmate.misc.isEquivalentIgnoreLocation
 import org.droidmate.misc.uniqueString
-import java.io.IOException
-import java.nio.file.Path
 
+@Suppress("unused")
 open class MemoryPlayback private constructor() : AbstractWidgetStrategy() {
 
     private lateinit var packageName: String
 
-    protected constructor(storedMemoryData: Memory) : this() {
-        this.packageName = storedMemoryData.getApk().packageName
+    constructor(storedMemoryData: IExplorationLog) : this() {
+        this.packageName = storedMemoryData.packageName
         this.initializeFromMemory(storedMemoryData)
     }
 
-    protected constructor(packageName: String, newTraces: List<PlaybackTrace>) : this() {
+    constructor(packageName: String, newTraces: List<PlaybackTrace>) : this() {
         this.traces.addAll(newTraces)
         this.packageName = packageName
     }
 
     val traces: MutableList<PlaybackTrace> = ArrayList()
 
-    private fun initializeFromMemory(storedMemoryData: Memory) {
+    private fun initializeFromMemory(storedMemoryData: IExplorationLog) {
         val memoryRecords = storedMemoryData.getRecords()
-        val packageName = storedMemoryData.getApk().packageName
 
         // Create traces from memory records
         // Each trace starts with a reset
@@ -53,10 +53,10 @@ open class MemoryPlayback private constructor() : AbstractWidgetStrategy() {
         for (i in 0 until memoryRecords.size) {
             val memoryRecord = memoryRecords[i]
 
-            if (memoryRecord.type == ExplorationType.Reset)
+            if (memoryRecord.type == ActionType.Reset)
                 traces.add(PlaybackTrace())
 
-            val widgetContext = memory.getWidgetContext(memoryRecord.widgetContext.guiState, packageName)
+            val widgetContext = memory.getWidgetContext(memoryRecord.widgetContext.guiState)
 
             traces.last().add(memoryRecord.action, widgetContext)
         }
@@ -168,9 +168,6 @@ open class MemoryPlayback private constructor() : AbstractWidgetStrategy() {
                 .sum()
     }
 
-    override val type: ExplorationType
-        get() = ExplorationType.Playback
-
     override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
         val allWidgetsBlackListed = this.updateState(widgetContext)
         if (allWidgetsBlackListed)
@@ -208,37 +205,4 @@ open class MemoryPlayback private constructor() : AbstractWidgetStrategy() {
     }
 
     // endregion
-
-    companion object {
-        /**
-         * Creates a new exploration strategy instance
-         *
-         * @param memoryFile Path to a memory file containing the recorded exploration(s)
-         * @param packageName Package name which should be loaded from the memory. Load all APKS if not provided
-         */
-        fun build(memoryFile: Path, packageName: String = ""): List<ISelectableExplorationStrategy> {
-            try {
-                val memoryData = Memory.deserialize(memoryFile)
-
-                return memoryData
-                        .filter { packageName.isEmpty() || (it.getApk().packageName == packageName) }
-                        .map { MemoryPlayback(it) }
-            } catch (e: IOException) {
-                logger.error(e.message, e)
-                e.printStackTrace()
-            }
-
-            return ArrayList()
-        }
-
-        /**
-         * Creates a new exploration strategy instance
-         *
-         * @param packageName Package name which should be loaded from the memory. Load all APKS if not provided
-         * @param memoryTraces Trace of previous exploration (set of actions between 2 resets)
-         */
-        fun build(packageName: String, memoryTraces: List<PlaybackTrace>): List<ISelectableExplorationStrategy> {
-            return listOf(MemoryPlayback(packageName, memoryTraces))
-        }
-    }
 }

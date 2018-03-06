@@ -19,7 +19,7 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionRunResult
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 
 /**
  * Base class for exploration strategies that can be selected from within an IStrategyPool
@@ -28,11 +28,6 @@ import org.droidmate.exploration.actions.IExplorationActionRunResult
  */
 interface ISelectableExplorationStrategy {
     /**
-     * Type of exploration
-     */
-    val type: ExplorationType
-
-    /**
      * Notify the exploration strategy that the exploration is starting
      */
     fun start()
@@ -40,7 +35,7 @@ interface ISelectableExplorationStrategy {
     /**
      * Configure the exploration strategy with the []shared memory][memory]
      */
-    fun initialize(memory: Memory)
+    fun initialize(memory: IExplorationLog)
 
     /**
      * Estimate of confident the exploration strategy is that it can perform an action.
@@ -68,7 +63,7 @@ interface ISelectableExplorationStrategy {
     /**
      * Update the []number of explored actions][actionNr]
      */
-    fun updateState(actionNr: Int)
+    fun updateState(actionNr: Int, record: IMemoryRecord)
 
     /**
      * Selects an exploration action based on the [current GUI][widgetContext].
@@ -88,7 +83,7 @@ interface ISelectableExplorationStrategy {
      * @param result Action performed on the target, alongside its results
      */
     fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-                      result: IExplorationActionRunResult)
+                      result: IMemoryRecord)
 
     override fun equals(other: Any?): Boolean
 }

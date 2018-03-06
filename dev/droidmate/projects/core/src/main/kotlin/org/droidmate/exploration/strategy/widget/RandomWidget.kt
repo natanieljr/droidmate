@@ -21,10 +21,7 @@ package org.droidmate.exploration.strategy.widget
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.EmptyGuiState
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
-import org.droidmate.exploration.strategy.WidgetInfo
+import org.droidmate.exploration.strategy.*
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -37,13 +34,13 @@ open class RandomWidget protected constructor(randomSeed: Long,
 
     private fun mustRepeatLastAction(widgetContext: WidgetContext): Boolean {
         if (!this.memory.isEmpty()) {
-            val lastContext = this.memory.getLastAction()?.widgetContext!!
+            val lastContext = this.memory.getLastAction().widgetContext
             val lastState = lastContext.guiState
 
             // Last state was runtime permission
             return (lastState.isRequestRuntimePermissionDialogBox) &&
                     // Has last action
-                    this.memory.lastWidgetInfo != null &&
+                    this.memory.lastWidgetInfo !is EmptyWidgetInfo &&
                     // Has a state that is not a runtime permission
                     this.memory.getRecords()
                             .filterNot { it.widgetContext.guiState is EmptyGuiState }
@@ -51,7 +48,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
                             .isNotEmpty() &&
                     // Can re-execute the same action
                     this.getAvailableWidgets(widgetContext)
-                            .any { p -> p.widget.isEquivalent(this.memory.lastWidgetInfo!!.widget) }
+                            .any { p -> p.widget.isEquivalent(this.memory.lastWidgetInfo.widget) }
         }
 
         return false

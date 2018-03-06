@@ -61,15 +61,15 @@ class UnpackCommand : DroidmateCommand() {
 
                         val obj = storage2.deserialize(file) as IExplorationLog
 
-                        for (i in 0 until obj.actRes.size) {
+                        for (i in 0 until obj.logRecords.size) {
                             val newActionFile = fs.getPath(file.parent.toString(), outputStr, "action$i.txt")
-                            val action = obj.actRes[i].getAction().toString()
+                            val action = obj.logRecords[i].getAction().toString()
                             Files.write(newActionFile, action.toByteArray())
 
                             val newResultFile = fs.getPath(file.parent.toString(), outputStr, "windowHierarchyDump$i.xml")
 
-                            val result = if (obj.actRes[i].getResult().successful)
-                                obj.actRes[i].getResult().guiSnapshot.windowHierarchyDump
+                            val result = if (obj.logRecords[i].getResult().successful)
+                                obj.logRecords[i].getResult().guiSnapshot.windowHierarchyDump
                     else
                                 ""
 

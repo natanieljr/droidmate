@@ -20,10 +20,11 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionRunResult
 
 interface IExplorationStrategy {
 
-    fun decide(result: IExplorationActionRunResult): ExplorationAction
+    fun decide(result: IMemoryRecord): ExplorationAction
+
+    fun update(record: IMemoryRecord)
 }
 
