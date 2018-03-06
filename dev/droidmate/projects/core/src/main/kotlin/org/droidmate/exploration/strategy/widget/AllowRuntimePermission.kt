@@ -35,7 +35,7 @@ class AllowRuntimePermission private constructor() : AbstractWidgetStrategy() {
         val allowButton = (widgetContext.guiState as RuntimePermissionDialogBoxGuiState).allowWidget
 
         // Remove blacklist restriction from previous action since it will need to be executed again
-        this.memory.lastWidgetInfo?.blackListed = false
+        this.memory.lastWidgetInfo.blackListed = false
 
         return ExplorationAction.newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
     }

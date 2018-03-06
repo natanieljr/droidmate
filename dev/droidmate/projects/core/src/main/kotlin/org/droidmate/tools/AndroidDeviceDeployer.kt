@@ -189,6 +189,7 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
                                 "Adding as a cause to an ${ExplorationException::class.java.simpleName}. " +
                                 "Then adding to the collected exceptions list.\n" +
                                 "The ${tearDownThrowable::class.java.simpleName}: $tearDownThrowable")
+                log.error(Markers.appHealth, tearDownThrowable.message, tearDownThrowable)
 
                 explorationExceptions.add(ExplorationException(tearDownThrowable))
             }
@@ -215,6 +216,7 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
             log.warn(Markers.appHealth,
                     "! Caught ${setupDeviceThrowable.javaClass.simpleName} in setupDevice(deviceIndex: $deviceIndex). " +
                             "Adding as a cause to an ${ExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
+            log.error(Markers.appHealth, setupDeviceThrowable.message, setupDeviceThrowable)
 
             return arrayListOf(null, null, setupDeviceThrowable)
         }

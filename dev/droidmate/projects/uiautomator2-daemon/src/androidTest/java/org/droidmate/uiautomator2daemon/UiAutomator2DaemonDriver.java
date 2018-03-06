@@ -60,6 +60,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     // The instrumentation required to run uiautomator2-daemon is
     // provided by the command: adb shell instrument <PACKAGE>/<RUNNER>
     Instrumentation instr = InstrumentationRegistry.getInstrumentation();
+    Configurator.getInstance().setWaitForSelectorTimeout(100);
     if (instr == null) throw new AssertionError();
 
     this.context = InstrumentationRegistry.getTargetContext();
@@ -79,30 +80,37 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
 
   @Override
-  public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException
-  {
+  public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException {
     Log.v(uiaDaemon_logcatTag, "Executing device command: " + deviceCommand.command);
 
-    if (deviceCommand.command.equals(DEVICE_COMMAND_STOP_UIADAEMON))
-    {
-      // The server will be closed after this response is sent, because the given deviceCommand.command will be interpreted
-      // in the caller, i.e. Uiautomator2DaemonTcpServerBase.
-      return new DeviceResponse();
+    DeviceResponse response = new DeviceResponse();
+
+    try {
+
+      if (deviceCommand.command.equals(DEVICE_COMMAND_STOP_UIADAEMON)) {
+        // The server will be closed after this response is sent, because the given deviceCommand.command will be interpreted
+        // in the caller, i.e. Uiautomator2DaemonTcpServerBase.
+      }
+      else if (deviceCommand.command.equals(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP))
+        response = getWindowHierarchyDump();
+      else if (deviceCommand.command.equals(DEVICE_COMMAND_PERFORM_ACTION))
+        response = performAction(deviceCommand);
+      else if (deviceCommand.command.equals(DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE))
+        response = getIsNaturalOrientation();
+      else if (deviceCommand.command.equals(DEVICE_COMMAND_GET_DEVICE_MODEL))
+        response = getDeviceModel();
+      else
+        throw new UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command));
+
+    } catch (Throwable e) {
+      Log.e(uiaDaemon_logcatTag, "Error: " + e.getMessage());
+      Log.e(uiaDaemon_logcatTag, "Printing stack trace for debug");
+      e.printStackTrace();
+
+      response.throwable = e;
     }
 
-    if (deviceCommand.command.equals(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP))
-      return getWindowHierarchyDump();
-
-    if (deviceCommand.command.equals(DEVICE_COMMAND_PERFORM_ACTION))
-      return performAction(deviceCommand);
-
-    if (deviceCommand.command.equals(DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE))
-      return getIsNaturalOrientation();
-
-    if (deviceCommand.command.equals(DEVICE_COMMAND_GET_DEVICE_MODEL))
-      return getDeviceModel();
-
-    throw new UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command));
+    return response;
   }
 
   private DeviceResponse getDeviceModel()
@@ -152,7 +160,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
   {
     Log.v(uiaDaemon_logcatTag, "Performing GUI action");
 
-    DeviceAction.Companion.fromAction(deviceCommand.guiAction).execute(device,context);
+    DeviceAction.Companion.fromAction(deviceCommand.guiAction).execute(device, context);
 
     return new DeviceResponse();
   }

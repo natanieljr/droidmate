@@ -142,7 +142,7 @@ abstract class AbstractWidgetStrategy : AbstractStrategy() {
 
         if (!widgetContext.belongsToApp()) {
             if (!memory.isEmpty()) {
-                this.memory.lastWidgetInfo?.blackListed = true
+                this.memory.lastWidgetInfo.blackListed = true
                 logger.debug("Blacklisted ${this.memory.lastWidgetInfo}")
             }
         }

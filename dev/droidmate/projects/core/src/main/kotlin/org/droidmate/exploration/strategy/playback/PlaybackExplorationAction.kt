@@ -22,7 +22,7 @@ import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.WidgetExplorationAction
 
 class PlaybackExplorationAction(action: WidgetExplorationAction) : WidgetExplorationAction(action.widget,
-        action.longClick, action.delay, action.swipe, action.direction, ActionType.Playback) {
+        action.longClick, action.useCoordinates, action.delay, action.swipe, action.direction, ActionType.Playback) {
     override fun toShortString(): String {
         return "(Playback) ${super.toShortString()}"
     }

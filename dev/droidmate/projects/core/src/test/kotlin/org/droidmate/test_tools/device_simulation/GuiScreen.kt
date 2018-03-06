@@ -31,10 +31,7 @@ import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
 import org.droidmate.test_tools.device_simulation.GuiScreen.Companion.reservedIds
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
-import org.droidmate.uiautomator_daemon.guimodel.ClickAction
-import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
-import org.droidmate.uiautomator_daemon.guimodel.PressBack
-import org.droidmate.uiautomator_daemon.guimodel.PressHome
+import org.droidmate.uiautomator_daemon.guimodel.*
 
 /**
  * <p>
@@ -59,14 +56,14 @@ class GuiScreen constructor(private val internalId: String,
                 idHome to DeviceModel.buildDefault().getAndroidLauncherPackageName(),
                 idChrome to "com.android.chrome")
     }
-    
-    private val packageName : String
+
+    private val packageName: String
     private var internalGuiSnapshot: IDeviceGuiSnapshot = MissingGuiSnapshot()
 
-    private var home : IGuiScreen? = null
-    private var main : IGuiScreen? = null
+    private var home: IGuiScreen? = null
+    private var main: IGuiScreen? = null
 
-    private val widgetTransitions : MutableMap<IWidget, IGuiScreen> = mutableMapOf()
+    private val widgetTransitions: MutableMap<IWidget, IGuiScreen> = mutableMapOf()
     private var finishedBuilding = false
 
     constructor(snapshot: IDeviceGuiSnapshot) : this(snapshot.id, snapshot.getPackageName()) {
@@ -74,14 +71,14 @@ class GuiScreen constructor(private val internalId: String,
     }
 
 
-  init {
-      this.packageName = if (packageName.isNotEmpty()) packageName else reservedIdsPackageNames[internalId]!!
+    init {
+        this.packageName = if (packageName.isNotEmpty()) packageName else reservedIdsPackageNames[internalId]!!
 
-      assert(this.internalId.isNotEmpty())
-      assert(this.packageName.isNotEmpty())
-      assert((this.internalId !in reservedIds) || (this.packageName == reservedIdsPackageNames[internalId]))
-      assert((this.internalId in reservedIds) || (this.packageName !in reservedIdsPackageNames.values))
-  }
+        assert(this.internalId.isNotEmpty())
+        assert(this.packageName.isNotEmpty())
+        assert((this.internalId !in reservedIds) || (this.packageName == reservedIdsPackageNames[internalId]))
+        assert((this.internalId in reservedIds) || (this.packageName !in reservedIdsPackageNames.values))
+    }
 
     override fun perform(action: IAndroidDeviceAction): IScreenTransitionResult {
         assert(finishedBuilding)
@@ -93,39 +90,44 @@ class GuiScreen constructor(private val internalId: String,
         }
     }
 
-  //region internalPerform multimethod
+    //region internalPerform multimethod
 
-  // This method is used: it is a multimethod.
-  private fun internalPerform(clearPackage: AdbClearPackageAction): IScreenTransitionResult {
-      return if (this.getGuiSnapshot().getPackageName() == clearPackage.packageName)
-          ScreenTransitionResult(home!!, ArrayList())
-      else
-          ScreenTransitionResult(this, ArrayList())
-  }
+    // This method is used: it is a multimethod.
+    private fun internalPerform(clearPackage: AdbClearPackageAction): IScreenTransitionResult {
+        return if (this.getGuiSnapshot().getPackageName() == clearPackage.packageName)
+            ScreenTransitionResult(home!!, ArrayList())
+        else
+            ScreenTransitionResult(this, ArrayList())
+    }
 
-  @Suppress("UNUSED_PARAMETER")
-  private fun internalPerform(launch: LaunchMainActivityDeviceAction): IScreenTransitionResult =
-          ScreenTransitionResult(main!!, this.buildMonitorMessages())
+    @Suppress("UNUSED_PARAMETER")
+    private fun internalPerform(launch: LaunchMainActivityDeviceAction): IScreenTransitionResult =
+            ScreenTransitionResult(main!!, this.buildMonitorMessages())
 
-  private fun internalPerform(click: ClickGuiAction): IScreenTransitionResult {
-      val guiAction = click.guiAction
+    private fun internalPerform(click: ClickGuiAction): IScreenTransitionResult {
+        val guiAction = click.guiAction
 
-      return when (guiAction) {
-          is PressHome -> ScreenTransitionResult(home!!, ArrayList())
-          is EnableWifi -> {
-              assert(this == home)
-              ScreenTransitionResult(this, ArrayList())
-          }
-          is PressBack -> ScreenTransitionResult(this, ArrayList())
-          is ClickAction -> {
-              val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
-              ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
-          }
-          else -> throw UnexpectedIfElseFallthroughError("Found action $guiAction")
-      }
-  }
+        return when (guiAction) {
+            is PressHome -> ScreenTransitionResult(home!!, ArrayList())
+            is EnableWifi -> {
+                assert(this == home)
+                ScreenTransitionResult(this, ArrayList())
+            }
+            is PressBack -> ScreenTransitionResult(this, ArrayList())
+            is ClickAction -> processClick(click)
+            is CoordinateClickAction -> processClick(click)
+            is LongClickAction -> processClick(click)
+            is CoordinateLongClickAction -> processClick(click)
+            else -> throw UnexpectedIfElseFallthroughError("Found action $guiAction")
+        }
+    }
 
-  //endregion internalPerform multimethod
+    private fun processClick(click: ClickGuiAction): IScreenTransitionResult {
+        val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
+        return ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
+    }
+
+    //endregion internalPerform multimethod
 
     override fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen, ignoreDuplicates: Boolean) {
         assert(!finishedBuilding)
@@ -145,10 +147,10 @@ class GuiScreen constructor(private val internalId: String,
     }
 
     override fun addHomeScreenReference(home: IGuiScreen) {
-    assert(!finishedBuilding)
-    assert(home.getId() == idHome)
-    this.home = home
-  }
+        assert(!finishedBuilding)
+        assert(home.getId() == idHome)
+        this.home = home
+    }
 
     override fun addMainScreenReference(main: IGuiScreen) {
         assert(!finishedBuilding)

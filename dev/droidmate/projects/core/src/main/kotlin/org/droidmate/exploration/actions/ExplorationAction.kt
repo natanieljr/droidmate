@@ -37,15 +37,15 @@ abstract class ExplorationAction(val type: ActionType) : Serializable {
 
         @JvmStatic
         @JvmOverloads
-        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay, actionType = actionType).apply { runtimePermission = false }
+        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean = true, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay, actionType = actionType).apply { runtimePermission = false }
 
         @JvmStatic
         @JvmOverloads
-        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates, actionType = actionType)
+        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates, actionType = actionType)
 
         @JvmStatic
         @JvmOverloads
-        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick, actionType = actionType).apply { runtimePermission = true }
+        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick, actionType = actionType).apply { runtimePermission = true }
 
         @JvmStatic
         @JvmOverloads
@@ -61,7 +61,7 @@ abstract class ExplorationAction(val type: ActionType) : Serializable {
 
         @JvmStatic
         @JvmOverloads
-        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean, direction: Direction, actionType: ActionType = ActionType.Explore): WidgetExplorationAction {
+        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean = true, direction: Direction, actionType: ActionType = ActionType.Explore): WidgetExplorationAction {
             return WidgetExplorationAction(widget, false, useCoordinates, 0, true, direction, actionType)
         }
     }
