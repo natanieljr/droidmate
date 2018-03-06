@@ -85,8 +85,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
         val endTime = LocalDateTime.now()
 
         // For post-conditions, see inside the constructor call made line below.
-        return MemoryRecord(this, /*WidgetContext(ArrayList()),*/ startTime, endTime,
-                this.logs, this.snapshot, this.exception, this.screenshot)
+        return MemoryRecord(this, startTime, endTime, this.logs, this.snapshot, this.exception, this.screenshot)
     }
 
     @Throws(DeviceException::class)
