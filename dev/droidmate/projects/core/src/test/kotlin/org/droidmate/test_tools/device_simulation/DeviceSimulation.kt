@@ -22,7 +22,7 @@ import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.datatypes.AdbClearPackageAction
 import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 
 class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder,
                                            override val packageName: String): IDeviceSimulation {
@@ -38,7 +38,7 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
     constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
             this(GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
 
-    constructor(out: IApkExplorationOutput2) :
+    constructor(out: IExplorationLog) :
             this(GuiScreensBuilderFromApkExplorationOutput2(out), out.packageName)
 
     init {

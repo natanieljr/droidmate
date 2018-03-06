@@ -20,17 +20,17 @@ package org.droidmate.report
 
 import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.deleteDir
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ExplorationOutput2Report(rawData: List<IApkExplorationOutput2>, val dir: Path) {
+class ExplorationOutput2Report(rawData: List<IExplorationLog>, val dir: Path) {
 
   private val log: Logger = LoggerFactory.getLogger(ExplorationOutput2Report::class.java)
-  
-  val data: List<IApkExplorationOutput2>
+
+  val data: List<IExplorationLog>
 
   init { data = rawData.withFilteredApiLogs }
   

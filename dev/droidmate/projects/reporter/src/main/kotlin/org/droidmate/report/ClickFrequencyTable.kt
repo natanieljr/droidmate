@@ -22,17 +22,17 @@ import com.google.common.collect.Table
 import com.konradjamrozik.frequencies
 import com.konradjamrozik.transpose
 import org.droidmate.device.datatypes.IWidget
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 
 class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
-  constructor(data: IApkExplorationOutput2) : this(ClickFrequencyTable.build(data))
+    constructor(data: IExplorationLog) : this(ClickFrequencyTable.build(data))
   
   companion object {
     val headerNoOfClicks = "No_of_clicks"
     val headerViewsCount = "Views_count"
 
-    fun build(data: IApkExplorationOutput2): Table<Int, String, Int> {
+      fun build(data: IExplorationLog): Table<Int, String, Int> {
 
       val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
 
@@ -50,7 +50,8 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
       )
     }
 
-    private val IApkExplorationOutput2.countOfViewsHavingNoOfClicks: Map<Int, Int> get() {
+      private val IExplorationLog.countOfViewsHavingNoOfClicks: Map<Int, Int>
+          get() {
 
         val clickedWidgets: List<IWidget> = this.actRes.flatMap { it.clickedWidget }
         val noOfClicksPerWidget: Map<IWidget, Int> = clickedWidgets.frequencies

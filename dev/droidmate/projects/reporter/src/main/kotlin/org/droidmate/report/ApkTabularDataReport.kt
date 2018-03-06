@@ -19,10 +19,10 @@
 package org.droidmate.report
 
 import com.konradjamrozik.isDirectory
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import java.nio.file.Path
 
-data class ApkTabularDataReport(val data: IApkExplorationOutput2, val dir: Path) {
+data class ApkTabularDataReport(val data: IExplorationLog, val dir: Path) {
 
 //  private val log: Logger = LoggerFactory.getLogger(ApkTabularDataReport::class.java)
 

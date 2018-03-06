@@ -25,11 +25,11 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
-import org.droidmate.exploration.strategy.ExplorationStrategy
+import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
@@ -48,11 +48,11 @@ class Exploration constructor(private val cfg: Configuration,
         @JvmStatic
         fun build(cfg: Configuration,
                   timeProvider: ITimeProvider = TimeProvider(),
-                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategy.build(cfg) }): Exploration
+                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategyPool.build(cfg) }): Exploration
                 = Exploration(cfg, timeProvider, strategyProvider)
     }
 
-    override fun run(app: IApk, device: IRobustDevice): Failable<IApkExplorationOutput2, DeviceException> {
+    override fun run(app: IApk, device: IRobustDevice): Failable<IExplorationLog, DeviceException> {
         log.info("run(${app.packageName}, device)")
 
         device.resetTimeSync()
@@ -61,7 +61,7 @@ class Exploration constructor(private val cfg: Configuration,
             tryDeviceHasPackageInstalled(device, app.packageName)
             tryWarnDeviceDisplaysHomeScreen(device, app.fileName)
         } catch (e: DeviceException) {
-            return Failable<IApkExplorationOutput2, DeviceException>(null, e)
+            return Failable<IExplorationLog, DeviceException>(null, e)
         }
 
         val output = explorationLoop(app, device)
@@ -72,15 +72,15 @@ class Exploration constructor(private val cfg: Configuration,
             log.warn(Markers.appHealth, "! Encountered ${output.exception.javaClass.simpleName} during the exploration of ${app.packageName} " +
                     "after already obtaining some exploration output.")
 
-        return Failable<IApkExplorationOutput2, DeviceException>(output, if (output.exceptionIsPresent) output.exception else null)
+        return Failable<IExplorationLog, DeviceException>(output, if (output.exceptionIsPresent) output.exception else null)
     }
 
 
-    private fun explorationLoop(app: IApk, device: IRobustDevice): IApkExplorationOutput2 {
+    private fun explorationLoop(app: IApk, device: IRobustDevice): IExplorationLog {
         log.debug("explorationLoop(app=${app.fileName}, device)")
 
         // Construct the object that will hold the exploration output and that will be returned from this method.
-        val output = ApkExplorationOutput2(app)
+        val output = ExplorationLog(app)
 
         output.explorationStartTime = timeProvider.getNow()
         log.debug("Exploration start time: " + output.explorationStartTime)

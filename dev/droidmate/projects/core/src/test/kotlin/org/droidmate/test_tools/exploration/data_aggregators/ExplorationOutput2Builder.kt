@@ -28,7 +28,7 @@ import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationActionRunResult
 import org.droidmate.exploration.actions.RunnableExplorationAction
-import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.ExplorationLog
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IDeviceLogs
@@ -41,7 +41,7 @@ import java.time.LocalDateTime
 
 class ExplorationOutput2Builder {
 
-    private lateinit var currentlyBuiltApkOut2: ApkExplorationOutput2
+    private lateinit var currentlyBuiltApkOut2: ExplorationLog
     private val builtOutput: ExplorationOutput2 = ExplorationOutput2(ArrayList())
 
     companion object {
@@ -60,7 +60,7 @@ class ExplorationOutput2Builder {
         assert(attributes["explorationEndTimeMss"] is Int)
 
         val packageName = attributes["name"]!! as String
-        this.currentlyBuiltApkOut2 = ApkExplorationOutput2(
+        this.currentlyBuiltApkOut2 = ExplorationLog(
                 ApkTestHelper.build(
                         packageName,
                         "$packageName/$packageName.MainActivity",

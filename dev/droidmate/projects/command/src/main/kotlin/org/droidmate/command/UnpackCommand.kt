@@ -21,7 +21,7 @@ package org.droidmate.command
 import com.konradjamrozik.createDirIfNotExists
 import com.konradjamrozik.isRegularFile
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.storage.Storage2
 import java.nio.file.FileSystems
@@ -59,7 +59,7 @@ class UnpackCommand : DroidmateCommand() {
                         outputDir = fs.getPath(file.parent.toString(), outputStr)
                 outputDir.createDirIfNotExists()
 
-                        val obj = storage2.deserialize(file) as IApkExplorationOutput2
+                        val obj = storage2.deserialize(file) as IExplorationLog
 
                         for (i in 0 until obj.actRes.size) {
                             val newActionFile = fs.getPath(file.parent.toString(), outputStr, "action$i.txt")

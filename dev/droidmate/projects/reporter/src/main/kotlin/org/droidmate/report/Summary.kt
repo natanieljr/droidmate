@@ -19,12 +19,12 @@
 package org.droidmate.report
 
 import com.konradjamrozik.Resource
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.extractedText
 import java.nio.file.Files
 import java.nio.file.Path
 
-class Summary(val data: List<IApkExplorationOutput2>, file: Path): DataFile(file) {
+class Summary(val data: List<IExplorationLog>, file: Path) : DataFile(file) {
 
   override fun writeOut() {
     Files.write(file, summaryString.toByteArray())

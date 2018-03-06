@@ -26,7 +26,7 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.deleteDir
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.device.IRobustDevice
-import org.droidmate.exploration.strategy.ExplorationStrategy
+import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.logging.Markers
 import org.droidmate.misc.ITimeProvider
@@ -49,7 +49,7 @@ class ExploreCommand constructor(private val apksProvider: IApksProvider,
         private val log = LoggerFactory.getLogger(ExploreCommand::class.java)
 
         fun build(cfg: Configuration,
-                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategy.build(cfg) },
+                  strategyProvider: () -> IExplorationStrategy = { ExplorationStrategyPool.build(cfg) },
                   timeProvider: ITimeProvider = TimeProvider(),
                   deviceTools: IDeviceTools = DeviceTools(cfg)): ExploreCommand {
             val apksProvider = ApksProvider(deviceTools.aapt)

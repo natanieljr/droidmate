@@ -23,7 +23,7 @@ import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.MonitoredInlinedApkFixtureApiLogs
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.Failable
@@ -89,7 +89,7 @@ class ExplorationTest : DroidmateTestCase() {
 
         val exploration = Exploration.build(cfg)
 
-        val outData: MutableList<IApkExplorationOutput2?> = ArrayList()
+        val outData: MutableList<IExplorationLog?> = ArrayList()
 
         deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
             deviceTools.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
@@ -133,7 +133,7 @@ class ExplorationTest : DroidmateTestCase() {
 
     private fun runOnSimulator(simulatorSpec: String,
                                exceptionSpecs: List<IExceptionSpec> = ArrayList(),
-                               cfg: Configuration = ConfigurationForTests().get()): Failable<IApkExplorationOutput2, DeviceException> {
+                               cfg: Configuration = ConfigurationForTests().get()): Failable<IExplorationLog, DeviceException> {
         val timeGenerator = TimeGenerator()
 
         val apk = ApkTestHelper.build("mock_app1")

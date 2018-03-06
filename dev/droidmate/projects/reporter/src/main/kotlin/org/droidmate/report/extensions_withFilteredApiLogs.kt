@@ -21,15 +21,16 @@ package org.droidmate.report
 import org.droidmate.exploration.actions.ExplorationActionRunResult
 import org.droidmate.exploration.actions.IExplorationActionRunResult
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.IDeviceLogs
 import java.net.URI
 
 // WISH use instead lazy extension property implemented with workaround: https://youtrack.jetbrains.com/issue/KT-13053#comment=27-1510399
-val List<IApkExplorationOutput2>.withFilteredApiLogs: List<IApkExplorationOutput2> get() {
+val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
+    get() {
 
-    fun filterApiLogs(output: IApkExplorationOutput2): IApkExplorationOutput2 {
+        fun filterApiLogs(output: IExplorationLog): IExplorationLog {
 
         fun filterApiLogs(results: List<RunnableExplorationActionWithResult>): MutableList<RunnableExplorationActionWithResult> {
 
@@ -49,7 +50,7 @@ val List<IApkExplorationOutput2>.withFilteredApiLogs: List<IApkExplorationOutput
             return results.map { RunnableExplorationActionWithResult(it.first, filterApiLogs(it.second)) }.toMutableList()
         }
 
-        return ApkExplorationOutput2(output.apk,
+            return ExplorationLog(output.apk,
                 filterApiLogs(output.actRes),
                 output.explorationStartTime,
                 output.explorationEndTime)

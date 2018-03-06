@@ -20,9 +20,10 @@ package org.droidmate.report
 
 import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.misc.uniqueString
 
-class ViewCountTable(data: IApkExplorationOutput2) : CountsPartitionedByTimeTable(
+class ViewCountTable(data: IExplorationLog) : CountsPartitionedByTimeTable(
         data.getExplorationTimeInMs(),
         listOf(
                 headerTime,
@@ -41,17 +42,19 @@ class ViewCountTable(data: IApkExplorationOutput2) : CountsPartitionedByTimeTabl
     val headerViewsSeen = "Actionable_unique_views_seen"
     val headerViewsClicked = "Actionable_unique_views_clicked"
 
-    private val IApkExplorationOutput2.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>> get() {
+    private val IExplorationLog.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
+      get() {
       return this.uniqueViewCountByPartitionedTime(
         extractItems = { it.actionableWidgets }
       )
     }
 
-    private val IApkExplorationOutput2.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>> get() {
+    private val IExplorationLog.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
+      get() {
       return this.uniqueViewCountByPartitionedTime(extractItems = { it.clickedWidget })
     }
 
-    private fun IApkExplorationOutput2.uniqueViewCountByPartitionedTime(
+    private fun IExplorationLog.uniqueViewCountByPartitionedTime(
             extractItems: (RunnableExplorationActionWithResult) -> Iterable<IWidget>
     ): Map<Long, Iterable<String>> {
 

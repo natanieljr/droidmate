@@ -20,6 +20,7 @@ package org.droidmate.configuration
 
 import com.beust.jcommander.Parameter
 import com.beust.jcommander.Parameters
+import org.droidmate.exploration.strategy.StrategyTypes
 import org.droidmate.misc.BuildConstants
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 
@@ -119,6 +120,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_waitForCanRebootDelay = "-waitForCanRebootDelay"
         const val pn_widgetIndexes = "-widgetIndexes"
         const val pn_waitForDevice = "-waitForDevice"
+        const val pn_explorationStrategies = "-explorationStrategies"
         // @formatter:on
         //endregion
 
@@ -356,6 +358,12 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = arrayOf(pn_waitForDevice), description =
     "Wait for a device to be connected to the PC instead of cancelling the exploration.")
     public var waitForDevice = false
+
+    @Parameter(names = arrayOf(pn_explorationStrategies), listConverter = ListOfStringsConverter::class,
+            description = "Determines which exploration strategies will be used. The format is: [<first strategy name>,<second strategy name>,...<nth strategy name>], example: [RandomWidget,PressBack,ModelBased]. Reset and Terminate are compulsory included.")
+    public var explorationStategies: List<String> = listOf(StrategyTypes.AllowRuntimePermission,
+        StrategyTypes.PressBack,
+        StrategyTypes.RandomWidget).map { it.strategyName }
 
     val basePort = 59701
 

@@ -26,8 +26,8 @@ import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
-import org.droidmate.exploration.strategy.ExplorationStrategy
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.report.OutputDir
@@ -165,7 +165,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 cfg.args,
                 object : ICommandProvider {
                     override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategy.build(cfg) }, timeGenerator, deviceToolsMock)
+                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(cfg) }, timeGenerator, deviceToolsMock)
                 },
                 mockedFs.fs,
                 spy
@@ -210,7 +210,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 cfg.args,
                 object : ICommandProvider {
                     override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategy.build(cfg) }, timeGenerator, deviceToolsMock)
+                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(cfg) }, timeGenerator, deviceToolsMock)
                 },
                 mockedFs.fs,
                 handler
@@ -261,7 +261,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 outputDir.createDirIfNotExists()
 
                 // Get data
-                val obj = storage2.deserialize(file) as IApkExplorationOutput2
+                val obj = storage2.deserialize(file) as IExplorationLog
                 //val packageName = obj.apk.packageName
 
                 // Create output dir
