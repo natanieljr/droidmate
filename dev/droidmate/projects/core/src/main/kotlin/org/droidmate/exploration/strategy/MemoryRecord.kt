@@ -23,7 +23,6 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
@@ -49,9 +48,6 @@ class MemoryRecord(override val action: ExplorationAction,
 
     override var widgetContext: WidgetContext = EmptyWidgetContext()
 
-    override val type: ActionType
-        get() = action.type
-
     override val decisionTime: Long
         get() = ChronoUnit.MILLIS.between(startTimestamp, endTimestamp)
 
@@ -68,7 +64,7 @@ class MemoryRecord(override val action: ExplorationAction,
         if (other !is MemoryRecord)
             return false
 
-        return this.action.toString() == other.action.toString() && this.type == other.type
+        return this.action.toString() == other.action.toString()
         // TODO Add check on exploration state as well
     }
 
@@ -78,7 +74,6 @@ class MemoryRecord(override val action: ExplorationAction,
 
     override fun toString(): String {
         return MoreObjects.toStringHelper(this)
-                .add("type", type)
                 .add("action", action)
                 .add("successful", successful)
                 .add("snapshot", guiSnapshot)

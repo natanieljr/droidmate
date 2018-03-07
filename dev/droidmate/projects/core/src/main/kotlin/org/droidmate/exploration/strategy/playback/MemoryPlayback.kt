@@ -53,7 +53,7 @@ open class MemoryPlayback private constructor() : AbstractWidgetStrategy() {
         for (i in 0 until memoryRecords.size) {
             val memoryRecord = memoryRecords[i]
 
-            if (memoryRecord.type == ActionType.Reset)
+            if (memoryRecord.action is ResetAppExplorationAction)
                 traces.add(PlaybackTrace())
 
             val widgetContext = memory.getWidgetContext(memoryRecord.widgetContext.guiState)

@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-class EmptyAction : ExplorationAction(ActionType.None) {
+class EmptyAction : ExplorationAction() {
     override fun toShortString(): String {
         return "Empty"
     }

@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
-import org.droidmate.exploration.actions.ActionType
+import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.WidgetContext
 
@@ -32,7 +32,7 @@ class CannotExploreReset : Reset() {
         // If can' move forward and have already tried to press back reset,
         // however, reset is never as good as a specific exploration
         if (!widgetContext.explorationCanMoveForwardOn() &&
-                this.lastActionWasOfType(ActionType.Back))
+                this.lastAction() is PressBackExplorationAction)
             return StrategyPriority.RESET
 
         // Any other action
@@ -41,5 +41,9 @@ class CannotExploreReset : Reset() {
 
     override fun equals(other: Any?): Boolean {
         return other is CannotExploreReset
+    }
+
+    override fun hashCode(): Int {
+        return this.javaClass.hashCode()
     }
 }

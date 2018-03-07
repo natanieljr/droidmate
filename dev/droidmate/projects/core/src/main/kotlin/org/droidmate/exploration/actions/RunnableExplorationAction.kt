@@ -37,7 +37,7 @@ import java.time.LocalDateTime
 
 abstract class RunnableExplorationAction(override val base: ExplorationAction,
                                          override val timestamp: LocalDateTime,
-                                         override val takeScreenshot: Boolean = false) : IRunnableExplorationAction, ExplorationAction(base.type) {
+                                         override val takeScreenshot: Boolean = false) : IRunnableExplorationAction, ExplorationAction() {
 
     companion object {
         private const val serialVersionUID: Long = 1
@@ -85,7 +85,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
         val endTime = LocalDateTime.now()
 
         // For post-conditions, see inside the constructor call made line below.
-        return MemoryRecord(this, startTime, endTime, this.logs, this.snapshot, this.exception, this.screenshot)
+        return MemoryRecord(this.base, startTime, endTime, this.logs, this.snapshot, this.exception, this.screenshot)
     }
 
     @Throws(DeviceException::class)

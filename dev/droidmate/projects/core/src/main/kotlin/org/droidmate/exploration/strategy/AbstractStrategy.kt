@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.widget.AbstractWidgetStrategy
@@ -71,9 +70,8 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
      * Check if last performed action in the [memory] was to reset the app
      * @return If the last action was a reset
      */
-    internal fun lastActionWasOfType(type: ActionType): Boolean {
-        val lastAction = this.memory.getLastAction()
-        return lastAction.type == type
+    internal fun lastAction(): ExplorationAction {
+        return this.memory.getLastAction().action
     }
 
     /**

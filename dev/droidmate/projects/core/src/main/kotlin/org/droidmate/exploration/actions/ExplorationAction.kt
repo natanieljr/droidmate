@@ -23,46 +23,45 @@ import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.Widget
 import java.io.Serializable
 
-abstract class ExplorationAction(val type: ActionType) : Serializable {
+abstract class ExplorationAction : Serializable {
     companion object {
         private const val serialVersionUID: Long = 1
 
         @JvmStatic
         @JvmOverloads
-        fun newResetAppExplorationAction(isFirst: Boolean = false, actionType: ActionType = ActionType.Reset): ResetAppExplorationAction = ResetAppExplorationAction(isFirst, actionType)
+        fun newResetAppExplorationAction(isFirst: Boolean = false): ResetAppExplorationAction = ResetAppExplorationAction(isFirst)
+
+        @JvmStatic
+        fun newTerminateExplorationAction(): TerminateExplorationAction = TerminateExplorationAction()
 
         @JvmStatic
         @JvmOverloads
-        fun newTerminateExplorationAction(actionType: ActionType = ActionType.Terminate): TerminateExplorationAction = TerminateExplorationAction(actionType)
+        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean = true): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
 
         @JvmStatic
         @JvmOverloads
-        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean = true, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay, actionType = actionType).apply { runtimePermission = false }
+        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
 
         @JvmStatic
         @JvmOverloads
-        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates, actionType = actionType)
+        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
 
         @JvmStatic
         @JvmOverloads
-        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false, actionType: ActionType = ActionType.Explore): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick, actionType = actionType).apply { runtimePermission = true }
+        @Suppress("unused")
+        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = ""): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath })
+
+        @JvmStatic
+        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget)
+
+        @JvmStatic
+        fun newPressBackExplorationAction(): PressBackExplorationAction = PressBackExplorationAction()
 
         @JvmStatic
         @JvmOverloads
-        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = "", actionType: ActionType = ActionType.EnterText): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath }, actionType = actionType)
-
-        @JvmStatic
-        @JvmOverloads
-        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget, actionType: ActionType = ActionType.EnterText): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget, actionType = actionType)
-
-        @JvmStatic
-        @JvmOverloads
-        fun newPressBackExplorationAction(actionType: ActionType = ActionType.Back): PressBackExplorationAction = PressBackExplorationAction(actionType)
-
-        @JvmStatic
-        @JvmOverloads
-        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean = true, direction: Direction, actionType: ActionType = ActionType.Explore): WidgetExplorationAction {
-            return WidgetExplorationAction(widget, false, useCoordinates, 0, true, direction, actionType)
+        @Suppress("unused")
+        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean = true, direction: Direction): WidgetExplorationAction {
+            return WidgetExplorationAction(widget, false, useCoordinates, 0, true, direction)
         }
     }
 

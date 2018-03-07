@@ -21,7 +21,6 @@ package org.droidmate.exploration.strategy
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.IGuiState
-import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.actions.ExplorationAction
@@ -40,9 +39,6 @@ class EmptyMemoryRecord : IMemoryRecord {
     override val exception: DeviceException = DeviceExceptionMissing()
 
     override val screenshot: URI = URI(this.javaClass.name)
-
-    override val type: ActionType
-        get() = ActionType.None
 
     override val decisionTime: Long
         get() = Long.MIN_VALUE

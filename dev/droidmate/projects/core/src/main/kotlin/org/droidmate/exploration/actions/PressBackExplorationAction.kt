@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions;
 
-open class PressBackExplorationAction @JvmOverloads constructor(actionType: ActionType = ActionType.Back) : ExplorationAction(actionType) {
+open class PressBackExplorationAction constructor() : ExplorationAction() {
 
     companion object {
         private const val serialVersionUID: Long = 1

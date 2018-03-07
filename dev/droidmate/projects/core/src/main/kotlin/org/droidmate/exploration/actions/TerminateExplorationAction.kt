@@ -20,7 +20,7 @@
 package org.droidmate.exploration.actions
 
 
-open class TerminateExplorationAction @JvmOverloads constructor(actionType: ActionType = ActionType.Terminate) : ExplorationAction(actionType) {
+open class TerminateExplorationAction : ExplorationAction() {
 
     companion object {
         private const val serialVersionUID: Long = 1

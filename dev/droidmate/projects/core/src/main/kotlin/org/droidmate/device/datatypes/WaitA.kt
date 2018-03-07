@@ -36,15 +36,13 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import org.droidmate.uiautomator_daemon.guimodel.WaitAction
 import org.droidmate.uiautomator_daemon.guimodel.WidgetSelector
 
-class WaitA @JvmOverloads constructor(private val selector: WidgetSelector,
-                                      private val criteria: String,
-                                      actionType: ActionType = ActionType.Wait) : ExplorationAction(actionType), IAndroidDeviceAction {
+class WaitA constructor(private val selector: WidgetSelector,
+                        private val criteria: String) : ExplorationAction(), IAndroidDeviceAction {
 
     val action: Action = WaitAction(this.criteria, this.selector)
 

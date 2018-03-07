@@ -19,13 +19,12 @@
 
 package org.droidmate.tests.exploration.strategy.stubs
 
-import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
 
 /**
  * Stuff for exploration action
  */
-class DummyExplorationAction : ExplorationAction(ActionType.None) {
+class DummyExplorationAction : ExplorationAction() {
 
     override fun toShortString(): String {
         return "STUB!"

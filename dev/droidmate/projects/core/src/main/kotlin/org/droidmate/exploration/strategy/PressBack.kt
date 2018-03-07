@@ -19,9 +19,10 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
+import org.droidmate.exploration.actions.PressBackExplorationAction
+import org.droidmate.exploration.actions.ResetAppExplorationAction
 import java.util.*
 
 /**
@@ -47,13 +48,13 @@ class PressBack private constructor(private val probability: Double,
         // If it can' move forward and last action was not to reset
         // On the first action the reset will have a priority of 1.0, so this is not a problem
         if (!widgetContext.explorationCanMoveForwardOn() &&
-                !this.lastActionWasOfType(ActionType.Back))
+                this.lastAction() !is PressBackExplorationAction)
             return StrategyPriority.BACK
 
         // If it can' move forward, is the second action and last action was not to reset
         // Try to press back because sometimes an account selection dialog pops up
         if (!widgetContext.explorationCanMoveForwardOn() &&
-                this.lastActionWasOfType(ActionType.Reset) &&
+                this.lastAction() is ResetAppExplorationAction &&
                 this.memory.getSize() == 1)
             return StrategyPriority.BACK_BEFORE_TERMINATE
 
@@ -61,7 +62,7 @@ class PressBack private constructor(private val probability: Double,
         // this can allow the exploration to unstuck before the reset timeout
         val value = this.random.nextDouble()
 
-        return if ((this.memory.getLastAction().type == ActionType.Reset) || (value > probability))
+        return if ((this.lastAction() is ResetAppExplorationAction) || (value > probability))
             StrategyPriority.NONE
         else
             StrategyPriority.BACK

@@ -21,7 +21,6 @@ package org.droidmate.exploration.strategy
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.IGuiState
-import org.droidmate.exploration.actions.ActionType
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
 import java.io.Serializable
@@ -42,7 +41,7 @@ interface IMemoryRecord : Serializable {
     /**
      * Type of exploration strategy that created the action
      */
-    val type: ActionType
+    //val type: ActionType
 
     /**
      * GUI state before action execution

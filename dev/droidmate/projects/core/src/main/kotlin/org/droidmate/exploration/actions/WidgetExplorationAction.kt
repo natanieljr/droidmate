@@ -26,8 +26,7 @@ open class WidgetExplorationAction @JvmOverloads constructor(val widget: IWidget
                                                              val useCoordinates: Boolean,
                                                              val delay: Int = 100,
                                                              val swipe: Boolean = false,
-                                                             val direction: Direction = Direction.UP,
-                                                             actionType: ActionType) : ExplorationAction(actionType) {
+                                                             val direction: Direction = Direction.UP) : ExplorationAction() {
     companion object {
         private const val serialVersionUID: Long = 1
     }
