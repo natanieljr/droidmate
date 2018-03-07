@@ -37,7 +37,7 @@ import java.time.LocalDateTime
 
 abstract class RunnableExplorationAction(override val base: ExplorationAction,
                                          override val timestamp: LocalDateTime,
-                                         override val takeScreenshot: Boolean = false) : IRunnableExplorationAction, ExplorationAction() {
+                                         override val takeScreenshot: Boolean = false) : IRunnableExplorationAction {
 
     companion object {
         private const val serialVersionUID: Long = 1
@@ -97,13 +97,4 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
     }
 
     override fun toString(): String = "Runnable " + base.toString()
-
-    override fun isEndorseRuntimePermission(): Boolean
-            = base.isEndorseRuntimePermission()
-
-    override fun toShortString(): String
-            = base.toShortString()
-
-    override fun toTabulatedString(): String
-            = base.toShortString()
 }
