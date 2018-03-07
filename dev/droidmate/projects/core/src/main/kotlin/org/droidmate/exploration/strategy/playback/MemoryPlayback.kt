@@ -84,10 +84,10 @@ open class MemoryPlayback private constructor() : Explore() {
 
     private fun IWidget.canExecute(context: WidgetContext, ignoreLocation: Boolean = false): Boolean {
         return if (ignoreLocation)
-            (context.widgetsInfo.any { it.widget.isEquivalent(this) })
-        else
             (!(this.text.isEmpty() && (this.resourceId.isEmpty()))) &&
                     (context.widgetsInfo.any { it.widget.isEquivalentIgnoreLocation(this) })
+        else
+            (context.widgetsInfo.any { it.widget.isEquivalent(this) })
     }
 
     private fun getNextAction(context: WidgetContext): ExplorationAction {
