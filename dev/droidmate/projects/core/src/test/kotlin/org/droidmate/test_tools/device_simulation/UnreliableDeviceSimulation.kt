@@ -22,6 +22,7 @@ import org.droidmate.device.datatypes.*
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.test_tools.device.datatypes.IUnreliableDeviceGuiSnapshotProvider
 import org.droidmate.test_tools.device.datatypes.UnreliableDeviceGuiSnapshotProvider
+import org.droidmate.uiautomator_daemon.guimodel.*
 
 class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
                                  packageName: String,
@@ -33,9 +34,9 @@ class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
         this.unreliableGuiSnapshotProvider = UnreliableDeviceGuiSnapshotProvider(this.simulation.getCurrentGuiSnapshot())
     }
 
-    override fun updateState(deviceAction: IAndroidDeviceAction) {
+    override fun updateState(deviceAction: Action) {
         // WISH later on support for failing calls to AndroidDevice.clearPackage would be nice. Currently,
-        // org.droidmate.test_tools.device_simulation.UnreliableDeviceSimulation.transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(IAndroidDeviceAction)
+        // org.droidmate.test_tools.device_simulation.UnreliableDeviceSimulation.transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(Action)
         // just updates state of the underlying simulation and that's it.
 
         if (this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().validationResult.valid
@@ -58,16 +59,19 @@ class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
 
     override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot = this.unreliableGuiSnapshotProvider.provide()
 
-    private fun transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: IAndroidDeviceAction) {
+    private fun transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: Action) {
         when (action) {
-            is LaunchMainActivityDeviceAction -> failWithForbiddenActionOnInvalidGuiSnapshot(action)
-            is AdbClearPackageAction -> this.simulation.updateState(action)
-            is ClickGuiAction -> transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)
+            is LaunchApp -> failWithForbiddenActionOnInvalidGuiSnapshot(action)
+            is SimulationAdbClearPackage -> this.simulation.updateState(action)
+            is ClickAction -> onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)
+            is CoordinateClickAction -> onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)
+            is LongClickAction -> onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)
+            is CoordinateLongClickAction -> onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)
             else -> throw UnexpectedIfElseFallthroughError()
         }
     }
 
-    private fun failWithForbiddenActionOnInvalidGuiSnapshot(action: IAndroidDeviceAction) {
+    private fun failWithForbiddenActionOnInvalidGuiSnapshot(action: Action) {
         assert(
                 false, {
             "DroidMate attempted to perform a device action that is forbidden while the device displays " +
@@ -76,10 +80,17 @@ class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
         )
     }
 
-    private fun transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: ClickGuiAction) {
+    private fun onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: Action) {
         if (this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().guiState.isAppHasStoppedDialogBox) {
             val appHasStopped = this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().guiState as AppHasStoppedDialogBoxGuiState
-            assert(action.getSingleMatchingWidget(appHasStopped.getActionableWidgets()) == appHasStopped.okWidget,
+            val singleMatchingWiddget = if (action is ClickAction)
+                GuiScreen.getSingleMatchingWidget(action, appHasStopped.getActionableWidgets())
+            else if (action is CoordinateClickAction)
+                GuiScreen.getSingleMatchingWidget(action, appHasStopped.getActionableWidgets())
+            else
+                throw UnexpectedIfElseFallthroughError()
+
+            assert(singleMatchingWiddget == appHasStopped.okWidget,
                     { "DroidMate attempted to click on 'app has stopped' dialog box on a widget different than 'OK'. The action: $action" })
 
             this.unreliableGuiSnapshotProvider.pressOkOnAppHasStopped()

@@ -55,7 +55,7 @@ class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime,
         val logsHandler = DeviceLogsHandler(device)
 
         log.debug("1. Wait for the widget (until load-screen is finished)")
-        device.perform(this.action)
+        device.perform(this.action.action)
 
         log.debug("2. Read and clear API logs if any, then seal logs reading.")
         logsHandler.readAndClearApiLogs()

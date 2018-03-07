@@ -37,3 +37,4 @@ class PressHome : Action()
 class EnableWifi : Action()
 data class LaunchApp(val appLaunchIconName: String) : Action()
 
+data class SimulationAdbClearPackage(val packageName: String) : Action()

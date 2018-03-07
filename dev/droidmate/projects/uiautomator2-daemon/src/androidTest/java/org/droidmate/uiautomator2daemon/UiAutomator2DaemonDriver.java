@@ -160,11 +160,13 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
 
   @TargetApi(Build.VERSION_CODES.FROYO)
-  private DeviceResponse performAction(DeviceCommand deviceCommand) throws UiAutomatorDaemonException
-  {
+  private DeviceResponse performAction(DeviceCommand deviceCommand) throws UiAutomatorDaemonException {
     Log.v(uiaDaemon_logcatTag, "Performing GUI action");
 
-    DeviceAction.Companion.fromAction(deviceCommand.guiAction).execute(device, context);
+    DeviceAction action = DeviceAction.Companion.fromAction(deviceCommand.guiAction);
+
+    if (action != null)
+      action.execute(device, context);
 
     return new DeviceResponse();
   }

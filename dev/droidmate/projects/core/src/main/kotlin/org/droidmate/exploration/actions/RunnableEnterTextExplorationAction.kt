@@ -1,9 +1,9 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newEnterTextDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.uiautomator_daemon.guimodel.TextAction
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -26,7 +26,7 @@ class RunnableEnterTextExplorationAction constructor(action: EnterTextExploratio
         //				  http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
         //					-> It seems there is no reliable way to suppress the keyboard.
         log.debug("2. Perform widget text input: $action.")
-        device.perform(newEnterTextDeviceAction(action.widget.resourceId, action.textToEnter))
+        device.perform(TextAction(action.widget.xpath, action.widget.resourceId, action.textToEnter))
 
         log.debug("3. Read and clear API logs if any, then seal logs reading.")
         logsHandler.readAndClearApiLogs()

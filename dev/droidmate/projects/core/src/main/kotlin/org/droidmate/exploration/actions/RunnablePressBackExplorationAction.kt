@@ -19,9 +19,9 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newPressBackDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.uiautomator_daemon.guimodel.PressBack
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -38,7 +38,7 @@ class RunnablePressBackExplorationAction constructor(action: PressBackExploratio
         logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
         log.debug("2. Press back.")
-        device.perform(newPressBackDeviceAction())
+        device.perform(PressBack())
 
         log.debug("3. Read and clear API logs if any, then seal logs reading.")
         logsHandler.readAndClearApiLogs()

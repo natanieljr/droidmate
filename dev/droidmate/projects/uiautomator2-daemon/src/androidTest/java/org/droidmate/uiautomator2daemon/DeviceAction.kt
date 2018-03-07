@@ -31,7 +31,7 @@ internal sealed class DeviceAction {
     }
 
     companion object {
-        fun fromAction(a: Action): DeviceAction = with(a) {
+        fun fromAction(a: Action): DeviceAction? = with(a) {
             return when (this) {
                 is WaitAction -> DeviceWaitAction(target, criteria)
                 is LongClickAction -> DeviceLongClickAction(xPath, resId)
@@ -47,6 +47,9 @@ internal sealed class DeviceAction {
                 is PressHome -> DevicePressHome()
                 is EnableWifi -> DeviceEnableWifi()
                 is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
+                is SimulationAdbClearPackage -> {
+                    null /* There's no equivalent device action */
+                }
             }
         }
     }

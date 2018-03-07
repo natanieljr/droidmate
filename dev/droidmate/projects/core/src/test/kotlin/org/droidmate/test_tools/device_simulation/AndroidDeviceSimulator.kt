@@ -27,6 +27,7 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.test_tools.ApkFixtures
 import org.droidmate.test_tools.exceptions.IExceptionSpec
 import org.droidmate.test_tools.exceptions.TestDeviceException
+import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Path
@@ -120,20 +121,26 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
         return outSnapshot
     }
 
-    override fun perform(action: IAndroidDeviceAction) {
+    override fun perform(action: Action) {
         log.debug("perform($action)")
 
         findMatchingExceptionSpecAndThrowIfApplies("perform", this.getCurrentlyDeployedPackageName())
 
         when (action) {
-            is LaunchMainActivityDeviceAction -> assert(false, { "call .launchMainActivity() directly instead" })
-            is ClickGuiAction -> updateSimulatorState(action)
-            is AdbClearPackageAction -> assert(false, { "call .clearPackage() directly instead" })
+            is LaunchApp -> assert(false, { "call .launchMainActivity() directly instead" })
+            is ClickAction-> updateSimulatorState(action)
+            is CoordinateClickAction -> updateSimulatorState(action)
+            is LongClickAction -> updateSimulatorState(action)
+            is CoordinateLongClickAction -> updateSimulatorState(action)
+            is SimulationAdbClearPackage -> assert(false, { "call .clearPackage() directly instead" })
+            is EnableWifi -> { /* do nothing */}
+            is PressHome -> { /* do nothing */}
+            is PressBack -> { /* do nothing */}
             else -> throw UnexpectedIfElseFallthroughError()
         }
     }
 
-    private fun updateSimulatorState(action: IAndroidDeviceAction) {
+    private fun updateSimulatorState(action: Action) {
         //if (action is WidgetExplorationAction)
         //  println("action widget id: ${(action as WidgetExplorationAction).widget.id}")
 
@@ -165,7 +172,7 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
     override fun anyMonitorIsReachable(): Boolean = this.currentSimulation!!.getAppIsRunning()
 
     override fun launchMainActivity(launchableActivityComponentName: String) {
-        updateSimulatorState(LaunchMainActivityDeviceAction(launchableActivityComponentName))
+        updateSimulatorState(LaunchApp(launchableActivityComponentName))
     }
 
     override fun appIsRunning(appPackageName: String): Boolean = this.appProcessIsRunning(appPackageName)
@@ -206,7 +213,7 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
     }
 
     override fun clearPackage(apkPackageName: String) {
-        updateSimulatorState(AdbClearPackageAction(apkPackageName))
+        updateSimulatorState(SimulationAdbClearPackage(apkPackageName))
     }
 
     override fun reboot() {

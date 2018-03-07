@@ -23,8 +23,6 @@ import org.droidmate.android_sdk.ApkExplorationException
 import org.droidmate.android_sdk.FirstRealDeviceSerialNumber
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newClickGuiDeviceAction
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newTurnWifiOnDeviceAction
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.misc.BuildConstants
@@ -38,6 +36,7 @@ import org.droidmate.tools.IDeviceTools
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_GET_DEVICE_MODEL
+import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -194,7 +193,7 @@ class DeviceTest : DroidmateTestCase()
   fun `Sets up API23 compatible device and turns wifi on`() {
       val deviceTools = DeviceTools(getConfigurationApi23())
       deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
-          device.perform(newTurnWifiOnDeviceAction())
+          device.perform(EnableWifi())
           ArrayList()
       }
   }

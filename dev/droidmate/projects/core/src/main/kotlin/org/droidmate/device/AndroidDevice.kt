@@ -24,7 +24,8 @@ import org.droidmate.android_sdk.*
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.*
+import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.device.datatypes.UiautomatorWindowDump
 import org.droidmate.device.model.DeviceModel
 import org.droidmate.device.model.IDeviceModel
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
@@ -37,6 +38,7 @@ import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
 import org.droidmate.uiautomator_daemon.UiautomatorWindowHierarchyDumpDeviceResponse
+import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
 import java.awt.Dimension
 import java.io.File
@@ -132,30 +134,48 @@ class AndroidDevice constructor(private val serialNumber: String,
         return outSnapshot
     }
 
-    override fun perform(action: IAndroidDeviceAction) {
+    override fun perform(action: Action) {
         log.debug("perform($action)")
-        assert(action::class in arrayListOf(ClickGuiAction::class, WaitA::class,
-                AdbClearPackageAction::class, LaunchMainActivityDeviceAction::class))
+        assert(action::class in arrayListOf(ClickAction::class,
+                CoordinateClickAction::class,
+                CoordinateLongClickAction::class,
+                LongClickAction::class,
+                TextAction::class,
+                WaitAction::class,
+                SwipeAction::class,
+                PressBack::class,
+                PressHome::class,
+                EnableWifi::class,
+                LaunchApp::class,
+                SimulationAdbClearPackage::class))
 
         when (action) {
-            is ClickGuiAction -> performGuiClick(action)
-            is WaitA -> performWaitAction(action)
-            is LaunchMainActivityDeviceAction -> assert(false, { "call .launchMainActivity() directly instead" })
-            is AdbClearPackageAction -> assert(false, { "call .clearPackage() directly instead" })
+            is WaitAction -> performWaitAction(action)
+            is LaunchApp -> assert(false, { "call .launchMainActivity() directly instead" })
+            is ClickAction -> performGuiClick(action)
+            is CoordinateClickAction -> performGuiClick(action)
+            is LongClickAction -> performGuiClick(action)
+            is CoordinateLongClickAction -> performGuiClick(action)
+            is TextAction -> performGuiClick(action)
+            is SwipeAction -> performGuiClick(action)
+            is PressBack -> performGuiClick(action)
+            is PressHome -> performGuiClick(action)
+            is EnableWifi -> performGuiClick(action)
+            is SimulationAdbClearPackage -> assert(false, { "call .clearPackage() directly instead" })
             else -> throw UnexpectedIfElseFallthroughError()
         }
     }
 
     @Throws(DeviceException::class)
-    private fun performWaitAction(action: WaitA): DeviceResponse {
+    private fun performWaitAction(action: WaitAction): DeviceResponse {
         log.debug("perform wait action")
-        return issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action.action))
+        return issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action))
     }
 
 
     @Throws(DeviceException::class)
-    private fun performGuiClick(action: ClickGuiAction): DeviceResponse =
-            issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action.guiAction))
+    private fun performGuiClick(action: Action): DeviceResponse =
+            issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action))
 
     @Throws(DeviceException::class)
     private fun issueCommand(deviceCommand: DeviceCommand): DeviceResponse {
@@ -370,7 +390,7 @@ class AndroidDevice constructor(private val serialNumber: String,
     override fun clickAppIcon(iconLabel: String) {
 
         log.debug("perform(newLaunchAppDeviceAction(iconLabel:$iconLabel))")
-        this.perform(org.droidmate.device.datatypes.AndroidDeviceAction.newLaunchAppDeviceAction(iconLabel))
+        this.perform(LaunchApp(iconLabel))
         log.info("Sleeping after clicking app icon labeled '$iconLabel' for ${cfg.launchActivityDelay} ms")
         sleep(cfg.launchActivityDelay.toLong())
     }

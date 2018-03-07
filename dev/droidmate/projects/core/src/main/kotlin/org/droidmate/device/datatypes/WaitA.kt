@@ -42,7 +42,7 @@ import org.droidmate.uiautomator_daemon.guimodel.WaitAction
 import org.droidmate.uiautomator_daemon.guimodel.WidgetSelector
 
 class WaitA constructor(private val selector: WidgetSelector,
-                        private val criteria: String) : ExplorationAction(), IAndroidDeviceAction {
+                        private val criteria: String) : ExplorationAction() {
 
     val action: Action = WaitAction(this.criteria, this.selector)
 

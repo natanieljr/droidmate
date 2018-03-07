@@ -19,10 +19,10 @@
 package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.device.datatypes.AdbClearPackageAction
-import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.uiautomator_daemon.guimodel.SimulationAdbClearPackage
 
 class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder,
                                            override val packageName: String): IDeviceSimulation {
@@ -32,7 +32,7 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
 
     private var currentTransitionResult: IScreenTransitionResult? = null
 
-    private var lastAction: IAndroidDeviceAction? = null
+    private var lastAction: Action? = null
 
 
     constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
@@ -45,17 +45,17 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
         this.initialScreen = guiScreens.single { it.getId() == GuiScreen.idHome }
     }
 
-    override fun updateState(deviceAction: IAndroidDeviceAction) {
+    override fun updateState(deviceAction: Action) {
         this.currentTransitionResult = this.getCurrentScreen().perform(deviceAction)
         this.lastAction = deviceAction
     }
 
     override fun getAppIsRunning(): Boolean {
-        if ((this.lastAction == null) || (this.lastAction is AdbClearPackageAction))
+        if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackage))
             return false
 
         if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
-            assert(this.lastAction !is AdbClearPackageAction)
+            assert(this.lastAction !is SimulationAdbClearPackage)
             return true
         }
 
@@ -63,7 +63,7 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
     }
 
     override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot {
-        if (this.currentTransitionResult == null)
+        if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackage))
             return this.initialScreen.getGuiSnapshot()
 
         return this.getCurrentScreen().getGuiSnapshot()

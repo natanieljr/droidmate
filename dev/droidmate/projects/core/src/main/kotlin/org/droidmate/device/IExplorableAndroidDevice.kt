@@ -22,8 +22,8 @@ package org.droidmate.device
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.nio.file.Path
 
 import java.time.LocalDateTime
@@ -36,7 +36,7 @@ interface IExplorableAndroidDevice {
     fun getGuiSnapshot(): IDeviceGuiSnapshot
 
     @Throws(DeviceException::class)
-    fun perform(action: IAndroidDeviceAction)
+    fun perform(action: Action)
 
     @Throws(DeviceException::class)
     fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage>

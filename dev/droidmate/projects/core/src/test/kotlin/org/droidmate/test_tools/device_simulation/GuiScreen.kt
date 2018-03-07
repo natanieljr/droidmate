@@ -34,7 +34,7 @@ import org.droidmate.uiautomator_daemon.guimodel.*
 /**
  * <p>
  * The time generator provides successive timestamps to the logs returned by the simulated device from a call to
- * {@link #perform(org.droidmate.device.datatypes.IAndroidDeviceAction)}.
+ * {@link #perform(org.droidmate.uiautomator_daemon.guimodel.Action)}.
  *
  * </p><p>
  * If this object s a part of simulation obtained from exploration output the time generator is null, as no time needs to be
@@ -47,12 +47,21 @@ class GuiScreen constructor(private val internalId: String,
                             private val timeGenerator : ITimeGenerator? = null) : IGuiScreen {
     //private static final String packageAndroidLauncher = new DeviceConfigurationFactory(UiautomatorDaemonConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
     companion object {
-        val idHome = "home"
-        val idChrome = "chrome"
+        const val idHome = "home"
+        const val idChrome = "chrome"
         val reservedIds = arrayListOf(idHome, idChrome)
         val reservedIdsPackageNames = mapOf(
                 idHome to DeviceModel.buildDefault().getAndroidLauncherPackageName(),
                 idChrome to "com.android.chrome")
+
+        fun getSingleMatchingWidget(action: ClickAction, widgets: List<IWidget>): IWidget {
+            return widgets.find { w->w.xpath==action.xPath }!!
+        }
+
+        fun getSingleMatchingWidget(action: CoordinateClickAction, widgets: List<IWidget>): IWidget {
+            return widgets.find { w->w.bounds.contains(action.x, action.y) }!!
+        }
+
     }
 
     private val packageName: String
@@ -78,12 +87,16 @@ class GuiScreen constructor(private val internalId: String,
         assert((this.internalId in reservedIds) || (this.packageName !in reservedIdsPackageNames.values))
     }
 
-    override fun perform(action: IAndroidDeviceAction): IScreenTransitionResult {
+    override fun perform(action: Action): IScreenTransitionResult {
         assert(finishedBuilding)
         return when (action) {
-            is AdbClearPackageAction -> internalPerform(action)
-            is LaunchMainActivityDeviceAction -> internalPerform(action)
-            is ClickGuiAction -> internalPerform(action)
+            // TODO review
+            is SimulationAdbClearPackage -> internalPerform(action)
+            is LaunchApp -> internalPerform(action)
+            is ClickAction -> internalPerform(action)
+            is CoordinateClickAction -> internalPerform(action)
+            is LongClickAction -> internalPerform(action)
+            is CoordinateLongClickAction -> internalPerform(action)
             else -> throw UnsupportedMultimethodDispatch(action)
         }
     }
@@ -91,7 +104,7 @@ class GuiScreen constructor(private val internalId: String,
     //region internalPerform multimethod
 
     // This method is used: it is a multimethod.
-    private fun internalPerform(clearPackage: AdbClearPackageAction): IScreenTransitionResult {
+    private fun internalPerform(clearPackage: SimulationAdbClearPackage): IScreenTransitionResult {
         return if (this.getGuiSnapshot().getPackageName() == clearPackage.packageName)
             ScreenTransitionResult(home!!, ArrayList())
         else
@@ -99,24 +112,26 @@ class GuiScreen constructor(private val internalId: String,
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun internalPerform(launch: LaunchMainActivityDeviceAction): IScreenTransitionResult =
+    private fun internalPerform(launch: LaunchApp): IScreenTransitionResult =
             ScreenTransitionResult(main!!, this.buildMonitorMessages())
 
-    private fun internalPerform(click: ClickGuiAction): IScreenTransitionResult {
-        val guiAction = click.guiAction
-
-        return when (guiAction) {
+    private fun internalPerform(action: Action): IScreenTransitionResult {
+        return when (action) {
             is PressHome -> ScreenTransitionResult(home!!, ArrayList())
             is EnableWifi -> {
                 assert(this == home)
                 ScreenTransitionResult(this, ArrayList())
             }
             is PressBack -> ScreenTransitionResult(this, ArrayList())
-            is CoordinateClickAction -> {
-                val widget = click.getSingleMatchingWidget(widgetTransitions.keys.toList())
+            is ClickAction -> {
+                val widget = getSingleMatchingWidget(action, widgetTransitions.keys.toList())
                 ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
             }
-            else -> throw UnexpectedIfElseFallthroughError("Found action $guiAction")
+            is CoordinateClickAction -> {
+                val widget = getSingleMatchingWidget(action, widgetTransitions.keys.toList())
+                ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())
+            }
+            else -> throw UnexpectedIfElseFallthroughError("Found action $action")
         }
     }
 

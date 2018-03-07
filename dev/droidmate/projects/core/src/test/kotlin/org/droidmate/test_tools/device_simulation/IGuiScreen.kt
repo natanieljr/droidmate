@@ -18,13 +18,13 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.io.Serializable
 
 interface IGuiScreen : Serializable {
 
-    fun perform(action: IAndroidDeviceAction): IScreenTransitionResult
+    fun perform(action: Action): IScreenTransitionResult
 
     fun getGuiSnapshot(): IDeviceGuiSnapshot
     fun getId(): String
