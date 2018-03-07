@@ -28,13 +28,13 @@ abstract class DroidmateCommand {
 
     companion object {
         @JvmStatic
-        fun build(report: Boolean, inline: Boolean, unpack: Boolean, cfg: Configuration): DroidmateCommand {
-            assert(arrayListOf(report, inline, unpack).count { it } <= 1)
+        fun build(report: Boolean, inline: Boolean, playback: Boolean, cfg: Configuration): DroidmateCommand {
+            assert(arrayListOf(report, inline, playback).count { it } <= 1)
 
             return when {
                 report -> ReportCommand()
                 inline -> InlineCommand.build()
-                unpack -> UnpackCommand.build()
+                playback -> PlaybackCommand.build(cfg)
                 else -> ExploreCommand.build(cfg)
             }
         }

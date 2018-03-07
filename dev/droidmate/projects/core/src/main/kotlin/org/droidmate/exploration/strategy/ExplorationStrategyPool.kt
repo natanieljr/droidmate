@@ -83,29 +83,29 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             strategies.addAll(getResetStrategies(cfg))
 
             // Random exploration
-            if (cfg.explorationStategies.contains(StrategyTypes.RandomWidget.strategyName))
+            if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
                 strategies.add(RandomWidget.build(cfg))
 
             // Model based
-            if (cfg.explorationStategies.contains(StrategyTypes.ModelBased.strategyName))
+            if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
                 strategies.add(ModelBased.build(cfg))
 
             // Press back
-            if (cfg.explorationStategies.contains(StrategyTypes.PressBack.strategyName))
+            if (cfg.explorationStrategies.contains(StrategyTypes.PressBack.strategyName))
                 strategies.add(PressBack.build(0.10, cfg))
 
             // Allow runtime dialogs
-            if (cfg.explorationStategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
+            if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
                 strategies.add(AllowRuntimePermission.build())
 
             // Seek targets
-            if (cfg.explorationStategies.contains(StrategyTypes.SeekTargets.strategyName)) {
+            if (cfg.explorationStrategies.contains(StrategyTypes.SeekTargets.strategyName)) {
                 val targetedStrategies = SeekTarget.build(ArrayList(), "")
                 targetedStrategies.forEach { p -> strategies.add(p) }
             }
 
             // Fitness Proportionate Selection
-            if (cfg.explorationStategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+            if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
                 strategies.add(FitnessProportionateSelection.build(cfg))
 
             return ExplorationStrategyPool(strategies, explorationLog)

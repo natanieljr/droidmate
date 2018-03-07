@@ -41,13 +41,14 @@ import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 
-class ExploreCommand constructor(private val apksProvider: IApksProvider,
-                                 private val deviceDeployer: IAndroidDeviceDeployer,
-                                 private val apkDeployer: IApkDeployer,
-                                 private val exploration: IExploration,
-                                 private val storage2: IStorage2) : DroidmateCommand() {
+open class ExploreCommand constructor(private val apksProvider: IApksProvider,
+                                      private val deviceDeployer: IAndroidDeviceDeployer,
+                                      private val apkDeployer: IApkDeployer,
+                                      private val exploration: IExploration,
+                                      private val storage2: IStorage2) : DroidmateCommand() {
     companion object {
-        private val log = LoggerFactory.getLogger(ExploreCommand::class.java)
+        @JvmStatic
+        protected val log = LoggerFactory.getLogger(ExploreCommand::class.java)
 
         fun build(cfg: Configuration,
                   strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },

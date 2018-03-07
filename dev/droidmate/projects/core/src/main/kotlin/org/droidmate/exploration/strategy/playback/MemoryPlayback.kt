@@ -31,10 +31,11 @@ import org.droidmate.misc.uniqueString
 open class MemoryPlayback private constructor() : Explore() {
 
     private lateinit var packageName: String
+    private var storedMemoryData: IExplorationLog? = null
 
     constructor(storedMemoryData: IExplorationLog) : this() {
         this.packageName = storedMemoryData.packageName
-        this.initializeFromMemory(storedMemoryData)
+        this.storedMemoryData = storedMemoryData
     }
 
     constructor(packageName: String, newTraces: List<PlaybackTrace>) : this() {
@@ -44,8 +45,8 @@ open class MemoryPlayback private constructor() : Explore() {
 
     val traces: MutableList<PlaybackTrace> = ArrayList()
 
-    private fun initializeFromMemory(storedMemoryData: IExplorationLog) {
-        val memoryRecords = storedMemoryData.getRecords()
+    private fun initializeFromMemory() {
+        val memoryRecords = storedMemoryData!!.getRecords()
 
         // Create traces from memory records
         // Each trace starts with a reset
@@ -180,11 +181,15 @@ open class MemoryPlayback private constructor() : Explore() {
         return getNextAction(widgetContext)
     }
 
-    /**
-     * Returns a high priority only if the app is correct
-     */
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         return StrategyPriority.PLAYBACK
+    }
+
+    override fun initialize(memory: IExplorationLog) {
+        super.initialize(memory)
+
+        if (this.storedMemoryData != null)
+            initializeFromMemory()
     }
 
     // region Java overrides

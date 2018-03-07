@@ -127,8 +127,7 @@ class DroidmateFrontend {
         }
 
         @JvmStatic
-        private fun determineAndBuildCommand(cfg: Configuration): DroidmateCommand
-                = DroidmateCommand.build(cfg.report, cfg.inline, cfg.unpack, cfg)
+        private fun determineAndBuildCommand(cfg: Configuration): DroidmateCommand = DroidmateCommand.build(cfg.report, cfg.inline, cfg.playback, cfg)
 
         @JvmStatic
         private fun validateStdoutLogLevel() {
