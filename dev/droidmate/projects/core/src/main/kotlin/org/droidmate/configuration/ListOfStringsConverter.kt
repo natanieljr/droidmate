@@ -29,7 +29,7 @@ public class ListOfStringsConverter : IStringConverter<List<String>> {
                 throw DroidmateException("Null parameter value")
 
             return arg.replace("[", "")
-                    .replace("[", "")
+                    .replace("]", "")
                     .split(",")
                     .map { it.trim() }
         } catch (e: Exception) {

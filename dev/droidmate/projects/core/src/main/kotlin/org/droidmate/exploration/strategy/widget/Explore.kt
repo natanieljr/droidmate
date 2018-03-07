@@ -33,7 +33,7 @@ import org.droidmate.misc.uniqueString
  *
  * @author Nataniel P. Borges Jr.
  */
-abstract class AbstractWidgetStrategy : AbstractStrategy() {
+abstract class Explore : AbstractStrategy() {
 
     // region overrides
 

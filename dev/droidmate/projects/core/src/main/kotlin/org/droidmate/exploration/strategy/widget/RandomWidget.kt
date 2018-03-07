@@ -29,7 +29,7 @@ import kotlin.collections.ArrayList
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
 open class RandomWidget protected constructor(randomSeed: Long,
-                                              private val priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET) : AbstractWidgetStrategy() {
+                                              private val priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET) : Explore() {
     protected val random = Random(randomSeed)
 
     private fun mustRepeatLastAction(widgetContext: WidgetContext): Boolean {

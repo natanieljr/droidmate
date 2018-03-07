@@ -20,7 +20,7 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.exploration.strategy.widget.AbstractWidgetStrategy
+import org.droidmate.exploration.strategy.widget.Explore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -144,7 +144,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     abstract fun internalDecide(widgetContext: WidgetContext): ExplorationAction
 
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(AbstractWidgetStrategy::class.java)
+        val logger: Logger = LoggerFactory.getLogger(Explore::class.java)
 
         val VALID_WIDGETS = ResourceManager.getResourceAsStringList("validWidgets.txt")
     }

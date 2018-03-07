@@ -30,7 +30,7 @@ import org.droidmate.exploration.strategy.WidgetContext
  * It has maximum priority (0.99) when it identifies a runtime permission dialog,
  * otherwise its priority is 0.
  */
-class AllowRuntimePermission private constructor() : AbstractWidgetStrategy() {
+class AllowRuntimePermission private constructor() : Explore() {
     override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
         val allowButton = (widgetContext.guiState as RuntimePermissionDialogBoxGuiState).allowWidget
 

@@ -23,12 +23,12 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.widget.AbstractWidgetStrategy
+import org.droidmate.exploration.strategy.widget.Explore
 import org.droidmate.misc.DroidmateException
 import java.io.IOException
 
 @Suppress("unused")
-class LoginWithFacebook : AbstractWidgetStrategy() {
+class LoginWithFacebook : Explore() {
     private val DEFAULT_ACTION_DELAY = 5000
     private val emailValue: String
     private val passwordValue: String

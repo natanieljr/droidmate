@@ -26,11 +26,11 @@ import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.exploration.strategy.WidgetInfo
-import org.droidmate.exploration.strategy.widget.AbstractWidgetStrategy
+import org.droidmate.exploration.strategy.widget.Explore
 import org.droidmate.misc.DroidmateException
 
 @Suppress("unused")
-class LoginWithGoogle : AbstractWidgetStrategy() {
+class LoginWithGoogle : Explore() {
     private val DEFAULT_ACTION_DELAY = 1000
     private val RES_ID_PACKAGE = "com.google.android.gms"
     private val RES_ID_ACCOUNT = "$RES_ID_PACKAGE:id/account_display_name"

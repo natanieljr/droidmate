@@ -23,12 +23,12 @@ import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.WidgetContext
-import org.droidmate.exploration.strategy.widget.AbstractWidgetStrategy
+import org.droidmate.exploration.strategy.widget.Explore
 import org.droidmate.misc.isEquivalentIgnoreLocation
 import org.droidmate.misc.uniqueString
 
 @Suppress("unused")
-open class MemoryPlayback private constructor() : AbstractWidgetStrategy() {
+open class MemoryPlayback private constructor() : Explore() {
 
     private lateinit var packageName: String
 

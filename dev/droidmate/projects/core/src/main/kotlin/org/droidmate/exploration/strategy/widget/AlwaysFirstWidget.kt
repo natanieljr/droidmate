@@ -30,7 +30,7 @@ import org.droidmate.exploration.strategy.WidgetContext
  *
  * @author Nataniel P. Borges Jr.
  */
-class AlwaysFirstWidget private constructor() : AbstractWidgetStrategy() {
+class AlwaysFirstWidget private constructor() : Explore() {
     override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
         val selectedWidgetInfo = widgetContext.actionableWidgetsInfo.first()
         this.memory.lastWidgetInfo = selectedWidgetInfo
