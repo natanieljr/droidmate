@@ -19,7 +19,6 @@
 package org.droidmate.exploration.strategy.termination
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.actions.TerminateExplorationAction
 import org.droidmate.exploration.strategy.IMemoryRecord
 import org.droidmate.exploration.strategy.WidgetContext
 
@@ -55,7 +54,6 @@ class ActionBasedTerminate(cfg: Configuration) : Terminate() {
 
         val selectedAction = record.action
         actionsLeft--
-        assert(actionsLeft >= 0 || (actionsLeft == -1 && selectedAction is TerminateExplorationAction))
     }
 
     override fun metReason(widgetContext: WidgetContext): String {
