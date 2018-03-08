@@ -36,9 +36,6 @@ buildscript {
     }
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
-
 android {
     compileSdkVersion 23
     buildToolsVersion "25.0.1"
@@ -80,7 +77,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     compile fileTree(dir: 'libs_built', include: ['*.jar'])
     compile fileTree(dir: 'libs_common', include: ['*.jar'])
