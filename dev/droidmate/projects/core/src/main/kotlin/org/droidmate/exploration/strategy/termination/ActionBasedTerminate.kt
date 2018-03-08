@@ -52,7 +52,6 @@ class ActionBasedTerminate(cfg: Configuration) : Terminate() {
     override fun updateState(actionNr: Int, record: IMemoryRecord) {
         super.updateState(actionNr, record)
 
-        val selectedAction = record.action
         actionsLeft--
     }
 
