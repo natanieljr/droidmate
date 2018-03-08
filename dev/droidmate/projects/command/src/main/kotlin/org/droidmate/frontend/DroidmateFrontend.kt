@@ -70,17 +70,17 @@ class DroidmateFrontend {
             } else
                 args
 
-            val exitStatus = main(currArgs, null)
+            val exitStatus = execute(currArgs)
             System.exit(exitStatus)
         }
 
         @JvmStatic
         @JvmOverloads
-        fun main(args: Array<String>,
-                 commandProvider: ICommandProvider?,
-                 fs: FileSystem = FileSystems.getDefault(),
-                 exceptionHandler: IExceptionHandler = ExceptionHandler(),
-                 receivedCfg: Configuration? = null): Int {
+        fun execute(args: Array<String>,
+                    commandProvider: (Configuration) -> DroidmateCommand = { determineAndBuildCommand(it) },
+                    fs: FileSystem = FileSystems.getDefault(),
+                    exceptionHandler: IExceptionHandler = ExceptionHandler(),
+                    receivedCfg: Configuration? = null): Int {
             println("DroidMate, an automated execution generator for Android apps.")
             println("Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik")
             println("This program is free software licensed under GNU GPL v3.")
@@ -110,7 +110,7 @@ class DroidmateFrontend {
                 if (!cfg.installAux)
                     log.warn("DroidMate will not reinstall its auxiliary components (UIAutomator and Monitor). If the they are not previously installed on the device the exploration will fail.")
 
-                val command = commandProvider?.provide(cfg) ?: determineAndBuildCommand(cfg)
+                val command = commandProvider.invoke(cfg)
 
                 log.info("Successfully instantiated ${command.javaClass.simpleName}. Welcome to DroidMate. Lie back, relax and enjoy.")
                 log.info("Run start timestamp: " + runStart)

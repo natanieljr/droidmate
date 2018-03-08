@@ -21,7 +21,6 @@ package org.droidmate.frontend
 import com.google.common.base.Throwables
 import com.konradjamrozik.createDirIfNotExists
 import com.konradjamrozik.toList
-import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
@@ -161,12 +160,9 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         val spy = ExceptionHandlerSpy()
 
         // Act
-        val exitStatus = DroidmateFrontend.main(
+        val exitStatus = DroidmateFrontend.execute(
                 cfg.args,
-                object : ICommandProvider {
-                    override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock)
-                },
+                { ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock) },
                 mockedFs.fs,
                 spy
         )
@@ -204,12 +200,9 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 
         val handler = ExceptionHandler()
         // Act
-        val exitStatus = DroidmateFrontend.main(
+        val exitStatus = DroidmateFrontend.execute(
                 cfg.args,
-                object : ICommandProvider {
-                    override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock)
-                },
+                { ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock) },
                 mockedFs.fs,
                 handler
         )
@@ -308,7 +301,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         outputDir.clearContents()
 
         // Act
-        val exitStatus = DroidmateFrontend.main(args.toTypedArray(), /* commandProvider = */ null)
+        val exitStatus = DroidmateFrontend.execute(args.toTypedArray())
 
         assert(exitStatus == 0, { "Exit status != 0. Please inspect the run logs for details, including exception thrown" })
 
