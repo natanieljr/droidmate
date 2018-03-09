@@ -48,14 +48,15 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
         val header = "Time_Seconds\tTotal_Actions\tTotal_Effective\n"
         sb.append(header)
 
-        val startTimeStamp = data.getRecords().first().startTimestamp
         val reportData: HashMap<Long, Pair<Int, Int>> = HashMap()
 
-        val records = data.getRecords()
+        // Ignore app start
+        val records = data.getRecords().drop(1)
         val nrActions = data.getSize()
+        val startTimeStamp = records.first().startTimestamp
 
-        var totalActions = 0
-        var effectiveActions = 0
+        var totalActions = 1
+        var effectiveActions = 1
 
         for (i in 1 until nrActions) {
             val prevAction = records[i - 1]
