@@ -28,7 +28,7 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
 
     override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
         val sb = StringBuilder()
-        val header = "activity\tcount"
+        val header = "activity\tcount\n"
         sb.append(header)
 
         val activitySeenMap = HashMap<String, Int>()

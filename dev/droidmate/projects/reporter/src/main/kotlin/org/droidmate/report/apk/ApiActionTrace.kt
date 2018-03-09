@@ -28,7 +28,7 @@ class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "a
 
     override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
         val sb = StringBuilder()
-        val header = "actionNr\tactivity\taction\tapi\tuniqueStr"
+        val header = "actionNr\tactivity\taction\tapi\tuniqueStr\n"
         sb.append(header)
 
         var lastActivity = ""
