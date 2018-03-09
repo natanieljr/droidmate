@@ -29,42 +29,42 @@ import org.droidmate.report.misc.clickedWidget
 class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
     constructor(data: IExplorationLog) : this(build(data))
-  
-  companion object {
-    val headerNoOfClicks = "No_of_clicks"
-    val headerViewsCount = "Views_count"
 
-      fun build(data: IExplorationLog): Table<Int, String, Int> {
+    companion object {
+        val headerNoOfClicks = "No_of_clicks"
+        val headerViewsCount = "Views_count"
 
-      val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
+        fun build(data: IExplorationLog): Table<Int, String, Int> {
 
-      return buildTable(
-              headers = listOf(headerNoOfClicks, headerViewsCount),
-              rowCount = countOfViewsHavingNoOfClicks.keys.size,
-              computeRow = { rowIndex ->
-                  check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
-                  val noOfClicks = rowIndex
-                  listOf(
-                          noOfClicks,
-                          countOfViewsHavingNoOfClicks[noOfClicks]!!
-                  )
-              }
-      )
+            val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
+
+            return buildTable(
+                    headers = listOf(headerNoOfClicks, headerViewsCount),
+                    rowCount = countOfViewsHavingNoOfClicks.keys.size,
+                    computeRow = { rowIndex ->
+                        check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
+                        val noOfClicks = rowIndex
+                        listOf(
+                                noOfClicks,
+                                countOfViewsHavingNoOfClicks[noOfClicks]!!
+                        )
+                    }
+            )
+        }
+
+        private val IExplorationLog.countOfViewsHavingNoOfClicks: Map<Int, Int>
+            get() {
+
+                val clickedWidgets: List<IWidget> = this.logRecords.flatMap { it.clickedWidget }
+                val noOfClicksPerWidget: Map<IWidget, Int> = clickedWidgets.frequencies
+                val widgetsHavingNoOfClicks: Map<Int, Set<IWidget>> = noOfClicksPerWidget.transpose
+                val widgetsCountPerNoOfClicks: Map<Int, Int> = widgetsHavingNoOfClicks.mapValues { it.value.size }
+
+                val maxNoOfClicks = noOfClicksPerWidget.values.max() ?: 0
+                val noOfClicksProgression = 0..maxNoOfClicks step 1
+                val zeroWidgetsCountsPerNoOfClicks = noOfClicksProgression.associate { Pair(it, 0) }
+
+                return zeroWidgetsCountsPerNoOfClicks + widgetsCountPerNoOfClicks
+            }
     }
-
-      private val IExplorationLog.countOfViewsHavingNoOfClicks: Map<Int, Int>
-          get() {
-
-              val clickedWidgets: List<IWidget> = this.logRecords.flatMap { it.clickedWidget }
-        val noOfClicksPerWidget: Map<IWidget, Int> = clickedWidgets.frequencies
-        val widgetsHavingNoOfClicks: Map<Int, Set<IWidget>> = noOfClicksPerWidget.transpose
-      val widgetsCountPerNoOfClicks: Map<Int, Int> = widgetsHavingNoOfClicks.mapValues { it.value.size }
-
-      val maxNoOfClicks = noOfClicksPerWidget.values.max() ?: 0
-      val noOfClicksProgression = 0..maxNoOfClicks step 1
-      val zeroWidgetsCountsPerNoOfClicks = noOfClicksProgression.associate { Pair(it, 0) }
-      
-      return zeroWidgetsCountsPerNoOfClicks + widgetsCountPerNoOfClicks
-    }
-  }
 }
