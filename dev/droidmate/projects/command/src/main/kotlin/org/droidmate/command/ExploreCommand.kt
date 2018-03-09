@@ -99,7 +99,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
         assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
 
         log.info("Writing reports")
-        reporters.forEach { it.write(reportDir.toAbsolutePath(), rawData.withFilteredApiLogs) }
+        val reportData = rawData.withFilteredApiLogs
+        reporters.forEach { it.write(reportDir.toAbsolutePath(), reportData) }
     }
 
     fun registerReporter(report: IReporter) {
