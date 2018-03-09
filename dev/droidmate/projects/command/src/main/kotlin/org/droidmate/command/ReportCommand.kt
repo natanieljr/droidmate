@@ -19,12 +19,22 @@
 package org.droidmate.command
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.report.ExplorationOutput2Report
+import org.droidmate.report.AggregateStats
 import org.droidmate.report.OutputDir
+import org.droidmate.report.Summary
+import org.droidmate.report.action.ClickFrequency
+import org.droidmate.report.api.ApiCount
+import org.droidmate.report.misc.withFilteredApiLogs
+import org.droidmate.report.widget.ViewCount
 
 class ReportCommand : DroidmateCommand() {
     override fun execute(cfg: Configuration) {
         val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
-        return ExplorationOutput2Report(out, cfg.reportOutputDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
-  }
+        val data = out.withFilteredApiLogs
+        AggregateStats().write(cfg.droidmateOutputReportDirPath, data)
+        ApiCount(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
+        ClickFrequency(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
+        ViewCount(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
+        Summary().write(cfg.droidmateOutputReportDirPath, data)
+    }
 }

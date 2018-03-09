@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,9 +18,28 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-abstract class DataFile(val file: Path) : IDataFile, Path by file {
+class AggregateStats : IReporter {
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(AggregateStats::class.java)
+    }
 
-  override val path: Path get() = file
+    fun getTableData(rawData: List<IExplorationLog>, path: Path): TableDataFile<Int, String, String> {
+        return TableDataFile(AggregateStatsTable(rawData), path)
+    }
+
+    fun getFilePath(reportDir: Path): Path {
+        return reportDir.resolve("aggregate_stats.txt")
+    }
+
+    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+        val path = getFilePath(reportDir)
+        val report = getTableData(rawData, path)
+        log.info("Writing out report $report")
+        report.write()
+    }
 }

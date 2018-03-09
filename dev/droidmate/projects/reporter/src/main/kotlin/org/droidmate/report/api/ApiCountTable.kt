@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,19 +16,23 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.api
 
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.report.CountsPartitionedByTimeTable
+import org.droidmate.report.EventApiPair
+import org.droidmate.report.misc.extractEventApiPairs
+import org.droidmate.report.misc.itemsAtTimes
 
 class ApiCountTable : CountsPartitionedByTimeTable {
 
   constructor(data: IExplorationLog) : super(
           data.getExplorationTimeInMs(),
     listOf(
-      headerTime,
-      headerApisSeen,
-      headerApiEventsSeen
+            headerTime,
+            headerApisSeen,
+            headerApiEventsSeen
     ),
     listOf(
       data.uniqueApisCountByTime,

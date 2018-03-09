@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,11 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import java.nio.file.Path
 
-interface IDataFile : Path {
-
-    fun writeOut()
-
-    val path: Path
+interface IReporter {
+    fun write(reportDir: Path, rawData: List<IExplorationLog>)
 }

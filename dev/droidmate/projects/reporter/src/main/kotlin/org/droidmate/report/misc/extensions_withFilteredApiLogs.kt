@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.misc
 
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.ExplorationLog
@@ -24,7 +24,6 @@ import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.strategy.IMemoryRecord
 import org.droidmate.exploration.strategy.MemoryRecord
-import java.net.URI
 
 // WISH use instead lazy extension property implemented with workaround: https://youtrack.jetbrains.com/issue/KT-13053#comment=27-1510399
 val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
@@ -42,10 +41,11 @@ val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
                             result.action,
                             result.startTimestamp,
                             result.endTimestamp,
-                        filterApiLogs(result.deviceLogs),
-                        result.guiSnapshot,
-                        result.exception,
-                        URI.create("file://."))
+                            filterApiLogs(result.deviceLogs),
+                            result.guiSnapshot,
+                            result.exception,
+                            result.screenshot
+                    )
             }
 
                 return results.map { ExplorationRecord(it.first, filterApiLogs(it.second)) }.toMutableList()

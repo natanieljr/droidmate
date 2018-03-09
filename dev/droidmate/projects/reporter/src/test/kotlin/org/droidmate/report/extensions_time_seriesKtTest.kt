@@ -18,6 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
+import org.droidmate.report.misc.*
 import org.junit.Test
 import java.time.LocalDateTime
 import kotlin.test.assertEquals

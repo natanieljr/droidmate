@@ -20,6 +20,7 @@ package org.droidmate.report
 
 import com.google.common.collect.Table
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.report.misc.*
 
 class AggregateStatsTable private constructor(val table: Table<Int, String, String>) : Table<Int, String, String> by table {
 
@@ -40,34 +41,34 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
     fun build(data: List<IExplorationLog>): Table<Int, String, String> {
 
       return buildTable(
-        headers = listOf(
-          headerApkName,
-          headerPackageName,
-          headerExplorationTimeInSeconds,
-          headerActionsCount,
-          headerResetActionsCount,
-          headerViewsSeenCount,
-          headerViewsClickedCount,
-          headerApisSeenCount,
-          headerEventApiPairsSeenCount,
-          headerException
-        ),
-        rowCount = data.size,
-        computeRow = { rowIndex ->
-          val apkData = data[rowIndex]
-          listOf(
-            apkData.apk.fileName,
-            apkData.packageName,
-                  apkData.getExplorationDuration().seconds.toString(),
-            apkData.actions.size.toString(),
-            apkData.resetActionsCount.toString(),
-            apkData.uniqueActionableWidgets.size.toString(),
-            apkData.uniqueClickedWidgets.size.toString(),
-            apkData.uniqueApis.size.toString(),
-            apkData.uniqueEventApiPairs.size.toString(),
-            apkData.exception.toString()
-          )
-        }
+              headers = listOf(
+                      headerApkName,
+                      headerPackageName,
+                      headerExplorationTimeInSeconds,
+                      headerActionsCount,
+                      headerResetActionsCount,
+                      headerViewsSeenCount,
+                      headerViewsClickedCount,
+                      headerApisSeenCount,
+                      headerEventApiPairsSeenCount,
+                      headerException
+              ),
+              rowCount = data.size,
+              computeRow = { rowIndex ->
+                  val apkData = data[rowIndex]
+                  listOf(
+                          apkData.apk.fileName,
+                          apkData.packageName,
+                          apkData.getExplorationDuration().seconds.toString(),
+                          apkData.actions.size.toString(),
+                          apkData.resetActionsCount.toString(),
+                          apkData.uniqueActionableWidgets.size.toString(),
+                          apkData.uniqueClickedWidgets.size.toString(),
+                          apkData.uniqueApis.size.toString(),
+                          apkData.uniqueEventApiPairs.size.toString(),
+                          apkData.exception.toString()
+                  )
+              }
       )
     }
 

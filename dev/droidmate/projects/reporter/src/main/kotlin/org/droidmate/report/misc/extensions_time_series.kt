@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.misc
 
 import com.konradjamrozik.associateMany
 import com.konradjamrozik.flatten
@@ -38,7 +38,7 @@ fun <T, TItem> Iterable<T>.itemsAtTime(
   // Implicit assumption: each element of receiver has a different key (== duration).
   return this.associate {
     Pair(
-      computeDuration(startTime, extractTime(it)),
+            computeDuration(startTime, extractTime(it)),
       extractItems(it)
     )
   }
@@ -61,7 +61,7 @@ fun <T, TItem> Iterable<T>.itemsAtTimes(
       items
         .associateMany {
           Pair(
-            computeDuration(startTime, extractTime(it)),
+                  computeDuration(startTime, extractTime(it)),
             it)
         }
     

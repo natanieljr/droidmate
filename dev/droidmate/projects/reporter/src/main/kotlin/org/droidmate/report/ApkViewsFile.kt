@@ -18,43 +18,38 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import com.konradjamrozik.isDirectory
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.misc.uniqueString
+import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
+import org.droidmate.report.misc.uniqueActionableWidgets
+import org.droidmate.report.misc.uniqueClickedWidgets
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ApkViewsFile(val data: IExplorationLog, dir: Path) : DataFile(buildFilePath(data, dir)) {
-
-  init {
-    require(dir.isDirectory)
-  }
-  
-  override fun writeOut() {
-    Files.write(file, apkViewsString.toByteArray())
-  }
-
-  val apkViewsString: String by lazy { data.apkViewsString }
-
-  private val IExplorationLog.apkViewsString: String
-    get() {
-      return "Unique actionable widget\n" +
-              this.uniqueActionableWidgets.map { it.uniqueString }.joinToString(separator = System.lineSeparator()) +
-        "\n====================\n" +
-        "Unique clicked widgets\n" +
-              this.uniqueClickedWidgets.map { it.uniqueString }.joinToString(separator = System.lineSeparator())
-    }
-  
-  companion object {
-    
-    val fileNameSuffix = "_views.txt"
-
-    private fun buildFilePath(data: IExplorationLog, dir: Path): Path {
-      require(dir.isDirectory)
-      return dir.resolve("${data.apkFileNameWithUnderscoresForDots}$fileNameSuffix")
+class ApkViewsFile : IReporter {
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(ApkViewsFile::class.java)
     }
 
+    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+        rawData.forEach { data ->
+            val reportPath = reportDir.resolve("${data.apkFileNameWithUnderscoresForDots}_views.txt")
+            val reportData = getReportData(data)
+            log.info("Writing out report $reportPath")
+            Files.write(reportPath, reportData.toByteArray())
+        }
+    }
 
-  }
+    private fun getReportData(data: IExplorationLog): String {
+        val sb = StringBuilder()
+        sb.append("Unique actionable widget\n")
+                .append(data.uniqueActionableWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
+                .append("\n====================\n")
+                .append("Unique clicked widgets\n")
+                .append(data.uniqueClickedWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
+
+        return sb.toString()
+    }
 }
-

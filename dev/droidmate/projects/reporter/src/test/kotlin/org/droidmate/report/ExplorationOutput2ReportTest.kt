@@ -20,48 +20,55 @@ package org.droidmate.report
 
 import org.droidmate.configuration.Configuration
 import org.droidmate.dir
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.fileNames
-import org.droidmate.misc.BuildConstants
+import org.droidmate.report.action.ClickFrequencyTable
+import org.droidmate.report.widget.ViewCountTable
+import org.droidmate.report.api.ApiCountTable
 import org.droidmate.tests.fixture_monitoredSer2
-import org.droidmate.text
 import org.droidmate.withFiles
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
-import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.Path
-import java.nio.file.Paths
+import org.junit.Test
 
 class ExplorationOutput2ReportTest {
 
-    val printToStdout = true
+    @Test
+    fun dummy() {
+        assert(true)
+    }
+
+    private fun getTestData(fs: FileSystem, cfg: Configuration): List<IExplorationLog> {
+        val serExplOutput: Path = fixture_monitoredSer2
+        val mockFsDirWithOutput: Path = fs.dir(cfg.droidmateOutputDir).withFiles(serExplOutput)
+
+        return OutputDir(mockFsDirWithOutput).notEmptyExplorationOutput2
+    }
 
     @Test
-    fun reports() {
-
+    fun `Report structure`() {
         val mockFs: FileSystem = mockFs()
         val cfg = Configuration.getDefault()
-        val serExplOutput: Path = fixture_monitoredSer2
-        val mockFsDirWithOutput: Path = mockFs.dir(cfg.droidmateOutputDir).withFiles(serExplOutput)
 
-        val report = ExplorationOutput2Report(
-                rawData = OutputDir(mockFsDirWithOutput).notEmptyExplorationOutput2,
-                dir = mockFs.dir(cfg.reportOutputDir)
-        )
+        val rawData = getTestData(mockFs, cfg)
 
         // Act
         // "includePlots" is set to false because plots require gnuplot, which does not work on mock file system used in this test.
-        report.writeOut(includePlots = false)
+        val report = AggregateStats()
+        report.write(mockFs.dir(cfg.reportOutputDir), rawData)
 
-        assertOnDataStructure(report)
-        assertOnFiles(report)
-        manualInspection(report)
+        assertOnAggregateStatsDataStructure(report, mockFs.dir(cfg.reportOutputDir), rawData)
     }
 
-    private fun assertOnDataStructure(report: ExplorationOutput2Report) {
+    private fun assertOnAggregateStatsDataStructure(report: AggregateStats,
+                                                    reportDir: Path,
+                                                    rawData: List<IExplorationLog>) {
 
-        assertThat(report.aggregateStatsFile.table.rowKeySet().size, greaterThan(0))
-        assertThat(report.aggregateStatsFile.table.columnKeySet(),
+        val table = report.getTableData(rawData, report.getFilePath(reportDir)).table
+        assertThat(table.rowKeySet().size, greaterThan(0))
+        assertThat(table.columnKeySet(),
                 with(AggregateStatsTable) {
                     hasItems(
                             headerApkName,
@@ -78,24 +85,46 @@ class ExplorationOutput2ReportTest {
                 }
 
         )
-        report.apksTabularReports.forEach {
-            assertThat(it.viewCountTable.rowKeySet().size, greaterThan(0))
-            assertThat(it.viewCountTable.columnKeySet(),
+    }
+
+    @Test
+    fun `ViewCount report`() {
+
+        val mockFs: FileSystem = mockFs()
+        val cfg = Configuration.getDefault()
+        val serExplOutput: Path = fixture_monitoredSer2
+        val mockFsDirWithOutput: Path = mockFs.dir(cfg.droidmateOutputDir).withFiles(serExplOutput)
+
+        // Act
+        val rawData = OutputDir(mockFsDirWithOutput).notEmptyExplorationOutput2
+
+        val viewCountTables = rawData.map { ViewCountTable(it) }
+        viewCountTables.forEach {
+            assertThat(it.rowKeySet().size, greaterThan(0))
+            assertThat(it.columnKeySet(),
                     hasItems(
                             ViewCountTable.headerTime,
                             ViewCountTable.headerViewsSeen,
                             ViewCountTable.headerViewsClicked
                     )
             )
-            assertThat(it.clickFrequencyTable.rowKeySet().size, greaterThan(0))
-            assertThat(it.clickFrequencyTable.columnKeySet(),
+        }
+
+        val clickFrequencyTables = rawData.map { ClickFrequencyTable(it) }
+        clickFrequencyTables.forEach {
+            assertThat(it.rowKeySet().size, greaterThan(0))
+            assertThat(it.columnKeySet(),
                     hasItems(
                             ClickFrequencyTable.headerNoOfClicks,
                             ClickFrequencyTable.headerViewsCount
                     )
             )
-            assertThat(it.apiCountTable.rowKeySet().size, greaterThan(0))
-            assertThat(it.apiCountTable.columnKeySet(),
+        }
+
+        val apiCountTables = rawData.map { ApiCountTable(it) }
+        apiCountTables.forEach {
+            assertThat(it.rowKeySet().size, greaterThan(0))
+            assertThat(it.columnKeySet(),
                     hasItems(
                             ApiCountTable.headerTime,
                             ApiCountTable.headerApisSeen,
@@ -105,36 +134,33 @@ class ExplorationOutput2ReportTest {
         }
     }
 
-    private fun assertOnFiles(report: ExplorationOutput2Report) {
-        assertThat(report.dir.fileNames, hasItems(
-                equalTo(ExplorationOutput2Report.fileNameSummary),
-                equalTo(ExplorationOutput2Report.fileNameAggregateStats)
-        ))
-        assertThat(report.apkReportsDir.fileNames, hasItems(
-                containsString(ApkTabularDataReport.fileNameSuffixViewCount),
-                containsString(ApkTabularDataReport.fileNameSuffixClickFrequency),
-                containsString(ApkTabularDataReport.fileNameSuffixApiCount),
-                containsString(ApkViewsFile.fileNameSuffix)
-        ))
-    }
+    @Test
+    fun `Summary report test`() {
+        val mockFs: FileSystem = mockFs()
+        val cfg = Configuration.getDefault()
 
-    private fun manualInspection(report: ExplorationOutput2Report) {
+        val rawData = getTestData(mockFs, cfg)
 
-        if (printToStdout) {
-            report.txtReportFiles.forEach {
-                println(it.toAbsolutePath().toString())
-                println(it.text)
-            }
-        }
+        // Act
+        // "includePlots" is set to false because plots require gnuplot, which does not work on mock file system used in this test.
+        val report = Summary()
+        report.write(mockFs.dir(cfg.reportOutputDir), rawData)
+
+        assert(mockFs.dir(cfg.reportOutputDir).fileNames.contains(report.fileName))
     }
 
     @Test
-    fun `reports to file system`() {
-        val serExplOutput: Path = fixture_monitoredSer2
-        val report = ExplorationOutput2Report(
-                rawData = OutputDir(serExplOutput.parent).notEmptyExplorationOutput2,
-                dir = Paths.get(BuildConstants.test_temp_dir_name)
-        )
-        report.writeOut()
+    fun `AggregateStats report test`() {
+        val mockFs: FileSystem = mockFs()
+        val cfg = Configuration.getDefault()
+
+        val rawData = getTestData(mockFs, cfg)
+
+        // Act
+        // "includePlots" is set to false because plots require gnuplot, which does not work on mock file system used in this test.
+        val report = AggregateStats()
+        report.write(mockFs.dir(cfg.reportOutputDir), rawData)
+
+        assert(mockFs.dir(cfg.reportOutputDir).fileNames.contains(report.getFilePath(mockFs.dir(cfg.reportOutputDir)).fileName.toString()))
     }
 }

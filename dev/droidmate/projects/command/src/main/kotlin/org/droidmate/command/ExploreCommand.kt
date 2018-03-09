@@ -33,13 +33,21 @@ import org.droidmate.logging.Markers
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.misc.TimeProvider
-import org.droidmate.report.ExplorationOutput2Report
+import org.droidmate.report.AggregateStats
+import org.droidmate.report.IReporter
+import org.droidmate.report.Summary
+import org.droidmate.report.action.ClickFrequency
+import org.droidmate.report.api.ApiCount
+import org.droidmate.report.misc.withFilteredApiLogs
+import org.droidmate.report.widget.ViewCount
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
+import java.nio.file.Path
 
 open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
@@ -48,7 +56,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private val storage2: IStorage2) : DroidmateCommand() {
     companion object {
         @JvmStatic
-        protected val log = LoggerFactory.getLogger(ExploreCommand::class.java)
+        protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
 
         fun build(cfg: Configuration,
                   strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
@@ -58,9 +66,19 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
             val storage2 = Storage2(cfg.droidmateOutputDirPath)
             val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-            return ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+            val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+
+            command.registerReporter(AggregateStats())
+            command.registerReporter(ApiCount(cfg.reportIncludePlots))
+            command.registerReporter(ClickFrequency(cfg.reportIncludePlots))
+            command.registerReporter(ViewCount(cfg.reportIncludePlots))
+            command.registerReporter(Summary())
+
+            return command
         }
     }
+
+    private val reporters: MutableList<IReporter> = ArrayList()
 
     override fun execute(cfg: Configuration) {
         cleanOutputDir(cfg)
@@ -71,6 +89,20 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
         val explorationExceptions = execute(cfg, apks)
         if (!explorationExceptions.isEmpty())
             throw ThrowablesCollection(explorationExceptions)
+    }
+
+    private fun writeReports(reportDir: Path, rawData: List<IExplorationLog>) {
+        if (!Files.exists(reportDir))
+            Files.createDirectories(reportDir)
+
+        assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
+
+        log.info("Writing reports")
+        reporters.forEach { it.write(reportDir.toAbsolutePath(), rawData.withFilteredApiLogs) }
+    }
+
+    fun registerReporter(report: IReporter) {
+        reporters.add(report)
     }
 
     private fun validateApks(apks: List<Apk>, runOnNotInlined: Boolean): Boolean {
@@ -127,7 +159,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             throw deployExploreSerializeThrowable
         }
 
-        ExplorationOutput2Report(out, cfg.droidmateOutputReportDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
+        writeReports(cfg.droidmateOutputReportDirPath, out)
 
         return explorationExceptions
     }
@@ -180,4 +212,3 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             throw fallibleApkOut2.exception!!
     }
 }
-

@@ -28,9 +28,11 @@ import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable
+import org.droidmate.report.misc.extractEventApiPairs
+import org.droidmate.report.misc.resetActionsCount
 import java.time.Duration
 
-class ApkSummary() {
+class ApkSummary {
 
   companion object {
 
@@ -57,7 +59,7 @@ class ApkSummary() {
       // @formatter:on
     }
 
-    val template: String by lazy {
+    private val template: String by lazy {
       Resource("apk_exploration_summary_template.txt").text
     }
 
@@ -152,8 +154,8 @@ class ApkSummary() {
 
   data class ApiEntry(val time: Duration, val actionIndex: Int, val threadId: Int, val apiSignature: String) {
     companion object {
-      private val actionIndexPad: Int = 7
-      private val threadIdPad: Int = 7
+      private const val actionIndexPad: Int = 7
+      private const val threadIdPad: Int = 7
     }
 
     override fun toString(): String {
@@ -163,11 +165,11 @@ class ApkSummary() {
     }
   }
 
-  data class ApiEventEntry(val apiEntry: ApiEntry, val event: String) {
+  data class ApiEventEntry(private val apiEntry: ApiEntry, val event: String) {
     companion object {
-      private val actionIndexPad: Int = 7
-      private val threadIdPad: Int = 7
-      private val eventPadEnd: Int = 69
+      private const val actionIndexPad: Int = 7
+      private const val threadIdPad: Int = 7
+      private const val eventPadEnd: Int = 69
     }
 
     override fun toString(): String {

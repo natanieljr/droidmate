@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,29 +16,33 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.action
 
-import com.konradjamrozik.Resource
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.extractedText
-import java.nio.file.Files
+import org.droidmate.report.IReporter
+import org.droidmate.report.TableDataFile
+import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-class Summary : IReporter {
-
-    val fileName = "summary.txt"
+class ClickFrequency(private val includePlots: Boolean) : IReporter {
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(ClickFrequency::class.java)
+    }
 
     override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
-        val file = reportDir.resolve(this.fileName)
-
-        val reportData = if (rawData.isEmpty())
-            "Exploration output was empty (no apks), so this summary is empty."
-        else
-            Resource("apk_exploration_summary_header.txt").extractedText +
-                    rawData.joinToString(separator = System.lineSeparator()) { it ->
-                        ApkSummary.build(it)
-                    }
-
-        Files.write(file, reportData.toByteArray())
+        rawData.forEach { data ->
+            val dataTable = ClickFrequencyTable(data)
+            val reportPath = reportDir.resolve("${data.apkFileNameWithUnderscoresForDots}_clickFrequency.txt")
+            val report = TableDataFile(dataTable, reportPath)
+            log.info("Writing out report $report")
+            report.write()
+            if (includePlots) {
+                log.info("Writing out plot $report")
+                report.writeOutPlot()
+            }
+        }
     }
+
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,17 +16,19 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.action
 
 import com.google.common.collect.Table
 import com.konradjamrozik.frequencies
 import com.konradjamrozik.transpose
 import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.report.misc.buildTable
+import org.droidmate.report.misc.clickedWidget
 
 class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
-    constructor(data: IExplorationLog) : this(ClickFrequencyTable.build(data))
+    constructor(data: IExplorationLog) : this(build(data))
   
   companion object {
     val headerNoOfClicks = "No_of_clicks"
@@ -37,16 +39,16 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
       val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
 
       return buildTable(
-        headers = listOf(headerNoOfClicks, headerViewsCount),
-        rowCount = countOfViewsHavingNoOfClicks.keys.size,
-        computeRow = { rowIndex ->
-          check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
-          val noOfClicks = rowIndex
-          listOf(
-            noOfClicks,
-            countOfViewsHavingNoOfClicks[noOfClicks]!!
-          )
-        }
+              headers = listOf(headerNoOfClicks, headerViewsCount),
+              rowCount = countOfViewsHavingNoOfClicks.keys.size,
+              computeRow = { rowIndex ->
+                  check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
+                  val noOfClicks = rowIndex
+                  listOf(
+                          noOfClicks,
+                          countOfViewsHavingNoOfClicks[noOfClicks]!!
+                  )
+              }
       )
     }
 

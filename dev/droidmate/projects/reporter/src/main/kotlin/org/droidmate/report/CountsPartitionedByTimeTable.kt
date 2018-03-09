@@ -19,6 +19,8 @@
 package org.droidmate.report
 
 import com.google.common.collect.Table
+import org.droidmate.report.misc.buildTable
+import org.droidmate.report.misc.countsPartitionedByTime
 
 open class CountsPartitionedByTimeTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
@@ -50,14 +52,14 @@ open class CountsPartitionedByTimeTable private constructor(val table: Table<Int
       }
       
       return buildTable(
-        headers,
-        rowCount = timeRange.size,
-        computeRow = { rowIndex ->
-          val timePassed = timeRange[rowIndex]
-          listOf(
-            (timePassed / partitionSize).toInt()
-          ) + columnCountsPartitionedByTime.map { it[timePassed]!! }
-        }
+              headers,
+              rowCount = timeRange.size,
+              computeRow = { rowIndex ->
+                  val timePassed = timeRange[rowIndex]
+                  listOf(
+                          (timePassed / partitionSize).toInt()
+                  ) + columnCountsPartitionedByTime.map { it[timePassed]!! }
+              }
       )
     }
     

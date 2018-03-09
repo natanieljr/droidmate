@@ -16,7 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.misc
 
 import com.google.common.collect.ImmutableTable
 import com.google.common.collect.Table
@@ -24,32 +24,17 @@ import com.konradjamrozik.Resource
 import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
 import org.droidmate.extractedPathString
-import org.zeroturnaround.exec.ProcessExecutor
+import org.droidmate.misc.SysCmdExecutor
 import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
-import kotlin.comparisons.compareBy
-import kotlin.comparisons.naturalOrder
 
 fun plot(dataFilePath: String, outputFilePath: String) {
 
   require(Paths.get(dataFilePath).isRegularFile, {"Paths.get(dataFilePath='$dataFilePath').isRegularFile"})
   require(Paths.get(outputFilePath).parent.isDirectory, {"Paths.get(outputFilePath='$outputFilePath').parent.isDirectory"})
-  
-  val processExecutor = ProcessExecutor()
-    .exitValueNormal()
-    .readOutput(true)
-    .timeout(5, TimeUnit.SECONDS)
-    .destroyOnExit()
 
   val plotTemplatePathString = Resource("plot_template.plt").extractedPathString
 
-  val variableBindings = listOf(
-    "var_interactive=0",
-    "var_data_file_path='$dataFilePath'",
-    "var_output_file_path='$outputFilePath'")
-    .joinToString(";")
-  val result = processExecutor.command("gnuplot", "-e", variableBindings, plotTemplatePathString).execute()
-  check(result.exitValue == 0)
+    SysCmdExecutor().execute("Generating plot with GNUPlot", "gnuplot", "-c", plotTemplatePathString, "0", dataFilePath, outputFilePath)
 }
 
 fun <V> buildTable(headers: Iterable<String>, rowCount: Int, computeRow: (Int) -> Iterable<V>): Table<Int, String, V> {

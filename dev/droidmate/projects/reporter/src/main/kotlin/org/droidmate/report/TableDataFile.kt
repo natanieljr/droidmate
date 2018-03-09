@@ -19,24 +19,25 @@
 package org.droidmate.report
 
 import com.google.common.collect.Table
+import org.droidmate.report.misc.plot
 import org.droidmate.withExtension
 import java.nio.file.Files
 import java.nio.file.Path
 
-class TableDataFile<R, C, V>(val table: Table<R, C, V>, file: Path) : DataFile(file) {
-
-  override fun writeOut() {
+class TableDataFile<R, C, V>(val table: Table<R, C, V>,
+                             private val file: Path) {
+    fun write() {
     Files.write(file, tableString.toByteArray())
   }
 
   fun writeOutPlot() {
-    plot(
-      dataFilePath = file.toAbsolutePath().toString(),
-      outputFilePath = plotFile.toAbsolutePath().toString())
+      plot(
+              dataFilePath = file.toAbsolutePath().toString(),
+              outputFilePath = plotFile.toAbsolutePath().toString())
   }
-  
+
   private val tableString: String by lazy {
-    
+
     val headerRowString = table.columnKeySet().joinToString(separator = "\t")
 
     val dataRowsStrings: List<String> = table.rowMap().map {
@@ -48,8 +49,8 @@ class TableDataFile<R, C, V>(val table: Table<R, C, V>, file: Path) : DataFile(f
     tableString
   }
 
-  val plotFile by lazy { file.withExtension("pdf") }
-  
+    private val plotFile = file.withExtension("pdf")
+
   override fun toString(): String{
     return file.toString()
   }
