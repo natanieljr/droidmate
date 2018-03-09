@@ -18,6 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
+import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import java.awt.Point
 import java.awt.image.BufferedImage
@@ -69,10 +70,14 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
                 assert(Files.exists(prevScreenshot), { "Screenshot file not found $prevScreenshot" })
                 assert(Files.exists(currScreenshot), { "Screenshot file not found $currScreenshot" })
 
-                val imageSimilarity = compareImage(prevScreenshot, currScreenshot)
-
-                if (imageSimilarity < 100.0)
+                if ((prevAction.action !is WidgetExplorationAction) || (currAction.action !is WidgetExplorationAction))
                     effectiveActions++
+                else {
+                    val imageSimilarity = compareImage(prevScreenshot, currScreenshot)
+
+                    if (imageSimilarity < 100.0)
+                        effectiveActions++
+                }
 
                 totalActions++
 
@@ -86,6 +91,11 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
             if (i % 100 == 0)
                 log.info("Processing $i")
+        }
+
+        reportData.keys.sorted().forEach { key ->
+            val value = reportData[key]!!
+            sb.appendln("$key\t${value.first}\t${value.second}")
         }
 
         val reportFile = apkReportDir.resolve(fileName)
