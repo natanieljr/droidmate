@@ -16,7 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.action
+package org.droidmate.report.widget
 
 import com.google.common.collect.Table
 import com.konradjamrozik.frequencies

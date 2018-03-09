@@ -20,8 +20,8 @@ package org.droidmate.report.api
 
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.CountsPartitionedByTimeTable
 import org.droidmate.report.EventApiPair
+import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import org.droidmate.report.misc.extractEventApiPairs
 import org.droidmate.report.misc.itemsAtTimes
 

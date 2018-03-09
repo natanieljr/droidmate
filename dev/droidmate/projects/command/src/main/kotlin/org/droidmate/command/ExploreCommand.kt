@@ -33,19 +33,20 @@ import org.droidmate.logging.Markers
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.misc.TimeProvider
+import org.droidmate.report.ActivitySeenSummary
 import org.droidmate.report.AggregateStats
 import org.droidmate.report.IReporter
 import org.droidmate.report.Summary
-import org.droidmate.report.action.ClickFrequency
+import org.droidmate.report.api.ApiActionTrace
 import org.droidmate.report.api.ApiCount
 import org.droidmate.report.misc.withFilteredApiLogs
+import org.droidmate.report.widget.ClickFrequency
 import org.droidmate.report.widget.ViewCount
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -72,6 +73,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             command.registerReporter(ApiCount(cfg.reportIncludePlots))
             command.registerReporter(ClickFrequency(cfg.reportIncludePlots))
             command.registerReporter(ViewCount(cfg.reportIncludePlots))
+            command.registerReporter(ApiActionTrace())
+            command.registerReporter(ActivitySeenSummary())
             command.registerReporter(Summary())
 
             return command

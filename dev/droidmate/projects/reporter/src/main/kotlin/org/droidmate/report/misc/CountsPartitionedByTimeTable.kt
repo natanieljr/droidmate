@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,11 +16,9 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.misc
 
 import com.google.common.collect.Table
-import org.droidmate.report.misc.buildTable
-import org.droidmate.report.misc.countsPartitionedByTime
 
 open class CountsPartitionedByTimeTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
@@ -30,7 +28,7 @@ open class CountsPartitionedByTimeTable private constructor(val table: Table<Int
     maxTime: Int,
     headers: List<String>,
     columns: List<Map<Long, Iterable<String>>>
-  ) : this(CountsPartitionedByTimeTable.build(maxTime, headers, columns))
+  ) : this(build(maxTime, headers, columns))
   
   companion object {
 
@@ -46,7 +44,7 @@ open class CountsPartitionedByTimeTable private constructor(val table: Table<Int
 
       val columnCountsPartitionedByTime = columns.map {
         it.countsPartitionedByTime(
-          partitionSize,
+                partitionSize,
           maxTime
         )
       }

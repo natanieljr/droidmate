@@ -23,12 +23,11 @@ import org.droidmate.report.ApkReport
 import org.droidmate.report.TableDataFile
 import java.nio.file.Path
 
-class ViewCount(private val includePlots: Boolean,
-                private val fileName: String = "viewCount.txt") : ApkReport() {
+class ClickFrequency(private val includePlots: Boolean,
+                     private val fileName: String = "clickFrequency.txt") : ApkReport() {
 
     override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
-        val dataTable = ViewCountTable(data)
-
+        val dataTable = ClickFrequencyTable(data)
         val reportPath = apkReportDir.resolve(fileName)
         val report = TableDataFile(dataTable, reportPath)
 

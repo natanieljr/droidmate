@@ -22,7 +22,7 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.dir
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.fileNames
-import org.droidmate.report.action.ClickFrequencyTable
+import org.droidmate.report.widget.ClickFrequencyTable
 import org.droidmate.report.widget.ViewCountTable
 import org.droidmate.report.api.ApiCountTable
 import org.droidmate.tests.fixture_monitoredSer2

@@ -16,33 +16,32 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.action
+package org.droidmate.report
 
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.IReporter
-import org.droidmate.report.TableDataFile
 import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
+import org.droidmate.report.widget.ClickFrequency
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
 import java.nio.file.Path
 
-class ClickFrequency(private val includePlots: Boolean) : IReporter {
+abstract class ApkReport : IReporter {
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(ClickFrequency::class.java)
+        @JvmStatic
+        protected val log: Logger = LoggerFactory.getLogger(ClickFrequency::class.java)
     }
 
     override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
         rawData.forEach { data ->
-            val dataTable = ClickFrequencyTable(data)
-            val reportPath = reportDir.resolve("${data.apkFileNameWithUnderscoresForDots}_clickFrequency.txt")
-            val report = TableDataFile(dataTable, reportPath)
-            log.info("Writing out report $report")
-            report.write()
-            if (includePlots) {
-                log.info("Writing out plot $report")
-                report.writeOutPlot()
-            }
+            val apkReportDir = reportDir.resolve(data.apkFileNameWithUnderscoresForDots)
+
+            Files.createDirectories(apkReportDir)
+
+            log.info("Writing out report ${this.javaClass.simpleName} to $apkReportDir")
+            writeApkReport(data, apkReportDir)
         }
     }
 
+    protected abstract fun writeApkReport(data: IExplorationLog, apkReportDir: Path)
 }

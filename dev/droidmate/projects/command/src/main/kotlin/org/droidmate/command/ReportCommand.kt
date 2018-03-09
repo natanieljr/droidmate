@@ -22,9 +22,9 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.report.AggregateStats
 import org.droidmate.report.OutputDir
 import org.droidmate.report.Summary
-import org.droidmate.report.action.ClickFrequency
 import org.droidmate.report.api.ApiCount
 import org.droidmate.report.misc.withFilteredApiLogs
+import org.droidmate.report.widget.ClickFrequency
 import org.droidmate.report.widget.ViewCount
 
 class ReportCommand : DroidmateCommand() {
