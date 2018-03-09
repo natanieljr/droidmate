@@ -52,7 +52,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
         // Ignore app start
         val records = data.getRecords().drop(1)
-        val nrActions = data.getSize()
+        val nrActions = records.size
         val startTimeStamp = records.first().startTimestamp
 
         var totalActions = 1
