@@ -26,7 +26,7 @@ import java.nio.file.Path
 
 class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String = "activitiesSeen.txt") : ApkReport() {
 
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path) {
         val sb = StringBuilder()
         val header = "activity\tcount\n"
         sb.append(header)
@@ -35,7 +35,7 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
         var lastActivity = ""
         var currActivity = data.apk.launchableActivityName
 
-        data.getRecords().forEachIndexed { actionNr, record ->
+        data.getRecords().forEach { record ->
 
             if (record.action is PressBackExplorationAction)
                 currActivity = lastActivity

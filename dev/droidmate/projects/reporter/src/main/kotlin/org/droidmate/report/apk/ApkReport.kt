@@ -19,29 +19,22 @@
 package org.droidmate.report.apk
 
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.IReporter
+import org.droidmate.report.Reporter
 import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
-abstract class ApkReport : IReporter {
-    companion object {
-        @JvmStatic
-        protected val log: Logger = LoggerFactory.getLogger(ClickFrequency::class.java)
-    }
-
-    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+abstract class ApkReport : Reporter() {
+    override fun safeWrite(reportDir: Path, rawData: List<IExplorationLog>) {
         rawData.forEach { data ->
             val apkReportDir = reportDir.resolve(data.apkFileNameWithUnderscoresForDots)
 
             Files.createDirectories(apkReportDir)
 
             log.info("Writing out report ${this.javaClass.simpleName} to $apkReportDir")
-            writeApkReport(data, apkReportDir)
+            safeWriteApkReport(data, apkReportDir)
         }
     }
 
-    protected abstract fun writeApkReport(data: IExplorationLog, apkReportDir: Path)
+    protected abstract fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path)
 }

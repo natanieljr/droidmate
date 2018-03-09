@@ -27,7 +27,7 @@ import java.nio.file.Path
 
 class ApkViewsFile @JvmOverloads constructor(private val fileName: String = "views.txt") : ApkReport() {
 
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path) {
         val reportData = getReportData(data)
         val reportFile = apkReportDir.resolve(fileName)
         Files.write(reportFile, reportData.toByteArray())

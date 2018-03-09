@@ -25,7 +25,7 @@ import java.nio.file.Path
 class ClickFrequency @JvmOverloads constructor(private val includePlots: Boolean,
                                                private val fileName: String = "clickFrequency.txt") : ApkReport() {
 
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path) {
         val dataTable = ClickFrequencyTable(data)
         val reportPath = apkReportDir.resolve(fileName)
         val report = TableDataFile(dataTable, reportPath)

@@ -102,4 +102,9 @@ interface IMemoryRecord : Serializable {
      * Path to the screenshot (taken after the action was executed)
      */
     val screenshot: URI
+
+    /**
+     * Returns if the record has an associated screenshot or not
+     */
+    val hasScreenshot: Boolean
 }

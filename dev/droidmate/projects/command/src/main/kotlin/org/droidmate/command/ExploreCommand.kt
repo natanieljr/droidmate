@@ -34,7 +34,7 @@ import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.misc.TimeProvider
 import org.droidmate.report.AggregateStats
-import org.droidmate.report.IReporter
+import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.report.misc.withFilteredApiLogs
@@ -76,11 +76,14 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             command.registerReporter(ActionTrace())
             command.registerReporter(WidgetApiTrace())
 
+            if (cfg.takeScreenshots)
+                command.registerReporter(EffectiveActions())
+
             return command
         }
     }
 
-    private val reporters: MutableList<IReporter> = ArrayList()
+    private val reporters: MutableList<Reporter> = ArrayList()
 
     override fun execute(cfg: Configuration) {
         cleanOutputDir(cfg)
@@ -104,7 +107,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
         reporters.forEach { it.write(reportDir.toAbsolutePath(), reportData) }
     }
 
-    fun registerReporter(report: IReporter) {
+    fun registerReporter(report: Reporter) {
         reporters.add(report)
     }
 

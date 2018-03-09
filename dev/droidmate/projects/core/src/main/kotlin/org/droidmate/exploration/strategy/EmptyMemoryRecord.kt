@@ -38,7 +38,7 @@ class EmptyMemoryRecord : IMemoryRecord {
 
     override val exception: DeviceException = DeviceExceptionMissing()
 
-    override val screenshot: URI = URI(this.javaClass.name)
+    override val screenshot: URI = URI("test://empty")
 
     override val decisionTime: Long
         get() = Long.MIN_VALUE
@@ -54,6 +54,9 @@ class EmptyMemoryRecord : IMemoryRecord {
 
     override val guiState: IGuiState
         get() = guiSnapshot.guiState
+
+    override val hasScreenshot: Boolean
+        get() = false
 
     override val appPackageName: String
         get() = guiSnapshot.getPackageName()

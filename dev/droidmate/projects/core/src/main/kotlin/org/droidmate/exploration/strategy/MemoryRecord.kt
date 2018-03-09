@@ -40,10 +40,11 @@ class MemoryRecord(override val action: ExplorationAction,
                    override val deviceLogs: IDeviceLogs = MissingDeviceLogs(),
                    override val guiSnapshot: IDeviceGuiSnapshot = MissingGuiSnapshot(),
                    override val exception: DeviceException = DeviceExceptionMissing(),
-                   override val screenshot: URI = URI.create("test://empty")) : IMemoryRecord {
+                   override val screenshot: URI = emptyURI) : IMemoryRecord {
 
     companion object {
         private const val serialVersionUID: Long = 1
+        private val emptyURI = URI.create("test://empty")
     }
 
     override var widgetContext: WidgetContext = EmptyWidgetContext()
@@ -59,6 +60,9 @@ class MemoryRecord(override val action: ExplorationAction,
 
     override val appPackageName: String
         get() = guiSnapshot.getPackageName()
+
+    override val hasScreenshot: Boolean
+        get() = this.screenshot != emptyURI
 
     override fun equals(other: Any?): Boolean {
         if (other !is MemoryRecord)

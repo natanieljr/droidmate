@@ -40,5 +40,8 @@ class ReportCommand : DroidmateCommand() {
         ActivitySeenSummary().write(cfg.droidmateOutputReportDirPath, data)
         ActionTrace().write(cfg.droidmateOutputReportDirPath, data)
         WidgetApiTrace().write(cfg.droidmateOutputReportDirPath, data)
+
+        if (cfg.takeScreenshots)
+            EffectiveActions().write(cfg.droidmateOutputReportDirPath, data)
     }
 }

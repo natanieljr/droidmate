@@ -24,9 +24,9 @@ import org.droidmate.extractedText
 import java.nio.file.Files
 import java.nio.file.Path
 
-class Summary @JvmOverloads constructor(val fileName: String = "summary.txt") : IReporter {
+class Summary @JvmOverloads constructor(val fileName: String = "summary.txt") : Reporter() {
 
-    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+    override fun safeWrite(reportDir: Path, rawData: List<IExplorationLog>) {
         val file = reportDir.resolve(this.fileName)
 
         val reportData = if (rawData.isEmpty())

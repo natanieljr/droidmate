@@ -19,8 +19,24 @@
 package org.droidmate.report
 
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.nio.file.Files
 import java.nio.file.Path
 
-interface IReporter {
-    fun write(reportDir: Path, rawData: List<IExplorationLog>)
+abstract class Reporter {
+    protected val log: Logger = LoggerFactory.getLogger(Reporter::class.java)
+
+    fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+        Files.createDirectories(reportDir)
+        log.info("Writing out report ${this.javaClass.simpleName} to $reportDir")
+        try {
+            safeWrite(reportDir, rawData)
+        } catch (e: Exception) {
+            log.error("Unable to write the report ${this.javaClass.simpleName} to $reportDir. Exception: $e")
+            e.printStackTrace()
+        }
+    }
+
+    protected abstract fun safeWrite(reportDir: Path, rawData: List<IExplorationLog>)
 }

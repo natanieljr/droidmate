@@ -25,7 +25,7 @@ import java.nio.file.Path
 class WidgetSeenClickedCount @JvmOverloads constructor(private val includePlots: Boolean,
                                                        private val fileName: String = "viewCount.txt") : ApkReport() {
 
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path) {
         val dataTable = WidgetSeenClickedTable(data)
 
         val reportPath = apkReportDir.resolve(fileName)
