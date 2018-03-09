@@ -16,7 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.api
+package org.droidmate.report.apk
 
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog

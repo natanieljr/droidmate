@@ -16,32 +16,25 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.api
+package org.droidmate.report.apk
 
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.IReporter
 import org.droidmate.report.TableDataFile
-import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-class ApiCount(private val includePlots: Boolean) : IReporter {
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(ApiCount::class.java)
-    }
+class WidgetSeenClickedCount @JvmOverloads constructor(private val includePlots: Boolean,
+                                                       private val fileName: String = "viewCount.txt") : ApkReport() {
 
-    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
-        rawData.forEach { data ->
-            val dataTable = ApiCountTable(data)
-            val reportPath = reportDir.resolve("${data.apkFileNameWithUnderscoresForDots}_apiCount.txt")
-            val report = TableDataFile(dataTable, reportPath)
-            log.info("Writing out report $report")
-            report.write()
-            if (includePlots) {
-                log.info("Writing out plot $report")
-                report.writeOutPlot()
-            }
+    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+        val dataTable = WidgetSeenClickedTable(data)
+
+        val reportPath = apkReportDir.resolve(fileName)
+        val report = TableDataFile(dataTable, reportPath)
+
+        report.write()
+        if (includePlots) {
+            log.info("Writing out plot $report")
+            report.writeOutPlot()
         }
     }
 }

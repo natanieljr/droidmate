@@ -22,9 +22,9 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.dir
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.fileNames
-import org.droidmate.report.widget.ClickFrequencyTable
-import org.droidmate.report.widget.ViewCountTable
-import org.droidmate.report.api.ApiCountTable
+import org.droidmate.report.apk.ClickFrequencyTable
+import org.droidmate.report.apk.WidgetSeenClickedTable
+import org.droidmate.report.apk.ApiCountTable
 import org.droidmate.tests.fixture_monitoredSer2
 import org.droidmate.withFiles
 import org.hamcrest.MatcherAssert.assertThat
@@ -98,14 +98,14 @@ class ExplorationOutput2ReportTest {
         // Act
         val rawData = OutputDir(mockFsDirWithOutput).notEmptyExplorationOutput2
 
-        val viewCountTables = rawData.map { ViewCountTable(it) }
+        val viewCountTables = rawData.map { WidgetSeenClickedTable(it) }
         viewCountTables.forEach {
             assertThat(it.rowKeySet().size, greaterThan(0))
             assertThat(it.columnKeySet(),
                     hasItems(
-                            ViewCountTable.headerTime,
-                            ViewCountTable.headerViewsSeen,
-                            ViewCountTable.headerViewsClicked
+                            WidgetSeenClickedTable.headerTime,
+                            WidgetSeenClickedTable.headerViewsSeen,
+                            WidgetSeenClickedTable.headerViewsClicked
                     )
             )
         }

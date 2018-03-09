@@ -16,25 +16,31 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.widget
+package org.droidmate.report.apk
 
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.ApkReport
-import org.droidmate.report.TableDataFile
+import org.droidmate.misc.uniqueString
+import org.droidmate.report.misc.uniqueActionableWidgets
+import org.droidmate.report.misc.uniqueClickedWidgets
+import java.nio.file.Files
 import java.nio.file.Path
 
-class ClickFrequency(private val includePlots: Boolean,
-                     private val fileName: String = "clickFrequency.txt") : ApkReport() {
+class ApkViewsFile @JvmOverloads constructor(private val fileName: String = "views.txt") : ApkReport() {
 
     override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
-        val dataTable = ClickFrequencyTable(data)
-        val reportPath = apkReportDir.resolve(fileName)
-        val report = TableDataFile(dataTable, reportPath)
+        val reportData = getReportData(data)
+        val reportFile = apkReportDir.resolve(fileName)
+        Files.write(reportFile, reportData.toByteArray())
+    }
 
-        report.write()
-        if (includePlots) {
-            log.info("Writing out plot $report")
-            report.writeOutPlot()
-        }
+    private fun getReportData(data: IExplorationLog): String {
+        val sb = StringBuilder()
+        sb.append("Unique actionable widget\n")
+                .append(data.uniqueActionableWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
+                .append("\n====================\n")
+                .append("Unique clicked widgets\n")
+                .append(data.uniqueClickedWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
+
+        return sb.toString()
     }
 }

@@ -33,15 +33,11 @@ import org.droidmate.logging.Markers
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.misc.TimeProvider
-import org.droidmate.report.ActivitySeenSummary
 import org.droidmate.report.AggregateStats
 import org.droidmate.report.IReporter
 import org.droidmate.report.Summary
-import org.droidmate.report.api.ApiActionTrace
-import org.droidmate.report.api.ApiCount
+import org.droidmate.report.apk.*
 import org.droidmate.report.misc.withFilteredApiLogs
-import org.droidmate.report.widget.ClickFrequency
-import org.droidmate.report.widget.ViewCount
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
@@ -70,12 +66,13 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
 
             command.registerReporter(AggregateStats())
+            command.registerReporter(Summary())
+            command.registerReporter(ApkViewsFile())
             command.registerReporter(ApiCount(cfg.reportIncludePlots))
             command.registerReporter(ClickFrequency(cfg.reportIncludePlots))
-            command.registerReporter(ViewCount(cfg.reportIncludePlots))
+            command.registerReporter(WidgetSeenClickedCount(cfg.reportIncludePlots))
             command.registerReporter(ApiActionTrace())
             command.registerReporter(ActivitySeenSummary())
-            command.registerReporter(Summary())
 
             return command
         }

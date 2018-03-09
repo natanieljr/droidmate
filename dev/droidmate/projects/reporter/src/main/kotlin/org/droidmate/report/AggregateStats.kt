@@ -23,7 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-class AggregateStats : IReporter {
+class AggregateStats @JvmOverloads constructor(private val fileName: String = "aggregate_stats.txt") : IReporter {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(AggregateStats::class.java)
     }
@@ -33,7 +33,7 @@ class AggregateStats : IReporter {
     }
 
     fun getFilePath(reportDir: Path): Path {
-        return reportDir.resolve("aggregate_stats.txt")
+        return reportDir.resolve(fileName)
     }
 
     override fun write(reportDir: Path, rawData: List<IExplorationLog>) {

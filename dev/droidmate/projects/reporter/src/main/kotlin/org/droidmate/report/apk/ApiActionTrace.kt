@@ -16,16 +16,15 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.api
+package org.droidmate.report.apk
 
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.ApkReport
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ApiActionTrace(private val fileName: String = "apiActionTrace.txt") : ApkReport() {
+class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "apiActionTrace.txt") : ApkReport() {
 
     override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
         val sb = StringBuilder()

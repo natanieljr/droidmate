@@ -16,19 +16,17 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.widget
+package org.droidmate.report.apk
 
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.ApkReport
 import org.droidmate.report.TableDataFile
 import java.nio.file.Path
 
-class ViewCount(private val includePlots: Boolean,
-                private val fileName: String = "viewCount.txt") : ApkReport() {
+class ApiCount @JvmOverloads constructor(private val includePlots: Boolean,
+                                         private val fileName: String = "apiCount.txt") : ApkReport() {
 
     override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
-        val dataTable = ViewCountTable(data)
-
+        val dataTable = ApiCountTable(data)
         val reportPath = apkReportDir.resolve(fileName)
         val report = TableDataFile(dataTable, reportPath)
 

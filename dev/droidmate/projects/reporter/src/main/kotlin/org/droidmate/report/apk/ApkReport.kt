@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,40 +16,32 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.report.apk
 
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.misc.uniqueString
+import org.droidmate.report.IReporter
 import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
-import org.droidmate.report.misc.uniqueActionableWidgets
-import org.droidmate.report.misc.uniqueClickedWidgets
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
-class ApkViewsFile : IReporter {
+abstract class ApkReport : IReporter {
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(ApkViewsFile::class.java)
+        @JvmStatic
+        protected val log: Logger = LoggerFactory.getLogger(ClickFrequency::class.java)
     }
 
     override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
         rawData.forEach { data ->
-            val reportPath = reportDir.resolve("${data.apkFileNameWithUnderscoresForDots}_views.txt")
-            val reportData = getReportData(data)
-            log.info("Writing out report $reportPath")
-            Files.write(reportPath, reportData.toByteArray())
+            val apkReportDir = reportDir.resolve(data.apkFileNameWithUnderscoresForDots)
+
+            Files.createDirectories(apkReportDir)
+
+            log.info("Writing out report ${this.javaClass.simpleName} to $apkReportDir")
+            writeApkReport(data, apkReportDir)
         }
     }
 
-    private fun getReportData(data: IExplorationLog): String {
-        val sb = StringBuilder()
-        sb.append("Unique actionable widget\n")
-                .append(data.uniqueActionableWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
-                .append("\n====================\n")
-                .append("Unique clicked widgets\n")
-                .append(data.uniqueClickedWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
-
-        return sb.toString()
-    }
+    protected abstract fun writeApkReport(data: IExplorationLog, apkReportDir: Path)
 }

@@ -16,7 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.report.widget
+package org.droidmate.report.apk
 
 import org.droidmate.device.datatypes.IWidget
 import org.droidmate.exploration.actions.ExplorationRecord
@@ -27,7 +27,7 @@ import org.droidmate.report.misc.actionableWidgets
 import org.droidmate.report.misc.clickedWidget
 import org.droidmate.report.misc.itemsAtTime
 
-class ViewCountTable(data: IExplorationLog) : CountsPartitionedByTimeTable(
+class WidgetSeenClickedTable(data: IExplorationLog) : CountsPartitionedByTimeTable(
         data.getExplorationTimeInMs(),
         listOf(
                 headerTime,
