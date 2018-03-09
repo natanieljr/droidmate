@@ -40,37 +40,36 @@ class ViewCountTable(data: IExplorationLog) : CountsPartitionedByTimeTable(
         )
 ) {
 
-  companion object {
-    
-    val headerTime = "Time_seconds"
-    val headerViewsSeen = "Actionable_unique_views_seen"
-    val headerViewsClicked = "Actionable_unique_views_clicked"
+    companion object {
 
-    private val IExplorationLog.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
-      get() {
-      return this.uniqueViewCountByPartitionedTime(
-        extractItems = { it.actionableWidgets }
-      )
+        const val headerTime = "Time_seconds"
+        const val headerViewsSeen = "Actionable_unique_views_seen"
+        const val headerViewsClicked = "Actionable_unique_views_clicked"
+
+        private val IExplorationLog.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
+            get() {
+                return this.uniqueViewCountByPartitionedTime(
+                        extractItems = { it.actionableWidgets }
+                )
+            }
+
+        private val IExplorationLog.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
+            get() {
+                return this.uniqueViewCountByPartitionedTime(extractItems = { it.clickedWidget })
+            }
+
+        private fun IExplorationLog.uniqueViewCountByPartitionedTime(
+                extractItems: (ExplorationRecord) -> Iterable<IWidget>): Map<Long, Iterable<String>> {
+
+            return this.logRecords.itemsAtTime(
+                    startTime = this.explorationStartTime,
+                    extractTime = { it.getAction().timestamp },
+                    extractItems = extractItems
+            ).mapValues {
+                val widgets = it.value
+                widgets.map { it.uniqueString }
+            }
+        }
     }
-
-    private val IExplorationLog.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
-      get() {
-      return this.uniqueViewCountByPartitionedTime(extractItems = { it.clickedWidget })
-    }
-
-    private fun IExplorationLog.uniqueViewCountByPartitionedTime(
-            extractItems: (ExplorationRecord) -> Iterable<IWidget>
-    ): Map<Long, Iterable<String>> {
-
-        return this.logRecords.itemsAtTime(
-        startTime = this.explorationStartTime,
-                extractTime = { it.getAction().timestamp },
-        extractItems = extractItems
-      ).mapValues {
-        val widgets = it.value
-        widgets.map { it.uniqueString }
-      }
-    }
-  }
 }
 
