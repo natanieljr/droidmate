@@ -73,6 +73,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             command.registerReporter(WidgetSeenClickedCount(cfg.reportIncludePlots))
             command.registerReporter(ApiActionTrace())
             command.registerReporter(ActivitySeenSummary())
+            command.registerReporter(ActionTrace())
 
             return command
         }

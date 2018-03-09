@@ -38,5 +38,6 @@ class ReportCommand : DroidmateCommand() {
         WidgetSeenClickedCount(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
         ApiActionTrace().write(cfg.droidmateOutputReportDirPath, data)
         ActivitySeenSummary().write(cfg.droidmateOutputReportDirPath, data)
+        ActionTrace().write(cfg.droidmateOutputReportDirPath, data)
     }
 }
