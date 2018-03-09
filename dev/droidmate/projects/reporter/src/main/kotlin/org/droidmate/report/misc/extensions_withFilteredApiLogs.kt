@@ -35,7 +35,7 @@ val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
 
                 fun filterApiLogs(result: IMemoryRecord): IMemoryRecord {
 
-                fun filterApiLogs(deviceLogs: IDeviceLogs): IDeviceLogs = FilteredDeviceLogs(deviceLogs.apiLogs)
+                    fun filterApiLogs(deviceLogs: IDeviceLogs): IDeviceLogs = FilteredDeviceLogs(deviceLogs.apiLogs)
 
                     return MemoryRecord(
                             result.action,
@@ -46,17 +46,17 @@ val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
                             result.exception,
                             result.screenshot
                     )
-            }
+                }
 
                 return results.map { ExplorationRecord(it.first, filterApiLogs(it.second)) }.toMutableList()
-        }
+            }
 
             return ExplorationLog(output.apk,
                     filterApiLogs(output.logRecords),
-                output.explorationStartTime,
-                output.explorationEndTime)
-                .apply { exception = output.exception }
-    }
+                    output.explorationStartTime,
+                    output.explorationEndTime)
+                    .apply { exception = output.exception }
+        }
 
     return this.map { filterApiLogs(it) }
 }
