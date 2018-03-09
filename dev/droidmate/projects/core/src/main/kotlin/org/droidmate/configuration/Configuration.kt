@@ -94,6 +94,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_launchActivityTimeout = "-launchActivityTimeout"
         const val pn_monitorSocketTimeout = "-monitorSocketTimeout"
         const val pn_monitorUseLogcat = "-monitorUseLogcat"
+        const val pn_pressBackProbability = "-pressBack"
         const val pn_randomSeed = "-randomSeed"
         const val pn_reportIncludePlots = "-reportIncludePlots"
         const val pn_reportInputDir = "-reportInputDir"
@@ -161,10 +162,10 @@ class Configuration(val args: Array<String>) : IConfiguration {
             description = "Directory containing the apks to be processed by DroidMate.")
     public var apksDirName = defaultApksDir
 
-    @Parameter(names = [pn_checkAppIsRunningRetryAttempts])
+    @Parameter(names = [pn_checkAppIsRunningRetryAttempts], description = "Number of attempts to check if an app is running on the device")
     public var checkAppIsRunningRetryAttempts = 2
 
-    @Parameter(names = [pn_checkAppIsRunningRetryDelay])
+    @Parameter(names = [pn_checkAppIsRunningRetryDelay], description = "Timeout for each attempt to check if an app is running on the device in milliseconds")
     public var checkAppIsRunningRetryDelay = 5 * 1000 // ms
 
     @Parameter(names = [pn_checkDeviceAvailableAfterRebootAttempts])
@@ -196,53 +197,64 @@ class Configuration(val args: Array<String>) : IConfiguration {
             description = "Deploys apks to device in 'raw' form, that is, without instrumenting them. Will deploy them raw even if instrumented version is available from last run.")
     public var deployRawApks = false
 
-    @Parameter(names = [pn_deviceSN])
+    @Parameter(names = [pn_deviceSN],
+            description = "Serial number of the device to be used. Mutually exclusive to index")
     public var deviceSerialNumber = ""
 
-    @Parameter(names = [pn_device])
+    @Parameter(names = [pn_device],
+            description = "Index of the device to be used (from adb devices). Zero based.")
     public var deviceIndex = 0
 
-    @Parameter(names = [pn_installAux], arity = 1, description =
+    @Parameter(names = [pn_installAux],
+            arity = 1,
+            description =
     "Reinstall the auxiliary files (UIAutomator and Monitor) to the device. If the auxiliary files are not previously installed the exploration will fail.")
     public var installAux: Boolean = true
 
-    @Parameter(names = [pn_installApk], arity = 1, description =
-    "Reinstall the app to the device. If the app is not previously installed the exploration will fail.")
+    @Parameter(names = [pn_installApk],
+            arity = 1,
+            description =
+            "Reinstall the app to the device. If the app is not previously installed the exploration will fail")
     public var installApk: Boolean = true
 
-    @Parameter(names = ["-displayHelp", "-help", "-h", "-?"], help = true, description =
+    @Parameter(names = ["-displayHelp", "-help", "-h", "-?", "--help"],
+            help = true,
+            description =
     "Displays command line parameters description.")
     public var displayHelp: Boolean = false
 
-    @Parameter(names = [pn_replaceExtractedResources], arity = 1,
-            description = "Replace the resources from the extracted resources folder upon execution.")
+    @Parameter(names = [pn_replaceExtractedResources],
+            arity = 1,
+            description = "Replace the resources from the extracted resources folder upon execution")
     public var replaceExtractedResources = true
 
-    @Parameter(names = ["-extractSummaries"], arity = 1)
-    public var extractSummaries = true
-
-    @Parameter(names = [pn_getValidGuiSnapshotRetryAttempts])
+    @Parameter(names = [pn_getValidGuiSnapshotRetryAttempts],
+            description = "Number of attempts to get a valid GUI snapshot from the device. If not snapshot is acquired the exploration stops")
     public var getValidGuiSnapshotRetryAttempts = 4
 
-    @Parameter(names = [pn_getValidGuiSnapshotRetryDelay])
+    @Parameter(names = [pn_getValidGuiSnapshotRetryDelay],
+            description = "Timeout for each attempt to get a valid GUI snapshot from the device in milliseconds")
     // Exploration of com.facebook.orca_v12.0.0.21.14-inlined.apk shows that that 4 attempts with 4000 ms delays (16s in total)
     // is not enough: all attempts get exhausted and only the repeated set of attempts, after restarting uia-d, succeeds.
     // com.netbiscuits.bild.android_v3.5.6-inlined needs more than 20s.
     public var getValidGuiSnapshotRetryDelay = 4 * 1000 // ms
 
-    @Parameter(names = [pn_inline], description =
+    @Parameter(names = [pn_inline],
+            description =
     "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks.")
     public var inline = false
 
-    @Parameter(names = [pn_launchActivityDelay])
+    @Parameter(names = [pn_launchActivityDelay],
+            description = "Amount of time (in milliseconds) to wait for the app to load before continuing the exploration after a reset (or exploration start)")
     // Empirically checked that for com.skype.raider_v5.0.0.51733-inlined.apk 5000 ms is sometimes not enough.
     public var launchActivityDelay = 15 * 1000 // ms
 
-    @Parameter(names = [pn_launchActivityTimeout])
+    @Parameter(names = [pn_launchActivityTimeout],
+            description = "Maximum amount of time to be waited for an app to start after a reset in milliseconds")
     public var launchActivityTimeout = 1 * 60 * 1000 // ms
 
-    @Parameter(names = ["-logLevel"], description =
-    "Logging level of the entirety of application. Possible values, comma separated: trace, debug, info.")
+    @Parameter(names = ["-logLevel"],
+            description = "Logging level of the entirety of application. Possible values, comma separated: trace, debug, info.")
     var logLevel = "trace"
 
     @Parameter(names = [pn_monitorSocketTimeout], arity = 1)
@@ -324,17 +336,24 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = [pn_useApkFixturesDir], arity = 1)
     public var useApkFixturesDir = false
 
-    @Parameter(names = [pn_report], description =
-    "If present, instead of normal run, DroidMate will generate reports from previously serialized data.")
+    @Parameter(names = [pn_pressBackProbability], description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy.")
+    public var pressBackProbability = 0.05
+
+    @Parameter(names = [pn_report],
+            description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data.")
     public var report = false
 
-    @Parameter(names = [pn_shuffleApks], arity = 1)
+    @Parameter(names = [pn_shuffleApks],
+            arity = 1,
+            description = "Explore the apks in the input directory in a random order")
     public var shuffleApks = false
 
-    @Parameter(names = [pn_takeScreenshots], description = "Take screenshot after each exploration action.")
-    public var takeScreenshots = false
+    @Parameter(names = [pn_takeScreenshots],
+            description = "Take screenshot after each exploration action.")
+    public var takeScreenshots = true
 
-    @Parameter(names = [pn_timeLimit], description = "How long the exploration of any given apk should take, in seconds. If set to 0, instead actionsLimit will be used.")
+    @Parameter(names = [pn_timeLimit],
+            description = "How long the exploration of any given apk should take, in seconds. If set to 0, instead actionsLimit will be used.")
     public var timeLimit = 0
 
     @Parameter(names = [pn_widgetIndexes], listConverter = ListOfIntegersConverter::class,
@@ -350,11 +369,12 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = [pn_waitForCanRebootDelay])
     public var waitForCanRebootDelay = 30 * 1000
 
-    @Parameter(names = [pn_waitForDevice], description =
-    "Wait for a device to be connected to the PC instead of cancelling the exploration.")
+    @Parameter(names = [pn_waitForDevice],
+            description = "Wait for a device to be connected to the PC instead of cancelling the exploration.")
     public var waitForDevice = false
 
-    @Parameter(names = [pn_explorationStrategies], listConverter = ListOfStringsConverter::class,
+    @Parameter(names = [pn_explorationStrategies],
+            listConverter = ListOfStringsConverter::class,
             description = "Determines which exploration strategies will be used. The format is: [<first strategy name>,<second strategy name>,...<nth strategy name>], example: [RandomWidget,PressBack,ModelBased]. Reset and Terminate are compulsory included.")
     public var explorationStrategies: List<String> = listOf(StrategyTypes.AllowRuntimePermission,
         StrategyTypes.PressBack,

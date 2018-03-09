@@ -82,6 +82,10 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             strategies.addAll(getTerminationStrategies(cfg))
             strategies.addAll(getResetStrategies(cfg))
 
+            // Press back
+            if (cfg.pressBackProbability > 0.0)
+                strategies.add(PressBack.build(cfg.pressBackProbability, cfg))
+
             // Random exploration
             if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
                 strategies.add(RandomWidget.build(cfg))
@@ -89,10 +93,6 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             // Model based
             if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
                 strategies.add(ModelBased.build(cfg))
-
-            // Press back
-            if (cfg.explorationStrategies.contains(StrategyTypes.PressBack.strategyName))
-                strategies.add(PressBack.build(0.10, cfg))
 
             // Allow runtime dialogs
             if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
