@@ -33,7 +33,8 @@ abstract class Reporter {
         try {
             safeWrite(reportDir, rawData)
         } catch (e: Exception) {
-            log.error("Unable to write the report ${this.javaClass.simpleName} to $reportDir. Exception: $e")
+            log.error("Unable to write the report ${this.javaClass.simpleName} to $reportDir. Exception: $e. Generating remaining reports.")
+            log.error("Error stack trace:")
             e.printStackTrace()
         }
     }
