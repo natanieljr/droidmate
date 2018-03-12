@@ -22,7 +22,10 @@ package org.droidmate.configuration
 import ch.qos.logback.classic.Level
 import com.beust.jcommander.JCommander
 import com.beust.jcommander.ParameterException
-import com.konradjamrozik.*
+import com.konradjamrozik.Resource
+import com.konradjamrozik.ResourcePath
+import com.konradjamrozik.createDirIfNotExists
+import com.konradjamrozik.toList
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.apache.commons.lang3.builder.StandardToStringStyle
 import org.droidmate.logging.Markers.Companion.runData
@@ -30,13 +33,11 @@ import org.droidmate.misc.BuildConstants
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
-
 import java.lang.management.ManagementFactory
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
-
 import java.util.*
 
 /**
@@ -252,7 +253,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
             log.info(runData, "")
             log.info(runData, "Working dir:   ${System.getProperty("user.dir")}")
             log.info(runData, "")
-            log.info(runData, "JVM arguments: ${readJVMarguments()}")
+            log.info(runData, "JVM arguments: ${readJVMArguments()}")
             log.info(runData, "")
             log.debug(runData, "Configuration dump:")
             log.debug(runData, "")
@@ -268,6 +269,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
          * Based on: http://stackoverflow.com/a/1531999/986533
          */
         @JvmStatic
-        private fun readJVMarguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
+        private fun readJVMArguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
     }
 }
