@@ -59,7 +59,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
               strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
               timeProvider: ITimeProvider = TimeProvider(),
               deviceTools: IDeviceTools = DeviceTools(cfg),
-              reportCreators:List<Reporter> = emptyList()): ExploreCommand {
+              reportCreators: List<Reporter> = defaultReportWatcher(cfg)): ExploreCommand {
       val apksProvider = ApksProvider(deviceTools.aapt)
 
       val storage2 = Storage2(cfg.droidmateOutputDirPath)
