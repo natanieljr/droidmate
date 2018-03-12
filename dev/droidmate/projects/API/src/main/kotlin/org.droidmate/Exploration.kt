@@ -30,7 +30,7 @@ import org.droidmate.frontend.DroidmateFrontend
 import org.droidmate.frontend.ExceptionHandler
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.misc.DroidmateException
-import org.droidmate.report.IReporter
+import org.droidmate.report.Reporter
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.FileSystems
@@ -56,7 +56,7 @@ private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
   }
 
   @JvmStatic
-  fun inlineAndExplore(cmd_config:Configuration?, strategies:List<ISelectableExplorationStrategy> = emptyList(), reportCreators:List<IReporter> = emptyList()){
+  fun inlineAndExplore(cmd_config: Configuration?, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
     val config = (   // highest priority overriding lower priority
 //            EnvironmentVariables() overriding           // any JVM arguments (i.e. "-DpropName=value")
             ConfigurationProperties.fromResource("defaultConfig.properties") // overwrite any system property by definitions of resource file
