@@ -20,6 +20,8 @@ package org.droidmate.report.apk
 
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.report.misc.plot
+import org.droidmate.withExtension
 import java.awt.Point
 import java.awt.image.BufferedImage
 import java.awt.image.Raster
@@ -30,6 +32,7 @@ import java.time.temporal.ChronoUnit
 import javax.imageio.ImageIO
 
 class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int = nexus5XPixelDensity,
+                                                 private val includePlots: Boolean = true,
                                                  private val fileName: String = "effective_actions.txt") : ApkReport() {
     companion object {
         /**
@@ -101,6 +104,20 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
         val reportFile = apkReportDir.resolve(fileName)
         Files.write(reportFile, sb.toString().toByteArray())
+
+        if (includePlots) {
+            log.info("Writing out plot $")
+            this.writeOutPlot(reportFile)
+        }
+    }
+
+    private fun writeOutPlot(dataFile: Path) {
+        val fileName = dataFile.fileName.withExtension("pdf")
+        val outFile = dataFile.resolveSibling(fileName)
+
+        plot(
+                dataFilePath = dataFile.toAbsolutePath().toString(),
+                outputFilePath = outFile.toAbsolutePath().toString())
     }
 
     /**
