@@ -24,33 +24,19 @@
 // web: www.droidmate.org
 package org.droidmate
 
-import com.natpryce.konfig.*
+import com.natpryce.konfig.Configuration
 
-
-abstract class ConfigProperties{
-  val logLevel by stringType  // TODO we could use a nice enumType instead
-  val configPath by uriType
-
-  object output: PropertyGroup() {
-    val droidmateOutputDirPath by uriType
-    val reportOutputDir by uriType
-  }
-  object deploy:PropertyGroup(){
-    val installApk by booleanType
-    val installAux by booleanType
-    val inline by booleanType
-  }
-  object exploration:PropertyGroup(){
-    val apksDir by uriType
-    val takeScreenshots by booleanType
-    val device by intType
-    val launchActivityDelay by intType
-    val actionLimit by intType
-    val resetEvery by intType
-    val randomSeed by intType
-  }
+object ConfigWrapper {
+    private val presenceFlags = arrayOf("inline", "takeScreenshots")
+    fun createOldConfigArgs(config: Configuration): Array<String> =
+            config.list().flatMap { (_, map) ->
+                map.map { (prop, value) ->
+                    prop.substringAfterLast(".").let { propName
+                        ->
+                        "-$propName" + if (!presenceFlags.contains(propName)) "=$value" else ""
+                    }
+                }
+            }
+                    .filterNot { it.contains("configPath") || (it.contains("inline") && !config[ConfigProperties.deploy.inline]) }
+                    .toTypedArray()
 }
-
-
-
-
