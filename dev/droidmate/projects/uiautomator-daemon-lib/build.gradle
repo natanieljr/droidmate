@@ -65,10 +65,14 @@ compileJava.configure { JavaCompile jc ->
 if (findProject(":projects"))
     apply from: project(":projects").file("maven.gradle")
 
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
 
 repositories {
     mavenCentral()
 }
+
 compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
