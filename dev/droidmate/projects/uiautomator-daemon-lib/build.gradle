@@ -25,7 +25,7 @@
   Because some of the classes are deployed on an Android Device, the classes in this project are compiled with Java 7.
 */
 buildscript{
-    ext.kotlin_version = '1.2.21'
+    ext.kotlin_version = '1.2.30'
     repositories{
         jcenter()
     }
@@ -36,7 +36,7 @@ buildscript{
 
  apply plugin: 'kotlin'
 
-/* 
+/*
    This project has to be built with Java 7. Otherwise the "ant -f build-customized.xml build" of uiautomator-daemon
    fails with:
 
@@ -49,8 +49,7 @@ buildscript{
    http://stackoverflow.com/questions/16654951/gradle-sourcecompatibility-vs-targetcompatibility
    http://stackoverflow.com/questions/7816423/warning-options-bootstrap-class-path-not-set-in-conjunction-with-source-1-5
 */
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+apply plugin: 'kotlin'
 compileJava.configure { JavaCompile jc ->
     // See explanation of this in build.gradle of 'monitor-template' project.
     jc.options.compilerArgs += "-Xlint:-options"
@@ -66,9 +65,7 @@ compileJava.configure { JavaCompile jc ->
 if (findProject(":projects"))
     apply from: project(":projects").file("maven.gradle")
 
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}
+
 repositories {
     mavenCentral()
 }

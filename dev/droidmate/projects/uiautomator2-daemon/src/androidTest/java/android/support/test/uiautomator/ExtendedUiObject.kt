@@ -10,15 +10,18 @@ val hasInteractive = object:SearchCondition<Boolean>() {
             &&(o.isClickable || o.isLongClickable //|| o.isCheckable || o.isFocusable || o.isScrollable
             )}
 
-    override fun apply(context: Searchable): Boolean {
-        val t:UiObject2? = try {
+    private fun findInteractive():UiObject2?{
+        return try {
             device.findObjects(BySelector())
                     .find(interactive)
         }catch(e:StaleObjectException){
-            Log.w(logTag,"WARN: StaleObjectException in SearchCondition ${e.message}\n${e.localizedMessage}")
-            device.findObjects(BySelector())
-                .find(interactive)
+            Log.w(logTag,"WARN: StaleObjectException in SearchCondition: ${e.message}\t${e.localizedMessage}")
+            findInteractive()
         }
+    }
+
+    override fun apply(context: Searchable): Boolean {
+        val t:UiObject2? = findInteractive()
         Log.d(logTag,"found any element= ${t!=null}")
 //        t?.run { Log.d(logTag, "found interactive element $resourceName,$applicationPackage,$className,$visibleCenter") }
         return t!=null
