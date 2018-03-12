@@ -25,5 +25,6 @@
 // web: www.droidmate.org
 dependencies {
   compile project(":projects:command")
-  compile files('libs/konfig-1.6.2.1.jar')
+
+  compile 'com.github.npryce:konfig:1.6.2.0'
 }
