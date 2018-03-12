@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report
 
@@ -22,16 +28,17 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.dir
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.fileNames
+import org.droidmate.report.apk.ApiCountTable
 import org.droidmate.report.apk.ClickFrequencyTable
 import org.droidmate.report.apk.WidgetSeenClickedTable
-import org.droidmate.report.apk.ApiCountTable
 import org.droidmate.tests.fixture_monitoredSer2
 import org.droidmate.withFiles
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.greaterThan
+import org.hamcrest.Matchers.hasItems
+import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.Path
-import org.junit.Test
 
 class ExplorationOutput2ReportTest {
 
