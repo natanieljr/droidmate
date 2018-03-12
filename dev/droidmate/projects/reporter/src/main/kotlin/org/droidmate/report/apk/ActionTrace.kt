@@ -29,7 +29,7 @@ class ActionTrace @JvmOverloads constructor(private val fileName: String = "acti
         sb.append(header)
 
         data.getRecords().forEachIndexed { actionNr, record ->
-            sb.appendln("$actionNr\t${record.action.javaClass.simpleName}\t${record.decisionTime}}\t${record.screenshot}")
+            sb.appendln("$actionNr\t${record.action.javaClass.simpleName}\t${record.decisionTime}\t${record.screenshot}")
         }
 
         val reportFile = apkReportDir.resolve(fileName)
