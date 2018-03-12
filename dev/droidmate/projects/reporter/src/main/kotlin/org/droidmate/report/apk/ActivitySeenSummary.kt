@@ -55,14 +55,13 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
                             lastActivity = currActivity
                             currActivity = intent[0].substring(intent[0].indexOf("component=") + 10).replace("]", "")
                         }
-
-                        val count = if (activitySeenMap.containsKey(currActivity))
-                            activitySeenMap[currActivity]!!
-                        else
-                            0
-
-                        activitySeenMap.put(currActivity, count + 1)
                     }
+            val count = if (activitySeenMap.containsKey(currActivity))
+                activitySeenMap[currActivity]!!
+            else
+                0
+
+            activitySeenMap.put(currActivity, count + 1)
         }
 
         activitySeenMap.forEach { activity, count ->
