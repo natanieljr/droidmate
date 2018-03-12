@@ -36,15 +36,11 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
-class InlineCommand constructor(private val inliner: ApkInliner) : DroidmateCommand() {
+class InlineCommand @JvmOverloads constructor(private val inliner: ApkInliner = ApkInliner.build()) : DroidmateCommand() {
 
     companion object {
         private val log = LoggerFactory.getLogger(InlineCommand::class.java)
-
-        @JvmStatic
-        fun build(): InlineCommand
-                = InlineCommand(ApkInliner.build())
-  }
+    }
 
     override fun execute(cfg: Configuration) {
         val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))

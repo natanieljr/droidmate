@@ -87,7 +87,7 @@ private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
 
       log.info("inline the apks if necessary")
       val cfg = ConfigurationBuilder().build(ConfigWrapper.createOldConfigArgs(config), FileSystems.getDefault())
-      InlineCommand.build().execute(cfg)
+      InlineCommand().execute(cfg)
 
       val runStart = Date()
       val command = ExploreCommand.build(cfg,reportCreators=reportCreators)

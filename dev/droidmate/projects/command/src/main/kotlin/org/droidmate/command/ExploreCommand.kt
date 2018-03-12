@@ -61,22 +61,24 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
     @JvmStatic
     protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
 
-    fun build(cfg: Configuration,
-              strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
-              timeProvider: ITimeProvider = TimeProvider(),
-              deviceTools: IDeviceTools = DeviceTools(cfg),
-              reportCreators: List<Reporter> = defaultReportWatcher(cfg)): ExploreCommand {
-      val apksProvider = ApksProvider(deviceTools.aapt)
+      @JvmOverloads
+      fun build(cfg: Configuration,
+                strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
+                timeProvider: ITimeProvider = TimeProvider(),
+                deviceTools: IDeviceTools = DeviceTools(cfg),
+                reportCreators: List<Reporter> = defaultReportWatcher(cfg)): ExploreCommand {
+          val apksProvider = ApksProvider(deviceTools.aapt)
 
-      val storage2 = Storage2(cfg.droidmateOutputDirPath)
-      val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-      val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+          val storage2 = Storage2(cfg.droidmateOutputDirPath)
+          val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
+          val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
 
-      reportCreators.forEach { r -> command.registerReporter(r) }
+          reportCreators.forEach { r -> command.registerReporter(r) }
 
-      return command
-    }
-    fun defaultReportWatcher(cfg:Configuration): List<Reporter> =
+          return command
+      }
+
+      fun defaultReportWatcher(cfg:Configuration): List<Reporter> =
         listOf(AggregateStats(),Summary(),ApkViewsFile(),ApiCount(cfg.reportIncludePlots),ClickFrequency(cfg.reportIncludePlots)
             ,WidgetSeenClickedCount(cfg.reportIncludePlots),ApiActionTrace(),ActivitySeenSummary(),ActionTrace(),WidgetApiTrace())
   }

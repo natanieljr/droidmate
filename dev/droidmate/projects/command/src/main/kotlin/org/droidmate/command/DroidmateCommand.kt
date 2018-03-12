@@ -39,7 +39,7 @@ abstract class DroidmateCommand {
 
             return when {
                 report -> ReportCommand()
-                inline -> InlineCommand.build()
+                inline -> InlineCommand()
                 playback -> PlaybackCommand.build(cfg)
                 else -> ExploreCommand.build(cfg)
             }
