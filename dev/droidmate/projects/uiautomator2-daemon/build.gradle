@@ -21,7 +21,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'project-report'
 
 buildscript {
-  ext.kotlin_version = '1.2.21'
+  ext.kotlin_version = '1.2.30'
   repositories {
         google()
         jcenter()
