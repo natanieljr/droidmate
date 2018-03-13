@@ -33,6 +33,7 @@ import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.back.RandomBack
 import org.droidmate.exploration.strategy.reset.InitialReset
 import org.droidmate.exploration.strategy.reset.IntervalReset
 import org.droidmate.exploration.strategy.termination.ActionBasedTerminate
@@ -213,8 +214,8 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
         assertTrue(strategyPool.registerStrategy(IntervalReset(cfg.resetEveryNthExplorationForward)))
         assertFalse(strategyPool.registerStrategy(IntervalReset(cfg.resetEveryNthExplorationForward)))
 
-        assertTrue(strategyPool.registerStrategy(PressBack.build(0.10, cfg)))
-        assertFalse(strategyPool.registerStrategy(PressBack.build(0.10, cfg)))
+        assertTrue(strategyPool.registerStrategy(RandomBack(cfg)))
+        assertFalse(strategyPool.registerStrategy(RandomBack(cfg)))
 
         assertTrue(strategyPool.registerStrategy(AlwaysFirstWidget.build()))
         assertFalse(strategyPool.registerStrategy(AlwaysFirstWidget.build()))
@@ -272,7 +273,7 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
                 .apply { this.widgetContext = widgetContext }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 
-        val backStrategy = PressBack.build(0.1, cfg)
+        val backStrategy = RandomBack(cfg)
         backStrategy.initialize(explorationLog)
         record = MemoryRecord(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
                 .apply { this.widgetContext = widgetContext }
@@ -307,7 +308,7 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
 
         // First action is always reset
         val resetStrategy = InitialReset()
-        val backStrategy = PressBack.build(0.1, cfg)
+        val backStrategy = RandomBack(cfg)
         resetStrategy.initialize(explorationLog)
         widgetContext = explorationLog.getWidgetContext(EmptyGuiState())
         var record = MemoryRecord(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))

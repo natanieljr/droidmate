@@ -101,6 +101,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_monitorSocketTimeout = "-monitorSocketTimeout"
         const val pn_monitorUseLogcat = "-monitorUseLogcat"
         const val pn_pressBackProbability = "-pressBack"
+        const val pn_minimumActionsPerUIElementBack = "-minActionsPerUIElementBack"
         const val pn_randomSeed = "-randomSeed"
         const val pn_reportIncludePlots = "-reportIncludePlots"
         const val pn_reportInputDir = "-reportInputDir"
@@ -335,15 +336,21 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = [pn_uiautomatorDaemonWaitForWindowUpdateTimeout], arity = 1)
     public var uiautomatorDaemonWaitForWindowUpdateTimeout = 1200 // ms
 
-    @Parameter(names = [pn_uiautomatorDaemonTcpPort], description =
-    "TCP port used by DroidMate to communicate with the android (virtual) device.")
+    @Parameter(names = [pn_uiautomatorDaemonTcpPort],
+            description = "TCP port used by DroidMate to communicate with the android (virtual) device.")
     public var uiautomatorDaemonTcpPort = UiautomatorDaemonConstants.UIADAEMON_SERVER_PORT
 
-    @Parameter(names = [pn_useApkFixturesDir], arity = 1)
+    @Parameter(names = [pn_useApkFixturesDir],
+            arity = 1)
     public var useApkFixturesDir = false
 
-    @Parameter(names = [pn_pressBackProbability], description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy.")
+    @Parameter(names = [pn_pressBackProbability],
+            description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy.")
     public var pressBackProbability = 0.05
+
+    @Parameter(names = [pn_minimumActionsPerUIElementBack],
+            description = "Minimum number of click on all widgets on a screen not to explore it anymore.")
+    public var minimumActionsPerUIElementBack = 5
 
     @Parameter(names = [pn_report],
             description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data.")

@@ -28,6 +28,10 @@ import com.google.common.base.Ticker
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.strategy.back.AfterResetBack
+import org.droidmate.exploration.strategy.back.GUIFullyExploredBack
+import org.droidmate.exploration.strategy.back.NoLongerInAppBack
+import org.droidmate.exploration.strategy.back.RandomBack
 import org.droidmate.exploration.strategy.reset.AppCrashedReset
 import org.droidmate.exploration.strategy.reset.CannotExploreReset
 import org.droidmate.exploration.strategy.reset.InitialReset
@@ -54,7 +58,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
 
         private fun getTerminationStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-            val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+            val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
             if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0)
                 strategies.add(ActionBasedTerminate(cfg))
@@ -68,7 +72,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         }
 
         private fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-            val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+            val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
             strategies.add(InitialReset())
             strategies.add(AppCrashedReset())
@@ -77,6 +81,21 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             // Interval reset
             if (cfg.resetEveryNthExplorationForward > 0)
                 strategies.add(IntervalReset(cfg.resetEveryNthExplorationForward))
+
+            return strategies
+        }
+
+        private fun getBackStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
+            val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
+
+            strategies.add(AfterResetBack())
+            strategies.add(NoLongerInAppBack())
+            strategies.add(GUIFullyExploredBack(cfg.minimumActionsPerUIElementBack))
+
+            // Randomly press back
+            if (cfg.pressBackProbability > 0.0)
+                strategies.add(RandomBack(cfg))
+
             return strategies
         }
 
@@ -87,10 +106,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             // Default strategies
             strategies.addAll(getTerminationStrategies(cfg))
             strategies.addAll(getResetStrategies(cfg))
-
-            // Press back
-            if (cfg.pressBackProbability > 0.0)
-                strategies.add(PressBack.build(cfg.pressBackProbability, cfg))
+            strategies.addAll(getBackStrategies(cfg))
 
             // Random exploration
             if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
