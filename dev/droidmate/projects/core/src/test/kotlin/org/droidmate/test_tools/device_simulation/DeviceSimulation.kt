@@ -40,7 +40,6 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
 
     private var lastAction: Action? = null
 
-
     constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
             this(GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
 
@@ -57,36 +56,34 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
     }
 
     override fun getAppIsRunning(): Boolean {
-        if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackage))
-            return false
-
-        if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
+        return if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackage))
+            false
+        else if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
             assert(this.lastAction !is SimulationAdbClearPackage)
-            return true
-        }
-
-        return false
+            true
+        } else
+            false
     }
 
     override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot {
-        if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackage))
-            return this.initialScreen.getGuiSnapshot()
-
-        return this.getCurrentScreen().getGuiSnapshot()
+        return if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackage))
+            this.initialScreen.getGuiSnapshot()
+        else
+            this.getCurrentScreen().getGuiSnapshot()
     }
 
     override fun getCurrentLogs(): List<ITimeFormattedLogcatMessage> {
-        if (this.currentTransitionResult == null)
-            return ArrayList()
-
-        return this.currentTransitionResult!!.logs
+        return if (this.currentTransitionResult == null)
+            ArrayList()
+        else
+            this.currentTransitionResult!!.logs
     }
 
     private fun getCurrentScreen(): IGuiScreen {
-        if (currentTransitionResult == null)
-            return this.initialScreen
+        return if (currentTransitionResult == null)
+            this.initialScreen
         else
-            return this.currentTransitionResult!!.screen
+            this.currentTransitionResult!!.screen
     }
 
     override fun assertEqual(other: IDeviceSimulation) {
