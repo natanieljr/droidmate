@@ -64,11 +64,11 @@ class GuiScreen constructor(private val internalId: String,
                 idChrome to "com.android.chrome")
 
         fun getSingleMatchingWidget(action: ClickAction, widgets: List<IWidget>): IWidget {
-            return widgets.find { w->w.xpath==action.xPath }!!
+            return widgets.find { w -> w.xpath == action.xPath }!!
         }
 
         fun getSingleMatchingWidget(action: CoordinateClickAction, widgets: List<IWidget>): IWidget {
-            return widgets.find { w->w.bounds.contains(action.x, action.y) }!!
+            return widgets.find { w -> w.bounds.contains(action.x, action.y) }!!
         }
 
     }
@@ -99,7 +99,7 @@ class GuiScreen constructor(private val internalId: String,
     override fun perform(action: Action): IScreenTransitionResult {
         assert(finishedBuilding)
         return when (action) {
-            // TODO review
+        // TODO review
             is SimulationAdbClearPackage -> internalPerform(action)
             is LaunchApp -> internalPerform(action)
             is ClickAction -> internalPerform(action)

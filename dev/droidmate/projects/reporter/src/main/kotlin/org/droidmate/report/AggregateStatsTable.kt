@@ -30,7 +30,7 @@ import org.droidmate.report.misc.*
 
 class AggregateStatsTable private constructor(val table: Table<Int, String, String>) : Table<Int, String, String> by table {
 
-  constructor(data: List<IExplorationLog>) : this(AggregateStatsTable.build(data))
+    constructor(data: List<IExplorationLog>) : this(AggregateStatsTable.build(data))
   
   companion object {
     val headerApkName = "file_name"
@@ -44,7 +44,7 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
     val headerEventApiPairsSeenCount = "unique_event_api_pairs"
     val headerException = "exception"
 
-    fun build(data: List<IExplorationLog>): Table<Int, String, String> {
+      fun build(data: List<IExplorationLog>): Table<Int, String, String> {
 
       return buildTable(
               headers = listOf(

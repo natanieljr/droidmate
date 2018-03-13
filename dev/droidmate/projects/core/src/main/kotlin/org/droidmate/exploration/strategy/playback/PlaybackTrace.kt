@@ -42,7 +42,8 @@ class PlaybackTrace : Serializable {
         }
 
         companion object {
-            @JvmStatic private val serialVersionUID = 1
+            @JvmStatic
+            private val serialVersionUID = 1
         }
     }
 
@@ -134,6 +135,7 @@ class PlaybackTrace : Serializable {
     }
 
     companion object {
-        @JvmStatic private val serialVersionUID = 1
+        @JvmStatic
+        private val serialVersionUID = 1
     }
 }

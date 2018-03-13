@@ -56,16 +56,16 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
         for (i in 0..(wekaInstances.numInstances() - 1)) {
             val instance = wekaInstances.instance(i)
             try {
-                    // Get probability distribution of the prediction ( [false, true] )
-                    val predictionProbabilities = classifier.distributionForInstance(instance)
-                    // Probability of having event
-                    val probabilityTrue = predictionProbabilities[1]
+                // Get probability distribution of the prediction ( [false, true] )
+                val predictionProbabilities = classifier.distributionForInstance(instance)
+                // Probability of having event
+                val probabilityTrue = predictionProbabilities[1]
 
-                    val equivWidget = actionableWidgets[i]
-                    equivWidget.probabilityHaveEvent = probabilityTrue//Math.pow(probabilityTrue, 2.0)
+                val equivWidget = actionableWidgets[i]
+                equivWidget.probabilityHaveEvent = probabilityTrue//Math.pow(probabilityTrue, 2.0)
 
-                    if (equivWidget.actedUponCount == 0)
-                        equivWidget.probabilityHaveEvent = 2 * equivWidget.probabilityHaveEvent
+                if (equivWidget.actedUponCount == 0)
+                    equivWidget.probabilityHaveEvent = 2 * equivWidget.probabilityHaveEvent
 
                 candidates.add(equivWidget)
 
@@ -116,13 +116,13 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
         val n = weight.size
         val counter = IntArray(n)
 
-        for(i in 0 until n_select){
+        for (i in 0 until n_select) {
             val index = rouletteSelect(weight)
             counter[index]++
         }
 
         // If there is an error, we return the last item's index
-        return indexOfMax(counter) ?: weight.size - 1
+        return indexOfMax(counter) ?: weight.size-1
     }
 
     private fun indexOfMax(a: IntArray): Int? {

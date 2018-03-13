@@ -33,7 +33,7 @@ import org.droidmate.report.misc.itemsAtTimes
 
 class ApiCountTable : CountsPartitionedByTimeTable {
 
-  constructor(data: IExplorationLog) : super(
+    constructor(data: IExplorationLog) : super(
           data.getExplorationTimeInMs(),
     listOf(
             headerTime,
@@ -52,9 +52,9 @@ class ApiCountTable : CountsPartitionedByTimeTable {
     val headerApisSeen = "Apis_seen"
     val headerApiEventsSeen = "Api+Event_pairs_seen"
 
-    private val IExplorationLog.uniqueApisCountByTime: Map<Long, Iterable<String>>
-      get() {
-          return this.logRecords.itemsAtTimes(
+      private val IExplorationLog.uniqueApisCountByTime: Map<Long, Iterable<String>>
+          get() {
+              return this.logRecords.itemsAtTimes(
                 extractItems = { it.getResult().deviceLogs.apiLogs },
         startTime = this.explorationStartTime,
         extractTime = { it.time }
@@ -64,11 +64,11 @@ class ApiCountTable : CountsPartitionedByTimeTable {
       }
     }
 
-    private val IExplorationLog.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
-      get() {
+      private val IExplorationLog.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
+          get() {
 
-          return this.logRecords.itemsAtTimes(
-                  extractItems = ExplorationRecord::extractEventApiPairs,
+              return this.logRecords.itemsAtTimes(
+                      extractItems = ExplorationRecord::extractEventApiPairs,
         startTime = this.explorationStartTime,
         extractTime = EventApiPair::time
       ).mapValues {

@@ -64,6 +64,6 @@ val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
                     .apply { exception = output.exception }
         }
 
-    return this.map { filterApiLogs(it) }
-}
+        return this.map { filterApiLogs(it) }
+    }
 

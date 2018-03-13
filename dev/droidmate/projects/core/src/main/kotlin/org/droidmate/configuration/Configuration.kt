@@ -355,6 +355,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
     public var shuffleApks = false
 
     @Parameter(names = [pn_takeScreenshots],
+            arity = 1,
             description = "Take screenshot after each exploration action.")
     public var takeScreenshots = true
 
@@ -383,8 +384,8 @@ class Configuration(val args: Array<String>) : IConfiguration {
             listConverter = ListOfStringsConverter::class,
             description = "Determines which exploration strategies will be used. The format is: [<first strategy name>,<second strategy name>,...<nth strategy name>], example: [RandomWidget,PressBack,ModelBased]. Reset and Terminate are compulsory included.")
     public var explorationStrategies: List<String> = listOf(StrategyTypes.AllowRuntimePermission,
-        StrategyTypes.PressBack,
-        StrategyTypes.RandomWidget).map { it.strategyName }
+            StrategyTypes.PressBack,
+            StrategyTypes.RandomWidget).map { it.strategyName }
 
     private val basePort = 59701
 

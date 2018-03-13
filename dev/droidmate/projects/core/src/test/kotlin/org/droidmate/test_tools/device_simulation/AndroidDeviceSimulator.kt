@@ -133,14 +133,17 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
 
         when (action) {
             is LaunchApp -> assert(false, { "call .launchMainActivity() directly instead" })
-            is ClickAction-> updateSimulatorState(action)
+            is ClickAction -> updateSimulatorState(action)
             is CoordinateClickAction -> updateSimulatorState(action)
             is LongClickAction -> updateSimulatorState(action)
             is CoordinateLongClickAction -> updateSimulatorState(action)
             is SimulationAdbClearPackage -> assert(false, { "call .clearPackage() directly instead" })
-            is EnableWifi -> { /* do nothing */}
-            is PressHome -> { /* do nothing */}
-            is PressBack -> { /* do nothing */}
+            is EnableWifi -> { /* do nothing */
+            }
+            is PressHome -> { /* do nothing */
+            }
+            is PressBack -> { /* do nothing */
+            }
             else -> throw UnexpectedIfElseFallthroughError()
         }
     }

@@ -67,8 +67,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 
         private fun getStrategy(explorationLog: IExplorationLog,
                                 actionsLimit: Int = Configuration.defaultActionsLimit,
-                                resetEveryNthExplorationForward: Int = Configuration.defaultResetEveryNthExplorationForward): IExplorationStrategy
-                = ExplorationStrategyTestHelper.buildStrategy(explorationLog, actionsLimit, resetEveryNthExplorationForward)
+                                resetEveryNthExplorationForward: Int = Configuration.defaultResetEveryNthExplorationForward): IExplorationStrategy = ExplorationStrategyTestHelper.buildStrategy(explorationLog, actionsLimit, resetEveryNthExplorationForward)
 
         /** After this method call the strategy should go from "before the first decision" to
          * "after the first decision, in the main decision loop" mode.
@@ -99,7 +98,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
         }
 
         @JvmStatic
-        private fun memoryRecordFromAction(action: ExplorationAction, guiState: IGuiState): IMemoryRecord{
+        private fun memoryRecordFromAction(action: ExplorationAction, guiState: IGuiState): IMemoryRecord {
             return MemoryRecord(action, LocalDateTime.now(), LocalDateTime.now()).apply {
                 widgetContext = WidgetContext(guiState.widgets.map { WidgetInfo.from(it) }, guiState, guiState.topNodePackageName)
             }

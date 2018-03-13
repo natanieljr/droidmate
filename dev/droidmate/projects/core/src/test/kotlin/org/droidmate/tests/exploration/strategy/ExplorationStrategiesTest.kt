@@ -60,7 +60,7 @@ import java.time.LocalDateTime
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class ExplorationStrategiesTest: DroidmateTestCase() {
+class ExplorationStrategiesTest : DroidmateTestCase() {
     @Test
     fun strategySelectionTest() {
         // Initialization
@@ -227,9 +227,9 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
     fun strategyComparisonTest() {
         // Initialization
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
-        val terminateStrategy : ISelectableExplorationStrategy = ActionBasedTerminate(cfg)
-        val randomStrategy : ISelectableExplorationStrategy = RandomWidget.build(cfg)
-        val resetStrategy : ISelectableExplorationStrategy = IntervalReset(0)
+        val terminateStrategy: ISelectableExplorationStrategy = ActionBasedTerminate(cfg)
+        val randomStrategy: ISelectableExplorationStrategy = RandomWidget.build(cfg)
+        val resetStrategy: ISelectableExplorationStrategy = IntervalReset(0)
 
         // Not equal (instanceOf check)
         assertFalse(terminateStrategy == randomStrategy)
