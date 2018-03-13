@@ -51,18 +51,7 @@ abstract class Reset : AbstractStrategy() {
         return this.javaClass.toString()
     }
 
-    override fun hashCode(): Int {
-        return this.javaClass.hashCode()
-    }
-
     override fun start() {
         // Nothing to do here.
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        if (!super.equals(other)) return false
-        return true
     }
 }

@@ -123,13 +123,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
         // By default does nothing
     }
 
-
     override fun equals(other: Any?): Boolean {
-        throw UnsupportedOperationException()
+        return (other != null) && this.javaClass == other.javaClass
     }
 
     override fun hashCode(): Int {
-        throw UnsupportedOperationException(this.javaClass.toString())
+        return this.javaClass.hashCode()
     }
 
     /**

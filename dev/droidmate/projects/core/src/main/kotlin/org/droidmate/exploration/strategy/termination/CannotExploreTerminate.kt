@@ -72,12 +72,4 @@ class CannotExploreTerminate : Terminate() {
         } else
             throw UnexpectedIfElseFallthroughError()
     }
-
-    override fun equals(other: Any?): Boolean {
-        return other is CannotExploreTerminate
-    }
-
-    override fun hashCode(): Int {
-        return this.javaClass.hashCode()
-    }
 }

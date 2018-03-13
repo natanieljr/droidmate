@@ -69,13 +69,4 @@ abstract class Terminate : AbstractStrategy() {
     abstract fun getLogMessage(): String
     abstract fun met(widgetContext: WidgetContext): Boolean
     abstract fun metReason(widgetContext: WidgetContext): String
-
-    /*companion object {
-        /**
-         * Creates a new exploration strategy instance
-         */
-        fun build(terminationCriterion: ITerminationCriterion): ISelectableExplorationStrategy {
-            return Terminate(terminationCriterion)
-        }
-    }*/
 }

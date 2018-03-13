@@ -42,8 +42,4 @@ class AppCrashedReset : Reset() {
         // Any other action
         return StrategyPriority.NONE
     }
-
-    override fun equals(other: Any?): Boolean {
-        return other is AppCrashedReset
-    }
 }
