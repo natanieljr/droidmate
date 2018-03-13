@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,15 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.device.datatypes.AdbClearPackageAction
-import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.uiautomator_daemon.guimodel.SimulationAdbClearPackage
 
 class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder,
                                            override val packageName: String): IDeviceSimulation {
@@ -32,30 +38,30 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
 
     private var currentTransitionResult: IScreenTransitionResult? = null
 
-    private var lastAction: IAndroidDeviceAction? = null
+    private var lastAction: Action? = null
 
 
     constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
             this(GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
 
-    constructor(out: IApkExplorationOutput2) :
+    constructor(out: IExplorationLog) :
             this(GuiScreensBuilderFromApkExplorationOutput2(out), out.packageName)
 
     init {
         this.initialScreen = guiScreens.single { it.getId() == GuiScreen.idHome }
     }
 
-    override fun updateState(deviceAction: IAndroidDeviceAction) {
+    override fun updateState(deviceAction: Action) {
         this.currentTransitionResult = this.getCurrentScreen().perform(deviceAction)
         this.lastAction = deviceAction
     }
 
     override fun getAppIsRunning(): Boolean {
-        if ((this.lastAction == null) || (this.lastAction is AdbClearPackageAction))
+        if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackage))
             return false
 
         if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
-            assert(this.lastAction !is AdbClearPackageAction)
+            assert(this.lastAction !is SimulationAdbClearPackage)
             return true
         }
 
@@ -63,7 +69,7 @@ class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder
     }
 
     override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot {
-        if (this.currentTransitionResult == null)
+        if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackage))
             return this.initialScreen.getGuiSnapshot()
 
         return this.getCurrentScreen().getGuiSnapshot()

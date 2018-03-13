@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newClickGuiDeviceAction
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.uiautomator_daemon.guimodel.ClickAction
+import org.droidmate.uiautomator_daemon.guimodel.CoordinateClickAction
+import org.droidmate.uiautomator_daemon.guimodel.CoordinateLongClickAction
+import org.droidmate.uiautomator_daemon.guimodel.LongClickAction
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -40,13 +50,25 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
 
         val action = base as WidgetExplorationAction
         log.debug("2. Perform widget click: $action.")
+
+        val x = action.widget.bounds.centerX.toInt()
+        val y = action.widget.bounds.centerY.toInt()
         try {
-            device.perform(newClickGuiDeviceAction(action.widget, action.longClick, action.useCoordinates))
+            when {
+                action.useCoordinates && !action.longClick -> device.perform(CoordinateClickAction(x, y))
+                action.useCoordinates && action.longClick -> device.perform(CoordinateLongClickAction(x, y))
+                !action.useCoordinates && !action.longClick -> device.perform(ClickAction(action.widget.xpath, action.widget.resourceId))
+                !action.useCoordinates && action.longClick -> device.perform(LongClickAction(action.widget.xpath, action.widget.resourceId))
+                else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
+            }
         } catch (e: Exception) {
             if (!action.useCoordinates) {
                 log.warn("2.1. Failed to click using XPath and resourceID, attempting restart UIAutomatorDaemon and to click coordinates: $action.")
-                device.restartUiaDaemon(false);
-                device.perform(newClickGuiDeviceAction(action.widget, action.longClick, useCoordinates = true))
+                device.restartUiaDaemon(false)
+                when {
+                    !action.longClick -> device.perform(CoordinateClickAction(x, y))
+                    action.longClick -> device.perform(CoordinateLongClickAction(x, y))
+                }
             }
         }
 
@@ -65,6 +87,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
 
         log.debug("4. Get GUI snapshot.")
         this.snapshot = device.getGuiSnapshot()
+        //TODO take screenshot before and after dump to ensure they are matching, if not equal => take another device GuiSnapshot
     }
 }
 

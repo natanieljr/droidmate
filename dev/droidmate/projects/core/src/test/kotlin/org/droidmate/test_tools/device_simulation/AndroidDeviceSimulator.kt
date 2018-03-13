@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.test_tools.device_simulation
@@ -22,13 +28,13 @@ package org.droidmate.test_tools.device_simulation
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.IAndroidDevice
-import org.droidmate.device.datatypes.*
+import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.test_tools.ApkFixtures
 import org.droidmate.test_tools.exceptions.IExceptionSpec
 import org.droidmate.test_tools.exceptions.TestDeviceException
+import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
-
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
@@ -120,20 +126,26 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
         return outSnapshot
     }
 
-    override fun perform(action: IAndroidDeviceAction) {
+    override fun perform(action: Action) {
         log.debug("perform($action)")
 
         findMatchingExceptionSpecAndThrowIfApplies("perform", this.getCurrentlyDeployedPackageName())
 
         when (action) {
-            is LaunchMainActivityDeviceAction -> assert(false, { "call .launchMainActivity() directly instead" })
-            is ClickGuiAction -> updateSimulatorState(action)
-            is AdbClearPackageAction -> assert(false, { "call .clearPackage() directly instead" })
+            is LaunchApp -> assert(false, { "call .launchMainActivity() directly instead" })
+            is ClickAction-> updateSimulatorState(action)
+            is CoordinateClickAction -> updateSimulatorState(action)
+            is LongClickAction -> updateSimulatorState(action)
+            is CoordinateLongClickAction -> updateSimulatorState(action)
+            is SimulationAdbClearPackage -> assert(false, { "call .clearPackage() directly instead" })
+            is EnableWifi -> { /* do nothing */}
+            is PressHome -> { /* do nothing */}
+            is PressBack -> { /* do nothing */}
             else -> throw UnexpectedIfElseFallthroughError()
         }
     }
 
-    private fun updateSimulatorState(action: IAndroidDeviceAction) {
+    private fun updateSimulatorState(action: Action) {
         //if (action is WidgetExplorationAction)
         //  println("action widget id: ${(action as WidgetExplorationAction).widget.id}")
 
@@ -165,7 +177,7 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
     override fun anyMonitorIsReachable(): Boolean = this.currentSimulation!!.getAppIsRunning()
 
     override fun launchMainActivity(launchableActivityComponentName: String) {
-        updateSimulatorState(LaunchMainActivityDeviceAction(launchableActivityComponentName))
+        updateSimulatorState(LaunchApp(launchableActivityComponentName))
     }
 
     override fun appIsRunning(appPackageName: String): Boolean = this.appProcessIsRunning(appPackageName)
@@ -206,7 +218,7 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
     }
 
     override fun clearPackage(apkPackageName: String) {
-        updateSimulatorState(AdbClearPackageAction(apkPackageName))
+        updateSimulatorState(SimulationAdbClearPackage(apkPackageName))
     }
 
     override fun reboot() {

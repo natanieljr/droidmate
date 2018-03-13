@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,36 +14,50 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-class EmptyGuiState(private val packageName: String) : IGuiState {
+class EmptyGuiState : IGuiState {
     override val topNodePackageName: String
-        get() = packageName
-    override val widgets: List<IWidget>
-        get() = ArrayList()
+        get() = this.javaClass.name
+
     override val id: String
         get() = "EMPTY"
-    override val androidLauncherPackageName: String
-        get() = "EMPTY"
 
-    override fun getActionableWidgets(): List<IWidget> = ArrayList()
-
-    override val isHomeScreen: Boolean
-        get() = false
-    override val isAppHasStoppedDialogBox: Boolean
-        get() = false
-    override val isRequestRuntimePermissionDialogBox: Boolean
-        get() = false
     override val isCompleteActionUsingDialogBox: Boolean
         get() = false
-    override val isSelectAHomeAppDialogBox: Boolean
-        get() = false
+
     override val isUseLauncherAsHomeDialogBox: Boolean
         get() = false
 
-    override fun belongsToApp(appPackageName: String): Boolean = false
+    override val isHomeScreen: Boolean
+        get() = true
+
+    override val widgets: List<IWidget>
+        get() = ArrayList()
+
+    override val isAppHasStoppedDialogBox: Boolean
+        get() = false
+
+    override fun getActionableWidgets(): MutableList<IWidget> = ArrayList()
 
     override fun debugWidgets(): String = ""
+
+    override fun belongsToApp(appPackageName: String): Boolean = false
+
+    override val isRequestRuntimePermissionDialogBox: Boolean
+        get() = false
+
+    override val isSelectAHomeAppDialogBox: Boolean
+        get() = false
+
+    override val androidLauncherPackageName: String
+        get() = this.javaClass.name
 }

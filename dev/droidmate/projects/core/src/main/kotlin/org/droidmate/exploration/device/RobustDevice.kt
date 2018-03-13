@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.exploration.device
 
@@ -27,13 +33,13 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
-import org.droidmate.device.datatypes.AndroidDeviceAction
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newPressHomeDeviceAction
 import org.droidmate.device.datatypes.AppHasStoppedDialogBoxGuiState
-import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
+import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.uiautomator_daemon.guimodel.ClickAction
+import org.droidmate.uiautomator_daemon.guimodel.PressHome
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
@@ -215,7 +221,7 @@ class RobustDevice : IRobustDevice {
                     guiSnapshot.guiState.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
                     guiSnapshot.guiState.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
                     else -> {
-                        device.perform(newPressHomeDeviceAction())
+                        device.perform(PressHome())
                         this.getGuiSnapshot()
                     }
                 }
@@ -236,15 +242,13 @@ class RobustDevice : IRobustDevice {
     }
 
     private fun closeSelectAHomeAppDialogBox(snapshot: IDeviceGuiSnapshot): IDeviceGuiSnapshot {
-        device.perform(AndroidDeviceAction.newClickGuiDeviceAction(
-                snapshot.guiState.widgets.single { it.text == "Launcher" })
-        )
+        val launcherWidget = snapshot.guiState.widgets.single { it.text == "Launcher" }
+        device.perform(ClickAction(launcherWidget.xpath, launcherWidget.resourceId))
 
         var guiSnapshot = this.getGuiSnapshot()
         if (guiSnapshot.guiState.isSelectAHomeAppDialogBox) {
-            device.perform(AndroidDeviceAction.newClickGuiDeviceAction(
-                    guiSnapshot.guiState.widgets.single({ it.text == "Just once" }))
-            )
+            val justOnceWidget = guiSnapshot.guiState.widgets.single { it.text == "Just once" }
+            device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
             guiSnapshot = this.getGuiSnapshot()
         }
         assert(!guiSnapshot.guiState.isSelectAHomeAppDialogBox)
@@ -253,16 +257,15 @@ class RobustDevice : IRobustDevice {
     }
 
     private fun closeUseLauncherAsHomeDialogBox(snapshot: IDeviceGuiSnapshot): IDeviceGuiSnapshot {
-        device.perform(AndroidDeviceAction.newClickGuiDeviceAction(
-                snapshot.guiState.widgets.single({ it.text == "Just once" }))
-        )
+        val justOnceWidget = snapshot.guiState.widgets.single { it.text == "Just once" }
+        device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
 
         val guiSnapshot = this.getGuiSnapshot()
         assert(!guiSnapshot.guiState.isUseLauncherAsHomeDialogBox)
         return guiSnapshot
     }
 
-    override fun perform(action: IAndroidDeviceAction) {
+    override fun perform(action: Action) {
         rebootIfNecessary("device.perform(action:$action)", false) { this.device.perform(action) }
     }
 
@@ -347,9 +350,8 @@ class RobustDevice : IRobustDevice {
 
         Utils.retryOnFalse({
 
-            device.perform(AndroidDeviceAction.newClickGuiDeviceAction(
-                    (guiSnapshot.guiState as AppHasStoppedDialogBoxGuiState).okWidget)
-            )
+            val okWidget = (guiSnapshot.guiState as AppHasStoppedDialogBoxGuiState).okWidget
+            device.perform(ClickAction(okWidget.xpath, okWidget.resourceId))
             out = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 
             if (out!!.guiState.isAppHasStoppedDialogBox) {

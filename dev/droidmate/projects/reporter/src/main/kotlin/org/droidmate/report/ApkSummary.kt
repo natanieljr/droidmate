@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report
 
@@ -23,16 +29,20 @@ import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.actions.ExplorationRecord
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.logging.LogbackConstants
+import org.droidmate.misc.minutesAndSeconds
+import org.droidmate.misc.replaceVariable
+import org.droidmate.report.misc.extractEventApiPairs
+import org.droidmate.report.misc.resetActionsCount
 import java.time.Duration
 
-class ApkSummary() {
+class ApkSummary {
 
   companion object {
 
-    fun build(data: IApkExplorationOutput2): String {
+    fun build(data: IExplorationLog): String {
       return build(Payload(data))
     }
 
@@ -55,7 +65,7 @@ class ApkSummary() {
       // @formatter:on
     }
 
-    val template: String by lazy {
+    private val template: String by lazy {
       Resource("apk_exploration_summary_template.txt").text
     }
 
@@ -85,20 +95,20 @@ class ApkSummary() {
     val apiEventEntries: List<ApiEventEntry>
   ) {
 
-    constructor(data: IApkExplorationOutput2) : this(
+    constructor(data: IExplorationLog) : this(
       data,
       data.uniqueApiLogsWithFirstTriggeringActionIndex,
       data.uniqueEventApiPairsWithFirstTriggeringActionIndex
     )
 
     private constructor(
-            data: IApkExplorationOutput2,
+            data: IExplorationLog,
             uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
             uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
     ) : this(
       appPackageName = data.packageName,
             totalRunTime = data.getExplorationDuration(),
-            totalActionsCount = data.actRes.size,
+            totalActionsCount = data.logRecords.size,
       totalResetsCount = data.resetActionsCount,
       exception = data.exception,
       uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
@@ -128,17 +138,19 @@ class ApkSummary() {
     )
 
     companion object {
-      val IApkExplorationOutput2.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int> get() {
-          return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
+      val IExplorationLog.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
+        get() {
+            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
                   extractItems = { it.getResult().deviceLogs.apiLogs },
           extractUniqueString = { it.uniqueString }
         )
       }
 
-      val IApkExplorationOutput2.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int> get() {
+      val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
+        get() {
 
-          return this.actRes.uniqueItemsWithFirstOccurrenceIndex(
-          extractItems = RunnableExplorationActionWithResult::extractEventApiPairs,
+            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
+                    extractItems = ExplorationRecord::extractEventApiPairs,
           extractUniqueString = EventApiPair::uniqueString
         )
       }
@@ -148,8 +160,8 @@ class ApkSummary() {
 
   data class ApiEntry(val time: Duration, val actionIndex: Int, val threadId: Int, val apiSignature: String) {
     companion object {
-      private val actionIndexPad: Int = 7
-      private val threadIdPad: Int = 7
+      private const val actionIndexPad: Int = 7
+      private const val threadIdPad: Int = 7
     }
 
     override fun toString(): String {
@@ -159,11 +171,11 @@ class ApkSummary() {
     }
   }
 
-  data class ApiEventEntry(val apiEntry: ApiEntry, val event: String) {
+  data class ApiEventEntry(private val apiEntry: ApiEntry, val event: String) {
     companion object {
-      private val actionIndexPad: Int = 7
-      private val threadIdPad: Int = 7
-      private val eventPadEnd: Int = 69
+      private const val actionIndexPad: Int = 7
+      private const val threadIdPad: Int = 7
+      private const val eventPadEnd: Int = 69
     }
 
     override fun toString(): String {

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,27 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report
 
 import com.konradjamrozik.Resource
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.extractedText
 import java.nio.file.Files
 import java.nio.file.Path
 
-class Summary(val data: List<IApkExplorationOutput2>, file: Path): DataFile(file) {
+class Summary @JvmOverloads constructor(val fileName: String = "summary.txt") : Reporter() {
 
-  override fun writeOut() {
-    Files.write(file, summaryString.toByteArray())
-  }
+    override fun safeWrite(reportDir: Path, rawData: List<IExplorationLog>) {
+        val file = reportDir.resolve(this.fileName)
 
-    private val summaryString: String by lazy {
-    if (data.isEmpty())
-      "Exploration output was empty (no apks), so this summary is empty."
-    else
-      Resource("apk_exploration_summary_header.txt").extractedText + data.joinToString(separator = System.lineSeparator()) { it -> ApkSummary.build(it) }
-  }
+        val reportData = if (rawData.isEmpty())
+            "Exploration output was empty (no apks), so this summary is empty."
+        else
+            Resource("apk_exploration_summary_header.txt").extractedText +
+                    rawData.joinToString(separator = System.lineSeparator()) { it ->
+                        ApkSummary.build(it)
+                    }
 
+        Files.write(file, reportData.toByteArray())
+    }
 }

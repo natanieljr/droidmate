@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.storage
 
-import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.ExplorationLog
 import java.nio.file.Path
 
 /**
@@ -28,11 +34,11 @@ import java.nio.file.Path
 public interface IStorage2 {
     fun delete(deletionTargetNameSuffix: String)
 
-    fun serializeToFile(obj: ApkExplorationOutput2, file: Path)
+    fun serializeToFile(obj: ExplorationLog, file: Path)
 
     fun getSerializedRuns2(): Collection<Path>
 
-    fun deserialize(serPath: Path): ApkExplorationOutput2
+    fun deserialize(serPath: Path): ExplorationLog
 
-    fun serialize(obj: ApkExplorationOutput2, namePart: String)
+    fun serialize(obj: ExplorationLog, namePart: String)
 }

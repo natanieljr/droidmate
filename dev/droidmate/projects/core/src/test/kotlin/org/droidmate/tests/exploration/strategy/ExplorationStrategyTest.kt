@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.tests.exploration.strategy
@@ -22,14 +28,13 @@ package org.droidmate.tests.exploration.strategy
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.IGuiState
 import org.droidmate.device.datatypes.IWidget
-import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newResetAppExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
-import org.droidmate.exploration.actions.IExplorationActionRunResult
-import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.strategy.IExplorationStrategy
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.strategy.*
 import org.droidmate.test_tools.ApkFixtures
 import org.droidmate.test_tools.DroidmateTestCase
 import org.droidmate.test_tools.device.datatypes.GuiStateTestHelper.Companion.newAppHasStoppedGuiState
@@ -47,6 +52,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
+import java.time.LocalDateTime
 
 /**
  * Untested behavior:
@@ -59,145 +65,229 @@ import org.junit.runners.MethodSorters
 class ExplorationStrategyTest : DroidmateTestCase() {
     companion object {
 
-        private fun getStrategy(actionsLimit: Int = Configuration.defaultActionsLimit,
+        private fun getStrategy(explorationLog: IExplorationLog,
+                                actionsLimit: Int = Configuration.defaultActionsLimit,
                                 resetEveryNthExplorationForward: Int = Configuration.defaultResetEveryNthExplorationForward): IExplorationStrategy
-                = ExplorationStrategyTestHelper.buildStrategy(actionsLimit, resetEveryNthExplorationForward)
+                = ExplorationStrategyTestHelper.buildStrategy(explorationLog, actionsLimit, resetEveryNthExplorationForward)
 
         /** After this method call the strategy should go from "before the first decision" to
          * "after the first decision, in the main decision loop" mode.
          * */
         @JvmStatic
-        private fun makeIntoNormalExplorationMode(strategy: IExplorationStrategy): ExplorationAction
-                = strategy.decide(newResultFromGuiState(newGuiStateWithWidgets(1)))
+        private fun makeIntoNormalExplorationMode(strategy: IExplorationStrategy, explorationLog: IExplorationLog): IMemoryRecord {
+            val guiState = newGuiStateWithWidgets(1)
+            val action = strategy.decide(newResultFromGuiState(guiState))
+            assert(action is ResetAppExplorationAction)
+
+            val ctx = explorationLog.getWidgetContext(guiState)
+            val record = MemoryRecord(action, LocalDateTime.now(), LocalDateTime.now())
+                    .apply { this.widgetContext = ctx }
+            val runnable = RunnableResetAppExplorationAction(action as ResetAppExplorationAction, LocalDateTime.now(), false)
+            explorationLog.add(runnable, record)
+            strategy.update(record)
+
+            return record
+        }
 
         @JvmStatic
-        private fun newResultFromGuiState(guiState: IGuiState): IExplorationActionRunResult {
+        private fun newResultFromGuiState(guiState: IGuiState): IMemoryRecord {
             val builder = ExplorationOutput2Builder()
             return builder.buildActionResult(mapOf("guiSnapshot" to UiautomatorWindowDumpTestHelper.fromGuiState(guiState),
-                    "packageName" to ApkFixtures.apkFixture_simple_packageName))
+                    "packageName" to ApkFixtures.apkFixture_simple_packageName)).apply {
+                widgetContext = WidgetContext(guiState.widgets.map { WidgetInfo.from(it) }, guiState, guiState.topNodePackageName)
+            }
         }
 
         @JvmStatic
-        private fun verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy: IExplorationStrategy, gs: IGuiState, w: IWidget? = null) {
+        private fun memoryRecordFromAction(action: ExplorationAction, guiState: IGuiState): IMemoryRecord{
+            return MemoryRecord(action, LocalDateTime.now(), LocalDateTime.now()).apply {
+                widgetContext = WidgetContext(guiState.widgets.map { WidgetInfo.from(it) }, guiState, guiState.topNodePackageName)
+            }
+        }
+
+        @JvmStatic
+        private fun verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy: IExplorationStrategy, explorationLog: IExplorationLog, gs: IGuiState, w: IWidget? = null) {
+            val action = strategy.decide(newResultFromGuiState(newGuiStateWithWidgets(1)))
+            val record = memoryRecordFromAction(action, gs)
+            assert(action is WidgetExplorationAction)
+
+            val runnable = RunnableWidgetExplorationAction(action as WidgetExplorationAction, LocalDateTime.now(), false)
+            explorationLog.add(runnable, record)
+            strategy.update(record)
+
             if (w == null)
-                assert(strategy.decide(newResultFromGuiState(gs)) is WidgetExplorationAction)
+                assert(true)
             else
-                assert(strategy.decide(newResultFromGuiState(gs)) == newWidgetExplorationAction(w, true))
+                assert(action == newWidgetExplorationAction(w, true))
         }
 
         @JvmStatic
-        private fun verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy: IExplorationStrategy, gs: IGuiState) {
-            assert(strategy.decide(newResultFromGuiState(gs)) == newTerminateExplorationAction())
+        private fun verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy: IExplorationStrategy, explorationLog: IExplorationLog, gs: IGuiState) {
+            val action = strategy.decide(newResultFromGuiState(gs))
+            val record = memoryRecordFromAction(action, gs)
+            assert(action is TerminateExplorationAction)
+
+            val runnable = RunnableTerminateExplorationAction(action as TerminateExplorationAction, LocalDateTime.now(), false)
+            explorationLog.add(runnable, record)
+            strategy.update(record)
+            assert(action == newTerminateExplorationAction())
         }
 
         @JvmStatic
-        private fun verifyProcessOnGuiStateReturnsResetExplorationAction(strategy: IExplorationStrategy, gs: IGuiState) {
+        private fun verifyProcessOnGuiStateReturnsResetExplorationAction(strategy: IExplorationStrategy, explorationLog: IExplorationLog, gs: IGuiState) {
             val guiStateResult = newResultFromGuiState(gs)
-            val chosenAction = strategy.decide(guiStateResult)
-            assert(chosenAction == newResetAppExplorationAction())
+            val action = strategy.decide(guiStateResult)
+            assert(action is ResetAppExplorationAction)
+
+            val record = memoryRecordFromAction(action, gs)
+            val runnable = RunnableResetAppExplorationAction(action as ResetAppExplorationAction, LocalDateTime.now(), false)
+            explorationLog.add(runnable, record)
+            strategy.update(record)
+            assert(action == newResetAppExplorationAction())
         }
 
-        @Suppress("unused")
-        private fun verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy: IExplorationStrategy, gs: IGuiState) {
-            assert(strategy.decide(newResultFromGuiState(gs)) == newPressBackExplorationAction())
-        }
+        @JvmStatic
+        private fun verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy: IExplorationStrategy, explorationLog: IExplorationLog, gs: IGuiState) {
+            val action = strategy.decide(newResultFromGuiState(gs))
+            assert(action is PressBackExplorationAction)
 
+            val record = memoryRecordFromAction(action, gs)
+            val runnable = RunnablePressBackExplorationAction(action as PressBackExplorationAction, LocalDateTime.now(), false)
+            explorationLog.add(runnable, record)
+            strategy.update(record)
+            assert(action == newPressBackExplorationAction())
+        }
     }
 
     @Test
-    fun `Given no clickable widgets after app was initialized or reset, requests termination`() {
+    fun `Given no clickable widgets after app was initialized or reset, attempts ot press back then requests termination`() {
         // Act 1 & Assert
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(getStrategy(), newGuiStateWithTopLevelNodeOnly())
+        var explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        var strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, explorationLog, newGuiStateWithTopLevelNodeOnly())
 
         // Act 2 & Assert
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(getStrategy(), newGuiStateWithDisabledWidgets(1))
+        explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, newGuiStateWithDisabledWidgets(1))
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, explorationLog, newGuiStateWithDisabledWidgets(1))
     }
 
     @Test
-    fun `Given no clickable widgets during normal exploration, requests app reset`() {
-        val strategy = getStrategy()
-        makeIntoNormalExplorationMode(strategy)
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
+    fun `Given no clickable widgets during normal exploration, press back, it doesn't work then requests app reset`() {
+        val explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        val strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, newGuiStateWithTopLevelNodeOnly())
     }
 
     @Test
-    fun `Given home screen, other app or 'app has stopped' screen during normal exploration, requests app reset`() {
+    fun `Given other app during normal exploration, requests press back`() {
         // ----- Test 1 -----
 
-        var strategy = getStrategy()
-        makeIntoNormalExplorationMode(strategy)
+        val explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        val strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
 
         // Act & assert(1
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newHomeScreenGuiState())
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, newHomeScreenGuiState())
+    }
+
+    @Test
+    fun `Given other app or 'home screen' screen during normal exploration, requests press back`() {
+        // ----- Test 1 -----
+
+        var explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        var strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
+
+        // Act & assert(1
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, newHomeScreenGuiState())
 
         // ----- Test 2 -----
 
-        strategy = getStrategy()
-        makeIntoNormalExplorationMode(strategy)
+        explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
 
         // Act & assert(2
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newOutOfAppScopeGuiState())
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, newOutOfAppScopeGuiState())
+    }
 
-        // ----- Test 3 -----
 
-        strategy = getStrategy()
-        makeIntoNormalExplorationMode(strategy)
+    @Test
+    fun `Given 'app has stopped' screen during normal exploration, requests app reset`() {
+        val explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        val strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
 
         // Act & assert(3
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newAppHasStoppedGuiState())
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, newGuiStateWithWidgets(3, ApkFixtures.apkFixture_simple_packageName))
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, newAppHasStoppedGuiState())
     }
 
     @Test
-    fun `Given 'complete action using' dialog box, requests reset`() {
-        val strategy = getStrategy()
-        makeIntoNormalExplorationMode(strategy)
+    fun `Given 'complete action using' dialog box, requests press back`() {
+        val explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        val strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
 
         // Act & Assert
         val actionWithGUIState = newCompleteActionUsingGuiState()
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, actionWithGUIState)
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, actionWithGUIState)
     }
 
 
     @Test
     fun `If normally would request second app reset in a row, instead terminates exploration, to avoid infinite loop`() {
-        val strategy = getStrategy()
-        makeIntoNormalExplorationMode(strategy)
+        val explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        val strategy = getStrategy(explorationLog)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
 
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, newAppHasStoppedGuiState())
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, newGuiStateWithTopLevelNodeOnly())
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, explorationLog, newAppHasStoppedGuiState())
     }
 
     @Test
-    fun `When exploring forward and configured so, resets exploration every time`() {
-        val strategy = getStrategy(/* actionsLimit */ 3, /* resetEveryNthExplorationForward */ 1
-        )
+    fun `When exploring forward and configured so, resets exploration every second time`() {
+        val explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        val strategy = getStrategy(explorationLog, 5, 2)
         val gs = newGuiStateWithWidgets(3, ApkFixtures.apkFixture_simple_packageName)
 
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs)
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs)
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs)
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, gs)
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, gs)
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs)
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, gs)
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs)
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, gs)
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, explorationLog, gs)
     }
 
     @Test
     fun `When exploring forward and configured so, resets exploration every third time`() {
-        val strategy = getStrategy(/* actionsLimit */ 8, /* resetEveryNthExplorationForward */ 3
-        )
+        val explorationLog = ExplorationStrategyTestHelper.getTestExplorationLog(ApkFixtures.apkFixture_simple_packageName)
+        val strategy = getStrategy(explorationLog, 10, 3)
+        makeIntoNormalExplorationMode(strategy, explorationLog)
         val gs = newGuiStateWithWidgets(3, ApkFixtures.apkFixture_simple_packageName)
         val egs = newGuiStateWithTopLevelNodeOnly()
 
-        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 1st exploration forward: widget click
-        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 2nd exploration forward: widget click
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, gs) // 3rd exploration forward: reset
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs) // 1st exploration forward: widget click
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs) // 2nd exploration forward: widget click
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, gs) // 3rd exploration forward: reset
 
-        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 1st exploration forward: widget click
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, egs) // reset because cannot move forward
-        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 1st exploration forward: widget click
-        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, gs) // 2nd exploration forward: widget click
-        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, egs) // 3rd exploration forward: reset
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs) // 1st exploration forward: widget click
+        verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy, explorationLog, egs) // press back because cannot move forward
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, egs) // reset because cannot move forward
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs) // 1st exploration forward: widget click
+        verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs) // 2nd exploration forward: widget click
+        verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, gs) // 3rd exploration forward: reset
 
         // At this point all 8 actions have been executed.
 
-        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, gs)
+        verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, explorationLog, gs)
     }
 }

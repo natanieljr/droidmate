@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.exploration.actions
@@ -29,44 +35,43 @@ abstract class ExplorationAction : Serializable {
 
         @JvmStatic
         @JvmOverloads
-        fun newResetAppExplorationAction(isFirst: Boolean = false): ResetAppExplorationAction
-                = ResetAppExplorationAction(isFirst)
+        fun newResetAppExplorationAction(isFirst: Boolean = false): ResetAppExplorationAction = ResetAppExplorationAction(isFirst)
 
         @JvmStatic
-        fun newTerminateExplorationAction(): TerminateExplorationAction
-                = TerminateExplorationAction()
-
-        @JvmStatic
-        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
-
-        @JvmStatic
-        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
+        fun newTerminateExplorationAction(): TerminateExplorationAction = TerminateExplorationAction()
 
         @JvmStatic
         @JvmOverloads
-        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
+        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean = true): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
 
         @JvmStatic
-        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String=""): EnterTextExplorationAction
-                = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath })
+        @JvmOverloads
+        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
 
         @JvmStatic
-        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget): EnterTextExplorationAction
-                = EnterTextExplorationAction(textToEnter, widget)
+        @JvmOverloads
+        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
 
         @JvmStatic
-        fun newPressBackExplorationAction(): PressBackExplorationAction
-                = PressBackExplorationAction()
+        @JvmOverloads
+        @Suppress("unused")
+        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = ""): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath })
 
         @JvmStatic
-        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean, direction: Direction): WidgetExplorationAction {
+        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget)
+
+        @JvmStatic
+        fun newPressBackExplorationAction(): PressBackExplorationAction = PressBackExplorationAction()
+
+        @JvmStatic
+        @JvmOverloads
+        @Suppress("unused")
+        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean = true, direction: Direction): WidgetExplorationAction {
             return WidgetExplorationAction(widget, false, useCoordinates, 0, true, direction)
         }
-
     }
 
     protected var runtimePermission: Boolean = false
-    private val observers: MutableList<IExplorationActionResultObserver> = ArrayList();
 
     override fun toString(): String = "<ExplAct ${toShortString()}>"
 
@@ -78,36 +83,9 @@ abstract class ExplorationAction : Serializable {
     open fun toTabulatedString(): String
             = toShortString()
 
-    open fun notifyResult(result: IExplorationActionRunResult) {
-        this.notifyObservers(result)
-    }
-
-    internal open fun notifyObservers(result: IExplorationActionRunResult) {
-        val toRemove: MutableList<IExplorationActionResultObserver> = ArrayList()
-        this.observers.forEach { p ->
-            if (p.notifyActionExecuted(result))
-                toRemove.add(p)
-        }
-
-        toRemove.forEach { p -> this.unregisterObserver(p) }
-    }
-
-    @Suppress("MemberVisibilityCanPrivate", "RedundantVisibilityModifier")
-    public open fun unregisterObserver(observer: IExplorationActionResultObserver) {
-        if (this.observers.contains(observer))
-            this.observers.remove(observer)
-    }
-
-    @Suppress("MemberVisibilityCanPrivate", "RedundantVisibilityModifier")
-    public open fun registerObserver(observer: IExplorationActionResultObserver) {
-        if (!this.observers.contains(observer))
-            this.observers.add(observer)
-    }
-
     override fun equals(other: Any?): Boolean = this.toString() == other?.toString() ?: ""
+
     override fun hashCode(): Int {
-        var result = runtimePermission.hashCode()
-        result = 31 * result + observers.hashCode()
-        return result
+        return this.runtimePermission.hashCode()
     }
 }

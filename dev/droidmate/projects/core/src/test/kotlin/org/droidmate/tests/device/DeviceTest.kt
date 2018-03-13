@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.tests.device
@@ -23,8 +29,6 @@ import org.droidmate.android_sdk.ApkExplorationException
 import org.droidmate.android_sdk.FirstRealDeviceSerialNumber
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newClickGuiDeviceAction
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newTurnWifiOnDeviceAction
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.misc.BuildConstants
@@ -38,6 +42,7 @@ import org.droidmate.tools.IDeviceTools
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_GET_DEVICE_MODEL
+import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -194,7 +199,7 @@ class DeviceTest : DroidmateTestCase()
   fun `Sets up API23 compatible device and turns wifi on`() {
       val deviceTools = DeviceTools(getConfigurationApi23())
       deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
-          device.perform(newTurnWifiOnDeviceAction())
+          device.perform(EnableWifi())
           ArrayList()
       }
   }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,24 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.device.datatypes.IWidget
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 
-class GuiScreensBuilderFromApkExplorationOutput2(private val output : IApkExplorationOutput2) : IGuiScreensBuilder
+class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorationLog) : IGuiScreensBuilder
 {
 
     override fun build(): List<IGuiScreen> {
         return buildGuiScreens(output)
     }
 
-    private fun buildGuiScreens(output: IApkExplorationOutput2): List<IGuiScreen> {
+    private fun buildGuiScreens(output: IExplorationLog): List<IGuiScreen> {
         output.verify()
 
         var guiScreens = output.guiSnapshots.map {
@@ -67,19 +72,19 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IApkExplor
             it.addMainScreenReference(main)
         }
 
-        output.actRes.forEachIndexed { i, action ->
+        output.logRecords.forEachIndexed { i, action ->
 
             val explAction = action.getAction().base
 
             when (explAction) {
             // Do not any transition: all GuiScreens already know how to transition on device actions resulting from
             // this exploration action.
-                is ResetAppExplorationAction -> { /* Do nothing */
-                }
+                is ResetAppExplorationAction -> { /* Do nothing */ }
                 is WidgetExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
                 is EnterTextExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
+                is PressBackExplorationAction -> { /* Do nothing */ }
                 is TerminateExplorationAction -> {
-                    assert(i == output.actRes.size - 1)
+                    assert(i == output.logRecords.size - 1)
                     // Do not add any transition: all GuiScreens already know how to transition on device actions resulting from
                     // this exploration action.
                 }

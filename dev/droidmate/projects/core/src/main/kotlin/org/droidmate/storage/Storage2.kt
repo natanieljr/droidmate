@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.storage
 
 import com.konradjamrozik.isRegularFile
 import com.konradjamrozik.toList
-import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.nustaq.serialization.FSTConfiguration
 import org.slf4j.LoggerFactory
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import java.net.URI
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -41,27 +47,27 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
     companion object {
         private val log = LoggerFactory.getLogger(Storage2::class.java)
 
-        /*val serializationConfig: FSTConfiguration
+        val serializationConfig: FSTConfiguration
             get() {
                 return FSTConfiguration.createJsonConfiguration(true, false)
                         .apply {
                             registerSerializer(URI::class.java, FSTURISerializer(), false)
                             registerSerializer(LocalDateTime::class.java, FSTLocalDateTimeSerializer(), false)
                         }
-            }*/
+            }
         private val serializedFileTimestampPattern = DateTimeFormatter.ofPattern("yyyy MMM dd HHmm")
         val ser2FileExt = ".ser2"
     }
 
     private var timestamp: String = ""
 
-    override fun serializeToFile(obj: ApkExplorationOutput2, file: Path) {
+    override fun serializeToFile(obj: ExplorationLog, file: Path) {
         //val serializer = ApkExplorationOutput2::class.serializer()
         //val data = JSON.indented.stringify(serializer, obj)
         //Files.write(file, data.toByteArray())
 
-        val serOut = ObjectOutputStream(
-                //val serOut = serializationConfig.getObjectOutput(
+        //val serOut = ObjectOutputStream(
+        val serOut = serializationConfig.getObjectOutput(
                 Channels.newOutputStream(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW)))
         serOut.writeObject(obj)
         serOut.close()
@@ -73,21 +79,20 @@ class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2
                 .toList()
     }
 
-    override fun deserialize(serPath: Path): ApkExplorationOutput2 {
+    override fun deserialize(serPath: Path): ExplorationLog {
         //val serializer = ApkExplorationOutput2::class.serializer()
         //val data = Files.readAllLines(serPath).joinToString(System.lineSeparator())
         //return JSON.indented.parse(serializer, data)
 
-        val input = ObjectInputStream(Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
-        //val input = LegacyObjectInputStream(Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
-        //val input = serializationConfig.getObjectInput(
-        //        Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
+        //val input =  LegacyObjectInputStream(Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
+        val input = serializationConfig.getObjectInput(
+                Channels.newInputStream(FileChannel.open(serPath, StandardOpenOption.READ)))
         val obj = input.readObject()
         input.close()
-        return obj as ApkExplorationOutput2
+        return obj as ExplorationLog
     }
 
-    override fun serialize(obj: ApkExplorationOutput2, namePart: String) {
+    override fun serialize(obj: ExplorationLog, namePart: String) {
         if (timestamp.isEmpty())
             timestamp = LocalDateTime.now().format(serializedFileTimestampPattern)
 

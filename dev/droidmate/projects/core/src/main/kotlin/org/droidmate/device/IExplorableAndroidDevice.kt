@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.device
@@ -22,8 +28,8 @@ package org.droidmate.device
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.device.datatypes.IAndroidDeviceAction
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.nio.file.Path
 
 import java.time.LocalDateTime
@@ -36,7 +42,7 @@ interface IExplorableAndroidDevice {
     fun getGuiSnapshot(): IDeviceGuiSnapshot
 
     @Throws(DeviceException::class)
-    fun perform(action: IAndroidDeviceAction)
+    fun perform(action: Action)
 
     @Throws(DeviceException::class)
     fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage>

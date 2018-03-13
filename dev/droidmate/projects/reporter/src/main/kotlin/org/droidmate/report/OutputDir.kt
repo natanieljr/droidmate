@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,24 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report
 
 import org.droidmate.deleteDir
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.storage.Storage2
 import java.nio.file.Files
 import java.nio.file.Path
 
 class OutputDir(val dir: Path) {
 
-    val explorationOutput2: List<IApkExplorationOutput2> by lazy {
+    val explorationOutput2: List<IExplorationLog> by lazy {
         ExplorationOutput2.from(Storage2(dir))
     }
 
-    val notEmptyExplorationOutput2: List<IApkExplorationOutput2> by lazy {
+    val notEmptyExplorationOutput2: List<IExplorationLog> by lazy {
         check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
         explorationOutput2
     }

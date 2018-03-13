@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.test_tools.exploration.data_aggregators
@@ -25,23 +31,24 @@ import org.droidmate.apis.ApiLogcatMessageTestHelper
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.DeviceExceptionMissing
+import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.ExplorationActionRunResult
 import org.droidmate.exploration.actions.RunnableExplorationAction
-import org.droidmate.exploration.data_aggregators.ApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.ExplorationLog
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IDeviceLogs
+import org.droidmate.exploration.strategy.IMemoryRecord
+import org.droidmate.exploration.strategy.MemoryRecord
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.exploration.actions.ExplorationActionTestHelper
 import java.net.URI
-
 import java.time.LocalDateTime
 
 class ExplorationOutput2Builder {
 
-    private lateinit var currentlyBuiltApkOut2: ApkExplorationOutput2
+    private lateinit var currentlyBuiltApkOut2: ExplorationLog
     private val builtOutput: ExplorationOutput2 = ExplorationOutput2(ArrayList())
 
     companion object {
@@ -60,7 +67,7 @@ class ExplorationOutput2Builder {
         assert(attributes["explorationEndTimeMss"] is Int)
 
         val packageName = attributes["name"]!! as String
-        this.currentlyBuiltApkOut2 = ApkExplorationOutput2(
+        this.currentlyBuiltApkOut2 = ExplorationLog(
                 ApkTestHelper.build(
                         packageName,
                         "$packageName/$packageName.MainActivity",
@@ -92,7 +99,7 @@ class ExplorationOutput2Builder {
         return parseRunnableAction(attributes["action"] as String, timestamp)
     }
 
-    internal fun buildActionResult(attributes: Map<String, Any>): ExplorationActionRunResult {
+    internal fun buildActionResult(attributes: Map<String, Any>): IMemoryRecord {
         val deviceLogs = buildDeviceLogs(attributes)
         val guiSnapshot = attributes["guiSnapshot"] as IDeviceGuiSnapshot? ?: UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump()
 
@@ -104,7 +111,7 @@ class ExplorationOutput2Builder {
         val packageName = attributes["packageName"] as String? ?: currentlyBuiltApkOut2.packageName
         assert(packageName.isNotEmpty())
 
-        return ExplorationActionRunResult(successful, packageName, deviceLogs, guiSnapshot,
+        return MemoryRecord(EmptyAction(), LocalDateTime.now(), LocalDateTime.now(), deviceLogs, guiSnapshot,
                 exception, URI.create("file://."))
     }
 

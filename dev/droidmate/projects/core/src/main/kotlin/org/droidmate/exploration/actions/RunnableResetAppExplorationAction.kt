@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.AndroidDeviceAction.Companion.newTurnWifiOnDeviceAction
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -48,7 +54,7 @@ class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, times
         device.ensureHomeScreenIsDisplayed()
 
         log.debug("4. Turn wifi on.")
-        device.perform(newTurnWifiOnDeviceAction())
+        device.perform(EnableWifi())
 
         log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
         device.getGuiSnapshot()

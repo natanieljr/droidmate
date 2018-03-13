@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report
 
@@ -25,7 +31,7 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import java.time.LocalDateTime
 
-class EventApiPair(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogcatMessage) {
+class EventApiPair(actRes: ExplorationRecord, apiLog: IApiLogcatMessage) {
 
     val pair: Pair<String, IApiLogcatMessage>
 
@@ -38,7 +44,7 @@ class EventApiPair(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogc
         pair = build(actRes, apiLog)
     }
 
-    private fun build(actRes: RunnableExplorationActionWithResult, apiLog: IApiLogcatMessage): Pair<String, IApiLogcatMessage> {
+    private fun build(actRes: ExplorationRecord, apiLog: IApiLogcatMessage): Pair<String, IApiLogcatMessage> {
 
         fun extractEvent(action: ExplorationAction, thread: Int): String {
 

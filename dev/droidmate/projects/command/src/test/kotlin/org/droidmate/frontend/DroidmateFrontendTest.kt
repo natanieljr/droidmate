@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.frontend
 
 import com.google.common.base.Throwables
 import com.konradjamrozik.createDirIfNotExists
 import com.konradjamrozik.toList
-import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
-import org.droidmate.exploration.strategy.ExplorationStrategy
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.report.OutputDir
@@ -161,12 +166,9 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         val spy = ExceptionHandlerSpy()
 
         // Act
-        val exitStatus = DroidmateFrontend.main(
+        val exitStatus = DroidmateFrontend.execute(
                 cfg.args,
-                object : ICommandProvider {
-                    override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategy.build(cfg) }, timeGenerator, deviceToolsMock)
-                },
+                { ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock) },
                 mockedFs.fs,
                 spy
         )
@@ -199,19 +201,14 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         val cfg = ConfigurationForTests().withFileSystem(mockedFs.fs).get()
         val apks = mockedFs.apks
         val timeGenerator = TimeGenerator()
-        val simulator = AndroidDeviceSimulator.build(
-                timeGenerator, apks.map { it.packageName },
-                /* exceptionsSpec */ ArrayList(), /* unreliableSimulation */ true)
+        val simulator = AndroidDeviceSimulator.build(timeGenerator, apks.map { it.packageName }, ArrayList(), true)
         val deviceToolsMock = DeviceToolsMock(cfg, AaptWrapperStub(apks), simulator)
 
         val handler = ExceptionHandler()
         // Act
-        val exitStatus = DroidmateFrontend.main(
+        val exitStatus = DroidmateFrontend.execute(
                 cfg.args,
-                object : ICommandProvider {
-                    override fun provide(cfg: Configuration): DroidmateCommand =
-                            ExploreCommand.build(cfg, { ExplorationStrategy.build(cfg) }, timeGenerator, deviceToolsMock)
-                },
+                { ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock) },
                 mockedFs.fs,
                 handler
         )
@@ -261,7 +258,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 outputDir.createDirIfNotExists()
 
                 // Get data
-                val obj = storage2.deserialize(file) as IApkExplorationOutput2
+                val obj = storage2.deserialize(file) as IExplorationLog
                 //val packageName = obj.apk.packageName
 
                 // Create output dir
@@ -270,15 +267,15 @@ class DroidmateFrontendTest : DroidmateTestCase() {
                 //newDir.createDirIfNotExists()
 
                 // For each action
-                //for (int i = 15; i < obj.actRes.size(); ++i)
-                (0 until obj.actRes.size).forEach { i ->
+                //for (int i = 15; i < obj.logRecords.size(); ++i)
+                (0 until obj.logRecords.size).forEach { i ->
                     val newActionFile = file.parent.resolve(outputStr).resolve("action$i.txt")
-                    val action = obj.actRes[i].getAction().toString()
+                    val action = obj.logRecords[i].getAction().toString()
                     Files.write(newActionFile, action.toByteArray())
 
                     val newResultFile = file.parent.resolve(outputStr).resolve("windowHierarchyDump$i.xml")
-                    val result = if (obj.actRes[i].getResult().successful)
-                        obj.actRes[i].getResult().guiSnapshot.windowHierarchyDump
+                    val result = if (obj.logRecords[i].getResult().successful)
+                        obj.logRecords[i].getResult().guiSnapshot.windowHierarchyDump
                     else
                         ""
                     Files.write(newResultFile, result.toByteArray())
@@ -310,7 +307,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         outputDir.clearContents()
 
         // Act
-        val exitStatus = DroidmateFrontend.main(args.toTypedArray(), /* commandProvider = */ null)
+        val exitStatus = DroidmateFrontend.execute(args.toTypedArray())
 
         assert(exitStatus == 0, { "Exit status != 0. Please inspect the run logs for details, including exception thrown" })
 

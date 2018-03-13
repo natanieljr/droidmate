@@ -7,24 +7,31 @@ import android.util.Log
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
+import android.support.test.uiautomator.UiObject2
+import kotlin.system.measureTimeMillis
 
 /**
  * Created by J.H. on 05.02.2018.
  */
 internal sealed class DeviceAction {
     val defaultTimeout: Long = 10000
+    private val waitTimeout: Long = 20000
     @Throws(UiAutomatorDaemonException::class)
     abstract fun execute(device: UiDevice, context: Context)
 
     protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
         if (actionSuccessful) {
-            device.waitForWindowUpdate(null, defaultTimeout)
-            device.waitForIdle(defaultTimeout)
+            measureTimeMillis {
+                //            device.waitForWindowUpdate(null,defaultTimeout)
+                device.waitForIdle(defaultTimeout)
+                device.wait(hasInteractive, waitTimeout)
+                device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
+            }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization") }
         }
     }
 
     companion object {
-        fun fromAction(a: Action): DeviceAction = with(a) {
+        fun fromAction(a: Action): DeviceAction? = with(a) {
             return when (this) {
                 is WaitAction -> DeviceWaitAction(target, criteria)
                 is LongClickAction -> DeviceLongClickAction(xPath, resId)
@@ -40,6 +47,9 @@ internal sealed class DeviceAction {
                 is PressHome -> DevicePressHome()
                 is EnableWifi -> DeviceEnableWifi()
                 is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
+                is SimulationAdbClearPackage -> {
+                    null /* There's no equivalent device action */
+                }
             }
         }
     }
@@ -79,8 +89,7 @@ private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction
         try {
             val app = navigateToAppLaunchIcon(appLaunchIconName, device)
             Log.v(uiaDaemon_logcatTag, "Pressing the $appLaunchIconName app icon to launch it.")
-            clickResult = app.clickAndWaitForNewWindow()
-
+            clickResult = app.click()
         } catch (e: UiObjectNotFoundException) {
             Log.w(uiaDaemon_logcatTag,
                     String.format("Attempt to navigate to and click on the icon labeled '%s' to launch the app threw an exception: %s: %s",
@@ -90,8 +99,13 @@ private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction
             return
         }
 
-        if (clickResult)
-            waitForChanges(device, clickResult)
+        if (clickResult) {
+//            waitForChanges(device,clickResult)
+            device.waitForIdle(defaultTimeout)
+            measureTimeMillis {
+                device.wait(hasInteractive, 10000)
+            }.let { Log.d(uiaDaemon_logcatTag, "load-time $it millis") }
+        }
         else
             Log.w(uiaDaemon_logcatTag, "A click on the icon labeled '$appLaunchIconName' to launch the app returned false")
     }
@@ -181,7 +195,19 @@ private data class DeviceWaitAction(private val id: String, private val criteria
             WidgetSelector.ClassName -> findByClassName(id)
             WidgetSelector.ContentDesc -> findByDescription(id)
             WidgetSelector.XPath -> findByXPath(id)
-        }.let { device.findObject(it).waitForExists(10000) } // wait up to 10 seconds
+        }.let {
+            device.findObject(it).let {
+                // REMARK this wait is necessary to avoid StackOverflowError in the QueryController, which would happen depending on when the UI view stabilizes
+                measureTimeMillis { device.wait(hasInteractive, 20000) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for interactive element") }
+                var success = false
+                measureTimeMillis { success = it.waitForExists(10000) }.let { Log.d(uiaDaemon_logcatTag, "waited for exists $it millis with result $success") }
+                if (!success) {
+                    Log.w(uiaDaemon_logcatTag, "WARN element $id not found")
+                    val clickable = device.findObjects(By.clickable(true)).map { o -> o.resourceName + ": ${o.visibleCenter}" }
+                    Log.d(uiaDaemon_logcatTag, "clickable elements: $clickable")
+                }
+            }
+        } // wait up to 10 seconds
     }
 }
 
@@ -190,16 +216,13 @@ private sealed class DeviceObjectAction : DeviceAction() {
     abstract val resId: String
 
     protected fun executeAction(device: UiDevice, action: (UiObject) -> Boolean, action2: (UiObject2) -> Unit) {
-        Log.d(uiaDaemon_logcatTag, "execute action on target element with resId=$resId xPath=$xPath javaClass=${this::class}")
-        val success = if (xPath.isNotEmpty()) {
-            Log.d(uiaDaemon_logcatTag, "xPath isNotEmpty")
-            executeAction(device, action, xPath)
-        } else {
-            Log.d(uiaDaemon_logcatTag, "xPath isEmpty")
+        Log.d(uiaDaemon_logcatTag, "execute action on target element with resId=$resId xPath=$xPath")
+        val success = if (xPath.isNotEmpty()) executeAction(device, action, xPath) else {
+            Log.d(uiaDaemon_logcatTag, "select element by resourceId")
             executeAction(device, action, resId, findByResId)
         }
-
         if (!success) {
+            Log.w(uiaDaemon_logcatTag, "action on UiObject failed, try to perform on UiObject2 By.resourceId")
             executeAction2(device, action2, resId)
         }
     }
@@ -208,18 +231,8 @@ private sealed class DeviceObjectAction : DeviceAction() {
 private data class DeviceClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
     override fun execute(device: UiDevice, context: Context) {
         executeAction(device,
-                { o ->
-                    Log.d(uiaDaemon_logcatTag, "Clicking object")
-                    o.click()
-                    Log.d(uiaDaemon_logcatTag, "Clicked object")
-                    true
-                },
-                { o ->
-                    Log.d(uiaDaemon_logcatTag, "Clicking object")
-                    o.click()
-                    Log.d(uiaDaemon_logcatTag, "Clicked object")
-                    true
-                })
+                { o -> o.click() },
+                { o -> o.click() })
         waitForChanges(device)
     }
 }
@@ -264,7 +277,11 @@ private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : Dev
 private data class DeviceTextAction(override val xPath: String, override val resId: String, val text: String) : DeviceObjectAction() {
     val selector by lazy { if (xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
     override fun execute(device: UiDevice, context: Context) {
-        executeAction(device, { o -> o.setText(text) }, { o -> o.setText(text) })
+        executeAction(device, { o -> o.setText(text) },
+                { o ->
+                    @Suppress("UsePropertyAccessSyntax")
+                    o.setText(text)
+                })
         device.findObject(selector.text(text)).waitForExists(defaultTimeout)  // wait until the text is set
     }
 }

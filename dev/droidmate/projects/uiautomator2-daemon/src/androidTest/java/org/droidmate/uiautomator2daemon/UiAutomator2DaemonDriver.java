@@ -57,10 +57,13 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
   UiAutomator2DaemonDriver(boolean waitForGuiToStabilize, int waitForWindowUpdateTimeout)
   {
+    // Disabling waiting for selector implicit timeout
+    Configurator.getInstance().setWaitForSelectorTimeout(0L);
+
+
     // The instrumentation required to run uiautomator2-daemon is
     // provided by the command: adb shell instrument <PACKAGE>/<RUNNER>
     Instrumentation instr = InstrumentationRegistry.getInstrumentation();
-    Configurator.getInstance().setWaitForSelectorTimeout(100);
     if (instr == null) throw new AssertionError();
 
     this.context = InstrumentationRegistry.getTargetContext();
@@ -80,7 +83,8 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
 
   @Override
-  public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException {
+  public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException
+  { //TODO can use UiAutomator to create screenshot bitmap instead of adb
     Log.v(uiaDaemon_logcatTag, "Executing device command: " + deviceCommand.command);
 
     DeviceResponse response = new DeviceResponse();
@@ -156,11 +160,13 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
 
   @TargetApi(Build.VERSION_CODES.FROYO)
-  private DeviceResponse performAction(DeviceCommand deviceCommand) throws UiAutomatorDaemonException
-  {
+  private DeviceResponse performAction(DeviceCommand deviceCommand) throws UiAutomatorDaemonException {
     Log.v(uiaDaemon_logcatTag, "Performing GUI action");
 
-    DeviceAction.Companion.fromAction(deviceCommand.guiAction).execute(device, context);
+    DeviceAction action = DeviceAction.Companion.fromAction(deviceCommand.guiAction);
+
+    if (action != null)
+      action.execute(device, context);
 
     return new DeviceResponse();
   }

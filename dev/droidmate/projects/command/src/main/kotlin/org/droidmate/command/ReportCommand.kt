@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,17 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.command
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.report.ExplorationOutput2Report
+import org.droidmate.report.AggregateStats
 import org.droidmate.report.OutputDir
+import org.droidmate.report.Summary
+import org.droidmate.report.apk.*
+import org.droidmate.report.misc.withFilteredApiLogs
 
 class ReportCommand : DroidmateCommand() {
     override fun execute(cfg: Configuration) {
         val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
-        return ExplorationOutput2Report(out, cfg.reportOutputDirPath).writeOut(cfg.reportIncludePlots, cfg.extractSummaries)
-  }
+        val data = out.withFilteredApiLogs
+
+        AggregateStats().write(cfg.droidmateOutputReportDirPath, data)
+        Summary().write(cfg.droidmateOutputReportDirPath, data)
+        ApkViewsFile().write(cfg.droidmateOutputReportDirPath, data)
+        ApiCount(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
+        ClickFrequency(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
+        WidgetSeenClickedCount(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
+        ApiActionTrace().write(cfg.droidmateOutputReportDirPath, data)
+        ActivitySeenSummary().write(cfg.droidmateOutputReportDirPath, data)
+        ActionTrace().write(cfg.droidmateOutputReportDirPath, data)
+        WidgetApiTrace().write(cfg.droidmateOutputReportDirPath, data)
+
+        if (cfg.takeScreenshots)
+            EffectiveActions().write(cfg.droidmateOutputReportDirPath, data)
+    }
 }

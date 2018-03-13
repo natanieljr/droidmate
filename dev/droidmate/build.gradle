@@ -20,7 +20,7 @@
 buildscript {
 
   ext.utilities_version = '19115bab35'
-  ext.kotlin_version = '1.2.21'
+  ext.kotlin_version = '1.2.30'
 
   repositories {
     mavenLocal()
@@ -32,20 +32,24 @@ buildscript {
   dependencies {
     classpath "com.github.natanieljr:konrads_utilities:$utilities_version"
     classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
+	  classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
 }
 
-plugins {
-  id "org.jetbrains.kotlin.jvm" version "1.2.21"
-}
 
 allprojects {
   group = "org.droidmate"
+  version = "3.2.0-SNAPSHOT"
 
-  version = "3.1.0-SNAPSHOT"
 }
 
 subprojects {
+	apply plugin: "kotlin"
+//  plugins {    id "org.jetbrains.kotlin.jvm" version "1.2.30"  }
+	dependencies {
+		compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+		compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+	}
 
   repositories {
     mavenLocal()

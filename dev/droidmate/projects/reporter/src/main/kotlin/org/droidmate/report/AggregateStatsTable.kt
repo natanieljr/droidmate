@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report
 
 import com.google.common.collect.Table
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.report.misc.*
 
 class AggregateStatsTable private constructor(val table: Table<Int, String, String>) : Table<Int, String, String> by table {
 
-  constructor(data: List<IApkExplorationOutput2>) : this(AggregateStatsTable.build(data))
+  constructor(data: List<IExplorationLog>) : this(AggregateStatsTable.build(data))
   
   companion object {
     val headerApkName = "file_name"
@@ -37,37 +44,37 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
     val headerEventApiPairsSeenCount = "unique_event_api_pairs"
     val headerException = "exception"
 
-    fun build(data: List<IApkExplorationOutput2>): Table<Int, String, String> {
+    fun build(data: List<IExplorationLog>): Table<Int, String, String> {
 
       return buildTable(
-        headers = listOf(
-          headerApkName,
-          headerPackageName,
-          headerExplorationTimeInSeconds,
-          headerActionsCount,
-          headerResetActionsCount,
-          headerViewsSeenCount,
-          headerViewsClickedCount,
-          headerApisSeenCount,
-          headerEventApiPairsSeenCount,
-          headerException
-        ),
-        rowCount = data.size,
-        computeRow = { rowIndex ->
-          val apkData = data[rowIndex]
-          listOf(
-            apkData.apk.fileName,
-            apkData.packageName,
-                  apkData.getExplorationDuration().seconds.toString(),
-            apkData.actions.size.toString(),
-            apkData.resetActionsCount.toString(),
-            apkData.uniqueActionableWidgets.size.toString(),
-            apkData.uniqueClickedWidgets.size.toString(),
-            apkData.uniqueApis.size.toString(),
-            apkData.uniqueEventApiPairs.size.toString(),
-            apkData.exception.toString()
-          )
-        }
+              headers = listOf(
+                      headerApkName,
+                      headerPackageName,
+                      headerExplorationTimeInSeconds,
+                      headerActionsCount,
+                      headerResetActionsCount,
+                      headerViewsSeenCount,
+                      headerViewsClickedCount,
+                      headerApisSeenCount,
+                      headerEventApiPairsSeenCount,
+                      headerException
+              ),
+              rowCount = data.size,
+              computeRow = { rowIndex ->
+                  val apkData = data[rowIndex]
+                  listOf(
+                          apkData.apk.fileName,
+                          apkData.packageName,
+                          apkData.getExplorationDuration().seconds.toString(),
+                          apkData.actions.size.toString(),
+                          apkData.resetActionsCount.toString(),
+                          apkData.uniqueActionableWidgets.size.toString(),
+                          apkData.uniqueClickedWidgets.size.toString(),
+                          apkData.uniqueApis.size.toString(),
+                          apkData.uniqueEventApiPairs.size.toString(),
+                          apkData.exception.toString()
+                  )
+              }
       )
     }
 

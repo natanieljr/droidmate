@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.command.exploration
 
@@ -22,8 +28,8 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.MonitoredInlinedApkFixtureApiLogs
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2
+import org.droidmate.exploration.actions.ExplorationRecord
+import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.RobustDevice
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.Failable
@@ -89,7 +95,7 @@ class ExplorationTest : DroidmateTestCase() {
 
         val exploration = Exploration.build(cfg)
 
-        val outData: MutableList<IApkExplorationOutput2?> = ArrayList()
+        val outData: MutableList<IExplorationLog?> = ArrayList()
 
         deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
             deviceTools.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
@@ -104,7 +110,7 @@ class ExplorationTest : DroidmateTestCase() {
         assert(outData.isNotEmpty())
         val out = outData.first()
 
-        val apiLogs = MonitoredInlinedApkFixtureApiLogs(extractApiLogsList(out!!.actRes))
+        val apiLogs = MonitoredInlinedApkFixtureApiLogs(extractApiLogsList(out!!.logRecords))
         apiLogs.assertCheck()
     }
 
@@ -133,7 +139,7 @@ class ExplorationTest : DroidmateTestCase() {
 
     private fun runOnSimulator(simulatorSpec: String,
                                exceptionSpecs: List<IExceptionSpec> = ArrayList(),
-                               cfg: Configuration = ConfigurationForTests().get()): Failable<IApkExplorationOutput2, DeviceException> {
+                               cfg: Configuration = ConfigurationForTests().get()): Failable<IExplorationLog, DeviceException> {
         val timeGenerator = TimeGenerator()
 
         val apk = ApkTestHelper.build("mock_app1")
@@ -156,6 +162,6 @@ class ExplorationTest : DroidmateTestCase() {
 
     }
 
-    private fun extractApiLogsList(actions: List<RunnableExplorationActionWithResult>): List<List<IApiLogcatMessage>> =
+    private fun extractApiLogsList(actions: List<ExplorationRecord>): List<List<IApiLogcatMessage>> =
             actions.map { pair -> pair.getResult().deviceLogs.apiLogs }
 }

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.test_tools.device.datatypes
@@ -42,7 +48,6 @@ class GuiStateTestHelper
                 GuiState(appPackageName, id, arrayListOf(newTopLevelWidget(appPackageName)), DeviceModel.buildDefault().getAndroidLauncherPackageName())
 
         @JvmStatic
-        @Suppress("unused")
         fun newGuiStateWithDisabledWidgets(widgetCount: Int): IGuiState
                 = newGuiStateWithWidgets(widgetCount, apkFixture_simple_packageName, false)
 
@@ -70,23 +75,19 @@ class GuiStateTestHelper
         }
 
         @JvmStatic
-        @Suppress("unused")
         fun newAppHasStoppedGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump().guiState
 
         @JvmStatic
-        @Suppress("unused")
         fun newCompleteActionUsingGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newCompleteActionUsingWindowDump().guiState
 
 
         @JvmStatic
-        @Suppress("unused")
         fun newHomeScreenGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump().guiState
 
         @JvmStatic
-        @Suppress("unused")
         fun newOutOfAppScopeGuiState(): IGuiState
                 = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump().guiState
 
@@ -94,7 +95,7 @@ class GuiStateTestHelper
         var nextGuiStateIndex = 0
 
         @JvmStatic
-        fun getNextGuiStateName(): String {
+        private fun getNextGuiStateName(): String {
             nextGuiStateIndex++
             return "GS$nextGuiStateIndex"
         }
