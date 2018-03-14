@@ -43,9 +43,9 @@ class CannotExploreTerminate : Terminate() {
         // If the exploration cannot move forward after a reset + press back it should be terminated.
 
         return !widgetContext.explorationCanMoveForwardOn() &&
-                this.lastAction() is ResetAppExplorationAction &&
-                (this.getSecondLastAction() is PressBackExplorationAction ||
-                        (widgetContext.guiState.isAppHasStoppedDialogBox))
+                this.lastAction().actionType == ResetAppExplorationAction::class.simpleName &&
+                (this.getSecondLastAction() == PressBackExplorationAction::class.simpleName ||
+                        (memory.getCurrentState().isAppHasStoppedDialogBox))
         // or during initial attempt (just after first launch, which is also a reset) then it shall be terminated.
     }
 
@@ -58,11 +58,11 @@ class CannotExploreTerminate : Terminate() {
 
         // This case is observed when e.g. the app shows empty screen at startup.
         return if (!widgetContext.belongsToApp())
-            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${widgetContext.guiState}"
+            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${widgetContext.guiStatus}"
         // This case is observed when e.g. the app has nonstandard GUI, e.g. game native interface.
         // Also when all widgets have been blacklisted because they e.g. crash the app.
         else if (!widgetContext.hasActionableWidgets()) {
-            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${widgetContext.guiState}"
+            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${widgetContext.guiStatus}"
         } else
             throw UnexpectedIfElseFallthroughError()
     }

@@ -138,8 +138,8 @@ class Configuration(val args: Array<String>) : IConfiguration {
     val screenshotsOutputSubDir = "screenshots"
     val reportOutputSubDir = "report"
 
-    @Parameter(names = [(Configuration.pn_actionsLimit), "-actions", "-clicks"], description =
-    "How many actions the GUI exploration strategy can conduct before terminating.")
+    @Parameter(names = [(Configuration.pn_actionsLimit), "-actionTrace", "-clicks"], description =
+    "How many actionTrace the GUI exploration strategy can conduct before terminating.")
     public var actionsLimit = defaultActionsLimit
 
     @Parameter(names = [(Configuration.pn_alwaysClickFirstWidget), "-clickFirst"], description =
@@ -246,7 +246,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
     @Parameter(names = [pn_launchActivityDelay],
             description = "Amount of time (in milliseconds) to wait for the app to load before continuing the exploration after a reset (or exploration start)")
-    // Empirically checked that for com.skype.raider_v5.0.0.51733-inlined.apk 5000 ms is sometimes not enough.
+    // Empirically check that for com.skype.raider_v5.0.0.51733-inlined.apk 5000 ms is sometimes not enough.
     public var launchActivityDelay = 15 * 1000 // ms
 
     @Parameter(names = [pn_launchActivityTimeout],
@@ -411,7 +411,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
     /**
      * Apk with "real" uiautomator-daemon. This apk will be deployed be on the android (virtual) device
-     * to enable GUI actions execution.
+     * to enable GUI actionTrace execution.
      */
     public lateinit var uiautomator2DaemonTestApk: Path
 

@@ -19,11 +19,9 @@
 package org.droidmate.report.misc
 
 import org.droidmate.exploration.actions.ExplorationRecord
-import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.droidmate.exploration.data_aggregators.ExplorationContext
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.IDeviceLogs
-import org.droidmate.exploration.strategy.IMemoryRecord
-import org.droidmate.exploration.strategy.MemoryRecord
 
 // WISH use instead lazy extension property implemented with workaround: https://youtrack.jetbrains.com/issue/KT-13053#comment=27-1510399
 val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
@@ -33,25 +31,25 @@ val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
 
             fun filterApiLogs(results: List<ExplorationRecord>): MutableList<ExplorationRecord> {
 
-                fun filterApiLogs(result: IMemoryRecord): IMemoryRecord {
+                fun filterApiLogs(result: org.droidmate.exploration.strategy.ActionResult): org.droidmate.exploration.strategy.ActionResult {
 
                 fun filterApiLogs(deviceLogs: IDeviceLogs): IDeviceLogs = FilteredDeviceLogs(deviceLogs.apiLogs)
 
-                    return MemoryRecord(
-                            result.action,
-                            result.startTimestamp,
-                            result.endTimestamp,
-                            filterApiLogs(result.deviceLogs),
-                            result.guiSnapshot,
-                            result.exception,
-                            result.screenshot
+                    return ActionResult(
+                        result.action,
+                        result.startTimestamp,
+                        result.endTimestamp,
+                        filterApiLogs(result.deviceLogs),
+                        result.guiSnapshot,
+                        result.exception,
+                        result.screenshot
                     )
             }
 
                 return results.map { ExplorationRecord(it.first, filterApiLogs(it.second)) }.toMutableList()
         }
 
-            return ExplorationLog(output.apk,
+            return ExplorationContext(output.apk,
                     filterApiLogs(output.logRecords),
                 output.explorationStartTime,
                 output.explorationEndTime)

@@ -19,12 +19,13 @@
 
 package org.droidmate.exploration.strategy
 
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.ExplorationAction
 
 interface IExplorationStrategy {
 
-    fun decide(result: IMemoryRecord): ExplorationAction
+    fun decide(result: ActionResult): ExplorationAction
 
-    fun update(record: IMemoryRecord)
+    fun update(record: ActionResult)
 }
 

@@ -19,8 +19,8 @@
 
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.device.datatypes.GuiState
-import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.device.datatypes.GuiStatus
+import org.droidmate.device.datatypes.IGuiStatus
 import org.droidmate.device.model.DeviceModel
 import org.droidmate.test_tools.ApkFixtures.Companion.apkFixture_simple_packageName
 import org.droidmate.test_tools.device.datatypes.WidgetTestHelper.Companion.newTopLevelWidget
@@ -32,17 +32,17 @@ class GuiStateTestHelper
         @JvmStatic
         @JvmOverloads
         @Suppress("unused")
-        fun newEmptyGuiState(appPackageName: String = apkFixture_simple_packageName, id: String = ""): IGuiState =
-                GuiState(appPackageName, id, ArrayList(), DeviceModel.buildDefault().getAndroidLauncherPackageName())
+        fun newEmptyGuiState(appPackageName: String = apkFixture_simple_packageName, id: String = ""): IGuiStatus =
+                GuiStatus(appPackageName, id, ArrayList(), DeviceModel.buildDefault().getAndroidLauncherPackageName())
 
         @JvmStatic
         @JvmOverloads
-        fun newGuiStateWithTopLevelNodeOnly(appPackageName: String = apkFixture_simple_packageName, id: String = ""): IGuiState
+        fun newGuiStateWithTopLevelNodeOnly(appPackageName: String = apkFixture_simple_packageName, id: String = ""): IGuiStatus
                 =
-                GuiState(appPackageName, id, arrayListOf(newTopLevelWidget(appPackageName)), DeviceModel.buildDefault().getAndroidLauncherPackageName())
+                GuiStatus(appPackageName, id, arrayListOf(newTopLevelWidget(appPackageName)), DeviceModel.buildDefault().getAndroidLauncherPackageName())
 
         @JvmStatic
-        fun newGuiStateWithDisabledWidgets(widgetCount: Int): IGuiState
+        fun newGuiStateWithDisabledWidgets(widgetCount: Int): IGuiStatus
                 = newGuiStateWithWidgets(widgetCount, apkFixture_simple_packageName, false)
 
         @JvmStatic
@@ -51,11 +51,11 @@ class GuiStateTestHelper
                                    packageName: String = apkFixture_simple_packageName,
                                    enabled: Boolean = true,
                                    guiStateId: String = "",
-                                   widgetIds: List<String> = ArrayList()): IGuiState {
-            assert(widgetCount >= 0, { "Widget count cannot be zero. To create GUI state without widgets, call newEmptyGuiState()" })
+                                   widgetIds: List<String> = ArrayList()): IGuiStatus {
+            assert(widgetCount >= 0, { "OldWidget count cannot be zero. To create GUI state without widgets, call newEmptyGuiState()" })
             assert(widgetIds.isEmpty() || widgetIds.size == widgetCount)
 
-            val gs = GuiState(packageName, guiStateId, WidgetTestHelper.newWidgets(
+            val gs = GuiStatus(packageName, guiStateId, WidgetTestHelper.newWidgets(
                     widgetCount,
                     packageName,
                     mapOf(
@@ -69,21 +69,21 @@ class GuiStateTestHelper
         }
 
         @JvmStatic
-        fun newAppHasStoppedGuiState(): IGuiState
-                = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump().guiState
+        fun newAppHasStoppedGuiState(): IGuiStatus
+                = UiautomatorWindowDumpTestHelper.newAppHasStoppedDialogWindowDump().guiStatus
 
         @JvmStatic
-        fun newCompleteActionUsingGuiState(): IGuiState
-                = UiautomatorWindowDumpTestHelper.newCompleteActionUsingWindowDump().guiState
+        fun newCompleteActionUsingGuiState(): IGuiStatus
+                = UiautomatorWindowDumpTestHelper.newCompleteActionUsingWindowDump().guiStatus
 
 
         @JvmStatic
-        fun newHomeScreenGuiState(): IGuiState
-                = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump().guiState
+        fun newHomeScreenGuiState(): IGuiStatus
+                = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump().guiStatus
 
         @JvmStatic
-        fun newOutOfAppScopeGuiState(): IGuiState
-                = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump().guiState
+        fun newOutOfAppScopeGuiState(): IGuiStatus
+                = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump().guiStatus
 
         @JvmStatic
         var nextGuiStateIndex = 0

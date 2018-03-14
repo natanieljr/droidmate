@@ -87,7 +87,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
          * Monitoring redundant API calls results in pairs of API calls being logged, skewing the results.
          * One call should be sufficient. Thus, the redundant monitored API call shouldn't be monitored.
          *
-         * API call redundancy is checked by examining stack traces. If given API call does appear inside a stack trace, i.e. not
+         * API call redundancy is check by examining stack traces. If given API call does appear inside a stack trace, i.e. not
          * at its end, then given API call is possibly redundant.
          *
          * Consider stack trace of a monitored API call of method C, looking like that: A->B->C.
@@ -153,7 +153,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
                     /*
         We take only the first monitored call, as this is the bottom of the stack trace, i.e. this method doesn't call any other 
         monitored methods. All other monitored calls in the stack trace will be present again in the logs, at the bottom of their
-        own stack traces. They will be checked for redundancy then, so they don't have to be checked here.
+        own stack traces. They will be check for redundancy then, so they don't have to be check here.
        */
                     val monitoredCall = monitoredMethods.first()
                     return if (apisManuallyConfirmedToBeRedundant.any { monitoredCall.contains(it) }) {
@@ -295,7 +295,7 @@ class FilteredDeviceLogs private constructor(logs: IDeviceLogs) : IDeviceLogs by
         private val legacyApisManuallyConfirmedToBeNotRedundant: List<String> = listOf(
 
                 // ----- Methods present in monitored_apis.txt -----
-                // None left, all checked and moved to current list.
+                // None left, all check and moved to current list.
 
                 // ----- Methods whose modified version is present in monitored_apis.txt -----
                 // Now present as redir_5_java_net_Socket_ctor4

@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.IExplorationLog
@@ -71,7 +71,7 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorati
             val explAction = action.getAction().base
 
             when (explAction) {
-            // Do not any transition: all GuiScreens already know how to transition on device actions resulting from
+            // Do not any transition: all GuiScreens already know how to transition on device actionTrace resulting from
             // this exploration action.
                 is ResetAppExplorationAction -> { /* Do nothing */ }
                 is WidgetExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
@@ -79,7 +79,7 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorati
                 is PressBackExplorationAction -> { /* Do nothing */ }
                 is TerminateExplorationAction -> {
                     assert(i == output.logRecords.size - 1)
-                    // Do not add any transition: all GuiScreens already know how to transition on device actions resulting from
+                    // Do not add any transition: all GuiScreens already know how to transition on device actionTrace resulting from
                     // this exploration action.
                 }
                 else -> throw UnexpectedIfElseFallthroughError(
@@ -92,7 +92,7 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorati
         return guiScreens
     }
     
-    private fun addWidgetTransition(guiScreens: List<IGuiScreen>, i: Int, widget: IWidget) {
+    private fun addWidgetTransition(guiScreens: List<IGuiScreen>, i: Int, widget: Widget) {
         assert(i > 0)
         val sourceScreen = guiScreens.single { output.guiSnapshots[i - 1].id == it.getId() }
         val targetScreen = guiScreens.single { output.guiSnapshots[i].id == it.getId() }

@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.misc.isEquivalentIgnoreLocation
 import org.droidmate.misc.uniqueString
 import java.util.*
@@ -33,7 +33,7 @@ import kotlin.collections.ArrayList
  *
  * @author Nataniel P. Borges Jr.
  */
-class TargetWidget(override val widget: IWidget, vararg dependencies: ITargetWidget) : ITargetWidget {
+class TargetWidget(override val widget: Widget, vararg dependencies: ITargetWidget) : ITargetWidget {
     override val dependencies: List<ITargetWidget> = Arrays.asList(*dependencies)
 
     // no need to check for dependencies here, flag can only be changed is all
@@ -82,8 +82,8 @@ class TargetWidget(override val widget: IWidget, vararg dependencies: ITargetWid
         return canSatisfy
     }
 
-    override fun getTarget(widget: WidgetInfo): ITargetWidget {
-        if (this.widget.isEquivalentIgnoreLocation(widget.widget))
+    override fun getTarget(widget: Widget): ITargetWidget {
+        if (this.widget.isEquivalentIgnoreLocation(widget))
             return this
         else {
             val foundTargets = this.dependencies.map { it.getTarget(widget) }.filter { it !is DummyTarget }

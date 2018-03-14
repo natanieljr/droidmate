@@ -56,7 +56,7 @@ class DummyTarget : ITargetWidget {
         return arrayListOf(this)
     }
 
-    override fun getTarget(widget: WidgetInfo): ITargetWidget {
+    override fun getTarget(widget: Widget): ITargetWidget {
         return this
     }
 }

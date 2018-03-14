@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018 Konrad Jamrozik
+// Copyright (C) 2012-2018 Jenny Hotzkow
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,28 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
-// web: www.droidmate.org
-package org.droidmate.exploration.strategy
+package org.droidmate.device.datatypes.statemodel.features
 
-/**
- * Enum defining the different strategy types that can be activated on the ApkExplorer
- *
- * @author Nataniel P. Borges Jr.
- */
-enum class StrategyTypes(val strategyName: String) {
-    // Default
-    RandomWidget("RandomWidget"),
-    PressBack("PressBack"),
+import org.droidmate.exploration.data_aggregators.ExplorationContext
 
-    // ExplorationContext based
-    ModelBased("ModelBased"),
-    FitnessProportionate("FitnessProportionate"),
-
-    // Dialog actionTrace
-    AllowRuntimePermission("AllowRuntimePermission"),
-    DenyRuntimePermission("DenyRuntimePermission"),
-
-    // Testify
-    SeekTargets("SeekTargets")
+@Suppress("unused")
+interface IModelFeature {
+  fun update(context: ExplorationContext)
+  fun dump(context: ExplorationContext)
 }

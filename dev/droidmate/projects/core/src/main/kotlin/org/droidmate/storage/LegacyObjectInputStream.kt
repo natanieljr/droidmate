@@ -59,10 +59,10 @@ class LegacyObjectInputStream constructor(ins: InputStream) : FSTObjectInput(ins
 
     /*@Throws(IOException::class, ClassNotFoundException::class)
     override fun readClassDescriptor(): ObjectStreamClass {
-        val desc = super.readClassDescriptor()
-        return if (classNameMapping.containsKey(desc.name)) {
-            ObjectStreamClass.lookup(Class.forName(classNameMapping[desc.name]))
+        val contentDesc = super.readClassDescriptor()
+        return if (classNameMapping.containsKey(contentDesc.name)) {
+            ObjectStreamClass.lookup(Class.forName(classNameMapping[contentDesc.name]))
         } else
-            desc
+            contentDesc
     }*/
 }

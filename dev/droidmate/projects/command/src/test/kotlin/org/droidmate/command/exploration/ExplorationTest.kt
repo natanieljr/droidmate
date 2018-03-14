@@ -51,7 +51,7 @@ import org.junit.runners.MethodSorters
 class ExplorationTest : DroidmateTestCase() {
 
     // it fails because the device simulator now always uses UnreliableGuiSnapshot and the code doesn't handle it yet.
-    // after it passes 'app has stopped' dialog box, work on providing invalid gui snapshots, within the retry attempts, of course.
+    // after it passes 'app has stopped' dialog box, work on providing empty gui snapshots, within the retry attempts, of course.
     @Category(RequiresSimulator::class)
     @Test
     fun `Runs on simulator`() {

@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.device.datatypes.IGuiStatus
 import java.io.Serializable
 
 /**
@@ -28,8 +28,9 @@ import java.io.Serializable
  *
  * @author Nataniel P. Borges Jr.
  */
+@Deprecated("use the new state model instead")
 open class WidgetContext constructor(val widgetsInfo: List<WidgetInfo>,
-                                     val guiState: IGuiState,
+                                     val guiStatus: IGuiStatus?,
                                      val packageName: String) : Serializable {
     /**
      * Number of times this state has been seen
@@ -67,15 +68,16 @@ open class WidgetContext constructor(val widgetsInfo: List<WidgetInfo>,
      * AND
      * - It's visible on current display
      * AND
-     * - It's clickable, checkable or long clickable
+     * - It's clickable, check or long clickable
      * AND
      * - [All widgets on screen are not blacklisted][WidgetContext.allWidgetsBlacklisted]
      *
      * @return If any widgets on the screen can be acted upon
      */
     fun hasActionableWidgets(): Boolean {
-        return this.guiState.widgets.any { it.canBeActedUpon() } &&
-                !this.allWidgetsBlacklisted()
+//        return this.guiStatus.widgets.any { it.canBeActedUpon() } &&
+//                !this.allWidgetsBlacklisted()
+        TODO("should go away anyway")
     }
 
     /**
@@ -92,22 +94,25 @@ open class WidgetContext constructor(val widgetsInfo: List<WidgetInfo>,
      * @return If the exploration can perform a widget action
      */
     fun explorationCanMoveForwardOn(): Boolean {
-        return this.belongsToApp() && this.hasActionableWidgets() ||
-                guiState.isRequestRuntimePermissionDialogBox
+//        return this.belongsToApp() && this.hasActionableWidgets() ||
+//                guiStatus.isRequestRuntimePermissionDialogBox
+	    TODO()
     }
 
     /**
      * Checks if the current widget context belongs to the application under test.
      */
     fun belongsToApp(): Boolean {
-        return guiState.belongsToApp(this.packageName)
+//        return guiStatus.belongsToApp(this.packageName)
+	    TODO()
     }
 
     /**
      * Check if the current screen is the device's home screen
      */
     fun isHomeScreen(): Boolean {
-        return this.guiState.isHomeScreen
+//        return this.guiStatus.isHomeScreen
+	    TODO()
     }
 
     override fun toString(): String {

@@ -19,17 +19,17 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 
 open class EnterTextExplorationAction constructor(val textToEnter: String,
-                                                  val widget: IWidget) : ExplorationAction() {
+                                                  val widget: Widget) : ExplorationAction() {
     companion object {
         private const val serialVersionUID: Long = 1
     }
 
     override fun toShortString(): String {
         val paddedTextToEnter = textToEnter.padEnd(22, ' ')
-        return "EnterTxt: $paddedTextToEnter / resId: ${widget.resourceId} / xPath: ${widget.xpath}"
+        return "EnterTxt: $paddedTextToEnter / resourceId: ${widget.resourceId} / xpath: ${widget.xpath}"
     }
 
     override fun toTabulatedString(): String {

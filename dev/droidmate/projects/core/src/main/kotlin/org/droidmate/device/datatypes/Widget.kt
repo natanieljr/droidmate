@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2017 originally by Konrad Jamrozik, modified by Jenny Hotzkow
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,227 +16,246 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-
 package org.droidmate.device.datatypes
 
+import groovy.lang.Tuple2
+import kotlinx.coroutines.experimental.launch
+import org.droidmate.device.datatypes.statemodel.*
 import org.droidmate.exploration.actions.Direction
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.nio.charset.Charset
+import java.util.*
+import javax.imageio.ImageIO
+
+fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.forName("UTF-8")))
+
+@Suppress("unused")
+/**
+ * @param index only used during dumpParsing to create xPath !! should not be used otherwise !!
+ * @param parent only used during dumpParsing to create xPath and to determine the Widget.parentId within the state model !! should not be used otherwise !!
+ */
+class WidgetData(val map: Map<String,Any?>,val index: Int = -1,val parent: WidgetData? = null){
+	constructor(resId: String, xPath:String)
+			:this(defaultProperties.toMutableMap().apply { replace(WidgetData::resourceId.name,resId)	}){ this.xpath = xPath }
+
+	val text: String by map
+	val contentDesc: String by map
+	val resourceId: String by map
+	val className: String by map
+	val packageName: String by map
+	val isPassword: Boolean by map
+	val enabled: Boolean by map
+	val clickable: Boolean by map
+	val longClickable: Boolean by map
+	val scrollable: Boolean by map
+	val checked: Boolean? by map
+	val focused: Boolean? by map
+	val selected: Boolean by map
+	val bounds: Rectangle by map
+	val visible: Boolean by map
+	var xpath:String = ""
+
+	@Deprecated("use the new UUID from state model instead")
+	val id: String by map.withDefault { "" } // only used for testing
+
+	companion object {
+		val defaultProperties by lazy { P.propertyMap(Array(P.values().size,{"false"}).toList()) }
+		fun empty() = WidgetData(defaultProperties)
+	}
+}
+
+private enum class P(val pName:String="",var header: String="") {
+	UID, ImgId(header="image uid"), Type(WidgetData::className.name,"widget class"), Interactive, Text(WidgetData::text.name),
+	Desc(WidgetData::contentDesc.name,"Description"), 	ParentUID(header = "parentID"), Enabled(WidgetData::enabled.name), Visible(WidgetData::visible.name),
+	Clickable(WidgetData::clickable.name), LongClickable(WidgetData::longClickable.name), Scrollable(WidgetData::scrollable.name),
+	Checkable(WidgetData::checked.name), Focusable(WidgetData::focused.name), Selected(WidgetData::selected.name), IsPassword(WidgetData::isPassword.name),
+	Bounds(WidgetData::bounds.name), ResId(WidgetData::resourceId.name,"Resource Id"), XPath ;
+	init{ if(header=="") header=name }
+	companion object {
+		val propertyValues = P.values().filter { it.pName != "" }
+		fun propertyMap(line: List<String>): Map<String, Any?> = propertyValues.map {
+			(it.pName to
+					when (it) {
+						Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible -> line[it.ordinal].toBoolean()
+						Checkable, Focusable -> flag(line[it.ordinal])
+						Bounds -> rectFromString(line[it.ordinal])
+						else -> line[it.ordinal]
+					})
+		}.toMap()
+	}
+}
 
 
-open class Widget @JvmOverloads constructor(override var id: String = "",
-                                            override var index: Int = -1,
-                                            override var text: String = "",
-                                            override var resourceId: String = "",
-                                            override var className: String = "",
-                                            override var packageName: String = "",
-                                            override var contentDesc: String = "",
-                                            override var xpath: String = "",
-                                            override var checkable: Boolean = false,
-                                            override var checked: Boolean = false,
-                                            override var clickable: Boolean = false,
-                                            override var enabled: Boolean = false,
-                                            override var focusable: Boolean = false,
-                                            override var focused: Boolean = false,
-                                            override var scrollable: Boolean = false,
-                                            override var longClickable: Boolean = false,
-                                            override var password: Boolean = false,
-                                            override var selected: Boolean = false,
-                                            override var bounds: Rectangle = Rectangle(),
-                                            override var parent: IWidget? = null) : IWidget {
-    /** Id is used only for tests, for:
-     * - easy determination by human which widget is which when looking at widget string representation
-     * - For asserting actual widgets match expected.
-     * */
+@Suppress("MemberVisibilityCanBePrivate")
+class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:UUID = emptyUUID) {
 
-    companion object {
-        private const val serialVersionUID: Long = 1
+	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
+	 * and the modifiable properties, like checked, focused etc. identified via [propertyConfigId] */
+	val propertyConfigId:UUID = configId(properties)
+	val uid: UUID by lazy { widgetId(text + contentDesc, imgId) }
+	val id get() = Pair(uid,propertyConfigId)
 
-        val ONTOUCH_DISPLAY_RELATION = 0.7
+	val text: String by properties.map
+	val contentDesc: String by properties.map
+	val resourceId: String by properties.map
+	val className: String by properties.map
+	val packageName: String by properties.map
+	val isPassword: Boolean by properties.map
+	val enabled: Boolean by properties.map
+	val visible: Boolean by properties.map
+	val clickable: Boolean by properties.map
+	val longClickable: Boolean by properties.map
+	val scrollable: Boolean by properties.map
+	val checked: Boolean? by properties.map
+	val focused: Boolean? by properties.map
+	val selected: Boolean by properties.map
+	val bounds: Rectangle by properties.map
+	val xpath: String get() = properties.xpath
+	var parentId:Pair<UUID,UUID>? = null
 
-        /**
-         * <p>
-         * Parses into a {@link java.awt.Rectangle} the {@code bounds} string, having format as output by
-         * {@code android.graphics.Rect #toShortString(java.lang.StringBuilder)},
-         * that is having form {@code [Xlow ,Ylow][Xhigh,Yhigh]}
-         *
-         * </p><p>
-         * Such rectangle bounds format is being used internally by<br/>
-         * {@code com.android.uiautomator.core.UiDevice #dumpWindowHierarchy(java.lang.String)}
-         *
-         * </p>
-         */
-        @JvmStatic
-        fun parseBounds(bounds: String): Rectangle {
-            assert(bounds.isNotEmpty())
+	/** helper functions for parsing */
+	fun Rectangle.dataString():String{
+		return "x=$x, y=$y, width=$width, height=$height"
+	}
+	val dataString by lazy {
+		P.values().joinToString(separator = sep) { p ->
+			when (p) {
+				P.UID -> uid.toString()
+				P.Type -> className
+				P.Interactive -> canBeActedUpon().toString()
+				P.Text -> text
+				P.Desc -> contentDesc
+				P.Clickable -> clickable.toString()
+				P.Scrollable -> scrollable.toString()
+				P.Checkable -> checked?.toString() ?: "disabled"
+				P.Focusable -> focused?.toString() ?: "disabled"
+				P.Bounds -> bounds.dataString()
+				P.ResId -> resourceId
+				P.XPath -> xpath
+				P.ImgId -> imgId.toString()
+				P.ParentUID -> parentId?.toString()?:"null"
+				P.Enabled -> enabled.toString()
+				P.LongClickable -> longClickable.toString()
+				P.Selected -> selected.toString()
+				P.IsPassword -> isPassword.toString()
+				P.Visible -> visible.toString()
+			}
+		}
+	}
 
-            // The input is of form "[xLow,yLow][xHigh,yHigh]" and the regex below will capture four groups: xLow yLow xHigh yHigh
-            val boundsMatcher = Regex("\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]")
-            val foundResults = boundsMatcher.findAll(bounds).toList()
-            if (foundResults.isEmpty())
-                throw InvalidWidgetBoundsException("The window hierarchy bounds matcher was unable to match $bounds against the regex")
+	fun center(): Point = Point(bounds.centerX.toInt(), bounds.centerY.toInt())
+	fun getStrippedResourceId(): String = properties.resourceId.removePrefix("$packageName:")
+	fun toShortString(): String{
+		val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
+		return "Wdgt:$classSimpleName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
+	}
+	fun toTabulatedString(includeClassName: Boolean = true): String{
+		val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
+		val pCls = classSimpleName.padEnd(20, ' ')
+		val pResId = resourceId.padEnd(64, ' ')
+		val pText = text.padEnd(40, ' ')
+		val pContDesc = contentDesc.padEnd(40, ' ')
+		val px = "${bounds.centerX.toInt()}".padStart(4, ' ')
+		val py = "${bounds.centerY.toInt()}".padStart(4, ' ')
 
-            val matchedGroups = foundResults[0].groups
+		val clsPart = if (includeClassName) "Wdgt: $pCls / " else ""
 
-            val lowX = matchedGroups[1]!!.value.toInt()
-            val lowY = matchedGroups[2]!!.value.toInt()
-            val highX = matchedGroups[3]!!.value.toInt()
-            val highY = matchedGroups[4]!!.value.toInt()
+		return "${clsPart}resourceId: $pResId / text: $pText / contDesc: $pContDesc / click xy: [$px,$py]"
+	}
+	fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked?:false || longClickable || scrollable)
 
-            return Rectangle(lowX, lowY, highX - lowX, highY - lowY)
-        }
-    }
+	fun getClickPoint(deviceDisplayBounds:Rectangle?): Point{
+		if (deviceDisplayBounds == null) {
+			val center = this.center()
+			return Point(center.x, center.y)
+		}
 
-    /* WISH this actually shouldn't be necessary as the [dump] call is supposed to already return only the visible part, as
-      it makes call to [visible-bounds] to obtain the "bounds" property of widget. I had problems with negative coordinates in
-      com.indeed.android.jobsearch in.
-      [dump] com.android.uiautomator.core.UiDevice.dumpWindowHierarchy
-      [visible-bounds] com.android.uiautomator.core.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen
-      */
-    /**
-     * The widget is associated with a rectangle representing visible device display. This is the same visible display from whose
-     * GUI structure this widget was parsed.
-     *
-     * The field is necessary to determine if at least one pixel of the widget is within the visible display and so, can be clicked.
-     *
-     * Later on DroidMate might add the ability to scroll first to make invisible widgets visible.
-     */
-    override var deviceDisplayBounds: Rectangle? = null
+		assert(bounds.intersects(deviceDisplayBounds))
 
-    override fun center(): Point
-            = Point(bounds.centerX.toInt(), bounds.centerY.toInt())
+		val clickRectangle = bounds.intersection(deviceDisplayBounds)
+		return Point(clickRectangle.centerX.toInt(), clickRectangle.centerY.toInt())
+	}
+	fun getAreaSize(): Double{
+		return bounds.height.toDouble() * bounds.width
+	}
+	fun getDeviceAreaSize(deviceDisplayBounds:Rectangle?): Double{
+		return if (deviceDisplayBounds != null)
+			deviceDisplayBounds!!.height.toDouble() * deviceDisplayBounds!!.width
+		else
+			-1.0
+	}
+	fun getResourceIdName(): String = resourceId.removeSuffix(this.packageName + ":uid/")
+	fun getSwipePoints(direction: Direction, percent: Double,deviceDisplayBounds:Rectangle?): List<Point>{
 
-    override fun toString(): String =
-            "Widget: $className ResourceID: $resourceId, text: $text, $boundsString, clickable: $clickable enabled: $enabled checkable: $checkable deviceDisplayBounds: [x=${deviceDisplayBounds?.x},y=${deviceDisplayBounds?.y},dx=${deviceDisplayBounds?.width},dy=${deviceDisplayBounds?.height}]"
+		assert(bounds.intersects(deviceDisplayBounds))
 
-    override val boundsString: String
-        get() = "[x=${bounds.x},y=${bounds.y},dx=${bounds.width},dy=${bounds.height}]"
+		val swipeRectangle = bounds.intersection(deviceDisplayBounds)
+		val offsetHor = (swipeRectangle.getWidth() * (1 - percent)) / 2
+		val offsetVert = (swipeRectangle.getHeight() * (1 - percent)) / 2
 
-    override fun getStrippedResourceId(): String
-            = this.resourceId.removePrefix(this.packageName + ":")
+		return when (direction) {
+			Direction.LEFT -> arrayListOf(Point((swipeRectangle.maxX - offsetHor).toInt(), swipeRectangle.centerY.toInt()),
+					Point((swipeRectangle.minX + offsetHor).toInt(), swipeRectangle.centerY.toInt()))
+			Direction.RIGHT -> arrayListOf(Point((this.bounds.minX + offsetHor).toInt(), this.bounds.getCenterY().toInt()),
+					Point((this.bounds.getMaxX() - offsetHor).toInt(), this.bounds.getCenterY().toInt()))
+			Direction.UP -> arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()),
+					Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()))
+			Direction.DOWN -> arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()),
+					Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()))
+		}
+	}
 
-    override fun toShortString(): String {
-        val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
-        return "Wdgt:$classSimpleName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
-    }
+	/*************************/
+	companion object {
+		/** widget creation */
+		fun fromString(line:List<String>):Widget{
+			return Widget(
+					WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }
+					,UUID.fromString(line[P.ImgId.ordinal]))
+					.apply { parentId = line[P.UID.ordinal].let{ if(it=="null") null else stateIdFromString(it) } }
+		}
+		fun fromWidgetData(w:WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig):Widget = Widget(w, screenImg?.let {
+			ByteArrayOutputStream().use {
+				ImageIO.write(screenImg.getSubimage(w.bounds), "png", it)
+				it.toByteArray().let { bytes -> UUID.nameUUIDFromBytes(bytes).also {
+					launch { File(config.widgetImgPath(id = widgetId(w.text + w.contentDesc, it),postfix = "_${configId(w)}")).writeBytes(bytes) } } }
+			}}?: emptyUUID
+		)
 
-    override fun toTabulatedString(includeClassName: Boolean): String {
-        val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
-        val pCls = classSimpleName.padEnd(20, ' ')
-        val pResId = resourceId.padEnd(64, ' ')
-        val pText = text.padEnd(40, ' ')
-        val pContDesc = contentDesc.padEnd(40, ' ')
-        val px = "${bounds.centerX.toInt()}".padStart(4, ' ')
-        val py = "${bounds.centerY.toInt()}".padStart(4, ' ')
+		fun configId(w:WidgetData) = w.map.values.toString().toUUID()
 
-        val clsPart = if (includeClassName) "Wdgt: $pCls / " else ""
+		val idIdx = P.UID.ordinal
+		val widgetHeader = P.values().joinToString(separator = sep) { it.header }
 
-        return "${clsPart}resId: $pResId / text: $pText / contDesc: $pContDesc / click xy: [$px,$py]"
-    }
+	}
+	/*** overwritten functions ***/
+	override fun equals(other: Any?): Boolean {
+		return when(other){
+			is Widget -> uid == other.uid && propertyConfigId == other.propertyConfigId
+			else -> false
+		}
+	}
 
-    override fun canBeActedUpon(): Boolean {
-        return this.enabled && (this.clickable || this.checkable || this.longClickable || this.scrollable) && isVisibleOnCurrentDeviceDisplay()
-    }
+	override fun hashCode(): Int {
+		return uid.hashCode()+propertyConfigId.hashCode()
+	}
 
-    override fun isVisibleOnCurrentDeviceDisplay(): Boolean {
-        if (deviceDisplayBounds == null)
-            return true
+	override fun toString(): String {
+		return "$uid-$propertyConfigId:$className[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, pos=${bounds.location}:dx=${bounds.width},dy=${bounds.height}]"
+	}
+	/* end override */
+}
 
-        return bounds.intersects(deviceDisplayBounds)
-    }
-
-    override fun getClickPoint(): Point {
-        if (deviceDisplayBounds == null) {
-            val center = this.center()
-            return Point(center.x, center.y)
-        }
-
-        assert(bounds.intersects(deviceDisplayBounds))
-
-        val clickRectangle = bounds.intersection(deviceDisplayBounds)
-
-        return Point(clickRectangle.centerX.toInt(), clickRectangle.centerY.toInt())
-    }
-
-    override fun getAreaSize(): Double {
-        return bounds.height.toDouble() * bounds.width
-    }
-
-    override fun getDeviceAreaSize(): Double {
-        return if (deviceDisplayBounds != null)
-            deviceDisplayBounds!!.height.toDouble() * deviceDisplayBounds!!.width
-        else
-            -1.0
-    }
-
-    override fun getResourceIdName(): String {
-        return this.resourceId.removeSuffix(this.packageName + ":id/")
-    }
-
-    override fun getSwipePoints(direction: Direction, percent: Double): List<Point> {
-
-        assert(bounds.intersects(deviceDisplayBounds))
-
-        val swipeRectangle = bounds.intersection(deviceDisplayBounds)
-        val offsetHor = (swipeRectangle.getWidth() * (1 - percent)) / 2
-        val offsetVert = (swipeRectangle.getHeight() * (1 - percent)) / 2
-
-        when (direction) {
-            Direction.LEFT -> return arrayListOf(Point((swipeRectangle.maxX - offsetHor).toInt(), swipeRectangle.centerY.toInt()),
-                    Point((swipeRectangle.minX + offsetHor).toInt(), swipeRectangle.centerY.toInt()))
-            Direction.RIGHT -> return arrayListOf(Point((this.bounds.minX + offsetHor).toInt(), this.bounds.getCenterY().toInt()),
-                    Point((this.bounds.getMaxX() - offsetHor).toInt(), this.bounds.getCenterY().toInt()))
-            Direction.UP -> return arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()),
-                    Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()))
-            Direction.DOWN -> return arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()),
-                    Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()))
-        }
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (other !is Widget)
-            return false
-
-        return this.index == other.index &&
-                this.text == other.text &&
-                this.resourceId == other.resourceId &&
-                this.className == other.className &&
-                this.packageName == other.packageName &&
-                this.contentDesc == other.contentDesc &&
-                this.checkable == other.checkable &&
-                this.checked == other.checked &&
-                this.clickable == other.clickable &&
-                this.enabled == other.enabled &&
-                this.focusable == other.focusable &&
-                this.focused == other.focused &&
-                this.scrollable == other.scrollable &&
-                this.longClickable == other.longClickable &&
-                this.password == other.password &&
-                this.selected == other.selected &&
-                this.bounds == other.bounds &&
-                this.parent == other.parent
-    }
-
-    override fun hashCode(): Int {
-        var result = index.hashCode()
-        result = 31 * result + text.hashCode()
-        result = 31 * result + resourceId.hashCode()
-        result = 31 * result + className.hashCode()
-        result = 31 * result + packageName.hashCode()
-        result = 31 * result + contentDesc.hashCode()
-        result = 31 * result + checkable.hashCode()
-        result = 31 * result + checked.hashCode()
-        result = 31 * result + clickable.hashCode()
-        result = 31 * result + enabled.hashCode()
-        result = 31 * result + focusable.hashCode()
-        result = 31 * result + focused.hashCode()
-        result = 31 * result + scrollable.hashCode()
-        result = 31 * result + longClickable.hashCode()
-        result = 31 * result + password.hashCode()
-        result = 31 * result + selected.hashCode()
-        result = 31 * result + bounds.hashCode()
-        result = 31 * result + (parent?.hashCode() ?: 0)
-        result = 31 * result + (deviceDisplayBounds?.hashCode() ?: 0)
-        return result
-    }
+private val widgetId:(String,UUID)->UUID = { id,imgId -> id.toUUID()+ imgId }
+private fun BufferedImage.getSubimage(r:Rectangle) = this.getSubimage(r.x,r.y,r.width,r.height)
+private val flag={entry:String ->if(entry=="disabled") null else entry.toBoolean()}
+private fun rectFromString(s:String): Rectangle {  //         return "x=$x, y=$y, width=$width, height=$height"
+	fun String.value(delimiter:String="="):Int { return this.split(delimiter)[1].toInt() }
+	return s.split(", ").let {
+		Rectangle(it[0].value(),it[1].value(),it[2].value(),it[3].value())
+	}
 }

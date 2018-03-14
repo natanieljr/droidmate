@@ -25,12 +25,10 @@ import org.droidmate.apis.ApiLogcatMessageTestHelper
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.droidmate.exploration.data_aggregators.ExplorationContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.device.DeviceLogs
 import org.droidmate.exploration.device.IDeviceLogs
-import org.droidmate.exploration.strategy.IMemoryRecord
-import org.droidmate.exploration.strategy.MemoryRecord
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
 import org.droidmate.test_tools.exploration.actions.ExplorationActionTestHelper
@@ -40,7 +38,7 @@ import java.time.LocalDateTime
 
 class ExplorationOutput2Builder {
 
-    private lateinit var currentlyBuiltApkOut2: ExplorationLog
+    private lateinit var currentlyBuiltApkOut2: ExplorationContext
     private val builtOutput: ExplorationOutput2 = ExplorationOutput2(ArrayList())
 
     companion object {
@@ -59,7 +57,7 @@ class ExplorationOutput2Builder {
         assert(attributes["explorationEndTimeMss"] is Int)
 
         val packageName = attributes["name"]!! as String
-        this.currentlyBuiltApkOut2 = ExplorationLog(
+        this.currentlyBuiltApkOut2 = ExplorationContext(
                 ApkTestHelper.build(
                         packageName,
                         "$packageName/$packageName.MainActivity",
@@ -91,7 +89,7 @@ class ExplorationOutput2Builder {
         return parseRunnableAction(attributes["action"] as String, timestamp)
     }
 
-    internal fun buildActionResult(attributes: Map<String, Any>): IMemoryRecord {
+    internal fun buildActionResult(attributes: Map<String, Any>): org.droidmate.exploration.strategy.ActionResult {
         val deviceLogs = buildDeviceLogs(attributes)
         val guiSnapshot = attributes["guiSnapshot"] as IDeviceGuiSnapshot? ?: UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump()
 
@@ -103,8 +101,8 @@ class ExplorationOutput2Builder {
         val packageName = attributes["packageName"] as String? ?: currentlyBuiltApkOut2.packageName
         assert(packageName.isNotEmpty())
 
-        return MemoryRecord(EmptyAction(), LocalDateTime.now(), LocalDateTime.now(), deviceLogs, guiSnapshot,
-                exception, URI.create("file://."))
+        return ActionResult(EmptyAction(), LocalDateTime.now(), LocalDateTime.now(), deviceLogs, guiSnapshot,
+            exception, URI.create("file://."))
     }
 
 

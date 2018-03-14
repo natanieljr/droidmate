@@ -30,7 +30,7 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
     val headerApkName = "file_name"
     val headerPackageName = "package_name"
     val headerExplorationTimeInSeconds = "exploration_seconds"
-    val headerActionsCount = "actions"
+    val headerActionsCount = "actionTrace"
     val headerResetActionsCount = "in_this_reset_actions"
     val headerViewsSeenCount = "actionable_unique_views_seen_at_least_once"
     val headerViewsClickedCount = "actionable_unique_views_clicked_or_long_clicked_at_least_once"
@@ -60,7 +60,7 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
                           apkData.apk.fileName,
                           apkData.packageName,
                           apkData.getExplorationDuration().seconds.toString(),
-                          apkData.actions.size.toString(),
+                          apkData.actionTrace.size.toString(),
                           apkData.resetActionsCount.toString(),
                           apkData.uniqueActionableWidgets.size.toString(),
                           apkData.uniqueClickedWidgets.size.toString(),

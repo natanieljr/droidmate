@@ -18,11 +18,11 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.device.datatypes.IGuiState
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.IGuiStatus
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.exploration.strategy.IMemoryRecord
+import org.droidmate.exploration.strategy.ActionResult
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -48,21 +48,21 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
         Files.write(reportFile, sb.toString().toByteArray())
     }
 
-    private fun getActionWidget(memoryRecord: IMemoryRecord): IWidget? {
-        return if (memoryRecord.action is WidgetExplorationAction) {
-            val explAction = (memoryRecord.action as WidgetExplorationAction)
+    private fun getActionWidget(actionResult: ActionResult): Widget? {
+        return if (actionResult.action is WidgetExplorationAction) {
+            val explAction = (actionResult.action as WidgetExplorationAction)
 
-            getWidgetWithTextFromAction(explAction.widget, memoryRecord.widgetContext.guiState)
+            getWidgetWithTextFromAction(explAction.widget, actionResult.widgetContext.guiStatus)
         } else
             null
     }
 
-    private fun getWidgetWithTextFromAction(widget: IWidget, guiState: IGuiState): IWidget {
+    private fun getWidgetWithTextFromAction(widget: Widget, guiStatus: IGuiStatus): Widget {
         // If has Text
         if (widget.text.isNotEmpty())
             return widget
 
-        val children = guiState.widgets
+        val children = guiStatus.widgets
                 .filter { p -> p.parent == widget }
 
         // If doesn't have any children
@@ -77,7 +77,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
             childrenWithText.size == 1 -> childrenWithText.first()
 
         // Single child, drill down
-            children.size == 1 -> getWidgetWithTextFromAction(children.first(), guiState)
+            children.size == 1 -> getWidgetWithTextFromAction(children.first(), guiStatus)
 
         // Multiple children, skip
             else -> widget

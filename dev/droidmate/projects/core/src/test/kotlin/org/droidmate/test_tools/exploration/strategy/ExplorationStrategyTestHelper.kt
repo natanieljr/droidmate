@@ -20,7 +20,7 @@
 package org.droidmate.test_tools.exploration.strategy
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.droidmate.exploration.data_aggregators.ExplorationContext
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
@@ -29,7 +29,6 @@ import org.droidmate.exploration.strategy.reset.AppCrashedReset
 import org.droidmate.exploration.strategy.reset.CannotExploreReset
 import org.droidmate.exploration.strategy.reset.InitialReset
 import org.droidmate.exploration.strategy.reset.IntervalReset
-import org.droidmate.test_tools.ApkFixtures
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 import org.droidmate.test_tools.configuration.ConfigurationForTests
 
@@ -48,7 +47,7 @@ class ExplorationStrategyTestHelper {
         @JvmStatic
         fun getTestExplorationLog(packageName: String): IExplorationLog {
             val testApk = ApkTestHelper.build(packageName, ".", "", "")
-            return ExplorationLog(testApk)
+            return ExplorationContext(testApk)
         }
 
         @JvmStatic

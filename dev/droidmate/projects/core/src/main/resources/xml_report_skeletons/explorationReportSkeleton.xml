@@ -12,7 +12,7 @@
       <explorationStatus/>
       <!-- Same reason as above. -->
       <guiAction/>
-      <guiState> _ </guiState>
+      <guiStatus> _ </guiStatus>
 
       <!-- Code covered when the apk was started by "launch main activity" intent. -->
       <coverageLogs>
@@ -26,7 +26,7 @@
 
       <explorationStatus terminate="false"> _ </explorationStatus>
       <guiAction> _ </guiAction>
-      <guiState> _ </guiState>
+      <guiStatus> _ </guiStatus>
 
       <coverageLogs>
         <coverageLog index="0"> _ </coverageLog>
@@ -41,7 +41,7 @@
 
       <explorationStatus> _ </explorationStatus>
       <guiAction>null</guiAction>
-      <guiState/>
+      <guiStatus/>
 
       <coverageLogs>
         <coverageLog index="0"> _ </coverageLog>

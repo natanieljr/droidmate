@@ -26,13 +26,13 @@ import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
-import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.droidmate.exploration.data_aggregators.ExplorationContext
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.IRobustDevice
-import org.droidmate.exploration.strategy.EmptyMemoryRecord
+import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
-import org.droidmate.exploration.strategy.IMemoryRecord
+import org.droidmate.exploration.strategy.ActionResult
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
@@ -80,14 +80,14 @@ class Exploration constructor(private val cfg: Configuration,
         log.debug("explorationLoop(app=${app.fileName}, device)")
 
         // Construct the object that will hold the exploration output and that will be returned from this method.
-        val output = ExplorationLog(app)
+        val output = ExplorationContext(app)
 
         output.explorationStartTime = timeProvider.getNow()
         log.debug("Exploration start time: " + output.explorationStartTime)
 
         // Construct initial action and run it on the device to obtain initial result.
         var action: IRunnableExplorationAction? = null
-        var result: IMemoryRecord = EmptyMemoryRecord()
+        var result: ActionResult = EmptyActionResult()
 
         var isFirst = true
         val strategy: IExplorationStrategy = strategyProvider.invoke(output)
@@ -133,10 +133,10 @@ class Exploration constructor(private val cfg: Configuration,
 
         val initialGuiSnapshot = device.getGuiSnapshot()
 
-        if (!initialGuiSnapshot.guiState.isHomeScreen)
+        if (!initialGuiSnapshot.guiStatus.isHomeScreen)
             log.warn(Markers.appHealth,
                     "An exploration process for $fileName is about to start but the device doesn't display home screen. " +
-                            "Instead, its GUI state is: $initialGuiSnapshot.guiState. " +
+                            "Instead, its GUI state is: $initialGuiSnapshot.guiStatus. " +
                             "Continuing the exploration nevertheless, hoping that the first \"reset app\" " +
                             "exploration action will force the device into the home screen.")
     }

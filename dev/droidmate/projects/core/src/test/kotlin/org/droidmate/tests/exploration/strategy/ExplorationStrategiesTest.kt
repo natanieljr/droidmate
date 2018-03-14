@@ -22,10 +22,11 @@ package org.droidmate.tests.exploration.strategy
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import org.droidmate.device.datatypes.EmptyGuiState
+import org.droidmate.device.datatypes.EmptyGuiStatus
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.device.datatypes.IGuiStatus
 import org.droidmate.exploration.actions.*
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.reset.InitialReset
 import org.droidmate.exploration.strategy.reset.IntervalReset
@@ -69,9 +70,9 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         strategy.registerStrategy(TripleActionExploration.build())
 
         // Mocking
-        val inputData = mock<IMemoryRecord>()
+        val inputData = mock<org.droidmate.exploration.strategy.ActionResult>()
         val snapshot = mock<IDeviceGuiSnapshot>()
-        val guiState = mock<IGuiState>()
+        val guiState = mock<IGuiStatus>()
         whenever(inputData.successful).thenReturn(true)
         whenever(inputData.appPackageName).thenReturn("STUB!")
         whenever(inputData.guiSnapshot).thenReturn(snapshot)
@@ -88,12 +89,12 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
             // Only in the last should the termination criterion be met
             assertTrue(i <= nrOfActions || actions.last() is TerminateExplorationAction)
             if (i == 0)
-                actions.add(strategy.decide(EmptyMemoryRecord()))
+                actions.add(strategy.decide(EmptyActionResult()))
             else
                 actions.add(strategy.decide(inputData))
         }
 
-        // Expected order of actions:
+        // Expected order of actionTrace:
         assertTrue(actions[0] is ResetAppExplorationAction)
         assertTrue(actions[1] is WidgetExplorationAction)
         assertTrue(actions[2] is WidgetExplorationAction)
@@ -110,9 +111,9 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
     @Test
     fun actionBasedTerminationStrategyTest() {
         // Mocking
-        val inputData = mock<IMemoryRecord>()
+        val inputData = mock<org.droidmate.exploration.strategy.ActionResult>()
         val snapshot = mock<IDeviceGuiSnapshot>()
-        val guiState = mock<IGuiState>()
+        val guiState = mock<IGuiStatus>()
         whenever(inputData.successful).thenReturn(true)
         whenever(inputData.appPackageName).thenReturn("STUB!")
         whenever(inputData.guiSnapshot).thenReturn(snapshot)
@@ -145,9 +146,9 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
     @Test
     fun timeBasedTerminationStrategyTest() {
         // Mocking
-        val inputData = mock<IMemoryRecord>()
+        val inputData = mock<org.droidmate.exploration.strategy.ActionResult>()
         val snapshot = mock<IDeviceGuiSnapshot>()
-        val guiState = mock<IGuiState>()
+        val guiState = mock<IGuiStatus>()
         whenever(inputData.successful).thenReturn(true)
         whenever(inputData.appPackageName).thenReturn("STUB!")
         whenever(inputData.guiSnapshot).thenReturn(snapshot)
@@ -170,7 +171,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
 
         // Criterion = 1 action
         // The timer starts here
-        strategy.decide(EmptyMemoryRecord())
+        strategy.decide(EmptyActionResult())
         // Reset the clock, since it had to wait the exploration action to be done
         terminateStrategy.resetClock()
         // First is valid
@@ -261,17 +262,17 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         // First action is always reset
         val resetStrategy = InitialReset()
         resetStrategy.initialize(explorationLog)
-        widgetContext = explorationLog.getWidgetContext(EmptyGuiState())
-        var record = MemoryRecord(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
+        widgetContext = explorationLog.getWidgetContext(EmptyGuiStatus())
+        var record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
                 .apply { this.widgetContext = widgetContext }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 
         val backStrategy = PressBack.build(0.1, cfg)
         backStrategy.initialize(explorationLog)
-        record = MemoryRecord(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
+        record = ActionResult(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
                 .apply { this.widgetContext = widgetContext }
         explorationLog.add(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
-        record = MemoryRecord(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
+        record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
                 .apply { this.widgetContext = widgetContext }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
         widgetContext = explorationLog.getWidgetContext(guiState)
@@ -303,14 +304,14 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         val resetStrategy = InitialReset()
         val backStrategy = PressBack.build(0.1, cfg)
         resetStrategy.initialize(explorationLog)
-        widgetContext = explorationLog.getWidgetContext(EmptyGuiState())
-        var record = MemoryRecord(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
+        widgetContext = explorationLog.getWidgetContext(EmptyGuiStatus())
+        var record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
                 .apply { this.widgetContext = widgetContext }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
-        record = MemoryRecord(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
+        record = ActionResult(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
                 .apply { this.widgetContext = widgetContext }
         explorationLog.add(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
-        record = MemoryRecord(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
+        record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
                 .apply { this.widgetContext = widgetContext }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 

@@ -45,7 +45,9 @@ allprojects {
 
 subprojects {
 	apply plugin: "kotlin"
-//  plugins {    id "org.jetbrains.kotlin.jvm" version "1.2.30"  }
+//	plugins { id "org.jetbrains.kotlin.jvm" version "1.2.30" }
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
 	dependencies {
 		compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 		compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"

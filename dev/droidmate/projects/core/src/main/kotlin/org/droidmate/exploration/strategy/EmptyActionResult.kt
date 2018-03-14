@@ -16,32 +16,12 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
+package org.droidmate.exploration.strategy
 
-package org.droidmate.device.datatypes
+import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.actions.EmptyAction
+import org.droidmate.exploration.device.DeviceLogs
+import java.time.LocalDateTime
 
-import java.io.Serializable
+class EmptyActionResult : ActionResult(EmptyAction(), LocalDateTime.MIN, LocalDateTime.MIN, DeviceLogs())
 
-interface IGuiState : Serializable {
-    val topNodePackageName: String
-    val widgets: List<IWidget>
-    val id: String
-    val androidLauncherPackageName: String
-
-    fun getActionableWidgets(): List<IWidget>
-
-    val isHomeScreen: Boolean
-
-    val isAppHasStoppedDialogBox: Boolean
-
-    val isRequestRuntimePermissionDialogBox: Boolean
-
-    val isCompleteActionUsingDialogBox: Boolean
-
-    val isSelectAHomeAppDialogBox: Boolean
-
-    val isUseLauncherAsHomeDialogBox: Boolean
-
-    fun belongsToApp(appPackageName: String): Boolean
-
-    fun debugWidgets(): String
-}

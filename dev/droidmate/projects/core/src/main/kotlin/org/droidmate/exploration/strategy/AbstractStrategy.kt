@@ -18,6 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.device.datatypes.statemodel.ActionData
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.widget.Explore
@@ -70,8 +72,8 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
      * Check if last performed action in the [memory] was to reset the app
      * @return If the last action was a reset
      */
-    internal fun lastAction(): ExplorationAction {
-        return this.memory.getLastAction().action
+    internal fun lastAction(): ActionData {
+        return this.memory.getLastAction()
     }
 
     /**
@@ -84,14 +86,14 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     /**
      * Notify all [listeners] that an exploration target has been found
      *
-     * @param targetWidget Widget that has been found
+     * @param targetWidget OldWidget that has been found
      * @param result Exploration action that triggered the target
      */
-    protected fun notifyTargetFound(targetWidget: ITargetWidget, result: IMemoryRecord) {
+    protected fun notifyTargetFound(targetWidget: ITargetWidget, result: ActionResult) {
         this.listeners.forEach { listener -> listener.onTargetFound(this, targetWidget, result) }
     }
 
-    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+    override fun updateState(actionNr: Int, record: ActionResult) {
         this.actionNr = actionNr
     }
 
@@ -113,7 +115,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     }
 
     override fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-                               result: IMemoryRecord) {
+                               result: ActionResult) {
         // By default does nothing
     }
 
@@ -127,14 +129,14 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     }
 
     /**
-     * Defines if the exploration action will perform more actions or if it will return the
+     * Defines if the exploration action will perform more actionTrace or if it will return the
      * execution control to the listeners.
      *
-     * Example of strategies which would require multiple actions:
+     * Example of strategies which would require multiple actionTrace:
      * - Login
      * - Register
      *
-     * @return If the strategy has to perform more actions
+     * @return If the strategy has to perform more actionTrace
      */
     abstract fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean
 

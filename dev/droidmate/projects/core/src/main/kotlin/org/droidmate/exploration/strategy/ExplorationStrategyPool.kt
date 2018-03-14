@@ -20,6 +20,8 @@ package org.droidmate.exploration.strategy
 
 import com.google.common.base.Ticker
 import org.droidmate.configuration.Configuration
+import org.droidmate.device.datatypes.GuiStatus
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.reset.AppCrashedReset
@@ -90,7 +92,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
                 strategies.add(RandomWidget.build(cfg))
 
-            // Model based
+            // ExplorationContext based
             if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
                 strategies.add(ModelBased.build(cfg))
 
@@ -125,7 +127,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     private var activeStrategy: ISelectableExplorationStrategy? = null
 
     /**
-     * Number of elapsed actions
+     * Number of elapsed actionTrace
      */
     private var actionNr: Int = 0
 
@@ -225,24 +227,24 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     /**
      * Notify the internal strategies to update their state
      */
-    private fun updateStrategiesState(record: IMemoryRecord) {
+    private fun updateStrategiesState(record: ActionResult) {
         for (strategy in this.strategies)
             strategy.updateState(this.actionNr, record)
     }
 
-    override fun update(record: IMemoryRecord) {
+    override fun update(record: ActionResult) {
         this.actionNr++
 
         this.updateStrategiesState(record)
     }
 
-    override fun decide(result: IMemoryRecord): ExplorationAction {
+    override fun decide(result: ActionResult): ExplorationAction {
 
         logger.debug("decide($result)")
 
         assert(result.successful)
 
-        val guiState = result.guiState
+        val guiState = result.guiSnapshot.guiStatus
 
         logger.debug("pool decide")
         assert(!this.strategies.isEmpty())
@@ -250,7 +252,8 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         if (this.memory.isEmpty())
             this.startStrategies()
 
-        val widgetContext = this.memory.getWidgetContext(guiState)
+//        val widgetContext = this.memory.getWidgetContext(guiState)    TODO
+        val widgetContext = WidgetContext(emptyList(),null,memory.apk.packageName)
 
         if (this.hasControl())
             this.handleControl(widgetContext)
@@ -272,7 +275,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     }
 
     override fun onTargetFound(strategy: ISelectableExplorationStrategy, targetWidget: ITargetWidget,
-                               result: IMemoryRecord) {
+                               result: ActionResult) {
         this.strategies.forEach { it.onTargetFound(strategy, targetWidget, result) }
     }
 

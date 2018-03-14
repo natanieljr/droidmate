@@ -18,14 +18,12 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.misc.uniqueString
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import org.droidmate.report.misc.actionableWidgets
 import org.droidmate.report.misc.clickedWidget
-import org.droidmate.report.misc.itemsAtTime
 
 class WidgetSeenClickedTable(data: IExplorationLog) : CountsPartitionedByTimeTable(
         data.getExplorationTimeInMs(),
@@ -59,7 +57,7 @@ class WidgetSeenClickedTable(data: IExplorationLog) : CountsPartitionedByTimeTab
             }
 
         private fun IExplorationLog.uniqueViewCountByPartitionedTime(
-                extractItems: (ExplorationRecord) -> Iterable<IWidget>): Map<Long, Iterable<String>> {
+                extractItems: (ExplorationRecord) -> Iterable<Widget>): Map<Long, Iterable<String>> {
 
             return this.logRecords.itemsAtTime(
                     startTime = this.explorationStartTime,

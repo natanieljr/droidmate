@@ -159,7 +159,7 @@ class DeviceTest : DroidmateTestCase()
 
           // Act 3
 //          device.perform(newClickGuiDeviceAction(100, 100))
-//          assert(device.getGuiSnapshot().guiState.belongsToApp(deployedApk.packageName))
+//          assert(device.getGuiSnapshot().guiStatus.belongsToApp(deployedApk.packageName))
 
           // Act 4
           device.clearPackage(deployedApk.packageName)

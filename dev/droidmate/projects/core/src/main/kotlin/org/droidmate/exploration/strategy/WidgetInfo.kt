@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import java.io.Serializable
 
 /**
@@ -26,9 +26,10 @@ import java.io.Serializable
  *
  * @author Nataniel P. Borges Jr.
  */
-open class WidgetInfo protected constructor(val widget: IWidget) : Serializable {
+@Deprecated("use the new state model instead")
+open class WidgetInfo protected constructor(val widget: Widget) : Serializable {
     /**
-     * Number of times the widget has ben clicked (including checked or unchecked) + long clicked
+     * Number of times the widget has ben clicked (including check or unchecked) + long clicked
      */
     var actedUponCount = 0
     /**
@@ -83,7 +84,7 @@ open class WidgetInfo protected constructor(val widget: IWidget) : Serializable 
         /**
          * Creates a new widget information container from a UI widget
          */
-        fun from(widget: IWidget): WidgetInfo {
+        fun from(widget: Widget): WidgetInfo {
             return WidgetInfo(widget)
         }
 

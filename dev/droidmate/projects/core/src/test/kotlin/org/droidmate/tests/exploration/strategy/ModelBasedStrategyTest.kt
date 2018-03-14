@@ -20,7 +20,7 @@
 package org.droidmate.tests.exploration.strategy
 
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.data_aggregators.ExplorationLog
+import org.droidmate.exploration.data_aggregators.ExplorationContext
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.misc.uniqueString
 import org.droidmate.test_tools.DroidmateTestCase
@@ -53,7 +53,7 @@ class ModelBasedStrategyTest: DroidmateTestCase() {
 
         // The timer starts here
         val testApk = ApkTestHelper.build("ch.bailu.aat", "", "", "")
-        val memory =  ExplorationLog(testApk)
+        val memory =  ExplorationContext(testApk)
         val widgetContext = memory.getWidgetContext(guiState)
         val chosenAction = strategy.decide(widgetContext) as WidgetExplorationAction
         assert(chosenAction.getSelectedWidget().uniqueString == "android.view.ViewGroup[0]    java.awt.Rectangle[x=0,y=63,width=263,height=263]")

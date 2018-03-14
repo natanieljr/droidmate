@@ -23,7 +23,7 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.*
 
 /**
- * Test exploration strategy that does three actions before handling control
+ * Test exploration strategy that does three actionTrace before handling control
  * back to main exploration
  */
 class TripleActionExploration : AbstractStrategy() {

@@ -21,4 +21,4 @@ package org.droidmate.exploration.strategy
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 
 class EmptyWidgetContext(snapshot: IDeviceGuiSnapshot = EmptyGUISnapshot()) :
-        WidgetContext(ArrayList(), snapshot.guiState, snapshot.getPackageName())
+        WidgetContext(ArrayList(), snapshot.guiStatus, snapshot.getPackageName())

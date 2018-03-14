@@ -17,6 +17,7 @@
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
 apply plugin: 'kotlin'
+
 apply from: project(":projects").file("debug.gradle")
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -30,9 +31,19 @@ compileTestJava.dependsOn tasks.getByPath(':projects:lib-kotlin:testClasses')
 dependWithTest([project, ":projects:lib-kotlin", "kotlin"])
 dependWithTest([project, ":projects:lib-common", "kotlin"])
 
-dependencies {
+kotlin {
+	experimental {
+		coroutines 'enable'
+	}
+}
+repositories{
+	jcenter() // required for coroutines
+}
 
-  compile("com.github.natanieljr:konrads_utilities:$utilities_version") {
+dependencies {
+	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
+
+	compile("com.github.natanieljr:konrads_utilities:$utilities_version") {
     exclude group: "org.slf4j", module: "slf4j-simple"
   }
 
@@ -67,6 +78,7 @@ dependencies {
   testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
 
   testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
+
 }
 
 apply from: file("resources.gradle")

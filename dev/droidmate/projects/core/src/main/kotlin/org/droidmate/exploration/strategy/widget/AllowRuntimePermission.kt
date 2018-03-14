@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiState
+import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiStatus
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
@@ -32,10 +32,14 @@ import org.droidmate.exploration.strategy.WidgetContext
  */
 class AllowRuntimePermission private constructor() : Explore() {
     override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
-        val allowButton = (widgetContext.guiState as RuntimePermissionDialogBoxGuiState).allowWidget
+        val allowButton = memory.getCurrentState().widgets.let { widgets ->
+            widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:uid/permission_allow_button" }
+                ?: widgets.first { it.text.toUpperCase() == "ALLOW" }
+        }
+//        val allowButton = (widgetContext.guiStatus as RuntimePermissionDialogBoxGuiStatus).allowWidget
 
         // Remove blacklist restriction from previous action since it will need to be executed again
-        this.memory.lastWidgetInfo.blackListed = false
+//        this.memory.lastTarget.blackListed = false    //TODO
 
         return ExplorationAction.newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
     }
@@ -43,7 +47,7 @@ class AllowRuntimePermission private constructor() : Explore() {
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         // If the permission dialog appears this strategy should always have
         // preference unless competing against Terminate or First Reset
-        return if (widgetContext.guiState.isRequestRuntimePermissionDialogBox)
+        return if (memory.getCurrentState().isRequestRuntimePermissionDialogBox)
             StrategyPriority.SPECIFIC_WIDGET
         else
             StrategyPriority.NONE

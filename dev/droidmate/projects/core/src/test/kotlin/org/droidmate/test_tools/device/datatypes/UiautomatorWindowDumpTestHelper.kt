@@ -99,8 +99,8 @@ class UiautomatorWindowDumpTestHelper {
 
         @JvmStatic
         private fun topNode(appPackageName: String = apkFixture_simple_packageName, payload: String): String {
-            return """<node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="$appPackageName"
-content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false"
+            return """<node index="0" text="" resource-uid="" class="android.widget.FrameLayout" package="$appPackageName"
+content-contentDesc="" check="false" check="false" clickable="false" enabled="true" focusable="false" focus="false"
 scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,0][800,1205]">$payload</node>"""
         }
 
@@ -120,21 +120,21 @@ scrollable="false" long-clickable="false" password="false" selected="false" boun
         }
 
         @JvmStatic
-        fun dump(w: IWidget): String {
-            val idString = if (w.id.isNotEmpty()) "id=\"${w.id}\"" else ""
+        fun dump(w: Widget): String {
+            val idString = if (w.id.isNotEmpty()) "uid=\"${w.id}\"" else ""
             return """<node
  index="${w.index}"
  text="${w.text}"
- resource-id="${w.resourceId}"
+ resource-uid="${w.resourceId}"
  class="${w.className}"
  package="${w.packageName}"
- content-desc="${w.contentDesc}"
- checkable="${w.checkable}"
- checked="${w.checked}"
+ content-contentDesc="${w.contentDesc}"
+ check="${w.checkable}"
+ check="${w.checked}"
  clickable="${w.clickable}"
  enabled="${w.enabled}"
  focusable="${w.focusable}"
- focused="${w.focused}"
+ focus="${w.focused}"
  scrollable="${w.scrollable}"
  long-clickable="${w.longClickable}"
  password="${w.password}"
@@ -147,9 +147,9 @@ scrollable="false" long-clickable="false" password="false" selected="false" boun
         // WISH deprecated as well as calling methods. Instead, use org.droidmate.test.device.datatypes.UiautomatorWindowDumpTestHelper.dump
         @JvmStatic
         private fun createButtonDump(index: Int, text: String, bounds: String, packageName: String = apkFixture_simple_packageName): String =
-                """<node index="$index" text="$text" resource-id="dummy.package.ExampleApp:id/button_$text"
-class="android.widget.Button" package="$packageName" content-desc="" checkable="false" checked="false"
-clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false"
+                """<node index="$index" text="$text" resource-uid="dummy.package.ExampleApp:uid/button_$text"
+class="android.widget.Button" package="$packageName" content-contentDesc="" check="false" check="false"
+clickable="true" enabled="true" focusable="true" focus="false" scrollable="false" long-clickable="false" password="false"
 selected="false" bounds="$bounds"/>"""
 
         /**
@@ -163,9 +163,9 @@ selected="false" bounds="$bounds"/>"""
         }
 
         @JvmStatic
-        fun fromGuiState(guiState: IGuiState): IDeviceGuiSnapshot {
+        fun fromGuiState(guiStatus: IGuiStatus): IDeviceGuiSnapshot {
             return skeletonWithPayload(
-                    guiState.widgets.joinToString(System.lineSeparator()) { dump(it) }, guiState.id)
+                    guiStatus.widgets.joinToString(System.lineSeparator()) { dump(it) }, guiStatus.id)
         }
     }
 }

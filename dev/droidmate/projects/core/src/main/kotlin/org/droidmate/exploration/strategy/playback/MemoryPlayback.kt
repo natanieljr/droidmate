@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.playback
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.StrategyPriority
@@ -34,7 +34,7 @@ open class MemoryPlayback private constructor() : Explore() {
     private var storedMemoryData: IExplorationLog? = null
 
     constructor(storedMemoryData: IExplorationLog) : this() {
-        this.packageName = storedMemoryData.packageName
+        this.packageName = storedMemoryData.apk.packageName
         this.storedMemoryData = storedMemoryData
     }
 
@@ -46,7 +46,7 @@ open class MemoryPlayback private constructor() : Explore() {
     val traces: MutableList<PlaybackTrace> = ArrayList()
 
     private fun initializeFromMemory() {
-        val memoryRecords = storedMemoryData!!.getRecords()
+        val memoryRecords = storedMemoryData!!.actionTrace.getActions()
 
         // Create traces from memory records
         // Each trace starts with a reset
@@ -54,12 +54,13 @@ open class MemoryPlayback private constructor() : Explore() {
         for (i in 0 until memoryRecords.size) {
             val memoryRecord = memoryRecords[i]
 
-            if (memoryRecord.action is ResetAppExplorationAction)
+            if (memoryRecord.actionType == ResetAppExplorationAction::class.simpleName)
                 traces.add(PlaybackTrace())
 
-            val widgetContext = memory.getWidgetContext(memoryRecord.widgetContext.guiState)
+//            val widgetContext = memory.getWidgetContext(memoryRecord.widgetContext.guiStatus)
 
-            traces.last().add(memoryRecord.action, widgetContext)
+            TODO()
+//            traces.last().add(memoryRecord.action, widgetContext)
         }
     }
 
@@ -82,7 +83,7 @@ open class MemoryPlayback private constructor() : Explore() {
         return mappedWidgets.sum() / this.widgetsInfo.size.toDouble()
     }
 
-    private fun IWidget.canExecute(context: WidgetContext, ignoreLocation: Boolean = false): Boolean {
+    private fun Widget.canExecute(context: WidgetContext, ignoreLocation: Boolean = false): Boolean {
         return if (ignoreLocation)
             (!(this.text.isEmpty() && (this.resourceId.isEmpty()))) &&
                     (context.widgetsInfo.any { it.widget.isEquivalentIgnoreLocation(this) })
@@ -161,7 +162,7 @@ open class MemoryPlayback private constructor() : Explore() {
         }
     }
 
-    fun getExplorationRatio(widget: IWidget? = null): Double {
+    fun getExplorationRatio(widget: Widget? = null): Double {
         val totalSize = traces.map { it.getSize(widget) }.sum()
 
         return traces

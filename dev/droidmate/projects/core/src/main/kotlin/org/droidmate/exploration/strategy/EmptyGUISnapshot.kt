@@ -19,14 +19,15 @@
 
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.EmptyGuiState
+import org.droidmate.device.datatypes.EmptyGuiStatus
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.device.datatypes.IGuiStatus
 import org.droidmate.device.datatypes.ValidationResult
+import org.droidmate.device.datatypes.statemodel.StateData
 
 class EmptyGUISnapshot : IDeviceGuiSnapshot {
-    override val guiState: IGuiState
-        get() = EmptyGuiState()
+    override val guiStatus: IGuiStatus
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
     override val id: String
         get() = this.javaClass.name

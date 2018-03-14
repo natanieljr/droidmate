@@ -33,11 +33,11 @@ import org.droidmate.logging.Markers
  */
 abstract class Terminate : AbstractStrategy() {
 
-    protected fun getSecondLastAction(): ExplorationAction {
+    protected fun getSecondLastAction(): String {
         if (this.memory.getSize() < 2)
-            return EmptyAction()
+            return EmptyAction()::class.simpleName?:""
 
-        return this.memory.getRecords().dropLast(1).last().action
+        return this.memory.actionTrace.getActions().dropLast(1).last().actionType?:""
     }
 
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {

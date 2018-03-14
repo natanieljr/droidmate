@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.playback
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.strategy.WidgetContext
@@ -66,7 +66,7 @@ class PlaybackTrace : Serializable {
         return trace.firstOrNull { !it.requested && it.action is WidgetExplorationAction }
     }
 
-    fun getExploredRatio(widget: IWidget? = null): Double {
+    fun getExploredRatio(widget: Widget? = null): Double {
         val traces = if (widget != null) {
             val idx = indexOf(widget)
 
@@ -82,7 +82,7 @@ class PlaybackTrace : Serializable {
         return explored / traces.size.toDouble()
     }
 
-    fun contains(widget: IWidget): Boolean {
+    fun contains(widget: Widget): Boolean {
         return trace.any { p ->
             (p.action is WidgetExplorationAction) &&
                     (p.action.widget.uniqueString == widget.uniqueString)
@@ -96,7 +96,7 @@ class PlaybackTrace : Serializable {
         }
     }
 
-    private fun indexOf(widget: IWidget): Int {
+    private fun indexOf(widget: Widget): Int {
         return trace.indexOfFirst { p ->
             (p.action is WidgetExplorationAction) &&
                     (p.action.widget.uniqueString == widget.uniqueString)
@@ -108,7 +108,7 @@ class PlaybackTrace : Serializable {
     }
 
     @Suppress("unused")
-    fun getSize(widget: IWidget? = null): Int {
+    fun getSize(widget: Widget? = null): Int {
         val traces = if (widget != null) {
             val idx = indexOf(widget)
 

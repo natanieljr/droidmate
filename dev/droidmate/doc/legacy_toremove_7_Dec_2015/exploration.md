@@ -26,7 +26,7 @@ First it creates the necessary infrastructure:
 Then the exploration-proper takes place in a loop:
  
 - The loop starts with `ResetAppExplorationAction` ensuring the device will end up in the main activity of the subject `apk`.
-- The `driver` executes current `explorationAction`, obtaining `guiState` which is then feed to `strategy` to obtain next action which then loops.
+- The `driver` executes current `explorationAction`, obtaining `guiStatus` which is then feed to `strategy` to obtain next action which then loops.
 - The loop ends with `TerminateExplorationAction` which might happen either because the `strategy` determined it doesn't know what to do in current state or some of the exploration bounds were reached, like maximum number of operations.
 
 After the loop finished, the collected exploration data is returned.

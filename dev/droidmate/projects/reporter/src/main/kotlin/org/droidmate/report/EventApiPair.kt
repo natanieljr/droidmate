@@ -19,7 +19,7 @@
 package org.droidmate.report
 
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.WaitA
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
@@ -44,7 +44,7 @@ class EventApiPair(actRes: ExplorationRecord, apiLog: IApiLogcatMessage) {
 
             fun extractWidgetEventString(action: ExplorationAction): String {
                 require(action is WidgetExplorationAction || action is EnterTextExplorationAction)
-                val w: IWidget
+                val w: Widget
                 val prefix: String
                 when (action) {
                     is WidgetExplorationAction -> {
@@ -59,7 +59,7 @@ class EventApiPair(actRes: ExplorationRecord, apiLog: IApiLogcatMessage) {
                 }
                 checkNotNull(w)
                 val widgetString =
-                            "xPath:${w.xpath}:" +
+                            "xpath:${w.xpath}:" +
                         if (w.resourceId.isNotEmpty())
                             "[res:${w.getStrippedResourceId()}]"
                         else if (w.contentDesc.isNotEmpty())

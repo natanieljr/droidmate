@@ -75,6 +75,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
         if (this.takeScreenshot) {
             // this was moved before the snapshot, as otherwise the screen may show the loaded page but the snapshot does not contain the elements
             log.debug("4. Get GUI screenshot.")
+
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
             this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
         }

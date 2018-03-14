@@ -27,7 +27,7 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
-import org.droidmate.device.datatypes.AppHasStoppedDialogBoxGuiState
+import org.droidmate.device.datatypes.AppHasStoppedDialogBoxGuiStatus
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
@@ -206,14 +206,14 @@ class RobustDevice : IRobustDevice {
 
     override fun ensureHomeScreenIsDisplayed(): IDeviceGuiSnapshot {
         var guiSnapshot = this.getGuiSnapshot()
-        if (guiSnapshot.guiState.isHomeScreen)
+        if (guiSnapshot.guiStatus.isHomeScreen)
             return guiSnapshot
 
         Utils.retryOnFalse({
-            if (!guiSnapshot.guiState.isHomeScreen) {
+            if (!guiSnapshot.guiStatus.isHomeScreen) {
                 guiSnapshot = when {
-                    guiSnapshot.guiState.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
-                    guiSnapshot.guiState.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
+                    guiSnapshot.guiStatus.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
+                    guiSnapshot.guiStatus.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
                     else -> {
                         device.perform(PressHome())
                         this.getGuiSnapshot()
@@ -221,13 +221,13 @@ class RobustDevice : IRobustDevice {
                 }
             }
 
-            guiSnapshot.guiState.isHomeScreen
+            guiSnapshot.guiStatus.isHomeScreen
         },
                 ensureHomeScreenIsDisplayedAttempts, /* delay */ 0)
 
-        if (!guiSnapshot.guiState.isHomeScreen) {
+        if (!guiSnapshot.guiStatus.isHomeScreen) {
             throw DeviceException("Failed to ensure home screen is displayed. " +
-                    "Pressing 'home' button didn't help. Instead, ended with GUI state of: ${guiSnapshot.guiState}.\n" +
+                    "Pressing 'home' button didn't help. Instead, ended with GUI state of: ${guiSnapshot.guiStatus}.\n" +
                     "Full window hierarchy dump:\n" +
                     guiSnapshot.windowHierarchyDump)
         }
@@ -236,26 +236,26 @@ class RobustDevice : IRobustDevice {
     }
 
     private fun closeSelectAHomeAppDialogBox(snapshot: IDeviceGuiSnapshot): IDeviceGuiSnapshot {
-        val launcherWidget = snapshot.guiState.widgets.single { it.text == "Launcher" }
+        val launcherWidget = snapshot.guiStatus.widgets.single { it.text == "Launcher" }
         device.perform(ClickAction(launcherWidget.xpath, launcherWidget.resourceId))
 
         var guiSnapshot = this.getGuiSnapshot()
-        if (guiSnapshot.guiState.isSelectAHomeAppDialogBox) {
-            val justOnceWidget = guiSnapshot.guiState.widgets.single { it.text == "Just once" }
+        if (guiSnapshot.guiStatus.isSelectAHomeAppDialogBox) {
+            val justOnceWidget = guiSnapshot.guiStatus.widgets.single { it.text == "Just once" }
             device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
             guiSnapshot = this.getGuiSnapshot()
         }
-        assert(!guiSnapshot.guiState.isSelectAHomeAppDialogBox)
+        assert(!guiSnapshot.guiStatus.isSelectAHomeAppDialogBox)
 
         return guiSnapshot
     }
 
     private fun closeUseLauncherAsHomeDialogBox(snapshot: IDeviceGuiSnapshot): IDeviceGuiSnapshot {
-        val justOnceWidget = snapshot.guiState.widgets.single { it.text == "Just once" }
+        val justOnceWidget = snapshot.guiStatus.widgets.single { it.text == "Just once" }
         device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
 
         val guiSnapshot = this.getGuiSnapshot()
-        assert(!guiSnapshot.guiState.isUseLauncherAsHomeDialogBox)
+        assert(!guiSnapshot.guiStatus.isUseLauncherAsHomeDialogBox)
         return guiSnapshot
     }
 
@@ -315,7 +315,7 @@ class RobustDevice : IRobustDevice {
         // If this will happen more often, consider giving app second chance on restarting even after it crashes:
         // do not try to relaunch here; instead do it in exploration strategy. This way API logs from the failed launch will be
         // separated.
-        if (launchSucceeded && guiSnapshot.guiState.isAppHasStoppedDialogBox)
+        if (launchSucceeded && guiSnapshot.guiStatus.isAppHasStoppedDialogBox)
             log.debug(Markers.appHealth, "device.launchMainActivity($launchableActivityComponentName) succeeded, but ANR is displayed.")
     }
 
@@ -333,23 +333,23 @@ class RobustDevice : IRobustDevice {
     @Throws(DeviceException::class)
     private fun closeANRIfNecessary(guiSnapshot: IDeviceGuiSnapshot): IDeviceGuiSnapshot {
         assert(guiSnapshot.validationResult.valid)
-        if (!guiSnapshot.guiState.isAppHasStoppedDialogBox)
+        if (!guiSnapshot.guiStatus.isAppHasStoppedDialogBox)
             return guiSnapshot
 
-        assert(guiSnapshot.guiState.isAppHasStoppedDialogBox)
-        assert((guiSnapshot.guiState as AppHasStoppedDialogBoxGuiState).okWidget.enabled)
+        assert(guiSnapshot.guiStatus.isAppHasStoppedDialogBox)
+        assert((guiSnapshot.guiStatus as AppHasStoppedDialogBoxGuiStatus).okWidget.enabled)
         log.debug("ANR encountered")
 
         var out: IDeviceGuiSnapshot? = null
 
         Utils.retryOnFalse({
 
-            val okWidget = (guiSnapshot.guiState as AppHasStoppedDialogBoxGuiState).okWidget
+            val okWidget = (guiSnapshot.guiStatus as AppHasStoppedDialogBoxGuiStatus).okWidget
             device.perform(ClickAction(okWidget.xpath, okWidget.resourceId))
             out = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 
-            if (out!!.guiState.isAppHasStoppedDialogBox) {
-                assert((out!!.guiState as AppHasStoppedDialogBoxGuiState).okWidget.enabled)
+            if (out!!.guiStatus.isAppHasStoppedDialogBox) {
+                assert((out!!.guiStatus as AppHasStoppedDialogBoxGuiStatus).okWidget.enabled)
                 log.debug("ANR encountered - again. Failed to properly close it even though its OK widget was enabled.")
                 false
             } else

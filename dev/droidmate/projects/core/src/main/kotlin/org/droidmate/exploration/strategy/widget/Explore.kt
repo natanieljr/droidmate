@@ -19,7 +19,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.apache.commons.lang3.StringUtils
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
 import org.droidmate.exploration.strategy.WidgetContext
@@ -59,33 +59,32 @@ abstract class Explore : AbstractStrategy() {
 
     // region extensions
 
-    private fun addWidgets(result: MutableList<WidgetInfo>, widgetInfo: WidgetInfo, widgetContext: WidgetContext) {
-        val widget = widgetInfo.widget
+    private fun addWidgets(result: MutableList<Widget>, widget: Widget, widgetContext: WidgetContext) {
 
-        // Does not check can be acted upon because it was checked on the parent
-        if (widget.isVisibleOnCurrentDeviceDisplay() && widget.enabled) {
-            if (!result.any { it.widget == widget })
-                result.add(widgetInfo)
+        // Does not check can be acted upon because it was check on the parentID
+        if (widget.visible && widget.enabled) {
+            if (!result.any { it == widget })
+                result.add(widget)
 
             // Add children
-            widgetContext.widgetsInfo
-                    .filter { it.widget.parent == widget }
+            memory.getCurrentState().widgets
+                    .filter { it.parentId == widget.id }
                     .forEach { addWidgets(result, it, widgetContext) }
         }
     }
 
-    fun WidgetContext.getActionableWidgetsInclChildren(): List<WidgetInfo> {
-        val result = ArrayList<WidgetInfo>()
+    fun WidgetContext.getActionableWidgetsInclChildren(): List<Widget> {
+        val result = ArrayList<Widget>()
 
-        this.widgetsInfo
-                .filter { !it.blackListed }
-                .filter { it.widget.canBeActedUpon() }
+        memory.getCurrentState().widgets
+//                .filter { !it.blackListed }   //TODO
+                .filter { it.canBeActedUpon() }
                 .forEach { p -> addWidgets(result, p, this) }
 
         return result
     }
 
-    protected fun IWidget.getRefinedType(): String {
+    protected fun Widget.getRefinedType(): String {
         return if (VALID_WIDGETS.contains(this.className.toLowerCase()))
             className.toLowerCase()
         else {
@@ -98,19 +97,19 @@ abstract class Explore : AbstractStrategy() {
         }
     }
 
-    protected fun IWidget.isEquivalent(other: IWidget): Boolean {
+    protected fun Widget.isEquivalent(other: Widget): Boolean {
         return this.uniqueString == other.uniqueString
     }
 
-    protected fun IWidget.getActionableParent(): IWidget? {
-        var parent: IWidget? = this.parent
+    protected fun Widget.getActionableParent(): Widget? {
+        var parent: Widget? = memory.getCurrentState().widgets.find{it.id == this.parentId}
         // Just check for layouts
         while (parent != null && (parent.getRefinedType().contains("layout") || parent.getRefinedType().contains("group"))) {
             if (parent.canBeActedUpon()) {
-                return this.parent
+                return parent
             }
 
-            parent = parent.parent
+            parent = memory.getCurrentState().widgets.find{it.id == parent!!.parentId}
         }
 
         return null
@@ -142,8 +141,8 @@ abstract class Explore : AbstractStrategy() {
 
         if (!widgetContext.belongsToApp()) {
             if (!memory.isEmpty()) {
-                this.memory.lastWidgetInfo.blackListed = true
-                logger.debug("Blacklisted ${this.memory.lastWidgetInfo}")
+//                this.memory.lastTarget.blackListed = true //TODO blacklist missing in current model
+                logger.debug("Blacklisted ${this.memory.lastTarget}")
             }
         }
 

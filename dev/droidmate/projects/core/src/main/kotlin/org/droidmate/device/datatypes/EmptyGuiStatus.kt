@@ -18,7 +18,11 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-class EmptyGuiState : IGuiState {
+import java.awt.Rectangle
+
+class EmptyGuiStatus : IGuiStatus {
+    override val deviceDisplayBounds: Rectangle
+        get() = Rectangle(0,0,0,0)
     override val topNodePackageName: String
         get() = this.javaClass.name
 
@@ -34,13 +38,11 @@ class EmptyGuiState : IGuiState {
     override val isHomeScreen: Boolean
         get() = true
 
-    override val widgets: List<IWidget>
+    override val widgets: List<WidgetData>
         get() = ArrayList()
 
     override val isAppHasStoppedDialogBox: Boolean
         get() = false
-
-    override fun getActionableWidgets(): MutableList<IWidget> = ArrayList()
 
     override fun debugWidgets(): String = ""
 

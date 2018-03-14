@@ -19,21 +19,21 @@
 
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.OldWidget
 import org.droidmate.device.model.DeviceModel
 import java.awt.Rectangle
 
 class WidgetTestHelper {
     companion object {
         @JvmStatic
-        private fun newGenWidget(args: Map<String, Any>, widgetGenIndex: Int): IWidget {
+        private fun newGenWidget(args: Map<String, Any>, widgetGenIndex: Int): Widget {
             assert(widgetGenIndex >= 1)
             val genArgs = args.toMutableMap()
 
             // @formatter:off
-            genArgs["id"] = args["id"] ?: getIdsList(widgetGenIndex).last()
-            genArgs["text"] = args["text"] ?: getTextsList(widgetGenIndex, (0 until widgetGenIndex).map { _ -> genArgs["id"] as String? ?: "" }).last()
+            genArgs["uid"] = args["uid"] ?: getIdsList(widgetGenIndex).last()
+            genArgs["text"] = args["text"] ?: getTextsList(widgetGenIndex, (0 until widgetGenIndex).map { _ -> genArgs["uid"] as String? ?: "" }).last()
             genArgs["bounds"] = args["bounds"] ?: getBoundsList(widgetGenIndex).last()
             genArgs["className"] = args["className"] ?: getClassesList(widgetGenIndex).last()
             genArgs["enabled"] = args["enabled"] ?: true
@@ -44,7 +44,7 @@ class WidgetTestHelper {
 
         @Suppress("UNCHECKED_CAST")
         @JvmStatic
-        fun newWidgets(widgetCount: Int, packageName: String, props: Map<String, Any>, widgetIdPrefix: String = ""): List<IWidget> {
+        fun newWidgets(widgetCount: Int, packageName: String, props: Map<String, Any>, widgetIdPrefix: String = ""): List<Widget> {
             assert(widgetCount >= 1)
 
             val propIdsList = props["idsList"]
@@ -62,13 +62,13 @@ class WidgetTestHelper {
 
             val widgets = (0 until widgetCount).map { i ->
                 newWidget(mutableMapOf(
-                        "id" to idsList[i],
+                        "uid" to idsList[i],
                         "text" to textsList[i],
                         "bounds" to boundsList[i],
                         "className" to classesList[i],
                         "packageName" to packageName,
                         "clickable" to true,
-                        "checkable" to false,
+                        "check" to false,
                         "enabled" to enabledList[i]
                 ))
             }
@@ -83,7 +83,7 @@ class WidgetTestHelper {
         @JvmStatic
         private fun getTextsList(textsCount: Int, widgetIds: List<String>): List<String> {
             assert(widgetIds.size == textsCount)
-            return (0 until textsCount).map { i -> "txt:id/${widgetIds[i]}" }
+            return (0 until textsCount).map { i -> "txt:uid/${widgetIds[i]}" }
         }
 
         @JvmStatic
@@ -151,15 +151,15 @@ class WidgetTestHelper {
         )
 
         @JvmStatic
-        fun newClickableButton(args: MutableMap<String, Any> = HashMap()): IWidget {
+        fun newClickableButton(args: MutableMap<String, Any> = HashMap()): Widget {
             val newArgs: MutableMap<String, Any> = args.toMutableMap()
-                    .apply { putAll(hashMapOf("clickable" to true, "checkable" to true, "enabled" to true)) }
+                    .apply { putAll(hashMapOf("clickable" to true, "check" to true, "enabled" to true)) }
 
             return newButton(newArgs)
         }
 
         @JvmStatic
-        private fun newButton(args: Map<String, Any>): IWidget {
+        private fun newButton(args: Map<String, Any>): Widget {
             val newArgs: MutableMap<String, Any> = args.toMutableMap()
                     .apply { putAll(hashMapOf("className" to "android.widget.Button")) }
 
@@ -169,8 +169,8 @@ class WidgetTestHelper {
 
         @JvmStatic
         @Suppress("unused")
-        fun newTopLevelWidget(packageName: String): IWidget {
-            return newWidget(mapOf("id" to "topLevelFrameLayout",
+        fun newTopLevelWidget(packageName: String): Widget {
+            return newWidget(mapOf("uid" to "topLevelFrameLayout",
                     "packageName" to packageName,
                     "class" to "android.widget.FrameLayout",
                     "bounds" to arrayListOf(0, 0, 800, 1205))
@@ -178,7 +178,7 @@ class WidgetTestHelper {
         }
 
         @JvmStatic
-        fun newClickableWidget(args: MutableMap<String, Any> = HashMap(), widgetGenIndex: Int = 0): IWidget {
+        fun newClickableWidget(args: MutableMap<String, Any> = HashMap(), widgetGenIndex: Int = 0): Widget {
             val newArgs: MutableMap<String, Any> = args.toMutableMap()
                     .apply { putAll(hashMapOf("clickable" to true, "enabled" to true)) }
 
@@ -190,7 +190,7 @@ class WidgetTestHelper {
 
         @Suppress("UNCHECKED_CAST")
         @JvmStatic
-        private fun newWidget(args: MutableMap<String, Any>): IWidget {
+        private fun newWidget(args: MutableMap<String, Any>): Widget {
             val bounds = if (args["bounds"] != null) args["bounds"] as List<Int> else arrayListOf(10, 20, 101, 202)
             if (args["className"] == null)
                 args["className"] = androidWidgetClassesForTesting[1]
@@ -205,7 +205,7 @@ class WidgetTestHelper {
             val highY = bounds[3]
             val xpath = "//${args["className"] as String? ?: "fix_cls"}[${(args["index"] as Int? ?: 0) + 1}]"
 
-            return Widget(args["id"] as String? ?: "",
+            return OldWidget(args["uid"] as String? ?: "",
                     args["index"] as Int? ?: 0,
                     args["text"] as String? ?: "fix_text",
                     args["resourceId"] as String? ?: "fix_resId",
@@ -213,12 +213,12 @@ class WidgetTestHelper {
                     args["packageName"] as String? ?: "fix_pkg",
                     args["contentDesc"] as String? ?: "fix_contDesc",
                     args["xpath"] as String? ?: xpath,
-                    args["checkable"] as Boolean? ?: false,
-                    args["checked"] as Boolean? ?: false,
+                    args["check"] as Boolean? ?: false,
+                    args["check"] as Boolean? ?: false,
                     args["clickable"] as Boolean? ?: false,
                     args["enabled"] as Boolean? ?: false,
                     args["focusable"] as Boolean? ?: false,
-                    args["focused"] as Boolean? ?: false,
+                    args["focus"] as Boolean? ?: false,
                     args["scrollable"] as Boolean? ?: false,
                     args["longClickable"] as Boolean? ?: false,
                     args["password"] as Boolean? ?: false,

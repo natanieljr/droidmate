@@ -19,10 +19,11 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.IWidget
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.WidgetData
 import java.io.Serializable
 
+//TODO("this should be refactored into IRunnableAction")
 abstract class ExplorationAction : Serializable {
     companion object {
         private const val serialVersionUID: Long = 1
@@ -36,23 +37,23 @@ abstract class ExplorationAction : Serializable {
 
         @JvmStatic
         @JvmOverloads
-        fun newWidgetExplorationAction(widget: IWidget, delay: Int, useCoordinates: Boolean = true): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
+        fun newWidgetExplorationAction(widget: Widget, delay: Int, useCoordinates: Boolean = true): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
 
         @JvmStatic
         @JvmOverloads
-        fun newWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
+        fun newWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
 
         @JvmStatic
         @JvmOverloads
-        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: IWidget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
+        fun newIgnoreActionForTerminationWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
 
         @JvmStatic
         @JvmOverloads
         @Suppress("unused")
-        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = ""): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget().apply { resourceId = resId; xpath = xPath })
+        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = ""): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget(WidgetData(resId = resId, xPath = xPath )))
 
         @JvmStatic
-        fun newEnterTextExplorationAction(textToEnter: String, widget: IWidget): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget)
+        fun newEnterTextExplorationAction(textToEnter: String, widget: Widget): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget)
 
         @JvmStatic
         fun newPressBackExplorationAction(): PressBackExplorationAction = PressBackExplorationAction()
@@ -60,7 +61,7 @@ abstract class ExplorationAction : Serializable {
         @JvmStatic
         @JvmOverloads
         @Suppress("unused")
-        fun newWidgetSwipeExplorationAction(widget: IWidget, useCoordinates: Boolean = true, direction: Direction): WidgetExplorationAction {
+        fun newWidgetSwipeExplorationAction(widget: Widget, useCoordinates: Boolean = true, direction: Direction): WidgetExplorationAction {
             return WidgetExplorationAction(widget, false, useCoordinates, 0, true, direction)
         }
     }

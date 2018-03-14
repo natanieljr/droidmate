@@ -19,6 +19,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.WidgetContext
@@ -39,62 +40,63 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
      *
      * @return List of widgets with their probability to have an event
      */
-    override fun internalGetWidgets(widgetContext: WidgetContext): List<WidgetInfo> {
-        wekaInstances.delete()
-
-        val actionableWidgets = widgetContext.actionableWidgetsInfo
-        actionableWidgets
-                .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
-
-        val candidates: MutableList<WidgetInfo> = ArrayList()
-        for (i in 0..(wekaInstances.numInstances() - 1)) {
-            val instance = wekaInstances.instance(i)
-            try {
-                    // Get probability distribution of the prediction ( [false, true] )
-                    val predictionProbabilities = classifier.distributionForInstance(instance)
-                    // Probability of having event
-                    val probabilityTrue = predictionProbabilities[1]
-
-                    val equivWidget = actionableWidgets[i]
-                    equivWidget.probabilityHaveEvent = probabilityTrue//Math.pow(probabilityTrue, 2.0)
-
-                    if (equivWidget.actedUponCount == 0)
-                        equivWidget.probabilityHaveEvent = 2 * equivWidget.probabilityHaveEvent
-
-                candidates.add(equivWidget)
-
-            } catch (e: ArrayIndexOutOfBoundsException) {
-                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
-                // do nothing
-            }
-        }
-
-        return candidates
+    override fun internalGetWidgets(widgetContext: WidgetContext): List<Widget> {
+	    TODO()
+//        wekaInstances.delete()
+//
+//        val actionableWidgets = widgetContext.actionableWidgetsInfo
+//        actionableWidgets
+//                .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
+//
+//        val candidates: MutableList<WidgetInfo> = ArrayList()
+//        for (i in 0..(wekaInstances.numInstances() - 1)) {
+//            val instance = wekaInstances.instance(i)
+//            try {
+//                    // Get probability distribution of the prediction ( [false, true] )
+//                    val predictionProbabilities = classifier.distributionForInstance(instance)
+//                    // Probability of having event
+//                    val probabilityTrue = predictionProbabilities[1]
+//
+//                    val equivWidget = actionableWidgets[i]
+//                    equivWidget.probabilityHaveEvent = probabilityTrue//Math.pow(probabilityTrue, 2.0)
+//
+//                    if (equivWidget.actedUponCount == 0)
+//                        equivWidget.probabilityHaveEvent = 2 * equivWidget.probabilityHaveEvent
+//
+//                candidates.add(equivWidget)
+//
+//            } catch (e: ArrayIndexOutOfBoundsException) {
+//                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
+//                // do nothing
+//            }
+//        }
+//
+//        return candidates
     }
 
     /**
      * Selects a widget following "Fitness Proportionate Selection"
      */
     override fun chooseRandomWidget(widgetContext: WidgetContext): ExplorationAction {
-        val candidates = this.getAvailableWidgets(widgetContext)
+        val candidates = this.memory.getCurrentState().widgets
         assert(candidates.isNotEmpty())
 
         val probabilities = getCandidatesProbabilities(candidates)
         val selectedIdx = stochasticSelect(probabilities, 10)
         val chosenWidgetInfo = candidates[selectedIdx]
 
-        this.memory.lastWidgetInfo = chosenWidgetInfo
+        this.memory.lastTarget = chosenWidgetInfo
         return chooseActionForWidget(chosenWidgetInfo)
     }
 
     /**
      * Returns an array with the probabilities of the candidates
      */
-    private fun getCandidatesProbabilities(candidates: List<WidgetInfo>): DoubleArray {
+    private fun getCandidatesProbabilities(candidates: List<Widget>): DoubleArray {
         val candidateProbabilities = DoubleArray(candidates.size)
 
         for (i in candidates.indices)
-            candidateProbabilities[i] = candidates[i].probabilityHaveEvent
+            candidateProbabilities[i] = 0.5//candidates[i].probabilityHaveEvent    //TODO
 
         return candidateProbabilities
     }

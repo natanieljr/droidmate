@@ -19,11 +19,11 @@
 package org.droidmate.exploration.strategy.termination
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.strategy.IMemoryRecord
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.strategy.WidgetContext
 
 /**
- * Determines if exploration shall be terminated based on the number of actions performed
+ * Determines if exploration shall be terminated based on the number of actionTrace performed
  *
  * @author Nataniel P. Borges Jr.
  */
@@ -49,14 +49,14 @@ class ActionBasedTerminate(cfg: Configuration) : Terminate() {
         // Nothing to do here
     }
 
-    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+    override fun updateState(actionNr: Int, record: ActionResult) {
         super.updateState(actionNr, record)
 
         actionsLeft--
     }
 
     override fun metReason(widgetContext: WidgetContext): String {
-        return "No actions left."
+        return "No actionTrace left."
     }
 
     override fun met(widgetContext: WidgetContext): Boolean {

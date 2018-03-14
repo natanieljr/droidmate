@@ -19,7 +19,7 @@
 
 package org.droidmate.tests.exploration.strategy
 
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.OldWidget
 import org.droidmate.exploration.strategy.ITargetWidget
 import org.droidmate.exploration.strategy.TargetWidget
 import org.droidmate.test_tools.DroidmateTestCase
@@ -40,8 +40,8 @@ import java.util.*
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
 class TargetWidgetTest: DroidmateTestCase() {
-    private fun createWidget(id: String): Widget {
-        val w = Widget(id)
+    private fun createWidget(id: String): OldWidget {
+        val w = OldWidget(id)
         w.packageName = "STUB!"
         w.bounds = Rectangle(1, 1, 5, 5)
         w.deviceDisplayBounds = Rectangle(100, 100)

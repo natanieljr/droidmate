@@ -20,6 +20,7 @@
 package org.droidmate.device.datatypes
 
 import org.droidmate.errors.ForbiddenOperationError
+import org.droidmate.device.datatypes.statemodel.StateData
 import java.io.Serializable
 
 class MissingGuiSnapshot : IDeviceGuiSnapshot, Serializable {
@@ -27,7 +28,7 @@ class MissingGuiSnapshot : IDeviceGuiSnapshot, Serializable {
         private const val serialVersionUID: Long = 1
     }
 
-    private val internalGuiState = EmptyGuiState()
+    private val internalGuiState = EmptyGuiStatus()
 
     override val androidLauncherPackageName: String
         get() = internalGuiState.androidLauncherPackageName
@@ -39,7 +40,7 @@ class MissingGuiSnapshot : IDeviceGuiSnapshot, Serializable {
         return internalGuiState.topNodePackageName
     }
 
-    override val guiState: IGuiState
+    override val guiStatus: IGuiStatus
         get() = internalGuiState
 
     override val validationResult: ValidationResult

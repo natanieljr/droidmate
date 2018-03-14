@@ -20,19 +20,35 @@
 package org.droidmate.device.datatypes
 
 import java.awt.Rectangle
+import java.io.Serializable
 
 /**
- * used to store the intermediate effects of an executed Exploration action
+ * this is used to describe the device state after any device action
+ * in particular DroidMate distinguishes what screen is reached
+ * however it is (and should only) be used to parse the device data (i.e. the windowDump to WidgetData)
+ * any 'real' state is to be created in ExplorationContext
  */
-interface IDeviceGuiSnapshot {
-
-    val windowHierarchyDump: String
-    val androidLauncherPackageName: String
+interface IGuiStatus : Serializable {
+    val topNodePackageName: String
+    val widgets: List<WidgetData>
     val id: String
+    val androidLauncherPackageName: String  //TODO check if this is required at all
+    val deviceDisplayBounds: Rectangle
 
-    val guiStatus: IGuiStatus
-    val validationResult: ValidationResult
 
-    fun getPackageName(): String
+    val isHomeScreen: Boolean
+
+    val isAppHasStoppedDialogBox: Boolean
+
+    val isRequestRuntimePermissionDialogBox: Boolean
+
+    val isCompleteActionUsingDialogBox: Boolean
+
+    val isSelectAHomeAppDialogBox: Boolean
+
+    val isUseLauncherAsHomeDialogBox: Boolean
+
+    fun belongsToApp(appPackageName: String): Boolean
+
+    fun debugWidgets(): String
 }
-

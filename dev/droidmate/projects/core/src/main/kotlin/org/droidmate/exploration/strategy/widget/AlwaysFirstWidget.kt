@@ -32,10 +32,12 @@ import org.droidmate.exploration.strategy.WidgetContext
  */
 class AlwaysFirstWidget private constructor() : Explore() {
     override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
-        val selectedWidgetInfo = widgetContext.actionableWidgetsInfo.first()
-        this.memory.lastWidgetInfo = selectedWidgetInfo
+        //TODO
+//        val selectedWidgetInfo = widgetContext.actionableWidgetsInfo.first()
+//        this.memory.lastTarget = selectedWidgetInfo
 
-        return ExplorationAction.newWidgetExplorationAction(selectedWidgetInfo.widget)
+//        return ExplorationAction.newWidgetExplorationAction(selectedWidgetInfo.widget)
+        return ExplorationAction.newWidgetExplorationAction(memory.getCurrentState().widgets.first())
     }
 
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {

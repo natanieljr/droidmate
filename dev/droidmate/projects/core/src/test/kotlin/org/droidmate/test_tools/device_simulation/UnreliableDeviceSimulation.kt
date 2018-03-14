@@ -75,14 +75,14 @@ class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
         assert(
                 false, {
             "DroidMate attempted to perform a device action that is forbidden while the device displays " +
-                    "invalid GUI snapshot or GUI snapshot with 'app has stopped' dialog box. The action: $action"
+                    "empty GUI snapshot or GUI snapshot with 'app has stopped' dialog box. The action: $action"
         }
         )
     }
 
     private fun onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: Action) {
         if (this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().guiState.isAppHasStoppedDialogBox) {
-            val appHasStopped = this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().guiState as AppHasStoppedDialogBoxGuiState
+            val appHasStopped = this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().guiState as AppHasStoppedDialogBoxGuiStatus
             val singleMatchingWiddget = if (action is ClickAction)
                 GuiScreen.getSingleMatchingWidget(action, appHasStopped.getActionableWidgets())
             else if (action is CoordinateClickAction)
@@ -97,7 +97,7 @@ class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
 
         } else {
             assert(false, {
-                "DroidMate attempted to perform a click while the device displays an invalid GUI snapshot that is " +
+                "DroidMate attempted to perform a click while the device displays an empty GUI snapshot that is " +
                         "not 'app has stopped' dialog box. The forbidden action: $action"
             })
         }

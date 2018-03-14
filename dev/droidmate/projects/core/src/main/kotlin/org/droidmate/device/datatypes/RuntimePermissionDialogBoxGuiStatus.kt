@@ -19,15 +19,24 @@
 
 package org.droidmate.device.datatypes
 
+import java.awt.Rectangle
+
 /**
- * Specialized GuiState class that represents an application with an active "App has stopped" dialog box
+ * Specialized GuiStatus class that represents an application with an active "Runtime permission" dialog box
  */
-class AppHasStoppedDialogBoxGuiState(topNodePackageName: String, widgets: List<IWidget>, androidLauncherPackageName: String) :
-        GuiState(topNodePackageName, "", widgets, androidLauncherPackageName) {
+@Deprecated("We only need one GuiStatus class no reason for this nearly empty subclasses")
+class RuntimePermissionDialogBoxGuiStatus(topNodePackageName: String, widgets: List<WidgetData>, androidLauncherPackageName: String,deviceDisplayBounds: Rectangle) :
+        GuiStatus(topNodePackageName, "", widgets, androidLauncherPackageName,deviceDisplayBounds) {
     companion object {
         private const val serialVersionUID: Long = 1
+        @JvmStatic
+        private val resId_runtimePermissionAllow = "com.android.packageinstaller:uid/permission_allow_button"
     }
 
-    val okWidget: IWidget
-        get() = this.widgets.first { it.text == "OK" }
+    // Default: Resource ID
+    // Fail-safe: If some manufacturer replaces the resource name, this should work as well
+    val allowWidget: WidgetData
+        get() {
+            return widgets.firstOrNull { it.resourceId == resId_runtimePermissionAllow } ?: return widgets.first { it.text.toUpperCase() == "ALLOW" }
+        }
 }

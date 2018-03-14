@@ -20,15 +20,15 @@ package org.droidmate.exploration.actions
 
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.device.IRobustDevice
-import org.droidmate.exploration.strategy.IMemoryRecord
 import java.io.Serializable
 import java.net.URI
 import java.time.LocalDateTime
 
 interface IRunnableExplorationAction : Serializable {
     @Throws(DeviceException::class)
-    fun run(app: IApk, device: IRobustDevice): IMemoryRecord
+    fun run(app: IApk, device: IRobustDevice): ActionResult
 
     val base: ExplorationAction
 

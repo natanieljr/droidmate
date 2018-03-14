@@ -18,6 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 
@@ -45,7 +46,7 @@ interface ISelectableExplorationStrategy {
      * - Targeted exploration (when target is on sight)
      * - Reset exploration (when hit interval)
      * - Press back (if probability)
-     * - Model based (if event found)
+     * - ExplorationContext based (if event found)
      * - Random based (last choice)
      *
      * @param widgetContext Current GUI
@@ -61,9 +62,9 @@ interface ISelectableExplorationStrategy {
     fun registerListener(listener: IControlObserver)
 
     /**
-     * Update the []number of explored actions][actionNr]
+     * Update the []number of explored actionTrace][actionNr]
      */
-    fun updateState(actionNr: Int, record: IMemoryRecord)
+    fun updateState(actionNr: Int, record: ActionResult)
 
     /**
      * Selects an exploration action based on the [current GUI][widgetContext].
@@ -83,7 +84,7 @@ interface ISelectableExplorationStrategy {
      * @param result Action performed on the target, alongside its results
      */
     fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-                      result: IMemoryRecord)
+                      result: ActionResult)
 
     override fun equals(other: Any?): Boolean
 }

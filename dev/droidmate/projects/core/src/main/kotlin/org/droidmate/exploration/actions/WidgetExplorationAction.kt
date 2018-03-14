@@ -19,9 +19,9 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 
-open class WidgetExplorationAction @JvmOverloads constructor(val widget: IWidget,
+open class WidgetExplorationAction @JvmOverloads constructor(val widget: Widget,
                                                              val longClick: Boolean = false,
                                                              val useCoordinates: Boolean,
                                                              val delay: Int = 100,
@@ -31,7 +31,7 @@ open class WidgetExplorationAction @JvmOverloads constructor(val widget: IWidget
         private const val serialVersionUID: Long = 1
     }
 
-    fun getSelectedWidget(): IWidget
+    fun getSelectedWidget(): Widget
             = widget
 
     override fun toShortString(): String

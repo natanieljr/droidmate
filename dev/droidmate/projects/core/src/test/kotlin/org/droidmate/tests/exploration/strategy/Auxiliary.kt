@@ -22,9 +22,9 @@ package org.droidmate.tests.exploration.strategy
 import org.droidmate.configuration.Configuration
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationException
-import org.droidmate.device.datatypes.IGuiState
+import org.droidmate.device.datatypes.IGuiStatus
 import org.droidmate.device.datatypes.UiautomatorWindowDump
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.OldWidget
 import org.droidmate.exploration.strategy.ITargetWidget
 import org.droidmate.exploration.strategy.ResourceManager
 import org.droidmate.exploration.strategy.TargetWidget
@@ -39,8 +39,8 @@ import java.util.*
  * Auxiliary functions for testing
  */
 object Auxiliary {
-    private fun createWidget(id: String, actionable: Boolean): Widget {
-        return Widget(id).apply {
+    private fun createWidget(id: String, actionable: Boolean): OldWidget {
+        return OldWidget(id).apply {
             packageName = "STUB!"
             bounds = Rectangle(1, 1, 5, 5)
             deviceDisplayBounds = Rectangle(100, 100)
@@ -49,8 +49,8 @@ object Auxiliary {
         }
     }
 
-    fun createTestWidgets(): List<Widget> {
-        val result = ArrayList<Widget>()
+    fun createTestWidgets(): List<OldWidget> {
+        val result = ArrayList<OldWidget>()
 
         result.add(Auxiliary.createWidget("Widget0", true))
         result.add(Auxiliary.createWidget("Widget1", false))
@@ -62,7 +62,7 @@ object Auxiliary {
     }
 
     @JvmOverloads
-    fun createGuiStateFromFile(packageName: String = "ch.bailu.aat"): IGuiState {
+    fun createGuiStateFromFile(packageName: String = "ch.bailu.aat"): IGuiStatus {
         try {
             val fileData = ResourceManager.getResourceAsStringList("ch.bailu.aat_18.xml")
             val fileStr = fileData.joinToString(separator = "")
@@ -71,7 +71,7 @@ object Auxiliary {
                     packageName
                     )
 
-            return dump.guiState
+            return dump.guiStatus
 
         } catch (e: IOException) {
             throw UnsupportedOperationException(e)

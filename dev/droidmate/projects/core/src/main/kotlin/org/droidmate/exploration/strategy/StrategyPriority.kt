@@ -21,7 +21,7 @@ package org.droidmate.exploration.strategy
 /**
  * Defines the priority of the exploration strategy results. Currently the order is:
  * - First reset has maximum priority
- * - "Terminate exploration" (time, actions or all targets found)
+ * - "Terminate exploration" (time, actionTrace or all targets found)
  * - Specific widget (Permission dialog, playback, always first)
  * - Pressing back (according to probability)
  * - "Normal" Reset (cannot proceed)

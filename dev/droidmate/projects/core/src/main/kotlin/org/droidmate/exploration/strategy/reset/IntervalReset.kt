@@ -18,8 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.strategy.IMemoryRecord
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.WidgetContext
 
@@ -34,13 +34,13 @@ import org.droidmate.exploration.strategy.WidgetContext
  */
 class IntervalReset constructor(private val resetEveryNthExplorationForward: Int) : Reset() {
     /**
-     * Number of actions that have been performed since the last reset
+     * Number of actionTrace that have been performed since the last reset
      */
     private var nrActionsWithoutReset: Int = 0
 
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         // First action or following a reset
-        if (this.lastAction() is ResetAppExplorationAction)
+        if (this.lastAction().actionType == ResetAppExplorationAction::class.simpleName)
             return StrategyPriority.NONE
 
         // Reset due to predefined interval,
@@ -52,7 +52,7 @@ class IntervalReset constructor(private val resetEveryNthExplorationForward: Int
         return StrategyPriority.NONE
     }
 
-    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+    override fun updateState(actionNr: Int, record: ActionResult) {
         super.updateState(actionNr, record)
 
         val lastAction = record.action

@@ -158,7 +158,7 @@ public class LazyFileAppender<E> : OutputStreamAppender<E>() {
             if (FileUtil.isParentDirectoryCreationRequired(file)) {
                 val result = FileUtil.createMissingParentDirectories(file)
                 if (!result) {
-                    addError("Failed to create parent directories for ["
+                    addError("Failed to create parentID directories for ["
                             + file.absolutePath + "]")
                 }
             }

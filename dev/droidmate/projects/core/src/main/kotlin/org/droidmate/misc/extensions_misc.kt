@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.strategy.WidgetInfo
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -54,13 +54,13 @@ val Duration.minutesAndSeconds: String get() {
   return "$m".padStart(4, ' ') + "m " + "$s".padStart(2, ' ') + "s"
 }
 
-val IWidget.uniqueString: String
+val Widget.uniqueString: String
     get() {
         return WidgetInfo.from(this).uniqueString
 }
 
 @Suppress("unused")
-fun IWidget.isEquivalentIgnoreLocation(other: IWidget, ignoreCase: Boolean = true): Boolean {
+fun Widget.isEquivalentIgnoreLocation(other: Widget, ignoreCase: Boolean = true): Boolean {
   val uniqueThis = if (ignoreCase)
     this.uniqueString.toLowerCase()
   else

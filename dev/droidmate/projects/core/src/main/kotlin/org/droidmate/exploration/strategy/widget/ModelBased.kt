@@ -19,6 +19,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.strategy.*
 import weka.classifiers.trees.RandomForest
 import weka.core.DenseInstance
@@ -96,21 +97,21 @@ open class ModelBased protected constructor(randomSeed: Long,
 
         attributeValues[0] = model.getNominalIndex(0, this.widget.getRefinedType())
 
-        if (this.widget.parent != null)
-            attributeValues[1] = model.getNominalIndex(1, this.widget.parent!!.getRefinedType())
+        if (this.widget.parentId != null)
+            attributeValues[1] = model.getNominalIndex(1, memory.getCurrentState().widgets.find{it.id == widget.parentId}!!.className)  //TODO get rectified name
         else
             attributeValues[1] = model.getNominalIndex(1, "none")
 
-        val children = widgetContext.widgetsInfo
-                .filter { p -> p.widget.parent == this.widget }
+        val children = memory.getCurrentState().widgets
+                .filter { p -> p.parentId == this.widget.id }
 
         if (children.isNotEmpty())
-            attributeValues[2] = model.getNominalIndex(2, children.first().widget.getRefinedType())
+            attributeValues[2] = model.getNominalIndex(2, children.first().getRefinedType())
         else
             attributeValues[2] = model.getNominalIndex(2, "none")
 
         if (children.size > 1)
-            attributeValues[3] = model.getNominalIndex(3, children[1].widget.getRefinedType())
+            attributeValues[3] = model.getNominalIndex(3, children[1].getRefinedType())
         else
             attributeValues[3] = model.getNominalIndex(3, "none")
 
@@ -124,30 +125,31 @@ open class ModelBased protected constructor(randomSeed: Long,
      *
      * @return List of widgets which have an associated event (according to the model)
      */
-    protected open fun internalGetWidgets(widgetContext: WidgetContext): List<WidgetInfo> {
-        wekaInstances.delete()
-
-        val actionableWidgets = widgetContext.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
-        actionableWidgets
-                .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
-
-        val candidates: MutableList<WidgetInfo> = ArrayList()
-        for (i in 0..(wekaInstances.numInstances() - 1)) {
-            val instance = wekaInstances.instance(i)
-            try {
-                val classification = classifier.classifyInstance(instance)
-                // Classified as true
-                if (classification == 1.0) {
-                    val equivWidget = actionableWidgets[i]
-                    candidates.add(equivWidget)
-                }
-            } catch (e: ArrayIndexOutOfBoundsException) {
-                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
-                // do nothing
-            }
-        }
-
-        return candidates
+    protected open fun internalGetWidgets(widgetContext: WidgetContext): List<Widget> {
+        TODO()
+//        wekaInstances.delete()
+//
+//        val actionableWidgets = widgetContext.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
+//        actionableWidgets
+//                .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
+//
+//        val candidates: MutableList<WidgetInfo> = ArrayList()
+//        for (i in 0..(wekaInstances.numInstances() - 1)) {
+//            val instance = wekaInstances.instance(i)
+//            try {
+//                val classification = classifier.classifyInstance(instance)
+//                // Classified as true
+//                if (classification == 1.0) {
+//                    val equivWidget = actionableWidgets[i]
+//                    candidates.add(equivWidget)
+//                }
+//            } catch (e: ArrayIndexOutOfBoundsException) {
+//                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
+//                // do nothing
+//            }
+//        }
+//
+//        return candidates
     }
 
     /**
@@ -156,10 +158,10 @@ open class ModelBased protected constructor(randomSeed: Long,
      *
      * @return List of widgets which have an associated event (according to the model)
      */
-    override fun getAvailableWidgets(widgetContext: WidgetContext): List<WidgetInfo> {
+    override fun getAvailableWidgets(widgetContext: WidgetContext): List<Widget> {
         var candidates = internalGetWidgets(widgetContext)
 
-        candidates = candidates.filterNot { it.widget.isEquivalent(this.memory.lastWidgetInfo.widget) }
+        candidates = candidates.filterNot { it.isEquivalent(this.memory.lastTarget) }
 
         return candidates
     }

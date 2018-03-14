@@ -18,14 +18,14 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.actions.EnterTextExplorationAction
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.report.EventApiPair
 
-val ExplorationRecord.clickedWidget: Set<IWidget>
+val ExplorationRecord.clickedWidget: Set<Widget>
     get() {
         val action = this.getAction().base
         return when (action) {
@@ -35,7 +35,7 @@ val ExplorationRecord.clickedWidget: Set<IWidget>
         }
     }
 
-val ExplorationRecord.actionableWidgets: Iterable<IWidget>
+val ExplorationRecord.actionableWidgets: Iterable<Widget>
   get() {
       val result = getResult()
       return when (result.guiSnapshot) {

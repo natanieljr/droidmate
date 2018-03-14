@@ -18,6 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.device.datatypes.statemodel.ActionResult
+
 /**
  * Interface to receive notifications when control flow should be
  * returned from the internal exploration strategy to the main code
@@ -48,5 +50,5 @@ interface IControlObserver {
      * @param result Action performed on the target, alongside its results
      */
     fun onTargetFound(strategy: ISelectableExplorationStrategy, targetWidget: ITargetWidget,
-                      result: IMemoryRecord)
+                      result: ActionResult)
 }

@@ -19,16 +19,19 @@
 
 package org.droidmate.device.datatypes
 
-open class GuiState constructor(final override val topNodePackageName: String,
-                                override val id: String,
-                                override val widgets: List<IWidget>,
-                                final override val androidLauncherPackageName: String) : IGuiState {
+import java.awt.Rectangle
+
+open class GuiStatus constructor(final override val topNodePackageName: String,
+                                 override val id: String,
+                                 override val widgets: List<WidgetData>,
+                                 final override val androidLauncherPackageName: String,
+                                 override val deviceDisplayBounds: Rectangle) : IGuiStatus {
     companion object {
         private const val serialVersionUID: Long = 1
     }
 
     private val androidPackageName = "android"
-    private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
+    private val resIdRuntimePermissionDialog = "com.android.packageinstaller:uid/dialog_container"
 
 
     init {
@@ -36,20 +39,18 @@ open class GuiState constructor(final override val topNodePackageName: String,
         assert(!this.androidLauncherPackageName.isEmpty())
     }
 
-    override fun getActionableWidgets(): List<IWidget> = widgets.filter { it.canBeActedUpon() }
-
     override fun toString(): String {
 
         if (this.isHomeScreen)
             return "<GUI state: home screen>"
 
-        if (this is AppHasStoppedDialogBoxGuiState)
+        if (this is AppHasStoppedDialogBoxGuiStatus)
             return "<GUI state of \"App has stopped\" dialog box. OK widget enabled: ${this.okWidget.enabled}>"
 
-        if (this is RuntimePermissionDialogBoxGuiState)
+        if (this is RuntimePermissionDialogBoxGuiStatus)
             return "<GUI state of \"Runtime permission\" dialog box. Allow widget enabled: ${this.allowWidget.enabled}>"
 
-        return "<GuiState " + (if (id.isNotEmpty()) "id=$id " else "") + "pkg=$topNodePackageName Widgets count = ${widgets.size}>"
+        return "<GuiStatus " + (if (id.isNotEmpty()) "uid=$id " else "") + "pkg=$topNodePackageName Widgets count = ${widgets.size}>"
     }
 
     override val isHomeScreen: Boolean
@@ -87,10 +88,6 @@ open class GuiState constructor(final override val topNodePackageName: String,
         val sb = StringBuilder()
         sb.appendln("widgets (${widgets.size}):")
         widgets.forEach { sb.appendln(it.toString()) }
-
-        val actionableWidgets = this.getActionableWidgets()
-        sb.appendln("actionable widgets (${actionableWidgets.size}):")
-        actionableWidgets.forEach { sb.appendln(it.toString()) }
 
         return sb.toString()
     }

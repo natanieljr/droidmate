@@ -23,12 +23,11 @@ import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.device.datatypes.WaitA
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.MissingDeviceLogs
-import org.droidmate.exploration.strategy.IMemoryRecord
-import org.droidmate.exploration.strategy.MemoryRecord
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -65,7 +64,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
     protected lateinit var exception: DeviceException
     override var screenshot: URI = URI.create("test://empty")
 
-    override fun run(app: IApk, device: IRobustDevice): IMemoryRecord {
+    override fun run(app: IApk, device: IRobustDevice): ActionResult {
         // @formatter:off
         this.logs = MissingDeviceLogs()
         this.snapshot = MissingGuiSnapshot()
@@ -79,13 +78,13 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
             log.trace("${this.javaClass.simpleName}.performDeviceActions(app=${app.fileName}, device) - DONE")
         } catch (e: DeviceException) {
             this.exception = e
-            log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device actions of ${this.javaClass.simpleName}. " +
+            log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device actionTrace of ${this.javaClass.simpleName}. " +
                     "Returning failed ${this.javaClass.simpleName} with the exception assigned to a field.")
         }
         val endTime = LocalDateTime.now()
 
         // For post-conditions, see inside the constructor call made line below.
-        return MemoryRecord(this.base, startTime, endTime, this.logs, this.snapshot, this.exception, this.screenshot)
+        return ActionResult(this.base, startTime, endTime, this.logs, this.snapshot, exception = this.exception, screenshot = this.screenshot)
     }
 
     @Throws(DeviceException::class)

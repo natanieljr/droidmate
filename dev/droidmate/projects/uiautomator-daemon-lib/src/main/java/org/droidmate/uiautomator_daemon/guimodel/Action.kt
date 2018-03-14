@@ -2,6 +2,7 @@
 
 package org.droidmate.uiautomator_daemon.guimodel
 
+import java.awt.Point
 import java.io.Serializable
 
 /**
@@ -19,10 +20,14 @@ data class ClickAction(val xPath: String,
                        val resId: String = "") : Action()
 
 data class CoordinateClickAction(val x: Int,
-                                 val y: Int) : Action()
+                                 val y: Int) : Action(){
+    constructor(point:Point):this(point.x,point.y)
+}
 
 data class CoordinateLongClickAction(val x: Int,
-                                     val y: Int) : Action()
+                                     val y: Int) : Action(){
+    constructor(point:Point):this(point.x,point.y)
+}
 
 data class LongClickAction(val xPath: String, val resId: String = "") : Action()
 data class TextAction(val xPath: String, val resId: String = "", val text: String) : Action()

@@ -18,6 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.droidmate.misc.isEquivalentIgnoreLocation
@@ -43,13 +45,13 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
      *
      * @return List of widgets which are meaningful targets
      */
-    override fun getAvailableWidgets(widgetContext: WidgetContext): List<WidgetInfo> {
+    override fun getAvailableWidgets(widgetContext: WidgetContext): List<Widget> {
         val widgetInfo = super.getAvailableWidgets(widgetContext)
 
         val toSatisfy = this.target.getNextWidgetsCanSatisfy()
 
         return widgetInfo.filter { w ->
-            toSatisfy.any { it.widget.isEquivalentIgnoreLocation(w.widget) }
+            toSatisfy.any { it.widget.isEquivalentIgnoreLocation(w) }
         }
     }
 
@@ -63,20 +65,20 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
     }
 
     override fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-                               result: IMemoryRecord) {
+                               result: ActionResult) {
         if ((this == strategy) || (strategy !is SeekTarget))
             return
 
         this.target.trySatisfyWidgetOrDependency(satisfiedWidget)
     }
 
-    override fun chooseActionForWidget(chosenWidgetInfo: WidgetInfo): ExplorationAction {
+    override fun chooseActionForWidget(chosenWidgetInfo: Widget): ExplorationAction {
         this.acquiredTarget = this.target.getTarget(chosenWidgetInfo)
 
         return super.chooseActionForWidget(chosenWidgetInfo)
     }
 
-    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+    override fun updateState(actionNr: Int, record: ActionResult) {
         super.updateState(actionNr, record)
 
         if (this.acquiredTarget !is DummyTarget) {

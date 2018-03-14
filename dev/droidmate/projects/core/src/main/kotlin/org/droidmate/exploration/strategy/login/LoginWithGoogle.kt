@@ -18,7 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
-import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiState
+import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiStatus
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
@@ -28,66 +29,67 @@ import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.exploration.strategy.WidgetInfo
 import org.droidmate.exploration.strategy.widget.Explore
 import org.droidmate.misc.DroidmateException
+import java.awt.SystemColor.text
 
 @Suppress("unused")
 class LoginWithGoogle : Explore() {
     private val DEFAULT_ACTION_DELAY = 1000
     private val RES_ID_PACKAGE = "com.google.android.gms"
-    private val RES_ID_ACCOUNT = "$RES_ID_PACKAGE:id/account_display_name"
-    private val RES_ID_ACCEPT = "$RES_ID_PACKAGE:id/accept_button"
+    private val RES_ID_ACCOUNT = "$RES_ID_PACKAGE:uid/account_display_name"
+    private val RES_ID_ACCEPT = "$RES_ID_PACKAGE:uid/accept_button"
 
     private var state = LoginState.Start
 
-    private fun canClickGoogle(widgets: List<WidgetInfo>): Boolean {
+    private fun canClickGoogle(widgets: List<Widget>): Boolean {
         return (this.state == LoginState.Start) &&
-                widgets.any { it.widget.text.toLowerCase() == "google" }
+                widgets.any { it.text.toLowerCase() == "google" }
     }
 
-    private fun clickGoogle(widgets: List<WidgetInfo>): ExplorationAction {
-        val widget = widgets.firstOrNull { it.widget.text.toLowerCase() == "google" }
+    private fun clickGoogle(widgets: List<Widget>): ExplorationAction {
+        val widget = widgets.firstOrNull { it.text.toLowerCase() == "google" }
 
         if (widget != null) {
             this.state = LoginState.AccountDisplayed
-            return ExplorationAction.newWidgetExplorationAction(widget.widget, DEFAULT_ACTION_DELAY)
+            return ExplorationAction.newWidgetExplorationAction(widget, DEFAULT_ACTION_DELAY)
         }
 
         throw DroidmateException("The exploration shouldn' have reached this point.")
     }
 
-    private fun canClickAccount(widgets: List<WidgetInfo>): Boolean {
-        return widgets.any { it.widget.resourceId == RES_ID_ACCOUNT }
+    private fun canClickAccount(widgets: List<Widget>): Boolean {
+        return widgets.any { it.resourceId == RES_ID_ACCOUNT }
     }
 
-    private fun clickAccount(widgets: List<WidgetInfo>): ExplorationAction {
-        val widget = widgets.firstOrNull { it.widget.resourceId == RES_ID_ACCOUNT }
+    private fun clickAccount(widgets: List<Widget>): ExplorationAction {
+        val widget = widgets.firstOrNull { it.resourceId == RES_ID_ACCOUNT }
 
         if (widget != null) {
             this.state = LoginState.AccountSelected
-            return ExplorationAction.newWidgetExplorationAction(widget.widget, DEFAULT_ACTION_DELAY)
+            return ExplorationAction.newWidgetExplorationAction(widget, DEFAULT_ACTION_DELAY)
         }
 
         throw DroidmateException("The exploration shouldn' have reached this point.")
     }
 
-    private fun canClickAccept(widgets: List<WidgetInfo>): Boolean {
-        return widgets.any { it.widget.resourceId == RES_ID_ACCEPT }
+    private fun canClickAccept(widgets: List<Widget>): Boolean {
+        return widgets.any { it.resourceId == RES_ID_ACCEPT }
     }
 
-    private fun clickAccept(widgets: List<WidgetInfo>): ExplorationAction {
-        val widget = widgets.firstOrNull { it.widget.resourceId == RES_ID_ACCEPT }
+    private fun clickAccept(widgets: List<Widget>): ExplorationAction {
+        val widget = widgets.firstOrNull { it.resourceId == RES_ID_ACCEPT }
 
         if (widget != null) {
             this.state = LoginState.Done
-            return ExplorationAction.newWidgetExplorationAction(widget.widget, DEFAULT_ACTION_DELAY)
+            return ExplorationAction.newWidgetExplorationAction(widget, DEFAULT_ACTION_DELAY)
         }
 
         throw DroidmateException("The exploration shouldn' have reached this point.")
     }
 
     override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
-        return !widgetContext.guiState.widgets
+        return !memory.getCurrentState().widgets
                 .any {
-                    it.isVisibleOnCurrentDeviceDisplay() &&
+                    it.visible &&
                             it.resourceId == RES_ID_ACCOUNT
                 }
     }
@@ -107,7 +109,7 @@ class LoginWithGoogle : Explore() {
         return StrategyPriority.NONE
     }
 
-    private fun getWidgetAction(widgets: List<WidgetInfo>): ExplorationAction {
+    private fun getWidgetAction(widgets: List<Widget>): ExplorationAction {
         // Can click on login
         return when {
             canClickGoogle(widgets) -> clickGoogle(widgets)
@@ -118,11 +120,14 @@ class LoginWithGoogle : Explore() {
     }
 
     override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
-        return if (widgetContext.guiState.isRequestRuntimePermissionDialogBox) {
-            val widget = (widgetContext.guiState as RuntimePermissionDialogBoxGuiState).allowWidget
+        return if (memory.getCurrentState().isRequestRuntimePermissionDialogBox) {
+            val widget = memory.getCurrentState().widgets.let { widgets ->
+                widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:uid/permission_allow_button" }
+                    ?: widgets.first { it.text.toUpperCase() == "ALLOW" }
+            }
             newWidgetExplorationAction(widget)
         } else {
-            val widgets = widgetContext.getActionableWidgetsInclChildren()
+            val widgets = memory.getCurrentState().widgets
             getWidgetAction(widgets)
         }
     }

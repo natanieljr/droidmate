@@ -54,11 +54,11 @@ class GuiScreen constructor(private val internalId: String,
                 idHome to DeviceModel.buildDefault().getAndroidLauncherPackageName(),
                 idChrome to "com.android.chrome")
 
-        fun getSingleMatchingWidget(action: ClickAction, widgets: List<IWidget>): IWidget {
+        fun getSingleMatchingWidget(action: ClickAction, widgets: List<Widget>): Widget {
             return widgets.find { w->w.xpath==action.xPath }!!
         }
 
-        fun getSingleMatchingWidget(action: CoordinateClickAction, widgets: List<IWidget>): IWidget {
+        fun getSingleMatchingWidget(action: CoordinateClickAction, widgets: List<Widget>): Widget {
             return widgets.find { w->w.bounds.contains(action.x, action.y) }!!
         }
 
@@ -70,7 +70,7 @@ class GuiScreen constructor(private val internalId: String,
     private var home: IGuiScreen? = null
     private var main: IGuiScreen? = null
 
-    private val widgetTransitions: MutableMap<IWidget, IGuiScreen> = mutableMapOf()
+    private val widgetTransitions: MutableMap<Widget, IGuiScreen> = mutableMapOf()
     private var finishedBuilding = false
 
     constructor(snapshot: IDeviceGuiSnapshot) : this(snapshot.id, snapshot.getPackageName()) {
@@ -146,7 +146,7 @@ class GuiScreen constructor(private val internalId: String,
             val widget = if (this.getGuiSnapshot() !is MissingGuiSnapshot)
                 this.getGuiSnapshot().guiState.widgets.single { it.id == widgetId }
             else
-                WidgetTestHelper.newClickableWidget(mutableMapOf("id" to widgetId), /* widgetGenIndex */ widgetTransitions.keys.size)
+                WidgetTestHelper.newClickableWidget(mutableMapOf("uid" to widgetId), /* widgetGenIndex */ widgetTransitions.keys.size)
 
             widgetTransitions[widget] = targetScreen
         }
@@ -184,13 +184,13 @@ class GuiScreen constructor(private val internalId: String,
             }
             idHome -> this.internalGuiSnapshot = UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump(this.internalId)
             idChrome -> this.internalGuiSnapshot = UiautomatorWindowDumpTestHelper.newAppOutOfScopeWindowDump(this.internalId)
-            else -> throw UnexpectedIfElseFallthroughError("Unsupported reserved id: $internalId")
+            else -> throw UnexpectedIfElseFallthroughError("Unsupported reserved uid: $internalId")
         }
 
         assert(this.getGuiSnapshot().id.isNotEmpty())
     }
 
-    private fun buildEmptyInternals(): IGuiState {
+    private fun buildEmptyInternals(): IGuiStatus {
         val guiState = GuiStateTestHelper.newGuiStateWithTopLevelNodeOnly(packageName, internalId)
         // This one widget is necessary, as it is the only xml element from which packageName can be obtained. Without it, following
         // method would fail: UiautomatorWindowDump.getPackageName when called on
@@ -208,7 +208,7 @@ class GuiScreen constructor(private val internalId: String,
         assert(this.getGuiSnapshot().id.isNotEmpty())
         assert(this.getGuiSnapshot().guiState.id.isNotEmpty())
         // TODO: Review later
-        //assert((this.internalId in reservedIds) || (this.widgetTransitions.keys.map { it.id }.sorted() == this.getGuiSnapshot().guiState.getActionableWidgets().map { it.id }.sorted()))
+        //assert((this.internalId in reservedIds) || (this.widgetTransitions.keys.map { it.uid }.sorted() == this.getGuiSnapshot().guiStatus.getActionableWidgets().map { it.uid }.sorted()))
         assert(this.finishedBuilding)
     }
 
@@ -231,7 +231,7 @@ class GuiScreen constructor(private val internalId: String,
 
     override fun toString(): String {
         return MoreObjects.toStringHelper(this)
-                .add("id", internalId)
+                .add("uid", internalId)
                 .toString()
     }
 

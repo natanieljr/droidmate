@@ -18,11 +18,12 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import org.droidmate.exploration.strategy.IMemoryRecord
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.misc.Pair
 
-class ExplorationRecord(first: IRunnableExplorationAction, second: IMemoryRecord) :
-        Pair<IRunnableExplorationAction, IMemoryRecord>(first, second) {
+@Deprecated("should not be used anymore")
+class ExplorationRecord(first: IRunnableExplorationAction, second: ActionResult) :
+        Pair<IRunnableExplorationAction, ActionResult>(first, second) {
 
     companion object {
         private const val serialVersionUID: Long = 3251655638147083962
@@ -31,5 +32,5 @@ class ExplorationRecord(first: IRunnableExplorationAction, second: IMemoryRecord
     fun getAction(): IRunnableExplorationAction
             = first
 
-    fun getResult(): IMemoryRecord = second
+    fun getResult(): ActionResult = second
 }

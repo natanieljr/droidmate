@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import java.io.Serializable
 
 /**
@@ -28,9 +28,9 @@ import java.io.Serializable
  */
 interface ITargetWidget : Serializable {
     /**
-     * UI Widget
+     * UI OldWidget
      */
-    val widget: IWidget
+    val widget: Widget
 
     /**
      * Widgets which should be interacted with before the target should be acted upon
@@ -77,7 +77,7 @@ interface ITargetWidget : Serializable {
      *
      * @return located target. Dummy target if none
      */
-    fun getTarget(widget: WidgetInfo): ITargetWidget
+    fun getTarget(widget: Widget): ITargetWidget
 
     /**
      * Get the next widget which can be satisfied. This widget can be either the own target or one of its dependencies

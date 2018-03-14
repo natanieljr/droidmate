@@ -19,24 +19,23 @@
 package org.droidmate.report.misc
 
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.misc.setByUniqueString
 import org.droidmate.misc.uniqueString
 import org.droidmate.report.EventApiPair
 
-val IExplorationLog.uniqueActionableWidgets: Set<IWidget>
+val IExplorationLog.uniqueActionableWidgets: Set<Widget>
   get() = this.logRecords.setByUniqueString(
           extractItems = ExplorationRecord::actionableWidgets,
-          uniqueString = IWidget::uniqueString
+          uniqueString = Widget::uniqueString
   )
 
-val IExplorationLog.uniqueClickedWidgets: Set<IWidget>
+val IExplorationLog.uniqueClickedWidgets: Set<Widget>
   get() = this.logRecords.setByUniqueString(
           extractItems = ExplorationRecord::clickedWidget,
-          uniqueString = IWidget::uniqueString
+          uniqueString = Widget::uniqueString
   )
 
 val IExplorationLog.uniqueApis: Set<IApiLogcatMessage>
@@ -52,7 +51,7 @@ val IExplorationLog.uniqueEventApiPairs: Set<EventApiPair>
   )
 
 val IExplorationLog.resetActionsCount: Int
-  get() = actions.count { it.base is ResetAppExplorationAction }
+  get() = actionTrace.count { it.base is ResetAppExplorationAction }
 
 val IExplorationLog.apkFileNameWithUnderscoresForDots: String
   get() = apk.fileName.replace(".", "_")
