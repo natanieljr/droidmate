@@ -39,7 +39,12 @@ class Utils
 
         @JvmStatic
         @Throws(Throwable::class)
-        fun <T> retryOnException(target: () -> T, retryableExceptionClass: KClass<out DroidmateException>, attempts: Int, delay: Int, targetName: String): T {
+        fun <T> retryOnException(target: () -> T,
+                                 beforeRetryCommand: () -> Any,
+                                 retryableExceptionClass: KClass<out DroidmateException>,
+                                 attempts: Int,
+                                 delay: Int,
+                                 targetName: String): T {
             assert(attempts > 0)
             var attemptsLeft = attempts
             var succeeded = false
@@ -54,6 +59,9 @@ class Utils
                     exception = null
                 } catch (e: Throwable) {
                     if (retryableExceptionClass.java.isAssignableFrom(e.javaClass)) {
+
+                        beforeRetryCommand()
+
                         exception = e
                         attemptsLeft--
 

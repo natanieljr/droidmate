@@ -193,6 +193,7 @@ class RobustDevice : IRobustDevice {
         Utils.retryOnFalse({
 
             Utils.retryOnException({ device.clearPackage(apkPackageName) },
+                    {},
                     DeviceException::class,
                     this.clearPackageRetryAttempts,
                     this.clearPackageRetryDelay,
@@ -377,6 +378,7 @@ class RobustDevice : IRobustDevice {
         try {
             val guiSnapshot = Utils.retryOnException(
                     { this.getValidGuiSnapshot() },
+                    { this.restartUiaDaemon(false) },
                     DeviceException::class,
                     getValidGuiSnapshotRetryAttempts,
                     getValidGuiSnapshotRetryDelay,
