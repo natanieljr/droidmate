@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
-import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
@@ -38,13 +37,6 @@ import org.droidmate.logging.Markers
  * @author Nataniel P. Borges Jr.
  */
 abstract class Terminate : AbstractStrategy() {
-
-    protected fun getSecondLastAction(): ExplorationAction {
-        if (this.memory.getSize() < 2)
-            return EmptyAction()
-
-        return this.memory.getRecords().dropLast(1).last().action
-    }
 
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         if (this.met(widgetContext))

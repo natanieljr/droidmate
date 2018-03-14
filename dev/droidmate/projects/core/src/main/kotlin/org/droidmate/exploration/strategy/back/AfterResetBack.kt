@@ -24,19 +24,27 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.back
 
+import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Presses back if it can' move forward and last action was to reset
- *Try to press back because sometimes an account selection dialog pops up
+ * try to press back because sometimes an account selection dialog pops up
+ *
+ * exception to rule: if before the reset it was a back action, allows to terminate,
+ * otherwise the exploration would enter a loop of Back -> Reset -> Back -> Reset....
  */
 class AfterResetBack : Back() {
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         return if (!widgetContext.explorationCanMoveForwardOn() &&
                 this.lastAction() is ResetAppExplorationAction)
-            StrategyPriority.BACK_BEFORE_TERMINATE
+            if (widgetContext.guiState.isAppHasStoppedDialogBox ||
+                    this.getSecondLastAction() is PressBackExplorationAction)
+                StrategyPriority.BACK
+            else
+                StrategyPriority.BACK_BEFORE_TERMINATE
         else
             StrategyPriority.NONE
     }

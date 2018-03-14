@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.widget.Explore
@@ -95,6 +96,18 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
      */
     protected fun notifyTargetFound(targetWidget: ITargetWidget, result: IMemoryRecord) {
         this.listeners.forEach { listener -> listener.onTargetFound(this, targetWidget, result) }
+    }
+
+    /**
+     * Get action before the last one.
+     *
+     * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
+     */
+    protected fun getSecondLastAction(): ExplorationAction {
+        if (this.memory.getSize() < 2)
+            return EmptyAction()
+
+        return this.memory.getRecords().dropLast(1).last().action
     }
 
     override fun updateState(actionNr: Int, record: IMemoryRecord) {
