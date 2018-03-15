@@ -144,6 +144,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
     val screenshotsOutputSubDir = "screenshots"
     val reportOutputSubDir = "report"
+    val coverageReportSubDir = "coverage"
 
     @Parameter(names = [(Configuration.pn_actionsLimit), "-actions", "-clicks"], description =
     "How many actions the GUI exploration strategy can conduct before terminating.")
@@ -409,6 +410,10 @@ class Configuration(val args: Array<String>) : IConfiguration {
     public lateinit var reportInputDirPath: Path
 
     public lateinit var reportOutputDirPath: Path
+
+    public lateinit var coverageMonitorScriptPath: Path
+
+    public lateinit var coverageReportDirPath: Path
 
     public lateinit var apksDirPath: Path
 

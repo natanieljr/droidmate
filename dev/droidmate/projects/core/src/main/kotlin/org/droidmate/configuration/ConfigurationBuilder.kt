@@ -185,28 +185,32 @@ class ConfigurationBuilder : IConfigurationBuilder {
         @JvmStatic
         @Throws(ConfigurationException::class)
         private fun setupResourcesAndPaths(cfg: Configuration, fs: FileSystem) {
-            cfg.uiautomator2DaemonApk = getResourcePath(cfg, fs, "uiautomator2-daemon.apk")
-            log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomator2DaemonApk.toAbsolutePath().toString())
+            cfg.uiautomator2DaemonApk = getResourcePath(cfg, fs, "uiautomator2-daemon.apk").toAbsolutePath()
+            log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomator2DaemonApk.toString())
 
-            cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, fs, "uiautomator2-daemon-test.apk")
-            log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomator2DaemonTestApk.toAbsolutePath().toString())
+            cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, fs, "uiautomator2-daemon-test.apk").toAbsolutePath()
+            log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomator2DaemonTestApk.toString())
 
-            cfg.monitorApkApi23 = getResourcePath(cfg, fs, BuildConstants.monitor_api23_apk_name)
-            log.info("Using ${BuildConstants.monitor_api23_apk_name} located at " + cfg.monitorApkApi23.toAbsolutePath().toString())
+            cfg.monitorApkApi23 = getResourcePath(cfg, fs, BuildConstants.monitor_api23_apk_name).toAbsolutePath()
+            log.info("Using ${BuildConstants.monitor_api23_apk_name} located at " + cfg.monitorApkApi23.toString())
 
-            cfg.apiPoliciesFile = getResourcePath(cfg, fs, BuildConstants.api_policies_file_name)
-            log.info("Using ${BuildConstants.api_policies_file_name} located at " + cfg.apiPoliciesFile.toAbsolutePath().toString())
+            cfg.apiPoliciesFile = getResourcePath(cfg, fs, BuildConstants.api_policies_file_name).toAbsolutePath()
+            log.info("Using ${BuildConstants.api_policies_file_name} located at " + cfg.apiPoliciesFile.toString())
+
+            cfg.coverageMonitorScriptPath = getResourcePath(cfg, fs, BuildConstants.coverage_monitor_script).toAbsolutePath()
+            log.info("Using ${BuildConstants.coverage_monitor_script} located at " + cfg.coverageMonitorScriptPath.toString())
 
             val portFile = File.createTempFile(BuildConstants.port_file_name, ".tmp")
             portFile.writeText(Integer.toString(cfg.port))
             portFile.deleteOnExit()
-            cfg.portFile = portFile.toPath()
-            log.info("Using ${BuildConstants.port_file_name} located at " + cfg.portFile.toAbsolutePath().toString())
+            cfg.portFile = portFile.toPath().toAbsolutePath()
+            log.info("Using ${BuildConstants.port_file_name} located at " + cfg.portFile.toString())
 
             cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir).toAbsolutePath()
             cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubDir).toAbsolutePath()
             cfg.reportInputDirPath = fs.getPath(cfg.reportInputDir).toAbsolutePath()
             cfg.reportOutputDirPath = fs.getPath(cfg.reportOutputDir).toAbsolutePath()
+            cfg.coverageReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.coverageReportSubDir).toAbsolutePath()
             cfg.apksDirPath = if (cfg.useApkFixturesDir)
                 ResourcePath(BuildConstants.apk_fixtures).path.toAbsolutePath()
             else

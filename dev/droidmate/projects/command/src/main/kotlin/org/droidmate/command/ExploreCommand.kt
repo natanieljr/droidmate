@@ -26,6 +26,7 @@ package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
 import org.droidmate.android_sdk.*
+import org.droidmate.command.exploration.CoverageMonitor
 import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
@@ -78,12 +79,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             return command
         }
 
-        fun defaultReportWatcher(cfg: Configuration): List<Reporter> =
+        protected fun defaultReportWatcher(cfg: Configuration): List<Reporter> =
                 listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg.reportIncludePlots), ClickFrequency(cfg.reportIncludePlots)
                         , WidgetSeenClickedCount(cfg.reportIncludePlots), ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())
     }
 
-    private val reporters: MutableList<Reporter> = ArrayList()
+    private val reporters: MutableList<Reporter> = mutableListOf()
 
     override fun execute(cfg: Configuration) {
         cleanOutputDir(cfg)
@@ -96,7 +97,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             throw ThrowablesCollection(explorationExceptions)
     }
 
-    private fun writeReports(reportDir: Path, rawData: List<IExplorationLog>) {
+    protected open fun writeReports(reportDir: Path, rawData: List<IExplorationLog>) {
         if (!Files.exists(reportDir))
             Files.createDirectories(reportDir)
 
@@ -149,13 +150,13 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
         Files.walk(outputDir).forEach { assert(Files.isDirectory(it)) }
     }
 
-    private fun execute(cfg: Configuration, apks: List<Apk>): List<ExplorationException> {
+    protected open fun execute(cfg: Configuration, apks: List<Apk>): List<ExplorationException> {
         val out = ExplorationOutput2()
 
-        val explorationExceptions: MutableList<ExplorationException> = ArrayList()
 
+        val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
         try {
-            explorationExceptions += deployExploreSerialize(cfg.deviceSerialNumber, cfg.deviceIndex, apks, out)
+            explorationExceptions += deployExploreSerialize(cfg, apks, out)
         } catch (deployExploreSerializeThrowable: Throwable) {
             log.error("!!! Caught ${deployExploreSerializeThrowable.javaClass.simpleName} " +
                     "in execute(configuration, apks)->deployExploreSerialize(${cfg.deviceIndex}, apks, out). " +
@@ -170,18 +171,22 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
         return explorationExceptions
     }
 
-    private fun deployExploreSerialize(deviceSerialNumber: String,
-                                       deviceIndex: Int,
+    private fun deployExploreSerialize(cfg: Configuration,
                                        apks: List<Apk>,
                                        out: ExplorationOutput2): List<ExplorationException> {
-        return this.deviceDeployer.withSetupDevice(deviceSerialNumber, deviceIndex) { device ->
+        return this.deviceDeployer.withSetupDevice(cfg.deviceSerialNumber, cfg.deviceIndex) { device ->
 
-            val allApksExplorationExceptions: MutableList<ApkExplorationException> = ArrayList()
+            val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
 
             var encounteredApkExplorationsStoppingException = false
 
             apks.forEachIndexed { i, apk ->
                 if (!encounteredApkExplorationsStoppingException) {
+                    // Start measuring Method Coverage
+                    val covMonitor = CoverageMonitor(apk.fileName, cfg)
+                    val covMonitorThread = Thread(covMonitor, "Logcat thread")
+                    covMonitorThread.start()
+
                     log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
 
                     allApksExplorationExceptions +=
@@ -189,14 +194,16 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                 tryExploreOnDeviceAndSerialize(deployedApk, device, out)
                             }
 
+                    // Stop monitoring coverage
+                    covMonitor.stop()
+
                     if (allApksExplorationExceptions.any { it.shouldStopFurtherApkExplorations() }) {
                         log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
                         encounteredApkExplorationsStoppingException = true
                     }
 
                     // Just preventative measures for ensuring healthiness of the device connection.
-                    //          device.reconnectAdb()
-                    //          device.restartUiaDaemon(false)
+                    device.restartUiaDaemon(false)
                 }
             }
 

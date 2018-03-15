@@ -234,6 +234,32 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         assert(true)
     }
 
+    @Test
+    fun test() {
+        println("final res = ${sumFactorial(5, 5)}")
+    }
+
+    private fun sumFactorial(n: Int, c: Int): Int {
+        val a = when {
+            c > 1 -> {
+                println("n = $n\tc = $c")
+                ((n - 1) * sumFactorial(n - 2, 1)) + sumFactorial(n, c - 1)
+            }
+            n > 1 -> {
+                println("n = $n")
+                n * sumFactorial(n - 1, 1)
+            }
+            else -> {
+                1
+            }
+        }
+
+        //println("n = $n\tc = $c\ta=$a")
+        println("a=$a")
+
+        return a
+    }
+
     @Category(RequiresDevice::class)
     @Test
     fun `Unpack SER files`() {
