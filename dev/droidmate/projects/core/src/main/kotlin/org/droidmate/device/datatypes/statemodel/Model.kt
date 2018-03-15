@@ -29,12 +29,12 @@ class Model private constructor(val config: ModelDumpConfig){
 
 	fun getStates():Set<StateData> = states // return a view to the data
 	fun addState(s: StateData) = synchronized(states){
-		states.find { x->x.uid==s.uid } ?:states.add(s)}
+		states.find { x->x.stateId==s.stateId } ?:states.add(s)}
 	fun getState(id:StateId) = states.find { it.stateId == id }
 
 	fun getWidgets():Set<Widget> = widgets
 	fun addWidget(w:Widget) = synchronized(widgets){
-		widgets.find { it.uid==w.uid } ?: widgets.add(w) }
+		widgets.find { it.id==w.id } ?: widgets.add(w) }
 
 	fun getPaths():Set<Trace> = paths
 	fun addTrace(t:Trace) = paths.add(t)

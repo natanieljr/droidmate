@@ -244,8 +244,6 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 
         assert(result.successful)
 
-        val guiState = result.guiSnapshot.guiStatus
-
         logger.debug("pool decide")
         assert(!this.strategies.isEmpty())
 

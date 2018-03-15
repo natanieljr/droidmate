@@ -38,7 +38,7 @@ import java.time.LocalDate
 import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
-object Exploration:ConfigProperties() {
+object ExplorationAPI:ConfigProperties() {
 private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
 
   /**
@@ -73,8 +73,8 @@ private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
     try {
       println(copyRight)
       validateConfig(config)
-
-      LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
+// FIXME windows issue warnings.txt is busy and cannot be deleted
+//      LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
       log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.Configuration::class.java.simpleName} from args " +
               "and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
       log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")

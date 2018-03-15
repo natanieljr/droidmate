@@ -65,6 +65,27 @@ class WidgetData(val map: Map<String,Any?>,val index: Int = -1,val parent: Widge
 	companion object {
 		val defaultProperties by lazy { P.propertyMap(Array(P.values().size,{"false"}).toList()) }
 		fun empty() = WidgetData(defaultProperties)
+
+		@JvmStatic
+		fun parseBounds(bounds: String): Rectangle {
+			assert(bounds.isNotEmpty())
+
+			// The input is of form "[xLow,yLow][xHigh,yHigh]" and the regex below will capture four groups: xLow yLow xHigh yHigh
+			val boundsMatcher = Regex("\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]")
+			val foundResults = boundsMatcher.findAll(bounds).toList()
+			if (foundResults.isEmpty())
+				throw InvalidWidgetBoundsException("The window hierarchy bounds matcher was unable to match $bounds against the regex")
+
+			val matchedGroups = foundResults[0].groups
+
+			val lowX = matchedGroups[1]!!.value.toInt()
+			val lowY = matchedGroups[2]!!.value.toInt()
+			val highX = matchedGroups[3]!!.value.toInt()
+			val highY = matchedGroups[4]!!.value.toInt()
+
+			return Rectangle(lowX, lowY, highX - lowX, highY - lowY)
+		}
+
 	}
 }
 
@@ -254,6 +275,7 @@ private val widgetId:(String,UUID)->UUID = { id,imgId -> id.toUUID()+ imgId }
 private fun BufferedImage.getSubimage(r:Rectangle) = this.getSubimage(r.x,r.y,r.width,r.height)
 private val flag={entry:String ->if(entry=="disabled") null else entry.toBoolean()}
 private fun rectFromString(s:String): Rectangle {  //         return "x=$x, y=$y, width=$width, height=$height"
+	if (s.isEmpty()|| !s.contains("=")) return Rectangle(0,0,0,0)
 	fun String.value(delimiter:String="="):Int { return this.split(delimiter)[1].toInt() }
 	return s.split(", ").let {
 		Rectangle(it[0].value(),it[1].value(),it[2].value(),it[3].value())

@@ -31,7 +31,7 @@ class CannotExploreReset : Reset() {
     override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
         // If can' move forward and have already tried to press back reset,
         // however, reset is never as good as a specific exploration
-        if (!widgetContext.explorationCanMoveForwardOn() &&
+        if (!memory.explorationCanMoveOn() &&
                 this.lastAction().actionType == PressBackExplorationAction::class.simpleName)
             return StrategyPriority.RESET
 

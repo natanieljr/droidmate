@@ -94,17 +94,16 @@ open class WidgetContext constructor(val widgetsInfo: List<WidgetInfo>,
      * @return If the exploration can perform a widget action
      */
     fun explorationCanMoveForwardOn(): Boolean {
+TODO()
 //        return this.belongsToApp() && this.hasActionableWidgets() ||
-//                guiStatus.isRequestRuntimePermissionDialogBox
-	    TODO()
+//            guiStatus?.isRequestRuntimePermissionDialogBox ?: true
     }
 
     /**
      * Checks if the current widget context belongs to the application under test.
      */
     fun belongsToApp(): Boolean {
-//        return guiStatus.belongsToApp(this.packageName)
-	    TODO()
+        return guiStatus?.belongsToApp(this.packageName)?:true
     }
 
     /**

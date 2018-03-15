@@ -22,6 +22,7 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.EmptyGuiStatus
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.emptyId
+import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.*
 import java.util.*
@@ -69,13 +70,13 @@ open class RandomWidget protected constructor(randomSeed: Long,
 
 //	TODO(" WidgetInfo does no longer exist")
     open protected fun chooseRandomWidget(widgetContext: WidgetContext): ExplorationAction {
-        val availableWidgets = this.getAvailableWidgets(widgetContext)
-//        val minActedUponCount = availableWidgets
-//                .map { it.actedUponCount }
-//                .min()  //TODO
+        val availableWidgets = memory.getCurrentState().actionableWidgets
 
-        val candidates = memory.getCurrentState().widgets
-//                .filter { it.actedUponCount == minActedUponCount }
+    val candidates = memory.watcher.find{ it is ActionCounterMF }?.let { counter -> counter as ActionCounterMF
+        counter.numExplored(memory.getCurrentState()).entries.groupBy { it.value }.let { // determine the subset of widgets which were least interacted with
+            it[it.keys.fold(Int.MAX_VALUE,{ res, c -> if(c<res) c else res})]?.map{ it.key}
+        }
+    }?: memory.getCurrentState().actionableWidgets
 
         assert(candidates.isNotEmpty())
 

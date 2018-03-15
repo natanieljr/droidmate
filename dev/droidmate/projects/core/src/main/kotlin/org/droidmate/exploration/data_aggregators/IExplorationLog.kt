@@ -45,7 +45,7 @@ import java.time.LocalDateTime
  * @author Nataniel P. Borges Jr.
  */ //TODO cleanup code between ExplorationContext and IExplorationLog
 abstract class IExplorationLog : Serializable {
-	val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))
+	abstract val model: Model
 	abstract val watcher:List<IModelFeature>
 
 	fun getState(sId:StateId) = model.getState(sId)
@@ -88,6 +88,10 @@ abstract class IExplorationLog : Serializable {
 
 //    val guiSnapshots: List<IDeviceGuiSnapshot>
 
+	fun explorationCanMoveOn() = isEmpty() ||  // we are starting the app -> no terminate yet
+				getCurrentState().topNodePackageName == apk.packageName && getCurrentState().actionableWidgets.isNotEmpty() ||
+				getCurrentState().isRequestRuntimePermissionDialogBox
+
 	/**
 	 * Get the last widget the exploration has interacted with
 	 *
@@ -124,14 +128,14 @@ abstract class IExplorationLog : Serializable {
 	 */
 	fun isEmpty(): Boolean = actionTrace.isEmpty()
 
-	/**
-	 * Get the widget context referring to the [current UI][StateData] and to the
-	 * [top level package element on UIAutomator dump] exploredAppPackageName.
-	 *
-	 * Creates a new unique context when it doesn't exist.
-	 *
-	 * @return Unique widget context which refers to the current screen
-	 */
+//	/**
+//	 * Get the widget context referring to the [current UI][StateData] and to the
+//	 * [top level package element on UIAutomator dump] exploredAppPackageName.
+//	 *
+//	 * Creates a new unique context when it doesn't exist.
+//	 *
+//	 * @return Unique widget context which refers to the current screen
+//	 */
 //    @Deprecated("use the Model or StateData instead to retrieve the required information")
 //    fun getWidgetContext(guiStatus: IGuiStatus): WidgetContext
 	abstract fun getCurrentState():StateData

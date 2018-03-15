@@ -47,13 +47,13 @@ class PressBack private constructor(private val probability: Double,
 
         // If it can' move forward and last action was not to reset
         // On the first action the reset will have a priority of 1.0, so this is not a problem
-        if (!widgetContext.explorationCanMoveForwardOn() &&
+        if (!memory.explorationCanMoveOn() &&
                 this.lastAction().actionType != PressBackExplorationAction::class.simpleName)
             return StrategyPriority.BACK
 
         // If it can' move forward, is the second action and last action was not to reset
         // Try to press back because sometimes an account selection dialog pops up
-        if (!widgetContext.explorationCanMoveForwardOn() &&
+        if (!memory.explorationCanMoveOn() &&
                 this.lastAction().actionType == ResetAppExplorationAction::class.simpleName &&
                 this.memory.getSize() == 1)
             return StrategyPriority.BACK_BEFORE_TERMINATE

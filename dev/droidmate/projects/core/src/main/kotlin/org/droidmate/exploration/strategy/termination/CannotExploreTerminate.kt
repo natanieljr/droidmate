@@ -39,10 +39,11 @@ import org.droidmate.exploration.strategy.WidgetContext
 class CannotExploreTerminate : Terminate() {
     override fun getLogMessage(): String = ""
 
+
     override fun met(widgetContext: WidgetContext): Boolean {
         // If the exploration cannot move forward after a reset + press back it should be terminated.
 
-        return !widgetContext.explorationCanMoveForwardOn() &&
+        return !memory.explorationCanMoveOn() &&
                 this.lastAction().actionType == ResetAppExplorationAction::class.simpleName &&
                 (this.getSecondLastAction() == PressBackExplorationAction::class.simpleName ||
                         (memory.getCurrentState().isAppHasStoppedDialogBox))

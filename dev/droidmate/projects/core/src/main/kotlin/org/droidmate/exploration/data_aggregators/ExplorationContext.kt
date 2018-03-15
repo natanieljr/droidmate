@@ -21,6 +21,7 @@ package org.droidmate.exploration.data_aggregators
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.statemodel.*
+import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.device.datatypes.statemodel.features.IModelFeature
 import java.awt.Rectangle
@@ -30,7 +31,8 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override val actionTrace: Trace = Trace(),
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   override val watcher:List<IModelFeature> = emptyList()) : IExplorationLog() {
+                                                   override val watcher:List<IModelFeature> = listOf(ActionCounterMF())) : IExplorationLog() {
+	override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))
 
 	private var lastState = StateData.emptyState()
 	private var prevState = StateData.emptyState()
@@ -56,11 +58,14 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 	override fun add(action: IRunnableExplorationAction, result: ActionResult) {
 		deviceDisplayBounds = result.guiSnapshot.guiStatus.deviceDisplayBounds
 
-		prevState = lastState
-		lastState = result.resultState(model.config)
-		model.addState(lastState) // TODO refactor as model.update
+		prevState = lastState // TODO refactor as model.update
+		lastState = result.resultState(model.config).also { launch { it.dump(model.config) } }
+		model.addState(lastState)
 		lastState.widgets.forEach { model.addWidget(it) }
-		actionTrace.addAction(ActionData(result,lastState.stateId,getLastAction().resState))
+		actionTrace.apply {
+			addAction(ActionData(result, lastState.stateId, getLastAction().resState))
+			launch { dump(model.config) }
+		}
 		this.also { context -> watcher.forEach { launch { it.update(context) } } }
 	}
 
@@ -70,7 +75,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 //                this.foundWidgetContexts.all { context ->
 //                    context.actionableWidgetsInfo.all { it.actedUponCount > 0 }
 //                }
-		return false // TODO() meta information in StateData of widget.uid's which were not yet interacted
+		return false // TODO() meta information of widget.uid's which were not yet interacted
 	}
 
 	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() {

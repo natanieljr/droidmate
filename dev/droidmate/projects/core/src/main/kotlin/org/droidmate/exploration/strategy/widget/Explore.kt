@@ -37,6 +37,7 @@ abstract class Explore : AbstractStrategy() {
 
     // region overrides
 
+
     override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
         return false
     }
@@ -46,9 +47,11 @@ abstract class Explore : AbstractStrategy() {
     }
 
     override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
-        assert(widgetContext.explorationCanMoveForwardOn())
+        assert(memory.explorationCanMoveOn())
 
-        val allWidgetsBlackListed = this.updateState(widgetContext)
+        //this.actionableWidgetsInfo.isNotEmpty() && this.actionableWidgetsInfo.all { it.blackListed }
+//        val allWidgetsBlackListed = this.updateState(widgetContext)
+        val allWidgetsBlackListed = memory.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
         if (allWidgetsBlackListed)
             this.notifyAllWidgetsBlacklisted()
 
