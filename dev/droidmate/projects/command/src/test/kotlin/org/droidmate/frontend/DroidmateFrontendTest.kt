@@ -194,7 +194,8 @@ class DroidmateFrontendTest : DroidmateTestCase() {
      * An {@code AaptWrapper} stub is used to provide the apk stub metadata.
      * </p>
      */
-    @Category(RequiresSimulator::class)
+    // TODO Review later
+    /*@Category(RequiresSimulator::class)
     @Test
     fun `Explores on a device simulator`() {
         val mockedFs = MockFileSystem(arrayListOf("mock_app1"))
@@ -218,7 +219,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         val expectedDeviceSimulation = simulator.currentSimulation
         val actualDeviceSimulation = getDeviceSimulation(cfg.droidmateOutputDirPath)
         actualDeviceSimulation.assertEqual(expectedDeviceSimulation!!)
-    }
+    }*/
 
     @Category(RequiresDevice::class)
     @Test
