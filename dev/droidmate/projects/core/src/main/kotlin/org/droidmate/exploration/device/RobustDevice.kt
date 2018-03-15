@@ -27,6 +27,7 @@ package org.droidmate.exploration.device
 import org.droidmate.android_sdk.AdbWrapperException
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
+import org.droidmate.android_sdk.NoAndroidDevicesAvailableException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.configuration.Configuration
@@ -267,7 +268,14 @@ class RobustDevice : IRobustDevice {
     }
 
     override fun perform(action: Action) {
-        rebootIfNecessary("device.perform(action:$action)", false) { this.device.perform(action) }
+        Utils.retryOnException(
+                { this.device.perform(action) },
+                { this.restartUiaDaemon(false) },
+                DeviceException::class,
+                getValidGuiSnapshotRetryAttempts,
+                0,
+                "device.perform(action:$action)"
+        )
     }
 
     override fun appIsNotRunning(apk: IApk): Boolean {
@@ -540,15 +548,28 @@ class RobustDevice : IRobustDevice {
     }
 
     override fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
-        this.device.stopUiaDaemon(uiaDaemonThreadIsNull)
+        try {
+            this.device.stopUiaDaemon(uiaDaemonThreadIsNull)
+        } catch (e: TcpServerUnreachableException) {
+            log.warn("Unable to issue stop command to UIAutomator. Assuming it'' no longer running.")
+        }
     }
 
-    override fun isAvailable(): Boolean = this.device.isAvailable()
+    override fun isAvailable(): Boolean {
+        return try {
+            this.device.isAvailable()
+        } catch (ignored: NoAndroidDevicesAvailableException) {
+            false
+        }
+    }
 
     override fun uiaDaemonClientThreadIsAlive(): Boolean = this.device.uiaDaemonClientThreadIsAlive()
 
     override fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
-        this.device.restartUiaDaemon(uiaDaemonThreadIsNull)
+        if (this.uiaDaemonIsRunning()) {
+            this.stopUiaDaemon(uiaDaemonThreadIsNull)
+        }
+        this.startUiaDaemon()
     }
 
     override fun startUiaDaemon() {
@@ -579,7 +600,15 @@ class RobustDevice : IRobustDevice {
         this.device.executeAdbCommand(command, successfulOutput, commandDescription)
     }
 
-    override fun uiaDaemonIsRunning(): Boolean = this.device.uiaDaemonIsRunning()
+    override fun uiaDaemonIsRunning(): Boolean {
+        return try {
+            this.device.uiaDaemonIsRunning()
+        } catch (e: Exception) {
+            log.warn("Could not check if UIAutomator daemon is running. Assuming it is not and proceeding")
+
+            false
+        }
+    }
 
     override fun isPackageInstalled(packageName: String): Boolean = this.device.isPackageInstalled(packageName)
 
@@ -599,7 +628,9 @@ class RobustDevice : IRobustDevice {
 
     override fun appIsRunning(appPackageName: String): Boolean = this.device.appIsRunning(appPackageName)
 
-    override fun takeScreenshot(app: IApk, suffix: String) = this.device.takeScreenshot(app, suffix)
+    override fun takeScreenshot(app: IApk, suffix: String): Path {
+        return this.device.takeScreenshot(app, suffix)
+    }
 
     override fun resetTimeSync() = this.messagesReader.resetTimeSync()
 }

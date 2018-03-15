@@ -19,14 +19,14 @@ internal sealed class DeviceAction {
     @Throws(UiAutomatorDaemonException::class)
     abstract fun execute(device: UiDevice, context: Context)
 
+    private fun test() {
+
+    }
+
     protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
         if (actionSuccessful) {
-            measureTimeMillis {
-                //            device.waitForWindowUpdate(null,defaultTimeout)
-                device.waitForIdle(defaultTimeout)
-                device.wait(hasInteractive, waitTimeout)
-                device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
-            }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization") }
+            device.waitForWindowUpdate(null, defaultTimeout)
+            device.waitForIdle(defaultTimeout)
         }
     }
 

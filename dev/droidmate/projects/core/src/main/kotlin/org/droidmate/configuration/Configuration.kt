@@ -323,7 +323,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
     // then minimum time should be: 5*(1'200ms + 10'000ms) = 56'000 ms
     // Plus add ~20 second to make things safe, as in practice even 60 ms caused java.net.SocketTimeoutException: Read timed out,
     // which I confirmed by seeing that logcat uiad logs took more than 61 seconds to process a GUI that fails to stabilize.
-    public var uiautomatorDaemonSocketTimeout = 1 * 60 * 1000 // ms
+    public var uiautomatorDaemonSocketTimeout = 1 * 45 * 1000 // ms
 
     @Parameter(names = [pn_uiautomatorDaemonWaitForGuiToStabilize], arity = 1, description =
     "Should the uiautomator-daemon wait for GUI state to stabilize after each click performed on the android device. Setting this to false will drastically speedup the clicking process, but will probably result in new clicks being sent while the results of previous one are still being processed.")

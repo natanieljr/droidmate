@@ -26,7 +26,10 @@
 package org.droidmate.device
 
 import com.konradjamrozik.mkdirs
-import org.droidmate.android_sdk.*
+import org.droidmate.android_sdk.AdbWrapperException
+import org.droidmate.android_sdk.DeviceException
+import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.Configuration
@@ -219,11 +222,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
     override fun isAvailable(): Boolean {
 //    log.trace("isAvailable(${this.serialNumber})")
-        return try {
-            this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
-        } catch (ignored: NoAndroidDevicesAvailableException) {
-            false
-        }
+        return this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
     }
 
     override fun reboot() {
@@ -448,7 +447,9 @@ class AndroidDevice constructor(private val serialNumber: String,
                 "USER", "Check if process $packageName is running.",
                 "shell ps"
         )
+
         return processList.contains(packageName)
+
     }
 
     override fun isPackageInstalled(packageName: String): Boolean {
