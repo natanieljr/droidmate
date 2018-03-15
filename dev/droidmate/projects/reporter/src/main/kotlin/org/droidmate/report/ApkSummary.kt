@@ -22,13 +22,12 @@ import com.konradjamrozik.Resource
 import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
+import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable
-import org.droidmate.report.misc.extractEventApiPairs
 import org.droidmate.report.misc.resetActionsCount
 import java.time.Duration
 
@@ -45,7 +44,7 @@ class ApkSummary {
       return with(payload) {
         // @formatter:off
       StringBuilder(template)
-        .replaceVariable("exploration_title"            , "droidmate-run:" + appPackageName)
+        .replaceVariable("exploration_title"            , "droidmate-run:$appPackageName")
         .replaceVariable("total_run_time"               , totalRunTime.minutesAndSeconds)
         .replaceVariable("total_actions_count"          , totalActionsCount.toString().padStart(4, ' '))
         .replaceVariable("total_resets_count"           , totalResetsCount.toString().padStart(4, ' '))
@@ -98,11 +97,11 @@ class ApkSummary {
     private constructor(
             data: IExplorationLog,
             uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
-            uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
+            uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData,IApiLogcatMessage>, Int>
     ) : this(
-      appPackageName = data.packageName,
+      appPackageName = data.apk.packageName,
             totalRunTime = data.getExplorationDuration(),
-            totalActionsCount = data.logRecords.size,
+            totalActionsCount = data.actionTrace.size,
       totalResetsCount = data.resetActionsCount,
       exception = data.exception,
       uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
@@ -118,7 +117,7 @@ class ApkSummary {
       uniqueEventApiPairsCount = uniqueEventApiPairsWithFirstTriggeringActionIndex.keys.size,
       apiEventEntries = uniqueEventApiPairsWithFirstTriggeringActionIndex.map {
         val (eventApiPair, firstIndex: Int) = it
-        val (event: String, apiLog: IApiLogcatMessage) = eventApiPair
+        val (event: ActionData, apiLog: IApiLogcatMessage) = eventApiPair
         ApiEventEntry(
           ApiEntry(
             time = Duration.between(data.explorationStartTime, apiLog.time),
@@ -126,26 +125,28 @@ class ApkSummary {
             threadId = apiLog.threadId.toInt(),
             apiSignature = apiLog.uniqueString
           ),
-          event = event
+          event = event.actionString()
         )
       }
     )
 
     companion object {
       val IExplorationLog.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
-        get() {
-            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
-                  extractItems = { it.getResult().deviceLogs.apiLogs },
+        get()
+
+        {
+            return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
+                  extractItems = { it.deviceLogs.apiLogs },
           extractUniqueString = { it.uniqueString }
         )
       }
 
-      val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
+      val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData,IApiLogcatMessage>, Int>
         get() {
 
-            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
-                    extractItems = ExplorationRecord::extractEventApiPairs,
-          extractUniqueString = EventApiPair::uniqueString
+            return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
+                    extractItems = { it.deviceLogs.apiLogs.map { apiLog -> Pair(it, apiLog) }},
+          extractUniqueString = { (action,api) -> action.actionString()+"_"+api.uniqueString }
         )
       }
 

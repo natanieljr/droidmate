@@ -622,7 +622,7 @@ Lcom/android/browser/search/SearchEngines;->getSearchEngineInfos(Landroid/conten
 Lcom/android/browser/SnapshotTab;->compressBitmap(Landroid/graphics/Bitmap;)[B
 Lcom/android/browser/SnapshotTab;->createSnapshotValues()Landroid/content/ContentValues;
 Lcom/android/browser/SnapshotTab;->getDateCreated()J
-Lcom/android/browser/SnapshotTab;->getId()J
+Lcom/android/browser/SnapshotTab;->getUid()J
 Lcom/android/browser/SnapshotTab;->getParent()Lcom/android/browser/Tab;
 Lcom/android/browser/SnapshotTab;->getScreenshot()Landroid/graphics/Bitmap;
 Lcom/android/browser/SnapshotTab$LoadData;->doInBackground([Ljava/lang/Void;)Landroid/database/Cursor;
@@ -661,7 +661,7 @@ Lcom/android/browser/Tab;->getDeviceAccountLogin()Lcom/android/browser/DeviceAcc
 Lcom/android/browser/Tab;->getErrorConsole(Z)Lcom/android/browser/ErrorConsoleView;
 Lcom/android/browser/Tab;->getFavicon()Landroid/graphics/Bitmap;
 Lcom/android/browser/Tab;->getGeolocationPermissionsPrompt()Lcom/android/browser/GeolocationPermissionsPrompt;
-Lcom/android/browser/Tab;->getId()J
+Lcom/android/browser/Tab;->getUid()J
 Lcom/android/browser/Tab;->getLoadProgress()I
 Lcom/android/browser/Tab;->getOriginalUrl()Ljava/lang/String;
 Lcom/android/browser/Tab;->getParent()Lcom/android/browser/Tab;
@@ -1068,7 +1068,7 @@ Lcom/android/contacts/ContactPhotoManager;->createContactPhotoManager(Landroid/c
 Lcom/android/contacts/ContactPhotoManager;->getDefaultAvatarResId(Landroid/content/Context;IZ)I
 Lcom/android/contacts/ContactPhotoManager;->getDefaultAvatarResId(ZZ)I
 Lcom/android/contacts/ContactPhotoManager;->getInstance(Landroid/content/Context;)Lcom/android/contacts/ContactPhotoManager;
-Lcom/android/contacts/ContactPhotoManagerImpl$Request;->getId()J
+Lcom/android/contacts/ContactPhotoManagerImpl$Request;->getUid()J
 Lcom/android/contacts/ContactPhotoManagerImpl$Request;->getKey()Ljava/lang/Object;
 Lcom/android/contacts/ContactPhotoManagerImpl$Request;->getRequestedExtent()I
 Lcom/android/contacts/ContactPhotoManagerImpl$Request;->getUri()Landroid/net/Uri;
@@ -1134,7 +1134,7 @@ Lcom/android/contacts/detail/ContactDetailFragment$ViewEntryDimensions;->getPadd
 Lcom/android/contacts/detail/ContactDetailFragment$ViewEntryDimensions;->getPaddingRight()I
 Lcom/android/contacts/detail/ContactDetailFragment$ViewEntryDimensions;->getPaddingTop()I
 Lcom/android/contacts/detail/ContactDetailFragment$ViewEntryDimensions;->getWidePaddingLeft()I
-Lcom/android/contacts/detail/ContactDetailFragment$ViewEntry;->getId()J
+Lcom/android/contacts/detail/ContactDetailFragment$ViewEntry;->getUid()J
 Lcom/android/contacts/detail/ContactDetailFragment$ViewEntry;->getViewType()I
 Lcom/android/contacts/detail/ContactDetailLayoutController;->getCurrentPage()Lcom/android/contacts/activities/ContactDetailActivity$FragmentKeyListener;
 Lcom/android/contacts/detail/ContactDetailPhotoSetter;->setupContactPhotoForClick(Landroid/content/Context;Lcom/android/contacts/model/Contact;Landroid/widget/ImageView;Z)Landroid/view/View$OnClickListener;
@@ -1200,15 +1200,15 @@ Lcom/android/contacts/editor/LabeledEditorView;->getKind()Lcom/android/contacts/
 Lcom/android/contacts/editor/LabeledEditorView;->getType()Lcom/android/contacts/model/account/AccountType$EditType;
 Lcom/android/contacts/editor/LabeledEditorView;->getValues()Lcom/android/contacts/model/RawContactDelta$ValuesDelta;
 Lcom/android/contacts/editor/PhoneticNameEditorView$PhoneticValuesDelta;->getAsString(Ljava/lang/String;)Ljava/lang/String;
-Lcom/android/contacts/editor/PhoneticNameEditorView$PhoneticValuesDelta;->getId()Ljava/lang/Long;
-Lcom/android/contacts/editor/PhotoActionPopup$ChoiceListItem;->getId()I
+Lcom/android/contacts/editor/PhoneticNameEditorView$PhoneticValuesDelta;->getUid()Ljava/lang/Long;
+Lcom/android/contacts/editor/PhotoActionPopup$ChoiceListItem;->getUid()I
 Lcom/android/contacts/editor/RawContactEditorView;->getNameEditor()Lcom/android/contacts/editor/TextFieldsEditorView;
 Lcom/android/contacts/editor/RawContactEditorView;->getPhoneticNameEditor()Lcom/android/contacts/editor/TextFieldsEditorView;
 Lcom/android/contacts/editor/RawContactEditorView;->getRawContactId()J
 Lcom/android/contacts/editor/RawContactReadOnlyEditorView;->getRawContactId()J
 Lcom/android/contacts/editor/SelectAccountDialogFragment;->onCreateDialog(Landroid/os/Bundle;)Landroid/app/Dialog;
 Lcom/android/contacts/editor/SplitContactConfirmationDialogFragment;->onCreateDialog(Landroid/os/Bundle;)Landroid/app/Dialog;
-Lcom/android/contacts/editor/ViewIdGenerator;->getId(Lcom/android/contacts/model/RawContactDelta;Lcom/android/contacts/model/dataitem/DataKind;Lcom/android/contacts/model/RawContactDelta$ValuesDelta;I)I
+Lcom/android/contacts/editor/ViewIdGenerator;->getUid(Lcom/android/contacts/model/RawContactDelta;Lcom/android/contacts/model/dataitem/DataKind;Lcom/android/contacts/model/RawContactDelta$ValuesDelta;I)I
 Lcom/android/contacts/group/GroupBrowseListAdapter;->getCount()I
 Lcom/android/contacts/group/GroupBrowseListAdapter;->getItemId(I)J
 Lcom/android/contacts/group/GroupBrowseListAdapter;->getItem(I)Lcom/android/contacts/group/GroupListItem;
@@ -1304,7 +1304,7 @@ Lcom/android/contacts/list/ContactListAdapter;->getSelectedContactPosition()I
 Lcom/android/contacts/list/ContactListAdapter;->newView(Landroid/content/Context;ILandroid/database/Cursor;ILandroid/view/ViewGroup;)Landroid/view/View;
 Lcom/android/contacts/list/ContactListFilterController;->getInstance(Landroid/content/Context;)Lcom/android/contacts/list/ContactListFilterController;
 Lcom/android/contacts/list/ContactListFilterControllerImpl;->getFilter()Lcom/android/contacts/list/ContactListFilter;
-Lcom/android/contacts/list/ContactListFilter;->getId()Ljava/lang/String;
+Lcom/android/contacts/list/ContactListFilter;->getUid()Ljava/lang/String;
 Lcom/android/contacts/list/ContactListFilter;->restoreDefaultPreferences(Landroid/content/SharedPreferences;)Lcom/android/contacts/list/ContactListFilter;
 Lcom/android/contacts/list/ContactListItemView;->getCountView()Landroid/widget/TextView;
 Lcom/android/contacts/list/ContactListItemView;->getDataView()Landroid/widget/TextView;
@@ -1509,7 +1509,7 @@ Lcom/android/contacts/model/Contact;->getDisplayNameSource()I
 Lcom/android/contacts/model/Contact;->getException()Ljava/lang/Exception;
 Lcom/android/contacts/model/Contact;->getFirstWritableRawContactId(Landroid/content/Context;)J
 Lcom/android/contacts/model/Contact;->getGroupMetaData()Lcom/google/common/collect/ImmutableList;
-Lcom/android/contacts/model/Contact;->getId()J
+Lcom/android/contacts/model/Contact;->getUid()J
 Lcom/android/contacts/model/Contact;->getInvitableAccountTypes()Lcom/google/common/collect/ImmutableList;
 Lcom/android/contacts/model/Contact;->getLookupKey()Ljava/lang/String;
 Lcom/android/contacts/model/Contact;->getLookupUri()Landroid/net/Uri;
@@ -1529,7 +1529,7 @@ Lcom/android/contacts/model/dataitem/DataItem;->getAccountType()Lcom/android/con
 Lcom/android/contacts/model/dataitem/DataItem;->getAccountTypeManager()Lcom/android/contacts/model/AccountTypeManager;
 Lcom/android/contacts/model/dataitem/DataItem;->getContentValues()Landroid/content/ContentValues;
 Lcom/android/contacts/model/dataitem/DataItem;->getDataKind()Lcom/android/contacts/model/dataitem/DataKind;
-Lcom/android/contacts/model/dataitem/DataItem;->getId()J
+Lcom/android/contacts/model/dataitem/DataItem;->getUid()J
 Lcom/android/contacts/model/dataitem/DataItem;->getKindString()Ljava/lang/String;
 Lcom/android/contacts/model/dataitem/DataItem;->getKindTypeColumn()I
 Lcom/android/contacts/model/dataitem/DataItem;->getMimeType()Ljava/lang/String;
@@ -1586,7 +1586,7 @@ Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getEmailData()Ljava/la
 Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getEmailLabel()Ljava/lang/String;
 Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getEmailType()I
 Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getGroupRowId()Ljava/lang/Long;
-Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getId()Ljava/lang/Long;
+Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getUid()Ljava/lang/Long;
 Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getMimetype()Ljava/lang/String;
 Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getPhoneLabel()Ljava/lang/String;
 Lcom/android/contacts/model/RawContactDelta$ValuesDelta;->getPhoneNormalizedNumber()Ljava/lang/String;
@@ -1603,7 +1603,7 @@ Lcom/android/contacts/model/RawContact;->getAccountTypeString()Ljava/lang/String
 Lcom/android/contacts/model/RawContact;->getContext()Landroid/content/Context;
 Lcom/android/contacts/model/RawContact;->getDataItems()Ljava/util/List;
 Lcom/android/contacts/model/RawContact;->getDataSet()Ljava/lang/String;
-Lcom/android/contacts/model/RawContact;->getId()Ljava/lang/Long;
+Lcom/android/contacts/model/RawContact;->getUid()Ljava/lang/Long;
 Lcom/android/contacts/model/RawContact;->getValues()Landroid/content/ContentValues;
 Lcom/android/contacts/model/RawContactModifier;->getBestValidType(Lcom/android/contacts/model/RawContactDelta;Lcom/android/contacts/model/dataitem/DataKind;ZI)Lcom/android/contacts/model/account/AccountType$EditType;
 Lcom/android/contacts/model/RawContactModifier;->getCurrentType(Lcom/android/contacts/model/RawContactDelta$ValuesDelta;Lcom/android/contacts/model/dataitem/DataKind;)Lcom/android/contacts/model/account/AccountType$EditType;
@@ -1668,13 +1668,13 @@ Lcom/android/contacts/util/StreamItemEntry;->getAccountType()Ljava/lang/String;
 Lcom/android/contacts/util/StreamItemEntry;->getDataSet()Ljava/lang/String;
 Lcom/android/contacts/util/StreamItemEntry;->getDecodedComments()Ljava/lang/CharSequence;
 Lcom/android/contacts/util/StreamItemEntry;->getDecodedText()Ljava/lang/CharSequence;
-Lcom/android/contacts/util/StreamItemEntry;->getId()J
+Lcom/android/contacts/util/StreamItemEntry;->getUid()J
 Lcom/android/contacts/util/StreamItemEntry;->getLabelRes()Ljava/lang/String;
 Lcom/android/contacts/util/StreamItemEntry;->getPhotos()Ljava/util/List;
 Lcom/android/contacts/util/StreamItemEntry;->getResPackage()Ljava/lang/String;
 Lcom/android/contacts/util/StreamItemEntry;->getText()Ljava/lang/String;
 Lcom/android/contacts/util/StreamItemEntry;->getTimestamp()J
-Lcom/android/contacts/util/StreamItemPhotoEntry;->getId()J
+Lcom/android/contacts/util/StreamItemPhotoEntry;->getUid()J
 Lcom/android/contacts/util/StreamItemPhotoEntry;->getPhotoUri()Ljava/lang/String;
 Lcom/android/contacts/util/StructuredPostalUtils;->getPostalAddressUri(Ljava/lang/String;)Landroid/net/Uri;
 Lcom/android/contacts/util/StructuredPostalUtils;->getViewPostalAddressIntent(Ljava/lang/String;)Landroid/content/Intent;
@@ -1926,7 +1926,7 @@ Lcom/android/providers/contacts/VoicemailContentProvider;->getDatabaseHelper(Lan
 Lcom/android/providers/contacts/VoicemailContentProvider;->getType(Landroid/net/Uri;)Ljava/lang/String;
 Lcom/android/providers/contacts/VoicemailContentProvider;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;
 Lcom/android/providers/contacts/VoicemailContentProvider$UriData;->createUriData(Landroid/net/Uri;)Lcom/android/providers/contacts/VoicemailContentProvider$UriData;
-Lcom/android/providers/contacts/VoicemailContentProvider$UriData;->getId()Ljava/lang/String;
+Lcom/android/providers/contacts/VoicemailContentProvider$UriData;->getUid()Ljava/lang/String;
 Lcom/android/providers/contacts/VoicemailContentProvider$UriData;->getSourcePackage()Ljava/lang/String;
 Lcom/android/providers/contacts/VoicemailContentProvider$UriData;->getUri()Landroid/net/Uri;
 Lcom/android/providers/contacts/VoicemailContentProvider$UriData;->getUriType()Lcom/android/providers/contacts/VoicemailUriType;
@@ -4707,7 +4707,7 @@ Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getApplicationBuffer
 Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getCipherSuite()Ljava/lang/String;
 Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getCreationTime()J
 Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getEncoded()[B
-Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getId()[B
+Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getUid()[B
 Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getLastAccessedTime()J
 Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getLocalCertificates()[Ljava/security/cert/Certificate;
 Lorg/apache/harmony/xnet/provider/jsse/OpenSSLSessionImpl;->getLocalPrincipal()Ljava/security/Principal;
@@ -4795,7 +4795,7 @@ Lorg/apache/harmony/xnet/provider/jsse/SSLServerSocketImpl;->getWantClientAuth()
 Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getApplicationBufferSize()I
 Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getCipherSuite()Ljava/lang/String;
 Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getCreationTime()J
-Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getId()[B
+Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getUid()[B
 Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getLastAccessedTime()J
 Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getLocalCertificates()[Ljava/security/cert/Certificate;
 Lorg/apache/harmony/xnet/provider/jsse/SSLSessionImpl;->getLocalPrincipal()Ljava/security/Principal;
@@ -4898,7 +4898,7 @@ Landroid/nfc/NdefMessage;->getRecords()[Landroid/nfc/NdefRecord;
 Landroid/nfc/NdefMessage;->toByteArray()[B
 Landroid/nfc/NdefRecord;->createUri(Ljava/lang/String;)Landroid/nfc/NdefRecord;
 Landroid/nfc/NdefRecord;->getByteLength()I
-Landroid/nfc/NdefRecord;->getId()[B
+Landroid/nfc/NdefRecord;->getUid()[B
 Landroid/nfc/NdefRecord;->getPayload()[B
 Landroid/nfc/NdefRecord;->getTnf()S
 Landroid/nfc/NdefRecord;->getType()[B
@@ -4920,7 +4920,7 @@ Landroid/nfc/NfcAdapter;->getService()Landroid/nfc/INfcAdapter;
 Landroid/nfc/NfcAdapter;->getTagService()Landroid/nfc/INfcTag;
 Landroid/nfc/NfcManager;->getDefaultAdapter()Landroid/nfc/NfcAdapter;
 Landroid/nfc/Tag;->getConnectedTechnology()I
-Landroid/nfc/Tag;->getId()[B
+Landroid/nfc/Tag;->getUid()[B
 Landroid/nfc/Tag;->getServiceHandle()I
 Landroid/nfc/Tag;->getTagService()Landroid/nfc/INfcTag;
 Landroid/nfc/Tag;->getTechExtras(I)Landroid/os/Bundle;
@@ -5093,7 +5093,7 @@ Lcom/android/nfc/snep/SnepMessage;->getVersion()B
 Lcom/android/nfc/snep/SnepMessage;->toByteArray()[B
 Lcom/android/nfc/snep/SnepMessenger;->getMessage()Lcom/android/nfc/snep/SnepMessage;
 Landroid/accessibilityservice/AccessibilityService;->getServiceInfo()Landroid/accessibilityservice/AccessibilityServiceInfo;
-Landroid/accessibilityservice/AccessibilityServiceInfo;->getId()Ljava/lang/String;
+Landroid/accessibilityservice/AccessibilityServiceInfo;->getUid()Ljava/lang/String;
 Landroid/accessibilityservice/IAccessibilityServiceConnection$Stub$Proxy;->findAccessibilityNodeInfoByAccessibilityId(IJILandroid/view/accessibility/IAccessibilityInteractionConnectionCallback;IJ)F
 Landroid/accessibilityservice/IAccessibilityServiceConnection$Stub$Proxy;->findAccessibilityNodeInfoByViewId(IJIILandroid/view/accessibility/IAccessibilityInteractionConnectionCallback;J)F
 Landroid/accounts/AbstractAccountAuthenticator;->getIBinder()Landroid/os/IBinder;

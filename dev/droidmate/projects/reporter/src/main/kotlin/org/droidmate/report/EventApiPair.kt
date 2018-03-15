@@ -25,6 +25,7 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import java.time.LocalDateTime
 
+@Deprecated("we should rather use a map of WidgetId -> List<api>")
 class EventApiPair(actRes: ExplorationRecord, apiLog: IApiLogcatMessage) {
 
     val pair: Pair<String, IApiLogcatMessage>

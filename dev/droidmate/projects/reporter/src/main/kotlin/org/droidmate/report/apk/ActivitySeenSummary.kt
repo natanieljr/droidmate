@@ -35,11 +35,11 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
         var lastActivity = ""
         var currActivity = data.apk.launchableActivityName
 
-        data.getRecords().forEachIndexed { actionNr, record ->
+        data.actionTrace.getActions().forEach { record ->
 
-            if (record.action is PressBackExplorationAction)
+            if (record.actionType == PressBackExplorationAction::class.simpleName)
                 currActivity = lastActivity
-            else if (record.action is ResetAppExplorationAction)
+            else if (record.actionType == ResetAppExplorationAction::class.simpleName)
                 currActivity = data.apk.launchableActivityName
 
             if (currActivity == "")
@@ -61,7 +61,7 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
                         else
                             0
 
-                        activitySeenMap.put(currActivity, count + 1)
+                      activitySeenMap[currActivity] = count + 1
                     }
         }
 

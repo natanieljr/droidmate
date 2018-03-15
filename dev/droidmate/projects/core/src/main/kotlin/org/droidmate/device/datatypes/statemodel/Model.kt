@@ -77,7 +77,7 @@ class Model private constructor(val config: ModelDumpConfig){
 		}
 	}}
 	private suspend fun P_parseState(uuid: UUID): StateData {
-		return HashSet<Widget>().apply {  // create the set of contained elements (widgets)
+		return mutableSetOf<Widget>().apply {  // create the set of contained elements (widgets)
 			val contentFile = File(config.widgetFile(uuid))
 			if(contentFile.exists())  // otherwise this state has no widgets
 				P_processLines(file = contentFile, sep = sep, lineProcessor = _widgetParser).forEach {

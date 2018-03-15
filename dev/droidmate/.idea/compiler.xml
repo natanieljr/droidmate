@@ -12,6 +12,8 @@
       <entry name="!?*.clj" />
     </wildcardResourcePatterns>
     <bytecodeTargetLevel target="1.8">
+      <module name="API_main" target="1.8" />
+      <module name="API_test" target="1.8" />
       <module name="apk-inliner_main" target="1.8" />
       <module name="apk-inliner_test" target="1.8" />
       <module name="apk_inliner_main" target="1.8" />
@@ -53,6 +55,8 @@
       <module name="plugin-api-hook-example_test" target="1.8" />
       <module name="plugin-api-hook_main" target="1.5" />
       <module name="plugin-api-hook_test" target="1.5" />
+      <module name="projects_main" target="1.8" />
+      <module name="projects_test" target="1.8" />
       <module name="reporter_main" target="1.8" />
       <module name="reporter_test" target="1.8" />
       <module name="robot_main" target="1.8" />

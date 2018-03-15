@@ -19,7 +19,8 @@
 
 package org.droidmate.tests.exploration.strategy
 
-import org.droidmate.device.datatypes.OldWidget
+import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.WidgetData
 import org.droidmate.exploration.strategy.ITargetWidget
 import org.droidmate.exploration.strategy.TargetWidget
 import org.droidmate.test_tools.DroidmateTestCase
@@ -40,15 +41,15 @@ import java.util.*
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
 class TargetWidgetTest: DroidmateTestCase() {
-    private fun createWidget(id: String): OldWidget {
-        val w = OldWidget(id)
-        w.packageName = "STUB!"
-        w.bounds = Rectangle(1, 1, 5, 5)
-        w.deviceDisplayBounds = Rectangle(100, 100)
-        w.enabled = true
-        w.clickable = true
-
-        return w
+    private fun createWidget(id: String): Widget {
+        return WidgetData.defaultProperties.toMutableMap().apply {
+            replace(WidgetData::id.name,id)
+            replace(WidgetData::packageName.name,"STUB!")
+            replace(WidgetData::bounds.name,Rectangle(1, 1, 5, 5))
+            replace(WidgetData::enabled.name,true)
+            replace(WidgetData::clickable.name,true)
+        }.let{ Widget(WidgetData(it)) }
+ //        w.deviceDisplayBounds = Rectangle(100, 100)
     }
 
     private fun createTestWidgetList(): List<ITargetWidget> {

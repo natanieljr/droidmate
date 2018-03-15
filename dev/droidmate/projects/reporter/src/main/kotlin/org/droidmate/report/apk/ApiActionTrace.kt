@@ -34,11 +34,11 @@ class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "a
         var lastActivity = ""
         var currActivity = data.apk.launchableActivityName
 
-        data.getRecords().forEachIndexed { actionNr, record ->
+        data.actionTrace.getActions().forEachIndexed { actionNr, record ->
 
-            if (record.action is PressBackExplorationAction)
+            if (record.actionType == PressBackExplorationAction::class.simpleName)
                 currActivity = lastActivity
-            else if (record.action is ResetAppExplorationAction)
+            else if (record.actionType == ResetAppExplorationAction::class.simpleName)
                 currActivity = data.apk.launchableActivityName
 
             val logs = record.deviceLogs.apiLogs
@@ -53,7 +53,7 @@ class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "a
                     }
                 }
 
-                sb.appendln("$actionNr\t$currActivity\t${record.action}\t${log.objectClass}->${log.methodName}\t${log.uniqueString}")
+                sb.appendln("$actionNr\t$currActivity\t${record.actionType}\t${log.objectClass}->${log.methodName}\t${log.uniqueString}")
             }
         }
 

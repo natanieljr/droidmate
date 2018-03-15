@@ -69,14 +69,14 @@ class ExplorationStrategyTest : DroidmateTestCase() {
          * "after the first decision, in the main decision loop" mode.
          * */
         @JvmStatic
-        private fun makeIntoNormalExplorationMode(strategy: IExplorationStrategy, explorationLog: IExplorationLog): org.droidmate.exploration.strategy.ActionResult {
+        private fun makeIntoNormalExplorationMode(strategy: IExplorationStrategy, explorationLog: IExplorationLog): ActionResult {
             val guiState = newGuiStateWithWidgets(1)
             val action = strategy.decide(newResultFromGuiState(guiState))
             assert(action is ResetAppExplorationAction)
 
-            val ctx = explorationLog.getWidgetContext(guiState)
+//            val ctx = explorationLog.getWidgetContext(guiState)
             val record = ActionResult(action, LocalDateTime.now(), LocalDateTime.now())
-                    .apply { this.widgetContext = ctx }
+//                    .apply { this.widgetContext = ctx }
             val runnable = RunnableResetAppExplorationAction(action as ResetAppExplorationAction, LocalDateTime.now(), false)
             explorationLog.add(runnable, record)
             strategy.update(record)
@@ -85,18 +85,18 @@ class ExplorationStrategyTest : DroidmateTestCase() {
         }
 
         @JvmStatic
-        private fun newResultFromGuiState(guiStatus: IGuiStatus): org.droidmate.exploration.strategy.ActionResult {
+        private fun newResultFromGuiState(guiStatus: IGuiStatus): ActionResult {
             val builder = ExplorationOutput2Builder()
             return builder.buildActionResult(mapOf("guiSnapshot" to UiautomatorWindowDumpTestHelper.fromGuiState(guiStatus),
                     "packageName" to ApkFixtures.apkFixture_simple_packageName)).apply {
-                widgetContext = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
+//                widgetContext = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
             }
         }
 
         @JvmStatic
-        private fun memoryRecordFromAction(action: ExplorationAction, guiStatus: IGuiStatus): org.droidmate.exploration.strategy.ActionResult {
+        private fun memoryRecordFromAction(action: ExplorationAction, guiStatus: IGuiStatus): ActionResult {
             return ActionResult(action, LocalDateTime.now(), LocalDateTime.now()).apply {
-                widgetContext = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
+//                widgetContext = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
             }
         }
 

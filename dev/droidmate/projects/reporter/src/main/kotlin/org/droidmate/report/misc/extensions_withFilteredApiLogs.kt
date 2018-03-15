@@ -18,6 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.data_aggregators.ExplorationContext
 import org.droidmate.exploration.data_aggregators.IExplorationLog
@@ -26,7 +27,8 @@ import org.droidmate.exploration.device.IDeviceLogs
 // WISH use instead lazy extension property implemented with workaround: https://youtrack.jetbrains.com/issue/KT-13053#comment=27-1510399
 val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
     get() {
-
+TODO("no idea what's the intention of this method")
+        /*
         fun filterApiLogs(output: IExplorationLog): IExplorationLog {
 
             fun filterApiLogs(results: List<ExplorationRecord>): MutableList<ExplorationRecord> {
@@ -57,5 +59,6 @@ val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
     }
 
     return this.map { filterApiLogs(it) }
+    */
 }
 

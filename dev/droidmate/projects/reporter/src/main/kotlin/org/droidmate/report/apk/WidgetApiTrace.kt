@@ -18,11 +18,11 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.device.datatypes.IGuiStatus
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.ActionData
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.exploration.strategy.ActionResult
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -32,11 +32,11 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
         val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
         sb.append(header)
 
-        data.getRecords().forEachIndexed { actionNr, record ->
-            if (record.action is WidgetExplorationAction) {
-                val text = getActionWidget(record)
+        data.actionTrace.getActions().forEachIndexed { actionNr, record ->
+            if (record.actionType == WidgetExplorationAction::class.simpleName) {
+                val text = data.getState(record.resState)?.let { getActionWidget(record, it) }
                 val logs = record.deviceLogs.apiLogs
-                val widget = (record.action as WidgetExplorationAction).widget
+                val widget = record.targetWidget
 
                 logs.forEach { log ->
                     sb.appendln("$actionNr\t$text\t${log.objectClass}->${log.methodName}\t$widget\t${log.uniqueString}")
@@ -48,22 +48,21 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
         Files.write(reportFile, sb.toString().toByteArray())
     }
 
-    private fun getActionWidget(actionResult: ActionResult): Widget? {
-        return if (actionResult.action is WidgetExplorationAction) {
-            val explAction = (actionResult.action as WidgetExplorationAction)
+    private fun getActionWidget(actionResult: ActionData,state:StateData): Widget? {
+        return if (actionResult.actionType == WidgetExplorationAction::class.simpleName) {
 
-            getWidgetWithTextFromAction(explAction.widget, actionResult.widgetContext.guiStatus)
+            getWidgetWithTextFromAction(actionResult.targetWidget!!,state)
         } else
             null
     }
 
-    private fun getWidgetWithTextFromAction(widget: Widget, guiStatus: IGuiStatus): Widget {
+    private fun getWidgetWithTextFromAction(widget: Widget,state:StateData): Widget {
         // If has Text
         if (widget.text.isNotEmpty())
             return widget
 
-        val children = guiStatus.widgets
-                .filter { p -> p.parent == widget }
+        val children = state.widgets
+                .filter { p -> p.parentId == widget.id }
 
         // If doesn't have any children
         if (children.isEmpty()) {
@@ -77,7 +76,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
             childrenWithText.size == 1 -> childrenWithText.first()
 
         // Single child, drill down
-            children.size == 1 -> getWidgetWithTextFromAction(children.first(), guiStatus)
+            children.size == 1 -> getWidgetWithTextFromAction(children.first(), state)
 
         // Multiple children, skip
             else -> widget

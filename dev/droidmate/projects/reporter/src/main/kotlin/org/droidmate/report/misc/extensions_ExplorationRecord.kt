@@ -41,10 +41,11 @@ val ExplorationRecord.actionableWidgets: Iterable<Widget>
       return when (result.guiSnapshot) {
           is MissingGuiSnapshot -> this.clickedWidget
           else -> {
-              if (!(result.guiSnapshot.guiState.belongsToApp(result.appPackageName)))
+              if (!(result.guiSnapshot.guiStatus.belongsToApp(result.guiSnapshot.guiStatus.topNodePackageName)))
                   return this.clickedWidget
               else
-                  return result.guiSnapshot.guiState.getActionableWidgets().union(this.clickedWidget)
+                  TODO("this is no longer supported, use the State to determine actionable widgets instead")
+//                  return result.guiSnapshot.guiStatus.getActionableWidgets().union(this.clickedWidget)
           }
       }
   }

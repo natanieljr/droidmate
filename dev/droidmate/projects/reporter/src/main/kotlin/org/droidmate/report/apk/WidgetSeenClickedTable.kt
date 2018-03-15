@@ -58,15 +58,15 @@ class WidgetSeenClickedTable(data: IExplorationLog) : CountsPartitionedByTimeTab
 
         private fun IExplorationLog.uniqueViewCountByPartitionedTime(
                 extractItems: (ExplorationRecord) -> Iterable<Widget>): Map<Long, Iterable<String>> {
-
-            return this.logRecords.itemsAtTime(
-                    startTime = this.explorationStartTime,
-                    extractTime = { it.getAction().timestamp },
-                    extractItems = extractItems
-            ).mapValues {
-                val widgets = it.value
-                widgets.map { it.uniqueString }
-            }
+TODO("what do we intent to compute here?")
+//            return this.logRecords.itemsAtTime(
+//                    startTime = this.explorationStartTime,
+//                    extractTime = { it.getAction().timestamp },
+//                    extractItems = extractItems
+//            ).mapValues {
+//                val widgets = it.value
+//                widgets.map { it.uniqueString }
+//            }
         }
     }
 }

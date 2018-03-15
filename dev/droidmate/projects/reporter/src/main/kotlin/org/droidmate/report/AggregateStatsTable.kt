@@ -27,16 +27,16 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
   constructor(data: List<IExplorationLog>) : this(AggregateStatsTable.build(data))
   
   companion object {
-    val headerApkName = "file_name"
-    val headerPackageName = "package_name"
-    val headerExplorationTimeInSeconds = "exploration_seconds"
-    val headerActionsCount = "actionTrace"
-    val headerResetActionsCount = "in_this_reset_actions"
-    val headerViewsSeenCount = "actionable_unique_views_seen_at_least_once"
-    val headerViewsClickedCount = "actionable_unique_views_clicked_or_long_clicked_at_least_once"
-    val headerApisSeenCount = "unique_apis"
-    val headerEventApiPairsSeenCount = "unique_event_api_pairs"
-    val headerException = "exception"
+    const val headerApkName = "file_name"
+    const val headerPackageName = "package_name"
+    const val headerExplorationTimeInSeconds = "exploration_seconds"
+    const val headerActionsCount = "actionTrace"
+    const val headerResetActionsCount = "in_this_reset_actions"
+    const val headerViewsSeenCount = "actionable_unique_views_seen_at_least_once"
+    const val headerViewsClickedCount = "actionable_unique_views_clicked_or_long_clicked_at_least_once"
+    const val headerApisSeenCount = "unique_apis"
+    const val headerEventApiPairsSeenCount = "unique_event_api_pairs"
+    const val headerException = "exception"
 
     fun build(data: List<IExplorationLog>): Table<Int, String, String> {
 
@@ -58,7 +58,7 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
                   val apkData = data[rowIndex]
                   listOf(
                           apkData.apk.fileName,
-                          apkData.packageName,
+                          apkData.apk.packageName,
                           apkData.getExplorationDuration().seconds.toString(),
                           apkData.actionTrace.size.toString(),
                           apkData.resetActionsCount.toString(),

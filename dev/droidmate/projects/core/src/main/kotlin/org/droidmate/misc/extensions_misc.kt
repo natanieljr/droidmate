@@ -23,6 +23,7 @@ import org.droidmate.exploration.strategy.WidgetInfo
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Duration
+import java.util.*
 
 /**
  * Zeroes digits before (i.e. left of) comma. E.g. if [digitsToZero] is 2, then 6789 will become 6700.
@@ -75,11 +76,11 @@ fun Widget.isEquivalentIgnoreLocation(other: Widget, ignoreCase: Boolean = true)
 
 fun <T, TItem> Iterable<T>.setByUniqueString(
   extractItems: (T) -> Iterable<TItem>,
-  uniqueString: (TItem) -> String
+  uniqueString: (TItem) -> UUID
 ): Set<TItem> {
 
-  val grouped: Map<String, List<TItem>> = this.flatMap { extractItems(it) }.groupBy { uniqueString(it) }
-  val uniquesByString: Map<String, TItem> = grouped.mapValues { it.value.first() }
+  val grouped: Map<UUID, List<TItem>> = this.flatMap { extractItems(it) }.groupBy { uniqueString(it) }
+  val uniquesByString: Map<UUID, TItem> = grouped.mapValues { it.value.first() }
   val uniques: Collection<TItem> = uniquesByString.values
   val uniquesSet = uniques.toSet()
   check(uniques.size == uniquesSet.size)

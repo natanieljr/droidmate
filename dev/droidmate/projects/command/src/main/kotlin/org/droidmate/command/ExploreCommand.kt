@@ -202,7 +202,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
     val fallibleApkOut2 = this.exploration.run(deployedApk, device)
 
     if (fallibleApkOut2.result != null) {
-      fallibleApkOut2.result!!.serialize(this.storage2)
+//      fallibleApkOut2.result!!.serialize(this.storage2) //TODO
       out.add(fallibleApkOut2.result!!)
     }
 

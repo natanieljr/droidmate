@@ -30,12 +30,14 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override val actionTrace: Trace = Trace(),
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   private val watcher:List<IModelFeature> = emptyList()) : IExplorationLog() {
+                                                   override val watcher:List<IModelFeature> = emptyList()) : IExplorationLog() {
 
 	private var lastState = StateData.emptyState()
+	private var prevState = StateData.emptyState()
 
 	override var deviceDisplayBounds: Rectangle? = null
 
+	fun getPreviousState():StateData = prevState
 	override fun getCurrentState(): StateData = lastState
 
 	override fun dump() {
@@ -54,6 +56,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 	override fun add(action: IRunnableExplorationAction, result: ActionResult) {
 		deviceDisplayBounds = result.guiSnapshot.guiStatus.deviceDisplayBounds
 
+		prevState = lastState
 		lastState = result.resultState(model.config)
 		model.addState(lastState) // TODO refactor as model.update
 		lastState.widgets.forEach { model.addWidget(it) }

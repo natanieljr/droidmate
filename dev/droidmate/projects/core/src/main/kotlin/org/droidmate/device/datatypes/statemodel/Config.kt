@@ -59,4 +59,4 @@ private const val datePattern = "ddMM-HHmmss"
 internal fun timestamp():String = DateTimeFormatter.ofPattern(datePattern).format(LocalDateTime.now())
 internal const val sep = ";"
 internal const val traceFilePrefix = "trace"
-internal val emptyUUID = UUID.nameUUIDFromBytes(byteArrayOf())
+val emptyUUID = UUID.nameUUIDFromBytes(byteArrayOf())

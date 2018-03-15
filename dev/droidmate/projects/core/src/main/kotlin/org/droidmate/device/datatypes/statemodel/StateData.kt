@@ -34,6 +34,7 @@ class StateData private constructor(val widgets: List<Widget>,
   val uid: UUID
   val configId:UUID
 	val stateId get() = StateId(uid,configId)
+  val actionableWidgets get() = widgets.filter { it.canBeActedUpon() }
 
 	init{
 		val ids = widgets.fold(emptyId,{ (id,configId):StateId, widget -> StateId(id + widget.uid, configId + widget.propertyConfigId ) })

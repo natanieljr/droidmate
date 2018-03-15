@@ -18,57 +18,53 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.actions.ExplorationRecord
+import org.droidmate.apis.IApiLogcatMessage
+import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.report.EventApiPair
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
-import org.droidmate.report.misc.extractEventApiPairs
-import org.droidmate.report.misc.itemsAtTimes
+import java.time.Duration
+import java.util.*
 
 class ApiCountTable : CountsPartitionedByTimeTable {
 
-  constructor(data: IExplorationLog) : super(
-          data.getExplorationTimeInMs(),
-    listOf(
-            headerTime,
-            headerApisSeen,
-            headerApiEventsSeen
-    ),
-    listOf(
-      data.uniqueApisCountByTime,
-      data.uniqueEventApiPairsCountByTime
-    )
-  )
+	constructor(data: IExplorationLog) : super(
+			data.getExplorationTimeInMs(),
+			listOf(
+					headerTime,
+					headerApisSeen,
+					headerApiEventsSeen
+			),
+			listOf(
+					data.uniqueApisCountByTime,
+					data.uniqueEventApiPairsCountByTime
+			)
+	)
 
-  companion object {
+	companion object {
 
-    val headerTime = "Time_seconds"
-    val headerApisSeen = "Apis_seen"
-    val headerApiEventsSeen = "Api+Event_pairs_seen"
+		const val headerTime = "Time_seconds"
+		const val headerApisSeen = "Apis_seen"
+		const val headerApiEventsSeen = "Api+Event_pairs_seen"
 
-    private val IExplorationLog.uniqueApisCountByTime: Map<Long, Iterable<String>>
-      get() {
-          return this.logRecords.itemsAtTimes(
-                extractItems = { it.getResult().deviceLogs.apiLogs },
-        startTime = this.explorationStartTime,
-        extractTime = { it.time }
-      ).mapValues {
-        val apis = it.value
-        apis.map { it.uniqueString }
-      }
-    }
+		/** the collection of Apis triggered , grouped based on the apis timestamp
+		 * Map<time, List<(action,api)>> is for each timestamp the list of the triggered action with the observed api*/
+		private val IExplorationLog.apisByTime
+			get() =
+				LinkedList<Pair<ActionData, IApiLogcatMessage>>().apply {
+					// create a list of (widget.id,IApiLogcatMessage)
+					actionTrace.getActions().forEach { action ->
+						// collect all apiLogs over the whole trace
+						action.deviceLogs.apiLogs.forEach { add(Pair(action, it)) }
+					}
+				}.groupBy { (_, api) -> Duration.between(explorationStartTime, api.time).toMillis() } // group them by their start time (i.e. how may milli seconds elapsed since exploration start)
 
-    private val IExplorationLog.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
-      get() {
+		/** map of seconds elapsed during app exploration until the api was called To the set of api calls (their unique string) **/
+		private val IExplorationLog.uniqueApisCountByTime: Map<Long, Iterable<String>>
+			get() = apisByTime.mapValues { it.value.map { (_, api) -> api.uniqueString } }   // instead of the whole IApiLogcatMessage only keep the unique string for the Api
 
-          return this.logRecords.itemsAtTimes(
-                  extractItems = ExplorationRecord::extractEventApiPairs,
-        startTime = this.explorationStartTime,
-        extractTime = EventApiPair::time
-      ).mapValues {
-        val eventApiPairs = it.value
-        eventApiPairs.map { it.uniqueString }
-      }
-    }
-  }
+
+		/** map of seconds elapsed during app exploration until the api was triggered To  **/
+		private val IExplorationLog.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
+			get() = apisByTime.mapValues { it.value.map { (action, api) -> "${action.actionString()}_${api.uniqueString}" } }
+	}
 }

@@ -19,19 +19,18 @@
 package org.droidmate.report.apk
 
 import com.google.common.collect.Table
-import com.konradjamrozik.frequencies
-import com.konradjamrozik.transpose
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.report.misc.buildTable
+import java.util.*
 
+//TODO check if this is even still used
 class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
     constructor(data: IExplorationLog) : this(build(data))
   
   companion object {
-    val headerNoOfClicks = "No_of_clicks"
-    val headerViewsCount = "Views_count"
+    const val headerNoOfClicks = "No_of_clicks"
+    const val headerViewsCount = "Views_count"
 
       fun build(data: IExplorationLog): Table<Int, String, Int> {
 
@@ -51,19 +50,17 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
       )
     }
 
-      private val IExplorationLog.countOfViewsHavingNoOfClicks: Map<Int, Int>
-          get() {
-
-              val clickedWidgets: List<Widget> = this.logRecords.flatMap { it.clickedWidget }
-        val noOfClicksPerWidget: Map<Widget, Int> = clickedWidgets.frequencies
-        val widgetsHavingNoOfClicks: Map<Int, Set<Widget>> = noOfClicksPerWidget.transpose
-      val widgetsCountPerNoOfClicks: Map<Int, Int> = widgetsHavingNoOfClicks.mapValues { it.value.size }
-
-      val maxNoOfClicks = noOfClicksPerWidget.values.max() ?: 0
-      val noOfClicksProgression = 0..maxNoOfClicks step 1
-      val zeroWidgetsCountsPerNoOfClicks = noOfClicksProgression.associate { Pair(it, 0) }
-      
-      return zeroWidgetsCountsPerNoOfClicks + widgetsCountPerNoOfClicks
-    }
+    /** computing how many new widgets become visible after each action (#actions -> #newWidgets) **/
+    private val IExplorationLog.countOfViewsHavingNoOfClicks: Map<Int, Int>
+      get() = mutableMapOf<Int,Int>().also{ res ->
+        with(mutableSetOf<UUID>()){ // temporary set of widgets seen over the action trace
+          actionTrace.getActions().forEachIndexed { idx,action ->
+            size.let { nSeenBefore -> // the size of the set of widgets seen until step idx
+              getState(action.resState)?.widgets?.map { it.uid }?.let { addAll(it) }  // add the unique ids of widgets seen in the new state
+              res.put(idx, size - nSeenBefore)  // this is the number of newly explored widgets
+            }
+          }
+        }
+      }
   }
 }

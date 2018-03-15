@@ -20,38 +20,35 @@ package org.droidmate.report.misc
 
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.exploration.actions.ExplorationRecord
+import org.droidmate.device.datatypes.statemodel.emptyUUID
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.misc.uniqueString
-import org.droidmate.report.EventApiPair
+import java.util.*
 
 val IExplorationLog.uniqueActionableWidgets: Set<Widget>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = ExplorationRecord::actionableWidgets,
-          uniqueString = Widget::uniqueString
-  )
+  get() = mutableSetOf<Widget>().apply {
+    getRecords().getWidgets().filter { it.canBeActedUpon() }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
+        .forEach{ add(it.value.first()) }
+  }
 
 val IExplorationLog.uniqueClickedWidgets: Set<Widget>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = ExplorationRecord::clickedWidget,
-          uniqueString = Widget::uniqueString
-  )
+  get() = mutableSetOf<Widget>().apply {
+    actionTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
+  }
 
+//TODO not sure about the original intention of this function
 val IExplorationLog.uniqueApis: Set<IApiLogcatMessage>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = { it.getResult().deviceLogs.apiLogs },
-    uniqueString = { it.uniqueString } 
-  )
+  get() = uniqueEventApiPairs.map { (_, api) -> api }.toSet()
 
-val IExplorationLog.uniqueEventApiPairs: Set<EventApiPair>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = ExplorationRecord::extractEventApiPairs,
-    uniqueString = { it.uniqueString }
-  )
+val IExplorationLog.uniqueEventApiPairs: Set<Pair<UUID,IApiLogcatMessage>>
+  get() = mutableSetOf<Pair<UUID,IApiLogcatMessage>>().apply {
+    actionTrace.getActions().forEach {
+      apiLogs.forEach { apiList -> apiList.forEach { api -> add(Pair(it.targetWidget?.uid?: emptyUUID, api)) } }
+    }
+  }
 
 val IExplorationLog.resetActionsCount: Int
-  get() = actionTrace.count { it.base is ResetAppExplorationAction }
+  get() = actionTrace.getActions().count { it.actionType == ResetAppExplorationAction::class.simpleName }
 
 val IExplorationLog.apkFileNameWithUnderscoresForDots: String
   get() = apk.fileName.replace(".", "_")

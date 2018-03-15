@@ -23,6 +23,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IExplorableAndroidDevice
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
@@ -32,7 +33,6 @@ import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
-import org.droidmate.exploration.strategy.ActionResult
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
