@@ -77,7 +77,7 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
     /**
      * Selects a widget following "Fitness Proportionate Selection"
      */
-    override fun chooseRandomWidget(widgetContext: WidgetContext): ExplorationAction {
+    override fun chooseRandomWidget(): ExplorationAction {
         val candidates = this.memory.getCurrentState().widgets
         assert(candidates.isNotEmpty())
 

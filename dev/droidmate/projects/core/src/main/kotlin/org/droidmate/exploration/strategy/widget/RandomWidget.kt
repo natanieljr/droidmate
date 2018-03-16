@@ -19,7 +19,6 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.EmptyGuiStatus
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.emptyId
 import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
@@ -35,7 +34,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
                                               private val priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET) : Explore() {
     protected val random = Random(randomSeed)
 
-    private fun mustRepeatLastAction(widgetContext: WidgetContext): Boolean {
+    private fun mustRepeatLastAction(): Boolean {
         if (!this.memory.isEmpty()) {
 
             // Last state was runtime permission
@@ -48,7 +47,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
                             .filterNot { it.isRequestRuntimePermissionDialogBox }
                             .isNotEmpty() &&
                     // Can re-execute the same action
-                    this.getAvailableWidgets(widgetContext)
+                    memory.getCurrentState().actionableWidgets
                             .any { p -> p.isEquivalent(this.memory.lastTarget) }
         }
 
@@ -69,8 +68,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
     }
 
 //	TODO(" WidgetInfo does no longer exist")
-    open protected fun chooseRandomWidget(widgetContext: WidgetContext): ExplorationAction {
-        val availableWidgets = memory.getCurrentState().actionableWidgets
+    protected open fun chooseRandomWidget(): ExplorationAction {
 
     val candidates = memory.watcher.find{ it is ActionCounterMF }?.let { counter -> counter as ActionCounterMF
         counter.numExplored(memory.getCurrentState()).entries.groupBy { it.value }.let { // determine the subset of widgets which were least interacted with
@@ -80,25 +78,22 @@ open class RandomWidget protected constructor(randomSeed: Long,
 
         assert(candidates.isNotEmpty())
 
-        val chosenWidgetInfo = candidates[random.nextInt(candidates.size)]
+        val chosenWidget = candidates[random.nextInt(candidates.size)]
 
-        this.memory.lastTarget = chosenWidgetInfo
-        return chooseActionForWidget(chosenWidgetInfo)
+        this.memory.lastTarget = chosenWidget
+        return chooseActionForWidget(chosenWidget)
     }
 
-	@Deprecated("WidgetInfo is outdated use the new context instead")
-    open protected fun chooseActionForWidget(chosenWidgetInfo: Widget): ExplorationAction {
-        var chosenWidget = chosenWidgetInfo
+    protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 
         while (!chosenWidget.canBeActedUpon()) {
-//            chosenWidget = chosenWidget.parent!!
 	        memory.getCurrentState().widgets.find { it.id == chosenWidget.parentId }
         }
 
         val actionList: MutableList<ExplorationAction> = ArrayList()
 
         if (chosenWidget.longClickable)
-            actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, true))
+            actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, false))
 
         if (chosenWidget.clickable)
             actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget))
@@ -117,9 +112,9 @@ open class RandomWidget protected constructor(randomSeed: Long,
             actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_down))
         }*/
 
-//        chosenWidgetInfo.actedUponCount++ //TODO this has to be implemented as Model Feature
+//        chosenWidget.actedUponCount++ //TODO this has to be implemented as Model Feature
 
-        logger.debug("Chosen widget info: $chosenWidgetInfo")
+        logger.debug("Chosen widget info: $chosenWidget")
 
         val maxVal = actionList.size
         assert(maxVal > 0)
@@ -134,10 +129,10 @@ open class RandomWidget protected constructor(randomSeed: Long,
 
     override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
         // Repeat previous action is last action was to click on a runtime permission dialog
-        if (mustRepeatLastAction(widgetContext))
+        if (mustRepeatLastAction())
             return repeatLastAction()
 
-        return chooseRandomWidget(widgetContext)
+        return chooseRandomWidget()
     }
 
     // region java overrides

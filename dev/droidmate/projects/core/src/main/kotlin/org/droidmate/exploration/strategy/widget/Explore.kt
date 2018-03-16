@@ -49,8 +49,6 @@ abstract class Explore : AbstractStrategy() {
     override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
         assert(memory.explorationCanMoveOn())
 
-        //this.actionableWidgetsInfo.isNotEmpty() && this.actionableWidgetsInfo.all { it.blackListed }
-//        val allWidgetsBlackListed = this.updateState(widgetContext)
         val allWidgetsBlackListed = memory.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
         if (allWidgetsBlackListed)
             this.notifyAllWidgetsBlacklisted()

@@ -38,6 +38,12 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 	private var prevState = StateData.emptyState()
 
 	override var deviceDisplayBounds: Rectangle? = null
+	/** for debugging purpose only contains the last UiAutomator dump */
+	var lastDump:String = ""
+
+	init{
+		model.addTrace(actionTrace)
+	}
 
 	fun getPreviousState():StateData = prevState
 	override fun getCurrentState(): StateData = lastState
@@ -57,6 +63,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 
 	override fun add(action: IRunnableExplorationAction, result: ActionResult) {
 		deviceDisplayBounds = result.guiSnapshot.guiStatus.deviceDisplayBounds
+		lastDump = result.guiSnapshot.windowHierarchyDump
 
 		prevState = lastState // TODO refactor as model.update
 		lastState = result.resultState(model.config).also { launch { it.dump(model.config) } }

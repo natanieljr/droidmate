@@ -72,10 +72,10 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
         this.target.trySatisfyWidgetOrDependency(satisfiedWidget)
     }
 
-    override fun chooseActionForWidget(chosenWidgetInfo: Widget): ExplorationAction {
-        this.acquiredTarget = this.target.getTarget(chosenWidgetInfo)
+    override fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
+        this.acquiredTarget = this.target.getTarget(chosenWidget)
 
-        return super.chooseActionForWidget(chosenWidgetInfo)
+        return super.chooseActionForWidget(chosenWidget)
     }
 
     override fun updateState(actionNr: Int, record: ActionResult) {
