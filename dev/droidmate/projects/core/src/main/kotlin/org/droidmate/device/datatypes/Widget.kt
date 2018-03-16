@@ -23,13 +23,13 @@ import org.droidmate.device.datatypes.statemodel.*
 import org.droidmate.exploration.actions.Direction
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.SystemColor.text
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.charset.Charset
 import java.util.*
 import javax.imageio.ImageIO
+import kotlin.reflect.full.declaredMemberProperties
 
 fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.forName("UTF-8")))
 
@@ -38,10 +38,11 @@ fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.fo
  * @param index only used during dumpParsing to create xPath !! should not be used otherwise !!
  * @param parent only used during dumpParsing to create xPath and to determine the Widget.parentId within the state model !! should not be used otherwise !!
  */
-class WidgetData(val map: Map<String,Any?>,val index: Int = -1,val parent: WidgetData? = null){
+class WidgetData(map: Map<String,Any?>,val index: Int = -1,val parent: WidgetData? = null){
 	constructor(resId: String, xPath:String)
 			:this(defaultProperties.toMutableMap().apply { replace(WidgetData::resourceId.name,resId)	}){ this.xpath = xPath }
 
+	val uid = map.values.toString().toUUID()
 	val text: String by map
 	val contentDesc: String by map
 	val resourceId: String by map
@@ -62,7 +63,15 @@ class WidgetData(val map: Map<String,Any?>,val index: Int = -1,val parent: Widge
 	@Deprecated("use the new UUID from state model instead")
 	val id: String by map.withDefault { "" } // only used for testing
 
+	var children:List<UUID> = emptyList()
+
 	fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked?:false || longClickable || scrollable)
+
+	operator fun<R,T> getValue(thisRef: R, p: kotlin.reflect.KProperty<*>): T {  // remark do not use delegate in performance essential code (10% overhead) and prefer Type specialized Delegates as otherwise Boxing and Unboxing overhead occurs for primitive types
+		@Suppress("UNCHECKED_CAST")
+		return this::class.declaredMemberProperties.find { it.name==p.name }?.call(this) as T
+	}
+
 
 	companion object {
 		val defaultProperties by lazy { P.propertyMap(Array(P.values().size,{"false"}).toList()) }
@@ -87,7 +96,6 @@ class WidgetData(val map: Map<String,Any?>,val index: Int = -1,val parent: Widge
 
 			return Rectangle(lowX, lowY, highX - lowX, highY - lowY)
 		}
-
 	}
 }
 
@@ -118,29 +126,33 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyConfigId] */
-	val propertyConfigId:UUID = configId(properties)
+	val propertyConfigId:UUID get() = properties.uid
 	//FIXME we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
-	val uid: UUID by lazy { (text + contentDesc).let{if(it == "") widgetId(it, imgId) else it.toUUID()} }
+	val uid: UUID by lazy { (text + contentDesc).let{ if(hasContent()) widgetId(it, imgId) else it.toUUID()} }
 	val id get() = Pair(uid,propertyConfigId)
 
-	val text: String by properties.map
-	val contentDesc: String by properties.map
-	val resourceId: String by properties.map
-	val className: String by properties.map
-	val packageName: String by properties.map
-	val isPassword: Boolean by properties.map
-	val enabled: Boolean by properties.map
-	val visible: Boolean by properties.map
-	val clickable: Boolean by properties.map
-	val longClickable: Boolean by properties.map
-	val scrollable: Boolean by properties.map
-	val checked: Boolean? by properties.map
-	val focused: Boolean? by properties.map
-	val selected: Boolean by properties.map
-	val bounds: Rectangle by properties.map
+	val text: String get() =  properties.text
+	val contentDesc: String get() = properties.contentDesc
+	val resourceId: String get() = properties.resourceId
+	val className: String get() = properties.className
+	val packageName: String get() = properties.packageName
+	val isPassword: Boolean get() = properties.isPassword
+	val enabled: Boolean get() = properties.enabled
+	val visible: Boolean get() = properties.visible
+	val clickable: Boolean get() = properties.clickable
+	val longClickable: Boolean get() = properties.longClickable
+	val scrollable: Boolean get() = properties.scrollable
+	val checked: Boolean? get() = properties.checked
+	val focused: Boolean? get() = properties.focused
+	val selected: Boolean get() = properties.selected
+	val bounds: Rectangle get() = properties.bounds
 	val xpath: String get() = properties.xpath
 	var parentId:Pair<UUID,UUID>? = null
+	val childConfigIds:List<UUID> get() = properties.children
+
+	fun isLeaf():Boolean = childConfigIds.isEmpty()
+	fun hasContent():Boolean = (text + contentDesc) != ""
 
 	/** helper functions for parsing */
 	fun Rectangle.dataString():String{
@@ -172,15 +184,14 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 		}
 	}
 
+	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 	fun center(): Point = Point(bounds.centerX.toInt(), bounds.centerY.toInt())
 	fun getStrippedResourceId(): String = properties.resourceId.removePrefix("$packageName:")
 	fun toShortString(): String{
-		val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
-		return "Wdgt:$classSimpleName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
+		return "Wdgt:$simpleClassName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
 	}
 	fun toTabulatedString(includeClassName: Boolean = true): String{
-		val classSimpleName = className.substring(className.lastIndexOf(".") + 1)
-		val pCls = classSimpleName.padEnd(20, ' ')
+		val pCls = simpleClassName.padEnd(20, ' ')
 		val pResId = resourceId.padEnd(64, ' ')
 		val pText = text.padEnd(40, ' ')
 		val pContDesc = contentDesc.padEnd(40, ' ')
@@ -249,15 +260,13 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 				it.toByteArray().let { bytes -> UUID.nameUUIDFromBytes(bytes).also { imgId ->
 					launch {
 						val widgetId = (w.text + w.contentDesc).let{if(it == "") widgetId(it, imgId) else it.toUUID()}
-						File(config.widgetImgPath(id = widgetId,postfix = "_${configId(w)}", subDir = if(!w.canBeActedUpon()) "nonInteractive${File.separator}" else "")).writeBytes(bytes) }
+						File(config.widgetImgPath(id = widgetId,postfix = "_${w.uid}", interactive = w.canBeActedUpon())).writeBytes(bytes) }
 				} }
 			}}?: emptyUUID
 		)
 
-		fun configId(w:WidgetData) = w.map.values.toString().toUUID()
-
-		val idIdx = P.UID.ordinal
-		val widgetHeader = P.values().joinToString(separator = sep) { it.header }
+		val idIdx by lazy { P.UID.ordinal }
+		val widgetHeader by lazy { P.values().joinToString(separator = sep) { it.header } }
 
 	}
 	/*** overwritten functions ***/
@@ -273,7 +282,7 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 	}
 
 	override fun toString(): String {
-		return "${uid}_$propertyConfigId:$className[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, pos=${bounds.location}:dx=${bounds.width},dy=${bounds.height}]"
+		return "${uid}_$propertyConfigId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, pos=${bounds.location}:dx=${bounds.width},dy=${bounds.height}]"
 	}
 	/* end override */
 }

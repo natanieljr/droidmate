@@ -218,7 +218,7 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 		}
 	}
 
-	private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node) {
+	private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node):WidgetData? {
 		val w = createWidget(data, parent)
 
 		if (w != null) {
@@ -232,9 +232,9 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 			result.add(w)
 		}
 
-		data.childNodes.toList()
-				.filter { it.nodeName == "node" }
-				.forEach { addWidget(result, w, it) }
+		w?.children = data.childNodes.toList()
+				.filter { it.nodeName == "node" }.mapNotNull { addWidget(result, w, it)?.uid }
+		return w
 	}
 
 	private fun NodeList.toList(): List<Node> {

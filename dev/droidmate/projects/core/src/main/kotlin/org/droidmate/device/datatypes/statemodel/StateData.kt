@@ -36,18 +36,20 @@ class StateData private constructor(val widgets: List<Widget>,
 	val stateId get() = StateId(uid,configId)
   val actionableWidgets get() = widgets.filter { it.canBeActedUpon() }
 
-	// TODO improvement ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
-	init{
-		val ids = widgets.fold(emptyId,{ (id,configId):StateId, widget -> StateId(id + widget.uid, configId + widget.propertyConfigId ) })
+
+	init{	// ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
+		val ids = widgets.fold(emptyId,{ (id,configId):StateId, widget -> StateId( addRelevantId(id, widget), configId + widget.propertyConfigId ) })
 		uid = ids.first
 		configId = ids.second
 	}
+	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it can be acted upon, has text content or it is a leaf) */
+	private fun addRelevantId(id:UUID,w:Widget):UUID = if(w.isLeaf() || w.canBeActedUpon() || w.hasContent()) id+w.uid else id
 
   /** write CSV
    *
    * [uid] => state_id as file name
    */
-  suspend fun dump(config: ModelDumpConfig){
+  fun dump(config: ModelDumpConfig){
 //    if(wordCloud.isEmpty()){ File(config.statePath(uid)).createNewFile(); return }
 //    File(config.statePath(uid)).bufferedWriter().use { out ->
 //      wordMatrix.forEachIndexed { i: Int, vector: Deferred<List<Double>> ->

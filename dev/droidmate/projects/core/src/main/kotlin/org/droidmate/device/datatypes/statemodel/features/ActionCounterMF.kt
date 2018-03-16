@@ -27,7 +27,7 @@ class ActionCounterMF:IModelFeature {
 	private val sCnt = mutableMapOf<UUID,Int>() // counts how often the any state was explored
 	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt = mutableMapOf<UUID,MutableMap<UUID,Int>>()
-	private fun<K> MutableMap<K,Int>.incCnt(id:K):MutableMap<K,Int> = this.apply { compute( id, { _,c -> c?.inc()?:1 }) }
+	private inline fun<reified K> MutableMap<K,Int>.incCnt(id:K):MutableMap<K,Int> = this.apply { compute( id, { _, c -> c?.inc()?:1 }) }
 
 	override fun dump(context: ExplorationContext) { /* do nothing */	}
 
@@ -60,4 +60,5 @@ class ActionCounterMF:IModelFeature {
 }
 /** use this function on a list, grouped by it's counter, to retrieve all entries which have the smallest counter value
  * e.g. numExplored(state).entries.groupBy { it.value }.listOfSmallest */
-fun<K> Map<Int, List<K>>.listOfSmallest():List<K>? = this[this.keys.fold(Int.MAX_VALUE,{ res, c -> if(c<res) c else res})]
+inline fun<reified K> Map<Int, List<K>>.listOfSmallest():List<K>? = this[this.keys.fold(Int.MAX_VALUE,{ res, c -> if(c<res) c else res})]
+
