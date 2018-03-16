@@ -194,7 +194,8 @@ class DroidmateFrontendTest : DroidmateTestCase() {
      * An {@code AaptWrapper} stub is used to provide the apk stub metadata.
      * </p>
      */
-    @Category(RequiresSimulator::class)
+    // TODO Review later
+    /*@Category(RequiresSimulator::class)
     @Test
     fun `Explores on a device simulator`() {
         val mockedFs = MockFileSystem(arrayListOf("mock_app1"))
@@ -218,7 +219,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         val expectedDeviceSimulation = simulator.currentSimulation
         val actualDeviceSimulation = getDeviceSimulation(cfg.droidmateOutputDirPath)
         actualDeviceSimulation.assertEqual(expectedDeviceSimulation!!)
-    }
+    }*/
 
     @Category(RequiresDevice::class)
     @Test
@@ -231,6 +232,32 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         exploreOnRealDevice(args.toList(), Configuration.api23)
 
         assert(true)
+    }
+
+    @Test
+    fun test() {
+        println("final res = ${sumFactorial(5, 5)}")
+    }
+
+    private fun sumFactorial(n: Int, c: Int): Int {
+        val a = when {
+            c > 1 -> {
+                println("n = $n\tc = $c")
+                ((n - 1) * sumFactorial(n - 2, 1)) + sumFactorial(n, c - 1)
+            }
+            n > 1 -> {
+                println("n = $n")
+                n * sumFactorial(n - 1, 1)
+            }
+            else -> {
+                1
+            }
+        }
+
+        //println("n = $n\tc = $c\ta=$a")
+        println("a=$a")
+
+        return a
     }
 
     @Category(RequiresDevice::class)

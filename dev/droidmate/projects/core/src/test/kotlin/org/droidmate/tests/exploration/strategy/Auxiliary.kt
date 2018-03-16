@@ -75,7 +75,7 @@ object Auxiliary {
             val dump = UiautomatorWindowDump(fileStr,
                     Dimension(1800, 2485),
                     packageName
-                    )
+            )
 
             return dump.guiState
 

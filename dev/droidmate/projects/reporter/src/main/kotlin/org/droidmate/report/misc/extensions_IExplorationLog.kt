@@ -34,31 +34,31 @@ import org.droidmate.misc.uniqueString
 import org.droidmate.report.EventApiPair
 
 val IExplorationLog.uniqueActionableWidgets: Set<IWidget>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = ExplorationRecord::actionableWidgets,
-          uniqueString = IWidget::uniqueString
-  )
+    get() = this.logRecords.setByUniqueString(
+            extractItems = ExplorationRecord::actionableWidgets,
+            uniqueString = IWidget::uniqueString
+    )
 
 val IExplorationLog.uniqueClickedWidgets: Set<IWidget>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = ExplorationRecord::clickedWidget,
-          uniqueString = IWidget::uniqueString
-  )
+    get() = this.logRecords.setByUniqueString(
+            extractItems = ExplorationRecord::clickedWidget,
+            uniqueString = IWidget::uniqueString
+    )
 
 val IExplorationLog.uniqueApis: Set<IApiLogcatMessage>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = { it.getResult().deviceLogs.apiLogs },
-    uniqueString = { it.uniqueString } 
-  )
+    get() = this.logRecords.setByUniqueString(
+            extractItems = { it.getResult().deviceLogs.apiLogs },
+            uniqueString = { it.uniqueString }
+    )
 
 val IExplorationLog.uniqueEventApiPairs: Set<EventApiPair>
-  get() = this.logRecords.setByUniqueString(
-          extractItems = ExplorationRecord::extractEventApiPairs,
-    uniqueString = { it.uniqueString }
-  )
+    get() = this.logRecords.setByUniqueString(
+            extractItems = ExplorationRecord::extractEventApiPairs,
+            uniqueString = { it.uniqueString }
+    )
 
 val IExplorationLog.resetActionsCount: Int
-  get() = actions.count { it.base is ResetAppExplorationAction }
+    get() = actions.count { it.base is ResetAppExplorationAction }
 
 val IExplorationLog.apkFileNameWithUnderscoresForDots: String
-  get() = apk.fileName.replace(".", "_")
+    get() = apk.fileName.replace(".", "_")

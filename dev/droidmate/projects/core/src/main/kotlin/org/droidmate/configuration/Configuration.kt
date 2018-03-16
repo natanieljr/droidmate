@@ -101,6 +101,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
         const val pn_monitorSocketTimeout = "-monitorSocketTimeout"
         const val pn_monitorUseLogcat = "-monitorUseLogcat"
         const val pn_pressBackProbability = "-pressBack"
+        const val pn_minimumActionsPerUIElementBack = "-minActionsPerUIElementBack"
         const val pn_randomSeed = "-randomSeed"
         const val pn_reportIncludePlots = "-reportIncludePlots"
         const val pn_reportInputDir = "-reportInputDir"
@@ -143,6 +144,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
     val screenshotsOutputSubDir = "screenshots"
     val reportOutputSubDir = "report"
+    val coverageReportSubDir = "coverage"
 
     @Parameter(names = [(Configuration.pn_actionsLimit), "-actions", "-clicks"], description =
     "How many actions the GUI exploration strategy can conduct before terminating.")
@@ -322,7 +324,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
     // then minimum time should be: 5*(1'200ms + 10'000ms) = 56'000 ms
     // Plus add ~20 second to make things safe, as in practice even 60 ms caused java.net.SocketTimeoutException: Read timed out,
     // which I confirmed by seeing that logcat uiad logs took more than 61 seconds to process a GUI that fails to stabilize.
-    public var uiautomatorDaemonSocketTimeout = 1 * 60 * 1000 // ms
+    public var uiautomatorDaemonSocketTimeout = 1 * 45 * 1000 // ms
 
     @Parameter(names = [pn_uiautomatorDaemonWaitForGuiToStabilize], arity = 1, description =
     "Should the uiautomator-daemon wait for GUI state to stabilize after each click performed on the android device. Setting this to false will drastically speedup the clicking process, but will probably result in new clicks being sent while the results of previous one are still being processed.")
@@ -335,15 +337,21 @@ class Configuration(val args: Array<String>) : IConfiguration {
     @Parameter(names = [pn_uiautomatorDaemonWaitForWindowUpdateTimeout], arity = 1)
     public var uiautomatorDaemonWaitForWindowUpdateTimeout = 1200 // ms
 
-    @Parameter(names = [pn_uiautomatorDaemonTcpPort], description =
-    "TCP port used by DroidMate to communicate with the android (virtual) device.")
+    @Parameter(names = [pn_uiautomatorDaemonTcpPort],
+            description = "TCP port used by DroidMate to communicate with the android (virtual) device.")
     public var uiautomatorDaemonTcpPort = UiautomatorDaemonConstants.UIADAEMON_SERVER_PORT
 
-    @Parameter(names = [pn_useApkFixturesDir], arity = 1)
+    @Parameter(names = [pn_useApkFixturesDir],
+            arity = 1)
     public var useApkFixturesDir = false
 
-    @Parameter(names = [pn_pressBackProbability], description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy.")
+    @Parameter(names = [pn_pressBackProbability],
+            description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy.")
     public var pressBackProbability = 0.05
+
+    @Parameter(names = [pn_minimumActionsPerUIElementBack],
+            description = "Minimum number of click on all widgets on a screen not to explore it anymore.")
+    public var minimumActionsPerUIElementBack = 5
 
     @Parameter(names = [pn_report],
             description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data.")
@@ -355,6 +363,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
     public var shuffleApks = false
 
     @Parameter(names = [pn_takeScreenshots],
+            arity = 1,
             description = "Take screenshot after each exploration action.")
     public var takeScreenshots = true
 
@@ -383,8 +392,8 @@ class Configuration(val args: Array<String>) : IConfiguration {
             listConverter = ListOfStringsConverter::class,
             description = "Determines which exploration strategies will be used. The format is: [<first strategy name>,<second strategy name>,...<nth strategy name>], example: [RandomWidget,PressBack,ModelBased]. Reset and Terminate are compulsory included.")
     public var explorationStrategies: List<String> = listOf(StrategyTypes.AllowRuntimePermission,
-        StrategyTypes.PressBack,
-        StrategyTypes.RandomWidget).map { it.strategyName }
+            StrategyTypes.PressBack,
+            StrategyTypes.RandomWidget).map { it.strategyName }
 
     private val basePort = 59701
 
@@ -401,6 +410,10 @@ class Configuration(val args: Array<String>) : IConfiguration {
     public lateinit var reportInputDirPath: Path
 
     public lateinit var reportOutputDirPath: Path
+
+    public lateinit var coverageMonitorScriptPath: Path
+
+    public lateinit var coverageReportDirPath: Path
 
     public lateinit var apksDirPath: Path
 

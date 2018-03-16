@@ -81,6 +81,6 @@ class IntervalReset constructor(private val resetEveryNthExplorationForward: Int
     }
 
     override fun hashCode(): Int {
-        return Integer.valueOf(this.resetEveryNthExplorationForward)!!.hashCode()
+        return this.resetEveryNthExplorationForward.hashCode()
     }
 }

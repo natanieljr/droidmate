@@ -45,7 +45,7 @@ import java.util.*
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class TargetWidgetTest: DroidmateTestCase() {
+class TargetWidgetTest : DroidmateTestCase() {
     private fun createWidget(id: String): Widget {
         val w = Widget(id)
         w.packageName = "STUB!"

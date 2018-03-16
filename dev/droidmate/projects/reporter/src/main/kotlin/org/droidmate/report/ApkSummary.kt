@@ -42,7 +42,7 @@ class ApkSummary {
 
   companion object {
 
-    fun build(data: IExplorationLog): String {
+      fun build(data: IExplorationLog): String {
       return build(Payload(data))
     }
 
@@ -65,7 +65,7 @@ class ApkSummary {
       // @formatter:on
     }
 
-    private val template: String by lazy {
+      private val template: String by lazy {
       Resource("apk_exploration_summary_template.txt").text
     }
 
@@ -95,7 +95,7 @@ class ApkSummary {
     val apiEventEntries: List<ApiEventEntry>
   ) {
 
-    constructor(data: IExplorationLog) : this(
+      constructor(data: IExplorationLog) : this(
       data,
       data.uniqueApiLogsWithFirstTriggeringActionIndex,
       data.uniqueEventApiPairsWithFirstTriggeringActionIndex
@@ -138,19 +138,19 @@ class ApkSummary {
     )
 
     companion object {
-      val IExplorationLog.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
-        get() {
-            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
+        val IExplorationLog.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
+            get() {
+                return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
                   extractItems = { it.getResult().deviceLogs.apiLogs },
           extractUniqueString = { it.uniqueString }
         )
       }
 
-      val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
-        get() {
+        val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<EventApiPair, Int>
+            get() {
 
-            return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
-                    extractItems = ExplorationRecord::extractEventApiPairs,
+                return this.logRecords.uniqueItemsWithFirstOccurrenceIndex(
+                        extractItems = ExplorationRecord::extractEventApiPairs,
           extractUniqueString = EventApiPair::uniqueString
         )
       }
@@ -160,8 +160,8 @@ class ApkSummary {
 
   data class ApiEntry(val time: Duration, val actionIndex: Int, val threadId: Int, val apiSignature: String) {
     companion object {
-      private const val actionIndexPad: Int = 7
-      private const val threadIdPad: Int = 7
+        private const val actionIndexPad: Int = 7
+        private const val threadIdPad: Int = 7
     }
 
     override fun toString(): String {
@@ -171,11 +171,11 @@ class ApkSummary {
     }
   }
 
-  data class ApiEventEntry(private val apiEntry: ApiEntry, val event: String) {
+    data class ApiEventEntry(private val apiEntry: ApiEntry, val event: String) {
     companion object {
-      private const val actionIndexPad: Int = 7
-      private const val threadIdPad: Int = 7
-      private const val eventPadEnd: Int = 69
+        private const val actionIndexPad: Int = 7
+        private const val threadIdPad: Int = 7
+        private const val eventPadEnd: Int = 69
     }
 
     override fun toString(): String {

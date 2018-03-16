@@ -42,7 +42,7 @@ import org.junit.runners.MethodSorters
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class ModelBasedStrategyTest: DroidmateTestCase() {
+class ModelBasedStrategyTest : DroidmateTestCase() {
 
     @Test
     fun selectWidgetTest() {
@@ -59,7 +59,7 @@ class ModelBasedStrategyTest: DroidmateTestCase() {
 
         // The timer starts here
         val testApk = ApkTestHelper.build("ch.bailu.aat", "", "", "")
-        val memory =  ExplorationLog(testApk)
+        val memory = ExplorationLog(testApk)
         val widgetContext = memory.getWidgetContext(guiState)
         val chosenAction = strategy.decide(widgetContext) as WidgetExplorationAction
         assert(chosenAction.getSelectedWidget().uniqueString == "android.view.ViewGroup[0]    java.awt.Rectangle[x=0,y=63,width=263,height=263]")

@@ -44,12 +44,4 @@ class CannotExploreReset : Reset() {
         // Any other action
         return StrategyPriority.NONE
     }
-
-    override fun equals(other: Any?): Boolean {
-        return other is CannotExploreReset
-    }
-
-    override fun hashCode(): Int {
-        return this.javaClass.hashCode()
-    }
 }

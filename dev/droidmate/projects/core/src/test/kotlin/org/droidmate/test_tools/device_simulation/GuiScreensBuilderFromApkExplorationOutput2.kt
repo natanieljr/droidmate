@@ -29,7 +29,7 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 
-class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorationLog) : IGuiScreensBuilder
+class GuiScreensBuilderFromApkExplorationOutput2(private val output: IExplorationLog) : IGuiScreensBuilder
 {
 
     override fun build(): List<IGuiScreen> {
@@ -79,10 +79,12 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorati
             when (explAction) {
             // Do not any transition: all GuiScreens already know how to transition on device actions resulting from
             // this exploration action.
-                is ResetAppExplorationAction -> { /* Do nothing */ }
+                is ResetAppExplorationAction -> { /* Do nothing */
+                }
                 is WidgetExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
                 is EnterTextExplorationAction -> addWidgetTransition(guiScreens, i, explAction.widget)
-                is PressBackExplorationAction -> { /* Do nothing */ }
+                is PressBackExplorationAction -> { /* Do nothing */
+                }
                 is TerminateExplorationAction -> {
                     assert(i == output.logRecords.size - 1)
                     // Do not add any transition: all GuiScreens already know how to transition on device actions resulting from
