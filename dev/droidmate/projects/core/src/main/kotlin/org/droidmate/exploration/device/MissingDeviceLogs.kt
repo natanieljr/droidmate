@@ -34,7 +34,7 @@ class MissingDeviceLogs : IDeviceLogs, Serializable {
     }
 
     override var apiLogs: MutableList<IApiLogcatMessage>
-        get() = ArrayList()
+        get() = mutableListOf()
         set(value) {
             throw ForbiddenOperationError()
         }

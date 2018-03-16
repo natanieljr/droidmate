@@ -139,7 +139,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     /**
      * Internal list of strategies
      */
-    private val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+    private val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
     /**
      * Strategy which is currently active

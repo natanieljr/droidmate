@@ -44,7 +44,7 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
     override fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: (IApk) -> Any): List<ApkExplorationException> {
         log.debug("withDeployedApk(device, $apk.fileName, computation)")
 
-        val apkExplorationExceptions: MutableList<ApkExplorationException> = ArrayList()
+        val apkExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
         val deployApkException = deployApk(device, apk)
         if (deployApkException != null) {
             apkExplorationExceptions.add(deployApkException)

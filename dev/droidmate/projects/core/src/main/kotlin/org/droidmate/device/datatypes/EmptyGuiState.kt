@@ -46,7 +46,7 @@ class EmptyGuiState : IGuiState {
     override val isAppHasStoppedDialogBox: Boolean
         get() = false
 
-    override fun getActionableWidgets(): MutableList<IWidget> = ArrayList()
+    override fun getActionableWidgets(): MutableList<IWidget> = mutableListOf()
 
     override fun debugWidgets(): String = ""
 

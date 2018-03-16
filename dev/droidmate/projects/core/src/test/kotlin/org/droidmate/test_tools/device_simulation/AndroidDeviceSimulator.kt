@@ -69,7 +69,7 @@ class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
 
     var currentSimulation: IDeviceSimulation? = null
 
-    private val logcatMessagesToBeReadNext: MutableList<ITimeFormattedLogcatMessage> = ArrayList()
+    private val logcatMessagesToBeReadNext: MutableList<ITimeFormattedLogcatMessage> = mutableListOf()
 
     private val callCounters = CallCounters()
     private var uiaDaemonIsRunning = false

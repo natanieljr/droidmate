@@ -28,7 +28,6 @@ import org.droidmate.device.datatypes.IWidget
 import org.droidmate.misc.isEquivalentIgnoreLocation
 import org.droidmate.misc.uniqueString
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * Implementation of a widget that must be located during exploration
@@ -73,7 +72,7 @@ class TargetWidget(override val widget: IWidget, vararg dependencies: ITargetWid
     }
 
     override fun getNextWidgetsCanSatisfy(): List<ITargetWidget> {
-        val canSatisfy: MutableList<ITargetWidget> = ArrayList()
+        val canSatisfy: MutableList<ITargetWidget> = mutableListOf()
 
         if (!this.isSatisfied) {
 

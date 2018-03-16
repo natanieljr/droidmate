@@ -291,7 +291,7 @@ data class UiautomatorWindowDump @JvmOverloads constructor(override val windowHi
 
             assert(topNodePackage.isNotEmpty())
         }
-        val widgets: MutableList<IWidget> = ArrayList()
+        val widgets: MutableList<IWidget> = mutableListOf()
 
         childNodes.forEach {
             addWidget(widgets, null, it)

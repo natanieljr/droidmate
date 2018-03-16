@@ -76,7 +76,7 @@ class AdbWrapper constructor(private val cfg: Configuration,
             var entries = Splitter.on('\n').omitEmptyStrings().trimResults().split(adbDevicesCmdStdout)
             entries = Iterables.skip(entries, 1) // Remove the "List of devices attached" header.
 
-            val deviceDescriptors: MutableList<AndroidDeviceDescriptor> = ArrayList()
+            val deviceDescriptors: MutableList<AndroidDeviceDescriptor> = mutableListOf()
             entries.forEach { entry ->
                 val deviceSerialNumber = Splitter.on('\t').split(entry).first().orEmpty()
 

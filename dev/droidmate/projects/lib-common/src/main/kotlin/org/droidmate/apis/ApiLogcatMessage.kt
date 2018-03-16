@@ -217,7 +217,7 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
         }
 
         fun splitPayload(payload: String): MutableList<String> {
-            val res: MutableList<String> = ArrayList()
+            val res: MutableList<String> = mutableListOf()
             val builder = StringBuilder()
             var inValueString = false
             var wasEscaped = false
@@ -274,7 +274,7 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
             val keywordIndexes = indexToKeyword.keys.toList()
 
             val keywordToValues = hashMapOf(*keywords
-                    .map { keyword -> Pair<String, MutableList<String>>(keyword, ArrayList()) }
+                    .map { keyword -> Pair<String, MutableList<String>>(keyword, mutableListOf()) }
                     .toTypedArray())
 
             elements.forEachIndexed { i, element ->

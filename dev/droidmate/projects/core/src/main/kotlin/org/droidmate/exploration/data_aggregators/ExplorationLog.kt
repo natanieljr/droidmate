@@ -39,7 +39,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 class ExplorationLog @JvmOverloads constructor(override val apk: IApk,
-                                               override val logRecords: MutableList<ExplorationRecord> = ArrayList(),
+                                               override val logRecords: MutableList<ExplorationRecord> = mutableListOf(),
                                                override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                override var explorationEndTime: LocalDateTime = LocalDateTime.MIN) : IExplorationLog {
     companion object {
@@ -50,7 +50,7 @@ class ExplorationLog @JvmOverloads constructor(override val apk: IApk,
     /**
      * List of distinct [UI contexts][WidgetContext] which have been found during the exploration
      */
-    private var foundWidgetContexts: MutableList<WidgetContext> = ArrayList()
+    private var foundWidgetContexts: MutableList<WidgetContext> = mutableListOf()
 
     override var exception: DeviceException = DeviceExceptionMissing()
 

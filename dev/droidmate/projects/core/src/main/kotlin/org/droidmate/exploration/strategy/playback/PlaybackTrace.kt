@@ -47,7 +47,7 @@ class PlaybackTrace : Serializable {
         }
     }
 
-    private val trace: MutableList<PlaybackTraceData> = ArrayList()
+    private val trace: MutableList<PlaybackTraceData> = mutableListOf()
 
     fun add(action: ExplorationAction, widgetContext: WidgetContext) {
         trace.add(PlaybackTraceData(action, widgetContext))

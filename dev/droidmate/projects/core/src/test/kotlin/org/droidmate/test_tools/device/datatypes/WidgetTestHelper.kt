@@ -110,7 +110,7 @@ class WidgetTestHelper {
             var highX = lowX + 20
             var highY = lowY + 30
 
-            val bounds: MutableList<List<Int>> = ArrayList()
+            val bounds: MutableList<List<Int>> = mutableListOf()
             (0 until boundsCount).forEach { _ ->
                 bounds.add(arrayListOf(lowX, lowY, highX, highY))
                 lowX += 25

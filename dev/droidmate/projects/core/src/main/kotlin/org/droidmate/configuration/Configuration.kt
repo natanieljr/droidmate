@@ -164,7 +164,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
     @Parameter(names = [pn_apksNames, "-apks", "-apps"], listConverter = ListOfStringsConverter::class,
             description = "Filters apps on which DroidMate will be run. Supply full file names, separated by commas, surrounded by square brackets. If the list is empty, it will run on all the apps in the apks dir. Example value: [app1.apk, app2.apk]")
-    public var apksNames: MutableList<String> = ArrayList()
+    public var apksNames: MutableList<String> = mutableListOf()
 
     @Parameter(names = [pn_apksDir],
             description = "Directory containing the apks to be processed by DroidMate.")
@@ -373,7 +373,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
     @Parameter(names = [pn_widgetIndexes], listConverter = ListOfIntegersConverter::class,
             description = "Makes the exploration strategy to choose widgets to click that have the indexes as provided by this parameter, in sequence. The format is: [<first widget index>,<second widget index>,...<nth widget index>], starting indexing at 0. Example: [0,7,3]")
-    public var widgetIndexes: MutableList<Int> = ArrayList()
+    public var widgetIndexes: MutableList<Int> = mutableListOf()
 
     @Parameter(names = [pn_stopAppRetryAttempts])
     public var stopAppRetryAttempts = 4

@@ -27,7 +27,7 @@ package org.droidmate.exploration.data_aggregators
 import org.droidmate.storage.IStorage2
 import org.slf4j.LoggerFactory
 
-class ExplorationOutput2(private val list: MutableList<IExplorationLog> = ArrayList()) : MutableList<IExplorationLog> by list {
+class ExplorationOutput2(private val list: MutableList<IExplorationLog> = mutableListOf()) : MutableList<IExplorationLog> by list {
     companion object {
         private val log = LoggerFactory.getLogger(ExplorationOutput2::class.java)
         private const val serialVersionUID: Long = 1

@@ -111,7 +111,7 @@ class Api @JvmOverloads constructor(override val objectClass: String = "fixture.
         }
     }
 
-    private val stackTraceFrames: MutableList<String> = ArrayList()
+    private val stackTraceFrames: MutableList<String> = mutableListOf()
 
     override fun getStackTraceFrames(): List<String> {
         if (stackTraceFrames.isEmpty())

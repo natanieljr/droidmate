@@ -29,7 +29,6 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.exploration.strategy.WidgetInfo
-import java.util.*
 
 /**
  * Exploration strategy which selects widgets following Fitness Proportionate Selection
@@ -52,7 +51,7 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
         actionableWidgets
                 .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
 
-        val candidates: MutableList<WidgetInfo> = ArrayList()
+        val candidates: MutableList<WidgetInfo> = mutableListOf()
         for (i in 0..(wekaInstances.numInstances() - 1)) {
             val instance = wekaInstances.instance(i)
             try {

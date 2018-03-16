@@ -212,7 +212,7 @@ class DeviceTest : DroidmateTestCase()
   }
 
   private fun withApkDeployedOnDevice(computation: (IRobustDevice, IApk) -> Any) {
-      val exceptions: MutableList<ApkExplorationException> = ArrayList()
+      val exceptions: MutableList<ApkExplorationException> = mutableListOf()
       val config = getConfigurationApi23monitoredInlinedApk()
       withSetupDevice(config) { cfg, deviceTools, device ->
           val apksProvider = ApksProvider(deviceTools.aapt)

@@ -100,7 +100,7 @@ fun <T> Map<Long, T>.partition(partitionSize: Long): Map<Long, List<T>> {
 
       val currentPartition = remainder.partition { it.first <= currentPartitionValue }
       val current: List<Pair<Long, T>> = currentPartition.first
-      val currentValues: List<T> = current.fold<Pair<Long, T>, MutableList<T>>(mutableListOf(), { out, pair -> out.add(pair.second); out })
+      val currentValues: List<T> = current.fold(mutableListOf(), { out, pair -> out.add(pair.second); out })
 
       return _partition(acc.plus(Pair(currentPartitionValue, currentValues)), currentPartition.second, partitionSize, currentPartitionValue + partitionSize)
     }

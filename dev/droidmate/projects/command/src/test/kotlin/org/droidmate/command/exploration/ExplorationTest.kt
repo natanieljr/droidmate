@@ -95,7 +95,7 @@ class ExplorationTest : DroidmateTestCase() {
 
         val exploration = Exploration.build(cfg)
 
-        val outData: MutableList<IExplorationLog?> = ArrayList()
+        val outData: MutableList<IExplorationLog?> = mutableListOf()
 
         deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
             deviceTools.apkDeployer.withDeployedApk(device, apk) { deployedApk ->

@@ -28,7 +28,7 @@ import com.google.common.base.MoreObjects
 import org.droidmate.apis.IApiLogcatMessage
 import java.io.Serializable
 
-class DeviceLogs @JvmOverloads constructor(override var apiLogs: MutableList<IApiLogcatMessage> = ArrayList()) : IDeviceLogs, Serializable {
+class DeviceLogs @JvmOverloads constructor(override var apiLogs: MutableList<IApiLogcatMessage> = mutableListOf()) : IDeviceLogs, Serializable {
     companion object {
         private const val serialVersionUID: Long = 1
     }

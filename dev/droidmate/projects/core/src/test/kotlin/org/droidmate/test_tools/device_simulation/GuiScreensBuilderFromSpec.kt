@@ -32,7 +32,7 @@ class GuiScreensBuilderFromSpec(private val timeGenerator: ITimeGenerator,
     companion object {
         @JvmStatic
         private fun parseSpecEdges(spec: String): List<LabeledEdge<String, String, String>> {
-            val specEdges: MutableList<LabeledEdge<String, String, String>> = ArrayList()
+            val specEdges: MutableList<LabeledEdge<String, String, String>> = mutableListOf()
 
             val matcher = "(\\w+)-(\\w+)->(\\w+) ?".toRegex().findAll(spec)
 

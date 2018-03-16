@@ -29,7 +29,6 @@ import org.droidmate.device.datatypes.EmptyGuiState
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.*
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
@@ -98,7 +97,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
             chosenWidget = chosenWidget.parent!!
         }
 
-        val actionList: MutableList<ExplorationAction> = ArrayList()
+        val actionList: MutableList<ExplorationAction> = mutableListOf()
 
         if (chosenWidget.longClickable)
             actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, true))

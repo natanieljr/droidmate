@@ -49,7 +49,7 @@ open class MemoryPlayback private constructor() : Explore() {
         this.packageName = packageName
     }
 
-    val traces: MutableList<PlaybackTrace> = ArrayList()
+    val traces: MutableList<PlaybackTrace> = mutableListOf()
 
     private fun initializeFromMemory() {
         val memoryRecords = storedMemoryData!!.getRecords()

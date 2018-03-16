@@ -137,7 +137,7 @@ open class ModelBased protected constructor(randomSeed: Long,
         actionableWidgets
                 .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
 
-        val candidates: MutableList<WidgetInfo> = ArrayList()
+        val candidates: MutableList<WidgetInfo> = mutableListOf()
         for (i in 0..(wekaInstances.numInstances() - 1)) {
             val instance = wekaInstances.instance(i)
             try {

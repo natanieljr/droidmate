@@ -58,7 +58,7 @@ class ExplorationStrategyTestHelper {
 
         @JvmStatic
         fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-            val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+            val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
             strategies.add(InitialReset())
             strategies.add(AppCrashedReset())
             strategies.add(CannotExploreReset())

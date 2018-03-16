@@ -67,7 +67,7 @@ class ClassFileFormat {
 
             val matcher = "$arrays(?:$base|$obj)".toRegex()
 
-            val out: MutableList<String> = ArrayList()
+            val out: MutableList<String> = mutableListOf()
             val matchResult = matcher.findAll(classFieldDescriptors)
 
             matchResult.forEach { out.add(it.groupValues.joinToString("")) }

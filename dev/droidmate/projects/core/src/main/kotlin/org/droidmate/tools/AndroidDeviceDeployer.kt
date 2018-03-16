@@ -98,7 +98,7 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
     private var deviceIsSetup: Boolean = false
 
     // To make DroidMate work with multiple A(V)D, this list will have to be one for all AndroidDeviceDeployer-s, not one per inst.
-    private val usedSerialNumbers: MutableList<String> = ArrayList()
+    private val usedSerialNumbers: MutableList<String> = mutableListOf()
 
     /**
      * <p>
@@ -160,7 +160,7 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
         else
             log.info("Setup device with deviceIndex of $deviceIndex")
 
-        val explorationExceptions: MutableList<ExplorationException> = ArrayList()
+        val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
 
         val data = setupDevice(deviceSerialNumber, deviceIndex)
         val throwable = data[2] as Throwable?
