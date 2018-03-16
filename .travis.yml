@@ -24,16 +24,17 @@ android:
     # Official bugtracker issue: https://github.com/travis-ci/travis-ci/issues/5036
     # More info: https://docs.travis-ci.com/user/languages/android/#Overview
     - tools
+    - platform-tools
     - build-tools-25.0.1
+    - build-tools-26.0.2
     # Packages required by UIAutomator2
     - extra-android-support
     - extra-android-m2repository
-
-    # DroidMate supports Android API 19 (4.4.2).
-    - android-19
-    
+  
     # DroidMate supports Android API 23 (6.0.1).
     - android-23
+    - android-25
+    - android-26
 
 env:
   global:
