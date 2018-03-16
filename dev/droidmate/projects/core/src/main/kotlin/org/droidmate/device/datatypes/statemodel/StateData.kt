@@ -36,6 +36,7 @@ class StateData private constructor(val widgets: List<Widget>,
 	val stateId get() = StateId(uid,configId)
   val actionableWidgets get() = widgets.filter { it.canBeActedUpon() }
 
+	// TODO improvement ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
 	init{
 		val ids = widgets.fold(emptyId,{ (id,configId):StateId, widget -> StateId(id + widget.uid, configId + widget.propertyConfigId ) })
 		uid = ids.first
@@ -56,12 +57,12 @@ class StateData private constructor(val widgets: List<Widget>,
 //        out.newLine()
 //      }
 //    }
-    File(config.widgetFile(uid)).bufferedWriter().use { all ->
+    File(config.widgetFile(stateId)).bufferedWriter().use { all ->
 //    File(config.statePath(uid, postfix = "_widgets",fileExtension = "txt")).bufferedWriter().use { sum ->  // short content-summarizing text file
 //      File(config.statePath(uid,postfix = config.sTextWidget)).bufferedWriter().use { tw ->
-        File(config.statePath(uid,postfix = config.sWidget)).bufferedWriter().use { w ->
+//        File(config.statePath(uid,postfix = config.sWidget)).bufferedWriter().use { w ->
 //          tw.write(widgetHeader)
-          w.write(widgetHeader)
+//          w.write(widgetHeader)
           all.write(widgetHeader)
 
           widgets.forEach {
@@ -75,10 +76,10 @@ class StateData private constructor(val widgets: List<Widget>,
 //              sum.newLine()
 //            }
 //            else{
-              w.newLine()
-              w.write(it.dataString)
+//              w.newLine()
+//              w.write(it.dataString)
 //            }
-          }
+//          }
 //        }
 //      }
     }}
@@ -94,6 +95,6 @@ class StateData private constructor(val widgets: List<Widget>,
   }
 
   override fun toString(): String {
-    return "StateData[uuid=$uid, widgets=${widgets.size}]"
+    return "StateData[uuid=$uid, configId=$configId, widgets=${widgets.size}]"
   }
 }

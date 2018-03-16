@@ -100,7 +100,7 @@ open class ActionResult(val action: ExplorationAction,
 							.map { Widget.fromWidgetData(it, img, config) } // iterates over each WidgetData and creates Widget object collect all these elements as set
 							.toSet(), g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
 					g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox, g.isUseLauncherAsHomeDialogBox )
-					.also {	launch { ImageIO.write(img,"png", File(config.statePath(it.uid,"_${it.configId}","png"))) }
+					.also {	launch { ImageIO.write(img,"png", File(config.statePath(it.stateId,"_${it.configId}","png"))) }
 					}
 		}}
 	}

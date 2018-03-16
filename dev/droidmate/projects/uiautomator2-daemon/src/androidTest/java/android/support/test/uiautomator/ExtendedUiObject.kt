@@ -6,7 +6,8 @@ import android.view.accessibility.AccessibilityNodeInfo
 private const val logTag="droidmate/SearchCondition"
 val hasInteractive = object:SearchCondition<Boolean>() {
     private val device:UiDevice by lazy{ UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()) }
-    private val interactive:(UiObject2)->Boolean = { o -> !o.applicationPackage.startsWith("com.android.")   // ignore system widgets
+    private val interactive:(UiObject2)->Boolean = { o ->
+        (o.applicationPackage=="com.android.chrome" || !o.applicationPackage.startsWith("com.android."))   // ignore system widgets but consider browser screens
             &&(o.isClickable || o.isLongClickable //|| o.isCheckable || o.isFocusable || o.isScrollable
             )}
 

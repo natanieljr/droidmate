@@ -37,7 +37,7 @@ import java.nio.file.FileSystems
 import java.time.LocalDate
 import java.util.*
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 object ExplorationAPI:ConfigProperties() {
 private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
 
@@ -81,7 +81,8 @@ private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
 
       log.info("inline the apks if necessary")
       val cfg = ConfigurationBuilder().build(ConfigWrapper.createOldConfigArgs(config), FileSystems.getDefault())
-      InlineCommand.build().execute(cfg)
+      cfg.runOnNotInlined = true
+//      InlineCommand.build().execute(cfg)
 
       val runStart = Date()
       val command = ExploreCommand.build(cfg,reportCreators=reportCreators)

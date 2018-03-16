@@ -31,8 +31,8 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override val actionTrace: Trace = Trace(),
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   override val watcher:List<IModelFeature> = listOf(ActionCounterMF())) : IExplorationLog() {
-	override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))
+                                                   override val watcher:List<IModelFeature> = listOf(ActionCounterMF()),
+                                                   override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : IExplorationLog() {
 
 	private var lastState = StateData.emptyState()
 	private var prevState = StateData.emptyState()
@@ -50,6 +50,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 
 	override fun dump() {
 		model.P_dumpModel(model.config)
+		this.also { context -> watcher.forEach { launch { it.dump(context) } } }
 	}
 
 	companion object {
@@ -70,7 +71,10 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		model.addState(lastState)
 		lastState.widgets.forEach { model.addWidget(it) }
 		actionTrace.apply {
-			addAction(ActionData(result, lastState.stateId, getLastAction().resState))
+			ActionData(result, lastState.stateId, getLastAction().resState).also { action ->
+				addAction(action)
+				lastTarget = action.targetWidget
+			}
 			launch { dump(model.config) }
 		}
 		this.also { context -> watcher.forEach { launch { it.update(context) } } }

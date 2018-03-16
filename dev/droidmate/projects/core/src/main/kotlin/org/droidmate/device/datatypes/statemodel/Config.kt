@@ -42,15 +42,16 @@ class ModelDumpConfig(path:String, appName:String) {
     Files.createDirectories(Paths.get(modelBaseDir))
     Files.createDirectories(Paths.get(stateDst))
     Files.createDirectories(Paths.get(widgetImgDst))
+    Files.createDirectories(Paths.get("${widgetImgDst}nonInteractive${File.separator}"))
   }
 
-  val widgetFile:(UUID)->String = { id->statePath(id, postfix = "_AllWidgets") }
-  private val idPath:(String, UUID, String, String)->String = { baseDir, id, postfix, fileExtension-> baseDir+id.toString()+postfix+"."+fileExtension }
-  fun statePath(id: UUID,postfix:String="",fileExtension:String="csv"):String{
-    return idPath(stateDst,id,postfix,fileExtension)
+  val widgetFile:(StateId)->String = { id->statePath(id, postfix = "_AllWidgets") }
+  private val idPath:(String, String, String, String)->String = { baseDir, id, postfix, fileExtension-> baseDir+id+postfix+"."+fileExtension }
+  fun statePath(id: StateId,postfix:String="",fileExtension:String="csv"):String{
+    return idPath(stateDst,"${id.first}_${id.second}",postfix,fileExtension)
   }
-  fun widgetImgPath(id:UUID,postfix:String="",fileExtension:String="png"):String{
-    return idPath(widgetImgDst,id,postfix,fileExtension)
+  fun widgetImgPath(id:UUID, postfix:String="", fileExtension:String="png", subDir:String=""):String{
+    return idPath(widgetImgDst+subDir,id.toString(),postfix,fileExtension)
   }
   val traceFile = { date:String -> "$modelBaseDir${traceFilePrefix}$date.txt" }
 }

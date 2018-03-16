@@ -48,8 +48,8 @@ class Model private constructor(val config: ModelDumpConfig){
 		return if (uuid == "null") null
 		else  UUID.fromString(uuid).let{ synchronized(widgets){ widgets.find { w -> w.uid == it } ?: otherwise(it) }}
 	}
-	private suspend fun P_findOrAddState(uuid:UUID): StateData = states.find { s->s.uid==uuid }  // allow parsing in parallel but ensure atomic adding
-			?:  P_parseState(uuid).also{ addState(it) }
+	private suspend fun P_findOrAddState(stateId:StateId): StateData = states.find { s->s.stateId==stateId }  // allow parsing in parallel but ensure atomic adding
+			?:  P_parseState(stateId).also{ addState(it) }
 
 	fun P_dumpModel(config: ModelDumpConfig) = launch(CoroutineName("Model-dump")){
 		paths.map { t -> launch(CoroutineName("trace-dump")){ t.dump(config) } }.let { traceDump ->
@@ -59,7 +59,7 @@ class Model private constructor(val config: ModelDumpConfig){
 	}
 
 	private val _actionParser:(List<String>)->Deferred<ActionData> = { entries -> async(CoroutineName("ActionParsing-$entries")){ // we createFromString the source state and target widget if there is any
-		UUID.fromString(entries[0]).let { srcId ->  // pars the src state with the contained widgets and add the respective objects to our model
+		stateIdFromString(entries[0]).let { srcId ->  // pars the src state with the contained widgets and add the respective objects to our model
 			ActionData.createFromString(entries, findWidget(entries[ActionData.widgetIdx], P_findOrAddState(srcId).widgets))
 		}
 	}}
@@ -76,9 +76,9 @@ class Model private constructor(val config: ModelDumpConfig){
 				"ERROR on widget parsing inconsistent UUID created ${it.uid} instead of $id"}) } }
 		}
 	}}
-	private suspend fun P_parseState(uuid: UUID): StateData {
+	private suspend fun P_parseState(stateId: StateId): StateData {
 		return mutableSetOf<Widget>().apply {  // create the set of contained elements (widgets)
-			val contentFile = File(config.widgetFile(uuid))
+			val contentFile = File(config.widgetFile(stateId))
 			if(contentFile.exists())  // otherwise this state has no widgets
 				P_processLines(file = contentFile, sep = sep, lineProcessor = _widgetParser).forEach {
 					it.await()?.also {  // add the parsed widget to temporary set AND initialize the parent property
@@ -88,10 +88,10 @@ class Model private constructor(val config: ModelDumpConfig){
 				}
 		}.let {
 			if(it.isNotEmpty())
-				StateData.fromFile(it, File(config.statePath(uuid)))
+				StateData.fromFile(it, File(config.statePath(stateId)))
 			else StateData.emptyState()
 		}
-				.also {assert(uuid ==it.uid, {"ERROR on state parsing inconsistent UUID created ${it.uid} instead of $uuid"}) }
+				.also {assert(stateId ==it.stateId, {"ERROR on state parsing inconsistent UUID created ${it.uid} instead of $stateId"}) }
 	}
 
 	companion object {

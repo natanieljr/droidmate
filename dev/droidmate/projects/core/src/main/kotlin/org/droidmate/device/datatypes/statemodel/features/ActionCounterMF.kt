@@ -34,7 +34,7 @@ class ActionCounterMF:IModelFeature {
 	override fun update(context: ExplorationContext) {
 		context.getPreviousState().uid.let{ sId -> sCnt.incCnt(sId)   // the state the very last action acted on
 			// record the respective widget the exploration interacted
-			context.lastTarget.let{ wCnt.compute(it.uid, { _,m -> m?.incCnt(sId)?: mutableMapOf(sId to 1)} ) }
+			context.lastTarget?.let{ wCnt.compute(it.uid, { _,m -> m?.incCnt(sId)?: mutableMapOf(sId to 1)} ) }
 		}
 	}
 
@@ -58,3 +58,6 @@ class ActionCounterMF:IModelFeature {
 	fun widgetCnt(wId: UUID):Int = wCnt[wId]?.values?.sum()?:0
 
 }
+/** use this function on a list, grouped by it's counter, to retrieve all entries which have the smallest counter value
+ * e.g. numExplored(state).entries.groupBy { it.value }.listOfSmallest */
+fun<K> Map<Int, List<K>>.listOfSmallest():List<K>? = this[this.keys.fold(Int.MAX_VALUE,{ res, c -> if(c<res) c else res})]

@@ -97,7 +97,7 @@ abstract class IExplorationLog : Serializable {
 	 *
 	 * @returns Last widget interacted with or instance of [EmptyWidgetInfo] when none
 	 */
-	var lastTarget: Widget = Widget()
+	var lastTarget: Widget? = null
 
 	/**
 	 * Returns the information of the last action performed

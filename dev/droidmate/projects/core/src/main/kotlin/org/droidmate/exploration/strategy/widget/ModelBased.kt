@@ -161,7 +161,7 @@ open class ModelBased protected constructor(randomSeed: Long,
     override fun getAvailableWidgets(widgetContext: WidgetContext): List<Widget> {
         var candidates = internalGetWidgets(widgetContext)
 
-        candidates = candidates.filterNot { it.isEquivalent(this.memory.lastTarget) }
+        this.memory.lastTarget?.let{ candidates = candidates.filterNot { it.isEquivalent(it) } }
 
         return candidates
     }

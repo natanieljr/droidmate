@@ -18,12 +18,12 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-import groovy.lang.Tuple2
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.device.datatypes.statemodel.*
 import org.droidmate.exploration.actions.Direction
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.SystemColor.text
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -61,6 +61,8 @@ class WidgetData(val map: Map<String,Any?>,val index: Int = -1,val parent: Widge
 
 	@Deprecated("use the new UUID from state model instead")
 	val id: String by map.withDefault { "" } // only used for testing
+
+	fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked?:false || longClickable || scrollable)
 
 	companion object {
 		val defaultProperties by lazy { P.propertyMap(Array(P.values().size,{"false"}).toList()) }
@@ -117,7 +119,9 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyConfigId] */
 	val propertyConfigId:UUID = configId(properties)
-	val uid: UUID by lazy { widgetId(text + contentDesc, imgId) }
+	//FIXME we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
+	// if we don't have any text content we use the image, otherwise use the text for unique identification
+	val uid: UUID by lazy { (text + contentDesc).let{if(it == "") widgetId(it, imgId) else it.toUUID()} }
 	val id get() = Pair(uid,propertyConfigId)
 
 	val text: String by properties.map
@@ -187,7 +191,7 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 
 		return "${clsPart}resourceId: $pResId / text: $pText / contDesc: $pContDesc / click xy: [$px,$py]"
 	}
-	fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked?:false || longClickable || scrollable)
+	fun canBeActedUpon(): Boolean = properties.canBeActedUpon()
 
 	fun getClickPoint(deviceDisplayBounds:Rectangle?): Point{
 		if (deviceDisplayBounds == null) {
@@ -242,8 +246,11 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 		fun fromWidgetData(w:WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig):Widget = Widget(w, screenImg?.let {
 			ByteArrayOutputStream().use {
 				ImageIO.write(screenImg.getSubimage(w.bounds), "png", it)
-				it.toByteArray().let { bytes -> UUID.nameUUIDFromBytes(bytes).also {
-					launch { File(config.widgetImgPath(id = widgetId(w.text + w.contentDesc, it),postfix = "_${configId(w)}")).writeBytes(bytes) } } }
+				it.toByteArray().let { bytes -> UUID.nameUUIDFromBytes(bytes).also { imgId ->
+					launch {
+						val widgetId = (w.text + w.contentDesc).let{if(it == "") widgetId(it, imgId) else it.toUUID()}
+						File(config.widgetImgPath(id = widgetId,postfix = "_${configId(w)}", subDir = if(!w.canBeActedUpon()) "nonInteractive${File.separator}" else "")).writeBytes(bytes) }
+				} }
 			}}?: emptyUUID
 		)
 
@@ -266,12 +273,13 @@ class Widget(internal val properties:WidgetData = WidgetData.empty(),val imgId:U
 	}
 
 	override fun toString(): String {
-		return "$uid-$propertyConfigId:$className[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, pos=${bounds.location}:dx=${bounds.width},dy=${bounds.height}]"
+		return "${uid}_$propertyConfigId:$className[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, pos=${bounds.location}:dx=${bounds.width},dy=${bounds.height}]"
 	}
 	/* end override */
 }
 
 private val widgetId:(String,UUID)->UUID = { id,imgId -> id.toUUID()+ imgId }
+//FIXME we would like image similarity for images with same text,desc,id,similar_size
 private fun BufferedImage.getSubimage(r:Rectangle) = this.getSubimage(r.x,r.y,r.width,r.height)
 private val flag={entry:String ->if(entry=="disabled") null else entry.toBoolean()}
 private fun rectFromString(s:String): Rectangle {  //         return "x=$x, y=$y, width=$width, height=$height"

@@ -80,6 +80,10 @@ class ActionData private constructor(val actionType:String?,val targetWidget: Wi
 			init{ if(header=="") header=name }
 		}
 	}
+
+	override fun toString(): String {
+		return "$actionType:$targetWidget"
+	}
 }
 
 class Trace{
