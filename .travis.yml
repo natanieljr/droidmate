@@ -25,7 +25,6 @@ android:
     # More info: https://docs.travis-ci.com/user/languages/android/#Overview
     - tools
     - platform-tools
-    - build-tools-25.0.1
     - build-tools-26.0.2
     # Packages required by UIAutomator2
     - extra-android-support
