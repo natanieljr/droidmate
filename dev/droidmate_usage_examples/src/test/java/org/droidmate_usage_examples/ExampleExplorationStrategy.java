@@ -9,46 +9,42 @@
 package org.droidmate_usage_examples;
 
 import org.droidmate.exploration.actions.ExplorationAction;
-import org.droidmate.exploration.actions.IExplorationActionRunResult;
-import org.droidmate.exploration.strategy.IExplorationStrategy;
-import org.droidmate.exploration.strategy.ITerminationCriterion;
+import org.droidmate.exploration.strategy.*;
+import org.droidmate.exploration.strategy.widget.Explore;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Random;
 
 /**
-  @see ExampleExplorationStrategy#ExampleExplorationStrategy(ITerminationCriterion)
+ * <p>
+ * Constructs {@link ExampleExplorationStrategy}. This is a very minimalistic custom exploration strategy used to show you
+ * how to inject into DroidMate your own custom strategy. Simply clicks on a random widget on the screen.
+ *
+ * </p><p>
+ * For an example of how to actually write an exploration strategy, see the strategies in the packages:
+ *   org.droidmate.exploretion.strategy.random
+ *   org.droidmate.exploretion.strategy.back
+ *   org.droidmate.exploretion.strategy.reset
+ *   org.droidmate.exploretion.strategy.explore
+ *
+ * </p><p>
+ * </p>
  */
-class ExampleExplorationStrategy implements IExplorationStrategy
-{
-  private final ITerminationCriterion terminationCriterion;
+class ExampleExplorationStrategy extends Explore {
+    @NotNull
+    @Override
+    public ExplorationAction chooseAction(WidgetContext widgetContext) {
+        Random random = new Random();
+        List<WidgetInfo> widgets = widgetContext.getActionableWidgetsInfo();
+        int i = random.nextInt(widgets.size());
+        WidgetInfo widget = widgets.get(i);
+        return ExplorationAction.newWidgetExplorationAction(widget.getWidget());
+    }
 
-  /**
-   * <p>
-   * Constructs {@link ExampleExplorationStrategy}. This is a very minimalistic custom exploration strategy used to show you
-   * how to inject into DroidMate your own custom strategy.
-   *
-   * </p><p>
-   * For an example of how to actually write an exploration strategy, see:
-   * <a href="https://github.com/konrad-jamrozik/droidmate/blob/master/dev/droidmate/projects/core/src/main/groovy/org/droidmate/exploration/strategy/ExplorationStrategy.groovy">
-   *   ExplorationStrategy in master branch on GitHub</a>
-   *
-   * </p><p>
-   * Note you do not have to use {@link ITerminationCriterion} interface.
-   * Just provide yourself your custom logic instead.
-   *
-   * </p>
-   */
-  ExampleExplorationStrategy(ITerminationCriterion terminationCriterion)
-  {
-    this.terminationCriterion = terminationCriterion;
-  }
-
-  @Override
-  public ExplorationAction decide(IExplorationActionRunResult result)
-  {
-    terminationCriterion.updateState();
-
-    if (terminationCriterion.met())
-      return ExplorationAction.newTerminateExplorationAction();
-    else
-      return ExplorationAction.newResetAppExplorationAction();
-  }
+    @NotNull
+    @Override
+    public StrategyPriority getFitness(WidgetContext widgetContext) {
+        return StrategyPriority.PURELY_RANDOM_WIDGET;
+    }
 }

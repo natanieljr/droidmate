@@ -13,18 +13,18 @@ import com.google.common.io.Files;
 import org.droidmate.android_sdk.DeviceException;
 import org.droidmate.android_sdk.IApk;
 import org.droidmate.apis.IApiLogcatMessage;
-import org.droidmate.command.ExploreCommand;
+import org.droidmate.command.DroidmateCommand;
 import org.droidmate.configuration.Configuration;
+import org.droidmate.configuration.ConfigurationBuilder;
+import org.droidmate.configuration.ConfigurationException;
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot;
-import org.droidmate.device.datatypes.Widget;
+import org.droidmate.device.datatypes.IWidget;
 import org.droidmate.exploration.actions.ExplorationAction;
-import org.droidmate.exploration.actions.IExplorationActionRunResult;
-import org.droidmate.exploration.actions.RunnableExplorationActionWithResult;
+import org.droidmate.exploration.actions.ExplorationRecord;
 import org.droidmate.exploration.actions.WidgetExplorationAction;
-import org.droidmate.exploration.data_aggregators.IApkExplorationOutput2;
-import org.droidmate.exploration.strategy.IExplorationStrategyProvider;
+import org.droidmate.exploration.data_aggregators.IExplorationLog;
+import org.droidmate.exploration.strategy.IMemoryRecord;
 import org.droidmate.frontend.DroidmateFrontend;
-import org.droidmate.frontend.ICommandProvider;
 import org.droidmate.report.OutputDir;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +46,26 @@ import java.util.List;
  */
 public class MainTest
 {
+
+  private static Configuration buildConfiguration() {
+    String[] args = new String[] {
+            Configuration.pn_resetEveryNthExplorationForward + "=30",
+            Configuration.pn_actionsLimit + "=100",
+            Configuration.pn_randomSeed + "=0",
+            Configuration.pn_device + "=0",
+            Configuration.pn_launchActivityDelay + "=7000",
+            Configuration.pn_monitorSocketTimeout + "=7000",
+            Configuration.pn_takeScreenshots + "=false",
+            Configuration.pn_runOnNotInlined};
+
+    try {
+      return new ConfigurationBuilder().build(args, FileSystems.getDefault());
+    }
+    catch(ConfigurationException e){
+      throw new RuntimeException(e.getMessage(), e);
+    }
+  }
+
   /**
    * <p>
    * This test shows how to access DroidMate API with default settings. If you run it right off the bat, DroidMate will inform 
@@ -161,21 +182,28 @@ public class MainTest
   @Test
   public void explore_with_custom_exploration_strategy_and_termination_criterion()
   {
-    final IExplorationStrategyProvider strategyProvider = () -> new ExampleExplorationStrategy(new ExampleTerminationCriterion());
-    final ICommandProvider commandProvider = cfg -> ExploreCommand.build(cfg, strategyProvider);
+    Configuration cfg = buildConfiguration();
+    final DroidmateCommand commandProvider = ExampleCommandProvider.build(cfg);
     callMainThenAssertExitStatusIs0(new String[]{}, commandProvider);
   }
   
   private void callMainThenAssertExitStatusIs0(String[] args)
   {
-    // null commandProvider means "do not override DroidMate command (and thus: any components) with custom implementation" 
-    final ICommandProvider commandProvider = null;
-    callMainThenAssertExitStatusIs0(args, commandProvider);
+    // null command means "do not override DroidMate command (and thus: any components) with custom implementation"
+    final DroidmateCommand command = null;
+    callMainThenAssertExitStatusIs0(args, command);
   }
 
-  private void callMainThenAssertExitStatusIs0(String[] args, ICommandProvider commandProvider)
+  private void callMainThenAssertExitStatusIs0(String[] args, DroidmateCommand command)
   {
-    int exitStatus = DroidmateFrontend.main(args, commandProvider);
+    int exitStatus;
+
+    if (command != null)
+    exitStatus = DroidmateFrontend.execute(args,
+      configuration -> command);
+    else
+      exitStatus =DroidmateFrontend.execute(args);
+
     Assert.assertEquals(0, exitStatus);
   }
 
@@ -189,7 +217,7 @@ public class MainTest
 
     final URL fixtureURL = Iterables.getOnlyElement(
       Collections.list(
-        ClassLoader.getSystemResources("fixture_output_device1/2016 Aug 19 2128 ru.tubin.bp.ser2")));
+        ClassLoader.getSystemResources("fixture_output_device1/stored.ser2")));
     final File fixtureFile = new File(fixtureURL.toURI());
 
 
@@ -205,21 +233,21 @@ public class MainTest
   
   private void workWithDroidmateOutput(String outputDirPath)
   {
-    final List<IApkExplorationOutput2> output = new OutputDir(Paths.get(outputDirPath)).getExplorationOutput2();
+    final List<IExplorationLog> output = new OutputDir(Paths.get(outputDirPath)).getExplorationOutput2();
     output.forEach(this::workWithSingleApkExplorationOutput);
   }
 
   /**
    * Please see the comment on {@link #deserialize_and_work_with_exploration_result}.
    */
-  private void workWithSingleApkExplorationOutput(IApkExplorationOutput2 apkOut)
+  private void workWithSingleApkExplorationOutput(IExplorationLog apkOut)
   {
     final IApk apk = apkOut.getApk();
     if (!apkOut.getExceptionIsPresent())
     {
 
       int actionCounter = 0;
-      for (RunnableExplorationActionWithResult actionWithResult : apkOut.getActRess())
+      for (ExplorationRecord actionWithResult : apkOut.getLogRecords())
       {
         actionCounter++;
 
@@ -229,18 +257,18 @@ public class MainTest
         if (action instanceof WidgetExplorationAction)
         {
           WidgetExplorationAction widgetAction = (WidgetExplorationAction) action;
-          Widget w = widgetAction.getWidget();
+          IWidget w = widgetAction.getWidget();
           System.out.println("Text of acted-upon widget of given action: " + w.getText());
         }
 
-        final IExplorationActionRunResult result = actionWithResult.getResult();
+        final IMemoryRecord result = actionWithResult.getResult();
         final IDeviceGuiSnapshot guiSnapshot = result.getGuiSnapshot();
 
         System.out.println("Action " + actionCounter + " resulted in a screen containing following actionable widgets: ");
-        for (Widget widget : guiSnapshot.getGuiState().getActionableWidgets())
+        for (IWidget widget : guiSnapshot.getGuiState().getActionableWidgets())
           System.out.println("Widget of class " + widget.getClassName() + " with bounds: " + widget.getBoundsString());
 
-        final List<IApiLogcatMessage> apiLogs = result.getDeviceLogs().getApiLogsOrEmpty();
+        final List<IApiLogcatMessage> apiLogs = result.getDeviceLogs().getApiLogs();
         System.out.println("Action " + actionCounter + " resulted in following calls to monitored Android framework's APIs being made:");
         for (IApiLogcatMessage apiLog : apiLogs)
           System.out.println(apiLog.getObjectClass() + "." + apiLog.getMethodName());
