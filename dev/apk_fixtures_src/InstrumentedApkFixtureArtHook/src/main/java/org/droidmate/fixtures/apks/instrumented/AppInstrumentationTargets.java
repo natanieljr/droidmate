@@ -1,7 +1,10 @@
-// Copyright (c) 2013-2016 Saarland University Software Engineering Chair.
-// All right reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018 Saarland University
+// All rights reserved.
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
 //
 // This file is part of the "DroidMate" project.
 //
@@ -24,7 +27,7 @@ public class AppInstrumentationTargets
     return advancedMethod(11, "paramStr", new ParamObject());
   }
 
-  public ReturnObject advancedMethod(int param1_int, String param2_string, ParamObject param3_paramObj)
+  ReturnObject advancedMethod(int param1_int, String param2_string, ParamObject param3_paramObj)
   {
     final ReturnObject returnObject = new ReturnObject();
     returnObject.exampleOutput1_string = param2_string + "_output!";
@@ -37,7 +40,7 @@ public class AppInstrumentationTargets
 
   public static class ParamObject
   {
-    public int exampleField = 43;
+    int exampleField = 43;
 
     @Override
     public String toString()
@@ -51,9 +54,9 @@ public class AppInstrumentationTargets
   public class ReturnObject
   {
 
-    public String      exampleOutput1_string;
-    public int         exampleOutput2_int;
-    public ParamObject exampleOutput3_internalObj;
+    String      exampleOutput1_string;
+    int         exampleOutput2_int;
+    ParamObject exampleOutput3_internalObj;
 
     @Override
     public String toString()
