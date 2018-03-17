@@ -32,7 +32,6 @@ import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.actions.TerminateExplorationAction
 import org.droidmate.exploration.strategy.EmptyActionResult
-import org.droidmate.exploration.strategy.EmptyWidgetInfo
 import java.awt.Rectangle
 import java.io.Serializable
 import java.time.Duration
@@ -137,7 +136,7 @@ abstract class IExplorationLog : Serializable {
 //	 * @return Unique widget context which refers to the current screen
 //	 */
 //    @Deprecated("use the Model or StateData instead to retrieve the required information")
-//    fun getWidgetContext(guiStatus: IGuiStatus): WidgetContext
+//    fun getState(guiStatus: IGuiStatus): WidgetContext
 	abstract fun getCurrentState():StateData
 
 	/**
@@ -176,8 +175,6 @@ abstract class IExplorationLog : Serializable {
 			throw DroidmateError(e)
 		}
 	}
-
-
 
 	private fun assertLogsAreSortedByTime() {
 		val apiLogs = actionTrace.getActions().flatMap { it.deviceLogs.apiLogs }

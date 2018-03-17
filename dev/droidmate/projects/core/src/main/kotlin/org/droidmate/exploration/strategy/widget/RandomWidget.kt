@@ -20,11 +20,13 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.device.datatypes.statemodel.emptyId
 import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
 import org.droidmate.device.datatypes.statemodel.features.listOfSmallest
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
+import org.droidmate.exploration.strategy.StrategyPriority
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -63,8 +65,8 @@ open class RandomWidget protected constructor(randomSeed: Long,
         TODO("extract WidgetId from recorded trace and look it up in current Context to choose as target")
     }
 
-    open protected fun getAvailableWidgets(widgetContext: WidgetContext): List<Widget> {
-        return widgetContext.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
+    open protected fun getAvailableWidgets(StateData: StateData): List<Widget> {
+        return StateData.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
 //                .filterNot { it.blackListed } //TODO
     }
 
@@ -127,12 +129,12 @@ open class RandomWidget protected constructor(randomSeed: Long,
         return actionList[randomIdx]
     }
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
         // Arbitrary established
         return this.priority
     }
 
-    override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
+    override fun chooseAction(currentState: StateData): ExplorationAction {
         // Repeat previous action is last action was to click on a runtime permission dialog
         if (mustRepeatLastAction())
             return repeatLastAction()

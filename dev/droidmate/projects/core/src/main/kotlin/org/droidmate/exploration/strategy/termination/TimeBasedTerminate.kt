@@ -21,7 +21,7 @@ package org.droidmate.exploration.strategy.termination
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.exploration.strategy.WidgetContext
+import org.droidmate.device.datatypes.statemodel.StateData
 import java.util.concurrent.TimeUnit
 
 /**
@@ -61,11 +61,11 @@ class TimeBasedTerminate @JvmOverloads constructor(private val timeLimit: Int,
         stopwatch.start()
     }
 
-    override fun met(widgetContext: WidgetContext): Boolean {
+    override fun met(currentState: StateData): Boolean {
         return this.currentDecideElapsedSeconds >= timeLimit
     }
 
-    override fun metReason(widgetContext: WidgetContext): String {
+    override fun metReason(currentState: StateData): String {
         return "Allocated exploration time exhausted."
     }
 
@@ -78,5 +78,9 @@ class TimeBasedTerminate @JvmOverloads constructor(private val timeLimit: Int,
     override fun equals(other: Any?): Boolean {
         return (other is TimeBasedTerminate) &&
                 (other.timeLimit == this.timeLimit)
+    }
+
+    override fun hashCode(): Int {
+        return timeLimit.hashCode()
     }
 }

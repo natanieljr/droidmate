@@ -19,11 +19,10 @@
 package org.droidmate.exploration.strategy.reset
 
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newResetAppExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.exploration.strategy.EmptyWidgetInfo
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Base for exploration strategies that reset and exploration.
@@ -31,14 +30,14 @@ import org.droidmate.exploration.strategy.WidgetContext
  * @author Nataniel P. Borges Jr.
  */
 abstract class Reset : AbstractStrategy() {
-    override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
+    override fun internalDecide(currentState: StateData): ExplorationAction {
         // There' no previous widget after a reset
         this.memory.lastTarget = Widget()
 
         return newResetAppExplorationAction()
     }
 
-    override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
+    override fun mustPerformMoreActions(currentState: StateData): Boolean {
         return false
     }
 

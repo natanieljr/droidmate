@@ -18,8 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
+
 
 /**
  * Restarts the application when the last action resulted in an "application has stopped" dialog box
@@ -28,7 +29,7 @@ import org.droidmate.exploration.strategy.WidgetContext
  */
 class AppCrashedReset : Reset() {
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
         // Exploration crashed
         if (memory.getCurrentState().isAppHasStoppedDialogBox)
             return StrategyPriority.APP_CRASHED_RESET
@@ -39,5 +40,9 @@ class AppCrashedReset : Reset() {
 
     override fun equals(other: Any?): Boolean {
         return other is AppCrashedReset
+    }
+
+    override fun hashCode(): Int {
+        return this.javaClass.hashCode()
     }
 }

@@ -20,7 +20,9 @@
 package org.droidmate.tests.exploration.strategy.stubs
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.AbstractStrategy
+import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
+import org.droidmate.exploration.strategy.StrategyPriority
 
 /**
  * Test exploration strategy that does three actionTrace before handling control
@@ -32,14 +34,14 @@ class TripleActionExploration : AbstractStrategy() {
         // Nothing to do here.
     }
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: WidgetContext): StrategyPriority {
         if (this.actionNr == 3)
             return StrategyPriority.SPECIFIC_WIDGET
 
         return StrategyPriority.NONE
     }
 
-    override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
+    override fun mustPerformMoreActions(currentState: WidgetContext): Boolean {
         return this.actionNr >= 3 && this.actionNr < 5
     }
 

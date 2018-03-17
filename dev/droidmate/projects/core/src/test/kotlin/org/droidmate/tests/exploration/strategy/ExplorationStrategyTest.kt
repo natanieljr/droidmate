@@ -22,14 +22,14 @@ package org.droidmate.tests.exploration.strategy
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.IGuiStatus
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newResetAppExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.test_tools.ApkFixtures
 import org.droidmate.test_tools.DroidmateTestCase
 import org.droidmate.test_tools.device.datatypes.GuiStateTestHelper.Companion.newAppHasStoppedGuiState
@@ -74,9 +74,9 @@ class ExplorationStrategyTest : DroidmateTestCase() {
             val action = strategy.decide(newResultFromGuiState(guiState))
             assert(action is ResetAppExplorationAction)
 
-//            val ctx = explorationLog.getWidgetContext(guiState)
+//            val ctx = explorationLog.getState(guiState)
             val record = ActionResult(action, LocalDateTime.now(), LocalDateTime.now())
-//                    .apply { this.widgetContext = ctx }
+//                    .apply { this.state = ctx }
             val runnable = RunnableResetAppExplorationAction(action as ResetAppExplorationAction, LocalDateTime.now(), false)
             explorationLog.add(runnable, record)
             strategy.update(record)
@@ -89,14 +89,14 @@ class ExplorationStrategyTest : DroidmateTestCase() {
             val builder = ExplorationOutput2Builder()
             return builder.buildActionResult(mapOf("guiSnapshot" to UiautomatorWindowDumpTestHelper.fromGuiState(guiStatus),
                     "packageName" to ApkFixtures.apkFixture_simple_packageName)).apply {
-//                widgetContext = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
+                //                state = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
             }
         }
 
         @JvmStatic
         private fun memoryRecordFromAction(action: ExplorationAction, guiStatus: IGuiStatus): ActionResult {
             return ActionResult(action, LocalDateTime.now(), LocalDateTime.now()).apply {
-//                widgetContext = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
+                //                state = WidgetContext(guiStatus.widgets.map { WidgetInfo.from(it) }, guiStatus, guiStatus.topNodePackageName)
             }
         }
 

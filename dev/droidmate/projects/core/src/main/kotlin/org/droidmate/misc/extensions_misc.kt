@@ -19,7 +19,6 @@
 package org.droidmate.misc
 
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.exploration.strategy.WidgetInfo
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Duration

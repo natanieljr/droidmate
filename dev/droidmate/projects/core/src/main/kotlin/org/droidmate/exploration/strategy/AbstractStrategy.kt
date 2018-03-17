@@ -20,6 +20,7 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.widget.Explore
@@ -105,10 +106,10 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
         this.listeners.add(listener)
     }
 
-    override fun decide(widgetContext: WidgetContext): ExplorationAction {
-        val action = this.internalDecide(widgetContext)
+    override fun decide(currentState: StateData): ExplorationAction {
+        val action = this.internalDecide(currentState)
 
-        if (!this.mustPerformMoreActions(widgetContext))
+        if (!this.mustPerformMoreActions(currentState))
             this.handleControl()
 
         return action
@@ -138,12 +139,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
      *
      * @return If the strategy has to perform more actionTrace
      */
-    abstract fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean
+    abstract fun mustPerformMoreActions(currentState: StateData): Boolean
 
     /**
-     * Selects an action to be executed based on the [current widget context][widgetContext]
+     * Selects an action to be executed based on the [current widget context][currentState]
      */
-    abstract fun internalDecide(widgetContext: WidgetContext): ExplorationAction
+    abstract fun internalDecide(currentState: StateData): ExplorationAction
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(Explore::class.java)

@@ -20,8 +20,8 @@ package org.droidmate.exploration.strategy
 
 import com.google.common.base.Ticker
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.GuiStatus
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.strategy.reset.AppCrashedReset
@@ -153,29 +153,29 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     }
 
     /**
-     * Givers control to an internal exploration strategy given the [current UI][widgetContext]
+     * Givers control to an internal exploration strategy given the [current UI][currentState]
      */
-    private fun handleControl(widgetContext: WidgetContext) {
+    private fun handleControl(currentState: StateData) {
         ExplorationStrategyPool.logger.debug("Attempting to handle control to exploration strategy")
         assert(this.hasControl())
-        this.activeStrategy = this.selectStrategy(widgetContext)
+        this.activeStrategy = this.selectStrategy(currentState)
 
         assert(!this.hasControl())
         ExplorationStrategyPool.logger.debug("Control handled to strategy ${this.activeStrategy!!}")
     }
 
     /**
-     * Selects an exploration strategy to [handle control to][handleControl], given the [current UI][widgetContext].
+     * Selects an exploration strategy to [handle control to][handleControl], given the [current UI][StateData].
      * The selected strategy is the one with best fitness.
      *
      * If more than one exploration strategies have the same fitness, choose the first one.
      *
      * @return Exploration strategy with highest fitness.
      */
-    private fun selectStrategy(widgetContext: WidgetContext): ISelectableExplorationStrategy {
+    private fun selectStrategy(StateData: StateData): ISelectableExplorationStrategy {
         ExplorationStrategyPool.logger.debug("Selecting best strategy.")
         val maxFitness = this.strategies
-                .map { Pair(it, it.getFitness(widgetContext)) }
+                .map { Pair(it, it.getFitness(StateData)) }
                 .maxBy { it.second.value }
 
         val bestStrategy = maxFitness!!.first
@@ -250,18 +250,18 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         if (this.memory.isEmpty())
             this.startStrategies()
 
-//        val widgetContext = this.memory.getWidgetContext(guiState)    TODO
-        val widgetContext = WidgetContext(emptyList(),null,memory.apk.packageName)
+//        val StateData = this.memory.getStateData(guiState)    TODO
+        val StateData = this.memory.getState() StateData (emptyList(), "", memory.apk.packageName)
 
         if (this.hasControl())
-            this.handleControl(widgetContext)
+            this.handleControl(StateData)
         else
             logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
         //val explorationType = this.activeStrategy!!.type
-        val selectedAction = this.activeStrategy!!.decide(widgetContext)
+        val selectedAction = this.activeStrategy!!.decide(StateData)
 
-        //this.updateState(selectedAction, explorationType, widgetContext, startTimestamp)
+        //this.updateState(selectedAction, explorationType, StateData, startTimestamp)
 
         logger.info("(${this.memory.getSize()}) $selectedAction")
 

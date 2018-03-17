@@ -22,12 +22,11 @@ package org.droidmate.tests.exploration.strategy
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import org.droidmate.device.datatypes.EmptyGuiStatus
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.IGuiStatus
 import org.droidmate.device.datatypes.WidgetData
-import org.droidmate.exploration.actions.*
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.reset.InitialReset
 import org.droidmate.exploration.strategy.reset.IntervalReset
@@ -137,7 +136,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
 
         // Criterion = 1 action
         // First is valid
-        val widgetContext = EmptyWidgetContext()//explorationLog.getWidgetContext(inputData.guiSnapshot.guiState)
+        val widgetContext = EmptyWidgetContext()//explorationLog.getState(inputData.guiSnapshot.guiState)
         assertFalse(terminateStrategy.met(widgetContext))
         strategy.decide(inputData)
         // Now should meet termination
@@ -176,7 +175,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         // Reset the clock, since it had to wait the exploration action to be done
         terminateStrategy.resetClock()
         // First is valid
-        val widgetContext = EmptyWidgetContext()//explorationLog.getWidgetContext(inputData.guiSnapshot.guiState)
+        val widgetContext = EmptyWidgetContext()//explorationLog.getState(inputData.guiSnapshot.guiState)
         assertFalse(terminateStrategy.met(widgetContext))
 
         // Sleep for one second, state is updated after deciding last action
@@ -254,7 +253,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         val strategy = CannotExploreTerminate()
         strategy.initialize(explorationLog)
         val guiState = Auxiliary.createGuiStateFromFile("INVALID")
-        var widgetContext = EmptyWidgetContext()//explorationLog.getWidgetContext(guiState)
+        var widgetContext = EmptyWidgetContext()//explorationLog.getState(guiState)
 
         // Must not be executed
         var fitness = strategy.getFitness(widgetContext)
@@ -263,20 +262,20 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         // First action is always reset
         val resetStrategy = InitialReset()
         resetStrategy.initialize(explorationLog)
-//        widgetContext = explorationLog.getWidgetContext(EmptyGuiStatus())
+//        state = explorationLog.getState(EmptyGuiStatus())
         var record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
-//                .apply { this.widgetContext = widgetContext }
+//                .apply { this.state = state }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 
         val backStrategy = PressBack.build(0.1, cfg)
         backStrategy.initialize(explorationLog)
         record = ActionResult(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
-//                .apply { this.widgetContext = widgetContext }
+//                .apply { this.state = state }
         explorationLog.add(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
         record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
-//                .apply { this.widgetContext = widgetContext }
+//                .apply { this.state = state }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
-//        widgetContext = explorationLog.getWidgetContext(guiState)
+//        state = explorationLog.getState(guiState)
         fitness = strategy.getFitness(widgetContext)
         assertTrue(fitness == StrategyPriority.TERMINATE)
 
@@ -296,7 +295,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         // Disable all widgets
         guiState.widgets.forEach { p -> WidgetData(p.map.toMutableMap().apply { replace(WidgetData::enabled.name,false) }) }
 
-        var widgetContext = EmptyWidgetContext()//explorationLog.getWidgetContext(guiState)
+        var widgetContext = EmptyWidgetContext()//explorationLog.getState(guiState)
         // Must not be executed
         var fitness = strategy.getFitness(widgetContext)
         assertTrue(fitness == StrategyPriority.NONE)
@@ -305,19 +304,19 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         val resetStrategy = InitialReset()
         val backStrategy = PressBack.build(0.1, cfg)
         resetStrategy.initialize(explorationLog)
-        widgetContext = EmptyWidgetContext()//explorationLog.getWidgetContext(EmptyGuiStatus())
+        widgetContext = EmptyWidgetContext()//explorationLog.getState(EmptyGuiStatus())
         var record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
-//                .apply { this.widgetContext = widgetContext }
+//                .apply { this.state = state }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
         record = ActionResult(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
-//                .apply { this.widgetContext = widgetContext }
+//                .apply { this.state = state }
         explorationLog.add(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
         record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
-//                .apply { this.widgetContext = widgetContext }
+//                .apply { this.state = state }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 
         // Must be executed
-//        widgetContext = explorationLog.getWidgetContext(guiState)
+//        state = explorationLog.getState(guiState)
         fitness = strategy.getFitness(widgetContext)
         assertTrue(fitness == StrategyPriority.TERMINATE)
 
