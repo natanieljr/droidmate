@@ -13,15 +13,15 @@ fun stateIdFromString(s:String) = s.split("_").let{ StateId(UUID.fromString(it[0
 fun StateId.toString() = "${first}_$second"
 val emptyId = StateId(emptyUUID, emptyUUID)
 
-open class StateData protected constructor(val widgets: List<Widget>,
-                                           val topNodePackageName: String = "",
-                                           val androidLauncherPackageName: String = "", //TODO check if androidLauncherPackageName really necessary
-                                           val isHomeScreen: Boolean = false,
-                                           val isAppHasStoppedDialogBox: Boolean = false,
-                                           val isRequestRuntimePermissionDialogBox: Boolean = false,
-                                           val isCompleteActionUsingDialogBox: Boolean = false,
-                                           val isSelectAHomeAppDialogBox: Boolean = false,
-                                           val isUseLauncherAsHomeDialogBox: Boolean = false) {
+class StateData protected constructor(val widgets: List<Widget>,
+                                      val topNodePackageName: String = "",
+                                      val androidLauncherPackageName: String = "", //TODO check if androidLauncherPackageName really necessary
+                                      val isHomeScreen: Boolean = false,
+                                      val isAppHasStoppedDialogBox: Boolean = false,
+                                      val isRequestRuntimePermissionDialogBox: Boolean = false,
+                                      val isCompleteActionUsingDialogBox: Boolean = false,
+                                      val isSelectAHomeAppDialogBox: Boolean = false,
+                                      val isUseLauncherAsHomeDialogBox: Boolean = false) {
 
     constructor(widgets: Collection<Widget>, topNodePackageName: String, androidLauncherPackageName: String,
                 isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,

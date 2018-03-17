@@ -250,18 +250,18 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         if (this.memory.isEmpty())
             this.startStrategies()
 
-//        val StateData = this.memory.getStateData(guiState)    TODO
-        val StateData = this.memory.getState() StateData (emptyList(), "", memory.apk.packageName)
+//        val currentState = this.memory.getStateData(result)    TODO
+        val currentState = this.memory.getState()
 
         if (this.hasControl())
-            this.handleControl(StateData)
+            this.handleControl(currentState)
         else
             logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
         //val explorationType = this.activeStrategy!!.type
-        val selectedAction = this.activeStrategy!!.decide(StateData)
+        val selectedAction = this.activeStrategy!!.decide(currentState)
 
-        //this.updateState(selectedAction, explorationType, StateData, startTimestamp)
+        //this.updateState(selectedAction, explorationType, currentState, startTimestamp)
 
         logger.info("(${this.memory.getSize()}) $selectedAction")
 

@@ -98,9 +98,14 @@ open class ActionResult(val action: ExplorationAction,
 			StateData(
 					g.widgets.filterNot { deviceObjects.contains(it.xpath) } // ignore the overall layout containing the Android Status-bar
 							.map { Widget.fromWidgetData(it, img, config) } // iterates over each WidgetData and creates Widget object collect all these elements as set
-							.toSet(), g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
-					g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox, g.isUseLauncherAsHomeDialogBox )
-					.also {	launch { ImageIO.write(img,"png", File(config.statePath(it.stateId,"_${it.configId}","png"))) }
+                            .toSet(),
+                    g.topNodePackageName, g.androidLauncherPackageName, g.isHomeScreen, g.isAppHasStoppedDialogBox,
+                    g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox,
+                    g.isUseLauncherAsHomeDialogBox)
+                    .also {
+                        launch {
+                            ImageIO.write(img, "png", File(config.statePath(it.stateId, "_${it.configId}", "png")))
+                        }
 					}
 		}}
 	}
