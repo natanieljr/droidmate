@@ -28,14 +28,11 @@ import java.awt.Rectangle
 import java.time.LocalDateTime
 
 class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
-                                                   override val actionTrace: Trace = Trace(),
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    override val watcher:List<IModelFeature> = listOf(ActionCounterMF()),
+                                                   override val actionTrace: Trace = Trace(watcher),
                                                    override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : IExplorationLog() {
-
-	private var lastState = StateData.emptyState()
-	private var prevState = StateData.emptyState()
 
 	override var deviceDisplayBounds: Rectangle? = null
 	/** for debugging purpose only contains the last UiAutomator dump */
@@ -43,50 +40,31 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 
 	init{
 		model.addTrace(actionTrace)
-	}
-
-	fun getPreviousState():StateData = prevState
-	override fun getCurrentState(): StateData = lastState
-
-	override fun dump() {
-		model.P_dumpModel(model.config)
-		this.also { context -> watcher.forEach { launch { it.dump(context) } } }
+		if (explorationStartTime > LocalDateTime.MIN)
+			this.verify()
 	}
 
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 
-	init {
-		if (explorationStartTime > LocalDateTime.MIN)
-			this.verify()
-	}
+	override fun getCurrentState(): StateData = actionTrace.getCurrentState()
 
 	override fun add(action: IRunnableExplorationAction, result: ActionResult) {
 		deviceDisplayBounds = result.guiSnapshot.guiStatus.deviceDisplayBounds
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
-		prevState = lastState // TODO refactor as model.update
-		lastState = result.resultState(model.config).also { launch { it.dump(model.config) } }
-		model.addState(lastState)
-		lastState.widgets.forEach { model.addWidget(it) }
-		actionTrace.apply {
-			ActionData(result, lastState.stateId, getLastAction().resState).also { action ->
-				addAction(action)
-				lastTarget = action.targetWidget
-			}
-			launch { dump(model.config) }
-		}
+		model.S_updateModel(result,actionTrace)
 		this.also { context -> watcher.forEach { launch { it.update(context) } } }
 	}
 
+	override fun dump() {
+		model.P_dumpModel(model.config)
+		this.also { context -> watcher.forEach { launch { it.dump(context) } } }
+	}
+
 	override fun areAllWidgetsExplored(): Boolean {
-//        return (!this.isEmpty()) &&
-//                this.foundWidgetContexts.isNotEmpty() &&
-//                this.foundWidgetContexts.all { context ->
-//                    context.actionableWidgetsInfo.all { it.actedUponCount > 0 }
-//                }
-		return false // TODO() meta information of widget.uid's which were not yet interacted
+		return actionTrace.unexplored(getCurrentState().actionableWidgets).isNotEmpty()
 	}
 
 	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() {

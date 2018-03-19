@@ -90,18 +90,21 @@ open class ActionResult(val action: ExplorationAction,
 				.toString()
 	}
 
-	fun resultState(config:ModelDumpConfig):StateData {
+	/** this method should be exclusively used for StateData generation */
+	fun getWidgets(config:ModelDumpConfig): List<Widget>{
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]","//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
-		return 	java.nio.file.Paths.get(screenshot).let{
-			if(Files.exists(it)) ImageIO.read(it.toAbsolutePath().toFile()) else null
-		}.let { img -> guiSnapshot.guiStatus.let{ g ->
-			StateData(
-					g.widgets.filterNot { deviceObjects.contains(it.xpath) } // ignore the overall layout containing the Android Status-bar
-							.map { Widget.fromWidgetData(it, img, config) } // iterates over each WidgetData and creates Widget object collect all these elements as set
-							.toSet(), g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
+		return java.nio.file.Paths.get(screenshot).let{ if(Files.exists(it)) ImageIO.read(it.toAbsolutePath().toFile()) else null }.let { img ->
+			guiSnapshot.guiStatus.let { g->
+				g.widgets.filterNot { deviceObjects.contains(it.xpath) } // ignore the overall layout containing the Android Status-bar
+					.map { Widget.fromWidgetData(it, img, config) } // iterates over each WidgetData and creates Widget object collect all these elements as set
+			}
+		}
+	}
+
+	fun resultState(widgets:List<Widget>):StateData {
+		return 	 guiSnapshot.guiStatus.let{ g ->
+			StateData(widgets.toSet(), g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
 					g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox, g.isUseLauncherAsHomeDialogBox )
-					.also {	launch { ImageIO.write(img,"png", File(config.statePath(it.stateId,"_${it.configId}","png"))) }
-					}
-		}}
+		}
 	}
 }

@@ -48,7 +48,7 @@ abstract class IExplorationLog : Serializable {
 	abstract val model: Model
 	abstract val watcher:List<IModelFeature>
 
-	fun getState(sId:StateId) = model.getState(sId)
+	fun getState(sId:ConcreteId) = model.getState(sId)
 
 	abstract fun add(action: IRunnableExplorationAction, result: ActionResult)
 
@@ -66,11 +66,6 @@ abstract class IExplorationLog : Serializable {
 	 */
 	abstract var deviceDisplayBounds: Rectangle?
 
-	/**
-	 * List of [GUI states and actionTrace][ActionResult] which were sent to the device
-	 */
-//    val logRecords: MutableList<ExplorationRecord>
-
 	val exceptionIsPresent: Boolean
 		get() = exception !is DeviceExceptionMissing
 
@@ -78,15 +73,10 @@ abstract class IExplorationLog : Serializable {
 
 	abstract val apk: IApk
 
-	/* package-name of the explored app can be looked up in [apk] **/
-//    val packageName: String
-
 	val apiLogs: List<List<IApiLogcatMessage>>  // TODO it may be more useful to have a map WidgetId->ApiLog, and why the heck is this List of List??
 		get() = actionTrace.getActions().map { it.deviceLogs.apiLogs }
 
 	abstract val actionTrace: Trace
-
-//    val guiSnapshots: List<IDeviceGuiSnapshot>
 
 	fun explorationCanMoveOn() = isEmpty() ||  // we are starting the app -> no terminate yet
 				getCurrentState().topNodePackageName == apk.packageName && getCurrentState().actionableWidgets.isNotEmpty() ||
@@ -143,7 +133,7 @@ abstract class IExplorationLog : Serializable {
 	/**
 	 * Check if all widgets that have been found up to now have been already explored
 	 */
-	@Deprecated("should be handled by ModelFeature instead")
+	@Deprecated("should be handled by ModelFeature with custom criteria instead")
 	abstract fun areAllWidgetsExplored(): Boolean
 
 	/**

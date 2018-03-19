@@ -17,26 +17,27 @@
 package org.droidmate.device.datatypes.statemodel.features
 
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.data_aggregators.ExplorationContext
 import java.util.*
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ActionCounterMF:IModelFeature {
+	override suspend fun onNewAction(action: ActionData, prevState: StateData, newState: StateData) {
+		prevState.uid.let{ sId -> sCnt.incCnt(sId)   // the state the very last action acted on
+			// record the respective widget the exploration interacted
+			action.targetWidget?.let{ wCnt.compute(it.uid, { _,m -> m?.incCnt(sId)?: mutableMapOf(sId to 1)} ) }
+		}
+	}
 
 	private val sCnt = mutableMapOf<UUID,Int>() // counts how often the any state was explored
 	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt = mutableMapOf<UUID,MutableMap<UUID,Int>>()
 	private inline fun<reified K> MutableMap<K,Int>.incCnt(id:K):MutableMap<K,Int> = this.apply { compute( id, { _, c -> c?.inc()?:1 }) }
 
-	override fun dump(context: ExplorationContext) { /* do nothing */	}
-
-	override fun update(context: ExplorationContext) {
-		context.getPreviousState().uid.let{ sId -> sCnt.incCnt(sId)   // the state the very last action acted on
-			// record the respective widget the exploration interacted
-			context.lastTarget?.let{ wCnt.compute(it.uid, { _,m -> m?.incCnt(sId)?: mutableMapOf(sId to 1)} ) }
-		}
-	}
+	override suspend fun dump(context: ExplorationContext) { /* do nothing */	}
+	override suspend fun update(context: ExplorationContext) { /* do nothing */ }
 
 	fun getStateCnt():Map<UUID,Int> = sCnt
 	fun getWidgetCnt():Map<UUID,Map<UUID,Int>> = wCnt

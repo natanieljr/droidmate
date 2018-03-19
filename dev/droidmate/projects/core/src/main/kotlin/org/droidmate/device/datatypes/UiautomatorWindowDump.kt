@@ -189,7 +189,6 @@ data class UiautomatorWindowDump @JvmOverloads constructor(override val windowHi
 			/*
 Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:uid/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-contentDesc="" check="false" check="false" clickable="true" enabled="true" focusable="true" focus="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>
 */
-			val x:Rectangle
 			val getBool:(property:String)-> Boolean = {n.attributes.getNamedItem(it)?.nodeValue == "true"}
 			val getStringVal:(property:String)->String = {n.attributes.getNamedItem(it)?.nodeValue ?: ""}
 			return WidgetData(mapOf(
@@ -208,7 +207,8 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 					WidgetData::visible.name to getBool("visible-to-user"),  // TODO check invisible nodes are probably never in the dump anyway
 					WidgetData::isPassword.name to getBool("password"),
 					WidgetData::selected.name to getBool("selected"),
-					WidgetData::bounds.name to WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue)
+					WidgetData::bounds.name to WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue),
+					WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
 			), n.attributes.getNamedItem("index")?.nodeValue?.toInt()?:-1, parentWidget )
 		} catch (e: InvalidWidgetBoundsException) {
 			log.error("Catching exception: parsing widget bounds failed. ${LogbackConstants.err_log_msg}\n" +
@@ -218,7 +218,7 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 		}
 	}
 
-	private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node):WidgetData? {
+	private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node) {
 		val w = createWidget(data, parent)
 
 		if (w != null) {
@@ -232,9 +232,7 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 			result.add(w)
 		}
 
-		w?.children = data.childNodes.toList()
-				.filter { it.nodeName == "node" }.mapNotNull { addWidget(result, w, it)?.uid }
-		return w
+		data.childNodes.toList().filter { it.nodeName == "node" }.forEach { addWidget(result, w, it) }
 	}
 
 	private fun NodeList.toList(): List<Node> {
