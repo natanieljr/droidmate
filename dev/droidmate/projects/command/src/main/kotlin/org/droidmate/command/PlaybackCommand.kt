@@ -34,6 +34,8 @@ import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
 import org.droidmate.report.Reporter
+import org.droidmate.report.apk.playback.ReproducibilityRate
+import org.droidmate.report.apk.playback.TraceDump
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
@@ -46,15 +48,11 @@ class PlaybackCommand(apksProvider: IApksProvider,
                       exploration: IExploration,
                       storage2: IStorage2) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer, exploration, storage2) {
     companion object {
+        private lateinit var playbackStrategy: MemoryPlayback
+
         private fun getExplorationStrategy(explorationLog: IExplorationLog, cfg: Configuration): IExplorationStrategy {
             val pool = ExplorationStrategyPool.build(explorationLog, cfg)
 
-            val storedLogFile = Paths.get(cfg.playbackFile).toAbsolutePath()
-            assert(Files.exists(storedLogFile), { "Stored exploration log $storedLogFile not found." })
-
-            log.info("Loading stored exploration log from $storedLogFile")
-            val storedLog = Storage2(storedLogFile.parent).deserialize(storedLogFile)
-            val playbackStrategy = MemoryPlayback(storedLog)
             pool.registerStrategy(playbackStrategy)
 
             return pool
@@ -72,7 +70,17 @@ class PlaybackCommand(apksProvider: IApksProvider,
 
             val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
 
+            val storedLogFile = Paths.get(cfg.playbackFile).toAbsolutePath()
+            assert(Files.exists(storedLogFile), { "Stored exploration log $storedLogFile not found." })
+
+            log.info("Loading stored exploration log from $storedLogFile")
+            val storedLog = Storage2(storedLogFile.parent).deserialize(storedLogFile)
+            playbackStrategy = MemoryPlayback(storedLog)
+
             reportCreators.forEach { r -> command.registerReporter(r) }
+
+            command.registerReporter(ReproducibilityRate(playbackStrategy))
+            command.registerReporter(TraceDump(playbackStrategy))
 
             return command
         }
