@@ -62,7 +62,7 @@ class CannotExploreTerminate : Terminate() {
             "$guiStateMsgPart doesn't belong to the app. The GUI state: ${widgetContext.guiStatus}"
         // This case is observed when e.g. the app has nonstandard GUI, e.g. game native interface.
         // Also when all widgets have been blacklisted because they e.g. crash the app.
-        else if (!widgetContext.hasActionableWidgets()) {
+        else if (memory.getCurrentState().hasActionableWidgets()) {
             "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${widgetContext.guiStatus}"
         } else
             throw UnexpectedIfElseFallthroughError()

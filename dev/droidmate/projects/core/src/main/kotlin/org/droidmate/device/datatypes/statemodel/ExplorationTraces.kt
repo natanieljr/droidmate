@@ -17,7 +17,7 @@
 package org.droidmate.device.datatypes.statemodel
 
 import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.android_sdk.DeviceException
@@ -108,7 +108,7 @@ class Trace(private val watcher:List<IModelFeature> = emptyList()){
 	/** observable delegates do not support coroutines within the lambda function therefore this method*/
 	private fun notifyObserver(old:StateData, new:StateData){
 		watcher.forEach {
-			launch(CoroutineName(it::class.simpleName?:"action-observer")) { it.onNewAction(trace.last,old,new) } }
+			it.actionTask =	async(CoroutineName(it::class.simpleName?:"action-observer")) { it.onNewAction(trace.last,old,new) } }
 	}
 
 	private val targets:MutableList<Widget?> = LinkedList()

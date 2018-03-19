@@ -18,6 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.data_aggregators
 
+import kotlinx.coroutines.experimental.CoroutineName
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.statemodel.*
@@ -55,12 +57,12 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
 		model.S_updateModel(result,actionTrace)
-		this.also { context -> watcher.forEach { launch { it.update(context) } } }
+		this.also { context -> watcher.forEach { it.updateTask = async(CoroutineName(it::class.simpleName?:"update-observer")){ it.update(context) } } }
 	}
 
 	override fun dump() {
 		model.P_dumpModel(model.config)
-		this.also { context -> watcher.forEach { launch { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(CoroutineName(it::class.simpleName?:"observer-dump")) { it.dump(context) } } }
 	}
 
 	override fun areAllWidgetsExplored(): Boolean {

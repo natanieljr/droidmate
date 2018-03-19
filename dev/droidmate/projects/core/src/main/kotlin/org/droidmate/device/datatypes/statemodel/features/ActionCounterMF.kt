@@ -16,6 +16,7 @@
 //
 package org.droidmate.device.datatypes.statemodel.features
 
+import kotlinx.coroutines.experimental.Deferred
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
@@ -24,6 +25,9 @@ import java.util.*
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ActionCounterMF:IModelFeature {
+	override var updateTask: Deferred<Unit>? = null
+	override var actionTask: Deferred<Unit>? = null
+
 	override suspend fun onNewAction(action: ActionData, prevState: StateData, newState: StateData) {
 		prevState.uid.let{ sId -> sCnt.incCnt(sId)   // the state the very last action acted on
 			// record the respective widget the exploration interacted

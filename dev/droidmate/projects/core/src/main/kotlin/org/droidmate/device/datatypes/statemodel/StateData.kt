@@ -37,7 +37,7 @@ class StateData private constructor(val widgets: List<Widget>,
 	/** id computed like uid while ignoring all edit fields */
 	val iEditId: UUID
 
-  val actionableWidgets get() = widgets.filter { it.canBeActedUpon() }
+  val actionableWidgets by lazy { widgets.filter { it.canBeActedUpon() } }
 	val hasEdit: Boolean
 
 	init{	// ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
@@ -56,6 +56,8 @@ class StateData private constructor(val widgets: List<Widget>,
 	fun idWhenIgnoring(widgets:Collection<Widget>):UUID = widgets.fold(emptyUUID, {id,w ->
 		if(!widgets.contains(w)) addRelevantId(id,w) else id
 	})
+
+	fun hasActionableWidgets() = actionableWidgets.isNotEmpty()
 
   /** write CSV
    *
