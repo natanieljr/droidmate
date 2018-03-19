@@ -64,6 +64,7 @@ class Model private constructor(val config: ModelDumpConfig){
 		computeNewState(action,trace.interactedEditFields()).also { newState ->
 			launch { newState.dump(config) }
 			trace.update(action,newState)
+			launch { trace.dump(config)}
 			trace.last()!!.screenshot.let{ launch { // if there is any screen-shot copy it to the state extraction directory
 				java.nio.file.Paths.get(it)?.toFile()?.copyTo(java.io.File(config.statePath(newState.stateId,"_${newState.configId}${timestamp()}","png") )) }}
 
