@@ -62,6 +62,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
         @JvmStatic
         protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
 
+        @JvmStatic
         @JvmOverloads
         fun build(cfg: Configuration,
                   strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
@@ -79,6 +80,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
             return command
         }
 
+        @JvmStatic
         protected fun defaultReportWatcher(cfg: Configuration): List<Reporter> =
                 listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg.reportIncludePlots), ClickFrequency(cfg.reportIncludePlots)
                         , WidgetSeenClickedCount(cfg.reportIncludePlots), ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())

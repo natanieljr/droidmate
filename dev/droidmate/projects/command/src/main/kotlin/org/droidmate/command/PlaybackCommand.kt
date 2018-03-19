@@ -33,6 +33,7 @@ import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
+import org.droidmate.report.Reporter
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
@@ -62,12 +63,18 @@ class PlaybackCommand(apksProvider: IApksProvider,
         fun build(cfg: Configuration,
                   strategyProvider: (IExplorationLog) -> IExplorationStrategy = { getExplorationStrategy(it, cfg) },
                   timeProvider: ITimeProvider = TimeProvider(),
-                  deviceTools: IDeviceTools = DeviceTools(cfg)): PlaybackCommand {
+                  deviceTools: IDeviceTools = DeviceTools(cfg),
+                  reportCreators: List<Reporter> = defaultReportWatcher(cfg)): PlaybackCommand {
             val apksProvider = ApksProvider(deviceTools.aapt)
 
             val storage2 = Storage2(cfg.droidmateOutputDirPath)
             val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-            return PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+
+            val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+
+            reportCreators.forEach { r -> command.registerReporter(r) }
+
+            return command
         }
     }
 }
