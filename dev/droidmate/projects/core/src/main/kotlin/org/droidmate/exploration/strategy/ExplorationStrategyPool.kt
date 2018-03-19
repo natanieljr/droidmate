@@ -250,8 +250,8 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         if (this.memory.isEmpty())
             this.startStrategies()
 
-//        val currentState = this.memory.getStateData(result)    TODO
-        val currentState = this.memory.getState()
+        // state was already updated after the previous action was executed in Exploration.kt class
+        val currentState = this.memory.getCurrentState()
 
         if (this.hasControl())
             this.handleControl(currentState)
