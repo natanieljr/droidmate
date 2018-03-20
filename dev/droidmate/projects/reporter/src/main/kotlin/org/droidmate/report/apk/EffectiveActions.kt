@@ -26,6 +26,7 @@ package org.droidmate.report.apk
 
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.strategy.IMemoryRecord
 import org.droidmate.report.misc.plot
 import org.droidmate.withExtension
 import java.awt.Point
@@ -74,20 +75,9 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
             val currTimeDiff = ChronoUnit.SECONDS.between(startTimeStamp, currTimestamp)
 
             if (prevAction.hasScreenshot && currAction.hasScreenshot) {
-                val prevScreenshot = Paths.get(prevAction.screenshot).toAbsolutePath()
-                val currScreenshot = Paths.get(currAction.screenshot).toAbsolutePath()
 
-                assert(Files.exists(prevScreenshot), { "Screenshot file not found $prevScreenshot" })
-                assert(Files.exists(currScreenshot), { "Screenshot file not found $currScreenshot" })
-
-                if ((prevAction.action !is WidgetExplorationAction) || (currAction.action !is WidgetExplorationAction))
+                if (actionWasEffective(prevAction, currAction))
                     effectiveActions++
-                else {
-                    val imageSimilarity = compareImage(prevScreenshot, currScreenshot)
-
-                    if (imageSimilarity < 100.0)
-                        effectiveActions++
-                }
 
                 totalActions++
 
@@ -114,6 +104,25 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
         if (includePlots) {
             log.info("Writing out plot $")
             this.writeOutPlot(reportFile)
+        }
+    }
+
+    public fun actionWasEffective(prevAction: IMemoryRecord, currAction: IMemoryRecord): Boolean {
+
+        require(prevAction.hasScreenshot, { "Action has no screenshot attached $prevAction" })
+        require(currAction.hasScreenshot, { "Action has no screenshot attached $currAction" })
+
+        val prevScreenshot = Paths.get(prevAction.screenshot).toAbsolutePath()
+        val currScreenshot = Paths.get(currAction.screenshot).toAbsolutePath()
+
+        assert(Files.exists(prevScreenshot), { "Screenshot file not found $prevScreenshot" })
+        assert(Files.exists(currScreenshot), { "Screenshot file not found $currScreenshot" })
+
+        if ((prevAction.action !is WidgetExplorationAction) || (currAction.action !is WidgetExplorationAction))
+            return true
+        else {
+            val imageSimilarity = compareImage(prevScreenshot, currScreenshot)
+            return imageSimilarity < 100.0
         }
     }
 

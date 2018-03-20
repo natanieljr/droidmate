@@ -78,11 +78,7 @@ open class WidgetInfo protected constructor(val widget: IWidget) : Serializable 
     }
 
     override fun hashCode(): Int {
-        var result = widget.hashCode()
-        result = 31 * result + actedUponCount
-        result = 31 * result + longClickedCount
-        result = 31 * result + blackListed.hashCode()
-        return result
+        return this.uniqueString.hashCode()
     }
 
     companion object {
