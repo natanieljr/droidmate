@@ -19,8 +19,6 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.misc.isEquivalentIgnoreLocation
-import org.droidmate.misc.uniqueString
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -57,7 +55,7 @@ class TargetWidget(override val widget: Widget, vararg dependencies: ITargetWidg
     }
 
     override fun trySatisfyWidgetOrDependency(satisfiedWidget: ITargetWidget) {
-        if (this.widget.uniqueString == satisfiedWidget.widget.uniqueString)
+        if (this.widget.uid == satisfiedWidget.widget.uid)
             this.satisfy(true)
         else
             this.dependencies
@@ -83,7 +81,7 @@ class TargetWidget(override val widget: Widget, vararg dependencies: ITargetWidg
     }
 
     override fun getTarget(widget: Widget): ITargetWidget {
-        if (this.widget.isEquivalentIgnoreLocation(widget))
+        if (this.widget.uid == widget.uid)
             return this
         else {
             val foundTargets = this.dependencies.map { it.getTarget(widget) }.filter { it !is DummyTarget }
@@ -96,7 +94,7 @@ class TargetWidget(override val widget: Widget, vararg dependencies: ITargetWidg
     }
 
     override fun toString(): String {
-        return "Satisfied: ${this.isSatisfied}\tTarget: ${this.widget.uniqueString}"
+        return "Satisfied: ${this.isSatisfied}\tTarget: ${this.widget.uid}"
     }
 
     companion object {

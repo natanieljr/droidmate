@@ -18,9 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import java.nio.file.Path
 
 interface IReporter {
-    fun write(reportDir: Path, rawData: List<IExplorationLog>)
+    fun write(reportDir: Path, rawData: List<AbstractContext>)
 }

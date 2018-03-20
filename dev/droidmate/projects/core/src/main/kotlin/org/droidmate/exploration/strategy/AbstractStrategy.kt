@@ -22,7 +22,7 @@ import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.strategy.widget.Explore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -44,7 +44,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     /**
      * Internal memory of the strategy. Syncronized with exploration memory upon initialization.
      */
-    protected lateinit var memory: IExplorationLog
+    protected lateinit var memory: AbstractContext
         private set
 
     /**
@@ -98,7 +98,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
         this.actionNr = actionNr
     }
 
-    override fun initialize(memory: IExplorationLog) {
+    override fun initialize(memory: AbstractContext) {
         this.memory = memory
     }
 

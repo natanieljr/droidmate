@@ -52,7 +52,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
                             .isNotEmpty() &&
                     // Can re-execute the same action
                     memory.getCurrentState().actionableWidgets
-                            .any { p -> memory.lastTarget?.let{ p.isEquivalent(it)}?: false }
+                            .any { p -> memory.lastTarget?.let { p.uid == it.uid } ?: false }
         }
 
         return false
@@ -66,14 +66,14 @@ open class RandomWidget protected constructor(randomSeed: Long,
         TODO("extract WidgetId from recorded trace and look it up in current Context to choose as target")
     }
 
-    open protected fun getAvailableWidgets(StateData: StateData): List<Widget> {
-        return StateData.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
+    protected open fun getAvailableWidgets(currentState: StateData): List<Widget> {
+        return currentState.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
 //                .filterNot { it.blackListed } //TODO
     }
 
 	protected open fun chooseRandomWidget(): ExplorationAction {
 		val candidates = memory.watcher.find{ it is ActionCounterMF }?.let { counter -> counter as ActionCounterMF
-			runBlocking { counter.actionTask?.await() }
+            runBlocking { counter.actionTask?.await() }
 			// for each widget in this state the number of interactions
 			counter.numExplored(memory.getCurrentState()).entries.groupBy { it.value }.let {
 				it.listOfSmallest()?.map { it.key }?.let{ leastInState:List<Widget> -> // determine the subset of widgets which were least interacted with

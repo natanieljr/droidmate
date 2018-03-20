@@ -19,14 +19,11 @@
 
 package org.droidmate.test_tools.exploration.actions
 
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
-
 class ExplorationActionTestHelper {
-    companion object {
+    // TODO Fix tests
+    /*companion object {
         @JvmStatic
         fun newWidgetClickExplorationAction(args: Map<String, Any> = hashMapOf()): WidgetExplorationAction
                 = ExplorationAction.newWidgetExplorationAction(WidgetTestHelper.newClickableButton(args.toMutableMap()), true)
-    }
+    }*/
 }

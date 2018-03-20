@@ -20,13 +20,13 @@ package org.droidmate.report.apk
 
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import java.nio.file.Files
 import java.nio.file.Path
 
 class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String = "activitiesSeen.txt") : ApkReport() {
 
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun writeApkReport(data: AbstractContext, apkReportDir: Path) {
         val sb = StringBuilder()
         val header = "activity\tcount\n"
         sb.append(header)

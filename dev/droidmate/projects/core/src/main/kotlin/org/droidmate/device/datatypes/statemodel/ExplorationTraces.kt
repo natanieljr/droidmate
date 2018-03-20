@@ -34,17 +34,17 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.properties.Delegates
 
-class ActionData private constructor(val actionType:String?, val targetWidget: Widget?,
+class ActionData private constructor(val actionType: String?, val targetWidget: Widget?,
                                      val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime, val screenshot: URI?,
                                      val successful: Boolean, val exception: String,
-                                     val resState:ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs()){
+                                     val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs()) {
 
 	constructor(action:ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
-	            deviceLogs: IDeviceLogs, screenshot: URI?, exception: DeviceException, successful: Boolean, resState:ConcreteId)
+                deviceLogs: IDeviceLogs, screenshot: URI?, exception: DeviceException, successful: Boolean, resState: ConcreteId)
 			:this(action::class.simpleName,(action as? WidgetExplorationAction)?.widget,
 			startTimestamp, endTimestamp, screenshot,	successful, exception.toString(), resState,	deviceLogs)
 
-	lateinit var prevState:ConcreteId
+    lateinit var prevState: ConcreteId
 
 	/**
 	 * Time the strategy pool took to select a strategy and a create an action
@@ -65,7 +65,8 @@ class ActionData private constructor(val actionType:String?, val targetWidget: W
 	}}
 
 	companion object {
-		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):ActionData =
+        @JvmStatic
+        operator fun invoke(res: ActionResult, resStateId: ConcreteId, prevStateId: ConcreteId): ActionData =
 				ActionData(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
 
 		fun createFromString(e:List<String>, target: Widget?):ActionData = ActionData(
@@ -73,10 +74,12 @@ class ActionData private constructor(val actionType:String?, val targetWidget: W
 				null, e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal])
 		).apply{ prevState = stateIdFromString(e[P.Id.ordinal])}
 
-		@JvmStatic fun empty(): ActionData = ActionData(null,null, LocalDateTime.MIN, LocalDateTime.MIN, null, true, "empty action", emptyId
+        @JvmStatic
+        fun empty(): ActionData = ActionData(null, null, LocalDateTime.MIN, LocalDateTime.MIN, null, true, "empty action", emptyId
 				).apply{ prevState = emptyId}
 
-		@JvmStatic val header = P.values().joinToString(separator=sep) { it.header }
+        @JvmStatic
+        val header = P.values().joinToString(separator = sep) { it.header }
 		val widgetIdx = P.WId.ordinal
 
 		private enum class P(var header:String="") { Id("Source State"),Action,WId("Interacted Widget"),
@@ -90,54 +93,60 @@ class ActionData private constructor(val actionType:String?, val targetWidget: W
 	}
 }
 
-class Trace(private val watcher:List<IModelFeature> = emptyList()){
+class Trace(private val watcher: List<IModelFeature> = emptyList()) {
 
   private val trace = LinkedList<ActionData>()
   private val date by lazy{ "${timestamp()}_${hashCode()}"}
 	val size: Int get() = trace.size
 
 
-	/** this property is set in the end of the trace update and notifies all watchers for changes */
-	private var newState by Delegates.observable(StateData.emptyState()) { _, old, new ->
-		notifyObserver(old,new)
-		internalUpdate(trace.last.targetWidget, old)
-	}
+    /** this property is set in the end of the trace update and notifies all watchers for changes */
+    private var newState by Delegates.observable(StateData.emptyState()) { _, old, new ->
+        notifyObserver(old, new)
+        internalUpdate(trace.last.targetWidget, old)
+    }
 
 //	private val call:(StateData)->Unit = {s -> println(s)}
 
-	/** observable delegates do not support coroutines within the lambda function therefore this method*/
-	private fun notifyObserver(old:StateData, new:StateData){
-		watcher.forEach {
-			it.actionTask =	async(CoroutineName(it::class.simpleName?:"action-observer")) { it.onNewAction(trace.last,old,new) } }
-	}
+    /** observable delegates do not support coroutines within the lambda function therefore this method*/
+    private fun notifyObserver(old: StateData, new: StateData) {
+        watcher.forEach {
+            it.actionTask = async(CoroutineName(it::class.simpleName
+                    ?: "action-observer")) { it.onNewAction(trace.last, old, new) }
+        }
+    }
 
-	private val targets:MutableList<Widget?> = LinkedList()
-	/** used for special id creation of interacted edit fields, map< iEditId -> (state -> collection<widget> )> */
-	private val editFields:MutableMap<UUID,LinkedList<Pair<StateData,Widget>>> = mutableMapOf()
+    private val targets: MutableList<Widget?> = LinkedList()
+    /** used for special id creation of interacted edit fields, map< iEditId -> (state -> collection<widget> )> */
+    private val editFields: MutableMap<UUID, LinkedList<Pair<StateData, Widget>>> = mutableMapOf()
 
-	/** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
-	private fun internalUpdate(target:Widget?,state:StateData){
-		targets.add(target)
-		target?.run {
-			if (isEdit) editFields.compute(state.iEditId, { _,stateMap ->
-				(stateMap ?: LinkedList()).apply {add(Pair(state, target)) }
-			})
-		}
-	}
+    /** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
+    private fun internalUpdate(target: Widget?, state: StateData) {
+        targets.add(target)
+        target?.run {
+            if (isEdit) editFields.compute(state.iEditId, { _, stateMap ->
+                (stateMap ?: LinkedList()).apply { add(Pair(state, target)) }
+            })
+        }
+    }
 
-	fun update(action:ActionResult,newState:StateData) {
-		ActionData(action, this.newState.stateId, newState.stateId).also { addAction(it) }
+    fun update(action: ActionResult, newState: StateData) {
+        ActionData(action, this.newState.stateId, newState.stateId).also { addAction(it) }
 
-		this.newState = newState
-	}
+        this.newState = newState
+    }
 
-	fun getCurrentState() = newState
+    fun getCurrentState() = newState
 
-	fun unexplored(candidates:List<Widget>):List<Widget> = candidates.filterNot { w -> targets.any{ it?.run { w.uid == uid }?:false } }
+    fun unexplored(candidates: List<Widget>): List<Widget> = candidates.filterNot { w ->
+        targets.any {
+            it?.run { w.uid == uid } ?: false
+        }
+    }
 
-	fun interactedEditFields(): Map<UUID, List<Pair<StateData, Widget>>> = editFields
+    fun interactedEditFields(): Map<UUID, List<Pair<StateData, Widget>>> = editFields
 
-	internal fun addAction(action:ActionData) = synchronized(trace){ trace.add(action) }
+    internal fun addAction(action: ActionData) = synchronized(trace) { trace.add(action) }
   fun last():ActionData? = trace.lastOrNull()
   fun getActions():List<ActionData> = trace
 

@@ -58,12 +58,12 @@ class CannotExploreTerminate : Terminate() {
         val guiStateMsgPart = if (memory.isEmpty()) "Initial GUI state" else "GUI state after reset"
 
         // This case is observed when e.g. the app shows empty screen at startup.
-        return if (!currentState.belongsToApp())
-            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${currentState.guiStatus}"
+        return if (!memory.belongsToApp(currentState))
+            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${memory.lastDump}"
         // This case is observed when e.g. the app has nonstandard GUI, e.g. game native interface.
         // Also when all widgets have been blacklisted because they e.g. crash the app.
         else if (!currentState.hasActionableWidgets()) {
-            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${currentState.guiStatus}"
+            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${memory.lastDump}"
         } else
             throw UnexpectedIfElseFallthroughError()
     }

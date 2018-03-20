@@ -21,7 +21,6 @@ package org.droidmate.device.datatypes
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.device.datatypes.statemodel.*
 import org.droidmate.exploration.actions.Direction
-import org.droidmate.misc.BuildConstants.Companion.properties
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -59,7 +58,7 @@ class WidgetData(map: Map<String,Any?>,val index: Int = -1,val parent: WidgetDat
 	val selected: Boolean by map
 	val bounds: Rectangle by map
 	val visible: Boolean by map
-	val isLeaf:Boolean by map
+    val isLeaf: Boolean by map
 	var xpath:String = ""
 
 	@Deprecated("use the new UUID from state model instead")
@@ -75,8 +74,11 @@ class WidgetData(map: Map<String,Any?>,val index: Int = -1,val parent: WidgetDat
 
 
 	companion object {
-		@JvmStatic val defaultProperties by lazy { P.propertyMap(Array(P.values().size,{"false"}).toList()) }
-		@JvmStatic fun empty() = WidgetData(defaultProperties)
+        @JvmStatic
+        val defaultProperties by lazy { P.propertyMap(Array(P.values().size, { "false" }).toList()) }
+
+        @JvmStatic
+        fun empty() = WidgetData(defaultProperties)
 
 		@JvmStatic
 		fun parseBounds(bounds: String): Rectangle {
@@ -105,7 +107,7 @@ private enum class P(val pName:String="",var header: String="") {
 	Desc(WidgetData::contentDesc.name,"Description"), 	ParentUID(header = "parentID"), Enabled(WidgetData::enabled.name), Visible(WidgetData::visible.name),
 	Clickable(WidgetData::clickable.name), LongClickable(WidgetData::longClickable.name), Scrollable(WidgetData::scrollable.name),
 	Checkable(WidgetData::checked.name), Focusable(WidgetData::focused.name), Selected(WidgetData::selected.name), IsPassword(WidgetData::isPassword.name),
-	Bounds(WidgetData::bounds.name), ResId(WidgetData::resourceId.name,"Resource Id"), XPath, IsLeaf(WidgetData::isLeaf.name) ;
+    Bounds(WidgetData::bounds.name), ResId(WidgetData::resourceId.name, "Resource Id"), XPath, IsLeaf(WidgetData::isLeaf.name);
 	init{ if(header=="") header=name }
 	companion object {
 		val propertyValues = P.values().filter { it.pName != "" }
@@ -115,7 +117,7 @@ private enum class P(val pName:String="",var header: String="") {
 						Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible -> line[it.ordinal].toBoolean()
 						Checkable, Focusable -> flag(line[it.ordinal])
 						Bounds -> rectFromString(line[it.ordinal])
-						else -> line[it.ordinal]  // Strings
+                        else -> line[it.ordinal]  // Strings
 					})
 		}.toMap()
 	}
@@ -123,21 +125,21 @@ private enum class P(val pName:String="",var header: String="") {
 
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UUID = emptyUUID) {
+class Widget(private val properties: WidgetData = WidgetData.empty(), val imgId: UUID = emptyUUID) {
 
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyConfigId] */
 	val propertyConfigId:UUID get() = properties.uid
 	//FIXME we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
-	var uid: UUID = (text + contentDesc).let{ if(hasContent()) widgetId(it, imgId) else it.toUUID()}   //FIXME this metric does not work for EditText elements, as the input text will change the [text] property
-	// we could try to keep track of the field via state-context + xpath once we interacted with it
-	// however that means uid would have to become a var and we rewrite it after the state is parsed (ignoring EditField.text) and lookup the initial uid for this widget in the initial state-context
-	// need model access => do this after widget generation before StateData instantiation => state.uid compute state candidates by ignoring all EditFields => determine exact one by computing ref.uid when ignoring EditFields whose xPath is a target widget within the trace + proper constructor
-	// and compute the state.uid with the original editText contents
-	// => model keep track of interacted EditField xPaths
-	// => stateData compute function getting set of xPaths to be ignored if EditField
-	// => stateData val idWithoutEditFields
+    var uid: UUID = (text + contentDesc).let { if (hasContent()) widgetId(it, imgId) else it.toUUID() }   //FIXME this metric does not work for EditText elements, as the input text will change the [text] property
+    // we could try to keep track of the field via state-context + xpath once we interacted with it
+    // however that means uid would have to become a var and we rewrite it after the state is parsed (ignoring EditField.text) and lookup the initial uid for this widget in the initial state-context
+    // need model access => do this after widget generation before StateData instantiation => state.uid compute state candidates by ignoring all EditFields => determine exact one by computing ref.uid when ignoring EditFields whose xPath is a target widget within the trace + proper constructor
+    // and compute the state.uid with the original editText contents
+    // => model keep track of interacted EditField xPaths
+    // => stateData compute function getting set of xPaths to be ignored if EditField
+    // => stateData val idWithoutEditFields
 
 	val id get() = Pair(uid,propertyConfigId)
 
@@ -158,10 +160,10 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 	val bounds: Rectangle get() = properties.bounds
 	val xpath: String get() = properties.xpath
 	var parentId:Pair<UUID,UUID>? = null
-	val isLeaf: Boolean get() = properties.isLeaf
-	internal val parentXpath:String get() = properties.parent?.xpath?:""
+    val isLeaf: Boolean get() = properties.isLeaf
+    internal val parentXpath: String get() = properties.parent?.xpath ?: ""
 
-	val isEdit:Boolean = className.toLowerCase().contains("edit")
+    val isEdit: Boolean = className.toLowerCase().contains("edit")
 
 	fun hasContent():Boolean = (text + contentDesc) != ""
 
@@ -191,7 +193,7 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 				P.Selected -> selected.toString()
 				P.IsPassword -> isPassword.toString()
 				P.Visible -> visible.toString()
-				P.IsLeaf -> isLeaf.toString()
+                P.IsLeaf -> isLeaf.toString()
 			}
 		}
 	}
@@ -232,7 +234,7 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 	}
 	fun getDeviceAreaSize(deviceDisplayBounds:Rectangle?): Double{
 		return if (deviceDisplayBounds != null)
-			deviceDisplayBounds.height.toDouble() * deviceDisplayBounds.width
+            deviceDisplayBounds.height.toDouble() * deviceDisplayBounds.width
 		else
 			-1.0
 	}
@@ -266,7 +268,9 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 					,UUID.fromString(line[P.ImgId.ordinal]))
 					.apply { parentId = line[P.UID.ordinal].let{ if(it=="null") null else stateIdFromString(it) } }
 		}
-		@JvmStatic fun fromWidgetData(w:WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig):Widget = Widget(w, screenImg?.let {
+
+        @JvmStatic
+        fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig): Widget = Widget(w, screenImg?.let {
 			ByteArrayOutputStream().use {
 				ImageIO.write(screenImg.getSubimage(w.bounds), "png", it)
 				it.toByteArray().let { bytes -> UUID.nameUUIDFromBytes(bytes).also { imgId ->
@@ -277,8 +281,10 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 			}}?: emptyUUID
 		)
 
-		@JvmStatic val idIdx by lazy { P.UID.ordinal }
-		@JvmStatic val widgetHeader by lazy { P.values().joinToString(separator = sep) { it.header } }
+        @JvmStatic
+        val idIdx by lazy { P.UID.ordinal }
+        @JvmStatic
+        val widgetHeader by lazy { P.values().joinToString(separator = sep) { it.header } }
 
 	}
 	/*** overwritten functions ***/

@@ -19,14 +19,14 @@
 package org.droidmate.report
 
 import com.konradjamrozik.Resource
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.extractedText
 import java.nio.file.Files
 import java.nio.file.Path
 
 class Summary @JvmOverloads constructor(val fileName: String = "summary.txt") : IReporter {
 
-    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+    override fun write(reportDir: Path, rawData: List<AbstractContext>) {
         val file = reportDir.resolve(this.fileName)
 
         val reportData = if (rawData.isEmpty())

@@ -19,9 +19,9 @@
 
 package org.droidmate.tests.exploration.strategy.stubs
 
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
 
 /**
@@ -29,8 +29,24 @@ import org.droidmate.exploration.strategy.StrategyPriority
  * back to main exploration
  */
 class TripleActionExploration : AbstractStrategy() {
+    // TODO Fix tests
+    override fun mustPerformMoreActions(currentState: StateData): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun internalDecide(currentState: StateData): ExplorationAction {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     override fun start() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getFitness(currentState: StateData): StrategyPriority {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    /*override fun start() {
         // Nothing to do here.
     }
 
@@ -61,5 +77,5 @@ class TripleActionExploration : AbstractStrategy() {
         fun build(): ISelectableExplorationStrategy {
             return TripleActionExploration()
         }
-    }
+    }*/
 }

@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -28,7 +28,7 @@ class AggregateStats @JvmOverloads constructor(private val fileName: String = "a
         private val log: Logger = LoggerFactory.getLogger(AggregateStats::class.java)
     }
 
-    fun getTableData(rawData: List<IExplorationLog>, path: Path): TableDataFile<Int, String, String> {
+    fun getTableData(rawData: List<AbstractContext>, path: Path): TableDataFile<Int, String, String> {
         return TableDataFile(AggregateStatsTable(rawData), path)
     }
 
@@ -36,7 +36,7 @@ class AggregateStats @JvmOverloads constructor(private val fileName: String = "a
         return reportDir.resolve(fileName)
     }
 
-    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+    override fun write(reportDir: Path, rawData: List<AbstractContext>) {
         val path = getFilePath(reportDir)
         val report = getTableData(rawData, path)
         log.info("Writing out report $report")

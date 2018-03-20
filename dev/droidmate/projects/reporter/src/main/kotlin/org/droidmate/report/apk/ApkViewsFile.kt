@@ -18,8 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.misc.uniqueString
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.report.misc.uniqueActionableWidgets
 import org.droidmate.report.misc.uniqueClickedWidgets
 import java.nio.file.Files
@@ -27,19 +26,19 @@ import java.nio.file.Path
 
 class ApkViewsFile @JvmOverloads constructor(private val fileName: String = "views.txt") : ApkReport() {
 
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun writeApkReport(data: AbstractContext, apkReportDir: Path) {
         val reportData = getReportData(data)
         val reportFile = apkReportDir.resolve(fileName)
         Files.write(reportFile, reportData.toByteArray())
     }
 
-    private fun getReportData(data: IExplorationLog): String {
+    private fun getReportData(data: AbstractContext): String {
         val sb = StringBuilder()
         sb.append("Unique actionable widget\n")
-                .append(data.uniqueActionableWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
+                .append(data.uniqueActionableWidgets.joinToString(separator = System.lineSeparator()) { it.uid.toString() })
                 .append("\n====================\n")
                 .append("Unique clicked widgets\n")
-                .append(data.uniqueClickedWidgets.joinToString(separator = System.lineSeparator()) { it.uniqueString })
+                .append(data.uniqueClickedWidgets.joinToString(separator = System.lineSeparator()) { it.uid.toString() })
 
         return sb.toString()
     }

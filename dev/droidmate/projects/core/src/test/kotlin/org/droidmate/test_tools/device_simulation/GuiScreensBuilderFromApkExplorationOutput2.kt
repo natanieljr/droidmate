@@ -18,19 +18,19 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.device.datatypes.Widget
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 
-class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorationLog) : IGuiScreensBuilder
+class GuiScreensBuilderFromApkExplorationOutput2(private val output: AbstractContext) : IGuiScreensBuilder
 {
-
     override fun build(): List<IGuiScreen> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    // TODO Fix tests
+    /*override fun build(): List<IGuiScreen> {
         return buildGuiScreens(output)
     }
 
-    private fun buildGuiScreens(output: IExplorationLog): List<IGuiScreen> {
+    private fun buildGuiScreens(output: AbstractContext): List<IGuiScreen> {
         output.verify()
 
         var guiScreens = output.guiSnapshots.map {
@@ -97,6 +97,5 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output : IExplorati
         val sourceScreen = guiScreens.single { output.guiSnapshots[i - 1].id == it.getId() }
         val targetScreen = guiScreens.single { output.guiSnapshots[i].id == it.getId() }
         sourceScreen.addWidgetTransition(widget.id, targetScreen, true)
-    }
+    }*/
 }
-

@@ -19,16 +19,10 @@
 
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.device.datatypes.GuiStatus
-import org.droidmate.device.datatypes.IGuiStatus
-import org.droidmate.device.model.DeviceModel
-import org.droidmate.test_tools.ApkFixtures.Companion.apkFixture_simple_packageName
-import org.droidmate.test_tools.device.datatypes.WidgetTestHelper.Companion.newTopLevelWidget
-
 class GuiStateTestHelper
 {
-
-    companion object {
+    // TODO Fix tests
+    /*companion object {
         @JvmStatic
         @JvmOverloads
         @Suppress("unused")
@@ -93,5 +87,5 @@ class GuiStateTestHelper
             nextGuiStateIndex++
             return "GS$nextGuiStateIndex"
         }
-    }
+    }*/
 }

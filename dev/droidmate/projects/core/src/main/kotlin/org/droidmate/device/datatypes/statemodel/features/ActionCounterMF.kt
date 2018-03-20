@@ -25,23 +25,27 @@ import java.util.*
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ActionCounterMF:IModelFeature {
-	override var updateTask: Deferred<Unit>? = null
-	override var actionTask: Deferred<Unit>? = null
+    override var updateTask: Deferred<Unit>? = null
+    override var actionTask: Deferred<Unit>? = null
 
-	override suspend fun onNewAction(action: ActionData, prevState: StateData, newState: StateData) {
-		prevState.uid.let{ sId -> sCnt.incCnt(sId)   // the state the very last action acted on
-			// record the respective widget the exploration interacted
-			action.targetWidget?.let{ wCnt.compute(it.uid, { _,m -> m?.incCnt(sId)?: mutableMapOf(sId to 1)} ) }
-		}
-	}
+    override suspend fun onNewAction(action: ActionData, prevState: StateData, newState: StateData) {
+        prevState.uid.let { sId ->
+            sCnt.incCnt(sId)   // the state the very last action acted on
+            // record the respective widget the exploration interacted
+            action.targetWidget?.let { wCnt.compute(it.uid, { _, m -> m?.incCnt(sId) ?: mutableMapOf(sId to 1) }) }
+        }
+    }
 
 	private val sCnt = mutableMapOf<UUID,Int>() // counts how often the any state was explored
 	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt = mutableMapOf<UUID,MutableMap<UUID,Int>>()
 	private inline fun<reified K> MutableMap<K,Int>.incCnt(id:K):MutableMap<K,Int> = this.apply { compute( id, { _, c -> c?.inc()?:1 }) }
 
-	override suspend fun dump(context: ExplorationContext) { /* do nothing */	}
-	override suspend fun update(context: ExplorationContext) { /* do nothing */ }
+    override suspend fun dump(context: ExplorationContext) { /* do nothing */
+    }
+
+    override suspend fun update(context: ExplorationContext) { /* do nothing */
+    }
 
 	fun getStateCnt():Map<UUID,Int> = sCnt
 	fun getWidgetCnt():Map<UUID,Map<UUID,Int>> = wCnt

@@ -22,7 +22,6 @@ import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.misc.uniqueString
 import java.io.Serializable
 
 class PlaybackTrace : Serializable {
@@ -85,7 +84,7 @@ class PlaybackTrace : Serializable {
     fun contains(widget: Widget): Boolean {
         return trace.any { p ->
             (p.action is WidgetExplorationAction) &&
-                    (p.action.widget.uniqueString == widget.uniqueString)
+                    (p.action.widget.uid == widget.uid)
         }
     }
 
@@ -99,7 +98,7 @@ class PlaybackTrace : Serializable {
     private fun indexOf(widget: Widget): Int {
         return trace.indexOfFirst { p ->
             (p.action is WidgetExplorationAction) &&
-                    (p.action.widget.uniqueString == widget.uniqueString)
+                    (p.action.widget.uid == widget.uid)
         }
     }
 

@@ -21,19 +21,17 @@ package org.droidmate.exploration.strategy.playback
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.widget.Explore
-import org.droidmate.misc.isEquivalentIgnoreLocation
-import org.droidmate.misc.uniqueString
 
 @Suppress("unused")
 open class MemoryPlayback private constructor() : Explore() {
 
     private lateinit var packageName: String
-    private var storedMemoryData: IExplorationLog? = null
+    private var storedMemoryData: AbstractContext? = null
 
-    constructor(storedMemoryData: IExplorationLog) : this() {
+    constructor(storedMemoryData: AbstractContext) : this() {
         this.packageName = storedMemoryData.apk.packageName
         this.storedMemoryData = storedMemoryData
     }
@@ -75,7 +73,7 @@ open class MemoryPlayback private constructor() : Explore() {
     private fun StateData.similarity(other: StateData): Double {
         val otherWidgets = other.widgets
         val mappedWidgets = this.widgets.map { w ->
-            if (otherWidgets.any { it.uniqueString == w.uniqueString })
+            if (otherWidgets.any { it.uid == w.uid })
                 1
             else
                 0
@@ -86,9 +84,9 @@ open class MemoryPlayback private constructor() : Explore() {
     private fun Widget.canExecute(context: StateData, ignoreLocation: Boolean = false): Boolean {
         return if (ignoreLocation)
             (!(this.text.isEmpty() && (this.resourceId.isEmpty()))) &&
-                    (context.widgets.any { it.isEquivalentIgnoreLocation(this) })
+                    (context.widgets.any { it.uid == this.uid })
         else
-            (context.widgets.any { it.isEquivalent(this) })
+            (context.widgets.any { it.uid == this.uid })
     }
 
     private fun getNextAction(context: StateData): ExplorationAction {
@@ -186,7 +184,7 @@ open class MemoryPlayback private constructor() : Explore() {
         return StrategyPriority.PLAYBACK
     }
 
-    override fun initialize(memory: IExplorationLog) {
+    override fun initialize(memory: AbstractContext) {
         super.initialize(memory)
 
         if (this.storedMemoryData != null)

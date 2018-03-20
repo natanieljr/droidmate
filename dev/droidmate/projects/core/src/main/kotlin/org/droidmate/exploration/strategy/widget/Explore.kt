@@ -23,9 +23,6 @@ import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.misc.uniqueString
-
-//import org.droidmate.report.uniqueString
 
 /**
  * Abstract class for implementing widget exploration strategies.
@@ -97,10 +94,6 @@ abstract class Explore : AbstractStrategy() {
         }
     }
 
-    protected fun Widget.isEquivalent(other: Widget): Boolean {
-        return this.uniqueString == other.uniqueString
-    }
-
     protected fun Widget.getActionableParent(): Widget? {
         var parent: Widget? = memory.getCurrentState().widgets.find{it.id == this.parentId}
         // Just check for layouts
@@ -131,22 +124,15 @@ abstract class Explore : AbstractStrategy() {
         return closest
     }
 
-    protected fun updateState(StateData: StateData): Boolean {
-        StateData.seenCount += 1
-
-        if (StateData.seenCount == 1)
-            logger.debug("Encountered a NEW widget context:\n${StateData.uniqueString}")
-        else
-            logger.debug("Encountered an existing widget context:\n${StateData.uniqueString}")
-
-        if (!StateData.belongsToApp()) {
+    protected fun updateState(currentState: StateData): Boolean {
+        if (!memory.belongsToApp(currentState)) {
             if (!memory.isEmpty()) {
 //                this.memory.lastTarget.blackListed = true //TODO blacklist missing in current model
                 logger.debug("Blacklisted ${this.memory.lastTarget}")
             }
         }
 
-        return StateData.allWidgetsBlacklisted()
+        return false //currentState.allWidgetsBlacklisted()
     }
 
     abstract fun chooseAction(currentState: StateData): ExplorationAction

@@ -21,7 +21,7 @@ package org.droidmate.exploration.strategy
 import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 
 /**
  * Base class for exploration strategies that can be selected from within an IStrategyPool
@@ -37,7 +37,7 @@ interface ISelectableExplorationStrategy {
     /**
      * Configure the exploration strategy with the []shared memory][memory]
      */
-    fun initialize(memory: IExplorationLog)
+    fun initialize(memory: AbstractContext)
 
     /**
      * Estimate of confident the exploration strategy is that it can perform an action.

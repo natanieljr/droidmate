@@ -101,7 +101,7 @@ open class ModelBased protected constructor(randomSeed: Long,
         attributeValues[0] = model.getNominalIndex(0, this.getRefinedType())
 
         if (this.parentId != null)
-            attributeValues[1] = model.getNominalIndex(1, memory.getCurrentState().widgets.find { it.id == parentId }!!.className)  //TODO get rectified name
+            attributeValues[1] = model.getNominalIndex(1, currentState.widgets.find { it.id == parentId }!!.className)  //TODO get rectified name
         else
             attributeValues[1] = model.getNominalIndex(1, "none")
 
@@ -160,10 +160,10 @@ open class ModelBased protected constructor(randomSeed: Long,
      *
      * @return List of widgets which have an associated event (according to the model)
      */
-    override fun getAvailableWidgets(StateData: StateData): List<Widget> {
-        var candidates = internalGetWidgets(StateData)
+    override fun getAvailableWidgets(currentState: StateData): List<Widget> {
+        var candidates = internalGetWidgets(currentState)
 
-        this.memory.lastTarget?.let{ candidates = candidates.filterNot { it.isEquivalent(it) } }
+        this.memory.lastTarget?.let { candidates = candidates.filterNot { it.uid == it.uid } }
 
         return candidates
     }

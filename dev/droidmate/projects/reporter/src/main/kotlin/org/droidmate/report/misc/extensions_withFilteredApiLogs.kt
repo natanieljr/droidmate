@@ -18,14 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
-import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.exploration.actions.ExplorationRecord
-import org.droidmate.exploration.data_aggregators.ExplorationContext
-import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.exploration.device.IDeviceLogs
+import org.droidmate.exploration.data_aggregators.AbstractContext
 
 // WISH use instead lazy extension property implemented with workaround: https://youtrack.jetbrains.com/issue/KT-13053#comment=27-1510399
-val List<IExplorationLog>.withFilteredApiLogs: List<IExplorationLog>
+val List<AbstractContext>.withFilteredApiLogs: List<AbstractContext>
     get() {
 TODO("no idea what's the intention of this method")
         /*

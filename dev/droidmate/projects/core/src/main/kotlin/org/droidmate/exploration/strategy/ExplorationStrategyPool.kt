@@ -23,7 +23,7 @@ import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.strategy.reset.AppCrashedReset
 import org.droidmate.exploration.strategy.reset.CannotExploreReset
 import org.droidmate.exploration.strategy.reset.InitialReset
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory
  * @author Nataniel P. Borges Jr.
  */
 class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>,
-                              private val memory: IExplorationLog) : IExplorationStrategy, IControlObserver {
+                              private val memory: AbstractContext) : IExplorationStrategy, IControlObserver {
 
     companion object {
         private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
@@ -76,7 +76,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             return strategies
         }
 
-        fun build(explorationLog: IExplorationLog, cfg: Configuration): ExplorationStrategyPool {
+        fun build(explorationLog: AbstractContext, cfg: Configuration): ExplorationStrategyPool {
 
             val strategies = ArrayList<ISelectableExplorationStrategy>()
 

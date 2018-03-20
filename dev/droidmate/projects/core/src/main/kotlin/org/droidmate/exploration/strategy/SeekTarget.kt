@@ -23,7 +23,6 @@ import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.widget.RandomWidget
-import org.droidmate.misc.isEquivalentIgnoreLocation
 
 /**
  * Exploration strategy that seeks targets. Has a higher priority than the normal widget explorations
@@ -52,7 +51,7 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
         val toSatisfy = this.target.getNextWidgetsCanSatisfy()
 
         return widgetInfo.filter { w ->
-            toSatisfy.any { it.widget.isEquivalentIgnoreLocation(w) }
+            toSatisfy.any { it.widget.uid == w.uid }
         }
     }
 

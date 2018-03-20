@@ -24,8 +24,8 @@ import kotlinx.coroutines.experimental.launch
 import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.statemodel.*
 import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
-import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.device.datatypes.statemodel.features.IModelFeature
+import org.droidmate.exploration.actions.IRunnableExplorationAction
 import java.awt.Rectangle
 import java.time.LocalDateTime
 
@@ -34,39 +34,49 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    override val watcher:List<IModelFeature> = listOf(ActionCounterMF()),
                                                    override val actionTrace: Trace = Trace(watcher),
-                                                   override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : IExplorationLog() {
+                                                   override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : AbstractContext() {
 
 	override var deviceDisplayBounds: Rectangle? = null
-	/** for debugging purpose only contains the last UiAutomator dump */
-	var lastDump:String = ""
 
 	init{
 		model.addTrace(actionTrace)
-		if (explorationStartTime > LocalDateTime.MIN)
-			this.verify()
+        if (explorationStartTime > LocalDateTime.MIN)
+            this.verify()
 	}
 
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 
-	override fun getCurrentState(): StateData = actionTrace.getCurrentState()
+    override fun getCurrentState(): StateData = actionTrace.getCurrentState()
+
+    override fun belongsToApp(state: StateData): Boolean {
+        return state.topNodePackageName == apk.packageName
+    }
 
 	override fun add(action: IRunnableExplorationAction, result: ActionResult) {
 		deviceDisplayBounds = result.guiSnapshot.guiStatus.deviceDisplayBounds
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
-		model.S_updateModel(result,actionTrace)
-		this.also { context -> watcher.forEach { it.updateTask = async(CoroutineName(it::class.simpleName?:"update-observer")){ it.update(context) } } }
-	}
+        model.S_updateModel(result, actionTrace)
+        this.also { context ->
+            watcher.forEach {
+                it.updateTask = async(CoroutineName(it::class.simpleName ?: "update-observer")) { it.update(context) }
+            }
+        }
+    }
 
-	override fun dump() {
-		model.P_dumpModel(model.config)
-		this.also { context -> watcher.forEach { launch(CoroutineName(it::class.simpleName?:"observer-dump")) { it.dump(context) } } }
+    override fun dump() {
+        model.P_dumpModel(model.config)
+        this.also { context ->
+            watcher.forEach {
+                launch(CoroutineName(it::class.simpleName ?: "observer-dump")) { it.dump(context) }
+            }
+        }
 	}
 
 	override fun areAllWidgetsExplored(): Boolean {
-		return actionTrace.unexplored(getCurrentState().actionableWidgets).isNotEmpty()
+        return actionTrace.unexplored(getCurrentState().actionableWidgets).isNotEmpty()
 	}
 
 	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() {

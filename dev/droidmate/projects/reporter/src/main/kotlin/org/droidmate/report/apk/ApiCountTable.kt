@@ -20,14 +20,14 @@ package org.droidmate.report.apk
 
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.statemodel.ActionData
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import java.time.Duration
 import java.util.*
 
 class ApiCountTable : CountsPartitionedByTimeTable {
 
-	constructor(data: IExplorationLog) : super(
+    constructor(data: AbstractContext) : super(
 			data.getExplorationTimeInMs(),
 			listOf(
 					headerTime,
@@ -48,7 +48,7 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 
 		/** the collection of Apis triggered , grouped based on the apis timestamp
 		 * Map<time, List<(action,api)>> is for each timestamp the list of the triggered action with the observed api*/
-		private val IExplorationLog.apisByTime
+        private val AbstractContext.apisByTime
 			get() =
 				LinkedList<Pair<ActionData, IApiLogcatMessage>>().apply {
 					// create a list of (widget.id,IApiLogcatMessage)
@@ -59,12 +59,12 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 				}.groupBy { (_, api) -> Duration.between(explorationStartTime, api.time).toMillis() } // group them by their start time (i.e. how may milli seconds elapsed since exploration start)
 
 		/** map of seconds elapsed during app exploration until the api was called To the set of api calls (their unique string) **/
-		private val IExplorationLog.uniqueApisCountByTime: Map<Long, Iterable<String>>
+        private val AbstractContext.uniqueApisCountByTime: Map<Long, Iterable<String>>
 			get() = apisByTime.mapValues { it.value.map { (_, api) -> api.uniqueString } }   // instead of the whole IApiLogcatMessage only keep the unique string for the Api
 
 
 		/** map of seconds elapsed during app exploration until the api was triggered To  **/
-		private val IExplorationLog.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
+        private val AbstractContext.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
 			get() = apisByTime.mapValues { it.value.map { (action, api) -> "${action.actionString()}_${api.uniqueString}" } }
 	}
 }
