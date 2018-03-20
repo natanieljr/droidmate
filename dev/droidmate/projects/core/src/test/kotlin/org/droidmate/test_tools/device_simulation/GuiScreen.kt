@@ -32,9 +32,10 @@ import org.droidmate.uiautomator_daemon.guimodel.Action
  *
  * </p>
  */
-class GuiScreen constructor(private val internalId: String, 
+class GuiScreen /*constructor(private val internalId: String,
                             packageName : String = "", 
-                            private val timeGenerator : ITimeGenerator? = null) : IGuiScreen {
+                            private val timeGenerator : ITimeGenerator? = null)*/ // TODO Fix tests
+    : IGuiScreen {
     override fun perform(action: Action): IScreenTransitionResult {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

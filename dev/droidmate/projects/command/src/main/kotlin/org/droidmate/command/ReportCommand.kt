@@ -23,12 +23,11 @@ import org.droidmate.report.AggregateStats
 import org.droidmate.report.OutputDir
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
-import org.droidmate.report.misc.withFilteredApiLogs
 
 class ReportCommand : DroidmateCommand() {
     override fun execute(cfg: Configuration) {
         val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
-        val data = out.withFilteredApiLogs
+        val data = out
 
         AggregateStats().write(cfg.droidmateOutputReportDirPath, data)
         Summary().write(cfg.droidmateOutputReportDirPath, data)

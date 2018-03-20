@@ -22,8 +22,12 @@ import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.uiautomator_daemon.guimodel.Action
 
-class DeviceSimulation private constructor(guiScreensBuilder: IGuiScreensBuilder,
-                                           override val packageName: String): IDeviceSimulation {
+class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuilder,
+                                           override val packageName: String)*/ // TODO Fix tests
+    : IDeviceSimulation {
+    override val packageName: String
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+
     override fun updateState(deviceAction: Action) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

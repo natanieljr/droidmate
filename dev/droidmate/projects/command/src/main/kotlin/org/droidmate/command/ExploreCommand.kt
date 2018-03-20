@@ -37,7 +37,6 @@ import org.droidmate.report.AggregateStats
 import org.droidmate.report.IReporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
-import org.droidmate.report.misc.withFilteredApiLogs
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
@@ -95,7 +94,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
     assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
 
     log.info("Writing reports")
-    val reportData = rawData.withFilteredApiLogs
+      val reportData = rawData
     reporters.forEach { it.write(reportDir.toAbsolutePath(), reportData) }
   }
 

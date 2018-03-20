@@ -23,8 +23,6 @@ import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.test_tools.ApkFixtures
-import org.droidmate.test_tools.exceptions.IExceptionSpec
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -35,11 +33,13 @@ import java.time.LocalDateTime
  * Right now "spec" is used for all the apks simulations on the simulator (obtained pkgNames) and a call to "installApk"
  * switches the simulations.
  */
-class AndroidDeviceSimulator(timeGenerator: ITimeGenerator,
+class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
                              pkgNames: List<String> = arrayListOf(ApkFixtures.apkFixture_simple_packageName),
                              spec: String,
                              private val exceptionSpecs: List<IExceptionSpec> = ArrayList(),
-                             unreliableSimulation: Boolean = false) : IAndroidDevice {
+                             unreliableSimulation: Boolean = false)*/ // TODO Fix tests
+    : IAndroidDevice {
+    // TODO Fix tests
     override fun pushFile(jar: Path) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
