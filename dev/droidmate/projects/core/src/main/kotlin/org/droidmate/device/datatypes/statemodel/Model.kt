@@ -7,6 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import javax.imageio.ImageIO
 import kotlin.collections.HashSet
 import kotlin.streams.toList
 
@@ -21,6 +22,7 @@ internal inline fun <T> P_processLines(file:File, sep:String, skip:Long=1, cross
 	}}
 }
 
+/** s_* should be only used in sequential context as it currently does not handle parallelism*/
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class Model private constructor(val config: ModelDumpConfig){
 	private val states = HashSet<StateData>()
@@ -30,7 +32,7 @@ class Model private constructor(val config: ModelDumpConfig){
 	fun getStates():Set<StateData> = states // return a view to the data
 	fun addState(s: StateData) = synchronized(states){
 		states.find { x->x.stateId==s.stateId } ?:states.add(s)}
-	fun getState(id:StateId) = states.find { it.stateId == id }
+	fun getState(id:ConcreteId) = states.find { it.stateId == id }
 
 	fun getWidgets():Set<Widget> = widgets
 	fun addWidget(w:Widget) = synchronized(widgets){
@@ -39,7 +41,6 @@ class Model private constructor(val config: ModelDumpConfig){
 	fun getPaths():Set<Trace> = paths
 	fun addTrace(t:Trace) = paths.add(t)
 
-	/** s_ should be only used in sequential context */
 	fun S_findWidget(predicate:(Widget)->Boolean) = widgets.find(predicate)
 	val findWidget:(uuid:String,c:Collection<Widget>)->Widget?= { id, c ->
 		findWidgetOrElse(id,c){ throw RuntimeException("ERROR on state parsing, the target widget $id was not instantiated correctly")}
@@ -48,7 +49,7 @@ class Model private constructor(val config: ModelDumpConfig){
 		return if (uuid == "null") null
 		else  UUID.fromString(uuid).let{ synchronized(widgets){ widgets.find { w -> w.uid == it } ?: otherwise(it) }}
 	}
-	private suspend fun P_findOrAddState(stateId:StateId): StateData = states.find { s->s.stateId==stateId }  // allow parsing in parallel but ensure atomic adding
+	private suspend fun P_findOrAddState(stateId:ConcreteId): StateData = states.find { s->s.stateId==stateId }  // allow parsing in parallel but ensure atomic adding
 			?:  P_parseState(stateId).also{ addState(it) }
 
 	fun P_dumpModel(config: ModelDumpConfig) = launch(CoroutineName("Model-dump")){
@@ -56,6 +57,41 @@ class Model private constructor(val config: ModelDumpConfig){
 			states.map { s -> launch(CoroutineName("state-dump ${s.uid}")) { s.dump(config) } }.forEach { it.join() }
 			traceDump.forEach { it.join() }
 		}
+	}
+
+	/** update the model with any [action] executed as part of an execution [trace] **/
+	fun S_updateModel(action:ActionResult,trace:Trace){
+		computeNewState(action,trace.interactedEditFields()).also { newState ->
+			launch { newState.dump(config) }
+			trace.update(action,newState)
+			launch { trace.dump(config)}
+			trace.last()!!.screenshot.let{ launch { // if there is any screen-shot copy it to the state extraction directory
+				java.nio.file.Paths.get(it)?.toFile()?.copyTo(java.io.File(config.statePath(newState.stateId,"_${newState.configId}${timestamp()}","png") )) }}
+
+			widgets.addAll(newState.widgets)
+			states.add(newState)
+		}
+	}
+
+	private fun computeNewState(action:ActionResult, interactedEF: Map<UUID, List<Pair<StateData, Widget>>>):StateData{
+		action.getWidgets(config).let { // compute all widgets existing in the current state
+			action.resultState(it).let { state -> // revise state if it contains previously interacted edit fields
+				if( state.hasEdit) interactedEF[state.iEditId]?.let{ return action.resultState(handleEditFields(state,it)) }
+				return state
+			}
+		}
+	}
+
+	/** check for all edit fields of the state if we already interacted with them and thus potentially changed their text property, if so overwrite the uid to the original one (before we interacted with it) */
+	private fun handleEditFields(state: StateData, interactedEF: List<Pair<StateData, Widget>>):List<Widget> {
+		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
+		return interactedEF.groupBy { it.first }.map { (s,pairs) ->
+			pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets	}
+		}.fold(state.widgets, { res, (iUid,widgets) ->  // determine which candidate matches the current [state] and replace the respective widget.uid`s
+			if(state.idWhenIgnoring(widgets)==iUid && widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
+				return state.widgets.map { w -> w.apply { uid =	widgets.find { it.uid ==w.uid }?.uid ?: w.uid } } // replace with initial uid
+			else res // contain different elements => wrong state candidate
+		})
 	}
 
 	private val _actionParser:(List<String>)->Deferred<ActionData> = { entries -> async(CoroutineName("ActionParsing-$entries")){ // we createFromString the source state and target widget if there is any
@@ -76,26 +112,26 @@ class Model private constructor(val config: ModelDumpConfig){
 				"ERROR on widget parsing inconsistent UUID created ${it.uid} instead of $id"}) } }
 		}
 	}}
-	private suspend fun P_parseState(stateId: StateId): StateData {
+	private suspend fun P_parseState(stateId: ConcreteId): StateData {
 		return mutableSetOf<Widget>().apply {  // create the set of contained elements (widgets)
 			val contentFile = File(config.widgetFile(stateId))
 			if(contentFile.exists())  // otherwise this state has no widgets
 				P_processLines(file = contentFile, sep = sep, lineProcessor = _widgetParser).forEach {
 					it.await()?.also {  // add the parsed widget to temporary set AND initialize the parent property
 						add(it)
-						it.properties.parent?.let{ parent -> it.parentId = widgets.find{ w-> w.xpath == parent.xpath }?.id }
+						if(it.parentXpath != "") it.parentId = widgets.find{ w-> w.xpath == it.parentXpath }?.id
 					}
 				}
 		}.let {
 			if(it.isNotEmpty())
-				StateData.fromFile(it, File(config.statePath(stateId)))
+				StateData.fromFile(it)
 			else StateData.emptyState()
 		}
 				.also {assert(stateId ==it.stateId, {"ERROR on state parsing inconsistent UUID created ${it.uid} instead of $stateId"}) }
 	}
 
 	companion object {
-		fun emptyModel(config: ModelDumpConfig): Model = Model(config)
+		@JvmStatic fun emptyModel(config: ModelDumpConfig): Model = Model(config)
 
 		// parallel parsing of multiple traces => need to lock states/widgets and paths when modifying them
 		internal fun loadAppModel(appName:String): Model {

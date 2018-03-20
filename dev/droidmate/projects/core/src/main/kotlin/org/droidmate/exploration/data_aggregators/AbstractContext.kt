@@ -43,7 +43,7 @@ import java.time.LocalDateTime
  *
  * @author Nataniel P. Borges Jr.
  */ //TODO cleanup code between ExplorationContext and IExplorationLog
-abstract class IExplorationLog : Serializable {
+abstract class AbstractContext : Serializable {
 	abstract val model: Model
 	abstract val watcher:List<IModelFeature>
 
@@ -69,6 +69,9 @@ abstract class IExplorationLog : Serializable {
 		get() = exception !is DeviceExceptionMissing
 
 	var exception: DeviceException = DeviceExceptionMissing()
+
+	/** for debugging purpose only contains the last UiAutomator dump */
+	var lastDump:String = ""
 
 	abstract val apk: IApk
 
@@ -128,6 +131,13 @@ abstract class IExplorationLog : Serializable {
 //    @Deprecated("use the Model or StateData instead to retrieve the required information")
 //    fun getState(guiStatus: IGuiStatus): WidgetContext
 	abstract fun getCurrentState():StateData
+
+	/**
+	 * Check if a state belongs to the app to which the context refers to
+	 *
+	 * @param state State to be checked
+	 */
+	abstract fun belongsToApp(state: StateData): Boolean
 
 	/**
 	 * Check if all widgets that have been found up to now have been already explored

@@ -45,9 +45,9 @@ class ModelDumpConfig(path:String, appName:String) {
     Files.createDirectories(Paths.get("${widgetImgDst}nonInteractive${File.separator}"))
   }
 
-  val widgetFile:(StateId)->String = { id->statePath(id, postfix = "_AllWidgets") }
+  val widgetFile:(ConcreteId)->String = { id->statePath(id, postfix = "_AllWidgets") }
   private val idPath:(String, String, String, String)->String = { baseDir, id, postfix, fileExtension-> baseDir+id+postfix+"."+fileExtension }
-  fun statePath(id: StateId,postfix:String="",fileExtension:String="csv"):String{
+  fun statePath(id: ConcreteId, postfix:String="", fileExtension:String="csv"):String{
     return idPath(stateDst,"${id.first}_${id.second}",postfix,fileExtension)
   }
   fun widgetImgPath(id:UUID, postfix:String="", fileExtension:String="png", interactive:Boolean):String{
@@ -61,4 +61,4 @@ private const val datePattern = "ddMM-HHmmss"
 internal fun timestamp():String = DateTimeFormatter.ofPattern(datePattern).format(LocalDateTime.now())
 internal const val sep = ";"
 internal const val traceFilePrefix = "trace"
-val emptyUUID = UUID.nameUUIDFromBytes(byteArrayOf())
+val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())

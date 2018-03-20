@@ -16,10 +16,26 @@
 //
 package org.droidmate.device.datatypes.statemodel.features
 
+import kotlinx.coroutines.experimental.Deferred
+import org.droidmate.device.datatypes.statemodel.ActionData
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.data_aggregators.ExplorationContext
 
 @Suppress("unused")
 interface IModelFeature {
-  fun update(context: ExplorationContext)
-  fun dump(context: ExplorationContext)
+
+	/** use this if your strategy needs to ensure that the [onNewAction] function already finished. This value will be automatically set for the invocation of [onNewAction] */
+	var actionTask: Deferred<Unit>?
+	/** like [actionTask] but for the method [update] */
+	var updateTask: Deferred<Unit>?
+
+  /** this is called after the model was completely updated with the new action and state
+   * this method gives access to the complete [context] inclusive other ModelFeatures */
+  suspend fun update(context: ExplorationContext)
+
+  /** called whenever a new [action] was executed on the device resulting in [state]
+   * this function may be used instead of update for simpler access to the action and result state*/
+  suspend fun onNewAction(action: ActionData, prevState:StateData, newState:StateData)
+
+  suspend fun dump(context: ExplorationContext)
 }
