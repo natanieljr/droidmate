@@ -16,17 +16,21 @@
 //
 package org.droidmate.device.datatypes.statemodel.features
 
-import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.DefaultDispatcher
+import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
-import org.droidmate.exploration.data_aggregators.ExplorationContext
 import java.util.*
+import kotlin.coroutines.experimental.CoroutineContext
 
+/** ASSUMPTION:
+ * job.join is called between each action, such that the access to the counter lists does not have to by synchronized
+ * if that ever changes we a receiver channel or actor has to be implemented to manage these list accesses*/
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class ActionCounterMF:IModelFeature {
-	override var updateTask: Deferred<Unit>? = null
-	override var actionTask: Deferred<Unit>? = null
+class ActionCounterMF: ModelFeature() {
+
+	override val context: CoroutineContext = newCoroutineContext(context = DefaultDispatcher, parent = job)
 
 	override suspend fun onNewAction(action: ActionData, prevState: StateData, newState: StateData) {
 		prevState.uid.let{ sId -> sCnt.incCnt(sId)   // the state the very last action acted on
@@ -39,9 +43,6 @@ class ActionCounterMF:IModelFeature {
 	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt = mutableMapOf<UUID,MutableMap<UUID,Int>>()
 	private inline fun<reified K> MutableMap<K,Int>.incCnt(id:K):MutableMap<K,Int> = this.apply { compute( id, { _, c -> c?.inc()?:1 }) }
-
-	override suspend fun dump(context: ExplorationContext) { /* do nothing */	}
-	override suspend fun update(context: ExplorationContext) { /* do nothing */ }
 
 	fun getStateCnt():Map<UUID,Int> = sCnt
 	fun getWidgetCnt():Map<UUID,Map<UUID,Int>> = wCnt

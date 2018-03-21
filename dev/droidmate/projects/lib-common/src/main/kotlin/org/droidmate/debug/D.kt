@@ -21,6 +21,20 @@ package org.droidmate.debug
 
 import java.io.File
 import java.lang.Thread.sleep
+import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
+
+inline fun<T> debugT(msg:String, block:()->T, timer:(Long)->Unit = {}):T{
+    var res:T? = null
+    measureNanoTime {
+        res = block.invoke()
+    }.let {
+        timer(it)
+        println("time ${it/1000.0} \t $msg")
+    }
+    return res!!
+}
+
 
 class D {
     companion object {

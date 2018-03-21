@@ -1,15 +1,16 @@
 package org.droidmate.device.datatypes.statemodel
 
 import kotlinx.coroutines.experimental.*
+import org.droidmate.debug.debugT
 import org.droidmate.device.datatypes.Widget
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import javax.imageio.ImageIO
 import kotlin.collections.HashSet
 import kotlin.streams.toList
+import kotlin.system.measureTimeMillis
 
 internal operator fun UUID.plus(uuid: UUID): UUID {
 	return UUID(this.mostSignificantBits+uuid.mostSignificantBits,this.leastSignificantBits+uuid.mostSignificantBits)
@@ -34,9 +35,11 @@ class Model private constructor(val config: ModelDumpConfig){
 		states.find { x->x.stateId==s.stateId } ?:states.add(s)}
 	fun getState(id:ConcreteId) = states.find { it.stateId == id }
 
+	private val widgetAdder:LinkedList<Deferred<Unit>> = LinkedList()
 	fun getWidgets():Set<Widget> = widgets
 	fun addWidget(w:Widget) = synchronized(widgets){
 		widgets.find { it.id==w.id } ?: widgets.add(w) }
+	fun waitForOverallWidgetsUpdates() = widgetAdder.apply{ removeAll{ it.isCompleted } }
 
 	fun getPaths():Set<Trace> = paths
 	fun addTrace(t:Trace) = paths.add(t)
@@ -61,37 +64,98 @@ class Model private constructor(val config: ModelDumpConfig){
 
 	/** update the model with any [action] executed as part of an execution [trace] **/
 	fun S_updateModel(action:ActionResult,trace:Trace){
-		computeNewState(action,trace.interactedEditFields()).also { newState ->
-			launch { newState.dump(config) }
-			trace.update(action,newState)
-			launch { trace.dump(config)}
-			trace.last()!!.screenshot.let{ launch { // if there is any screen-shot copy it to the state extraction directory
-				java.nio.file.Paths.get(it)?.toFile()?.copyTo(java.io.File(config.statePath(newState.stateId,"_${newState.configId}${timestamp()}","png") )) }}
+		measureTimeMillis {
+			var s:StateData? = null
+			measureTimeMillis {
+				s = computeNewState(action, trace.interactedEditFields())
+			}.let { println("state computation takes $it millis for ${s!!.widgets.size}") }
+					s?.also { newState ->
+//				val traceUpdate = launch{ debugT("trace update",{
+					trace.update(action, newState)
+//					}) }
+				launch { newState.dump(config) }
+				launch { //traceUpdate.join();
+					trace.dump(config) }
+				launch { //traceUpdate.join()
+					trace.last()!!.screenshot.let {
+						// if there is any screen-shot copy it to the state extraction directory
+					java.io.File(config.statePath(newState.stateId, "_${newState.configId}", "png")).let {file ->
+						if(!file.exists()) java.nio.file.Paths.get(it)?.toFile()?.copyTo(file)
+					}
+					}
+				}
 
-			widgets.addAll(newState.widgets)
-			states.add(newState)
-		}
+//						widgetAdder.add(async{
+				launch{		debugT( "${newState.widgets.size} widget adding ",{ //FIXME do this via actor to ensure synchroniced add/get
+//					widgets.addAll(newState.widgets)
+					newState.widgets.forEach {  addWidget(it) }
+				})
+//					})
+ }
+						// FIXME this can occationally take much time, therefore create an actor for it as well
+				launch{ debugT("state adding",{states.add(newState)})}
+//				debugT("model join trace update",{ runBlocking{traceUpdate.join()} })  // wait until we are sure the model is completely updated
+			}
+		}.let{ println("model update took $it millis") }
 	}
 
 	private fun computeNewState(action:ActionResult, interactedEF: Map<UUID, List<Pair<StateData, Widget>>>):StateData{
-		action.getWidgets(config).let { // compute all widgets existing in the current state
-			action.resultState(it).let { state -> // revise state if it contains previously interacted edit fields
-				if( state.hasEdit) interactedEF[state.iEditId]?.let{ return action.resultState(handleEditFields(state,it)) }
-				return state
+		debugT("compute Widget set ",{ action.getWidgets(config) })
+				.let { widgets->// compute all widgets existing in the current state
+
+			debugT("compute result State for ${widgets.size}\n",{action.resultState(widgets)}).let { state -> // revise state if it contains previously interacted edit fields
+
+				return debugT( "special widget handling", {
+					if( state.hasEdit) interactedEF[state.iEditId]?.let {
+						action.resultState(handleEditFields(state, it)) } ?: state
+					else state
+					})
+//					return s!! //}
+//				return state
 			}
 		}
 	}
 
+//	val editTask = {state:StateData,(iUid, widgets):Pair<UUID,List<Widget>> ->
+//		if (state.idWhenIgnoring(widgets) == iUid &&
+//				widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
+//			state.widgets.map { w -> w.apply { uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
+//		else null
+//	}
 	/** check for all edit fields of the state if we already interacted with them and thus potentially changed their text property, if so overwrite the uid to the original one (before we interacted with it) */
+	//TODO this takes unusual much time
 	private fun handleEditFields(state: StateData, interactedEF: List<Pair<StateData, Widget>>):List<Widget> {
 		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
 		return interactedEF.groupBy { it.first }.map { (s,pairs) ->
 			pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets	}
-		}.fold(state.widgets, { res, (iUid,widgets) ->  // determine which candidate matches the current [state] and replace the respective widget.uid`s
-			if(state.idWhenIgnoring(widgets)==iUid && widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
-				return state.widgets.map { w -> w.apply { uid =	widgets.find { it.uid ==w.uid }?.uid ?: w.uid } } // replace with initial uid
-			else res // contain different elements => wrong state candidate
-		})
+		}.let {
+
+
+//			debugT("parallel edit field",{
+//				runBlocking {
+//					it.map { //(iUid, widgets) ->
+//						async {	editTask(state,it) }
+//					}.mapNotNull { it.await() }
+//				}
+//			})
+//			debugT("parallel edit unconfined",{
+//				runBlocking {
+//					it.map { //(iUid, widgets) ->
+//						async(Unconfined) {	editTask(state,it) }
+//					}.mapNotNull { it.await() }
+//				}
+//			})
+//FIXME same issue for Password fields?
+			debugT("sequential edit field",{  // faster then parallel alternatives
+				it.fold(state.widgets, { res, (iUid, widgets) ->
+				// determine which candidate matches the current [state] and replace the respective widget.uid`s
+				if (state.idWhenIgnoring(widgets) == iUid &&
+						widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
+					state.widgets.map { w -> w.apply { uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
+				else res // contain different elements => wrong state candidate
+			})
+			})
+		}
 	}
 
 	private val _actionParser:(List<String>)->Deferred<ActionData> = { entries -> async(CoroutineName("ActionParsing-$entries")){ // we createFromString the source state and target widget if there is any
@@ -125,7 +189,7 @@ class Model private constructor(val config: ModelDumpConfig){
 		}.let {
 			if(it.isNotEmpty())
 				StateData.fromFile(it)
-			else StateData.emptyState()
+			else StateData.emptyState
 		}
 				.also {assert(stateId ==it.stateId, {"ERROR on state parsing inconsistent UUID created ${it.uid} instead of $stateId"}) }
 	}

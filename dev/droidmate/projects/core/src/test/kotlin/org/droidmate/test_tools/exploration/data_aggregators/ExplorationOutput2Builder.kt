@@ -23,6 +23,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.Api
 import org.droidmate.apis.ApiLogcatMessageTestHelper
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.data_aggregators.ExplorationContext
@@ -35,6 +36,7 @@ import org.droidmate.test_tools.exploration.actions.ExplorationActionTestHelper
 import java.net.URI
 
 import java.time.LocalDateTime
+import java.util.*
 
 class ExplorationOutput2Builder {
 
@@ -89,7 +91,7 @@ class ExplorationOutput2Builder {
         return parseRunnableAction(attributes["action"] as String, timestamp)
     }
 
-    internal fun buildActionResult(attributes: Map<String, Any>): org.droidmate.exploration.strategy.ActionResult {
+    internal fun buildActionResult(attributes: Map<String, Any>): ActionResult {
         val deviceLogs = buildDeviceLogs(attributes)
         val guiSnapshot = attributes["guiSnapshot"] as IDeviceGuiSnapshot? ?: UiautomatorWindowDumpTestHelper.newHomeScreenWindowDump()
 
@@ -108,7 +110,7 @@ class ExplorationOutput2Builder {
 
     @Suppress("UNCHECKED_CAST")
     private fun buildDeviceLogs(attributes: Map<String, Any>): IDeviceLogs {
-        val apiLogs = attributes["logs"] as List<Array<String>>? ?: ArrayList()
+        val apiLogs = attributes["logs"] as LinkedList<LinkedList<String>>? ?: LinkedList()
 
         val deviceLogs = DeviceLogs()
 

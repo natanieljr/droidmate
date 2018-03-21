@@ -18,20 +18,31 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import org.droidmate.device.datatypes.statemodel.*
+import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.debug.debugT
+import org.droidmate.device.datatypes.statemodel.ModelDumpConfig
+import org.droidmate.device.datatypes.statemodel.emptyUUID
+import org.droidmate.device.datatypes.statemodel.sep
+import org.droidmate.device.datatypes.statemodel.stateIdFromString
 import org.droidmate.exploration.actions.Direction
-import org.droidmate.misc.BuildConstants.Companion.properties
+import weka.gui.beans.Visible
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.SystemColor.text
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
+import java.awt.image.DataBufferByte
 import java.io.File
 import java.nio.charset.Charset
 import java.util.*
 import javax.imageio.ImageIO
+import javax.swing.Scrollable
+import kotlin.coroutines.experimental.coroutineContext
 import kotlin.reflect.full.declaredMemberProperties
 
+
+/** always prefer directly creating the UUID from an byte array as it is more than factor 20 faster */
 fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.forName("UTF-8")))
 
 @Suppress("unused")
@@ -64,6 +75,7 @@ class WidgetData(map: Map<String,Any?>,val index: Int = -1,val parent: WidgetDat
 
 	@Deprecated("use the new UUID from state model instead")
 	val id: String by map.withDefault { "" } // only used for testing
+	fun content():String = text + contentDesc
 
 
 	fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked?:false || longClickable || scrollable)
@@ -101,18 +113,18 @@ class WidgetData(map: Map<String,Any?>,val index: Int = -1,val parent: WidgetDat
 }
 
 private enum class P(val pName:String="",var header: String="") {
-	UID, ImgId(header="image uid"), Type(WidgetData::className.name,"widget class"), Interactive, Text(WidgetData::text.name),
+	UID,  WdId(header="data UID"), Type(WidgetData::className.name,"widget class"), Interactive, Text(WidgetData::text.name),
 	Desc(WidgetData::contentDesc.name,"Description"), 	ParentUID(header = "parentID"), Enabled(WidgetData::enabled.name), Visible(WidgetData::visible.name),
 	Clickable(WidgetData::clickable.name), LongClickable(WidgetData::longClickable.name), Scrollable(WidgetData::scrollable.name),
 	Checkable(WidgetData::checked.name), Focusable(WidgetData::focused.name), Selected(WidgetData::selected.name), IsPassword(WidgetData::isPassword.name),
-	Bounds(WidgetData::bounds.name), ResId(WidgetData::resourceId.name,"Resource Id"), XPath, IsLeaf(WidgetData::isLeaf.name) ;
+	Bounds(WidgetData::bounds.name), ResId(WidgetData::resourceId.name,"Resource Id"), XPath, IsLeaf(WidgetData::isLeaf.name), PackageName(WidgetData::packageName.name) ;
 	init{ if(header=="") header=name }
 	companion object {
 		val propertyValues = P.values().filter { it.pName != "" }
 		fun propertyMap(line: List<String>): Map<String, Any?> = propertyValues.map {
 			(it.pName to
 					when (it) {
-						Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible -> line[it.ordinal].toBoolean()
+						Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible, IsLeaf -> line[it.ordinal].toBoolean()
 						Checkable, Focusable -> flag(line[it.ordinal])
 						Bounds -> rectFromString(line[it.ordinal])
 						else -> line[it.ordinal]  // Strings
@@ -123,15 +135,50 @@ private enum class P(val pName:String="",var header: String="") {
 
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UUID = emptyUUID) {
+class Widget(private val properties:WidgetData, var _uid: Lazy<UUID>) {
+
+	constructor(properties:WidgetData = WidgetData.empty()): this(properties, lazy({computeId(properties)}))
+
+	var uid: UUID
+		set(value) { _uid = lazyOf(value)}
+		get() {
+			return /*debugT("get UID",{ */			_uid.value
+//			})
+		}
+
+//	init {
+//		launch { _uid.value } // id computation takes time and we don't want to block the main (exploration) thread for it just in case the widget image dumping is ever deactivated
+//	}
 
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyConfigId] */
-	val propertyConfigId:UUID get() = properties.uid
+	val propertyConfigId:UUID = properties.uid
+
+	val text: String =  properties.text
+	val contentDesc: String = properties.contentDesc
+	val resourceId: String = properties.resourceId
+	val className: String = properties.className
+	val packageName: String = properties.packageName
+	val isPassword: Boolean = properties.isPassword
+	val enabled: Boolean = properties.enabled
+	val visible: Boolean = properties.visible
+	val clickable: Boolean = properties.clickable
+	val longClickable: Boolean = properties.longClickable
+	val scrollable: Boolean = properties.scrollable
+	val checked: Boolean? = properties.checked
+	val focused: Boolean? = properties.focused
+	val selected: Boolean = properties.selected
+	val bounds: Rectangle = properties.bounds
+	val xpath: String = properties.xpath
+	var parentId:Pair<UUID,UUID>? = null
+	val isLeaf: Boolean = properties.isLeaf
+	internal val parentXpath:String = properties.parent?.xpath?:""
 	//FIXME we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
+	//FIXME buggy in amazon "Sign In" does not always compute to same id
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
-	var uid: UUID = (text + contentDesc).let{ if(hasContent()) widgetId(it, imgId) else it.toUUID()}   //FIXME this metric does not work for EditText elements, as the input text will change the [text] property
-	// we could try to keep track of the field via state-context + xpath once we interacted with it
+//	var uid: UUID = (text + contentDesc).let{debugT("gen UID ${text + contentDesc}",{ if(hasContent()) it.toUUID() else  imgId }) }
+	// special care for EditText elements, as the input text will change the [text] property
+	// we keep track of the field via state-context + xpath once we interacted with it
 	// however that means uid would have to become a var and we rewrite it after the state is parsed (ignoring EditField.text) and lookup the initial uid for this widget in the initial state-context
 	// need model access => do this after widget generation before StateData instantiation => state.uid compute state candidates by ignoring all EditFields => determine exact one by computing ref.uid when ignoring EditFields whose xPath is a target widget within the trace + proper constructor
 	// and compute the state.uid with the original editText contents
@@ -139,27 +186,8 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 	// => stateData compute function getting set of xPaths to be ignored if EditField
 	// => stateData val idWithoutEditFields
 
-	val id get() = Pair(uid,propertyConfigId)
+	val id by lazy{ Pair(uid,propertyConfigId) }
 
-	val text: String get() =  properties.text
-	val contentDesc: String get() = properties.contentDesc
-	val resourceId: String get() = properties.resourceId
-	val className: String get() = properties.className
-	val packageName: String get() = properties.packageName
-	val isPassword: Boolean get() = properties.isPassword
-	val enabled: Boolean get() = properties.enabled
-	val visible: Boolean get() = properties.visible
-	val clickable: Boolean get() = properties.clickable
-	val longClickable: Boolean get() = properties.longClickable
-	val scrollable: Boolean get() = properties.scrollable
-	val checked: Boolean? get() = properties.checked
-	val focused: Boolean? get() = properties.focused
-	val selected: Boolean get() = properties.selected
-	val bounds: Rectangle get() = properties.bounds
-	val xpath: String get() = properties.xpath
-	var parentId:Pair<UUID,UUID>? = null
-	val isLeaf: Boolean get() = properties.isLeaf
-	internal val parentXpath:String get() = properties.parent?.xpath?:""
 
 	val isEdit:Boolean = className.toLowerCase().contains("edit")
 
@@ -184,7 +212,7 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 				P.Bounds -> bounds.dataString()
 				P.ResId -> resourceId
 				P.XPath -> xpath
-				P.ImgId -> imgId.toString()
+				P.WdId -> propertyConfigId.toString()
 				P.ParentUID -> parentId?.toString()?:"null"
 				P.Enabled -> enabled.toString()
 				P.LongClickable -> longClickable.toString()
@@ -192,6 +220,7 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 				P.IsPassword -> isPassword.toString()
 				P.Visible -> visible.toString()
 				P.IsLeaf -> isLeaf.toString()
+				P.PackageName -> packageName
 			}
 		}
 	}
@@ -216,6 +245,7 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 	}
 	fun canBeActedUpon(): Boolean = properties.canBeActedUpon()
 
+	@Deprecated(" no longer used? ")
 	fun getClickPoint(deviceDisplayBounds:Rectangle?): Point{
 		if (deviceDisplayBounds == null) {
 			val center = this.center()
@@ -227,16 +257,20 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 		val clickRectangle = bounds.intersection(deviceDisplayBounds)
 		return Point(clickRectangle.centerX.toInt(), clickRectangle.centerY.toInt())
 	}
+	@Deprecated(" no longer used? ")
 	fun getAreaSize(): Double{
 		return bounds.height.toDouble() * bounds.width
 	}
+	@Deprecated(" no longer used? ")
 	fun getDeviceAreaSize(deviceDisplayBounds:Rectangle?): Double{
 		return if (deviceDisplayBounds != null)
 			deviceDisplayBounds.height.toDouble() * deviceDisplayBounds.width
 		else
 			-1.0
 	}
+	@Deprecated(" no longer used? ")
 	fun getResourceIdName(): String = resourceId.removeSuffix(this.packageName + ":uid/")
+	@Deprecated(" no longer used? ")
 	fun getSwipePoints(direction: Direction, percent: Double,deviceDisplayBounds:Rectangle?): List<Point>{
 
 		assert(bounds.intersects(deviceDisplayBounds))
@@ -248,11 +282,11 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 		return when (direction) {
 			Direction.LEFT -> arrayListOf(Point((swipeRectangle.maxX - offsetHor).toInt(), swipeRectangle.centerY.toInt()),
 					Point((swipeRectangle.minX + offsetHor).toInt(), swipeRectangle.centerY.toInt()))
-			Direction.RIGHT -> arrayListOf(Point((this.bounds.minX + offsetHor).toInt(), this.bounds.getCenterY().toInt()),
-					Point((this.bounds.getMaxX() - offsetHor).toInt(), this.bounds.getCenterY().toInt()))
+			Direction.RIGHT -> arrayListOf(Point((this.bounds.minX + offsetHor).toInt(), this.bounds.centerY.toInt()),
+					Point((this.bounds.maxX - offsetHor).toInt(), this.bounds.centerY.toInt()))
 			Direction.UP -> arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()),
-					Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()))
-			Direction.DOWN -> arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.getMinY() + offsetVert).toInt()),
+					Point(this.bounds.centerX.toInt(), (this.bounds.minY + offsetVert).toInt()))
+			Direction.DOWN -> arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.minY + offsetVert).toInt()),
 					Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()))
 		}
 	}
@@ -260,26 +294,61 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 	/*************************/
 	companion object {
 		/** widget creation */
-		fun fromString(line:List<String>):Widget{
-			return Widget(
-					WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }
-					,UUID.fromString(line[P.ImgId.ordinal]))
-					.apply { parentId = line[P.UID.ordinal].let{ if(it=="null") null else stateIdFromString(it) } }
+		@JvmStatic fun fromString(line:List<String>):Widget{
+			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
+				return Widget( w, lazyOf(UUID.fromString(line[P.UID.ordinal])) )
+						.apply { parentId = line[P.UID.ordinal].let { if (it == "null") null else stateIdFromString(it) } }
+			}
 		}
-		@JvmStatic fun fromWidgetData(w:WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig):Widget = Widget(w, screenImg?.let {
-			ByteArrayOutputStream().use {
-				ImageIO.write(screenImg.getSubimage(w.bounds), "png", it)
-				it.toByteArray().let { bytes -> UUID.nameUUIDFromBytes(bytes).also { imgId ->
-					launch {
-						val widgetId = (w.text + w.contentDesc).let{if(it == "") widgetId(it, imgId) else it.toUUID()}
-						File(config.widgetImgPath(id = widgetId,postfix = "_${w.uid}", interactive = w.canBeActedUpon())).writeBytes(bytes) }
-				} }
-			}}?: emptyUUID
-		)
+
+		/** compute the pair of (widget.uid,widget.imgId), if [isCut] is true we assume the screenImage already matches the widget.bounds */
+		@JvmStatic fun computeId(w:WidgetData, screenImg: BufferedImage?=null, isCut: Boolean=false):UUID	=
+				w.content().let {
+					if (it != "") it.toUUID()  // compute id from textual content if there is any
+					else screenImg?.let {
+						if(isCut) idOfImgCut(screenImg)
+						else idOfImgCut(it.getSubimage(w.bounds))
+					}	?: emptyUUID // no text content => compute id from img
+				}
+
+		@JvmStatic private fun idOfImgCut(image: BufferedImage):UUID =
+//			debugT("compute img id raster elements", { // seams to work
+//				(image.raster.getDataElements(0, 0, image.width, image.height, null) as ByteArray)
+//
+//			})
+			 // debugT("compute img id dataBuffer", {  //seams to be much faster but not properly unique
+				(image.raster.dataBuffer as DataBufferByte).data
+//			})
+					.let { UUID.nameUUIDFromBytes(it) }
+
+
+		@JvmStatic suspend fun fromWidgetData(w:WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig):Widget{
+			screenImg?.getSubimage(w.bounds).let { wImg ->
+//				debugT("compute id ${w.bounds}",{
+//				val t = async{ computeId(w, wImg,true) }
+					lazy{
+//						runBlocking { t.await() }
+						 computeId(w, wImg,true)
+					}
+//				})
+						.let{ widgetId ->
+							launch{ widgetId.value }  // issue initialization in parallel
+							// print the screen img if there is one
+							if(wImg!=null	&& w.content()=="") launch {
+								File(config.widgetImgPath(id = widgetId.value,postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let{
+									if(!it.exists()) ImageIO.write(wImg,"png", it)
+								}
+							}
+							return /* debugT("create to Widget ", { */ Widget(w, widgetId)
+//							})
+						}
+			}
+		}
 
 		@JvmStatic val idIdx by lazy { P.UID.ordinal }
 		@JvmStatic val widgetHeader by lazy { P.values().joinToString(separator = sep) { it.header } }
 
+		@JvmStatic private fun BufferedImage.getSubimage(r:Rectangle) = this.getSubimage(r.x,r.y,r.width,r.height)
 	}
 	/*** overwritten functions ***/
 	override fun equals(other: Any?): Boolean {
@@ -299,12 +368,11 @@ class Widget(private val properties:WidgetData = WidgetData.empty(),val imgId:UU
 	/* end override */
 }
 
-private val widgetId:(String,UUID)->UUID = { id,imgId -> id.toUUID()+ imgId }
+private val emptyRectangle by lazy{ Rectangle(0,0,0,0)}
 //FIXME we would like image similarity for images with same text,desc,id,similar_size
-private fun BufferedImage.getSubimage(r:Rectangle) = this.getSubimage(r.x,r.y,r.width,r.height)
 private val flag={entry:String ->if(entry=="disabled") null else entry.toBoolean()}
 private fun rectFromString(s:String): Rectangle {  //         return "x=$x, y=$y, width=$width, height=$height"
-	if (s.isEmpty()|| !s.contains("=")) return Rectangle(0,0,0,0)
+	if (s.isEmpty()|| !s.contains("=")) return emptyRectangle
 	fun String.value(delimiter:String="="):Int { return this.split(delimiter)[1].toInt() }
 	return s.split(", ").let {
 		Rectangle(it[0].value(),it[1].value(),it[2].value(),it[3].value())

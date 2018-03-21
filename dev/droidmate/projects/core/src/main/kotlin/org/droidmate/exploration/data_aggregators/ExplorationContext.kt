@@ -19,20 +19,19 @@
 package org.droidmate.exploration.data_aggregators
 
 import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.statemodel.*
-import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.actions.IRunnableExplorationAction
-import org.droidmate.device.datatypes.statemodel.features.IModelFeature
+import org.droidmate.device.datatypes.statemodel.features.ModelFeature
 import java.awt.Rectangle
 import java.time.LocalDateTime
+import java.util.*
 
 class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   override val watcher:List<IModelFeature> = listOf(ActionCounterMF()),
+                                                   override val watcher:LinkedList<ModelFeature> = LinkedList(),
                                                    override val actionTrace: Trace = Trace(watcher),
                                                    override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : IExplorationLog() {
 
@@ -57,7 +56,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
 		model.S_updateModel(result,actionTrace)
-		this.also { context -> watcher.forEach { it.updateTask = async(CoroutineName(it::class.simpleName?:"update-observer")){ it.update(context) } } }
+		this.also { context -> watcher.forEach { launch(it.context, parent = it.job){ it.update(context) } } }
 	}
 
 	override fun dump() {

@@ -21,14 +21,14 @@ package org.droidmate.exploration.device
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.errors.ForbiddenOperationError
 import java.io.Serializable
+import java.util.*
 
-class MissingDeviceLogs : IDeviceLogs, Serializable {
-    companion object {
+object MissingDeviceLogs : IDeviceLogs, Serializable {
+//    companion object {
         private const val serialVersionUID: Long = 1
-    }
+//    }
 
-    override var apiLogs: MutableList<IApiLogcatMessage>
-        get() = ArrayList()
+    override var apiLogs: MutableList<IApiLogcatMessage> = LinkedList()
         set(value) {
             throw ForbiddenOperationError()
         }

@@ -18,6 +18,9 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.android_sdk.IApk
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.DeviceLogsHandler
@@ -26,6 +29,7 @@ import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateClickAction
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateLongClickAction
 import org.droidmate.uiautomator_daemon.guimodel.LongClickAction
+import sun.audio.AudioDevice.device
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -37,7 +41,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
         private const val serialVersionUID: Long = 1
     }
 
-    override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+    override fun performDeviceActions(app: IApk, device: IRobustDevice) = runBlocking{
         log.debug("1. Assert only background API logs are present, if any.")
         val logsHandler = DeviceLogsHandler(device)
         logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
@@ -48,13 +52,15 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
         val x = action.widget.bounds.centerX.toInt()
         val y = action.widget.bounds.centerY.toInt()
         try {
-            when {
-                action.useCoordinates && !action.longClick -> device.perform(CoordinateClickAction(x, y))
-                action.useCoordinates && action.longClick -> device.perform(CoordinateLongClickAction(x, y))
-                !action.useCoordinates && !action.longClick -> device.perform(ClickAction(action.widget.xpath, action.widget.resourceId))
-                !action.useCoordinates && action.longClick -> device.perform(LongClickAction(action.widget.xpath, action.widget.resourceId))
-                else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
-            }
+            launch {// do the perform as launch to inject a suspension point, as perform is currently no suspend function
+                when {
+                    action.useCoordinates && !action.longClick -> device.perform(CoordinateClickAction(x, y))
+                    action.useCoordinates && action.longClick -> device.perform(CoordinateLongClickAction(x, y))
+                    !action.useCoordinates && !action.longClick -> device.perform(ClickAction(action.widget.xpath, action.widget.resourceId))
+                    !action.useCoordinates && action.longClick -> device.perform(LongClickAction(action.widget.xpath, action.widget.resourceId))
+                    else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
+                }
+            }.join()
         } catch (e: Exception) {
             if (!action.useCoordinates) {
                 log.warn("2.1. Failed to click using XPath and resourceID, attempting restart UIAutomatorDaemon and to click coordinates: $action.")
@@ -68,20 +74,21 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
 
         log.debug("3. Read and clear API logs if any, then seal logs reading.")
         logsHandler.readAndClearApiLogs()
-        this.logs = logsHandler.getLogs()
+        logs = logsHandler.getLogs()
 
-        Thread.sleep(action.delay.toLong())
+//        Thread.sleep(action.delay.toLong())
+        delay(action.delay)
 
-        if (this.takeScreenshot) {
+        if (takeScreenshot) {
             // this was moved before the snapshot, as otherwise the screen may show the loaded page but the snapshot does not contain the elements
             log.debug("4. Get GUI screenshot.")
 
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-            this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
+            screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
         }
 
         log.debug("4. Get GUI snapshot.")
-        this.snapshot = device.getGuiSnapshot()
+        snapshot = device.getGuiSnapshot()
         //TODO take screenshot before and after dump to ensure they are matching, if not equal => take another device GuiSnapshot
     }
 }

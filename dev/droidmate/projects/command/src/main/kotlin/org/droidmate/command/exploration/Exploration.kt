@@ -38,6 +38,7 @@ import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
 import org.slf4j.LoggerFactory
+import kotlin.system.measureTimeMillis
 
 class Exploration constructor(private val cfg: Configuration,
                               private val timeProvider: ITimeProvider,
@@ -87,7 +88,7 @@ class Exploration constructor(private val cfg: Configuration,
 
         // Construct initial action and run it on the device to obtain initial result.
         var action: IRunnableExplorationAction? = null
-        var result: ActionResult = EmptyActionResult()
+        var result: ActionResult = EmptyActionResult
 
         var isFirst = true
         val strategy: IExplorationStrategy = strategyProvider.invoke(output)
@@ -97,7 +98,7 @@ class Exploration constructor(private val cfg: Configuration,
             // decide for an action
             action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots)
             // execute action
-            result = action.run(app, device)
+            measureTimeMillis { result = action.run(app, device) }.let { println("$it millis elapsed until result was available") }
             output.add(action, result)
             // update strategy
             strategy.update(result)

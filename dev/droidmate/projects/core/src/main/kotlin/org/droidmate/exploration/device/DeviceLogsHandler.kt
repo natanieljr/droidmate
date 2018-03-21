@@ -21,6 +21,7 @@ package org.droidmate.exploration.device
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.errors.ForbiddenOperationError
+import java.util.*
 
 class DeviceLogsHandler constructor(val device: IRobustDevice) : IDeviceLogsHandler {
 
@@ -46,7 +47,7 @@ class DeviceLogsHandler constructor(val device: IRobustDevice) : IDeviceLogsHand
 
     private fun addApiLogs(apiLogs: List<IApiLogcatMessage>) {
         if (this.logs.apiLogs.isEmpty())
-            this.logs.apiLogs = ArrayList()
+            this.logs.apiLogs = LinkedList()
 
         if (this.logs.apiLogs.isNotEmpty() && apiLogs.isNotEmpty())
             assert(this.logs.apiLogs.last().time <= apiLogs.first().time)

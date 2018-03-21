@@ -16,15 +16,14 @@
 //
 package org.droidmate.device.datatypes.statemodel
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.android_sdk.DeviceException
+import org.droidmate.debug.debugT
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.statemodel.features.IModelFeature
+import org.droidmate.device.datatypes.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
 import java.io.File
@@ -34,15 +33,17 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.properties.Delegates
 
-class ActionData private constructor(val actionType:String?, val targetWidget: Widget?,
+class ActionData private constructor(val actionType:String, val targetWidget: Widget?,
                                      val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime, val screenshot: URI?,
                                      val successful: Boolean, val exception: String,
-                                     val resState:ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs()){
+                                     val resState:ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs){
 
 	constructor(action:ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: IDeviceLogs, screenshot: URI?, exception: DeviceException, successful: Boolean, resState:ConcreteId)
-			:this(action::class.simpleName,(action as? WidgetExplorationAction)?.widget,
+			:this(action::class.simpleName?:"Unknown", action.widget,
 			startTimestamp, endTimestamp, screenshot,	successful, exception.toString(), resState,	deviceLogs)
+
+	constructor(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId): this(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId){ prevState = prevStateId }
 
 	lateinit var prevState:ConcreteId
 
@@ -50,8 +51,7 @@ class ActionData private constructor(val actionType:String?, val targetWidget: W
 	 * Time the strategy pool took to select a strategy and a create an action
 	 * (used to measure overhead for new exploration strategies)
 	 */
-	val decisionTime: Long
-		get() = ChronoUnit.MILLIS.between(startTimestamp, endTimestamp)
+	val decisionTime: Long by lazy{ ChronoUnit.MILLIS.between(startTimestamp, endTimestamp) }
 
 	fun actionString():String = P.values().joinToString(separator = sep) { when (it){
 		P.Action -> actionType?: ""
@@ -65,16 +65,16 @@ class ActionData private constructor(val actionType:String?, val targetWidget: W
 	}}
 
 	companion object {
-		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):ActionData =
-				ActionData(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
+//		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):ActionData =
+//				ActionData(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
 
-		fun createFromString(e:List<String>, target: Widget?):ActionData = ActionData(
+		@JvmStatic fun createFromString(e:List<String>, target: Widget?):ActionData = ActionData(
 				e[P.Action.ordinal], target, LocalDateTime.parse(e[P.StartTime.ordinal]), LocalDateTime.parse(e[P.EndTime.ordinal]),
 				null, e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal])
 		).apply{ prevState = stateIdFromString(e[P.Id.ordinal])}
 
-		@JvmStatic fun empty(): ActionData = ActionData(null,null, LocalDateTime.MIN, LocalDateTime.MIN, null, true, "empty action", emptyId
-				).apply{ prevState = emptyId}
+		@JvmStatic val empty: ActionData by lazy{ ActionData("EMPTY",null, LocalDateTime.MIN, LocalDateTime.MIN, null, true, "empty action", emptyId
+				).apply{ prevState = emptyId} }
 
 		@JvmStatic val header = P.values().joinToString(separator=sep) { it.header }
 		val widgetIdx = P.WId.ordinal
@@ -90,7 +90,7 @@ class ActionData private constructor(val actionType:String?, val targetWidget: W
 	}
 }
 
-class Trace(private val watcher:List<IModelFeature> = emptyList()){
+class Trace(private val watcher:List<ModelFeature> = emptyList()){
 
   private val trace = LinkedList<ActionData>()
   private val date by lazy{ "${timestamp()}_${hashCode()}"}
@@ -98,17 +98,16 @@ class Trace(private val watcher:List<IModelFeature> = emptyList()){
 
 
 	/** this property is set in the end of the trace update and notifies all watchers for changes */
-	private var newState by Delegates.observable(StateData.emptyState()) { _, old, new ->
+	private var newState by Delegates.observable(StateData.emptyState) { _, old, new ->
 		notifyObserver(old,new)
 		internalUpdate(trace.last.targetWidget, old)
 	}
 
-//	private val call:(StateData)->Unit = {s -> println(s)}
-
 	/** observable delegates do not support coroutines within the lambda function therefore this method*/
 	private fun notifyObserver(old:StateData, new:StateData){
 		watcher.forEach {
-			it.actionTask =	async(CoroutineName(it::class.simpleName?:"action-observer")) { it.onNewAction(trace.last,old,new) } }
+			launch(it.context, parent = it.job) { it.onNewAction(trace.last,old,new) }
+		}
 	}
 
 	private val targets:MutableList<Widget?> = LinkedList()
@@ -125,10 +124,12 @@ class Trace(private val watcher:List<IModelFeature> = emptyList()){
 		}
 	}
 
+	//FIXME this sometimes takes >1s thus implement trace as actor
 	fun update(action:ActionResult,newState:StateData) {
-		ActionData(action, this.newState.stateId, newState.stateId).also { addAction(it) }
+		debugT("create actionData",{ActionData(action, newState.stateId, newState.stateId)})
+				.also { debugT("add action",{addAction(it)}) }
 
-		this.newState = newState
+		debugT("set newState",{this.newState = newState})
 	}
 
 	fun getCurrentState() = newState
@@ -141,6 +142,7 @@ class Trace(private val watcher:List<IModelFeature> = emptyList()){
   fun last():ActionData? = trace.lastOrNull()
   fun getActions():List<ActionData> = trace
 
+	//TODO this can be nicely done with a buffered channel instead
   suspend fun dump(config: ModelDumpConfig) = dumpMutex.withLock("trace dump"){
     File(config.traceFile(date)).bufferedWriter().use{ out ->
       out.write(ActionData.header)
@@ -153,7 +155,7 @@ class Trace(private val watcher:List<IModelFeature> = emptyList()){
   }
 
   companion object {
-    private val dumpMutex = Mutex()
+    @JvmStatic private val dumpMutex = Mutex()
   }
 
 	override fun equals(other: Any?): Boolean {

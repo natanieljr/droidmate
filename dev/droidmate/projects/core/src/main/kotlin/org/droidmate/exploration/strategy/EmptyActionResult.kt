@@ -23,5 +23,5 @@ import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.device.DeviceLogs
 import java.time.LocalDateTime
 
-class EmptyActionResult : ActionResult(EmptyAction(), LocalDateTime.MIN, LocalDateTime.MIN, DeviceLogs())
+object EmptyActionResult : ActionResult(EmptyAction(), LocalDateTime.MIN, LocalDateTime.MIN, DeviceLogs())
 

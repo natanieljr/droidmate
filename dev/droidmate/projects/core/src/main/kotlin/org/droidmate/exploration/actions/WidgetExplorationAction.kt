@@ -21,7 +21,7 @@ package org.droidmate.exploration.actions
 
 import org.droidmate.device.datatypes.Widget
 
-open class WidgetExplorationAction @JvmOverloads constructor(val widget: Widget,
+open class WidgetExplorationAction @JvmOverloads constructor(override val widget: Widget,
                                                              val longClick: Boolean = false,
                                                              val useCoordinates: Boolean,
                                                              val delay: Int = 100,

@@ -22,7 +22,7 @@ package org.droidmate.exploration.actions
 import org.droidmate.device.datatypes.Widget
 
 open class EnterTextExplorationAction constructor(val textToEnter: String,
-                                                  val widget: Widget) : ExplorationAction() {
+                                                  override val widget: Widget) : ExplorationAction() {
     companion object {
         private const val serialVersionUID: Long = 1
     }

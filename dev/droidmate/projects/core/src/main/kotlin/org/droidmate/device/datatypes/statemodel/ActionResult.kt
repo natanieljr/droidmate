@@ -19,8 +19,11 @@
 package org.droidmate.device.datatypes.statemodel
 
 import com.google.common.base.MoreObjects
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.Unconfined
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.android_sdk.DeviceException
+import org.droidmate.debug.debugT
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.device.datatypes.Widget
@@ -28,7 +31,6 @@ import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
-import java.io.File
 import java.io.Serializable
 import java.net.URI
 import java.nio.file.Files
@@ -53,7 +55,7 @@ import javax.imageio.ImageIO
 open class ActionResult(val action: ExplorationAction,
                         val startTimestamp: LocalDateTime,
                         val endTimestamp: LocalDateTime,
-                        val deviceLogs: IDeviceLogs = MissingDeviceLogs(),
+                        val deviceLogs: IDeviceLogs = MissingDeviceLogs,
                         val guiSnapshot: IDeviceGuiSnapshot = MissingGuiSnapshot(),
                         val screenshot: URI = URI.create("test://empty"),
                         val exception: DeviceException = DeviceExceptionMissing()):Serializable {
@@ -91,20 +93,45 @@ open class ActionResult(val action: ExplorationAction,
 	}
 
 	/** this method should be exclusively used for StateData generation */
-	fun getWidgets(config:ModelDumpConfig): List<Widget>{
+	fun getWidgets(config:ModelDumpConfig): List<Widget> {
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]","//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
-		return java.nio.file.Paths.get(screenshot).let{ if(Files.exists(it)) ImageIO.read(it.toAbsolutePath().toFile()) else null }.let { img ->
+		 java.nio.file.Paths.get(screenshot).let{
+			if(Files.exists(it)) debugT("img file read",{ImageIO.read(it.toAbsolutePath().toFile())}) else null }
+				.let { img ->
 			guiSnapshot.guiStatus.let { g->
-				g.widgets.filterNot { deviceObjects.contains(it.xpath) } // ignore the overall layout containing the Android Status-bar
-					.map { Widget.fromWidgetData(it, img, config) } // iterates over each WidgetData and creates Widget object collect all these elements as set
+				debugT(" \n filter device objects",
+				{g.widgets.filterNot { deviceObjects.contains(it.xpath) }} // ignore the overall layout containing the Android Status-bar
+				).let{
+//					debugT(" widgets sequential", { it.map{ Widget.fromWidgetData(it,img,config)}} ,{ timeS += it })
+
+					return debugT("create all widgets unconfined", {
+						// some times much faster then sequential but some timesl a few fousand ns slower but in average seams faster
+						it.map { async(Unconfined) { Widget.fromWidgetData(it, img, config) } } // iterates over each WidgetData and creates Widget object collect all these elements as set
+								.map { runBlocking { it.await()} }
+					},{ timeP += it })
+
+							.also{
+								println("===> sumS=${timeS/1000000.0} \t sumP=${timeP/1000000.0}")
+							}
+
+					// funny sequential seams faster than parallel approach
+//					debugT("create all widgets default dispatch",{
+//					it.map { async{Widget.fromWidgetData(it, img, config)} } // iterates over each WidgetData and creates Widget object collect all these elements as set
+//						.map { it.await() }
+//					})
+				}
 			}
 		}
 	}
 
 	fun resultState(widgets:List<Widget>):StateData {
 		return 	 guiSnapshot.guiStatus.let{ g ->
-			StateData(widgets.toSet(), g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
+			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
 					g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox, g.isUseLauncherAsHomeDialogBox )
 		}
 	}
 }
+var timeS:Long = 0
+var timeP:Long = 0
+
+

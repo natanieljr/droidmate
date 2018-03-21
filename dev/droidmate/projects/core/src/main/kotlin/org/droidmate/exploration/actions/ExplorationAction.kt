@@ -25,6 +25,8 @@ import java.io.Serializable
 
 //TODO("this should be refactored into IRunnableAction")
 abstract class ExplorationAction : Serializable {
+	open val widget: Widget? = null
+
     companion object {
         private const val serialVersionUID: Long = 1
 

@@ -66,7 +66,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
 
     override fun run(app: IApk, device: IRobustDevice): ActionResult {
         // @formatter:off
-        this.logs = MissingDeviceLogs()
+        this.logs = MissingDeviceLogs
         this.snapshot = MissingGuiSnapshot()
         this.exception = DeviceExceptionMissing()
         // @formatter:on

@@ -18,6 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
+import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.Widget
@@ -35,6 +36,7 @@ import kotlin.collections.ArrayList
 open class RandomWidget protected constructor(randomSeed: Long,
                                               private val priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET) : Explore() {
     protected val random = Random(randomSeed)
+		private val counter:ActionCounterMF by lazy { (memory.watcher.find { it is ActionCounterMF } ?: ActionCounterMF().also { memory.watcher.add(it) }) as ActionCounterMF }
 
     private fun mustRepeatLastAction(): Boolean {
         if (!this.memory.isEmpty()) {
@@ -70,8 +72,8 @@ open class RandomWidget protected constructor(randomSeed: Long,
     }
 
 	protected open fun chooseRandomWidget(): ExplorationAction {
-		val candidates = memory.watcher.find{ it is ActionCounterMF }?.let { counter -> counter as ActionCounterMF
-			runBlocking { counter.actionTask?.await() }
+		runBlocking { counter.job.joinChildren() }
+		val candidates =
 			// for each widget in this state the number of interactions
 			counter.numExplored(memory.getCurrentState()).entries.groupBy { it.value }.let {
 				it.listOfSmallest()?.map { it.key }?.let{ leastInState:List<Widget> -> // determine the subset of widgets which were least interacted with
@@ -81,7 +83,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
 					}else leastInState
 				}
 			}
-		}?: memory.getCurrentState().actionableWidgets
+		?: memory.getCurrentState().actionableWidgets
 
 		assert(candidates.isNotEmpty())
 

@@ -25,7 +25,7 @@ import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.*
-import org.droidmate.device.datatypes.statemodel.features.IModelFeature
+import org.droidmate.device.datatypes.statemodel.features.ModelFeature
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.IRunnableExplorationAction
@@ -37,6 +37,7 @@ import java.awt.Rectangle
 import java.io.Serializable
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.*
 
 /**
  * Exploration memory containing executed actionTrace, log (memory records), all explored widget contexts and
@@ -46,7 +47,7 @@ import java.time.LocalDateTime
  */ //TODO cleanup code between ExplorationContext and IExplorationLog
 abstract class IExplorationLog : Serializable {
 	abstract val model: Model
-	abstract val watcher:List<IModelFeature>
+	abstract val watcher:LinkedList<ModelFeature>
 
 	fun getState(sId:ConcreteId) = model.getState(sId)
 
@@ -94,7 +95,7 @@ abstract class IExplorationLog : Serializable {
 	 *
 	 * @return Information of the last action performed or instance of [EmptyActionResult]
 	 */
-	fun getLastAction(): ActionData = actionTrace.last()?: ActionData.empty()
+	fun getLastAction(): ActionData = actionTrace.last()?: ActionData.empty
 
 	/**
 	 * Get the exploration duration in miliseconds

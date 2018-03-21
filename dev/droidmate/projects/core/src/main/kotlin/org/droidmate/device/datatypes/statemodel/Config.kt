@@ -51,7 +51,7 @@ class ModelDumpConfig(path:String, appName:String) {
     return idPath(stateDst,"${id.first}_${id.second}",postfix,fileExtension)
   }
   fun widgetImgPath(id:UUID, postfix:String="", fileExtension:String="png", interactive:Boolean):String{
-    val baseDir = widgetImgDst+ if(interactive) "nonInteractive${File.separator}" else ""
+    val baseDir = widgetImgDst+ if(interactive) "" else "nonInteractive${File.separator}"
     return idPath(baseDir,id.toString(),postfix,fileExtension)
   }
   val traceFile = { date:String -> "$modelBaseDir${traceFilePrefix}$date.txt" }
