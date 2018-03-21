@@ -209,7 +209,7 @@ class LoginWithFacebook : Explore() {
     override fun chooseAction(StateData: StateData): ExplorationAction {
         return if (memory.getCurrentState().isRequestRuntimePermissionDialogBox) {
             val widget = memory.getCurrentState().widgets.let { widgets ->
-                widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:uid/permission_allow_button" }
+                widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
                     ?: widgets.first { it.text.toUpperCase() == "ALLOW" }
             }
             newWidgetExplorationAction(widget)

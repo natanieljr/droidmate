@@ -30,7 +30,7 @@ class RuntimePermissionDialogBoxGuiStatus(topNodePackageName: String, widgets: L
     companion object {
         private const val serialVersionUID: Long = 1
         @JvmStatic
-        private val resId_runtimePermissionAllow = "com.android.packageinstaller:uid/permission_allow_button"
+        private val resId_runtimePermissionAllow = "com.android.packageinstaller:id/permission_allow_button"
     }
 
     // Default: Resource ID
