@@ -61,7 +61,7 @@ class Model private constructor(val config: ModelDumpConfig){
 		}
 	}
 
-	var uTime:Long = 0
+	private var uTime:Long = 0
 	/** update the model with any [action] executed as part of an execution [trace] **/
 	fun S_updateModel(action:ActionResult,trace:Trace){
 		measureTimeMillis {

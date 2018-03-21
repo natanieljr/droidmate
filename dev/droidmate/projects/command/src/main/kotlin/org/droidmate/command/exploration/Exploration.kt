@@ -77,8 +77,8 @@ class Exploration constructor(private val cfg: Configuration,
         return Failable<AbstractContext, DeviceException>(output, if (output.exceptionIsPresent) output.exception else null)
     }
 
-    var actionT: Long = 0
-    var nActions = 0
+    private var actionT: Long = 0
+		private var nActions = 0
     private fun explorationLoop(app: IApk, device: IRobustDevice): AbstractContext {
         log.debug("explorationLoop(app=${app.fileName}, device)")
 

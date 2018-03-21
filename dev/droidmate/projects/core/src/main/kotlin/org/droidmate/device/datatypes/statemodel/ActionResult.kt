@@ -131,7 +131,7 @@ open class ActionResult(val action: ExplorationAction,
 		}
 	}
 }
-var timeS:Long = 0
-var timeP:Long = 0
+private var timeS:Long = 0
+private var timeP:Long = 0
 
 

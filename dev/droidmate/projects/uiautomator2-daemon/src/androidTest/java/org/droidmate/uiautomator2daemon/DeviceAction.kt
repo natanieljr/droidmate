@@ -14,8 +14,11 @@ import kotlin.system.measureTimeMillis
  * Created by J.H. on 05.02.2018.
  */
 internal sealed class DeviceAction {
-    val defaultTimeout: Long = 10000
-    private val waitTimeout: Long = 20000
+    val defaultTimeout:Long = 2000
+    private val waitTimeout:Long = 20000
+    private var time:Long = 0
+    private var cnt = 0
+
     @Throws(UiAutomatorDaemonException::class)
     abstract fun execute(device: UiDevice, context: Context)
 
@@ -26,7 +29,7 @@ internal sealed class DeviceAction {
                 measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
                 device.wait(hasInteractive, waitTimeout)
                 device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
-            }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization") }
+            }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization on average ${time/cnt}") }
         }
     }
 
