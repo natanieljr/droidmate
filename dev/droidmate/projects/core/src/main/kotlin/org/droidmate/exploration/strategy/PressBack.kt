@@ -19,7 +19,6 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
@@ -44,19 +43,19 @@ class PressBack private constructor(private val probability: Double,
      */
     private val random = Random(randomSeed)
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
 
         // If it can' move forward and last action was not to reset
         // On the first action the reset will have a priority of 1.0, so this is not a problem
-        if (!memory.explorationCanMoveOn() &&
+        if (!context.explorationCanMoveOn() &&
                 this.lastAction().actionType != PressBackExplorationAction::class.simpleName)
             return StrategyPriority.BACK
 
         // If it can' move forward, is the second action and last action was not to reset
         // Try to press back because sometimes an account selection dialog pops up
-        if (!memory.explorationCanMoveOn() &&
+        if (!context.explorationCanMoveOn() &&
                 this.lastAction().actionType == ResetAppExplorationAction::class.simpleName &&
-                this.memory.getSize() == 1)
+                this.context.getSize() == 1)
             return StrategyPriority.BACK_BEFORE_TERMINATE
 
         // We now press back randomly if the last action was not a reset (otherwise it would close the app)
@@ -69,11 +68,11 @@ class PressBack private constructor(private val probability: Double,
             StrategyPriority.BACK
     }
 
-    override fun mustPerformMoreActions(currentState: StateData): Boolean {
+    override fun mustPerformMoreActions(): Boolean {
         return false
     }
 
-    override fun internalDecide(currentState: StateData): ExplorationAction {
+    override fun internalDecide(): ExplorationAction {
         return newPressBackExplorationAction()
     }
 

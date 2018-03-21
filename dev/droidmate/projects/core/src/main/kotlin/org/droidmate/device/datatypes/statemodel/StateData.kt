@@ -73,7 +73,7 @@ class StateData /*private*/ (private val _widgets: Lazy<List<Widget>>,
 	  File(config.widgetFile(stateId)).bufferedWriter().use { all ->
 		  all.write(widgetHeader)
 
-		  widgets.forEach {
+		  widgets.sortedBy { it.uid }.forEach {
 			  all.newLine()
 			  all.write(it.dataString)
 		  }}

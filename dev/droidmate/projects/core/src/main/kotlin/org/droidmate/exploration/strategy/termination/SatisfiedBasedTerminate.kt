@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.strategy.ITargetWidget
 
 /**
@@ -28,7 +27,7 @@ import org.droidmate.exploration.strategy.ITargetWidget
  */
 class SatisfiedBasedTerminate constructor(private val targets: List<ITargetWidget>) : Terminate() {
 
-    override fun met(currentState: StateData): Boolean {
+    override fun met(): Boolean {
         // All widgets have been explored, no need to continue exploration
         return this.unsatisfied.isEmpty()
     }
@@ -37,7 +36,7 @@ class SatisfiedBasedTerminate constructor(private val targets: List<ITargetWidge
         // Do nothing
     }
 
-    override fun metReason(currentState: StateData): String {
+    override fun metReason(): String {
         return "All target widgets have been explored"
     }
 

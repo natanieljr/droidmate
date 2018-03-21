@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
@@ -31,16 +30,16 @@ import org.droidmate.exploration.strategy.StrategyPriority
  * @author Nataniel P. Borges Jr.
  */
 class AlwaysFirstWidget private constructor() : Explore() {
-    override fun chooseAction(currentState: StateData): ExplorationAction {
+    override fun chooseAction(): ExplorationAction {
         //TODO
 //        val selectedWidgetInfo = currentState.actionableWidgetsInfo.first()
-//        this.memory.lastTarget = selectedWidgetInfo
+//        this.context.lastTarget = selectedWidgetInfo
 
 //        return ExplorationAction.newWidgetExplorationAction(selectedWidgetInfo.widget)
-        return ExplorationAction.newWidgetExplorationAction(memory.getCurrentState().widgets.first())
+        return ExplorationAction.newWidgetExplorationAction(context.getCurrentState().widgets.first())
     }
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // If this strategy is active it should always have preference
         // unless competing against termination, first reset or runtime permission dialog
         return StrategyPriority.SPECIFIC_WIDGET

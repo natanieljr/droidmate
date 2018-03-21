@@ -20,7 +20,6 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.widget.RandomWidget
 
@@ -45,8 +44,8 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
      *
      * @return List of widgets which are meaningful targets
      */
-    override fun getAvailableWidgets(currentState: StateData): List<Widget> {
-        val widgetInfo = super.getAvailableWidgets(currentState)
+    override fun getAvailableWidgets(): List<Widget> {
+        val widgetInfo = super.getAvailableWidgets()
 
         val toSatisfy = this.target.getNextWidgetsCanSatisfy()
 
@@ -55,9 +54,9 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
         }
     }
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // If it is not yet satisfied and can handle action
-        if (this.getAvailableWidgets(currentState).isNotEmpty())
+        if (this.getAvailableWidgets().isNotEmpty())
             return StrategyPriority.SPECIFIC_WIDGET
 
         // Otherwise does nothing

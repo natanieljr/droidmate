@@ -42,10 +42,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     private val listeners = ArrayList<IControlObserver>()
 
     /**
-     * Internal memory of the strategy. Syncronized with exploration memory upon initialization.
+     * Internal context of the strategy. Syncronized with exploration context upon initialization.
      */
-    protected lateinit var memory: AbstractContext
+    protected lateinit var context: AbstractContext
         private set
+
+		protected val currentState: StateData get() = context.getCurrentState()
 
     /**
      * Number of the current action being performed
@@ -62,19 +64,19 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     }
 
     /**
-     * Check if this is the first time an action will be performed ([memory] is empty)
+     * Check if this is the first time an action will be performed ([context] is empty)
      * @return If this is the first exploration action or not
      */
     internal fun firstDecisionIsBeingMade(): Boolean {
-        return memory.isEmpty()
+        return context.isEmpty()
     }
 
     /**
-     * Check if last performed action in the [memory] was to reset the app
+     * Check if last performed action in the [context] was to reset the app
      * @return If the last action was a reset
      */
     internal fun lastAction(): ActionData {
-        return this.memory.getLastAction()
+        return this.context.getLastAction()
     }
 
     /**
@@ -99,17 +101,17 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     }
 
     override fun initialize(memory: AbstractContext) {
-        this.memory = memory
+        this.context = memory
     }
 
     override fun registerListener(listener: IControlObserver) {
         this.listeners.add(listener)
     }
 
-    override fun decide(currentState: StateData): ExplorationAction {
-        val action = this.internalDecide(currentState)
+    override fun decide(): ExplorationAction {
+        val action = this.internalDecide()
 
-        if (!this.mustPerformMoreActions(currentState))
+        if (!this.mustPerformMoreActions())
             this.handleControl()
 
         return action
@@ -139,12 +141,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
      *
      * @return If the strategy has to perform more actionTrace
      */
-    abstract fun mustPerformMoreActions(currentState: StateData): Boolean
+    abstract fun mustPerformMoreActions(): Boolean
 
     /**
      * Selects an action to be executed based on the [current widget context][currentState]
      */
-    abstract fun internalDecide(currentState: StateData): ExplorationAction
+    abstract fun internalDecide(): ExplorationAction
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(Explore::class.java)

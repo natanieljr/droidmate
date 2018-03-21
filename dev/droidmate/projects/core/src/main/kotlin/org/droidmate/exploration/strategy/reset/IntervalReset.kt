@@ -38,7 +38,7 @@ class IntervalReset constructor(private val resetEveryNthExplorationForward: Int
      */
     private var nrActionsWithoutReset: Int = 0
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // First action or following a reset
         if (this.lastAction().actionType == ResetAppExplorationAction::class.simpleName)
             return StrategyPriority.NONE

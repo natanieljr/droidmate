@@ -46,7 +46,7 @@ open class MemoryPlayback private constructor() : Explore() {
     private fun initializeFromMemory() {
         val memoryRecords = storedMemoryData!!.actionTrace.getActions()
 
-        // Create traces from memory records
+        // Create traces from context records
         // Each trace starts with a reset
         // Last trace ends with terminate exploration
         for (i in 0 until memoryRecords.size) {
@@ -55,7 +55,7 @@ open class MemoryPlayback private constructor() : Explore() {
             if (memoryRecord.actionType == ResetAppExplorationAction::class.simpleName)
                 traces.add(PlaybackTrace())
 
-//            val state = memory.getState(memoryRecord.state.guiStatus)
+//            val state = context.getState(memoryRecord.state.guiStatus)
 
             TODO()
 //            traces.last().add(memoryRecord.action, state)
@@ -89,7 +89,7 @@ open class MemoryPlayback private constructor() : Explore() {
             (context.widgets.any { it.uid == this.uid })
     }
 
-    private fun getNextAction(context: StateData): ExplorationAction {
+    private fun getNextAction(): ExplorationAction {
 
         // All traces completed. Finish
         if (isComplete())
@@ -100,18 +100,18 @@ open class MemoryPlayback private constructor() : Explore() {
         val action = currTraceData.action
         when (action) {
             is WidgetExplorationAction -> {
-                return if (action.widget.canExecute(context)) {
+                return if (action.widget.canExecute(context.getCurrentState())) {
                     currTrace.explore(action)
                     PlaybackExplorationAction(action)
                     // not found, try ignoring the location if it has text and or resourceID
-                } else if (action.widget.canExecute(context, true)) {
+                } else if (action.widget.canExecute(context.getCurrentState(), true)) {
                     logger.warn("Same widget not found. Located similar (text and resourceID) widget in different position. Selecting it.")
                     currTrace.explore(action)
                     PlaybackExplorationAction(action)
                 }
                 // not found, go to the next
                 else
-                    getNextAction(context)
+                    getNextAction()
             }
             is TerminateExplorationAction -> {
                 currTrace.explore(action)
@@ -123,10 +123,10 @@ open class MemoryPlayback private constructor() : Explore() {
             }
             is PressBackExplorationAction -> {
                 // If already in home screen, ignore
-                if (context.isHomeScreen)
-                    return getNextAction(context)
+                if (context.getCurrentState().isHomeScreen)
+                    return getNextAction()
 
-                val similarity = context.similarity(currTraceData.state)
+                val similarity = context.getCurrentState().similarity(currTraceData.state)
 
                 // Rule:
                 // 0 - Doesn't belong to app, skip
@@ -145,8 +145,8 @@ open class MemoryPlayback private constructor() : Explore() {
                         val nextWidgetAction = nextTraceData.action as WidgetExplorationAction
                         val nextWidget = nextWidgetAction.widget
 
-                        if (nextWidget.canExecute(context, true))
-                            getNextAction(context)
+                        if (nextWidget.canExecute(context.getCurrentState(), true))
+                            getNextAction()
                     }
 
                     currTrace.explore(action)
@@ -168,19 +168,19 @@ open class MemoryPlayback private constructor() : Explore() {
                 .sum()
     }
 
-    override fun internalDecide(currentState: StateData): ExplorationAction {
-        val allWidgetsBlackListed = this.updateState(currentState)
+    override fun internalDecide(): ExplorationAction {
+        val allWidgetsBlackListed = this.updateState()
         if (allWidgetsBlackListed)
             this.notifyAllWidgetsBlacklisted()
 
-        return chooseAction(currentState)
+        return chooseAction()
     }
 
-    override fun chooseAction(currentState: StateData): ExplorationAction {
-        return getNextAction(currentState)
+    override fun chooseAction(): ExplorationAction {
+        return getNextAction()
     }
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         return StrategyPriority.PLAYBACK
     }
 

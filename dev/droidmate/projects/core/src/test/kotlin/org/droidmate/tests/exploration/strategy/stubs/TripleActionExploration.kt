@@ -30,11 +30,11 @@ import org.droidmate.exploration.strategy.StrategyPriority
  */
 class TripleActionExploration : AbstractStrategy() {
     // TODO Fix tests
-    override fun mustPerformMoreActions(currentState: StateData): Boolean {
+    override fun mustPerformMoreActions(): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun internalDecide(currentState: StateData): ExplorationAction {
+    override fun internalDecide(): ExplorationAction {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -42,7 +42,7 @@ class TripleActionExploration : AbstractStrategy() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

@@ -35,7 +35,7 @@ interface ISelectableExplorationStrategy {
     fun start()
 
     /**
-     * Configure the exploration strategy with the []shared memory][memory]
+     * Configure the exploration strategy with the []shared context][memory]
      */
     fun initialize(memory: AbstractContext)
 
@@ -54,7 +54,7 @@ interface ISelectableExplorationStrategy {
      *
      * @return Fitness of the exploration strategy between 0 and 1
      */
-    fun getFitness(currentState: StateData): StrategyPriority
+    fun getFitness(): StrategyPriority
 
     /**
      * Add a new [listener] to receive execution flow back, as well as to receive notification about
@@ -75,7 +75,7 @@ interface ISelectableExplorationStrategy {
      *
      * @return Exploration action to be sent to the device (has to be supported by DroidMate)
      */
-    fun decide(currentState: StateData): ExplorationAction
+    fun decide(): ExplorationAction
 
     /**
      * Update state after receiving notification that a new target has been found.

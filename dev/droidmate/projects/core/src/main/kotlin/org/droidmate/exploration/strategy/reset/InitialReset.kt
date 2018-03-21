@@ -27,7 +27,7 @@ import org.droidmate.exploration.strategy.StrategyPriority
  * @author Nataniel P. Borges Jr.
  */
 class InitialReset : Reset() {
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // First action is always reset
         if (this.firstDecisionIsBeingMade())
             return StrategyPriority.FIRST_RESET

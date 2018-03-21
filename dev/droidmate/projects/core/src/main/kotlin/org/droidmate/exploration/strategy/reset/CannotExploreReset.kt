@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
 
@@ -28,10 +27,10 @@ import org.droidmate.exploration.strategy.StrategyPriority
  * @author Nataniel P. Borges Jr.
  */
 class CannotExploreReset : Reset() {
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // If can' move forward and have already tried to press back reset,
         // however, reset is never as good as a specific exploration
-        if (!memory.explorationCanMoveOn() &&
+        if (!context.explorationCanMoveOn() &&
                 this.lastAction().actionType == PressBackExplorationAction::class.simpleName)
             return StrategyPriority.RESET
 

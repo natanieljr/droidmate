@@ -155,10 +155,10 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     /**
      * Givers control to an internal exploration strategy given the [current UI][currentState]
      */
-    private fun handleControl(currentState: StateData) {
+    private fun handleControl() {
         ExplorationStrategyPool.logger.debug("Attempting to handle control to exploration strategy")
         assert(this.hasControl())
-        this.activeStrategy = this.selectStrategy(currentState)
+        this.activeStrategy = this.selectStrategy()
 
         assert(!this.hasControl())
         ExplorationStrategyPool.logger.debug("Control handled to strategy ${this.activeStrategy!!}")
@@ -172,10 +172,10 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
      *
      * @return Exploration strategy with highest fitness.
      */
-    private fun selectStrategy(StateData: StateData): ISelectableExplorationStrategy {
+    private fun selectStrategy(): ISelectableExplorationStrategy {
         ExplorationStrategyPool.logger.debug("Selecting best strategy.")
         val maxFitness = this.strategies
-                .map { Pair(it, it.getFitness(StateData)) }
+                .map { Pair(it, it.getFitness()) }
                 .maxBy { it.second.value }
 
         val bestStrategy = maxFitness!!.first
@@ -251,15 +251,15 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             this.startStrategies()
 
         // state was already updated after the previous action was executed in Exploration.kt class
-        val currentState = this.memory.getCurrentState()
+//        val currentState = this.context.getCurrentState()
 
         if (this.hasControl())
-            this.handleControl(currentState)
+            this.handleControl()
         else
             logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
         //val explorationType = this.activeStrategy!!.type
-        val selectedAction = this.activeStrategy!!.decide(currentState)
+        val selectedAction = this.activeStrategy!!.decide()
 
         //this.updateState(selectedAction, explorationType, currentState, startTimestamp)
 

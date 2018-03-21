@@ -20,7 +20,6 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 
@@ -32,58 +31,58 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
                                                         modelName: String,
                                                         arffName: String) : ModelBased(randomSeed, modelName, arffName) {
 
-    /**
-     * Get all widgets which from a [widget context][currentState].
-     * For each widget, stores the estimated probability to have an event (according to the model)
-     *
-     * @return List of widgets with their probability to have an event
-     */
-    override fun internalGetWidgets(currentState: StateData): List<Widget> {
-	    TODO()
-//        wekaInstances.delete()
-//
-//        val actionableWidgets = currentState.actionableWidgetsInfo
-//        actionableWidgets
-//                .forEach { p -> wekaInstances.add(p.toWekaInstance(currentState, wekaInstances)) }
-//
-//        val candidates: MutableList<WidgetInfo> = ArrayList()
-//        for (i in 0..(wekaInstances.numInstances() - 1)) {
-//            val instance = wekaInstances.instance(i)
-//            try {
-//                    // Get probability distribution of the prediction ( [false, true] )
-//                    val predictionProbabilities = classifier.distributionForInstance(instance)
-//                    // Probability of having event
-//                    val probabilityTrue = predictionProbabilities[1]
-//
-//                    val equivWidget = actionableWidgets[i]
-//                    equivWidget.probabilityHaveEvent = probabilityTrue//Math.pow(probabilityTrue, 2.0)
-//
-//                    if (equivWidget.actedUponCount == 0)
-//                        equivWidget.probabilityHaveEvent = 2 * equivWidget.probabilityHaveEvent
-//
-//                candidates.add(equivWidget)
-//
-//            } catch (e: ArrayIndexOutOfBoundsException) {
-//                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
-//                // do nothing
-//            }
-//        }
-//
-//        return candidates
-    }
+//    /**
+//     * Get all widgets which from a [widget context][currentState].
+//     * For each widget, stores the estimated probability to have an event (according to the model)
+//     *
+//     * @return List of widgets with their probability to have an event
+//     */
+//    override fun internalGetWidgets(): List<Widget> {
+//	    TODO()
+////        wekaInstances.delete()
+////
+////        val actionableWidgets = currentState.actionableWidgetsInfo
+////        actionableWidgets
+////                .forEach { p -> wekaInstances.add(p.toWekaInstance(currentState, wekaInstances)) }
+////
+////        val candidates: MutableList<WidgetInfo> = ArrayList()
+////        for (i in 0..(wekaInstances.numInstances() - 1)) {
+////            val instance = wekaInstances.instance(i)
+////            try {
+////                    // Get probability distribution of the prediction ( [false, true] )
+////                    val predictionProbabilities = classifier.distributionForInstance(instance)
+////                    // Probability of having event
+////                    val probabilityTrue = predictionProbabilities[1]
+////
+////                    val equivWidget = actionableWidgets[i]
+////                    equivWidget.probabilityHaveEvent = probabilityTrue//Math.pow(probabilityTrue, 2.0)
+////
+////                    if (equivWidget.actedUponCount == 0)
+////                        equivWidget.probabilityHaveEvent = 2 * equivWidget.probabilityHaveEvent
+////
+////                candidates.add(equivWidget)
+////
+////            } catch (e: ArrayIndexOutOfBoundsException) {
+////                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
+////                // do nothing
+////            }
+////        }
+////
+////        return candidates
+//    }
 
     /**
      * Selects a widget following "Fitness Proportionate Selection"
      */
     override fun chooseRandomWidget(): ExplorationAction {
-        val candidates = this.memory.getCurrentState().widgets
+        val candidates = this.context.getCurrentState().widgets
         assert(candidates.isNotEmpty())
 
         val probabilities = getCandidatesProbabilities(candidates)
         val selectedIdx = stochasticSelect(probabilities, 10)
         val chosenWidgetInfo = candidates[selectedIdx]
 
-        this.memory.lastTarget = chosenWidgetInfo
+        this.context.lastTarget = chosenWidgetInfo
         return chooseActionForWidget(chosenWidgetInfo)
     }
 

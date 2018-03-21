@@ -20,7 +20,6 @@ package org.droidmate.exploration.strategy.widget
 
 import org.apache.commons.lang3.StringUtils
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
 
@@ -34,7 +33,7 @@ abstract class Explore : AbstractStrategy() {
     // region overrides
 
 
-    override fun mustPerformMoreActions(currentState: StateData): Boolean {
+    override fun mustPerformMoreActions(): Boolean {
         return false
     }
 
@@ -42,44 +41,20 @@ abstract class Explore : AbstractStrategy() {
         // Nothing to do here.
     }
 
-    override fun internalDecide(currentState: StateData): ExplorationAction {
-        assert(memory.explorationCanMoveOn())
+    override fun internalDecide(): ExplorationAction {
+        assert(context.explorationCanMoveOn())
 
-        val allWidgetsBlackListed = memory.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
+        val allWidgetsBlackListed = context.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
         if (allWidgetsBlackListed)
             this.notifyAllWidgetsBlacklisted()
 
-        return chooseAction(currentState)
+        return chooseAction()
     }
 
     // endregion
 
     // region extensions
 
-    private fun addWidgets(result: MutableList<Widget>, widget: Widget, currentState: StateData) {
-
-        // Does not check can be acted upon because it was check on the parentID
-        if (widget.visible && widget.enabled) {
-            if (!result.any { it == widget })
-                result.add(widget)
-
-            // Add children
-            memory.getCurrentState().widgets
-                    .filter { it.parentId == widget.id }
-                    .forEach { addWidgets(result, it, currentState) }
-        }
-    }
-
-    fun StateData.getActionableWidgetsInclChildren(): List<Widget> {
-        val result = ArrayList<Widget>()
-
-        memory.getCurrentState().widgets
-//                .filter { !it.blackListed }   //TODO
-                .filter { it.canBeActedUpon() }
-                .forEach { p -> addWidgets(result, p, this) }
-
-        return result
-    }
 
     protected fun Widget.getRefinedType(): String {
         return if (VALID_WIDGETS.contains(this.className.toLowerCase()))
@@ -95,14 +70,14 @@ abstract class Explore : AbstractStrategy() {
     }
 
     protected fun Widget.getActionableParent(): Widget? {
-        var parent: Widget? = memory.getCurrentState().widgets.find{it.id == this.parentId}
+        var parent: Widget? = context.getCurrentState().widgets.find{it.id == this.parentId}
         // Just check for layouts
         while (parent != null && (parent.getRefinedType().contains("layout") || parent.getRefinedType().contains("group"))) {
             if (parent.canBeActedUpon()) {
                 return parent
             }
 
-            parent = memory.getCurrentState().widgets.find{it.id == parent!!.parentId}
+            parent = context.getCurrentState().widgets.find{it.id == parent!!.parentId}
         }
 
         return null
@@ -124,16 +99,16 @@ abstract class Explore : AbstractStrategy() {
         return closest
     }
 
-    protected fun updateState(currentState: StateData): Boolean {
-        if (!memory.belongsToApp(currentState)) {
-            if (!memory.isEmpty()) {
-//                this.memory.lastTarget.blackListed = true //TODO blacklist missing in current model
-                logger.debug("Blacklisted ${this.memory.lastTarget}")
+    protected fun updateState(): Boolean {
+        if (!context.belongsToApp(context.getCurrentState())) {
+            if (!context.isEmpty()) {
+//                this.context.lastTarget.blackListed = true //TODO blacklist missing in current model
+                logger.debug("Blacklisted ${this.context.lastTarget}")
             }
         }
 
         return false //currentState.allWidgetsBlacklisted()
     }
 
-    abstract fun chooseAction(currentState: StateData): ExplorationAction
+    abstract fun chooseAction(): ExplorationAction
 }

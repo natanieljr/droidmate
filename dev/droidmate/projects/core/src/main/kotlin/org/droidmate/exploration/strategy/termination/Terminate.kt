@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
@@ -34,25 +33,25 @@ import org.droidmate.logging.Markers
 abstract class Terminate : AbstractStrategy() {
 
     protected fun getSecondLastAction(): String {
-        if (this.memory.getSize() < 2)
+        if (this.context.getSize() < 2)
             return EmptyAction()::class.simpleName?:""
 
-        return this.memory.actionTrace.getActions().dropLast(1).last().actionType?:""
+        return this.context.actionTrace.getActions().dropLast(1).last().actionType?:""
     }
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
-        if (this.met(currentState))
+    override fun getFitness(): StrategyPriority {
+        if (this.met())
             return StrategyPriority.TERMINATE
 
         return StrategyPriority.NONE
     }
 
-    override fun mustPerformMoreActions(currentState: StateData): Boolean {
+    override fun mustPerformMoreActions(): Boolean {
         return false
     }
 
-    override fun internalDecide(currentState: StateData): ExplorationAction {
-        logger.info(Markers.appHealth, "Terminating exploration: ${this.metReason(currentState)}")
+    override fun internalDecide(): ExplorationAction {
+        logger.info(Markers.appHealth, "Terminating exploration: ${this.metReason()}")
         return newTerminateExplorationAction()
     }
 
@@ -61,8 +60,8 @@ abstract class Terminate : AbstractStrategy() {
     }
 
     abstract fun getLogMessage(): String
-    abstract fun met(currentState: StateData): Boolean
-    abstract fun metReason(currentState: StateData): String
+    abstract fun met(): Boolean
+    abstract fun metReason(): String
 
     /*companion object {
         /**

@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
@@ -30,22 +29,22 @@ import org.droidmate.exploration.strategy.StrategyPriority
  * otherwise its priority is 0.
  */
 class AllowRuntimePermission private constructor() : Explore() {
-    override fun chooseAction(currentState: StateData): ExplorationAction {
-        val allowButton = memory.getCurrentState().widgets.let { widgets ->
+    override fun chooseAction(): ExplorationAction {
+        val allowButton = context.getCurrentState().widgets.let { widgets ->
             widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
                 ?: widgets.first { it.text.toUpperCase() == "ALLOW" }
         }
 
         // Remove blacklist restriction from previous action since it will need to be executed again
-//        this.memory.lastTarget.blackListed = false    //TODO
+//        this.context.lastTarget.blackListed = false    //TODO
 
         return ExplorationAction.newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
     }
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // If the permission dialog appears this strategy should always have
         // preference unless competing against Terminate or First Reset
-        return if (memory.getCurrentState().isRequestRuntimePermissionDialogBox)
+        return if (context.getCurrentState().isRequestRuntimePermissionDialogBox)
             StrategyPriority.SPECIFIC_WIDGET
         else
             StrategyPriority.NONE

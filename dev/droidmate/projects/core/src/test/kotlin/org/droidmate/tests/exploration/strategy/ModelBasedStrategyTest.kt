@@ -47,8 +47,8 @@ class ModelBasedStrategyTest: DroidmateTestCase() {
 
         // The timer starts here
         val testApk = ApkTestHelper.build("ch.bailu.aat", "", "", "")
-        val memory =  ExplorationContext(testApk)
-//        val state = memory.getState(guiState)
+        val context =  ExplorationContext(testApk)
+//        val state = context.getState(guiState)
         val chosenAction = strategy.decide(EmptyWidgetContext()) as WidgetExplorationAction
         assert(chosenAction.getSelectedWidget().uniqueString == "android.view.ViewGroup[0]    java.awt.Rectangle[x=0,y=63,width=263,height=263]")
         //assert(chosenAction.selectedWidget.uniqueString == "android.view.ViewGroup    java.awt.Rectangle[x=789,y=63,width=263,height=263]")

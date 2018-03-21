@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
@@ -40,13 +39,13 @@ class CannotExploreTerminate : Terminate() {
     override fun getLogMessage(): String = ""
 
 
-    override fun met(currentState: StateData): Boolean {
+    override fun met(): Boolean {
         // If the exploration cannot move forward after a reset + press back it should be terminated.
 
-        return !memory.explorationCanMoveOn() &&
+        return !context.explorationCanMoveOn() &&
                 this.lastAction().actionType == ResetAppExplorationAction::class.simpleName &&
                 (this.getSecondLastAction() == PressBackExplorationAction::class.simpleName ||
-                        (memory.getCurrentState().isAppHasStoppedDialogBox))
+                        (context.getCurrentState().isAppHasStoppedDialogBox))
         // or during initial attempt (just after first launch, which is also a reset) then it shall be terminated.
     }
 
@@ -54,16 +53,16 @@ class CannotExploreTerminate : Terminate() {
         // Do nothing
     }
 
-    override fun metReason(currentState: StateData): String {
-        val guiStateMsgPart = if (memory.isEmpty()) "Initial GUI state" else "GUI state after reset"
+    override fun metReason(): String {
+        val guiStateMsgPart = if (context.isEmpty()) "Initial GUI state" else "GUI state after reset"
 
         // This case is observed when e.g. the app shows empty screen at startup.
-        return if (!memory.belongsToApp(currentState))
-            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${memory.lastDump}"
+        return if (!context.belongsToApp(currentState))
+            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${context.lastDump}"
         // This case is observed when e.g. the app has nonstandard GUI, e.g. game native interface.
         // Also when all widgets have been blacklisted because they e.g. crash the app.
         else if (!currentState.hasActionableWidgets()) {
-            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${memory.lastDump}"
+            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${context.lastDump}"
         } else
             throw UnexpectedIfElseFallthroughError()
     }

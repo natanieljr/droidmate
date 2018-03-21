@@ -105,7 +105,7 @@ open class ModelBased protected constructor(randomSeed: Long,
         else
             attributeValues[1] = model.getNominalIndex(1, "none")
 
-        val children = memory.getCurrentState().widgets
+        val children = context.getCurrentState().widgets
                 .filter { p -> p.parentId == this.id }
 
         if (children.isNotEmpty())
@@ -160,19 +160,45 @@ open class ModelBased protected constructor(randomSeed: Long,
      *
      * @return List of widgets which have an associated event (according to the model)
      */
-    override fun getAvailableWidgets(currentState: StateData): List<Widget> {
-        var candidates = internalGetWidgets(currentState)
+    override fun getAvailableWidgets(): List<Widget> {
+        var candidates = internalGetWidgets(context.getCurrentState())
 
-        this.memory.lastTarget?.let { candidates = candidates.filterNot { it.uid == it.uid } }
+        this.context.lastTarget?.let { candidates = candidates.filterNot { it.uid == it.uid } }
 
         return candidates
     }
 
+    fun StateData.getActionableWidgetsInclChildren(): List<Widget> {
+        val result = ArrayList<Widget>()
+
+        context.getCurrentState().widgets
+//                .filter { !it.blackListed }   //TODO
+            .filter { it.canBeActedUpon() }
+            .forEach { p -> addWidgets(result, p, this) }
+
+        return result
+    }
+
+    private fun addWidgets(result: MutableList<Widget>, widget: Widget, currentState: StateData) {
+
+        // Does not check can be acted upon because it was check on the parentID
+        if (widget.visible && widget.enabled) {
+            if (!result.any { it == widget })
+                result.add(widget)
+
+            // Add children
+            context.getCurrentState().widgets
+                .filter { it.parentId == widget.id }
+                .forEach { addWidgets(result, it, currentState) }
+        }
+    }
+
+
     /**
      * Returns a high priority when the model found widgets with events. Otherwise this strategy's priority is 0
      */
-    override fun getFitness(currentState: StateData): StrategyPriority {
-        val candidates = getAvailableWidgets(currentState)
+    override fun getFitness(): StrategyPriority {
+        val candidates = getAvailableWidgets()
 
         // Lower priority than reset, more than random exploration
         return if (candidates.isNotEmpty())

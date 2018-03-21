@@ -18,8 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
-import org.droidmate.device.datatypes.statemodel.StateData
-
 /**
  * Determines if exploration shall be terminated based on the explored widgets
  *
@@ -28,16 +26,16 @@ import org.droidmate.device.datatypes.statemodel.StateData
 class AllWidgetsExploredTerminate : Terminate() {
     override fun getLogMessage(): String = ""
 
-    override fun met(currentState: StateData): Boolean {
+    override fun met(): Boolean {
         // All widgets have been explored, no need to continue exploration
-        return !memory.isEmpty() && memory.areAllWidgetsExplored()
+        return !context.isEmpty() && context.areAllWidgetsExplored()
     }
 
     override fun start() {
         // Do nothing
     }
 
-    override fun metReason(currentState: StateData): String {
+    override fun metReason(): String {
         return "All widgets have been explored at least once"
     }
 }

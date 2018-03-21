@@ -19,7 +19,6 @@
 package org.droidmate.exploration.strategy.login
 
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
@@ -170,18 +169,18 @@ class LoginWithFacebook : Explore() {
         throw DroidmateException("The exploration shouldn' have reached this point.")
     }
 
-    override fun mustPerformMoreActions(currentState: StateData): Boolean {
+    override fun mustPerformMoreActions(): Boolean {
         // Between sign in and log in it's a single process, afterwards it may change depending on
         // what facebook displays, therefore handle it on a case by case basis on getFitness method
         return signInClicked && !loginClicked
     }
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // Not the correct app, or already logged in
         if (continueClicked)
             return StrategyPriority.NONE
 
-        val widgets = currentState.getActionableWidgetsInclChildren()
+        val widgets = context.getCurrentState().actionableWidgets
 
         // Can click on login
         if (canClickSignIn(widgets) ||
@@ -206,15 +205,15 @@ class LoginWithFacebook : Explore() {
         }
     }
 
-    override fun chooseAction(StateData: StateData): ExplorationAction {
-        return if (memory.getCurrentState().isRequestRuntimePermissionDialogBox) {
-            val widget = memory.getCurrentState().widgets.let { widgets ->
+    override fun chooseAction(): ExplorationAction {
+        return if (context.getCurrentState().isRequestRuntimePermissionDialogBox) {
+            val widget = context.getCurrentState().widgets.let { widgets ->
                 widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
                     ?: widgets.first { it.text.toUpperCase() == "ALLOW" }
             }
             newWidgetExplorationAction(widget)
         } else {
-            val widgets = StateData.getActionableWidgetsInclChildren()
+            val widgets = context.getCurrentState().actionableWidgets
             getWidgetAction(widgets)
         }
     }

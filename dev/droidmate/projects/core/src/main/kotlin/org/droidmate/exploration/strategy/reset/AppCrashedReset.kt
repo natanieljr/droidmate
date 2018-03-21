@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.strategy.StrategyPriority
 
 
@@ -29,9 +28,9 @@ import org.droidmate.exploration.strategy.StrategyPriority
  */
 class AppCrashedReset : Reset() {
 
-    override fun getFitness(currentState: StateData): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // Exploration crashed
-        if (memory.getCurrentState().isAppHasStoppedDialogBox)
+        if (context.getCurrentState().isAppHasStoppedDialogBox)
             return StrategyPriority.APP_CRASHED_RESET
 
         // Any other action
