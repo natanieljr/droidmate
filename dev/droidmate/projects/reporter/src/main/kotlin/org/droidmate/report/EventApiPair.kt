@@ -19,7 +19,7 @@
 package org.droidmate.report
 
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.WaitA
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*

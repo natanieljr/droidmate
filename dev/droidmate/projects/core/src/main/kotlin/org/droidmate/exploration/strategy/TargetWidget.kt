@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import java.util.*
 import kotlin.collections.ArrayList
 

@@ -21,7 +21,6 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.debug.debugT
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
@@ -112,10 +111,10 @@ class Trace(private val watcher:List<ModelFeature> = emptyList()){
 
 	private val targets:MutableList<Widget?> = LinkedList()
 	/** used for special id creation of interacted edit fields, map< iEditId -> (state -> collection<widget> )> */
-	private val editFields:MutableMap<UUID,LinkedList<Pair<StateData,Widget>>> = mutableMapOf()
+	private val editFields:MutableMap<UUID,LinkedList<Pair<StateData, Widget>>> = mutableMapOf()
 
 	/** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
-	private fun internalUpdate(target:Widget?,state:StateData){
+	private fun internalUpdate(target: Widget?, state:StateData){
 		targets.add(target)
 		target?.run {
 			if (isEdit) editFields.compute(state.iEditId, { _,stateMap ->

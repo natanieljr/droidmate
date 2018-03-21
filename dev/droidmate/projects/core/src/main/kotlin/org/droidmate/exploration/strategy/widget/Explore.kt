@@ -19,7 +19,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.apache.commons.lang3.StringUtils
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
 

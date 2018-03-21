@@ -19,6 +19,7 @@
 
 package org.droidmate.device.datatypes
 
+import org.droidmate.device.datatypes.statemodel.WidgetData
 import java.awt.Rectangle
 import java.io.Serializable
 

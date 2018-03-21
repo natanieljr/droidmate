@@ -19,13 +19,14 @@
 
 package org.droidmate.device.datatypes
 
+import org.droidmate.device.datatypes.statemodel.WidgetData
 import java.awt.Rectangle
 
 /**
  * Specialized GuiStatus class that represents an application with an active "Runtime permission" dialog box
  */
 @Deprecated("We only need one GuiStatus class no reason for this nearly empty subclasses")
-class RuntimePermissionDialogBoxGuiStatus(topNodePackageName: String, widgets: List<WidgetData>, androidLauncherPackageName: String,deviceDisplayBounds: Rectangle) :
+class RuntimePermissionDialogBoxGuiStatus(topNodePackageName: String, widgets: List<WidgetData>, androidLauncherPackageName: String, deviceDisplayBounds: Rectangle) :
         GuiStatus(topNodePackageName, "", widgets, androidLauncherPackageName,deviceDisplayBounds) {
     companion object {
         private const val serialVersionUID: Long = 1

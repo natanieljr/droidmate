@@ -21,7 +21,7 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.emptyId
 import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
 import org.droidmate.device.datatypes.statemodel.features.listOfSmallest

@@ -18,7 +18,7 @@ package org.droidmate.device.datatypes.statemodel.features
 
 import kotlinx.coroutines.experimental.DefaultDispatcher
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
 import java.util.*

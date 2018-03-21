@@ -20,6 +20,7 @@
 package org.droidmate.device.datatypes
 
 
+import org.droidmate.device.datatypes.statemodel.WidgetData
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.Markers.Companion.exceptions
 import org.slf4j.LoggerFactory
@@ -200,15 +201,15 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 					WidgetData::checked.name to (if (getBool("checkable")) getBool("checked") else null),
 					WidgetData::clickable.name to getBool("clickable"),
 					WidgetData::enabled.name to getBool("enabled"),
-					WidgetData::focused.name to (if(getBool("focusable")) getBool("focused") else null),
+					WidgetData::focused.name to (if (getBool("focusable")) getBool("focused") else null),
 					WidgetData::scrollable.name to getBool("scrollable"),
 					WidgetData::longClickable.name to getBool("long-clickable"),
 					WidgetData::visible.name to getBool("visible-to-user"),  // TODO check invisible nodes are probably never in the dump anyway
 					WidgetData::isPassword.name to getBool("password"),
 					WidgetData::selected.name to getBool("selected"),
-                    WidgetData::bounds.name to WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue),
-                    WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
-			), n.attributes.getNamedItem("index")?.nodeValue?.toInt()?:-1, parentWidget )
+					WidgetData::bounds.name to WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue),
+					WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
+			), n.attributes.getNamedItem("index")?.nodeValue?.toInt() ?: -1, parentWidget)
 		} catch (e: InvalidWidgetBoundsException) {
 			log.error("Catching exception: parsing widget bounds failed. ${LogbackConstants.err_log_msg}\n" +
 					"Continuing execution, skipping the widget with empty bounds.")

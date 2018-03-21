@@ -23,7 +23,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.*
 import org.droidmate.device.datatypes.statemodel.features.ModelFeature
 import org.droidmate.errors.DroidmateError

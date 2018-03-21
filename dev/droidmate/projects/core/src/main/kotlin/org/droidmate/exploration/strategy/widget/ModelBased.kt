@@ -19,7 +19,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager

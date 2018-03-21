@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.actions.EnterTextExplorationAction
 import org.droidmate.exploration.actions.ExplorationRecord
