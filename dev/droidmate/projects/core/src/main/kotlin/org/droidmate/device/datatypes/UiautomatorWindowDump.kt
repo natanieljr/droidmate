@@ -193,7 +193,7 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 			return WidgetData(mapOf(
 					WidgetData::id.name to getStringVal("id"), // Appears only in test code simulating the device, never on actual devices or their emulators.
 					WidgetData::text.name to getStringVal("text"),
-					WidgetData::resourceId.name to getStringVal("resource-uid"),
+					WidgetData::resourceId.name to getStringVal("resource-id"),
 					WidgetData::className.name to getStringVal("class"),
 					WidgetData::packageName.name to getStringVal("package"),
 					WidgetData::contentDesc.name to getStringVal("content-contentDesc"),
