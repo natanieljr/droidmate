@@ -24,7 +24,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable
@@ -35,7 +35,7 @@ class ApkSummary {
 
   companion object {
 
-    fun build(data: IExplorationLog): String {
+      fun build(data: AbstractContext): String {
       return build(Payload(data))
     }
 
@@ -88,14 +88,14 @@ class ApkSummary {
     val apiEventEntries: List<ApiEventEntry>
   ) {
 
-    constructor(data: IExplorationLog) : this(
+      constructor(data: AbstractContext) : this(
       data,
       data.uniqueApiLogsWithFirstTriggeringActionIndex,
       data.uniqueEventApiPairsWithFirstTriggeringActionIndex
     )
 
     private constructor(
-            data: IExplorationLog,
+            data: AbstractContext,
             uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
             uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData,IApiLogcatMessage>, Int>
     ) : this(
@@ -131,7 +131,7 @@ class ApkSummary {
     )
 
     companion object {
-      val IExplorationLog.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
+        val AbstractContext.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
         get()
 
         {
@@ -141,7 +141,7 @@ class ApkSummary {
         )
       }
 
-      val IExplorationLog.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData,IApiLogcatMessage>, Int>
+        val AbstractContext.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData, IApiLogcatMessage>, Int>
         get() {
 
             return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(

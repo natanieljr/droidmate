@@ -18,12 +18,12 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 import org.droidmate.logging.Markers
 
 /**
@@ -40,19 +40,19 @@ abstract class Terminate : AbstractStrategy() {
         return this.memory.actionTrace.getActions().dropLast(1).last().actionType?:""
     }
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
-        if (this.met(widgetContext))
+    override fun getFitness(currentState: StateData): StrategyPriority {
+        if (this.met(currentState))
             return StrategyPriority.TERMINATE
 
         return StrategyPriority.NONE
     }
 
-    override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
+    override fun mustPerformMoreActions(currentState: StateData): Boolean {
         return false
     }
 
-    override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
-        logger.info(Markers.appHealth, "Terminating exploration: ${this.metReason(widgetContext)}")
+    override fun internalDecide(currentState: StateData): ExplorationAction {
+        logger.info(Markers.appHealth, "Terminating exploration: ${this.metReason(currentState)}")
         return newTerminateExplorationAction()
     }
 
@@ -61,8 +61,8 @@ abstract class Terminate : AbstractStrategy() {
     }
 
     abstract fun getLogMessage(): String
-    abstract fun met(widgetContext: WidgetContext): Boolean
-    abstract fun metReason(widgetContext: WidgetContext): String
+    abstract fun met(currentState: StateData): Boolean
+    abstract fun metReason(currentState: StateData): String
 
     /*companion object {
         /**

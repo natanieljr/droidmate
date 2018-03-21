@@ -31,7 +31,7 @@ open class GuiStatus constructor(final override val topNodePackageName: String,
     }
 
     private val androidPackageName = "android"
-    private val resIdRuntimePermissionDialog = "com.android.packageinstaller:uid/dialog_container"
+    private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
 
 
     init {

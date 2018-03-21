@@ -18,17 +18,42 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.device.datatypes.*
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.test_tools.device.datatypes.IUnreliableDeviceGuiSnapshotProvider
-import org.droidmate.test_tools.device.datatypes.UnreliableDeviceGuiSnapshotProvider
-import org.droidmate.uiautomator_daemon.guimodel.*
+import org.droidmate.apis.ITimeFormattedLogcatMessage
+import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.guimodel.Action
 
-class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
+class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
                                  packageName: String,
                                  specString: String,
-                                 private val simulation : IDeviceSimulation = DeviceSimulation(timeGenerator, packageName, specString)) : IDeviceSimulation by simulation {
-    private var unreliableGuiSnapshotProvider: IUnreliableDeviceGuiSnapshotProvider
+                                 private val simulation: IDeviceSimulation = DeviceSimulation(timeGenerator, packageName, specString))*/ // TODO Fix tests
+    : IDeviceSimulation /*by simulation*/ // TODO Fix tests
+{
+    override fun updateState(deviceAction: Action) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getCurrentLogs(): List<ITimeFormattedLogcatMessage> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override val packageName: String
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    override val guiScreens: List<IGuiScreen>
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+
+    override fun assertEqual(other: IDeviceSimulation) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getAppIsRunning(): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    // TODO Fix tests
+    /*private var unreliableGuiSnapshotProvider: IUnreliableDeviceGuiSnapshotProvider
 
     init {
         this.unreliableGuiSnapshotProvider = UnreliableDeviceGuiSnapshotProvider(this.simulation.getCurrentGuiSnapshot())
@@ -101,5 +126,5 @@ class UnreliableDeviceSimulation(timeGenerator: ITimeGenerator,
                         "not 'app has stopped' dialog box. The forbidden action: $action"
             })
         }
-    }
+    }*/
 }

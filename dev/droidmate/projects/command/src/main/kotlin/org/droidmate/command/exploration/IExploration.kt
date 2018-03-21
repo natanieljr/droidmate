@@ -20,12 +20,12 @@ package org.droidmate.command.exploration
 
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.misc.Failable
 
 interface IExploration
 {
 
-    fun run(app: IApk, device: IRobustDevice): Failable<IExplorationLog, DeviceException>
+    fun run(app: IApk, device: IRobustDevice): Failable<AbstractContext, DeviceException>
 }

@@ -20,12 +20,12 @@ package org.droidmate.report.apk
 
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.ExplorationRecord
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import org.droidmate.report.misc.actionableWidgets
 import org.droidmate.report.misc.clickedWidget
 
-class WidgetSeenClickedTable(data: IExplorationLog) : CountsPartitionedByTimeTable(
+class WidgetSeenClickedTable(data: AbstractContext) : CountsPartitionedByTimeTable(
         data.getExplorationTimeInMs(),
         listOf(
                 headerTime,
@@ -44,19 +44,19 @@ class WidgetSeenClickedTable(data: IExplorationLog) : CountsPartitionedByTimeTab
         const val headerViewsSeen = "Actionable_unique_views_seen"
         const val headerViewsClicked = "Actionable_unique_views_clicked"
 
-        private val IExplorationLog.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
+        private val AbstractContext.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
             get() {
                 return this.uniqueViewCountByPartitionedTime(
                         extractItems = { it.actionableWidgets }
                 )
             }
 
-        private val IExplorationLog.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
+        private val AbstractContext.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
             get() {
                 return this.uniqueViewCountByPartitionedTime(extractItems = { it.clickedWidget })
             }
 
-        private fun IExplorationLog.uniqueViewCountByPartitionedTime(
+        private fun AbstractContext.uniqueViewCountByPartitionedTime(
                 extractItems: (ExplorationRecord) -> Iterable<Widget>): Map<Long, Iterable<String>> {
 TODO("what do we intent to compute here?")
 //            return this.logRecords.itemsAtTime(

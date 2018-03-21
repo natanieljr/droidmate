@@ -18,8 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Initial reset to start the exploration.
@@ -27,7 +27,7 @@ import org.droidmate.exploration.strategy.WidgetContext
  * @author Nataniel P. Borges Jr.
  */
 class InitialReset : Reset() {
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
         // First action is always reset
         if (this.firstDecisionIsBeingMade())
             return StrategyPriority.FIRST_RESET
@@ -40,12 +40,7 @@ class InitialReset : Reset() {
         return other is InitialReset
     }
 
-    /*companion object {
-        /**
-         * Creates a new exploration strategy instance with reset interval provided by [DroidMate's configuration][cfg]
-         */
-        fun build(cfg: Configuration): ISelectableExplorationStrategy {
-            return Reset(cfg.resetEveryNthExplorationForward)
-        }
-    }*/
+    override fun hashCode(): Int {
+        return this.javaClass.hashCode()
+    }
 }

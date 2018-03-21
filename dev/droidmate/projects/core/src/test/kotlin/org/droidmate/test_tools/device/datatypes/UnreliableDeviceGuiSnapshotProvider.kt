@@ -19,10 +19,21 @@
 package org.droidmate.test_tools.device.datatypes
 
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.slf4j.LoggerFactory
 
 class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IDeviceGuiSnapshot) : IUnreliableDeviceGuiSnapshotProvider {
-    companion object {
+    override fun provide(): IDeviceGuiSnapshot {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun pressOkOnAppHasStopped() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getCurrentWithoutChange(): IDeviceGuiSnapshot {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    // TODO Fix tests
+    /*companion object {
         private val log = LoggerFactory.getLogger(UnreliableDeviceGuiSnapshotProvider::class.java)
     }
 
@@ -60,5 +71,5 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IDevi
             this.currentGuiSnapshot = this.guiSnapshotsSequence[guiSnapshotsSequence.indexOf(currentGuiSnapshot) + 1]
 
         return out
-    }
+    }*/
 }

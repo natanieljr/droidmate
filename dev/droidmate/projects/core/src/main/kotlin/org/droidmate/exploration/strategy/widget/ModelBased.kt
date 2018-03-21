@@ -20,7 +20,10 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.Widget
-import org.droidmate.exploration.strategy.*
+import org.droidmate.device.datatypes.statemodel.StateData
+import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
+import org.droidmate.exploration.strategy.ResourceManager
+import org.droidmate.exploration.strategy.StrategyPriority
 import weka.classifiers.trees.RandomForest
 import weka.core.DenseInstance
 import weka.core.Instance
@@ -87,23 +90,23 @@ open class ModelBased protected constructor(randomSeed: Long,
     }
 
     /**
-     * Converts a widget info given a [context where the widget is inserted][widgetContext] (used to locate parents
+     * Converts a widget info given a [context where the widget is inserted][currentState] (used to locate parents
      * and children) and a [Weka model][model]
      *
-     * @receiver [WidgetInfo]
+     * @receiver [Widget]
      */
-    protected fun WidgetInfo.toWekaInstance(widgetContext: WidgetContext, model: Instances): Instance {
+    protected fun Widget.toWekaInstance(currentState: StateData, model: Instances): Instance {
         val attributeValues: DoubleArray = kotlin.DoubleArray(5)
 
-        attributeValues[0] = model.getNominalIndex(0, this.widget.getRefinedType())
+        attributeValues[0] = model.getNominalIndex(0, this.getRefinedType())
 
-        if (this.widget.parentId != null)
-            attributeValues[1] = model.getNominalIndex(1, memory.getCurrentState().widgets.find{it.id == widget.parentId}!!.className)  //TODO get rectified name
+        if (this.parentId != null)
+            attributeValues[1] = model.getNominalIndex(1, currentState.widgets.find { it.id == parentId }!!.className)  //TODO get rectified name
         else
             attributeValues[1] = model.getNominalIndex(1, "none")
 
         val children = memory.getCurrentState().widgets
-                .filter { p -> p.parentId == this.widget.id }
+                .filter { p -> p.parentId == this.id }
 
         if (children.isNotEmpty())
             attributeValues[2] = model.getNominalIndex(2, children.first().getRefinedType())
@@ -121,35 +124,34 @@ open class ModelBased protected constructor(randomSeed: Long,
     }
 
     /**
-     * Get all widgets which from a [widget context][widgetContext] that are classified as "with event"
+     * Get all widgets which from a [widget context][currentState] that are classified as "with event"
      *
      * @return List of widgets which have an associated event (according to the model)
      */
-    protected open fun internalGetWidgets(widgetContext: WidgetContext): List<Widget> {
-        TODO()
-//        wekaInstances.delete()
-//
-//        val actionableWidgets = widgetContext.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
-//        actionableWidgets
-//                .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
-//
-//        val candidates: MutableList<WidgetInfo> = ArrayList()
-//        for (i in 0..(wekaInstances.numInstances() - 1)) {
-//            val instance = wekaInstances.instance(i)
-//            try {
-//                val classification = classifier.classifyInstance(instance)
-//                // Classified as true
-//                if (classification == 1.0) {
-//                    val equivWidget = actionableWidgets[i]
-//                    candidates.add(equivWidget)
-//                }
-//            } catch (e: ArrayIndexOutOfBoundsException) {
-//                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
-//                // do nothing
-//            }
-//        }
-//
-//        return candidates
+    protected open fun internalGetWidgets(currentState: StateData): List<Widget> {
+        wekaInstances.delete()
+
+        val actionableWidgets = currentState.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
+        actionableWidgets
+                .forEach { p -> wekaInstances.add(p.toWekaInstance(currentState, wekaInstances)) }
+
+        val candidates: MutableList<Widget> = mutableListOf()
+        for (i in 0..(wekaInstances.numInstances() - 1)) {
+            val instance = wekaInstances.instance(i)
+            try {
+                val classification = classifier.classifyInstance(instance)
+                // Classified as true
+                if (classification == 1.0) {
+                    val equivWidget = actionableWidgets[i]
+                    candidates.add(equivWidget)
+                }
+            } catch (e: ArrayIndexOutOfBoundsException) {
+                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
+                // do nothing
+            }
+        }
+
+        return candidates
     }
 
     /**
@@ -158,10 +160,10 @@ open class ModelBased protected constructor(randomSeed: Long,
      *
      * @return List of widgets which have an associated event (according to the model)
      */
-    override fun getAvailableWidgets(widgetContext: WidgetContext): List<Widget> {
-        var candidates = internalGetWidgets(widgetContext)
+    override fun getAvailableWidgets(currentState: StateData): List<Widget> {
+        var candidates = internalGetWidgets(currentState)
 
-        this.memory.lastTarget?.let{ candidates = candidates.filterNot { it.isEquivalent(it) } }
+        this.memory.lastTarget?.let { candidates = candidates.filterNot { it.uid == it.uid } }
 
         return candidates
     }
@@ -169,8 +171,8 @@ open class ModelBased protected constructor(randomSeed: Long,
     /**
      * Returns a high priority when the model found widgets with events. Otherwise this strategy's priority is 0
      */
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
-        val candidates = getAvailableWidgets(widgetContext)
+    override fun getFitness(currentState: StateData): StrategyPriority {
+        val candidates = getAvailableWidgets(currentState)
 
         // Lower priority than reset, more than random exploration
         return if (candidates.isNotEmpty())

@@ -18,7 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.data_aggregators
 
-import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.statemodel.*
@@ -33,11 +32,9 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    override val watcher:LinkedList<ModelFeature> = LinkedList(),
                                                    override val actionTrace: Trace = Trace(watcher),
-                                                   override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : IExplorationLog() {
+                                                   override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : AbstractContext() {
 
 	override var deviceDisplayBounds: Rectangle? = null
-	/** for debugging purpose only contains the last UiAutomator dump */
-	var lastDump:String = ""
 
 	init{
 		model.addTrace(actionTrace)
@@ -51,6 +48,10 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 
 	override fun getCurrentState(): StateData = actionTrace.getCurrentState()
 
+    override fun belongsToApp(state: StateData): Boolean {
+        return state.topNodePackageName == apk.packageName
+    }
+
 	override fun add(action: IRunnableExplorationAction, result: ActionResult) {
 		deviceDisplayBounds = result.guiSnapshot.guiStatus.deviceDisplayBounds
 		lastDump = result.guiSnapshot.windowHierarchyDump
@@ -61,7 +62,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 
 	override fun dump() {
 		model.P_dumpModel(model.config)
-		this.also { context -> watcher.forEach { launch(CoroutineName(it::class.simpleName?:"observer-dump")) { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(it.context,parent=it.job) { it.dump(context) } } }
 	}
 
 	override fun areAllWidgetsExplored(): Boolean {

@@ -19,9 +19,9 @@
 package org.droidmate.exploration.strategy.reset
 
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Reset the app on timed intervals to avoid getting stuck
@@ -38,7 +38,7 @@ class IntervalReset constructor(private val resetEveryNthExplorationForward: Int
      */
     private var nrActionsWithoutReset: Int = 0
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
         // First action or following a reset
         if (this.lastAction().actionType == ResetAppExplorationAction::class.simpleName)
             return StrategyPriority.NONE

@@ -19,16 +19,15 @@
 package org.droidmate.exploration.strategy.playback
 
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.strategy.WidgetContext
-import org.droidmate.misc.uniqueString
 import java.io.Serializable
 
 class PlaybackTrace : Serializable {
     @Suppress("unused")
     data class PlaybackTraceData(val action: ExplorationAction,
-                                 val widgetContext: WidgetContext,
+                                 val state: StateData,
                                  var requested: Boolean = false,
                                  var explored: Boolean = false) : Serializable {
         override fun toString(): String {
@@ -42,8 +41,8 @@ class PlaybackTrace : Serializable {
 
     private val trace: MutableList<PlaybackTraceData> = ArrayList()
 
-    fun add(action: ExplorationAction, widgetContext: WidgetContext) {
-        trace.add(PlaybackTraceData(action, widgetContext))
+    fun add(action: ExplorationAction, currentState: StateData) {
+        trace.add(PlaybackTraceData(action, currentState))
     }
 
     fun explore(action: ExplorationAction) {
@@ -85,7 +84,7 @@ class PlaybackTrace : Serializable {
     fun contains(widget: Widget): Boolean {
         return trace.any { p ->
             (p.action is WidgetExplorationAction) &&
-                    (p.action.widget.uniqueString == widget.uniqueString)
+                    (p.action.widget.uid == widget.uid)
         }
     }
 
@@ -99,7 +98,7 @@ class PlaybackTrace : Serializable {
     private fun indexOf(widget: Widget): Int {
         return trace.indexOfFirst { p ->
             (p.action is WidgetExplorationAction) &&
-                    (p.action.widget.uniqueString == widget.uniqueString)
+                    (p.action.widget.uid == widget.uid)
         }
     }
 

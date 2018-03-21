@@ -19,8 +19,9 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 
 /**
  * Base class for exploration strategies that can be selected from within an IStrategyPool
@@ -36,7 +37,7 @@ interface ISelectableExplorationStrategy {
     /**
      * Configure the exploration strategy with the []shared memory][memory]
      */
-    fun initialize(memory: IExplorationLog)
+    fun initialize(memory: AbstractContext)
 
     /**
      * Estimate of confident the exploration strategy is that it can perform an action.
@@ -49,11 +50,11 @@ interface ISelectableExplorationStrategy {
      * - ExplorationContext based (if event found)
      * - Random based (last choice)
      *
-     * @param widgetContext Current GUI
+     * @param currentState Current GUI
      *
      * @return Fitness of the exploration strategy between 0 and 1
      */
-    fun getFitness(widgetContext: WidgetContext): StrategyPriority
+    fun getFitness(currentState: StateData): StrategyPriority
 
     /**
      * Add a new [listener] to receive execution flow back, as well as to receive notification about
@@ -67,14 +68,14 @@ interface ISelectableExplorationStrategy {
     fun updateState(actionNr: Int, record: ActionResult)
 
     /**
-     * Selects an exploration action based on the [current GUI][widgetContext].
+     * Selects an exploration action based on the [current GUI][currentState].
      *
      * When using an exploration pool, this method is only invoked if the current strategy
      * had the highest fitness
      *
      * @return Exploration action to be sent to the device (has to be supported by DroidMate)
      */
-    fun decide(widgetContext: WidgetContext): ExplorationAction
+    fun decide(currentState: StateData): ExplorationAction
 
     /**
      * Update state after receiving notification that a new target has been found.

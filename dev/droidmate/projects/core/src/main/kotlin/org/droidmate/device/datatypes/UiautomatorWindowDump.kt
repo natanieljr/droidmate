@@ -28,7 +28,6 @@ import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.awt.Dimension
 import java.awt.Rectangle
-import java.awt.SystemColor.text
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.Serializable
@@ -207,8 +206,8 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 					WidgetData::visible.name to getBool("visible-to-user"),  // TODO check invisible nodes are probably never in the dump anyway
 					WidgetData::isPassword.name to getBool("password"),
 					WidgetData::selected.name to getBool("selected"),
-					WidgetData::bounds.name to WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue),
-					WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
+                    WidgetData::bounds.name to WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue),
+                    WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
 			), n.attributes.getNamedItem("index")?.nodeValue?.toInt()?:-1, parentWidget )
 		} catch (e: InvalidWidgetBoundsException) {
 			log.error("Catching exception: parsing widget bounds failed. ${LogbackConstants.err_log_msg}\n" +
@@ -218,7 +217,7 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 		}
 	}
 
-	private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node) {
+    private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node) {
 		val w = createWidget(data, parent)
 
 		if (w != null) {
@@ -232,7 +231,7 @@ Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:ui
 			result.add(w)
 		}
 
-		data.childNodes.toList().filter { it.nodeName == "node" }.forEach { addWidget(result, w, it) }
+        data.childNodes.toList().filter { it.nodeName == "node" }.forEach { addWidget(result, w, it) }
 	}
 
 	private fun NodeList.toList(): List<Node> {

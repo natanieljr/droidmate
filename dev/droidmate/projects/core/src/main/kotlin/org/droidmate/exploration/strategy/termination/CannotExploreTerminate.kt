@@ -18,10 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.termination
 
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Determines if exploration shall be terminated based on the based on:
@@ -40,7 +40,7 @@ class CannotExploreTerminate : Terminate() {
     override fun getLogMessage(): String = ""
 
 
-    override fun met(widgetContext: WidgetContext): Boolean {
+    override fun met(currentState: StateData): Boolean {
         // If the exploration cannot move forward after a reset + press back it should be terminated.
 
         return !memory.explorationCanMoveOn() &&
@@ -54,16 +54,16 @@ class CannotExploreTerminate : Terminate() {
         // Do nothing
     }
 
-    override fun metReason(widgetContext: WidgetContext): String {
+    override fun metReason(currentState: StateData): String {
         val guiStateMsgPart = if (memory.isEmpty()) "Initial GUI state" else "GUI state after reset"
 
         // This case is observed when e.g. the app shows empty screen at startup.
-        return if (!widgetContext.belongsToApp())
-            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${widgetContext.guiStatus}"
+        return if (!memory.belongsToApp(currentState))
+            "$guiStateMsgPart doesn't belong to the app. The GUI state: ${memory.lastDump}"
         // This case is observed when e.g. the app has nonstandard GUI, e.g. game native interface.
         // Also when all widgets have been blacklisted because they e.g. crash the app.
-        else if (memory.getCurrentState().hasActionableWidgets()) {
-            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${widgetContext.guiStatus}"
+        else if (!currentState.hasActionableWidgets()) {
+            "$guiStateMsgPart doesn't contain actionable widgets. The GUI state: ${memory.lastDump}"
         } else
             throw UnexpectedIfElseFallthroughError()
     }

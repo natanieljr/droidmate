@@ -21,7 +21,7 @@ package org.droidmate.command
 import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
@@ -39,7 +39,7 @@ class PlaybackCommand(apksProvider: IApksProvider,
                       exploration: IExploration,
                       storage2: IStorage2) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer, exploration, storage2) {
     companion object {
-        private fun getExplorationStrategy(explorationLog: IExplorationLog, cfg: Configuration): IExplorationStrategy {
+        private fun getExplorationStrategy(explorationLog: AbstractContext, cfg: Configuration): IExplorationStrategy {
             val pool = ExplorationStrategyPool.build(explorationLog, cfg)
 
             val storedLogFile = Paths.get(cfg.playbackFile).toAbsolutePath()
@@ -54,7 +54,7 @@ class PlaybackCommand(apksProvider: IApksProvider,
         }
 
         fun build(cfg: Configuration,
-                  strategyProvider: (IExplorationLog) -> IExplorationStrategy = { getExplorationStrategy(it, cfg) },
+                  strategyProvider: (AbstractContext) -> IExplorationStrategy = { getExplorationStrategy(it, cfg) },
                   timeProvider: ITimeProvider = TimeProvider(),
                   deviceTools: IDeviceTools = DeviceTools(cfg)): PlaybackCommand {
             val apksProvider = ApksProvider(deviceTools.aapt)

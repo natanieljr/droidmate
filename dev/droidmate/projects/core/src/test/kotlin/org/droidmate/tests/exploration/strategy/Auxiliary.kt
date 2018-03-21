@@ -19,27 +19,12 @@
 
 package org.droidmate.tests.exploration.strategy
 
-import org.droidmate.configuration.Configuration
-import org.droidmate.configuration.ConfigurationBuilder
-import org.droidmate.configuration.ConfigurationException
-import org.droidmate.device.datatypes.IGuiStatus
-import org.droidmate.device.datatypes.UiautomatorWindowDump
-import org.droidmate.device.datatypes.OldWidget
-import org.droidmate.exploration.strategy.ITargetWidget
-import org.droidmate.exploration.strategy.ResourceManager
-import org.droidmate.exploration.strategy.TargetWidget
-import org.junit.Assert
-import java.awt.Dimension
-import java.awt.Rectangle
-import java.io.IOException
-import java.net.URISyntaxException
-import java.util.*
-
 /**
  * Auxiliary functions for testing
  */
 object Auxiliary {
-    private fun createWidget(id: String, actionable: Boolean): OldWidget {
+    // TODO Fix tests
+    /*private fun createWidget(id: String, actionable: Boolean): OldWidget {
         return OldWidget(id).apply {
             packageName = "STUB!"
             bounds = Rectangle(1, 1, 5, 5)
@@ -116,5 +101,5 @@ object Auxiliary {
             throw UnsupportedOperationException(e)
         }
 
-    }
+    }*/
 }

@@ -20,13 +20,9 @@ package org.droidmate.exploration.strategy.widget
 
 import org.apache.commons.lang3.StringUtils
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.exploration.strategy.WidgetContext
-import org.droidmate.exploration.strategy.WidgetInfo
-import org.droidmate.misc.uniqueString
-
-//import org.droidmate.report.uniqueString
 
 /**
  * Abstract class for implementing widget exploration strategies.
@@ -38,7 +34,7 @@ abstract class Explore : AbstractStrategy() {
     // region overrides
 
 
-    override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
+    override fun mustPerformMoreActions(currentState: StateData): Boolean {
         return false
     }
 
@@ -46,21 +42,21 @@ abstract class Explore : AbstractStrategy() {
         // Nothing to do here.
     }
 
-    override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
+    override fun internalDecide(currentState: StateData): ExplorationAction {
         assert(memory.explorationCanMoveOn())
 
         val allWidgetsBlackListed = memory.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
         if (allWidgetsBlackListed)
             this.notifyAllWidgetsBlacklisted()
 
-        return chooseAction(widgetContext)
+        return chooseAction(currentState)
     }
 
     // endregion
 
     // region extensions
 
-    private fun addWidgets(result: MutableList<Widget>, widget: Widget, widgetContext: WidgetContext) {
+    private fun addWidgets(result: MutableList<Widget>, widget: Widget, currentState: StateData) {
 
         // Does not check can be acted upon because it was check on the parentID
         if (widget.visible && widget.enabled) {
@@ -70,11 +66,11 @@ abstract class Explore : AbstractStrategy() {
             // Add children
             memory.getCurrentState().widgets
                     .filter { it.parentId == widget.id }
-                    .forEach { addWidgets(result, it, widgetContext) }
+                    .forEach { addWidgets(result, it, currentState) }
         }
     }
 
-    fun WidgetContext.getActionableWidgetsInclChildren(): List<Widget> {
+    fun StateData.getActionableWidgetsInclChildren(): List<Widget> {
         val result = ArrayList<Widget>()
 
         memory.getCurrentState().widgets
@@ -96,10 +92,6 @@ abstract class Explore : AbstractStrategy() {
 
             refType.toLowerCase()
         }
-    }
-
-    protected fun Widget.isEquivalent(other: Widget): Boolean {
-        return this.uniqueString == other.uniqueString
     }
 
     protected fun Widget.getActionableParent(): Widget? {
@@ -132,23 +124,16 @@ abstract class Explore : AbstractStrategy() {
         return closest
     }
 
-    protected fun updateState(widgetContext: WidgetContext): Boolean {
-        widgetContext.seenCount += 1
-
-        if (widgetContext.seenCount == 1)
-            logger.debug("Encountered a NEW widget context:\n${widgetContext.uniqueString}")
-        else
-            logger.debug("Encountered an existing widget context:\n${widgetContext.uniqueString}")
-
-        if (!widgetContext.belongsToApp()) {
+    protected fun updateState(currentState: StateData): Boolean {
+        if (!memory.belongsToApp(currentState)) {
             if (!memory.isEmpty()) {
 //                this.memory.lastTarget.blackListed = true //TODO blacklist missing in current model
                 logger.debug("Blacklisted ${this.memory.lastTarget}")
             }
         }
 
-        return widgetContext.allWidgetsBlacklisted()
+        return false //currentState.allWidgetsBlacklisted()
     }
 
-    abstract fun chooseAction(widgetContext: WidgetContext): ExplorationAction
+    abstract fun chooseAction(currentState: StateData): ExplorationAction
 }

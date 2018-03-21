@@ -99,7 +99,7 @@ class Trace(private val watcher:List<ModelFeature> = emptyList()){
 
 	/** this property is set in the end of the trace update and notifies all watchers for changes */
 	private var newState by Delegates.observable(StateData.emptyState) { _, old, new ->
-		notifyObserver(old,new)
+		notifyObserver(old, new)
 		internalUpdate(trace.last.targetWidget, old)
 	}
 

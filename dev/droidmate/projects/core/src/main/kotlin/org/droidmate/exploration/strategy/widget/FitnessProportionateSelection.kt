@@ -20,11 +20,9 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.WidgetContext
-import org.droidmate.exploration.strategy.WidgetInfo
-import java.util.*
 
 /**
  * Exploration strategy which selects widgets following Fitness Proportionate Selection
@@ -35,18 +33,18 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
                                                         arffName: String) : ModelBased(randomSeed, modelName, arffName) {
 
     /**
-     * Get all widgets which from a [widget context][widgetContext].
+     * Get all widgets which from a [widget context][currentState].
      * For each widget, stores the estimated probability to have an event (according to the model)
      *
      * @return List of widgets with their probability to have an event
      */
-    override fun internalGetWidgets(widgetContext: WidgetContext): List<Widget> {
+    override fun internalGetWidgets(currentState: StateData): List<Widget> {
 	    TODO()
 //        wekaInstances.delete()
 //
-//        val actionableWidgets = widgetContext.actionableWidgetsInfo
+//        val actionableWidgets = currentState.actionableWidgetsInfo
 //        actionableWidgets
-//                .forEach { p -> wekaInstances.add(p.toWekaInstance(widgetContext, wekaInstances)) }
+//                .forEach { p -> wekaInstances.add(p.toWekaInstance(currentState, wekaInstances)) }
 //
 //        val candidates: MutableList<WidgetInfo> = ArrayList()
 //        for (i in 0..(wekaInstances.numInstances() - 1)) {

@@ -22,33 +22,33 @@ import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.emptyUUID
 import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import java.util.*
 
-val IExplorationLog.uniqueActionableWidgets: Set<Widget>
+val AbstractContext.uniqueActionableWidgets: Set<Widget>
   get() = mutableSetOf<Widget>().apply {
     getRecords().getWidgets().filter { it.canBeActedUpon() }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
         .forEach{ add(it.value.first()) }
   }
 
-val IExplorationLog.uniqueClickedWidgets: Set<Widget>
+val AbstractContext.uniqueClickedWidgets: Set<Widget>
   get() = mutableSetOf<Widget>().apply {
     actionTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
   }
 
 //TODO not sure about the original intention of this function
-val IExplorationLog.uniqueApis: Set<IApiLogcatMessage>
+val AbstractContext.uniqueApis: Set<IApiLogcatMessage>
   get() = uniqueEventApiPairs.map { (_, api) -> api }.toSet()
 
-val IExplorationLog.uniqueEventApiPairs: Set<Pair<UUID,IApiLogcatMessage>>
+val AbstractContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
   get() = mutableSetOf<Pair<UUID,IApiLogcatMessage>>().apply {
     actionTrace.getActions().forEach {
       apiLogs.forEach { apiList -> apiList.forEach { api -> add(Pair(it.targetWidget?.uid?: emptyUUID, api)) } }
     }
   }
 
-val IExplorationLog.resetActionsCount: Int
+val AbstractContext.resetActionsCount: Int
   get() = actionTrace.getActions().count { it.actionType == ResetAppExplorationAction::class.simpleName }
 
-val IExplorationLog.apkFileNameWithUnderscoresForDots: String
+val AbstractContext.apkFileNameWithUnderscoresForDots: String
   get() = apk.fileName.replace(".", "_")

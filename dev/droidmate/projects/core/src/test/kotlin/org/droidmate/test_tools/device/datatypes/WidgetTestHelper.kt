@@ -19,14 +19,10 @@
 
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.OldWidget
-import org.droidmate.device.model.DeviceModel
-import java.awt.Rectangle
-
 class WidgetTestHelper {
+    // TODO Fix tests
     companion object {
-        @JvmStatic
+        /*@JvmStatic
         private fun newGenWidget(args: Map<String, Any>, widgetGenIndex: Int): Widget {
             assert(widgetGenIndex >= 1)
             val genArgs = args.toMutableMap()
@@ -224,12 +220,8 @@ class WidgetTestHelper {
                     args["password"] as Boolean? ?: false,
                     args["selected"] as Boolean? ?: false,
                     Rectangle(lowX, lowY, highX - lowX, highY - lowY),
-                    null
+                    null)
                     // @formatter:on
-            ).apply {
-                deviceDisplayBounds = args["deviceDisplayBounds"] as Rectangle? ?:
-                        Rectangle(DeviceModel.buildDefault().getDeviceDisplayDimensionsForTesting())
-            }
-        }
+        }*/
     }
 }

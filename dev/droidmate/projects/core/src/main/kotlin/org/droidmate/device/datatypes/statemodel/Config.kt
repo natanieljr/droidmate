@@ -45,9 +45,9 @@ class ModelDumpConfig(path:String, appName:String) {
     Files.createDirectories(Paths.get("${widgetImgDst}nonInteractive${File.separator}"))
   }
 
-  val widgetFile:(ConcreteId)->String = { id->statePath(id, postfix = "_AllWidgets") }
+    val widgetFile: (ConcreteId) -> String = { id -> statePath(id, postfix = "_AllWidgets") }
   private val idPath:(String, String, String, String)->String = { baseDir, id, postfix, fileExtension-> baseDir+id+postfix+"."+fileExtension }
-  fun statePath(id: ConcreteId, postfix:String="", fileExtension:String="csv"):String{
+    fun statePath(id: ConcreteId, postfix: String = "", fileExtension: String = "csv"): String {
     return idPath(stateDst,"${id.first}_${id.second}",postfix,fileExtension)
   }
   fun widgetImgPath(id:UUID, postfix:String="", fileExtension:String="png", interactive:Boolean):String{

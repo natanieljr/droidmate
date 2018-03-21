@@ -20,9 +20,9 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.widget.RandomWidget
-import org.droidmate.misc.isEquivalentIgnoreLocation
 
 /**
  * Exploration strategy that seeks targets. Has a higher priority than the normal widget explorations
@@ -45,19 +45,19 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
      *
      * @return List of widgets which are meaningful targets
      */
-    override fun getAvailableWidgets(widgetContext: WidgetContext): List<Widget> {
-        val widgetInfo = super.getAvailableWidgets(widgetContext)
+    override fun getAvailableWidgets(currentState: StateData): List<Widget> {
+        val widgetInfo = super.getAvailableWidgets(currentState)
 
         val toSatisfy = this.target.getNextWidgetsCanSatisfy()
 
         return widgetInfo.filter { w ->
-            toSatisfy.any { it.widget.isEquivalentIgnoreLocation(w) }
+            toSatisfy.any { it.widget.uid == w.uid }
         }
     }
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
         // If it is not yet satisfied and can handle action
-        if (this.getAvailableWidgets(widgetContext).isNotEmpty())
+        if (this.getAvailableWidgets(currentState).isNotEmpty())
             return StrategyPriority.SPECIFIC_WIDGET
 
         // Otherwise does nothing

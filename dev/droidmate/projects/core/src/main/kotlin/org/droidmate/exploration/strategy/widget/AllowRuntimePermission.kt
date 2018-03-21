@@ -18,11 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiStatus
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Exploration strategy that always clicks "Allow" on runtime permission dialogs.
@@ -31,12 +30,11 @@ import org.droidmate.exploration.strategy.WidgetContext
  * otherwise its priority is 0.
  */
 class AllowRuntimePermission private constructor() : Explore() {
-    override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
+    override fun chooseAction(currentState: StateData): ExplorationAction {
         val allowButton = memory.getCurrentState().widgets.let { widgets ->
-            widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:uid/permission_allow_button" }
+            widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
                 ?: widgets.first { it.text.toUpperCase() == "ALLOW" }
         }
-//        val allowButton = (widgetContext.guiStatus as RuntimePermissionDialogBoxGuiStatus).allowWidget
 
         // Remove blacklist restriction from previous action since it will need to be executed again
 //        this.memory.lastTarget.blackListed = false    //TODO
@@ -44,7 +42,7 @@ class AllowRuntimePermission private constructor() : Explore() {
         return ExplorationAction.newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
     }
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
         // If the permission dialog appears this strategy should always have
         // preference unless competing against Terminate or First Reset
         return if (memory.getCurrentState().isRequestRuntimePermissionDialogBox)

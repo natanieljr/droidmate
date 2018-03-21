@@ -24,8 +24,8 @@ import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
 import org.droidmate.deleteDir
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.exploration.data_aggregators.IExplorationLog
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
@@ -37,7 +37,6 @@ import org.droidmate.report.AggregateStats
 import org.droidmate.report.IReporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
-import org.droidmate.report.misc.withFilteredApiLogs
 import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
@@ -56,7 +55,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
     protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
 
     fun build(cfg: Configuration,
-              strategyProvider: (IExplorationLog) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
+              strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
               timeProvider: ITimeProvider = TimeProvider(),
               deviceTools: IDeviceTools = DeviceTools(cfg),
               reportCreators:List<IReporter> = emptyList()): ExploreCommand {
@@ -88,14 +87,14 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
       throw ThrowablesCollection(explorationExceptions)
   }
 
-  private fun writeReports(reportDir: Path, rawData: List<IExplorationLog>) {
+    private fun writeReports(reportDir: Path, rawData: List<AbstractContext>) {
     if (!Files.exists(reportDir))
       Files.createDirectories(reportDir)
 
     assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
 
     log.info("Writing reports")
-    val reportData = rawData.withFilteredApiLogs
+      val reportData = rawData
     reporters.forEach { it.write(reportDir.toAbsolutePath(), reportData) }
   }
 

@@ -18,14 +18,14 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.report.TableDataFile
 import java.nio.file.Path
 
 class WidgetSeenClickedCount @JvmOverloads constructor(private val includePlots: Boolean,
                                                        private val fileName: String = "viewCount.txt") : ApkReport() {
 
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun writeApkReport(data: AbstractContext, apkReportDir: Path) {
         val dataTable = WidgetSeenClickedTable(data)
 
         val reportPath = apkReportDir.resolve(fileName)

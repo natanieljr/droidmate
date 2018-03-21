@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.report.IReporter
 import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
 import org.slf4j.Logger
@@ -32,7 +32,7 @@ abstract class ApkReport : IReporter {
         protected val log: Logger = LoggerFactory.getLogger(ClickFrequency::class.java)
     }
 
-    override fun write(reportDir: Path, rawData: List<IExplorationLog>) {
+    override fun write(reportDir: Path, rawData: List<AbstractContext>) {
         rawData.forEach { data ->
             val apkReportDir = reportDir.resolve(data.apkFileNameWithUnderscoresForDots)
 
@@ -43,5 +43,5 @@ abstract class ApkReport : IReporter {
         }
     }
 
-    protected abstract fun writeApkReport(data: IExplorationLog, apkReportDir: Path)
+    protected abstract fun writeApkReport(data: AbstractContext, apkReportDir: Path)
 }

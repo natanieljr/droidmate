@@ -18,12 +18,12 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import java.nio.file.Files
 import java.nio.file.Path
 
 class ActionTrace @JvmOverloads constructor(private val fileName: String = "action_trace.txt") : ApkReport() {
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun writeApkReport(data: AbstractContext, apkReportDir: Path) {
         val sb = StringBuilder()
         val header = "actionNr\tType\tdecisionTime\tscreenshot\n"
         sb.append(header)

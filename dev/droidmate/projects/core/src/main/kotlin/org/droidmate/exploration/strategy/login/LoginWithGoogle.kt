@@ -18,18 +18,15 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
-import org.droidmate.device.datatypes.RuntimePermissionDialogBoxGuiStatus
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
-import org.droidmate.exploration.strategy.WidgetInfo
 import org.droidmate.exploration.strategy.widget.Explore
 import org.droidmate.misc.DroidmateException
-import java.awt.SystemColor.text
 
 @Suppress("unused")
 class LoginWithGoogle : Explore() {
@@ -86,7 +83,7 @@ class LoginWithGoogle : Explore() {
         throw DroidmateException("The exploration shouldn' have reached this point.")
     }
 
-    override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
+    override fun mustPerformMoreActions(currentState: StateData): Boolean {
         return !memory.getCurrentState().widgets
                 .any {
                     it.visible &&
@@ -94,12 +91,12 @@ class LoginWithGoogle : Explore() {
                 }
     }
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
         // Not the correct app, or already logged in
         if (this.state == LoginState.Done)
             return StrategyPriority.NONE
 
-        val widgets = widgetContext.getActionableWidgetsInclChildren()
+        val widgets = currentState.getActionableWidgetsInclChildren()
 
         if (canClickGoogle(widgets) ||
                 canClickAccount(widgets) ||
@@ -119,10 +116,10 @@ class LoginWithGoogle : Explore() {
         }
     }
 
-    override fun chooseAction(widgetContext: WidgetContext): ExplorationAction {
+    override fun chooseAction(currentState: StateData): ExplorationAction {
         return if (memory.getCurrentState().isRequestRuntimePermissionDialogBox) {
             val widget = memory.getCurrentState().widgets.let { widgets ->
-                widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:uid/permission_allow_button" }
+                widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
                     ?: widgets.first { it.text.toUpperCase() == "ALLOW" }
             }
             newWidgetExplorationAction(widget)

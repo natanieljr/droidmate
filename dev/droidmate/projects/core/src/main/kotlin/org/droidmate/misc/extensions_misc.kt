@@ -18,8 +18,6 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-import org.droidmate.device.datatypes.Widget
-import org.droidmate.exploration.strategy.WidgetInfo
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Duration
@@ -53,25 +51,6 @@ val Duration.minutesAndSeconds: String get() {
   val m = this.toMinutes()
   val s = this.seconds - m * 60
   return "$m".padStart(4, ' ') + "m " + "$s".padStart(2, ' ') + "s"
-}
-
-val Widget.uniqueString: String
-    get() {
-        return WidgetInfo.from(this).uniqueString
-}
-
-@Suppress("unused")
-fun Widget.isEquivalentIgnoreLocation(other: Widget, ignoreCase: Boolean = true): Boolean {
-  val uniqueThis = if (ignoreCase)
-    this.uniqueString.toLowerCase()
-  else
-    this.uniqueString
-  val uniqueOther = if (ignoreCase)
-    other.uniqueString.toLowerCase()
-  else
-    other.uniqueString
-
-  return uniqueThis.dropLastWhile { it -> it != '[' } == uniqueOther.dropLastWhile { it -> it != '[' }
 }
 
 fun <T, TItem> Iterable<T>.setByUniqueString(

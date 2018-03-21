@@ -18,18 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import com.google.common.base.MoreObjects
-import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.apis.TimeFormattedLogcatMessage
-import org.droidmate.device.datatypes.*
-import org.droidmate.device.model.DeviceModel
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.errors.UnsupportedMultimethodDispatch
-import org.droidmate.misc.MonitorConstants
-import org.droidmate.test_tools.device.datatypes.GuiStateTestHelper
-import org.droidmate.test_tools.device.datatypes.UiautomatorWindowDumpTestHelper
-import org.droidmate.test_tools.device.datatypes.WidgetTestHelper
-import org.droidmate.uiautomator_daemon.guimodel.*
+import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.guimodel.Action
 
 /**
  * <p>
@@ -42,11 +32,48 @@ import org.droidmate.uiautomator_daemon.guimodel.*
  *
  * </p>
  */
-class GuiScreen constructor(private val internalId: String, 
+class GuiScreen /*constructor(private val internalId: String,
                             packageName : String = "", 
-                            private val timeGenerator : ITimeGenerator? = null) : IGuiScreen {
+                            private val timeGenerator : ITimeGenerator? = null)*/ // TODO Fix tests
+    : IGuiScreen {
+    override fun perform(action: Action): IScreenTransitionResult {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getGuiSnapshot(): IDeviceGuiSnapshot {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getId(): String {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun addHomeScreenReference(home: IGuiScreen) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun addMainScreenReference(main: IGuiScreen) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen, ignoreDuplicates: Boolean) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun buildInternals() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun verify() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    // TODO Fix tests
     //private static final String packageAndroidLauncher = new DeviceConfigurationFactory(UiautomatorDaemonConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
-    companion object {
+    /*companion object {
         const val idHome = "home"
         const val idChrome = "chrome"
         val reservedIds = arrayListOf(idHome, idChrome)
@@ -241,5 +268,5 @@ class GuiScreen constructor(private val internalId: String,
 
     override fun addWidgetTransition(widgetId: String, targetScreen: IGuiScreen) {
         addWidgetTransition(widgetId, targetScreen, false)
-    }
+    }*/
 }

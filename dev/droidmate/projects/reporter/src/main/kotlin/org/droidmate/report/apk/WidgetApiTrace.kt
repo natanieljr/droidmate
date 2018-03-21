@@ -22,12 +22,12 @@ import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import java.nio.file.Files
 import java.nio.file.Path
 
 class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : ApkReport() {
-    override fun writeApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun writeApkReport(data: AbstractContext, apkReportDir: Path) {
         val sb = StringBuilder()
         val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
         sb.append(header)

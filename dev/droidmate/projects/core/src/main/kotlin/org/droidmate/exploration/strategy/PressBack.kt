@@ -19,6 +19,7 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.configuration.Configuration
+import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
@@ -43,7 +44,7 @@ class PressBack private constructor(private val probability: Double,
      */
     private val random = Random(randomSeed)
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(currentState: StateData): StrategyPriority {
 
         // If it can' move forward and last action was not to reset
         // On the first action the reset will have a priority of 1.0, so this is not a problem
@@ -68,11 +69,11 @@ class PressBack private constructor(private val probability: Double,
             StrategyPriority.BACK
     }
 
-    override fun mustPerformMoreActions(widgetContext: WidgetContext): Boolean {
+    override fun mustPerformMoreActions(currentState: StateData): Boolean {
         return false
     }
 
-    override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
+    override fun internalDecide(currentState: StateData): ExplorationAction {
         return newPressBackExplorationAction()
     }
 
