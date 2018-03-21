@@ -313,11 +313,11 @@ class Widget(private val properties:WidgetData, var _uid: Lazy<UUID>) {
 
 		@JvmStatic private fun idOfImgCut(image: BufferedImage):UUID =
 //			debugT("compute img id raster elements", { // seams to work
-//				(image.raster.getDataElements(0, 0, image.width, image.height, null) as ByteArray)
+				(image.raster.getDataElements(0, 0, image.width, image.height, null) as ByteArray)
 //
 //			})
 			 // debugT("compute img id dataBuffer", {  //seams to be much faster but not properly unique
-				(image.raster.dataBuffer as DataBufferByte).data
+//				(image.raster.dataBuffer as DataBufferByte).data
 //			})
 					.let { UUID.nameUUIDFromBytes(it) }
 

@@ -69,7 +69,7 @@ class Model private constructor(val config: ModelDumpConfig){
 			measureTimeMillis {
 				s = computeNewState(action, trace.interactedEditFields())
 			}.let { println("state computation takes $it millis for ${s!!.widgets.size}") }
-					s?.also { newState ->
+					s?.also { newState -> launch { newState.widgets } // initialize the widgets in parallel
 //				val traceUpdate = launch{ debugT("trace update",{
 					trace.update(action, newState)
 //					}) }
@@ -107,7 +107,7 @@ class Model private constructor(val config: ModelDumpConfig){
 
 				return debugT( "special widget handling", {
 					if( state.hasEdit) interactedEF[state.iEditId]?.let {
-						action.resultState(handleEditFields(state, it)) } ?: state
+						action.resultState( lazy{handleEditFields(state, it)} ) } ?: state
 					else state
 					})
 //					return s!! //}
@@ -124,14 +124,17 @@ class Model private constructor(val config: ModelDumpConfig){
 //	}
 	/** check for all edit fields of the state if we already interacted with them and thus potentially changed their text property, if so overwrite the uid to the original one (before we interacted with it) */
 	//TODO this takes unusual much time
-	private fun handleEditFields(state: StateData, interactedEF: List<Pair<StateData, Widget>>):List<Widget> {
-		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
-		return interactedEF.groupBy { it.first }.map { (s,pairs) ->
-			pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets	}
-		}.let {
+	private val handleEditFields:( StateData, List<Pair<StateData, Widget>>)->List<Widget> = { state, interactedEF ->
+//		async {
+			// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
+			debugT("candidate computation", {
+				interactedEF.groupBy { it.first }.map { (s, pairs) ->
+					pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets }
+				}
+			})
+					.let {
 
-
-//			debugT("parallel edit field",{
+				//			debugT("parallel edit field",{
 //				runBlocking {
 //					it.map { //(iUid, widgets) ->
 //						async {	editTask(state,it) }
@@ -146,17 +149,20 @@ class Model private constructor(val config: ModelDumpConfig){
 //				}
 //			})
 //FIXME same issue for Password fields?
-			debugT("sequential edit field",{  // faster then parallel alternatives
-				it.fold(state.widgets, { res, (iUid, widgets) ->
-				// determine which candidate matches the current [state] and replace the respective widget.uid`s
-				if (state.idWhenIgnoring(widgets) == iUid &&
-						widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
-					state.widgets.map { w -> w.apply { uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
-				else res // contain different elements => wrong state candidate
-			})
-			})
-		}
+				debugT("sequential edit field", {
+					// faster then parallel alternatives
+					it.fold(state.widgets, { res, (iUid, widgets) ->
+						// determine which candidate matches the current [state] and replace the respective widget.uid`s
+						if (state.idWhenIgnoring(widgets) == iUid &&
+								widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
+							state.widgets.map { w -> w.apply { uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
+						else res // contain different elements => wrong state candidate
+					})
+				})
+			}
+//		}
 	}
+
 
 	private val _actionParser:(List<String>)->Deferred<ActionData> = { entries -> async(CoroutineName("ActionParsing-$entries")){ // we createFromString the source state and target widget if there is any
 		stateIdFromString(entries[0]).let { srcId ->  // pars the src state with the contained widgets and add the respective objects to our model

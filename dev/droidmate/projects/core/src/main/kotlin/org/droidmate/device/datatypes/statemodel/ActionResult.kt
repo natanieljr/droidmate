@@ -19,6 +19,7 @@
 package org.droidmate.device.datatypes.statemodel
 
 import com.google.common.base.MoreObjects
+import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -124,7 +125,8 @@ open class ActionResult(val action: ExplorationAction,
 		}
 	}
 
-	fun resultState(widgets:List<Widget>):StateData {
+	fun resultState(widgets:List<Widget>):StateData = resultState(lazyOf(widgets))
+	fun resultState(widgets:Lazy<List<Widget>>):StateData {
 		return 	 guiSnapshot.guiStatus.let{ g ->
 			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
 					g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox, g.isUseLauncherAsHomeDialogBox )

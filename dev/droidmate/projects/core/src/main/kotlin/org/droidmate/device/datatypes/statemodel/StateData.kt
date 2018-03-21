@@ -1,5 +1,8 @@
 package org.droidmate.device.datatypes.statemodel
 
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.Widget.Companion.widgetHeader
 import java.io.File
@@ -14,7 +17,7 @@ fun ConcreteId.toString() = "${first}_$second"
 val emptyId = ConcreteId(emptyUUID, emptyUUID)
 
 /** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
-class StateData /*private*/ (val widgets: List<Widget>,
+class StateData /*private*/ (private val _widgets: Lazy<List<Widget>>,
                              val topNodePackageName: String="", val androidLauncherPackageName: String="", //TODO check if androidLauncherPackageName really necessary
                              val isHomeScreen: Boolean = false,
                              val isAppHasStoppedDialogBox: Boolean = false,
@@ -22,6 +25,10 @@ class StateData /*private*/ (val widgets: List<Widget>,
                              val isCompleteActionUsingDialogBox: Boolean = false,
                              val isSelectAHomeAppDialogBox: Boolean = false,
                              val isUseLauncherAsHomeDialogBox: Boolean = false ){
+
+	constructor(widgets: Set<Widget>):this( lazyOf(widgets.toList()) )
+
+	val widgets by lazy{ _widgets.value }
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
 //              isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,
@@ -74,8 +81,8 @@ class StateData /*private*/ (val widgets: List<Widget>,
 
   companion object {
     // this is basically extending the primary constructor
-    @JvmStatic operator fun invoke(widgets: Set<Widget>): StateData = StateData(widgets.toList()//.sortedBy { it.uid.toString() }
-    )
+//    @JvmStatic operator fun invoke(widgets: Set<Widget>): StateData = StateData(widgets.toList()//.sortedBy { it.uid.toString() }
+//    )
 
     // to load the model from previously stored files
     @JvmStatic fun fromFile(widgets: Set<Widget>): StateData = StateData(widgets//.sortedBy { it.uid.toString() }
