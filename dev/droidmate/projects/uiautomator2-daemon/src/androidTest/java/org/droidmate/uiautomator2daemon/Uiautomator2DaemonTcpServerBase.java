@@ -20,11 +20,13 @@ package org.droidmate.uiautomator2daemon;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.Log;
+
+import org.droidmate.uiautomator_daemon.SerializationHelper;
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,17 +34,17 @@ import java.net.SocketTimeoutException;
 
 public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Serializable, ServerOutputT extends Serializable>
 {
-
   private int port;
-  ServerSocket serverSocket;
+  private ServerSocket serverSocket;
 
   private String serverStartMessageTag;
   private String serverStartMessage;
 
-  public static final String tag = UiautomatorDaemonConstants.uiaDaemon_logcatTag + "/server";
+  static final String tag = UiautomatorDaemonConstants.uiaDaemon_logcatTag + "/server";
 
-  protected Uiautomator2DaemonTcpServerBase(String serverStartMessageTag, String serverStartMessage)
+  Uiautomator2DaemonTcpServerBase(String serverStartMessageTag, String serverStartMessage)
   {
+    Log.v(tag, "creating base server");
     this.serverStartMessageTag = serverStartMessageTag;
     this.serverStartMessage = serverStartMessage;
   }
@@ -51,8 +53,9 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 
   protected abstract boolean shouldCloseServerSocket(ServerInputT serverInput);
 
-  public Thread start(int port) throws InterruptedException
+  Thread start(int port) throws InterruptedException
   {
+    Log.v(tag, "starting thread");
     this.port = port;
     ServerRunnable serverRunnable = new ServerRunnable();
     Thread serverThread = new Thread(serverRunnable);
@@ -73,7 +76,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
   }
 
   @TargetApi(Build.VERSION_CODES.FROYO)
-  public void close()
+  private void close()
   {
     try
     {
@@ -86,7 +89,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
   }
 
   // Used in org.droidmate.uiautomatordaemon.UiAutomatorDaemon.init()
-  public boolean isClosed()
+  boolean isClosed()
   {
     return serverSocket.isClosed();
   }
@@ -117,7 +120,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
           Socket clientSocket = serverSocket.accept();
 
           Log.d(tag, "ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());");
-          ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+          DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
 
           /*
            * Flushing done to prevent client blocking on creation of input stream reading output from this stream. See:
@@ -128,11 +131,11 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
            * 2. Search for: "Note - The ObjectInputStream constructor blocks until" in:
            * http://docs.oracle.com/javase/7/docs/platform/serialization/spec/input.html
            */
-          Log.v(tag, "Output.flush()");
-          output.flush();
+//          Log.v(tag, "Output.flush()");
+//          output.flush();
 
           Log.v(tag, "input = new ObjectInputStream(clientSocket.getInputStream());");
-          ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+          DataInputStream input = new DataInputStream(clientSocket.getInputStream());
 
           ServerInputT serverInput = null;
 
@@ -143,7 +146,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
           {
             Log.v(tag, "input.readObject();");
             @SuppressWarnings("unchecked") // Without this var here, there is no place to put the "unchecked" suppression warning.
-              ServerInputT localVarForSuppressionAnnotation = (ServerInputT) input.readObject();
+              ServerInputT localVarForSuppressionAnnotation = (ServerInputT) SerializationHelper.Companion.readObjectFromStream(input);
             serverInput = localVarForSuppressionAnnotation;
 
           } catch (ClassNotFoundException e)
@@ -158,7 +161,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
           Log.v(tag, "serverOutput = OnServerRequest(serverInput, serverInputReadEx);");
           serverOutput = OnServerRequest(serverInput, serverInputReadEx);
           Log.v(tag, "output.writeObject(serverOutput);");
-          output.writeObject(serverOutput);
+          SerializationHelper.Companion.writeObjectToStream(output, serverOutput);
           Log.v(tag, "clientSocket.close();");
           clientSocket.close();
 
@@ -178,7 +181,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
       }
     }
 
-    private Exception handleInputReadObjectException(ObjectInputStream input, Exception e) throws IOException
+    private Exception handleInputReadObjectException(DataInputStream input, Exception e) throws IOException
     {
       Exception serverInputReadEx;
       Log.e(tag, "Exception was thrown while reading input sent to DroidmateServer from " +

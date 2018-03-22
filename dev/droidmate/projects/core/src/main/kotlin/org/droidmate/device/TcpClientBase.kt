@@ -26,12 +26,14 @@
 package org.droidmate.device
 
 import org.droidmate.android_sdk.DeviceException
+import org.droidmate.uiautomator_daemon.SerializationHelper
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.EOFException
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.net.ConnectException
 import java.net.Socket
+import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable> constructor(private val socketTimeout: Int)
@@ -60,15 +62,15 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
             // http://docs.oracle.com/javase/7/docs/platform/serialization/spec/input.html
             //
 //        log.trace("inputStream = new ObjectInputStream(socket<$serverAddress:$port>.inputStream)")
-            val inputStream = ObjectInputStream(socket.inputStream)
+            val inputStream = DataInputStream(socket.inputStream)
 //        log.trace("Got input stream")
 
-            val outputStream = ObjectOutputStream(socket.outputStream)
+            val outputStream = DataOutputStream(socket.outputStream)
 //        log.trace("got outputStream")
 
-            outputStream.writeObject(input)
+            SerializationHelper.writeObjectToStream(outputStream, input)
             outputStream.flush()
-            val output = inputStream.readObject() as OutputFromServerT
+            val output = SerializationHelper.readObjectFromStream(inputStream) as OutputFromServerT
 
 //      log.trace("socket.close()")
             socket.close()
@@ -78,6 +80,8 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
         } catch (e: EOFException) {
             throw TcpServerUnreachableException(e)
         } catch (e: SocketTimeoutException) {
+            throw TcpServerUnreachableException(e)
+        } catch (e: SocketException) {
             throw TcpServerUnreachableException(e)
         } catch (e: TcpServerUnreachableException) {
             throw e
