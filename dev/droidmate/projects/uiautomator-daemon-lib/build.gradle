@@ -67,6 +67,9 @@ if (findProject(":projects"))
 
 
 dependencies {
+    // Fast serialization library
+    compile 'de.ruedigermoeller:fst:2.56'
+
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 

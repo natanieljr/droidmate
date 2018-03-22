@@ -40,6 +40,8 @@ compileJava.configure { JavaCompile jc ->
 }
 
 dependencies {
+  // Fast serialization library
+  compile 'de.ruedigermoeller:fst:2.56'
 
   testCompile 'junit:junit:4.12'
 

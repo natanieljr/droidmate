@@ -28,6 +28,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import org.droidmate.misc.MonitorConstants;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -260,6 +262,31 @@ public class MonitorJavaTemplate
         }
     }
 
+    static class SerializationHelper {
+        private static FSTConfiguration serializationConfig = FSTConfiguration.createDefaultConfiguration();
+
+        static void writeObjectToStream(DataOutputStream outputStream, Object toWrite) throws IOException {
+            // write object
+            FSTObjectOutput objectOutput = serializationConfig.getObjectOutput(); // could also do new with minor perf impact
+            // write object to internal buffer
+            objectOutput.writeObject(toWrite);
+            // write length
+            outputStream.writeInt(objectOutput.getWritten());
+            // write bytes
+            outputStream.write(objectOutput.getBuffer(), 0, objectOutput.getWritten());
+
+            objectOutput.flush(); // return for reuse to conf
+        }
+
+        static Object readObjectFromStream(DataInputStream inputStream) throws IOException, ClassNotFoundException {
+            int len = inputStream.readInt();
+            byte[] buffer = new byte[len]; // this could be reused !
+            while (len > 0)
+                len -= inputStream.read(buffer, buffer.length - len, len);
+            return serializationConfig.getObjectInput(buffer).readObject();
+        }
+    }
+
     // !!! DUPLICATION WARNING !!! with org.droidmate.uiautomator_daemon.UiautomatorDaemonTcpServerBase
     static abstract class TcpServerBase<ServerInputT extends Serializable, ServerOutputT extends Serializable> {
         int port;
@@ -365,7 +392,8 @@ public class MonitorJavaTemplate
                         Socket clientSocket = serverSocket.accept();
                         Log.v(MonitorConstants.Companion.getTag_run(), String.format("clientSocket = serverSocket.accept(): SUCCESS / port:%d", port));
 
-                        ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+                        ////ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+                        DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
 
           /*
            * Flushing done to prevent client blocking on creation of input stream reading output from this stream. See:
@@ -376,14 +404,15 @@ public class MonitorJavaTemplate
            * 2. Search for: "Note - The ObjectInputStream constructor blocks until" in:
            * http://docs.oracle.com/javase/7/docs/platform/serialization/spec/input.html
            */
-                        output.flush();
+                        ////output.flush();
 
-                        ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+                        ////ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+                        DataInputStream input = new DataInputStream(clientSocket.getInputStream());
                         ServerInputT serverInput;
 
                         try {
                             @SuppressWarnings("unchecked") // Without this var here, there is no place to put the "unchecked" suppression warning.
-                                    ServerInputT localVarForSuppressionAnnotation = (ServerInputT) input.readObject();
+                                    ServerInputT localVarForSuppressionAnnotation = (ServerInputT) SerializationHelper.readObjectFromStream(input);
                             serverInput = localVarForSuppressionAnnotation;
 
                         } catch (Exception e) {
@@ -396,7 +425,7 @@ public class MonitorJavaTemplate
                         ServerOutputT serverOutput;
                         Log.d(MonitorConstants.Companion.getTag_run(), String.format("OnServerRequest(%s) / port:%d", serverInput, port));
                         serverOutput = OnServerRequest(serverInput);
-                        output.writeObject(serverOutput);
+                        SerializationHelper.writeObjectToStream(output, serverOutput);
                         clientSocket.close();
 
                         if (shouldCloseServerSocket(serverInput)) {
@@ -419,6 +448,7 @@ public class MonitorJavaTemplate
 
         }
     }
+
     //endregion
 
     //region Helper code

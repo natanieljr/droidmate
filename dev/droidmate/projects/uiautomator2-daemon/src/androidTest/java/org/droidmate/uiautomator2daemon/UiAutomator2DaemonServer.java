@@ -19,8 +19,6 @@
 
 package org.droidmate.uiautomator2daemon;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.util.Log;
 import org.droidmate.uiautomator_daemon.DeviceCommand;
 import org.droidmate.uiautomator_daemon.DeviceResponse;
@@ -33,13 +31,12 @@ public class UiAutomator2DaemonServer extends Uiautomator2DaemonTcpServerBase<De
 
   private IUiAutomator2DaemonDriver uiaDaemonDriver;
 
-  public UiAutomator2DaemonServer(IUiAutomator2DaemonDriver uiaDaemonDriver)
+  UiAutomator2DaemonServer(IUiAutomator2DaemonDriver uiaDaemonDriver)
   {
     super(UIADAEMON_SERVER_START_TAG, UIADAEMON_SERVER_START_MSG);
     this.uiaDaemonDriver = uiaDaemonDriver;
   }
 
-  @TargetApi(Build.VERSION_CODES.FROYO) // for Log.wtf
   @Override
   protected DeviceResponse OnServerRequest(DeviceCommand deviceCommand, Exception deviceCommandReadEx)
   {
