@@ -293,6 +293,9 @@ class Configuration(val args: Array<String>) : IConfiguration {
     "Allow DroidMate to run on non-inlined apks.")
     public var runOnNotInlined = false
 
+    //TODO we would initialize the modelConfig from this on build, but first ExplorationCommand.build has to be adapted
+    public var measurePerformance = false
+
     @Parameter(names = [pn_playback], description =
     "Path do a previously recorded exploration for playback.")
     public var playbackFile = ""

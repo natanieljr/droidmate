@@ -88,7 +88,7 @@ abstract class AbstractContext : Serializable {
     /**
      * Get the last widget the exploration has interacted with
      *
-     * @returns Last widget interacted with or instance of [EmptyWidgetInfo] when none
+     * @returns Last widget interacted with or null when none
      */
     var lastTarget: Widget? = null
 

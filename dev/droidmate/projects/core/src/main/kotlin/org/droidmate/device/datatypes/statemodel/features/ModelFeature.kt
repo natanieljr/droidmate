@@ -19,26 +19,40 @@ package org.droidmate.device.datatypes.statemodel.features
 import kotlinx.coroutines.experimental.Job
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.exploration.data_aggregators.ExplorationContext
 import kotlin.coroutines.experimental.CoroutineContext
 
-@Suppress("unused")
+/**
+ * this class contains three different observer methods to keep track of model changes.
+ * the Feature should try to follow the least principle policy and prefer [onNewInteracted] over the alternatives
+ */
+@Suppress("unused", "UNUSED_ANONYMOUS_PARAMETER")
 abstract class ModelFeature {
 	/** used in the strategy to ensure that the updating coroutine function already finished.
 	 * calling job.joinChildren() will wait for all currently running [onNewAction] and [update] instances to complete*/
 	var job = Job()
 
 	/** the context in which the update tasks of the class are going to be started,
-	 * for performance reasons they should run within the same pool for each feature */
+	 * for performance reasons they should run within the same pool for each feature
+	 * e.g. you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
 	abstract val context:CoroutineContext
 
   /** this is called after the model was completely updated with the new action and state
    * this method gives access to the complete [context] inclusive other ModelFeatures */
-  open suspend fun update(context: ExplorationContext) { /* do nothing */ }
+  open suspend fun onContextUpdate(context:ExplorationContext) { /* do nothing [to be overwritten] */ }
 
-  /** called whenever a new [action] was executed on the device resulting in [state]
-   * this function may be used instead of update for simpler access to the action and result state*/
-  open suspend fun onNewAction(action: ActionData, prevState:StateData, newState:StateData): Unit { /* do nothing */ }
+	/** called whenever a new [targetWidget] was executed on the device resulting in [newState]
+	 * this function may be used instead of update for simpler access to the action and result state
+	 **/
+	open suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */ }
 
-  open suspend fun dump(context: ExplorationContext) { /* do nothing */ }
+  /** called whenever a new action was executed on the device resulting in [newState]
+   * this function may be used instead of update for simpler access to the action and result state.
+   *
+   * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional delay to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
+  open suspend fun onNewAction(lazyAction: Lazy<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */ }
+
+	/** this method is called on each call to [ExplorationContext].dump() */
+	open suspend fun dump(context: ExplorationContext){  /* do nothing [to be overwritten] */ }
 }

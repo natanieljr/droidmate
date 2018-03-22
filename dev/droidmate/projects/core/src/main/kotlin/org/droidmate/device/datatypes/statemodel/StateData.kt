@@ -55,6 +55,9 @@ class StateData /*private*/ (private val _widgets: Lazy<List<Widget>>,
 	private fun addRelevantId(id:UUID,w: Widget):UUID = if(w.isLeaf || w.canBeActedUpon() || w.hasContent()) id+w.uid else id
 	private fun addRelevantNonEdit(id:UUID,w: Widget):UUID = if(w.isEdit) addRelevantId(id,w) else id
 
+	/** determine which UID this state would have, if it ignores [widgets] for the id computation
+	 * this is used to identify consequent states where interacted edit fields are to be ignored
+	 * for UID computation (instead the initial edit field UID will be restored) */
 	fun idWhenIgnoring(widgets:Collection<Widget>):UUID = widgets.fold(emptyUUID, { id, w ->
 		if(!widgets.contains(w)) addRelevantId(id,w) else id
 	})

@@ -29,7 +29,10 @@ internal sealed class DeviceAction {
                 measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
                 device.wait(hasInteractive, waitTimeout)
                 device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
-            }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization on average ${time/cnt}") }
+            }.let {
+                cnt += 1
+                time += it
+                Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization on average ${time/cnt} ms") }
         }
     }
 

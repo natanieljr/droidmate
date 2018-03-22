@@ -16,11 +16,10 @@
 //
 package org.droidmate.device.datatypes.statemodel.features
 
-import kotlinx.coroutines.experimental.DefaultDispatcher
+import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.device.datatypes.statemodel.Widget
-import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
+import org.droidmate.device.datatypes.statemodel.Widget
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -30,14 +29,15 @@ import kotlin.coroutines.experimental.CoroutineContext
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ActionCounterMF: ModelFeature() {
 
-	override val context: CoroutineContext = newCoroutineContext(context = DefaultDispatcher, parent = job)
+	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionCounterMF"), parent = job)
 
-	override suspend fun onNewAction(action: ActionData, prevState: StateData, newState: StateData) {
-		prevState.uid.let{ sId -> sCnt.incCnt(sId)   // the state the very last action acted on
-			// record the respective widget the exploration interacted
-			action.targetWidget?.let{ wCnt.compute(it.uid, { _,m -> m?.incCnt(sId)?: mutableMapOf(sId to 1)} ) }
-		}
-	}
+	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData):Unit =
+			prevState.uid.let { sId ->
+				sCnt.incCnt(sId)   // the state the very last action acted on
+				// record the respective widget the exploration interacted
+				targetWidget?.let { wCnt.compute(it.uid, { _, m -> m?.incCnt(sId) ?: mutableMapOf(sId to 1) }) }
+			}
+
 
 	private val sCnt = mutableMapOf<UUID,Int>() // counts how often the any state was explored
 	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)

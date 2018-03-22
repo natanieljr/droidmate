@@ -251,7 +251,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             this.startStrategies()
 
         // state was already updated after the previous action was executed in Exploration.kt class
-//        val currentState = this.context.getCurrentState()
+//        val currentState = this.context.currentState()
 
         if (this.hasControl())
             this.handleControl()
