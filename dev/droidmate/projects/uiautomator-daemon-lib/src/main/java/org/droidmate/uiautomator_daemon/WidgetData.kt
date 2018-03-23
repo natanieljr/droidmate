@@ -47,10 +47,8 @@ class WidgetData(map: Map<String, Any?>, val index: Int = -1, val parent: Widget
     val clickable: Boolean by map
     val longClickable: Boolean by map
     val scrollable: Boolean by map
-    val checked: Boolean by map
-    val checkable: Boolean by map
-    val focused: Boolean by map
-    val focusable: Boolean by map
+    val checked: Boolean? by map
+    val focused: Boolean? by map
     val selected: Boolean by map
 
     val boundsX: Int by map
@@ -68,7 +66,7 @@ class WidgetData(map: Map<String, Any?>, val index: Int = -1, val parent: Widget
     fun content(): String = text + contentDesc
 
 
-    fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checkable || longClickable || scrollable)
+    fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked ?: false || longClickable || scrollable)
 
     operator fun <R, T> getValue(thisRef: R, p: kotlin.reflect.KProperty<*>): T {  // remark do not use delegate in performance essential code (10% overhead) and prefer Type specialized Delegates as otherwise Boxing and Unboxing overhead occurs for primitive types
         @Suppress("UNCHECKED_CAST")
@@ -122,9 +120,7 @@ enum class P(val pName: String = "", var header: String = "") {
     LongClickable(WidgetData::longClickable.name),
     Scrollable(WidgetData::scrollable.name),
     Checked(WidgetData::checked.name),
-    Checkable(WidgetData::checkable.name),
     Focused(WidgetData::focused.name),
-    Focusable(WidgetData::focusable.name),
     Selected(WidgetData::selected.name),
     IsPassword(WidgetData::isPassword.name),
     BoundsX(WidgetData::boundsX.name),
@@ -146,7 +142,7 @@ enum class P(val pName: String = "", var header: String = "") {
             (it.pName to
                     when (it) {
                         Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible, IsLeaf -> line[it.ordinal].toBoolean()
-                        Checkable, Focusable, Focused, Checked -> flag(line[it.ordinal])
+                        Focused, Checked -> flag(line[it.ordinal])
                         BoundsX, BoundsY, BoundsWidth, BoundsHeight -> 0
                         else -> line[it.ordinal]  // Strings
                     })

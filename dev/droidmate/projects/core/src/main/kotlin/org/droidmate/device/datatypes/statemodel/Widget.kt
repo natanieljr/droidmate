@@ -62,10 +62,8 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 	val clickable: Boolean = properties.clickable
 	val longClickable: Boolean = properties.longClickable
 	val scrollable: Boolean = properties.scrollable
-	val checkable: Boolean = properties.checkable
-	val focusable: Boolean = properties.focusable
-	val checked: Boolean = properties.checked
-	val focused: Boolean = properties.focused
+	val checked: Boolean? = properties.checked
+	val focused: Boolean? = properties.focused
 	val selected: Boolean = properties.selected
 	val bounds: Rectangle = Rectangle(properties.boundsX, properties.boundsY, properties.boundsWidth, properties.boundsHeight)
 	val xpath: String = properties.xpath
@@ -106,10 +104,8 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.Desc -> contentDesc
 				P.Clickable -> clickable.toString()
 				P.Scrollable -> scrollable.toString()
-				P.Checked -> checked.toString()
-				P.Checkable -> checkable.toString()
-				P.Focused -> focused.toString()
-				P.Focusable -> focusable.toString()
+				P.Checked -> checked?.toString() ?: "disabled"
+				P.Focused -> focused?.toString() ?: "disabled"
 				P.BoundsX -> bounds.x.toString()
 				P.BoundsY -> bounds.y.toString()
 				P.BoundsWidth -> bounds.width.toString()
