@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.IGuiStatus
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.io.Serializable
 
@@ -26,7 +26,7 @@ interface IGuiScreen : Serializable {
 
     fun perform(action: Action): IScreenTransitionResult
 
-    fun getGuiSnapshot(): IDeviceGuiSnapshot
+    fun getGuiSnapshot(): IGuiStatus
     fun getId(): String
 
     fun addHomeScreenReference(home: IGuiScreen)

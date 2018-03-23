@@ -33,7 +33,7 @@ import org.apache.commons.io.FileUtils;
 import org.droidmate.uiautomator_daemon.DeviceCommand;
 import org.droidmate.uiautomator_daemon.DeviceResponse;
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException;
-import org.droidmate.uiautomator_daemon.UiautomatorWindowHierarchyDumpDeviceResponse;
+import org.droidmate.uiautomator_daemon.GuiStatusResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +57,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
   UiAutomator2DaemonDriver(boolean waitForGuiToStabilize, int waitForWindowUpdateTimeout)
   {
-    Log.d(uiaDaemon_logcatTag, "XXX");
     // Disabling waiting for selector implicit timeout
     Configurator.getInstance().setWaitForSelectorTimeout(0L);
 
@@ -80,7 +79,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     this.waitForGuiToStabilize = waitForGuiToStabilize;
     this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
-    Log.d(uiaDaemon_logcatTag, "YYY");
   }
 
 
@@ -93,20 +91,23 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     try {
 
-      if (deviceCommand.command.equals(DEVICE_COMMAND_STOP_UIADAEMON)) {
-        // The server will be closed after this response is sent, because the given deviceCommand.command will be interpreted
-        // in the caller, i.e. Uiautomator2DaemonTcpServerBase.
+      switch (deviceCommand.command) {
+        case DEVICE_COMMAND_STOP_UIADAEMON:
+          // The server will be closed after this response is sent, because the given deviceCommand.command will be interpreted
+          // in the caller, i.e. Uiautomator2DaemonTcpServerBase.
+          break;
+        case DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP:
+          response = getGuiStatus();
+          break;
+        case DEVICE_COMMAND_PERFORM_ACTION:
+          response = performAction(deviceCommand);
+          break;
+        case DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE:
+          response = getIsNaturalOrientation();
+          break;
+        default:
+          throw new UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command));
       }
-      else if (deviceCommand.command.equals(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP))
-        response = getWindowHierarchyDump();
-      else if (deviceCommand.command.equals(DEVICE_COMMAND_PERFORM_ACTION))
-        response = performAction(deviceCommand);
-      else if (deviceCommand.command.equals(DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE))
-        response = getIsNaturalOrientation();
-      else if (deviceCommand.command.equals(DEVICE_COMMAND_GET_DEVICE_MODEL))
-        response = getDeviceModel();
-      else
-        throw new UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command));
 
     } catch (Throwable e) {
       Log.e(uiaDaemon_logcatTag, "Error: " + e.getMessage());
@@ -119,36 +120,14 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     return response;
   }
 
-  private DeviceResponse getDeviceModel()
+  private String getDeviceModel()
   {
     Log.d(uiaDaemon_logcatTag, "getDeviceModel()");
     String model = Build.MODEL;
     String manufacturer = Build.MANUFACTURER;
-    DeviceResponse deviceResponse = new DeviceResponse();
-    deviceResponse.model = manufacturer + "-" + model;
-    Log.d(uiaDaemon_logcatTag, "Device model: "+deviceResponse.model);
-    return deviceResponse;
-  }
-
-  private String getWifiSwitchWidgetName()
-  {
-    String deviceModel = this.getDeviceModel().model;
-
-    String switchWidgetName;
-      switch (deviceModel) {
-          case DEVICE_SAMSUNG_GALAXY_S3_GT_I9300:
-              switchWidgetName = "android:id/switchWidget";
-              break;
-          case DEVICE_GOOGLE_NEXUS_7:
-          case DEVICE_GOOGLE_NEXUS_5X:
-              switchWidgetName = "com.android.settings:id/switch_widget";
-              break;
-          default:
-              switchWidgetName = "com.android.settings:id/switchWidget";
-              break;
-      }
-
-    return switchWidgetName;
+    String fullModelName = manufacturer + "-" + model;
+    Log.d(uiaDaemon_logcatTag, "Device model: "+fullModelName);
+    return fullModelName;
   }
 
   private DeviceResponse getIsNaturalOrientation()
@@ -173,22 +152,17 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     return new DeviceResponse();
   }
 
-  boolean isKeyboardOpened(){
-    for(AccessibilityWindowInfo window: InstrumentationRegistry.getInstrumentation().getUiAutomation().getWindows()){
-        if(window.getType()==AccessibilityWindowInfo.TYPE_INPUT_METHOD){
-            return true;
-        }
+  /*boolean isKeyboardOpened() {
+    for (AccessibilityWindowInfo window : InstrumentationRegistry.getInstrumentation().getUiAutomation().getWindows()) {
+      if (window.getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) {
+        return true;
+      }
     }
     return false;
-}
+  }*/
 
 
-
-
-
-
-    // WISH maybe waitForIdle can be set by http://developer.android.com/tools/help/uiautomator/Configurator.html#setWaitForIdleTimeout%28long%29
-
+  // WISH maybe waitForIdle can be set by http://developer.android.com/tools/help/uiautomator/Configurator.html#setWaitForIdleTimeout%28long%29
   /**
    * <p>
    * Waits until GUI gets into a state in which it is reasonable to expect it won't change, so DroidMate's exploration can
@@ -221,8 +195,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
    */
   private void waitForGuiToStabilize()
   {
-
-
     if (waitForGuiToStabilize)
     {
       Log.v(uiaDaemon_logcatTag, "Waiting for GUI to stabilize.");
@@ -310,7 +282,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     - modify appguard loader to insert our custom code to the apk under exploration and obtain the window hierarchy from
     Window Manager Service (or something like that, legacy aut-addon instrumentation buried in the repo has p.o.co code for that)
    */
-  private UiautomatorWindowHierarchyDumpDeviceResponse getWindowHierarchyDump() throws UiAutomatorDaemonException
+  private GuiStatusResponse getGuiStatus() throws UiAutomatorDaemonException
   {
     Log.d(uiaDaemon_logcatTag, "Getting window hierarchy dump");
 
@@ -330,6 +302,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     int width = this.device.getDisplayWidth();
     int height = this.device.getDisplayHeight();
+    String model = this.getDeviceModel();
     /* We don't make calls to:
      ui.getUiDevice().getCurrentActivityName();
      ui.getUiDevice().getCurrentPackageName();
@@ -339,7 +312,13 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
      See: http://stackoverflow.com/questions/3873659/android-how-can-i-get-the-current-foreground-activity-from-a-service
      */
 
-    return new UiautomatorWindowHierarchyDumpDeviceResponse(windowHierarchyDump, width, height);
+    Log.d(uiaDaemon_logcatTag, "Creating response");
+
+    GuiStatusResponse response = new GuiStatusResponse(windowHierarchyDump, model, width, height);
+
+    Log.d(uiaDaemon_logcatTag, "Sending response");
+
+    return response;
   }
 
   /**
@@ -511,6 +490,4 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     return file;
   }
-
-
 }

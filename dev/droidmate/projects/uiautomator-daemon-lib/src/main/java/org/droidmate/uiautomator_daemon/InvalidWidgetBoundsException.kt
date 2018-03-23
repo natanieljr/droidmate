@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,17 +16,11 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.device.model
 
-import java.awt.Dimension
+package org.droidmate.uiautomator_daemon
 
-/**
- * Describes {@link IDeviceModel} of Huawei Honor 8.
- *
- * @author Nataniel Borges Jr.
- */
-class HuaweiHonor8Model : IDeviceModel {
-    override fun getAndroidLauncherPackageName(): String = "com.huawei.android.launcher"
-
-    override fun getDeviceDisplayDimensionsForTesting(): Dimension = Dimension(1080, 1920)
+class InvalidWidgetBoundsException constructor(message: String) : Throwable(message) {
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 }

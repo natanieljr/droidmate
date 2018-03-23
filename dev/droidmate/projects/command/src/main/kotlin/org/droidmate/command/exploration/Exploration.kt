@@ -140,7 +140,7 @@ class Exploration constructor(private val cfg: Configuration,
 
         val initialGuiSnapshot = device.getGuiSnapshot()
 
-        if (!initialGuiSnapshot.guiStatus.isHomeScreen)
+        if (!initialGuiSnapshot.isHomeScreen)
             log.warn(Markers.appHealth,
                     "An exploration process for $fileName is about to start but the device doesn't display home screen. " +
                             "Instead, its GUI state is: $initialGuiSnapshot.guiStatus. " +

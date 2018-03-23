@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,19 +16,20 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
-package org.droidmate.device.datatypes
-
-import org.droidmate.device.datatypes.statemodel.WidgetData
-import java.awt.Rectangle
+package org.droidmate.uiautomator_daemon
 
 class EmptyGuiStatus : IGuiStatus {
-    override val deviceDisplayBounds: Rectangle
-        get() = Rectangle(0,0,0,0)
+    override val windowHierarchyDump: String
+        get() = ""
+
+    override val deviceDisplayWidth: Int
+        get() = 0
+
+    override val deviceDisplayHeight: Int
+        get() = 0
+
     override val topNodePackageName: String
         get() = this.javaClass.name
-
-    override val id: String
-        get() = "EMPTY"
 
     override val isCompleteActionUsingDialogBox: Boolean
         get() = false

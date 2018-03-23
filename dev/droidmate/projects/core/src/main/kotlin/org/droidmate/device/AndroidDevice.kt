@@ -24,10 +24,6 @@ import org.droidmate.android_sdk.*
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.device.datatypes.UiautomatorWindowDump
-import org.droidmate.device.model.DeviceModel
-import org.droidmate.device.model.IDeviceModel
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.logging.Markers
@@ -36,11 +32,11 @@ import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.IGuiStatus
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
-import org.droidmate.uiautomator_daemon.UiautomatorWindowHierarchyDumpDeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
-import java.awt.Dimension
 import java.io.File
 import java.lang.Thread.sleep
 import java.nio.file.Files
@@ -101,7 +97,6 @@ class AndroidDevice constructor(private val serialNumber: String,
             cfg.uiautomatorDaemonServerStartTimeout,
             cfg.uiautomatorDaemonServerStartQueryDelay,
             cfg.port)
-    private lateinit var deviceModel: IDeviceModel
 
     @Throws(DeviceException::class)
     override fun pushFile(jar: Path) {
@@ -119,17 +114,13 @@ class AndroidDevice constructor(private val serialNumber: String,
         return adbWrapper.listPackage(serialNumber, packageName).contains(packageName)
     }
 
-    override fun getGuiSnapshot(): IDeviceGuiSnapshot {
+    override fun getGuiSnapshot(): IGuiStatus {
         log.debug("getGuiSnapshot()")
 
         val response = this.issueCommand(
-                DeviceCommand(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP)) as UiautomatorWindowHierarchyDumpDeviceResponse
+                DeviceCommand(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP)) as GuiStatusResponse
 
-        val outSnapshot = UiautomatorWindowDump(
-                response.windowHierarchyDump,
-                Dimension(response.displayWidth, response.displayHeight),
-                this.deviceModel.getAndroidLauncherPackageName())
-
+        val outSnapshot = response.guiStatus
         log.debug("getGuiSnapshot(): $outSnapshot")
         return outSnapshot
     }
@@ -393,14 +384,6 @@ class AndroidDevice constructor(private val serialNumber: String,
         this.perform(LaunchApp(iconLabel))
         log.info("Sleeping after clicking app icon labeled '$iconLabel' for ${cfg.launchActivityDelay} ms")
         sleep(cfg.launchActivityDelay.toLong())
-    }
-
-    override fun initModel() {
-        log.trace("initModel(): this.issueCommand(new DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))")
-        val response = this.issueCommand(DeviceCommand(DEVICE_COMMAND_GET_DEVICE_MODEL))
-        assert(response.model != null)
-
-        this.deviceModel = DeviceModel.build(response.model)
     }
 
     override fun reinstallUiautomatorDaemon() {

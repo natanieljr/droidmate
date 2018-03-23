@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.IGuiStatus
 import org.droidmate.uiautomator_daemon.guimodel.Action
 
 /**
@@ -40,7 +40,7 @@ class GuiScreen /*constructor(private val internalId: String,
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getGuiSnapshot(): IDeviceGuiSnapshot {
+    override fun getGuiSnapshot(): IGuiStatus {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

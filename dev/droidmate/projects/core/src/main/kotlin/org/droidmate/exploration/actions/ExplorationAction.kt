@@ -20,7 +20,7 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.device.datatypes.statemodel.Widget
-import org.droidmate.device.datatypes.statemodel.WidgetData
+import org.droidmate.uiautomator_daemon.WidgetData
 import java.io.Serializable
 
 //TODO("this should be refactored into IRunnableAction")

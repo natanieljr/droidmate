@@ -70,7 +70,9 @@ dependencies {
     // Fast serialization library
     compile 'de.ruedigermoeller:fst:2.56'
 
+    compile 'org.slf4j:slf4j-api:1.7.25'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
 repositories {

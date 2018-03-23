@@ -115,7 +115,6 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
             device.pushMonitorJar()
         }
         device.setupConnection()
-        device.initModel()
 
         this.deviceIsSetup = true
     }

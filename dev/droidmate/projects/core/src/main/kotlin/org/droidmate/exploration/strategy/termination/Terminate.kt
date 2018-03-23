@@ -36,7 +36,7 @@ abstract class Terminate : AbstractStrategy() {
         if (this.context.getSize() < 2)
             return EmptyAction()::class.simpleName?:""
 
-        return this.context.actionTrace.getActions().dropLast(1).last().actionType?:""
+        return this.context.actionTrace.getActions().dropLast(1).last().actionType
     }
 
     override fun getFitness(): StrategyPriority {

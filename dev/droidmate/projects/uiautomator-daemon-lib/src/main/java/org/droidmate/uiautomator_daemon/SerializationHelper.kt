@@ -48,6 +48,7 @@ class SerializationHelper {
             val buffer = ByteArray(len) // this could be reused !
             while (len > 0)
                 len -= inputStream.read(buffer, buffer.size - len, len)
+
             return serializationConfig.getObjectInput(buffer).readObject()
         }
     }

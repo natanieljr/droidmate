@@ -20,8 +20,6 @@ package org.droidmate.exploration.actions
 
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.device.datatypes.WaitA
 import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
@@ -29,6 +27,8 @@ import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.device.MissingDeviceLogs
 import org.droidmate.logging.Markers
+import org.droidmate.uiautomator_daemon.EmptyGuiStatus
+import org.droidmate.uiautomator_daemon.IGuiStatus
 import org.slf4j.LoggerFactory
 import java.net.URI
 
@@ -59,7 +59,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
                 }
     }
 
-    protected lateinit var snapshot: IDeviceGuiSnapshot
+    protected lateinit var snapshot: IGuiStatus
     protected lateinit var logs: IDeviceLogs
     protected lateinit var exception: DeviceException
     override var screenshot: URI = URI.create("test://empty")
@@ -67,7 +67,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
     override fun run(app: IApk, device: IRobustDevice): ActionResult {
         // @formatter:off
         this.logs = MissingDeviceLogs
-        this.snapshot = MissingGuiSnapshot()
+        this.snapshot = EmptyGuiStatus()
         this.exception = DeviceExceptionMissing()
         // @formatter:on
 

@@ -21,8 +21,8 @@ package org.droidmate.exploration.data_aggregators
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.android_sdk.IApk
 import org.droidmate.device.datatypes.statemodel.*
-import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.device.datatypes.statemodel.features.ModelFeature
+import org.droidmate.exploration.actions.IRunnableExplorationAction
 import java.awt.Rectangle
 import java.time.LocalDateTime
 import java.util.*
@@ -53,7 +53,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
     }
 
 	override fun add(action: IRunnableExplorationAction, result: ActionResult) {
-		deviceDisplayBounds = result.guiSnapshot.guiStatus.deviceDisplayBounds
+        deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
 		model.S_updateModel(result,actionTrace)

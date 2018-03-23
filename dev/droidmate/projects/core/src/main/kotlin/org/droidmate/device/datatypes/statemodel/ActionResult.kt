@@ -24,12 +24,12 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.debug.debugT
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
-import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
+import org.droidmate.uiautomator_daemon.EmptyGuiStatus
+import org.droidmate.uiautomator_daemon.IGuiStatus
 import java.io.Serializable
 import java.net.URI
 import java.nio.file.Files
@@ -55,9 +55,9 @@ open class ActionResult(val action: ExplorationAction,
                         val startTimestamp: LocalDateTime,
                         val endTimestamp: LocalDateTime,
                         val deviceLogs: IDeviceLogs = MissingDeviceLogs,
-                        val guiSnapshot: IDeviceGuiSnapshot = MissingGuiSnapshot(),
+                        val guiSnapshot: IGuiStatus = EmptyGuiStatus(),
                         val screenshot: URI = URI.create("test://empty"),
-                        val exception: DeviceException = DeviceExceptionMissing()):Serializable {
+                        val exception: DeviceException = DeviceExceptionMissing()) : Serializable {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
@@ -97,7 +97,7 @@ open class ActionResult(val action: ExplorationAction,
 		 java.nio.file.Paths.get(screenshot).let{
 			if(Files.exists(it)) debugT("img file read",{ImageIO.read(it.toAbsolutePath().toFile())}) else null }
 				.let { img ->
-			guiSnapshot.guiStatus.let { g->
+                    guiSnapshot.let { g ->
 				debugT(" \n filter device objects",
 				{g.widgets.filterNot { deviceObjects.contains(it.xpath) }} // ignore the overall layout containing the Android Status-bar
 				).let{
@@ -125,13 +125,12 @@ open class ActionResult(val action: ExplorationAction,
 
 	fun resultState(widgets:List<Widget>):StateData = resultState(lazyOf(widgets))
 	fun resultState(widgets:Lazy<List<Widget>>):StateData {
-		return 	 guiSnapshot.guiStatus.let{ g ->
+        return guiSnapshot.let { g ->
 			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName,g.isHomeScreen, g.isAppHasStoppedDialogBox,
 					g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox, g.isUseLauncherAsHomeDialogBox )
 		}
 	}
 }
+
 private var timeS:Long = 0
 private var timeP:Long = 0
-
-

@@ -17,107 +17,16 @@
 package org.droidmate.device.datatypes.statemodel
 
 import kotlinx.coroutines.experimental.launch
-import org.droidmate.device.datatypes.InvalidWidgetBoundsException
+import org.droidmate.uiautomator_daemon.P
+import org.droidmate.uiautomator_daemon.WidgetData
+import org.droidmate.uiautomator_daemon.toUUID
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.File
-import java.nio.charset.Charset
 import java.util.*
 import javax.imageio.ImageIO
-import kotlin.reflect.full.declaredMemberProperties
 
-
-/** always prefer directly creating the UUID from an byte array as it is more than factor 20 faster */
-fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.forName("UTF-8")))
-
-@Suppress("unused")
-/**
- * @param index only used during dumpParsing to create xPath !! should not be used otherwise !!
- * @param parent only used during dumpParsing to create xPath and to determine the Widget.parentId within the state model !! should not be used otherwise !!
- */
-class WidgetData(map: Map<String,Any?>,val index: Int = -1,val parent: WidgetData? = null){
-	constructor(resId: String, xPath:String)
-			:this(defaultProperties.toMutableMap().apply { replace(WidgetData::resourceId.name,resId)	}){ this.xpath = xPath }
-
-	val uid = map.values.toString().toUUID()
-	val text: String by map
-	val contentDesc: String by map
-	val resourceId: String by map
-	val className: String by map
-	val packageName: String by map
-	val isPassword: Boolean by map
-	val enabled: Boolean by map
-	val clickable: Boolean by map
-	val longClickable: Boolean by map
-	val scrollable: Boolean by map
-	val checked: Boolean? by map
-	val focused: Boolean? by map
-	val selected: Boolean by map
-	val bounds: Rectangle by map
-	val visible: Boolean by map
-	val isLeaf:Boolean by map
-	var xpath:String = ""
-
-	@Deprecated("use the new UUID from state model instead")
-	val id: String by map.withDefault { "" } // only used for testing
-	fun content():String = text + contentDesc
-
-
-	fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked?:false || longClickable || scrollable)
-
-	operator fun<R,T> getValue(thisRef: R, p: kotlin.reflect.KProperty<*>): T {  // remark do not use delegate in performance essential code (10% overhead) and prefer Type specialized Delegates as otherwise Boxing and Unboxing overhead occurs for primitive types
-		@Suppress("UNCHECKED_CAST")
-		return this::class.declaredMemberProperties.find { it.name==p.name }?.call(this) as T
-	}
-
-
-	companion object {
-		@JvmStatic val defaultProperties by lazy { P.propertyMap(Array(P.values().size, { "false" }).toList()) }
-		@JvmStatic fun empty() = WidgetData(defaultProperties)
-
-		@JvmStatic
-		fun parseBounds(bounds: String): Rectangle {
-			assert(bounds.isNotEmpty())
-
-			// The input is of form "[xLow,yLow][xHigh,yHigh]" and the regex below will capture four groups: xLow yLow xHigh yHigh
-			val boundsMatcher = Regex("\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]")
-			val foundResults = boundsMatcher.findAll(bounds).toList()
-			if (foundResults.isEmpty())
-				throw InvalidWidgetBoundsException("The window hierarchy bounds matcher was unable to match $bounds against the regex")
-
-			val matchedGroups = foundResults[0].groups
-
-			val lowX = matchedGroups[1]!!.value.toInt()
-			val lowY = matchedGroups[2]!!.value.toInt()
-			val highX = matchedGroups[3]!!.value.toInt()
-			val highY = matchedGroups[4]!!.value.toInt()
-
-			return Rectangle(lowX, lowY, highX - lowX, highY - lowY)
-		}
-	}
-}
-
-private enum class P(val pName:String="",var header: String="") {
-	UID,  WdId(header="data UID"), Type(WidgetData::className.name,"widget class"), Interactive, Text(WidgetData::text.name),
-	Desc(WidgetData::contentDesc.name,"Description"), 	ParentUID(header = "parentID"), Enabled(WidgetData::enabled.name), Visible(WidgetData::visible.name),
-	Clickable(WidgetData::clickable.name), LongClickable(WidgetData::longClickable.name), Scrollable(WidgetData::scrollable.name),
-	Checkable(WidgetData::checked.name), Focusable(WidgetData::focused.name), Selected(WidgetData::selected.name), IsPassword(WidgetData::isPassword.name),
-	Bounds(WidgetData::bounds.name), ResId(WidgetData::resourceId.name,"Resource Id"), XPath, IsLeaf(WidgetData::isLeaf.name), PackageName(WidgetData::packageName.name) ;
-	init{ if(header=="") header=name }
-	companion object {
-		val propertyValues = P.values().filter { it.pName != "" }
-		fun propertyMap(line: List<String>): Map<String, Any?> = propertyValues.map {
-			(it.pName to
-					when (it) {
-						Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible, IsLeaf -> line[it.ordinal].toBoolean()
-						Checkable, Focusable -> flag(line[it.ordinal])
-						Bounds -> rectFromString(line[it.ordinal])
-						else -> line[it.ordinal]  // Strings
-					})
-		}.toMap()
-	}
-}
 
 /**
  * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a coroutine running to compute the Widget.uid
@@ -153,10 +62,12 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 	val clickable: Boolean = properties.clickable
 	val longClickable: Boolean = properties.longClickable
 	val scrollable: Boolean = properties.scrollable
-	val checked: Boolean? = properties.checked
-	val focused: Boolean? = properties.focused
+	val checkable: Boolean = properties.checkable
+	val focusable: Boolean = properties.focusable
+	val checked: Boolean = properties.checked
+	val focused: Boolean = properties.focused
 	val selected: Boolean = properties.selected
-	val bounds: Rectangle = properties.bounds
+	val bounds: Rectangle = Rectangle(properties.boundsX, properties.boundsY, properties.boundsWidth, properties.boundsHeight)
 	val xpath: String = properties.xpath
 	var parentId:Pair<UUID,UUID>? = null
 	val isLeaf: Boolean = properties.isLeaf
@@ -195,9 +106,14 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.Desc -> contentDesc
 				P.Clickable -> clickable.toString()
 				P.Scrollable -> scrollable.toString()
-				P.Checkable -> checked?.toString() ?: "disabled"
-				P.Focusable -> focused?.toString() ?: "disabled"
-				P.Bounds -> bounds.dataString()
+				P.Checked -> checked.toString()
+				P.Checkable -> checkable.toString()
+				P.Focused -> focused.toString()
+				P.Focusable -> focusable.toString()
+				P.BoundsX -> bounds.x.toString()
+				P.BoundsY -> bounds.y.toString()
+				P.BoundsWidth -> bounds.width.toString()
+				P.BoundsHeight -> bounds.height.toString()
 				P.ResId -> resourceId
 				P.XPath -> xpath
 				P.WdId -> propertyConfigId.toString()
@@ -248,6 +164,12 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	/*************************/
 	companion object {
+		@JvmStatic
+		private val WidgetData.boundsRect: Rectangle
+			get() {
+				return Rectangle(this.boundsX, this.boundsY, this.boundsWidth, this.boundsHeight)
+			}
+
 		/** widget creation */
 		@JvmStatic fun fromString(line:List<String>): Widget {
 			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
@@ -262,7 +184,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 					if (it != "") it.toUUID()  // compute id from textual content if there is any
 					else screenImg?.let {
 						if(isCut) idOfImgCut(screenImg)
-						else idOfImgCut(it.getSubimage(w.bounds))
+						else idOfImgCut(it.getSubimage(w.boundsRect))
 					}	?: emptyUUID // no text content => compute id from img
 				}
 
@@ -272,7 +194,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 
 
 		@JvmStatic fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig): Widget {
-			screenImg?.getSubimage(w.bounds).let { wImg ->
+			screenImg?.getSubimage(w.boundsRect).let { wImg ->
 					lazy{
 						computeId(w, wImg, true)
 					}
@@ -311,15 +233,4 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		return "${uid}_$propertyConfigId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, pos=${bounds.location}:dx=${bounds.width},dy=${bounds.height}]"
 	}
 	/* end override */
-}
-
-private val emptyRectangle by lazy{ Rectangle(0,0,0,0)}
-//TODO we would like image similarity for images with same text,desc,id,similar_size
-private val flag={entry:String ->if(entry=="disabled") null else entry.toBoolean()}
-private fun rectFromString(s:String): Rectangle {  //         return "x=$x, y=$y, width=$width, height=$height"
-	if (s.isEmpty()|| !s.contains("=")) return emptyRectangle
-	fun String.value(delimiter:String="="):Int { return this.split(delimiter)[1].toInt() }
-	return s.split(", ").let {
-		Rectangle(it[0].value(),it[1].value(),it[2].value(),it[3].value())
-	}
 }

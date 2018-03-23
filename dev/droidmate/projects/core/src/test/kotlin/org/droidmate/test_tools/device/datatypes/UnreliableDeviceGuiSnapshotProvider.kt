@@ -18,10 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.IGuiStatus
 
-class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IDeviceGuiSnapshot) : IUnreliableDeviceGuiSnapshotProvider {
-    override fun provide(): IDeviceGuiSnapshot {
+class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IGuiStatus) : IUnreliableDeviceGuiSnapshotProvider {
+    override fun provide(): IGuiStatus {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -29,7 +29,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IDevi
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getCurrentWithoutChange(): IDeviceGuiSnapshot {
+    override fun getCurrentWithoutChange(): IGuiStatus {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
     // TODO Fix tests
@@ -46,7 +46,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IDevi
             appHasStoppedGuiSnapshot
     )
 
-    private var currentGuiSnapshot: IDeviceGuiSnapshot = guiSnapshotsSequence.first()
+    private var currentGuiSnapshot: IGuiStatus = guiSnapshotsSequence.first()
 
     private var okOnAppHasStoppedWasPressed = false
 
@@ -58,11 +58,11 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IDevi
         this.currentGuiSnapshot = originalGuiSnapshot
     }
 
-    override fun getCurrentWithoutChange(): IDeviceGuiSnapshot {
+    override fun getCurrentWithoutChange(): IGuiStatus {
         return this.currentGuiSnapshot
     }
 
-    override fun provide(): IDeviceGuiSnapshot {
+    override fun provide(): IGuiStatus {
         log.trace("provide($currentGuiSnapshot)")
 
         val out = this.currentGuiSnapshot

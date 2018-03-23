@@ -22,7 +22,7 @@ package org.droidmate.device
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.IGuiStatus
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.nio.file.Path
 
@@ -33,7 +33,7 @@ interface IExplorableAndroidDevice {
     fun hasPackageInstalled(packageName: String): Boolean
 
     @Throws(DeviceException::class)
-    fun getGuiSnapshot(): IDeviceGuiSnapshot
+    fun getGuiSnapshot(): IGuiStatus
 
     @Throws(DeviceException::class)
     fun perform(action: Action)

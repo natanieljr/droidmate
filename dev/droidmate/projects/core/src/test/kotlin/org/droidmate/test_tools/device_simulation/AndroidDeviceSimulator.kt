@@ -22,7 +22,7 @@ package org.droidmate.test_tools.device_simulation
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.IAndroidDevice
-import org.droidmate.device.datatypes.IDeviceGuiSnapshot
+import org.droidmate.uiautomator_daemon.IGuiStatus
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -128,10 +128,6 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun initModel() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override fun reconnectAdb() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -152,7 +148,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getGuiSnapshot(): IDeviceGuiSnapshot {
+    override fun getGuiSnapshot(): IGuiStatus {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

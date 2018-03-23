@@ -92,9 +92,6 @@ interface IDeployableAndroidDevice {
     fun setupConnection()
 
     @Throws(DeviceException::class)
-    fun initModel()
-
-    @Throws(DeviceException::class)
     fun reconnectAdb()
 
     @Throws(DeviceException::class)

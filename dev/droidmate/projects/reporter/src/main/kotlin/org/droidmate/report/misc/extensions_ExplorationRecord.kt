@@ -19,11 +19,11 @@
 package org.droidmate.report.misc
 
 import org.droidmate.device.datatypes.statemodel.Widget
-import org.droidmate.device.datatypes.MissingGuiSnapshot
 import org.droidmate.exploration.actions.EnterTextExplorationAction
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.report.EventApiPair
+import org.droidmate.uiautomator_daemon.EmptyGuiStatus
 
 val ExplorationRecord.clickedWidget: Set<Widget>
     get() {
@@ -39,9 +39,9 @@ val ExplorationRecord.actionableWidgets: Iterable<Widget>
   get() {
       val result = getResult()
       return when (result.guiSnapshot) {
-          is MissingGuiSnapshot -> this.clickedWidget
+          is EmptyGuiStatus -> this.clickedWidget
           else -> {
-              if (!(result.guiSnapshot.guiStatus.belongsToApp(result.guiSnapshot.guiStatus.topNodePackageName)))
+              if (!(result.guiSnapshot.belongsToApp(result.guiSnapshot.topNodePackageName)))
                   return this.clickedWidget
               else
                   TODO("this is no longer supported, use the State to determine actionable widgets instead")

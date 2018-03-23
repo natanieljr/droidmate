@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 Konrad Jamrozik
+// Copyright (C) 2012-2018 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,10 +17,8 @@
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
 
-package org.droidmate.device.datatypes
+package org.droidmate.uiautomator_daemon
 
-import org.droidmate.device.datatypes.statemodel.WidgetData
-import java.awt.Rectangle
 import java.io.Serializable
 
 /**
@@ -30,12 +28,14 @@ import java.io.Serializable
  * any 'real' state is to be created in ExplorationContext
  */
 interface IGuiStatus : Serializable {
+    val windowHierarchyDump: String
+
     val topNodePackageName: String
     val widgets: List<WidgetData>
-    val id: String
     val androidLauncherPackageName: String  //TODO check if this is required at all
-    val deviceDisplayBounds: Rectangle
-
+    // Originally used java.awt.Rectangle, but Swing classes are not available on Android
+    val deviceDisplayWidth: Int
+    val deviceDisplayHeight: Int
 
     val isHomeScreen: Boolean
 
