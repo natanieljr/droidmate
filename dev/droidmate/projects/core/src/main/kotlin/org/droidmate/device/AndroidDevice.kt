@@ -385,7 +385,7 @@ class AndroidDevice constructor(private val serialNumber: String,
     }
 
     override fun appIsRunning(appPackageName: String): Boolean =
-            this.anyMonitorIsReachable() && this.appProcessIsRunning(appPackageName)
+            this.appProcessIsRunning(appPackageName) && this.anyMonitorIsReachable()
 
     override fun clickAppIcon(iconLabel: String) {
 
