@@ -33,7 +33,6 @@ import org.droidmate.misc.Utils
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.GuiStatusResponse
-import org.droidmate.uiautomator_daemon.IGuiStatus
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
 import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
@@ -114,15 +113,14 @@ class AndroidDevice constructor(private val serialNumber: String,
         return adbWrapper.listPackage(serialNumber, packageName).contains(packageName)
     }
 
-    override fun getGuiSnapshot(): IGuiStatus {
+    override fun getGuiSnapshot(): GuiStatusResponse {
         log.debug("getGuiSnapshot()")
 
         val response = this.issueCommand(
                 DeviceCommand(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP)) as GuiStatusResponse
 
-        val outSnapshot = response.guiStatus
-        log.debug("getGuiSnapshot(): $outSnapshot")
-        return outSnapshot
+        log.debug("getGuiSnapshot(): $response")
+        return response
     }
 
     override fun perform(action: Action) {

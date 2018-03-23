@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.uiautomator_daemon.IGuiStatus
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
 
 /**
@@ -40,7 +40,7 @@ class GuiScreen /*constructor(private val internalId: String,
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getGuiSnapshot(): IGuiStatus {
+    override fun getGuiSnapshot(): GuiStatusResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -217,7 +217,7 @@ class GuiScreen /*constructor(private val internalId: String,
         assert(this.getGuiSnapshot().id.isNotEmpty())
     }
 
-    private fun buildEmptyInternals(): IGuiStatus {
+    private fun buildEmptyInternals(): GuiStatusResponse {
         val guiState = GuiStateTestHelper.newGuiStateWithTopLevelNodeOnly(packageName, internalId)
         // This one widget is necessary, as it is the only xml element from which packageName can be obtained. Without it, following
         // method would fail: UiautomatorWindowDump.getPackageName when called on

@@ -28,8 +28,7 @@ import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
-import org.droidmate.uiautomator_daemon.EmptyGuiStatus
-import org.droidmate.uiautomator_daemon.IGuiStatus
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import java.io.Serializable
 import java.net.URI
 import java.nio.file.Files
@@ -52,12 +51,12 @@ import javax.imageio.ImageIO
  * @author Nataniel P. Borges Jr.
  */
 open class ActionResult(val action: ExplorationAction,
-                        val startTimestamp: LocalDateTime,
-                        val endTimestamp: LocalDateTime,
-                        val deviceLogs: IDeviceLogs = MissingDeviceLogs,
-                        val guiSnapshot: IGuiStatus = EmptyGuiStatus(),
-                        val screenshot: URI = URI.create("test://empty"),
-                        val exception: DeviceException = DeviceExceptionMissing()) : Serializable {
+						val startTimestamp: LocalDateTime,
+						val endTimestamp: LocalDateTime,
+						val deviceLogs: IDeviceLogs = MissingDeviceLogs,
+						val guiSnapshot: GuiStatusResponse = GuiStatusResponse.empty,
+						val screenshot: URI = URI.create("test://empty"),
+						val exception: DeviceException = DeviceExceptionMissing()) : Serializable {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}

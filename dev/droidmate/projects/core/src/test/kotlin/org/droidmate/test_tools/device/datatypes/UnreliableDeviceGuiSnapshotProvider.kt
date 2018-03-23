@@ -18,10 +18,10 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.uiautomator_daemon.IGuiStatus
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
 
-class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IGuiStatus) : IUnreliableDeviceGuiSnapshotProvider {
-    override fun provide(): IGuiStatus {
+class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: GuiStatusResponse) : IUnreliableDeviceGuiSnapshotProvider {
+    override fun provide(): GuiStatusResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -29,7 +29,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IGuiS
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getCurrentWithoutChange(): IGuiStatus {
+    override fun getCurrentWithoutChange(): GuiStatusResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
     // TODO Fix tests
@@ -46,7 +46,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IGuiS
             appHasStoppedGuiSnapshot
     )
 
-    private var currentGuiSnapshot: IGuiStatus = guiSnapshotsSequence.first()
+    private var currentGuiSnapshot: GuiStatusResponse = guiSnapshotsSequence.first()
 
     private var okOnAppHasStoppedWasPressed = false
 
@@ -58,11 +58,11 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: IGuiS
         this.currentGuiSnapshot = originalGuiSnapshot
     }
 
-    override fun getCurrentWithoutChange(): IGuiStatus {
+    override fun getCurrentWithoutChange(): GuiStatusResponse {
         return this.currentGuiSnapshot
     }
 
-    override fun provide(): IGuiStatus {
+    override fun provide(): GuiStatusResponse {
         log.trace("provide($currentGuiSnapshot)")
 
         val out = this.currentGuiSnapshot

@@ -18,13 +18,13 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.uiautomator_daemon.IGuiStatus
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
 
 
 interface IUnreliableDeviceGuiSnapshotProvider {
-    fun provide(): IGuiStatus
+    fun provide(): GuiStatusResponse
 
     fun pressOkOnAppHasStopped()
 
-    fun getCurrentWithoutChange(): IGuiStatus
+    fun getCurrentWithoutChange(): GuiStatusResponse
 }

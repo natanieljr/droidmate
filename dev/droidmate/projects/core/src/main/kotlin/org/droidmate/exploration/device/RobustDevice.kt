@@ -29,7 +29,7 @@ import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
-import org.droidmate.uiautomator_daemon.IGuiStatus
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.PressHome
@@ -146,7 +146,7 @@ class RobustDevice : IRobustDevice {
         assert(waitForCanRebootDelay >= 0)
     }
 
-    override fun getGuiSnapshot(): IGuiStatus = this.getExplorableGuiSnapshot()
+    override fun getGuiSnapshot(): GuiStatusResponse = this.getExplorableGuiSnapshot()
 
     override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
         if (ignoreFailure)
@@ -203,7 +203,7 @@ class RobustDevice : IRobustDevice {
                 0)
     }
 
-    override fun ensureHomeScreenIsDisplayed(): IGuiStatus {
+    override fun ensureHomeScreenIsDisplayed(): GuiStatusResponse {
         var guiSnapshot = this.getGuiSnapshot()
         if (guiSnapshot.isHomeScreen)
             return guiSnapshot
@@ -234,7 +234,7 @@ class RobustDevice : IRobustDevice {
         return guiSnapshot
     }
 
-    private fun closeSelectAHomeAppDialogBox(snapshot: IGuiStatus): IGuiStatus {
+    private fun closeSelectAHomeAppDialogBox(snapshot: GuiStatusResponse): GuiStatusResponse {
         val launcherWidget = snapshot.widgets.single { it.text == "Launcher" }
         device.perform(ClickAction(launcherWidget.xpath, launcherWidget.resourceId))
 
@@ -249,7 +249,7 @@ class RobustDevice : IRobustDevice {
         return guiSnapshot
     }
 
-    private fun closeUseLauncherAsHomeDialogBox(snapshot: IGuiStatus): IGuiStatus {
+    private fun closeUseLauncherAsHomeDialogBox(snapshot: GuiStatusResponse): GuiStatusResponse {
         val justOnceWidget = snapshot.widgets.single { it.text == "Just once" }
         device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
 
@@ -319,18 +319,18 @@ class RobustDevice : IRobustDevice {
     }
 
     @Throws(DeviceException::class)
-    private fun getExplorableGuiSnapshot(): IGuiStatus {
+    private fun getExplorableGuiSnapshot(): GuiStatusResponse {
         var guiSnapshot = this.getRetryValidGuiSnapshotRebootingIfNecessary()
         guiSnapshot = closeANRIfNecessary(guiSnapshot)
         return guiSnapshot
     }
 
     @Throws(DeviceException::class)
-    private fun getExplorableGuiSnapshotWithoutClosingANR(): IGuiStatus
+    private fun getExplorableGuiSnapshotWithoutClosingANR(): GuiStatusResponse
             = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 
     @Throws(DeviceException::class)
-    private fun closeANRIfNecessary(guiSnapshot: IGuiStatus): IGuiStatus {
+    private fun closeANRIfNecessary(guiSnapshot: GuiStatusResponse): GuiStatusResponse {
         if (!guiSnapshot.isAppHasStoppedDialogBox)
             return guiSnapshot
 
@@ -339,7 +339,7 @@ class RobustDevice : IRobustDevice {
         assert(okWidget.enabled)
         log.debug("ANR encountered")
 
-        var out: IGuiStatus? = null
+        var out: GuiStatusResponse? = null
 
         Utils.retryOnFalse({
 
@@ -362,11 +362,11 @@ class RobustDevice : IRobustDevice {
     }
 
     @Throws(DeviceException::class)
-    private fun getRetryValidGuiSnapshotRebootingIfNecessary(): IGuiStatus
+    private fun getRetryValidGuiSnapshotRebootingIfNecessary(): GuiStatusResponse
             = rebootIfNecessary("device.getRetryValidGuiSnapshot()", true) { this.getRetryValidGuiSnapshot() }
 
     @Throws(DeviceException::class)
-    private fun getRetryValidGuiSnapshot(): IGuiStatus {
+    private fun getRetryValidGuiSnapshot(): GuiStatusResponse {
         try {
             val guiSnapshot = Utils.retryOnException(
                     { this.getValidGuiSnapshot() },
@@ -382,7 +382,7 @@ class RobustDevice : IRobustDevice {
     }
 
     @Throws(DeviceException::class)
-    private fun getValidGuiSnapshot(): IGuiStatus {
+    private fun getValidGuiSnapshot(): GuiStatusResponse {
         // the rebootIfNecessary will reboot on TcpServerUnreachable
         val snapshot = rebootIfNecessary("device.getGuiSnapshot()", true) { this.device.getGuiSnapshot() }
 

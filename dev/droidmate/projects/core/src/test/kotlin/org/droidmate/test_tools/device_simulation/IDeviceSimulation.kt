@@ -20,13 +20,13 @@ package org.droidmate.test_tools.device_simulation
 
 import com.google.common.annotations.VisibleForTesting
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.uiautomator_daemon.IGuiStatus
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
 
 interface IDeviceSimulation {
     fun updateState(deviceAction: Action)
 
-    fun getCurrentGuiSnapshot(): IGuiStatus
+    fun getCurrentGuiSnapshot(): GuiStatusResponse
 
     fun getCurrentLogs(): List<ITimeFormattedLogcatMessage>
 

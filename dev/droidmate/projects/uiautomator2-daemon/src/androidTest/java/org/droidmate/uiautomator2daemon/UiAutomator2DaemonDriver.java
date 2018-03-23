@@ -314,7 +314,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     Log.d(uiaDaemon_logcatTag, "Creating response");
 
-    GuiStatusResponse response = new GuiStatusResponse(windowHierarchyDump, model, width, height);
+    GuiStatusResponse response = GuiStatusResponse.fromUIDump(windowHierarchyDump, model, width, height);
 
     Log.d(uiaDaemon_logcatTag, "Sending response");
 

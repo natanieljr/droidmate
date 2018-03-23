@@ -20,13 +20,29 @@
 package org.droidmate.uiautomator_daemon
 
 import org.slf4j.LoggerFactory
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
+import java.io.ByteArrayInputStream
+import javax.xml.parsers.DocumentBuilderFactory
 
-class GuiStatusResponse(windowHierarchyDump: String,
-                        deviceModel: String,
-                        displayWidth: Int,
-                        displayHeight: Int) : DeviceResponse() {
+class GuiStatusResponse private constructor(val windowHierarchyDump: String,
+                                            val topNodePackageName: String,
+                                            val widgets: List<WidgetData>,
+                                            val androidLauncherPackageName: String,
+                                            val deviceDisplayWidth: Int,
+                                            val deviceDisplayHeight: Int) : DeviceResponse() {
     companion object {
         private val log = LoggerFactory.getLogger(GuiStatusResponse::class.java)
+
+        @JvmStatic
+        val empty: GuiStatusResponse by lazy {
+            GuiStatusResponse("",
+                    "empty",
+                    emptyList(),
+                    "",
+                    0,
+                    0)
+        }
 
         /**
          * <p>
@@ -38,7 +54,7 @@ class GuiStatusResponse(windowHierarchyDump: String,
          * </p>
          */
         @JvmStatic
-        fun androidLauncher(deviceModel: String): String = when (deviceModel) {
+        private fun androidLauncher(deviceModel: String): String = when (deviceModel) {
         /*
               Obtained from emulator with following settings->
                  Name-> Nexus_7_2012_API_19
@@ -67,15 +83,172 @@ class GuiStatusResponse(windowHierarchyDump: String,
                 "com.android.launcher"
             }
         }
+
+        @JvmStatic
+        private fun createWidget(n: Node, parentWidget: WidgetData?): WidgetData? {
+            try {
+                /*Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:uid/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-contentDesc="" check="false" check="false" clickable="true" enabled="true" focusable="true" focus="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>*/
+                val getBool: (property: String) -> Boolean = { n.attributes.getNamedItem(it)?.nodeValue == "true" }
+                val getStringVal: (property: String) -> String = { n.attributes.getNamedItem(it)?.nodeValue ?: "" }
+                val boundsList = WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue)
+
+                return WidgetData(mapOf(
+                        WidgetData::id.name to getStringVal("id"), // Appears only in test code simulating the device, never on actual devices or their emulators.
+                        WidgetData::text.name to getStringVal("text"),
+                        WidgetData::resourceId.name to getStringVal("resource-id"),
+                        WidgetData::className.name to getStringVal("class"),
+                        WidgetData::packageName.name to getStringVal("package"),
+                        WidgetData::contentDesc.name to getStringVal("content-contentDesc"),
+                        WidgetData::checked.name to (if (getBool("checkable")) getBool("checked") else null),
+                        WidgetData::clickable.name to getBool("clickable"),
+                        WidgetData::enabled.name to getBool("enabled"),
+                        WidgetData::focused.name to (if (getBool("focusable")) getBool("focused") else null),
+                        WidgetData::scrollable.name to getBool("scrollable"),
+                        WidgetData::longClickable.name to getBool("long-clickable"),
+                        WidgetData::visible.name to getBool("visible-to-user"),  // TODO check invisible nodes are probably never in the dump anyway
+                        WidgetData::isPassword.name to getBool("password"),
+                        WidgetData::selected.name to getBool("selected"),
+                        WidgetData::boundsX.name to boundsList[0],
+                        WidgetData::boundsY.name to boundsList[1],
+                        WidgetData::boundsWidth.name to boundsList[2],
+                        WidgetData::boundsHeight.name to boundsList[3],
+                        WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
+                ), n.attributes.getNamedItem("index")?.nodeValue?.toInt() ?: -1, parentWidget)
+
+            } catch (e: InvalidWidgetBoundsException) {
+                // TODO Check log.error("Catching exception: parsing widget bounds failed. Please see the exceptions log for details.\n" +
+                // TODO		"Continuing execution, skipping the widget with empty bounds.")
+                // TODO Check log.error(exceptions, "parsing widget bounds failed with exception:\n", e)
+                return null
+            }
+        }
+
+        @JvmStatic
+        private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node) {
+            val w = createWidget(data, parent)
+
+            if (w != null) {
+                if (parent == null)
+                    w.xpath = "//"
+                else
+                    w.xpath = "${parent.xpath}/"
+
+                w.xpath += "${w.className}[${w.index + 1}]"
+
+                result.add(w)
+            }
+
+            data.childNodes.toList().filter { it.nodeName == "node" }.forEach { addWidget(result, w, it) }
+        }
+
+        @JvmStatic
+        private fun NodeList.toList(): List<Node> {
+            return (0 until this.length).map { i ->
+                this.item(i)
+            }
+        }
+
+        @JvmStatic
+        private fun Node.isSystemUINode(): Boolean {
+            val pkg = this.attributes.getNamedItem("package")
+
+            return (pkg != null) && (pkg.nodeValue.contains("com.android.systemui"))
+        }
+
+        @JvmStatic
+        fun fromUIDump(windowHierarchyDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int): GuiStatusResponse {
+            val androidLauncherPackageName = androidLauncher(deviceModel)
+            val dbf = DocumentBuilderFactory.newInstance()
+            val db = dbf.newDocumentBuilder()
+            val inputStream = ByteArrayInputStream(windowHierarchyDump.toByteArray())
+            val hierarchy = db.parse(inputStream)
+                    .apply { documentElement.normalize() }
+                    .childNodes.item(0)
+
+            assert(hierarchy.nodeName == "hierarchy")
+
+            val childNodes = hierarchy.childNodes
+                    .toList()
+                    .filter { it.nodeName == "node" }
+                    .filterNot { it.isSystemUINode() }
+
+            var topNodePackage = "ERROR"
+            if (childNodes.isNotEmpty()) {
+                topNodePackage = childNodes.first().attributes.getNamedItem("package").nodeValue
+
+                // When the application starts with an active keyboard, look for the proper application instead of the keyboard
+                // This problem was identified on the app "com.hykwok.CurrencyConverter"
+                // https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
+                if (topNodePackage.startsWith("com.google.android.inputmethod.") && (childNodes.size > 1))
+                    topNodePackage = childNodes.drop(1).first().attributes.getNamedItem("package").nodeValue
+
+                assert(topNodePackage.isNotEmpty())
+            }
+            val widgets: MutableList<WidgetData> = ArrayList()
+
+            childNodes.forEach {
+                addWidget(widgets, null, it)
+            }
+
+            return GuiStatusResponse(windowHierarchyDump, topNodePackage, widgets, androidLauncherPackageName, displayWidth, displayHeight)
+        }
     }
 
-    /**
-     * This field contains string representing the contents of the file returned by
-     * `android.support.test.uiautomator.UiAutomatorTestCase.getUiDevice().dumpWindowHierarchy();`<br></br>
-     * as well as <br></br>
-     * `android.support.test.uiautomator.UiAutomatorTestCase.getUiDevice().dumpDisplayWidth();`<br></br>
-     * `android.support.test.uiautomator.UiAutomatorTestCase.getUiDevice().dumpDisplayHeight();`
-     */
-    val guiStatus: IGuiStatus = GuiStatus.fromUIDump(windowHierarchyDump,
-            androidLauncher(deviceModel), displayWidth, displayHeight)
+    private val androidPackageName = "android"
+    private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
+
+    init {
+        assert(!this.topNodePackageName.isEmpty())
+    }
+
+    override fun toString(): String {
+        return when {
+            this.isHomeScreen -> "<GUI state: home screen>"
+            this.isAppHasStoppedDialogBox -> "<GUI state of \"App has stopped\" dialog box.>"// OK widget enabled: ${this.okWidget.enabled}>"
+            this.isRequestRuntimePermissionDialogBox -> "<GUI state of \"Runtime permission\" dialog box.>"// Allow widget enabled: ${this.allowWidget.enabled}>"
+            this.isCompleteActionUsingDialogBox -> "<GUI state of \"Complete action using\" dialog box.>"
+            this.isSelectAHomeAppDialogBox -> "<GUI state of \"Select a home app\" dialog box.>"
+            this.isUseLauncherAsHomeDialogBox -> "<GUI state of \"Use Launcher as Home\" dialog box.>"
+            else -> "<GuiState pkg=$topNodePackageName Widgets count = ${widgets.size}>"
+        }
+    }
+
+    val isHomeScreen: Boolean
+        get() = topNodePackageName.startsWith(androidLauncherPackageName) && !widgets.any { it.text == "Widgets" }
+
+    val isAppHasStoppedDialogBox: Boolean
+        get() = topNodePackageName == androidPackageName &&
+                widgets.any { it.text == "OK" } &&
+                !widgets.any { it.text == "Just once" }
+
+    val isCompleteActionUsingDialogBox: Boolean
+        get() = !isSelectAHomeAppDialogBox &&
+                !isUseLauncherAsHomeDialogBox &&
+                topNodePackageName == androidPackageName &&
+                widgets.any { it.text == "Just once" }
+
+    val isSelectAHomeAppDialogBox: Boolean
+        get() = topNodePackageName == androidPackageName &&
+                widgets.any { it.text == "Just once" } &&
+                widgets.any { it.text == "Select a Home app" }
+
+    val isUseLauncherAsHomeDialogBox: Boolean
+        get() = topNodePackageName == androidPackageName &&
+                widgets.any { it.text == "Use Launcher as Home" } &&
+                widgets.any { it.text == "Just once" } &&
+                widgets.any { it.text == "Always" }
+
+    val isRequestRuntimePermissionDialogBox: Boolean
+        get() = widgets.any { it.resourceId == resIdRuntimePermissionDialog }
+
+    fun belongsToApp(appPackageName: String): Boolean = this.topNodePackageName == appPackageName
+
+    fun debugWidgets(): String {
+
+        val sb = StringBuilder()
+        sb.appendln("widgets (${widgets.size}):")
+        widgets.forEach { sb.appendln(it.toString()) }
+
+        return sb.toString()
+    }
 }
