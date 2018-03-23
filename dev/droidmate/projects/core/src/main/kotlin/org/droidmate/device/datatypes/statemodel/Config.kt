@@ -55,6 +55,7 @@ class ModelDumpConfig(path:String, appName:String) {
     return idPath(baseDir,id.toString(),postfix,fileExtension)
   }
   val traceFile = { date:String -> "$modelBaseDir${traceFilePrefix}$date.txt" }
+  val dumpImg = false
 }
 
 private const val datePattern = "ddMM-HHmmss"

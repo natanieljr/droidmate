@@ -16,12 +16,11 @@
 //
 package org.droidmate.device.datatypes.statemodel
 
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.debug.debugT
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.device.datatypes.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
@@ -31,6 +30,7 @@ import java.net.URI
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.properties.Delegates
 
 class ActionData private constructor(val actionType:String, val targetWidget: Widget?,
@@ -54,7 +54,7 @@ class ActionData private constructor(val actionType:String, val targetWidget: Wi
 	val decisionTime: Long by lazy{ ChronoUnit.MILLIS.between(startTimestamp, endTimestamp) }
 
 	fun actionString():String = P.values().joinToString(separator = sep) { when (it){
-		P.Action -> actionType?: ""
+		P.Action -> actionType
 		P.StartTime -> startTimestamp.toString()
 		P.EndTime -> endTimestamp.toString()
 		P.Exception -> exception
@@ -91,31 +91,36 @@ class ActionData private constructor(val actionType:String, val targetWidget: Wi
 }
 
 class Trace(private val watcher:List<ModelFeature> = emptyList()){
+	/** REMARK: the completion of action processing has to be ensured by calling actionProcessorJob.joinChildren() before accessing this property */
+	private val trace = LinkedList<ActionData>()
 
-  private val trace = LinkedList<ActionData>()
+	private val actionProcessorJob = Job()
+	private fun<T> waitFor(block:()->T):T = runBlocking { actionProcessorJob.joinChildren(); block() }
+	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionProcessor"), parent = actionProcessorJob)
+
   private val date by lazy{ "${timestamp()}_${hashCode()}"}
-	val size: Int get() = trace.size
-
-
-	/** this property is set in the end of the trace update and notifies all watchers for changes */
-	private var newState by Delegates.observable(StateData.emptyState) { _, old, new ->
-		notifyObserver(old, new)
-		internalUpdate(trace.last.targetWidget, old)
-	}
-
-	/** observable delegates do not support coroutines within the lambda function therefore this method*/
-	private fun notifyObserver(old:StateData, new:StateData){
-		watcher.forEach {
-			launch(it.context, parent = it.job) { it.onNewAction(trace.last,old,new) }
-		}
-	}
 
 	private val targets:MutableList<Widget?> = LinkedList()
 	/** used for special id creation of interacted edit fields, map< iEditId -> (state -> collection<widget> )> */
-	private val editFields:MutableMap<UUID,LinkedList<Pair<StateData,Widget>>> = mutableMapOf()
+	private val editFields:MutableMap<UUID,LinkedList<Pair<StateData, Widget>>> = mutableMapOf()
+
+	/** this property is set in the end of the trace update and notifies all watchers for changes */
+	private val initialState:Pair<StateData,Widget?> = Pair(StateData.emptyState, null)
+	private var newState by Delegates.observable(initialState) { _, old, new ->
+		notifyObserver(old.first, new.first, new.second)
+		internalUpdate(new.second, old.first)
+	}
+
+	/** observable delegates do not support coroutines within the lambda function therefore this method*/
+	private fun notifyObserver(old:StateData, new:StateData, target: Widget?){
+		watcher.forEach {
+			launch(it.context, parent = it.job){ it.onNewInteracted(target,old,new) }
+			launch(it.context, parent = it.job){ it.onNewAction(lazy{last()!!},old,new) }
+		}
+	}
 
 	/** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
-	private fun internalUpdate(target:Widget?,state:StateData){
+	private fun internalUpdate(target: Widget?, state:StateData){
 		targets.add(target)
 		target?.run {
 			if (isEdit) editFields.compute(state.iEditId, { _,stateMap ->
@@ -124,29 +129,50 @@ class Trace(private val watcher:List<ModelFeature> = emptyList()){
 		}
 	}
 
-	//FIXME this sometimes takes >1s thus implement trace as actor
-	fun update(action:ActionResult,newState:StateData) {
-		debugT("create actionData",{ActionData(action, newState.stateId, newState.stateId)})
-				.also { debugT("add action",{addAction(it)}) }
-
-		debugT("set newState",{this.newState = newState})
+	private val actionProcessor: (ActionResult,StateData)->suspend CoroutineScope.()->Unit = { action,newState ->
+		{
+			debugT("create actionData", { ActionData(action, newState.stateId, newState.stateId) })
+					.also {
+						debugT("add action", { trace.add(it) })
+					}
+		}
 	}
 
-	fun getCurrentState() = newState
+	/*************** public interface ******************/
+
+	fun update(action:ActionResult,newState:StateData) {
+		launch(context, parent = actionProcessorJob, block = actionProcessor(action,newState))
+
+		debugT("set newState",{this.newState = Pair(newState, action.action.widget)})
+	}
+
+	val currentState get() = newState.first
+	val size: Int get() = waitFor { trace.size }
+
+	val interactedEditFields: Map<UUID, List<Pair<StateData, Widget>>> get() = editFields
 
 	fun unexplored(candidates:List<Widget>):List<Widget> = candidates.filterNot { w -> targets.any{ it?.run { w.uid == uid }?:false } }
 
-	fun interactedEditFields(): Map<UUID, List<Pair<StateData, Widget>>> = editFields
+	/** this directly accesses the [trace] without any synchronization.
+	 * the caller should ensure that this method is only called in sequential/synchronized context
+	 */
+	internal fun S_addAction(action:ActionData) = trace.add(action)
 
-	internal fun addAction(action:ActionData) = synchronized(trace){ trace.add(action) }
-  fun last():ActionData? = trace.lastOrNull()
-  fun getActions():List<ActionData> = trace
+	fun getActions():List<ActionData> = waitFor{ trace }
+  fun last():ActionData? = waitFor { trace.lastOrNull() }
+	fun isEmpty(): Boolean = waitFor { trace.isEmpty() }
+	fun isNotEmpty(): Boolean = waitFor { trace.isNotEmpty() }
+	fun first(): ActionData{
+		return if(trace.isNotEmpty()) trace.first
+			else waitFor { trace.first }
+	}
 
-	//TODO this can be nicely done with a buffered channel instead
+	//TODO this can be nicely done with a buffered channel instead of requiring a explicit launch call each time
   suspend fun dump(config: ModelDumpConfig) = dumpMutex.withLock("trace dump"){
     File(config.traceFile(date)).bufferedWriter().use{ out ->
       out.write(ActionData.header)
       out.newLine()
+	    waitFor {  }  // ensure that our trace is complete before dumping it
       trace.forEach { action ->
         out.write(action.actionString())
         out.newLine()
@@ -167,10 +193,6 @@ class Trace(private val watcher:List<ModelFeature> = emptyList()){
   override fun hashCode(): Int {
     return trace.hashCode()
   }
-
-  fun isEmpty(): Boolean = trace.isEmpty()
-	fun isNotEmpty(): Boolean = trace.isNotEmpty()
-	fun first(): ActionData = trace.first
 
 }
 

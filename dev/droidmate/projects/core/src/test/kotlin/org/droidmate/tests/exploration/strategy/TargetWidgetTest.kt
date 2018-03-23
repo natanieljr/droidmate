@@ -19,8 +19,8 @@
 
 package org.droidmate.tests.exploration.strategy
 
-import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.WidgetData
+import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.device.datatypes.statemodel.WidgetData
 import org.droidmate.exploration.strategy.ITargetWidget
 import org.droidmate.exploration.strategy.TargetWidget
 import org.droidmate.test_tools.DroidmateTestCase

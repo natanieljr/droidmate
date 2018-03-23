@@ -46,7 +46,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		private const val serialVersionUID: Long = 1
 	}
 
-	override fun getCurrentState(): StateData = actionTrace.getCurrentState()
+	override fun getCurrentState(): StateData = actionTrace.currentState
 
     override fun belongsToApp(state: StateData): Boolean {
         return state.topNodePackageName == apk.packageName
@@ -57,12 +57,12 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
 		model.S_updateModel(result,actionTrace)
-		this.also { context -> watcher.forEach { launch(it.context, parent = it.job){ it.update(context) } } }
+		this.also { context -> watcher.forEach { launch(it.context, parent = it.job){  it.onContextUpdate(context) } } }
 	}
 
 	override fun dump() {
 		model.P_dumpModel(model.config)
-		this.also { context -> watcher.forEach { launch(it.context,parent=it.job) { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(it.context,parent=it.job){  it.dump(context) } } }
 	}
 
 	override fun areAllWidgetsExplored(): Boolean {

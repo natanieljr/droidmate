@@ -2,7 +2,6 @@ package org.droidmate.device.datatypes.statemodel
 
 import kotlinx.coroutines.experimental.*
 import org.droidmate.debug.debugT
-import org.droidmate.device.datatypes.Widget
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,7 +36,7 @@ class Model private constructor(val config: ModelDumpConfig){
 
 	private val widgetAdder:LinkedList<Deferred<Unit>> = LinkedList()
 	fun getWidgets():Set<Widget> = widgets
-	fun addWidget(w:Widget) = synchronized(widgets){
+	fun addWidget(w: Widget) = synchronized(widgets){
 		widgets.find { it.id==w.id } ?: widgets.add(w) }
 	fun waitForOverallWidgetsUpdates() = widgetAdder.apply{ removeAll{ it.isCompleted } }
 
@@ -45,10 +44,10 @@ class Model private constructor(val config: ModelDumpConfig){
 	fun addTrace(t:Trace) = paths.add(t)
 
 	fun S_findWidget(predicate:(Widget)->Boolean) = widgets.find(predicate)
-	val findWidget:(uuid:String,c:Collection<Widget>)->Widget?= { id, c ->
+	val findWidget:(uuid:String,c:Collection<Widget>)-> Widget?= { id, c ->
 		findWidgetOrElse(id,c){ throw RuntimeException("ERROR on state parsing, the target widget $id was not instantiated correctly")}
 	}
-	inline fun findWidgetOrElse(uuid:String, widgets:Collection<Widget> = getWidgets(), crossinline otherwise:(UUID)->Widget):Widget? {
+	inline fun findWidgetOrElse(uuid:String, widgets:Collection<Widget> = getWidgets(), crossinline otherwise:(UUID)-> Widget): Widget? {
 		return if (uuid == "null") null
 		else  UUID.fromString(uuid).let{ synchronized(widgets){ widgets.find { w -> w.uid == it } ?: otherwise(it) }}
 	}
@@ -62,12 +61,13 @@ class Model private constructor(val config: ModelDumpConfig){
 		}
 	}
 
+	private var uTime:Long = 0
 	/** update the model with any [action] executed as part of an execution [trace] **/
 	fun S_updateModel(action:ActionResult,trace:Trace){
 		measureTimeMillis {
 			var s:StateData? = null
 			measureTimeMillis {
-				s = computeNewState(action, trace.interactedEditFields())
+				s = computeNewState(action, trace.interactedEditFields)
 			}.let { println("state computation takes $it millis for ${s!!.widgets.size}") }
 					s?.also { newState -> launch { newState.widgets } // initialize the widgets in parallel
 //				val traceUpdate = launch{ debugT("trace update",{
@@ -76,7 +76,7 @@ class Model private constructor(val config: ModelDumpConfig){
 				launch { newState.dump(config) }
 				launch { //traceUpdate.join();
 					trace.dump(config) }
-				launch { //traceUpdate.join()
+				if(config.dumpImg) launch { //traceUpdate.join()
 					trace.last()!!.screenshot.let {
 						// if there is any screen-shot copy it to the state extraction directory
 					java.io.File(config.statePath(newState.stateId, "_${newState.configId}", "png")).let {file ->
@@ -96,7 +96,10 @@ class Model private constructor(val config: ModelDumpConfig){
 				launch{ debugT("state adding",{states.add(newState)})}
 //				debugT("model join trace update",{ runBlocking{traceUpdate.join()} })  // wait until we are sure the model is completely updated
 			}
-		}.let{ println("model update took $it millis") }
+		}.let{ println("model update took $it millis")
+			uTime += it
+			println("---------- average model update time ${uTime/trace.size} ms overall ${uTime/1000.0} seconds --------------")
+		}
 	}
 
 	private fun computeNewState(action:ActionResult, interactedEF: Map<UUID, List<Pair<StateData, Widget>>>):StateData{
@@ -132,7 +135,7 @@ class Model private constructor(val config: ModelDumpConfig){
 					pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets }
 				}
 			})
-					.let {
+					.let { candidates ->
 
 				//			debugT("parallel edit field",{
 //				runBlocking {
@@ -151,7 +154,7 @@ class Model private constructor(val config: ModelDumpConfig){
 //FIXME same issue for Password fields?
 				debugT("sequential edit field", {
 					// faster then parallel alternatives
-					it.fold(state.widgets, { res, (iUid, widgets) ->
+					candidates.fold(state.widgets, { res, (iUid, widgets) ->
 						// determine which candidate matches the current [state] and replace the respective widget.uid`s
 						if (state.idWhenIgnoring(widgets) == iUid &&
 								widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
@@ -171,7 +174,7 @@ class Model private constructor(val config: ModelDumpConfig){
 	}}
 	private suspend fun P_parseTrace(file:Path){
 		Trace().apply {
-			P_processLines(file.toFile(), sep, lineProcessor = _actionParser).forEach{ it.await().let{ addAction(it) } }
+			P_processLines(file.toFile(), sep, lineProcessor = _actionParser).forEach{ it.await().let{ S_addAction(it) } }
 		}.also{ synchronized(paths){ paths.add(it)} }
 	}
 

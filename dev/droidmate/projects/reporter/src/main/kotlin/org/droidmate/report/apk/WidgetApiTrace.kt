@@ -18,7 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.WidgetExplorationAction
@@ -56,7 +56,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
             null
     }
 
-    private fun getWidgetWithTextFromAction(widget: Widget,state:StateData): Widget {
+    private fun getWidgetWithTextFromAction(widget: Widget, state:StateData): Widget {
         // If has Text
         if (widget.text.isNotEmpty())
             return widget

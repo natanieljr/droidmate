@@ -22,6 +22,7 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.android_sdk.IApk
+import org.droidmate.debug.debugT
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.device.DeviceLogsHandler
 import org.droidmate.exploration.device.IRobustDevice
@@ -33,6 +34,8 @@ import sun.audio.AudioDevice.device
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+private var performT:Long = 0
+private var performN:Int = 1
 class RunnableWidgetExplorationAction constructor(action: WidgetExplorationAction,
                                                   timestamp: LocalDateTime,
                                                   takeScreenshot: Boolean) : RunnableExplorationAction(action, timestamp, takeScreenshot) {
@@ -44,7 +47,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
     override fun performDeviceActions(app: IApk, device: IRobustDevice) = runBlocking{
         log.debug("1. Assert only background API logs are present, if any.")
         val logsHandler = DeviceLogsHandler(device)
-        logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
+        debugT("reading log",{logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()}, inMillis = true)
 
         val action = base as WidgetExplorationAction
         log.debug("2. Perform widget click: $action.")
@@ -52,15 +55,21 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
         val x = action.widget.bounds.centerX.toInt()
         val y = action.widget.bounds.centerY.toInt()
         try {
-            launch {// do the perform as launch to inject a suspension point, as perform is currently no suspend function
-                when {
-                    action.useCoordinates && !action.longClick -> device.perform(CoordinateClickAction(x, y))
-                    action.useCoordinates && action.longClick -> device.perform(CoordinateLongClickAction(x, y))
-                    !action.useCoordinates && !action.longClick -> device.perform(ClickAction(action.widget.xpath, action.widget.resourceId))
-                    !action.useCoordinates && action.longClick -> device.perform(LongClickAction(action.widget.xpath, action.widget.resourceId))
-                    else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
-                }
-            }.join()
+            debugT("perform action on average ${performT/performN} ms", {
+	            launch {
+		            // do the perform as launch to inject a suspension point, as perform is currently no suspend function
+		            when {
+			            action.useCoordinates && !action.longClick -> device.perform(CoordinateClickAction(x, y))
+			            action.useCoordinates && action.longClick -> device.perform(CoordinateLongClickAction(x, y))
+			            !action.useCoordinates && !action.longClick -> device.perform(ClickAction(action.widget.xpath, action.widget.resourceId))
+			            !action.useCoordinates && action.longClick -> device.perform(LongClickAction(action.widget.xpath, action.widget.resourceId))
+			            else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
+		            }
+	            }.join()
+            }, timer = {
+              performT += it/1000000
+	            performN += 1
+            }, inMillis = true)
         } catch (e: Exception) {
             if (!action.useCoordinates) {
                 log.warn("2.1. Failed to click using XPath and resourceID, attempting restart UIAutomatorDaemon and to click coordinates: $action.")
@@ -73,7 +82,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
         }
 
         log.debug("3. Read and clear API logs if any, then seal logs reading.")
-        logsHandler.readAndClearApiLogs()
+        debugT("read log after action",{logsHandler.readAndClearApiLogs()}, inMillis = true)
         logs = logsHandler.getLogs()
 
 //        Thread.sleep(action.delay.toLong())
@@ -84,11 +93,11 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
             log.debug("4. Get GUI screenshot.")
 
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-            screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
+            screenshot = debugT("get screenshot",{ device.takeScreenshot(app, timestamp.format(formatter)).toUri() }, inMillis = true)
         }
 
         log.debug("4. Get GUI snapshot.")
-        snapshot = device.getGuiSnapshot()
+        snapshot = debugT("windowDump retrieve",{device.getGuiSnapshot()}, inMillis = true)
         //TODO take screenshot before and after dump to ensure they are matching, if not equal => take another device GuiSnapshot
     }
 }

@@ -22,6 +22,7 @@ package org.droidmate.command.exploration
 import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.configuration.Configuration
+import org.droidmate.debug.debugT
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.exploration.actions.IRunnableExplorationAction
@@ -77,6 +78,8 @@ class Exploration constructor(private val cfg: Configuration,
         return Failable<AbstractContext, DeviceException>(output, if (output.exceptionIsPresent) output.exception else null)
     }
 
+    private var actionT: Long = 0
+		private var nActions = 0
     private fun explorationLoop(app: IApk, device: IRobustDevice): AbstractContext {
         log.debug("explorationLoop(app=${app.fileName}, device)")
 
@@ -96,9 +99,12 @@ class Exploration constructor(private val cfg: Configuration,
         // Execute the exploration loop proper, starting with the values of initial reset action and its result.
         while (isFirst || (result.successful && !(action is RunnableTerminateExplorationAction))) {
             // decide for an action
-            action = RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots)
+            action = debugT("strategy decition time",{RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots)})
             // execute action
-            measureTimeMillis { result = action.run(app, device) }.let { println("$it millis elapsed until result was available") }
+            measureTimeMillis { result = action.run(app, device) }.let {
+                actionT += it
+                nActions += 1
+                println("$it millis elapsed until result was available on average ${actionT/nActions}") }
             output.add(action, result)
             // update strategy
             strategy.update(result)

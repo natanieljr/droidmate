@@ -19,13 +19,14 @@
 
 package org.droidmate.device.datatypes
 
+import org.droidmate.device.datatypes.statemodel.WidgetData
 import java.awt.Rectangle
 
 /**
  * Specialized GuiStatus class that represents an application with an active "App has stopped" dialog box
  */
 @Deprecated("We only need one GuiStatus class no reason for this nearly empty subclasses")
-class AppHasStoppedDialogBoxGuiStatus(topNodePackageName: String, widgets: List<WidgetData>, androidLauncherPackageName: String,deviceDisplayBounds: Rectangle) :
+class AppHasStoppedDialogBoxGuiStatus(topNodePackageName: String, widgets: List<WidgetData>, androidLauncherPackageName: String, deviceDisplayBounds: Rectangle) :
         GuiStatus(topNodePackageName, "", widgets, androidLauncherPackageName,deviceDisplayBounds) {
     companion object {
         private const val serialVersionUID: Long = 1

@@ -23,7 +23,7 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.Widget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.*
 import org.droidmate.device.datatypes.statemodel.features.ModelFeature
 import org.droidmate.errors.DroidmateError
@@ -88,7 +88,7 @@ abstract class AbstractContext : Serializable {
     /**
      * Get the last widget the exploration has interacted with
      *
-     * @returns Last widget interacted with or instance of [EmptyWidgetInfo] when none
+     * @returns Last widget interacted with or null when none
      */
     var lastTarget: Widget? = null
 

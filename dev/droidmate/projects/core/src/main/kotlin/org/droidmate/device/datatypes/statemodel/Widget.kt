@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2017 originally by Konrad Jamrozik, modified by Jenny Hotzkow
+// Copyright (C) 2012-2018 Jenny Hotzkow
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,31 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
-// web: www.droidmate.org
-package org.droidmate.device.datatypes
+package org.droidmate.device.datatypes.statemodel
 
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.debug.debugT
-import org.droidmate.device.datatypes.statemodel.ModelDumpConfig
-import org.droidmate.device.datatypes.statemodel.emptyUUID
-import org.droidmate.device.datatypes.statemodel.sep
-import org.droidmate.device.datatypes.statemodel.stateIdFromString
-import org.droidmate.exploration.actions.Direction
-import weka.gui.beans.Visible
+import org.droidmate.device.datatypes.InvalidWidgetBoundsException
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.SystemColor.text
 import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
 import java.io.File
 import java.nio.charset.Charset
 import java.util.*
 import javax.imageio.ImageIO
-import javax.swing.Scrollable
-import kotlin.coroutines.experimental.coroutineContext
 import kotlin.reflect.full.declaredMemberProperties
 
 
@@ -87,7 +73,7 @@ class WidgetData(map: Map<String,Any?>,val index: Int = -1,val parent: WidgetDat
 
 
 	companion object {
-		@JvmStatic val defaultProperties by lazy { P.propertyMap(Array(P.values().size,{"false"}).toList()) }
+		@JvmStatic val defaultProperties by lazy { P.propertyMap(Array(P.values().size, { "false" }).toList()) }
 		@JvmStatic fun empty() = WidgetData(defaultProperties)
 
 		@JvmStatic
@@ -133,11 +119,13 @@ private enum class P(val pName:String="",var header: String="") {
 	}
 }
 
-
+/**
+ * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a coroutine running to compute the Widget.uid
+ */
 @Suppress("MemberVisibilityCanBePrivate")
-class Widget(private val properties:WidgetData, var _uid: Lazy<UUID>) {
+class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 
-	constructor(properties:WidgetData = WidgetData.empty()): this(properties, lazy({computeId(properties)}))
+	constructor(properties: WidgetData = WidgetData.empty()): this(properties, lazy({ computeId(properties) }))
 
 	var uid: UUID
 		set(value) { _uid = lazyOf(value)}
@@ -173,8 +161,8 @@ class Widget(private val properties:WidgetData, var _uid: Lazy<UUID>) {
 	var parentId:Pair<UUID,UUID>? = null
 	val isLeaf: Boolean = properties.isLeaf
 	internal val parentXpath:String = properties.parent?.xpath?:""
-	//FIXME we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
-	//FIXME buggy in amazon "Sign In" does not always compute to same id
+	//TODO we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
+	//TODO check if still buggy in amazon "Sign In" does not always compute to same id
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
 //	var uid: UUID = (text + contentDesc).let{debugT("gen UID ${text + contentDesc}",{ if(hasContent()) it.toUUID() else  imgId }) }
 	// special care for EditText elements, as the input text will change the [text] property
@@ -257,52 +245,19 @@ class Widget(private val properties:WidgetData, var _uid: Lazy<UUID>) {
 		val clickRectangle = bounds.intersection(deviceDisplayBounds)
 		return Point(clickRectangle.centerX.toInt(), clickRectangle.centerY.toInt())
 	}
-	@Deprecated(" no longer used? ")
-	fun getAreaSize(): Double{
-		return bounds.height.toDouble() * bounds.width
-	}
-	@Deprecated(" no longer used? ")
-	fun getDeviceAreaSize(deviceDisplayBounds:Rectangle?): Double{
-		return if (deviceDisplayBounds != null)
-			deviceDisplayBounds.height.toDouble() * deviceDisplayBounds.width
-		else
-			-1.0
-	}
-	@Deprecated(" no longer used? ")
-	fun getResourceIdName(): String = resourceId.removeSuffix(this.packageName + ":uid/")
-	@Deprecated(" no longer used? ")
-	fun getSwipePoints(direction: Direction, percent: Double,deviceDisplayBounds:Rectangle?): List<Point>{
-
-		assert(bounds.intersects(deviceDisplayBounds))
-
-		val swipeRectangle = bounds.intersection(deviceDisplayBounds)
-		val offsetHor = (swipeRectangle.getWidth() * (1 - percent)) / 2
-		val offsetVert = (swipeRectangle.getHeight() * (1 - percent)) / 2
-
-		return when (direction) {
-			Direction.LEFT -> arrayListOf(Point((swipeRectangle.maxX - offsetHor).toInt(), swipeRectangle.centerY.toInt()),
-					Point((swipeRectangle.minX + offsetHor).toInt(), swipeRectangle.centerY.toInt()))
-			Direction.RIGHT -> arrayListOf(Point((this.bounds.minX + offsetHor).toInt(), this.bounds.centerY.toInt()),
-					Point((this.bounds.maxX - offsetHor).toInt(), this.bounds.centerY.toInt()))
-			Direction.UP -> arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()),
-					Point(this.bounds.centerX.toInt(), (this.bounds.minY + offsetVert).toInt()))
-			Direction.DOWN -> arrayListOf(Point(this.bounds.centerX.toInt(), (this.bounds.minY + offsetVert).toInt()),
-					Point(this.bounds.centerX.toInt(), (this.bounds.maxY - offsetVert).toInt()))
-		}
-	}
 
 	/*************************/
 	companion object {
 		/** widget creation */
-		@JvmStatic fun fromString(line:List<String>):Widget{
+		@JvmStatic fun fromString(line:List<String>): Widget {
 			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
-				return Widget( w, lazyOf(UUID.fromString(line[P.UID.ordinal])) )
+				return Widget(w, lazyOf(UUID.fromString(line[P.UID.ordinal])))
 						.apply { parentId = line[P.UID.ordinal].let { if (it == "null") null else stateIdFromString(it) } }
 			}
 		}
 
 		/** compute the pair of (widget.uid,widget.imgId), if [isCut] is true we assume the screenImage already matches the widget.bounds */
-		@JvmStatic fun computeId(w:WidgetData, screenImg: BufferedImage?=null, isCut: Boolean=false):UUID	=
+		@JvmStatic fun computeId(w: WidgetData, screenImg: BufferedImage?=null, isCut: Boolean=false):UUID	=
 				w.content().let {
 					if (it != "") it.toUUID()  // compute id from textual content if there is any
 					else screenImg?.let {
@@ -312,29 +267,19 @@ class Widget(private val properties:WidgetData, var _uid: Lazy<UUID>) {
 				}
 
 		@JvmStatic private fun idOfImgCut(image: BufferedImage):UUID =
-//			debugT("compute img id raster elements", { // seams to work
 				(image.raster.getDataElements(0, 0, image.width, image.height, null) as ByteArray)
-//
-//			})
-			 // debugT("compute img id dataBuffer", {  //seams to be much faster but not properly unique
-//				(image.raster.dataBuffer as DataBufferByte).data
-//			})
 					.let { UUID.nameUUIDFromBytes(it) }
 
 
-		@JvmStatic suspend fun fromWidgetData(w:WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig):Widget{
+		@JvmStatic fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig): Widget {
 			screenImg?.getSubimage(w.bounds).let { wImg ->
-//				debugT("compute id ${w.bounds}",{
-//				val t = async{ computeId(w, wImg,true) }
 					lazy{
-//						runBlocking { t.await() }
-						 computeId(w, wImg,true)
+						computeId(w, wImg, true)
 					}
-//				})
 						.let{ widgetId ->
 							launch{ widgetId.value }  // issue initialization in parallel
 							// print the screen img if there is one
-							if(wImg!=null	&& w.content()=="") launch {
+							if(config.dumpImg && wImg!=null	&& w.content()=="") launch {
 								File(config.widgetImgPath(id = widgetId.value,postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let{
 									if(!it.exists()) ImageIO.write(wImg,"png", it)
 								}
@@ -369,7 +314,7 @@ class Widget(private val properties:WidgetData, var _uid: Lazy<UUID>) {
 }
 
 private val emptyRectangle by lazy{ Rectangle(0,0,0,0)}
-//FIXME we would like image similarity for images with same text,desc,id,similar_size
+//TODO we would like image similarity for images with same text,desc,id,similar_size
 private val flag={entry:String ->if(entry=="disabled") null else entry.toBoolean()}
 private fun rectFromString(s:String): Rectangle {  //         return "x=$x, y=$y, width=$width, height=$height"
 	if (s.isEmpty()|| !s.contains("=")) return emptyRectangle

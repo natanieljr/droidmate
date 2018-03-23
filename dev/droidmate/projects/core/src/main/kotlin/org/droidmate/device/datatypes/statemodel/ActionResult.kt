@@ -19,7 +19,6 @@
 package org.droidmate.device.datatypes.statemodel
 
 import com.google.common.base.MoreObjects
-import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -27,7 +26,6 @@ import org.droidmate.android_sdk.DeviceException
 import org.droidmate.debug.debugT
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot
 import org.droidmate.device.datatypes.MissingGuiSnapshot
-import org.droidmate.device.datatypes.Widget
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
@@ -133,7 +131,7 @@ open class ActionResult(val action: ExplorationAction,
 		}
 	}
 }
-var timeS:Long = 0
-var timeP:Long = 0
+private var timeS:Long = 0
+private var timeP:Long = 0
 
 

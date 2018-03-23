@@ -19,8 +19,8 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.WidgetData
+import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.device.datatypes.statemodel.WidgetData
 import java.io.Serializable
 
 //TODO("this should be refactored into IRunnableAction")
@@ -52,7 +52,7 @@ abstract class ExplorationAction : Serializable {
         @JvmStatic
         @JvmOverloads
         @Suppress("unused")
-        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = ""): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget(WidgetData(resId = resId, xPath = xPath )))
+        fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = ""): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget(WidgetData(resId = resId, xPath = xPath)))
 
         @JvmStatic
         fun newEnterTextExplorationAction(textToEnter: String, widget: Widget): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget)

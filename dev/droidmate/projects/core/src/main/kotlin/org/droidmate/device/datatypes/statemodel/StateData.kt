@@ -1,10 +1,6 @@
 package org.droidmate.device.datatypes.statemodel
 
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.device.datatypes.Widget
-import org.droidmate.device.datatypes.Widget.Companion.widgetHeader
+import org.droidmate.device.datatypes.statemodel.Widget.Companion.widgetHeader
 import java.io.File
 import java.util.*
 
@@ -56,10 +52,13 @@ class StateData /*private*/ (private val _widgets: Lazy<List<Widget>>,
 	val hasEdit: Boolean by lazy { widgets.any{it.isEdit} }
 
 	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it can be acted upon, has text content or it is a leaf) */
-	private fun addRelevantId(id:UUID,w:Widget):UUID = if(w.isLeaf || w.canBeActedUpon() || w.hasContent()) id+w.uid else id
-	private fun addRelevantNonEdit(id:UUID,w:Widget):UUID = if(w.isEdit) addRelevantId(id,w) else id
+	private fun addRelevantId(id:UUID,w: Widget):UUID = if(w.isLeaf || w.canBeActedUpon() || w.hasContent()) id+w.uid else id
+	private fun addRelevantNonEdit(id:UUID,w: Widget):UUID = if(w.isEdit) addRelevantId(id,w) else id
 
-	fun idWhenIgnoring(widgets:Collection<Widget>):UUID = widgets.fold(emptyUUID, {id,w ->
+	/** determine which UID this state would have, if it ignores [widgets] for the id computation
+	 * this is used to identify consequent states where interacted edit fields are to be ignored
+	 * for UID computation (instead the initial edit field UID will be restored) */
+	fun idWhenIgnoring(widgets:Collection<Widget>):UUID = widgets.fold(emptyUUID, { id, w ->
 		if(!widgets.contains(w)) addRelevantId(id,w) else id
 	})
 
