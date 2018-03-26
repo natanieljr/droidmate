@@ -164,6 +164,7 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
         /**
          * Creates a new exploration strategy instance
          */
+        @JvmOverloads
         fun build(cfg: Configuration, modelName: String = "HasModel.model",
                   arffName: String = "baseModelFile.arff"): ISelectableExplorationStrategy {
             return FitnessProportionateSelection(cfg.randomSeed.toLong(), modelName, arffName)
