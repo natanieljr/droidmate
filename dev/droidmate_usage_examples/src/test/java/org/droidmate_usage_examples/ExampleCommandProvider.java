@@ -36,7 +36,7 @@ public class ExampleCommandProvider extends ExploreCommand {
         super(apksProvider, deviceDeployer, apkDeployer, exploration, storage2);
     }
 
-    public static DroidmateCommand build(Configuration cfg){
+    public static DroidmateCommand buildCommand(Configuration cfg){
         DeviceTools deviceTools = new DeviceTools(cfg);
         ApksProvider apksProvider = new ApksProvider(deviceTools.getAapt());
         TimeProvider timeProvider = new TimeProvider();

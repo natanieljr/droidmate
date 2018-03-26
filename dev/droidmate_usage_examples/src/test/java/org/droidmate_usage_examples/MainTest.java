@@ -125,7 +125,7 @@ public class MainTest
   @Test
   public void deserialize_fixture_and_work_with_exploration_result() throws IOException, URISyntaxException
   {
-     workWithDroidmateOutput(copyDroidmateOutputFixtureToDir("mock_droidmate_output_dir").getParent());
+     workWithDroidmateOutput(copyDroidmateOutputFixtureToDir().getParent());
   }
   
   /**
@@ -140,7 +140,7 @@ public class MainTest
    * </p>
    */
   @Test
-  public void deserialize_and_work_with_exploration_result() throws IOException, URISyntaxException
+  public void deserialize_and_work_with_exploration_result()
   {
     workWithDroidmateOutput(Configuration.defaultDroidmateOutputDir);
   }
@@ -186,7 +186,7 @@ public class MainTest
   public void explore_with_custom_exploration_strategy_and_termination_criterion()
   {
     Configuration cfg = buildConfiguration();
-    final DroidmateCommand commandProvider = ExampleCommandProvider.build(cfg);
+    final DroidmateCommand commandProvider = ExampleCommandProvider.buildCommand(cfg);
     callMainThenAssertExitStatusIs0(new String[]{}, commandProvider);
   }
   
@@ -210,9 +210,9 @@ public class MainTest
     Assert.assertEquals(0, exitStatus);
   }
 
-  private File copyDroidmateOutputFixtureToDir(String targetDirPath) throws IOException, URISyntaxException
+  private File copyDroidmateOutputFixtureToDir() throws IOException, URISyntaxException
   {
-    File targetDir = new File(targetDirPath);
+    File targetDir = new File("mock_droidmate_output_dir");
     //noinspection ResultOfMethodCallIgnored
     targetDir.mkdir();
     if (!targetDir.exists())
@@ -224,7 +224,7 @@ public class MainTest
     final File fixtureFile = new File(fixtureURL.toURI());
 
 
-    final File targetFile = new File(targetDirPath, fixtureFile.getName());
+    final File targetFile = new File("mock_droidmate_output_dir", fixtureFile.getName());
     Files.copy(fixtureFile, targetFile);
 
     if (!targetFile.exists())
