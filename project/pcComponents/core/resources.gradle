@@ -45,6 +45,6 @@ clean.dependsOn(
 
 ext.coreResDir = sourceSets.main.resources.srcDirs.findAll { it.path.contains(project.name) }.first()
 apply from: file("monitor.gradle")
-apply from: file("uia2daemon.gradle")
+apply from: file("deviceControlDaemon.gradle")
 apply from: file("apkFixtures.gradle")
 

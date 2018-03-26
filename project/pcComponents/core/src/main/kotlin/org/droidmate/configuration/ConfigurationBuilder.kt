@@ -185,10 +185,10 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		@JvmStatic
 		@Throws(ConfigurationException::class)
 		private fun setupResourcesAndPaths(cfg: Configuration, fs: FileSystem) {
-			cfg.uiautomator2DaemonApk = getResourcePath(cfg, fs, "uiautomator2-daemon.apk").toAbsolutePath()
+			cfg.uiautomator2DaemonApk = getResourcePath(cfg, fs, "deviceControlDaemon.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomator2DaemonApk.toString())
 
-			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, fs, "uiautomator2-daemon-test.apk").toAbsolutePath()
+			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, fs, "deviceControlDaemon-test.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomator2DaemonTestApk.toString())
 
 			cfg.monitorApkApi23 = getResourcePath(cfg, fs, BuildConstants.monitor_api23_apk_name).toAbsolutePath()

@@ -85,9 +85,10 @@ object ExplorationAPI : ConfigProperties() {
 					"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
 			log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
 
-			log.info("inline the apks if necessary")
+//			log.info("inline the apks if necessary")
 			val cfg = ConfigurationBuilder().build(ConfigWrapper.createOldConfigArgs(config), FileSystems.getDefault())
-			InlineCommand().execute(cfg)
+//			InlineCommand().execute(cfg)
+			cfg.runOnNotInlined = true
 
 			val runStart = Date()
 			val command = ExploreCommand.build(cfg, reportCreators = reportCreators)

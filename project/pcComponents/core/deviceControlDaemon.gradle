@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 import org.droidmate.buildsrc.BuildKt
 
-File uia2DaemonProjectDir = new File(rootDir, BuildKt.uia2_daemon_relative_project_dir.path)
+File uia2DaemonProjectDir = new File(rootProject.projectDir, BuildKt.uia2_daemon_relative_project_dir.path)
 assert uia2DaemonProjectDir.isDirectory()
 
 File uia2DaemonBuildDir = new File("$uia2DaemonProjectDir/build")

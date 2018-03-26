@@ -1,6 +1,6 @@
 ### Gradle ###
-.gradle/
-build/
+.gradle
+build
 local.gradle
 # See: https://intellij-support.jetbrains.com/entries/23393067-How-to-manage-projects-under-Version-Control-Systems
 **/.idea/libraries
@@ -15,7 +15,7 @@ gen/
 local.properties
 
 ### IntelliJ IDEA ###
-.idea/
+.idea
 *.iml
 **/*.iws
 **/*.eml
@@ -62,7 +62,7 @@ uiautomator2-daemon.apk
 uiautomator2-daemon-test.apk
 
 # Temporary stuff
-out/
+out
 out.txt
 **/test_artifacts/temp/
 temp_extracted_resources

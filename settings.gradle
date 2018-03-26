@@ -13,9 +13,9 @@ include(
 				"project:pcComponents:command",
 				"project:pcComponents:API"
 				, ':deviceDaemonLib'
-				, ':deviceControlDaemon'
+//				, ':deviceControlDaemon'
 )
 
-includeBuild 'project/deviceComponents/deviceControlDaemon/'
+//includeBuild 'project/deviceComponents/deviceControlDaemon/'
 
 project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib/')
