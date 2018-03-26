@@ -55,7 +55,7 @@ open class ActionResult(val action: ExplorationAction,
                         val endTimestamp: LocalDateTime,
                         val deviceLogs: IDeviceLogs = MissingDeviceLogs,
                         val guiSnapshot: GuiStatusResponse = GuiStatusResponse.empty,
-                        val screenshot: URI = URI.create("test://empty"),
+                        val screenshot: URI = URI("test://empty"),
                         val exception: DeviceException = DeviceExceptionMissing()) : Serializable {
 	companion object {
 		private const val serialVersionUID: Long = 1
@@ -93,9 +93,9 @@ open class ActionResult(val action: ExplorationAction,
 	/** this method should be exclusively used for StateData generation */
 	fun getWidgets(config: ModelDumpConfig): List<Widget> {
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
-		java.nio.file.Paths.get(screenshot).let {
-			if (Files.exists(it)) debugT("img file read", { ImageIO.read(it.toAbsolutePath().toFile()) }) else null
-		}
+
+		(if (screenshot.toASCIIString() != "test://empty" && Files.exists(java.nio.file.Paths.get(screenshot))) debugT("img file read", { ImageIO.read(java.nio.file.Paths.get(screenshot).toAbsolutePath().toFile()) }) else null
+		)
 				.let { img ->
 					guiSnapshot.let { g ->
 						debugT(" \n filter device objects",
