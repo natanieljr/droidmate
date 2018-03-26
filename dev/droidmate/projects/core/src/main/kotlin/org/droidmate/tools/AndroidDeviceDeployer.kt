@@ -71,7 +71,7 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
 
             val serialNumbers = unusedDescriptors.filter { add -> !add.isEmulator }.toList()
 
-            return if (serialNumbers.size >= deviceIndex)
+            return if (serialNumbers.size > deviceIndex)
                 serialNumbers[deviceIndex].deviceSerialNumber
             else
                 unusedDescriptors.filter { add -> add.isEmulator }[deviceIndex].deviceSerialNumber
