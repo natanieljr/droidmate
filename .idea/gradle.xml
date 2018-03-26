@@ -3,12 +3,42 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/project/deviceComponents">
+                <projects>
+                  <project path="$PROJECT_DIR$/project/deviceCommonLib/deviceDaemonLib" />
+                  <project path="$PROJECT_DIR$/project/deviceComponents" />
+                  <project path="$PROJECT_DIR$/project/deviceComponents/deviceControlDaemon" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="1.8" />
+        <option name="gradleHome" value="C:/programs/portable/bin/gradle-3.4.1" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/buildSrc" />
+            <option value="$PROJECT_DIR$/deviceControlDaemon" />
+            <option value="$PROJECT_DIR$/project" />
+            <option value="$PROJECT_DIR$/project/deviceCommonLib/deviceDaemonLib" />
+            <option value="$PROJECT_DIR$/project/deviceComponents" />
+            <option value="$PROJECT_DIR$/project/deviceComponents/deviceControlDaemon" />
+            <option value="$PROJECT_DIR$/project/pcComponents" />
+            <option value="$PROJECT_DIR$/project/pcComponents/API" />
+            <option value="$PROJECT_DIR$/project/pcComponents/apk-inliner" />
+            <option value="$PROJECT_DIR$/project/pcComponents/command" />
+            <option value="$PROJECT_DIR$/project/pcComponents/core" />
+            <option value="$PROJECT_DIR$/project/pcComponents/lib-common" />
+            <option value="$PROJECT_DIR$/project/pcComponents/lib-kotlin" />
+            <option value="$PROJECT_DIR$/project/pcComponents/monitor-generator" />
+            <option value="$PROJECT_DIR$/project/pcComponents/monitor-hook" />
+            <option value="$PROJECT_DIR$/project/pcComponents/monitor-template" />
+            <option value="$PROJECT_DIR$/project/pcComponents/reporter" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

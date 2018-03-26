@@ -1,0 +1,52 @@
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2016 Konrad Jamrozik
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// email: jamrozik@st.cs.uni-saarland.de
+// web: www.droidmate.org
+
+/*
+ * The settings.gradle file is used to specify which projects to include in your build.
+ * In a single module build this file can be empty or even removed.
+ * 
+ * Detailed information about configuring a multiproject build in Gradle can be found at
+ * http://www.gradle.org/docs/current/userguide/multi_project_builds.html
+ */
+rootProject.name = 'droidmate'
+
+include(
+				"projects:lib-common",
+				"projects:lib-kotlin",
+				"projects:apk-inliner",
+				"projects:uiautomator-daemon-lib",
+				"projects:monitor-template",
+				"projects:monitor-hook",
+				"projects:monitor-generator",
+				"projects:core",
+				"projects:reporter",
+				"projects:command",
+				"projects:API"
+)
+
+/* The path navigates from github/droidmate/dev/droidmate to github/utilities
+
+   Konrad Jamrozik's note to self: 
+   Commented out, as it will fail if the path is invalid, thus forcing anyone to also clone my utilities repository.
+   Instead, just configure IntelliJ to do composite build, but remember to actually publish any changes made to utilities and update
+   the version in dev/droidmate/buildSrc/build.gradle and dev/droidmate/build.gradle.
+   
+   Reference: https://docs.gradle.org/3.2.1/userguide/composite_builds.html
+*/
+// includeBuild('../../../utilities')

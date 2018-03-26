@@ -1,0 +1,21 @@
+rootProject.name = 'droidmate'
+
+include(
+				"project:pcComponents", // use this to identify all child projects
+				"project:pcComponents:lib-common",
+				"project:pcComponents:lib-kotlin",
+				"project:pcComponents:apk-inliner",
+				"project:pcComponents:monitor-template",
+				"project:pcComponents:monitor-hook",
+				"project:pcComponents:monitor-generator",
+				"project:pcComponents:core",
+				"project:pcComponents:reporter",
+				"project:pcComponents:command",
+				"project:pcComponents:API"
+				, ':deviceDaemonLib'
+				, ':deviceControlDaemon'
+)
+
+includeBuild 'project/deviceComponents/deviceControlDaemon/'
+
+project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib/')

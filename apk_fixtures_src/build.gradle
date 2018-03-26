@@ -1,0 +1,50 @@
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018 Saarland University
+// All rights reserved.
+//
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// This file is part of the "DroidMate" project.
+//
+// www.droidmate.org
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+	// Reference: http://stackoverflow.com/a/35186295/986533
+	System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.android.tools.build:gradle:2.3.3'
+
+		// NOTE: Do not place your application dependencies here; they belong
+		// in the individual module build.gradle files
+	}
+}
+
+allprojects {
+	repositories {
+		jcenter()
+	}
+}
+
+allprojects {
+	ext {
+		// !!! DUPLICATION WARNING !!!
+		// This file has to be the same as the one used in the build.gradle files of the "DroidMate" project gradle scripts.
+		apkFixturesDroidmateStagingDir = rootProject.buildDir
+	}
+}
+
+task cleanStageForDroidmate {
+	doLast {
+		apkFixturesDroidmateStagingDir.listFiles().each { it.delete() }
+	}
+}
+
+task clean(dependsOn: "cleanStageForDroidmate") {
+}

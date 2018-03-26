@@ -15,6 +15,8 @@ gen/
 local.properties
 
 ### IntelliJ IDEA ###
+.idea/
+*.iml
 **/*.iws
 **/*.eml
 **/.idea/workspace.xml
@@ -45,6 +47,9 @@ proguard/
 # None! Obsolete rule, erased
 
 # resources build by DroidMate sub-projects on each build
+*.jar
+*.apk
+*.dex
 lib-common-dev.jar
 lib-common-android-dev.jar
 uiautomator-daemon-lib-dev.jar
@@ -57,6 +62,12 @@ uiautomator2-daemon.apk
 uiautomator2-daemon-test.apk
 
 # Temporary stuff
+out/
 out.txt
 **/test_artifacts/temp/
 temp_extracted_resources
+project/pcComponents/monitor-apk-scaffolding/libs_built/
+project/pcComponents/monitor-apk-scaffolding/src/
+
+# other sources
+apks/

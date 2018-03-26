@@ -7,26 +7,72 @@
 //
 // www.droidmate.org
 
-task droidmateBuild(type: GradleBuild) { 
-  group = "build"
-  buildFile = file "dev/droidmate/build.gradle"
-  tasks = ["clean", "build", "install"]
-}
-
-task droidmatePublish(type: GradleBuild) {
-  group = "build"
-
-  buildFile = file "dev/droidmate/build.gradle"
-  tasks = ["clean", "build", "uploadArchives"]
-}
-
 task droidmateUsageExamplesBuild(type: GradleBuild) {
-  group = "build"
-  
-  buildFile = file "dev/droidmate_usage_examples/build.gradle"
-  tasks = ["clean", "build"]
+	group = "build"
+
+	buildFile = file "dev/droidmate_usage_examples/build.gradle"
+	tasks = ["clean", "build"]
 }
 
 task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild"]) {
-  group = "build"
+	group = "build"
+}
+
+allprojects {
+	group = "org.droidmate"
+	version = "3.2.0-SNAPSHOT"
+
+	/* Merge all the build directories into one. */
+//	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
+}
+
+apply from: file("project/log.gradle")
+apply from: file("project/functions.gradle")
+
+project.ext { // direct child projects would be childProjects
+	pcJvmTargets = subprojects.find() { it.name == 'pcComponents' }.subprojects
+}
+
+task Debug{
+	println(pcJvmTargets)
+}
+
+buildscript {
+	repositories {
+		jcenter()
+	}
+	apply from: file("./versions.gradle") // contains kotlin_version
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
+//		// NOTE: Do not place your application dependencies here; they belong
+//		// in the individual module build.gradle files
+		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'  // requires jcenter
+	}
+}
+
+configure(pcJvmTargets) {
+
+	apply from: file("${rootProject.projectDir}/versions.gradle")
+
+	apply plugin: "kotlin"
+	sourceCompatibility = project.ext.javaVersion
+	targetCompatibility = project.ext.javaVersion
+
+	//FIXME
+	apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
+	shadowJar {
+		baseName = 'shadow'
+	}
+
+	dependencies {
+		compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+		compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+	}
+
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		maven { url "https://jitpack.io" }
+	}
+
 }
