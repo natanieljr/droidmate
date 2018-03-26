@@ -50,7 +50,7 @@ class CannotExploreTerminate : Terminate() {
 
         return !context.explorationCanMoveOn() &&
                 this.lastAction().actionType == ResetAppExplorationAction::class.simpleName &&
-                (this.getSecondLastAction() == PressBackExplorationAction::class.simpleName ||
+                (this.getSecondLastAction().actionType == PressBackExplorationAction::class.simpleName ||
                         (context.getCurrentState().isAppHasStoppedDialogBox))
         // or during initial attempt (just after first launch, which is also a reset) then it shall be terminated.
     }

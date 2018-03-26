@@ -36,7 +36,6 @@ import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateClickAction
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateLongClickAction
 import org.droidmate.uiautomator_daemon.guimodel.LongClickAction
-import sun.audio.AudioDevice.device
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

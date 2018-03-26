@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk.playback
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import java.nio.file.Files
 import java.nio.file.Path
@@ -34,7 +34,7 @@ import java.nio.file.Path
  */
 class TraceDump @JvmOverloads constructor(playbackStrategy: MemoryPlayback,
                                           fileName: String = "dump.txt") : PlaybackReport(playbackStrategy, fileName) {
-    override fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
         val reportSubDir = getPlaybackReportDir(apkReportDir)
 
         val sb = StringBuilder()

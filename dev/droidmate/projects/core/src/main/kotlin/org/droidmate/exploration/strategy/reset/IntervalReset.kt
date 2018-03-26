@@ -25,7 +25,6 @@
 package org.droidmate.exploration.strategy.reset
 
 import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
 

@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
+import org.droidmate.device.datatypes.statemodel.ActionData
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.data_aggregators.IExplorationLog
-import org.droidmate.exploration.strategy.IMemoryRecord
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.report.misc.plot
 import org.droidmate.withExtension
 import java.awt.Point
@@ -53,7 +53,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
         private const val nexus5XPixelDensity: Int = (24 * 2.6).toInt()
     }
 
-    override fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
         val sb = StringBuilder()
         val header = "Time_Seconds\tTotal_Actions\tTotal_Effective\n"
         sb.append(header)
@@ -61,7 +61,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
         val reportData: HashMap<Long, Pair<Int, Int>> = HashMap()
 
         // Ignore app start
-        val records = data.getRecords().drop(1)
+        val records = data.actionTrace.getActions().drop(1)
         val nrActions = records.size
         val startTimeStamp = records.first().startTimestamp
 
@@ -84,9 +84,9 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
                 reportData[currTimeDiff] = Pair(totalActions, effectiveActions)
             } else {
                 if (!prevAction.hasScreenshot)
-                    log.warn("No screenshot for action ${prevAction.action}")
+                    log.warn("No screenshot for action ${prevAction.actionString()}")
                 if (!currAction.hasScreenshot)
-                    log.warn("No screenshot for action ${currAction.action}")
+                    log.warn("No screenshot for action ${currAction.actionString()}")
             }
 
             if (i % 100 == 0)
@@ -107,7 +107,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
         }
     }
 
-    public fun actionWasEffective(prevAction: IMemoryRecord, currAction: IMemoryRecord): Boolean {
+    private fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
 
         require(prevAction.hasScreenshot, { "Action has no screenshot attached $prevAction" })
         require(currAction.hasScreenshot, { "Action has no screenshot attached $currAction" })
@@ -118,11 +118,12 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
         assert(Files.exists(prevScreenshot), { "Screenshot file not found $prevScreenshot" })
         assert(Files.exists(currScreenshot), { "Screenshot file not found $currScreenshot" })
 
-        if ((prevAction.action !is WidgetExplorationAction) || (currAction.action !is WidgetExplorationAction))
-            return true
+        return if ((prevAction.actionType != WidgetExplorationAction::class.java.simpleName) ||
+                (currAction.actionType != WidgetExplorationAction::class.java.simpleName))
+            true
         else {
             val imageSimilarity = compareImage(prevScreenshot, currScreenshot)
-            return imageSimilarity < 100.0
+            imageSimilarity < 100.0
         }
     }
 

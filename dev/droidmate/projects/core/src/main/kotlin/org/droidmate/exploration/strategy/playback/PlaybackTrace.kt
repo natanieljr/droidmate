@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.playback
 
-import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.StateData
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import java.io.Serializable

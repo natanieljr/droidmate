@@ -25,9 +25,7 @@
 package org.droidmate.exploration.strategy.back
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 import java.util.*
 
 /**
@@ -40,13 +38,13 @@ class RandomBack(cfg: Configuration) : Back() {
      */
     private val random = Random(cfg.randomSeed.toLong())
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         // We now press back randomly if the last action was not a reset
         // (otherwise it would close the app)
         // this can allow the exploration to unstuck before the reset timeout
         val value = this.random.nextDouble()
 
-        return if ((this.lastAction() is ResetAppExplorationAction) || (value > probability))
+        return if ((this.lastAction().actionType == "ResetAppExplorationAction") || (value > probability))
             StrategyPriority.NONE
         else
             StrategyPriority.BACK

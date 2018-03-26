@@ -36,14 +36,6 @@ import org.droidmate.logging.Markers
  * @author Nataniel P. Borges Jr.
  */
 abstract class Terminate : AbstractStrategy() {
-
-    protected fun getSecondLastAction(): String {
-        if (this.context.getSize() < 2)
-            return EmptyAction()::class.simpleName?:""
-
-        return this.context.actionTrace.getActions().dropLast(1).last().actionType
-    }
-
     override fun getFitness(): StrategyPriority {
         if (this.met())
             return StrategyPriority.TERMINATE
@@ -67,13 +59,4 @@ abstract class Terminate : AbstractStrategy() {
     abstract fun getLogMessage(): String
     abstract fun met(): Boolean
     abstract fun metReason(): String
-
-    /*companion object {
-        /**
-         * Creates a new exploration strategy instance
-         */
-        fun build(terminationCriterion: ITerminationCriterion): ISelectableExplorationStrategy {
-            return Terminate(terminationCriterion)
-        }
-    }*/
 }

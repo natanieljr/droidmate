@@ -34,8 +34,8 @@ import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
  * The fitness is calculated considering the probability to have an event according to a model
  */
 open class FitnessProportionateSelection protected constructor(randomSeed: Long,
-                                                        modelName: String,
-                                                        arffName: String) : ModelBased(randomSeed, modelName, arffName) {
+                                                               modelName: String,
+                                                               arffName: String) : ModelBased(randomSeed, modelName, arffName) {
 
 //    /**
 //     * Get all widgets which from a [widget context][currentState].
@@ -84,7 +84,7 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
         val candidates = this.context.getCurrentState().widgets
         assert(candidates.isNotEmpty())
 
-        val probabilities = getCandidatesProbabilities(candidates, widgetContext)
+        val probabilities = getCandidatesProbabilities(candidates)
         val selectedIdx = stochasticSelect(probabilities, 10)
         val chosenWidgetInfo = candidates[selectedIdx]
 
@@ -95,7 +95,7 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
     /**
      * Returns an array with the probabilities of the candidates
      */
-    protected open fun getCandidatesProbabilities(candidates: List<WidgetInfo>, widgetContext: WidgetContext): DoubleArray {
+    protected open fun getCandidatesProbabilities(candidates: List<Widget>): DoubleArray {
         val candidateProbabilities = DoubleArray(candidates.size)
 
         for (i in candidates.indices)

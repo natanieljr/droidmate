@@ -64,6 +64,8 @@ class ActionData private constructor(val actionType:String, val targetWidget: Wi
 		P.WId -> targetWidget?.uid.toString()
 	}}
 
+	val hasScreenshot: Boolean = screenshot != null
+
 	companion object {
 //		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):ActionData =
 //				ActionData(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }

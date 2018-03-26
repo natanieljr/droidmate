@@ -24,18 +24,16 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.back
 
-import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * If it can' move forward and last action was not to reset
  * On the first action the reset will have a higher priority, so this is not a problem
  */
 class NoLongerInAppBack : Back() {
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
-        return if (!widgetContext.explorationCanMoveForwardOn() &&
-                this.lastAction() !is PressBackExplorationAction)
+    override fun getFitness(): StrategyPriority {
+        return if (!context.explorationCanMoveOn() &&
+                this.lastAction().actionType == "PressBackExplorationAction")
             StrategyPriority.BACK
         else
             StrategyPriority.NONE

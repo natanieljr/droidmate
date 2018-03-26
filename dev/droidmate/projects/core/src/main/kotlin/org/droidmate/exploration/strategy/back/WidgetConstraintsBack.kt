@@ -24,9 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.back
 
-import org.droidmate.device.datatypes.IWidget
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Receives a set of constraints based on widgets and triggers a back is all constraints are satisfied.
@@ -36,12 +35,12 @@ import org.droidmate.exploration.strategy.WidgetContext
  *    press back"
  */
 @Suppress("unused")
-class WidgetConstraintsBack(private val selectors: List<(IWidget) -> Boolean>) : Back() {
+class WidgetConstraintsBack(private val selectors: List<(Widget) -> Boolean>) : Back() {
 
 
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
+    override fun getFitness(): StrategyPriority {
         val satisfyConstraints = selectors.all { selector ->
-            widgetContext.widgetsInfo.any { widgetInfo -> selector(widgetInfo.widget) }
+            context.getCurrentState().widgets.any { selector(it) }
         }
 
         return if (satisfyConstraints)
@@ -56,4 +55,9 @@ class WidgetConstraintsBack(private val selectors: List<(IWidget) -> Boolean>) :
                 other.selectors == this.selectors
     }
 
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + selectors.hashCode()
+        return result
+    }
 }

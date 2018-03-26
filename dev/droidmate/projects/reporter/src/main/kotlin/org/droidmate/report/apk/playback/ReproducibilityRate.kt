@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk.playback
 
-import org.droidmate.exploration.data_aggregators.IExplorationLog
+import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.report.misc.plot
 import org.droidmate.withExtension
@@ -40,7 +40,7 @@ import java.nio.file.Path
 class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: MemoryPlayback,
                                                     private val includePlots: Boolean = true,
                                                     fileName: String = "reproducibilityRate.txt") : PlaybackReport(playbackStrategy, fileName) {
-    override fun safeWriteApkReport(data: IExplorationLog, apkReportDir: Path) {
+    override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
         val reportSubDir = getPlaybackReportDir(apkReportDir)
 
         val sb = StringBuilder()

@@ -40,21 +40,21 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
 
       fun build(data: AbstractContext): Table<Int, String, Int> {
 
-            val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
+          val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
 
-            return buildTable(
-                    headers = listOf(headerNoOfClicks, headerViewsCount),
-                    rowCount = countOfViewsHavingNoOfClicks.keys.size,
-                    computeRow = { rowIndex ->
-                        check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
-                        val noOfClicks = rowIndex
-                        listOf(
-                                noOfClicks,
-                                countOfViewsHavingNoOfClicks[noOfClicks]!!
-                        )
-                    }
-            )
-        }
+          return buildTable(
+                  headers = listOf(headerNoOfClicks, headerViewsCount),
+                  rowCount = countOfViewsHavingNoOfClicks.keys.size,
+                  computeRow = { rowIndex ->
+                      check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
+                      val noOfClicks = rowIndex
+                      listOf(
+                              noOfClicks,
+                              countOfViewsHavingNoOfClicks[noOfClicks]!!
+                      )
+                  }
+          )
+      }
 
     /** computing how many new widgets become visible after each action (#actions -> #newWidgets) **/
     private val AbstractContext.countOfViewsHavingNoOfClicks: Map<Int, Int>

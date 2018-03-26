@@ -30,6 +30,9 @@ import org.droidmate.device.datatypes.statemodel.ActionResult
 import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.strategy.back.AfterResetBack
+import org.droidmate.exploration.strategy.back.NoLongerInAppBack
+import org.droidmate.exploration.strategy.back.RandomBack
 import org.droidmate.exploration.strategy.reset.AppCrashedReset
 import org.droidmate.exploration.strategy.reset.CannotExploreReset
 import org.droidmate.exploration.strategy.reset.InitialReset
@@ -88,7 +91,8 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 
             strategies.add(AfterResetBack())
             strategies.add(NoLongerInAppBack())
-            strategies.add(GUIFullyExploredBack(cfg.minimumActionsPerUIElementBack))
+            // TODO
+            //strategies.add(GUIFullyExploredBack(cfg.minimumActionsPerUIElementBack))
 
             // Randomly press back
             if (cfg.pressBackProbability > 0.0)
@@ -171,7 +175,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     }
 
     /**
-     * Givers control to an internal exploration strategy given the [current UI][currentState]
+     * Givers control to an internal exploration strategy given the current UI
      */
     private fun handleControl() {
         ExplorationStrategyPool.logger.debug("Attempting to handle control to exploration strategy")

@@ -63,12 +63,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
         @JvmStatic
         @JvmOverloads
-    fun build(cfg: Configuration,
-              strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
-              timeProvider: ITimeProvider = TimeProvider(),
-              deviceTools: IDeviceTools = DeviceTools(cfg),
-              reportCreators:List<Reporter> = defaultReportWatcher(cfg)): ExploreCommand {
-      val apksProvider = ApksProvider(deviceTools.aapt)
+        fun build(cfg: Configuration,
+                  strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
+                  timeProvider: ITimeProvider = TimeProvider(),
+                  deviceTools: IDeviceTools = DeviceTools(cfg),
+                  reportCreators: List<Reporter> = defaultReportWatcher(cfg)): ExploreCommand {
+            val apksProvider = ApksProvider(deviceTools.aapt)
 
             val storage2 = Storage2(cfg.droidmateOutputDirPath)
             val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
@@ -81,8 +81,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
         @JvmStatic
         protected fun defaultReportWatcher(cfg: Configuration): List<Reporter> =
-                listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg.reportIncludePlots), ClickFrequency(cfg.reportIncludePlots)
-                        , WidgetSeenClickedCount(cfg.reportIncludePlots), ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())
+                listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg.reportIncludePlots), ClickFrequency(cfg.reportIncludePlots),
+                        //TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
+                        ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())
     }
 
     private val reporters: MutableList<Reporter> = mutableListOf()

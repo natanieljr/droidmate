@@ -24,14 +24,12 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.back
 
-import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
-
 /**
  * Presses back when reached a UI in which all widgets have been explored
  */
-class GUIFullyExploredBack(private val minNumberOfActionsPreWidget: Int) : Back() {
-    private fun WidgetContext.allWidgetsActedUpon(): Boolean {
+// TODO
+/*class GUIFullyExploredBack(private val minNumberOfActionsPreWidget: Int) : Back() {
+    private fun AbstractContext.allWidgetsActedUpon(): Boolean {
         return (this.widgetsInfo.all { it.actedUponCount > minNumberOfActionsPreWidget })
     }
 
@@ -41,4 +39,4 @@ class GUIFullyExploredBack(private val minNumberOfActionsPreWidget: Int) : Back(
         else
             StrategyPriority.NONE
     }
-}
+}*/

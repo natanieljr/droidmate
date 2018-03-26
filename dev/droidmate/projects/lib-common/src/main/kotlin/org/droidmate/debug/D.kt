@@ -28,7 +28,6 @@ package org.droidmate.debug
 import java.io.File
 import java.lang.Thread.sleep
 import kotlin.system.measureNanoTime
-import kotlin.system.measureTimeMillis
 
 // TODO we would like to read this property from the DroidMate.Configuration instead
 const val measurePerformance = true

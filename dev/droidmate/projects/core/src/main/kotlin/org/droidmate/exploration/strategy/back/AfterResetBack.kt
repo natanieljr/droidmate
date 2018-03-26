@@ -27,7 +27,6 @@ package org.droidmate.exploration.strategy.back
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
-import org.droidmate.exploration.strategy.WidgetContext
 
 /**
  * Presses back if it can' move forward and last action was to reset
@@ -37,11 +36,11 @@ import org.droidmate.exploration.strategy.WidgetContext
  * otherwise the exploration would enter a loop of Back -> Reset -> Back -> Reset....
  */
 class AfterResetBack : Back() {
-    override fun getFitness(widgetContext: WidgetContext): StrategyPriority {
-        return if (!widgetContext.explorationCanMoveForwardOn() &&
-                this.lastAction() is ResetAppExplorationAction)
-            if (widgetContext.guiState.isAppHasStoppedDialogBox ||
-                    this.getSecondLastAction() is PressBackExplorationAction)
+    override fun getFitness(): StrategyPriority {
+        return if (!context.explorationCanMoveOn() &&
+                this.lastAction().actionType == ResetAppExplorationAction::class.java.simpleName)
+            if (context.getCurrentState().isAppHasStoppedDialogBox ||
+                    this.getSecondLastAction().actionType == PressBackExplorationAction::class.java.simpleName)
                 StrategyPriority.BACK
             else
                 StrategyPriority.BACK_BEFORE_TERMINATE

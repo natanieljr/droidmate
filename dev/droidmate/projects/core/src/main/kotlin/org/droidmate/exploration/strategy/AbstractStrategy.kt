@@ -102,20 +102,19 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
         this.listeners.forEach { listener -> listener.onTargetFound(this, targetWidget, result) }
     }
 
-    override fun updateState(actionNr: Int, record: ActionResult) {
     /**
      * Get action before the last one.
      *
      * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
      */
-    protected fun getSecondLastAction(): ExplorationAction {
-        if (this.memory.getSize() < 2)
-            return EmptyAction()
+    fun getSecondLastAction(): ActionData {
+        if (this.context.getSize() < 2)
+            return ActionData.empty
 
-        return this.memory.getRecords().dropLast(1).last().action
+        return this.context.actionTrace.getActions().dropLast(1).last()
     }
 
-    override fun updateState(actionNr: Int, record: IMemoryRecord) {
+    override fun updateState(actionNr: Int, record: ActionResult) {
         this.actionNr = actionNr
     }
 

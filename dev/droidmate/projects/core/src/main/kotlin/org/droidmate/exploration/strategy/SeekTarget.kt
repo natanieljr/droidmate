@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.device.datatypes.statemodel.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.widget.RandomWidget
 

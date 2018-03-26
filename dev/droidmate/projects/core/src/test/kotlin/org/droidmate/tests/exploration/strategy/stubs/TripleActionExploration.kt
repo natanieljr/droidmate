@@ -25,7 +25,6 @@
 
 package org.droidmate.tests.exploration.strategy.stubs
 
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
 import org.droidmate.exploration.strategy.StrategyPriority

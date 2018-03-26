@@ -25,7 +25,6 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.device.datatypes.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.data_aggregators.AbstractContext
 
