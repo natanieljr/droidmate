@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.test_tools.device.datatypes
@@ -100,7 +106,7 @@ class WidgetTestHelper {
             var highX = lowX + 20
             var highY = lowY + 30
 
-            val bounds: MutableList<List<Int>> = ArrayList()
+            val bounds: MutableList<List<Int>> = mutableListOf()
             (0 until boundsCount).forEach { _ ->
                 bounds.add(arrayListOf(lowX, lowY, highX, highY))
                 lowX += 25

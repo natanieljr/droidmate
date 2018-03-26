@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.tests.exploration.strategy
@@ -184,8 +190,8 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
         assertTrue(strategyPool.registerStrategy(IntervalReset(cfg.resetEveryNthExplorationForward)))
         assertFalse(strategyPool.registerStrategy(IntervalReset(cfg.resetEveryNthExplorationForward)))
 
-        assertTrue(strategyPool.registerStrategy(PressBack.build(0.10, cfg)))
-        assertFalse(strategyPool.registerStrategy(PressBack.build(0.10, cfg)))
+        assertTrue(strategyPool.registerStrategy(RandomBack(cfg)))
+        assertFalse(strategyPool.registerStrategy(RandomBack(cfg)))
 
         assertTrue(strategyPool.registerStrategy(AlwaysFirstWidget.build()))
         assertFalse(strategyPool.registerStrategy(AlwaysFirstWidget.build()))
@@ -198,9 +204,9 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
     fun strategyComparisonTest() {
         // Initialization
         val cfg = Auxiliary.createTestConfig(DEFAULT_ARGS)
-        val terminateStrategy : ISelectableExplorationStrategy = ActionBasedTerminate(cfg)
-        val randomStrategy : ISelectableExplorationStrategy = RandomWidget.build(cfg)
-        val resetStrategy : ISelectableExplorationStrategy = IntervalReset(0)
+        val terminateStrategy: ISelectableExplorationStrategy = ActionBasedTerminate(cfg)
+        val randomStrategy: ISelectableExplorationStrategy = RandomWidget.build(cfg)
+        val resetStrategy: ISelectableExplorationStrategy = IntervalReset(0)
 
         // Not equal (instanceOf check)
         assertFalse(terminateStrategy == randomStrategy)
@@ -243,7 +249,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
 //                .apply { this.state = state }
         explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 
-        val backStrategy = PressBack.build(0.1, cfg)
+        val backStrategy = RandomBack(cfg)
         backStrategy.initialize(explorationLog)
         record = ActionResult(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
 //                .apply { this.state = state }
@@ -278,7 +284,7 @@ class ExplorationStrategiesTest: DroidmateTestCase() {
 
         // First action is always reset
         val resetStrategy = InitialReset()
-        val backStrategy = PressBack.build(0.1, cfg)
+        val backStrategy = RandomBack(cfg)
         resetStrategy.initialize(explorationLog)
         widgetContext = EmptyWidgetContext()//explorationLog.getState(EmptyGuiStatus())
         var record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))

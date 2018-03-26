@@ -57,6 +57,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
   UiAutomator2DaemonDriver(boolean waitForGuiToStabilize, int waitForWindowUpdateTimeout)
   {
+    Log.d(uiaDaemon_logcatTag, "XXX");
     // Disabling waiting for selector implicit timeout
     Configurator.getInstance().setWaitForSelectorTimeout(0L);
 
@@ -79,6 +80,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     this.waitForGuiToStabilize = waitForGuiToStabilize;
     this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
+    Log.d(uiaDaemon_logcatTag, "YYY");
   }
 
 

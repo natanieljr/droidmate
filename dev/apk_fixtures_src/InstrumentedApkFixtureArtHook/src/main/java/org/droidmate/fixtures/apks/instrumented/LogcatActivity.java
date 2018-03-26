@@ -1,7 +1,10 @@
-// Copyright (c) 2013-2016 Saarland University Software Engineering Chair.
-// All right reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018 Saarland University
+// All rights reserved.
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
 //
 // This file is part of the "DroidMate" project.
 //
@@ -17,18 +20,18 @@ import android.widget.Button;
 
 public class LogcatActivity extends Activity
 {
-    public static final String LOGCAT_ACTIVITY_TAG      = "LogcatActivity";
-    public static final String LOGCAT_ACTIVITY_JUNK_TAG = "LogcatActivity_junk";
+    private static final String LOGCAT_ACTIVITY_TAG      = "LogcatActivity";
+    private static final String LOGCAT_ACTIVITY_JUNK_TAG = "LogcatActivity_junk";
 
-    public static final String label_button_2_logcat_msgs = "Output 2 logcat messages";
-    public static final String label_button_3_other_msgs  = "Output 3 other logcat messages";
-    public static final String label_button_junk_msgs     = "Output junk logcat messages";
+    private static final String label_button_2_logcat_msgs = "Output 2 logcat messages";
+    private static final String label_button_3_other_msgs  = "Output 3 other logcat messages";
+    private static final String label_button_junk_msgs     = "Output junk logcat messages";
 
-    public static final String button_2_logcat_msgs_msg1 = "message 1 from button 1";
-    public static final String button_2_logcat_msgs_msg2 = "message 2 from button 1";
-    public static final String button_3_other_msgs_msg1  = "message 1 from button 2";
-    public static final String button_3_other_msgs_msg2  = "message 2 from button 2";
-    public static final String button_3_other_msgs_msg3  = "message 3 from button 2";
+    private static final String button_2_logcat_msgs_msg1 = "message 1 from button 1";
+    private static final String button_2_logcat_msgs_msg2 = "message 2 from button 1";
+    private static final String button_3_other_msgs_msg1  = "message 1 from button 2";
+    private static final String button_3_other_msgs_msg2  = "message 2 from button 2";
+    private static final String button_3_other_msgs_msg3  = "message 3 from button 2";
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -37,13 +40,13 @@ public class LogcatActivity extends Activity
         setContentView(org.droidmate.fixtures.apks.instrumented.R.layout.activity_logcat);
 
         Button button;
-        button = (Button)findViewById(org.droidmate.fixtures.apks.instrumented.R.id.button_2_logback_msgs);
+        button = findViewById(R.id.button_2_logback_msgs);
         button.setText(label_button_2_logcat_msgs);
 
-        button = (Button)findViewById(org.droidmate.fixtures.apks.instrumented.R.id.button_3_other_msgs);
+        button = findViewById(R.id.button_3_other_msgs);
         button.setText(label_button_3_other_msgs);
 
-        button = (Button)findViewById(org.droidmate.fixtures.apks.instrumented.R.id.button_junk_msgs);
+        button = findViewById(R.id.button_junk_msgs);
         button.setText(label_button_junk_msgs);
     }
 

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.device
 
 import com.konradjamrozik.mkdirs
-import org.droidmate.android_sdk.*
+import org.droidmate.android_sdk.AdbWrapperException
+import org.droidmate.android_sdk.DeviceException
+import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.Configuration
@@ -202,11 +211,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
     override fun isAvailable(): Boolean {
 //    log.trace("isAvailable(${this.serialNumber})")
-        return try {
-            this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
-        } catch (ignored: NoAndroidDevicesAvailableException) {
-            false
-        }
+        return this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
     }
 
     override fun reboot() {
@@ -423,7 +428,9 @@ class AndroidDevice constructor(private val serialNumber: String,
                 "USER", "Check if process $packageName is running.",
                 "shell ps"
         )
+
         return processList.contains(packageName)
+
     }
 
     override fun isPackageInstalled(packageName: String): Boolean {

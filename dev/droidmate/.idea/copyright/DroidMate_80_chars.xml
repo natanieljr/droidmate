@@ -1,9 +1,8 @@
 <component name="CopyrightManager">
   <copyright>
-    <option name="notice" value="Copyright (c) 2012-&amp;#36;today.year Saarland University&#10;All rights reserved.&#10;&#10;Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de&#10;&#10;This file is part of the &quot;DroidMate&quot; project.&#10;&#10;www.droidmate.org" />
+    <option name="allowReplaceRegexp" value="jamrozik\@st\.cs\.uni\-saarland\.de" />
     <option name="keyword" value="This file is part of the &quot;DroidMate&quot; project." />
-    <option name="allowReplaceKeyword" value="Software Engineering Chair." />
     <option name="myName" value="DroidMate 80 chars" />
-    <option name="myLocal" value="true" />
+    <option name="notice" value="DroidMate, an automated execution generator for Android apps.&#10;Copyright (C) 2012-&amp;#36;today.year Saarland University&#10;All rights reserved.&#10;&#10;Current Maintainers:&#10;Nataniel Borges Jr. &lt;nataniel dot borges at cispa dot saarland&gt;&#10;Jenny Hotzkow &lt;jenny dot hotzkow at cispa dot saarland&gt;&#10;&#10;This file is part of the &quot;DroidMate&quot; project.&#10;&#10;www.droidmate.org" />
   </copyright>
 </component>

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 package org.droidmate.apis
@@ -211,7 +217,7 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
         }
 
         fun splitPayload(payload: String): MutableList<String> {
-            val res: MutableList<String> = ArrayList()
+            val res: MutableList<String> = mutableListOf()
             val builder = StringBuilder()
             var inValueString = false
             var wasEscaped = false
@@ -268,7 +274,7 @@ class ApiLogcatMessage(val message: ITimeFormattedLogcatMessage,
             val keywordIndexes = indexToKeyword.keys.toList()
 
             val keywordToValues = hashMapOf(*keywords
-                    .map { keyword -> Pair<String, MutableList<String>>(keyword, ArrayList()) }
+                    .map { keyword -> Pair<String, MutableList<String>>(keyword, mutableListOf()) }
                     .toTypedArray())
 
             elements.forEachIndexed { i, element ->

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
 // "unused" warning is suppressed because vals in this project are being used in the 'droidmate' project gradle build scripts
@@ -45,7 +51,7 @@ val jarsigner_relative_path = "bin/jarsigner$exeExt"
 val jarsigner = java_home.resolveRegularFile(jarsigner_relative_path)
 
 //region Android SDK components
-private val build_tools_version = "25.0.1"
+private val build_tools_version = "26.0.2"
 private val android_platform_version_api23 = "23"
 val aapt_command_relative = "build-tools/$build_tools_version/aapt$exeExt"
 val adb_command_relative = "platform-tools/adb$exeExt"
@@ -69,6 +75,8 @@ val apk_inliner_param_output_dir_default = Paths.get("output-apks")
 val apk_inliner_param_input = "-input"
 val apk_inliner_param_output_dir = "-outputDir"
 val AVD_dir_for_temp_files = "/data/local/tmp/"
+
+val coverage_monitor_script = "adb_logcat_monitor.py"
 
 val uia2_daemon_project_name = "uiautomator2-daemon"
 val uia2_daemon_relative_project_dir = File("projects", uia2_daemon_project_name)

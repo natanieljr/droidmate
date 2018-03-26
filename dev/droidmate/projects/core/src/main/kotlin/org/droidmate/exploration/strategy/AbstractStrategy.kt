@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
@@ -89,7 +95,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     /**
      * Notify all [listeners] that an exploration target has been found
      *
-     * @param targetWidget OldWidget that has been found
+     * @param targetWidget Widget that has been found
      * @param result Exploration action that triggered the target
      */
     protected fun notifyTargetFound(targetWidget: ITargetWidget, result: ActionResult) {
@@ -97,6 +103,19 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
     }
 
     override fun updateState(actionNr: Int, record: ActionResult) {
+    /**
+     * Get action before the last one.
+     *
+     * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
+     */
+    protected fun getSecondLastAction(): ExplorationAction {
+        if (this.memory.getSize() < 2)
+            return EmptyAction()
+
+        return this.memory.getRecords().dropLast(1).last().action
+    }
+
+    override fun updateState(actionNr: Int, record: IMemoryRecord) {
         this.actionNr = actionNr
     }
 
@@ -122,13 +141,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
         // By default does nothing
     }
 
-
     override fun equals(other: Any?): Boolean {
-        throw UnsupportedOperationException()
+        return (other != null) && this.javaClass == other.javaClass
     }
 
     override fun hashCode(): Int {
-        throw UnsupportedOperationException(this.javaClass.toString())
+        return this.javaClass.hashCode()
     }
 
     /**

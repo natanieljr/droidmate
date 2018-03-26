@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.misc
 
@@ -58,6 +64,8 @@ class BuildConstants {
         val AVD_dir_for_temp_files = safeGetProperty(properties, "AVD_dir_for_temp_files")
         @JvmStatic
         val dir_name_temp_extracted_resources = safeGetProperty(properties, "dir_name_temp_extracted_resources")
+        @JvmStatic
+        val coverage_monitor_script = safeGetProperty(properties, "coverage_monitor_script")
         @JvmStatic
         val monitor_generator_res_name_monitor_template = safeGetProperty(properties, "monitor_generator_res_name_monitor_template")
         @JvmStatic

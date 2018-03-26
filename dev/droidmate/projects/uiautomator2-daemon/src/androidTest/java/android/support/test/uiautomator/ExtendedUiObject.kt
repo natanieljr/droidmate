@@ -1,4 +1,5 @@
 package android.support.test.uiautomator
+
 import android.support.test.InstrumentationRegistry
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
@@ -11,21 +12,21 @@ val hasInteractive = object:SearchCondition<Boolean>() {
             &&(o.isClickable || o.isLongClickable //|| o.isCheckable || o.isFocusable || o.isScrollable
             )}
 
-    private fun findInteractive():UiObject2?{
+    private fun findInteractive(): UiObject2? {
         return try {
             device.findObjects(BySelector())
                     .find(interactive)
-        }catch(e:StaleObjectException){
-            Log.w(logTag,"WARN: StaleObjectException in SearchCondition: ${e.message}\t${e.localizedMessage}")
+        } catch (e: StaleObjectException) {
+            Log.w(logTag, "WARN: StaleObjectException in SearchCondition: ${e.message}\t${e.localizedMessage}")
             findInteractive()
         }
     }
 
     override fun apply(context: Searchable): Boolean {
-        val t:UiObject2? = findInteractive()
-        Log.d(logTag,"found any element= ${t!=null}")
+        val t: UiObject2? = findInteractive()
+        Log.d(logTag, "found any element= ${t != null}")
 //        t?.run { Log.d(logTag, "found interactive element $resourceName,$applicationPackage,$className,$visibleCenter") }
-        return t!=null
+        return t != null
     }
 }
 
@@ -38,15 +39,16 @@ val hasInteractive = object:SearchCondition<Boolean>() {
  * but for a parent in the current UiState.
  *
  */
-open class ExtendedUiObject(device: UiDevice, selector: UiSelector) : UiObject(device,selector) {
+open class ExtendedUiObject(device: UiDevice, selector: UiSelector) : UiObject(device, selector) {
     @Throws(UiObjectNotFoundException::class)
     fun getParent(): AccessibilityNodeInfo {
         val node = findAccessibilityNodeInfo(Configurator.getInstance().waitForSelectorTimeout)
                 ?: throw UiObjectNotFoundException(selector.toString())
         return node.parent
     }
+
     @Throws(UiObjectNotFoundException::class)
-    fun getIndex():Int{
+    fun getIndex(): Int {
         val node = findAccessibilityNodeInfo(Configurator.getInstance().waitForSelectorTimeout)
                 ?: throw UiObjectNotFoundException(selector.toString())
         TODO("get root accessibility node and fetch children to determine the index")

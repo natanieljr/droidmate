@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.frontend
 
@@ -164,7 +170,8 @@ class DroidmateFrontendTest : DroidmateTestCase() {
      * An {@code AaptWrapper} stub is used to provide the apk stub metadata.
      * </p>
      */
-    @Category(RequiresSimulator::class)
+    // TODO Review later
+    /*@Category(RequiresSimulator::class)
     @Test
     fun `Explores on a device simulator`() {
         val mockedFs = MockFileSystem(arrayListOf("mock_app1"))
@@ -188,7 +195,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         val expectedDeviceSimulation = simulator.currentSimulation
         val actualDeviceSimulation = getDeviceSimulation(cfg.droidmateOutputDirPath)
         actualDeviceSimulation.assertEqual(expectedDeviceSimulation!!)
-    }
+    }*/
 
     @Category(RequiresDevice::class)
     @Test
@@ -201,6 +208,32 @@ class DroidmateFrontendTest : DroidmateTestCase() {
         exploreOnRealDevice(args.toList(), Configuration.api23)
 
         assert(true)
+    }
+
+    @Test
+    fun test() {
+        println("final res = ${sumFactorial(5, 5)}")
+    }
+
+    private fun sumFactorial(n: Int, c: Int): Int {
+        val a = when {
+            c > 1 -> {
+                println("n = $n\tc = $c")
+                ((n - 1) * sumFactorial(n - 2, 1)) + sumFactorial(n, c - 1)
+            }
+            n > 1 -> {
+                println("n = $n")
+                n * sumFactorial(n - 1, 1)
+            }
+            else -> {
+                1
+            }
+        }
+
+        //println("n = $n\tc = $c\ta=$a")
+        println("a=$a")
+
+        return a
     }
 
     @Category(RequiresDevice::class)

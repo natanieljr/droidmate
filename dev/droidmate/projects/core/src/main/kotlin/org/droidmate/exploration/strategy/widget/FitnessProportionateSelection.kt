@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
@@ -27,7 +33,7 @@ import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
  * Exploration strategy which selects widgets following Fitness Proportionate Selection
  * The fitness is calculated considering the probability to have an event according to a model
  */
-class FitnessProportionateSelection private constructor(randomSeed: Long,
+open class FitnessProportionateSelection protected constructor(randomSeed: Long,
                                                         modelName: String,
                                                         arffName: String) : ModelBased(randomSeed, modelName, arffName) {
 
@@ -78,7 +84,7 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
         val candidates = this.context.getCurrentState().widgets
         assert(candidates.isNotEmpty())
 
-        val probabilities = getCandidatesProbabilities(candidates)
+        val probabilities = getCandidatesProbabilities(candidates, widgetContext)
         val selectedIdx = stochasticSelect(probabilities, 10)
         val chosenWidgetInfo = candidates[selectedIdx]
 
@@ -89,7 +95,7 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
     /**
      * Returns an array with the probabilities of the candidates
      */
-    private fun getCandidatesProbabilities(candidates: List<Widget>): DoubleArray {
+    protected open fun getCandidatesProbabilities(candidates: List<WidgetInfo>, widgetContext: WidgetContext): DoubleArray {
         val candidateProbabilities = DoubleArray(candidates.size)
 
         for (i in candidates.indices)
@@ -109,13 +115,13 @@ class FitnessProportionateSelection private constructor(randomSeed: Long,
         val n = weight.size
         val counter = IntArray(n)
 
-        for(i in 0 until n_select){
+        for (i in 0 until n_select) {
             val index = rouletteSelect(weight)
             counter[index]++
         }
 
         // If there is an error, we return the last item's index
-        return indexOfMax(counter) ?: weight.size - 1
+        return indexOfMax(counter) ?: weight.size-1
     }
 
     private fun indexOfMax(a: IntArray): Int? {

@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report
 
@@ -58,7 +64,7 @@ class ApkSummary {
       // @formatter:on
     }
 
-    private val template: String by lazy {
+      private val template: String by lazy {
       Resource("apk_exploration_summary_template.txt").text
     }
 
@@ -155,8 +161,8 @@ class ApkSummary {
 
   data class ApiEntry(val time: Duration, val actionIndex: Int, val threadId: Int, val apiSignature: String) {
     companion object {
-      private const val actionIndexPad: Int = 7
-      private const val threadIdPad: Int = 7
+        private const val actionIndexPad: Int = 7
+        private const val threadIdPad: Int = 7
     }
 
     override fun toString(): String {
@@ -166,11 +172,11 @@ class ApkSummary {
     }
   }
 
-  data class ApiEventEntry(private val apiEntry: ApiEntry, val event: String) {
+    data class ApiEventEntry(private val apiEntry: ApiEntry, val event: String) {
     companion object {
-      private const val actionIndexPad: Int = 7
-      private const val threadIdPad: Int = 7
-      private const val eventPadEnd: Int = 69
+        private const val actionIndexPad: Int = 7
+        private const val threadIdPad: Int = 7
+        private const val eventPadEnd: Int = 69
     }
 
     override fun toString(): String {

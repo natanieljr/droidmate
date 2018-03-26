@@ -1,7 +1,10 @@
-// Copyright (c) 2012-2016 Saarland University Software Engineering Chair.
-// All right reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018 Saarland University
+// All rights reserved.
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
 //
 // This file is part of the "DroidMate" project.
 //
@@ -29,20 +32,20 @@ import java.util.List;
 
 public class HelperActivity extends Activity
 {
-  public void crashActivity(String tag)
+  void crashActivity(String tag)
   {
     Log.i(tag, "Crashing the app");
     throw new RuntimeException("Crash! Throwing new RuntimeException. Log tag: "+ tag);
   }
 
-  public void launchGooglePlay(String tag)
+  void launchGooglePlay(String tag)
   {
     Log.i(tag, "Opening Google Play");
     final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps"));
     startActivity(intent);
   }
 
-  protected void launchHome(String tag)
+  void launchHome(String tag)
   {
     Log.i(tag, "Exiting the app");
     // Based on: http://stackoverflow.com/a/3226743/986533
@@ -52,7 +55,7 @@ public class HelperActivity extends Activity
     startActivity(intent);
   }
 
-  protected void callAPI_Camera_open(String tag)
+  void callAPI_Camera_open(String tag)
   {
     Log.i(tag, "===== Calling Camera.open()");
     // The call below requires permission: android.permission.CAMERA
@@ -61,7 +64,7 @@ public class HelperActivity extends Activity
   }
 
   @SuppressWarnings("Duplicates")
-  protected void callAPI_URL_openConnection(String tag)
+  void callAPI_URL_openConnection(String tag)
   {
     try
     {
@@ -76,14 +79,14 @@ public class HelperActivity extends Activity
     }
   }
 
-  protected void callAPI_AudioManager_isBluetoothA2dpOn(String tag)
+  void callAPI_AudioManager_isBluetoothA2dpOn(String tag)
   {
     final AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
     Log.i(tag, "===== Calling AudioManager.isBluetoothA2dpOn()");
     audioManager.isBluetoothA2dpOn();
   }
 
-  protected void callAPI_ContentResolver_getCurrentSyncs(String tag)
+  void callAPI_ContentResolver_getCurrentSyncs(String tag)
   {
     Log.i(tag, "===== Calling ContentResolver.getCurrentSyncs()");
     // The calls below requires permission: android.permission.READ_SYNC_STATS
@@ -91,7 +94,7 @@ public class HelperActivity extends Activity
     Log.i(tag, "===== ContentResolver.getCurrentSyncs() returned: " + currentSyncs);
   }
 
-  protected void callAPI_ConnectivityManager_getActiveNetworkInfo(String tag)
+  void callAPI_ConnectivityManager_getActiveNetworkInfo(String tag)
   {
     final ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
     Log.i(tag, "===== Calling ConnectivityManager.getActiveNetworkInfo()");
@@ -100,7 +103,7 @@ public class HelperActivity extends Activity
     Log.i(tag, "===== ConnectivityManager.getActiveNetworkInfo() returned:" + activeNetworkInfo);
   }
 
-  protected void callAPI_TelephonyManager_getCellLocation(String tag)
+  void callAPI_TelephonyManager_getCellLocation(String tag)
   {
     final TelephonyManager tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
     // The call below requires permission: android.permission.ACCESS_COARSE_LOCATION

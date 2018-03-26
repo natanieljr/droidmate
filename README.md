@@ -1,100 +1,34 @@
-# DroidMate ![GNU GPL v3](https://www.gnu.org/graphics/gplv3-88x31.png)[![Build Status](http://soot-build.cs.uni-paderborn.de/jenkins/buildStatus/icon?job=testify/droidmate)](http://soot-build.cs.uni-paderborn.de/jenkins/job/testify/job/droidmate/)
+# DroidMate ![GNU GPL v3](https://www.gnu.org/graphics/gplv3-88x31.png)[![Build Status](https://travis-ci.org/uds-se/droidmate.svg?branch=master)](https://travis-ci.org/uds-se/droidmate)
 
 DroidMate, an automated execution generator for Android apps.  
-Copyright (C) 2012-2016 Konrad Jamrozik
+Copyright (C) 2012-2018 Saarland University
 
 This program is free software. 
 
-Contact: jamrozik@st.cs.uni-saarland.de  
-
 * www.droidmate.org  
-* [DroidMate publication](http://www.boxmate.org/files/DroidMate_MOBILESoft_2016.pdf)  
-* ["Mining Sandboxes" publication](http://www.boxmate.org/files/boxmate-preprint.pdf)  
-* [GitHub repository with "Mining Sandbox" publication data](https://github.com/konrad-jamrozik/mining-sandboxes-icse2016)
-* ["Guarantees from Testing" talk by Andreas Zeller](https://www.youtube.com/watch?v=eJyIKt7xuw4)
 
-Date of last full review of this document: 11 May 2017
+##### Current Maintainers #####
 
+* Nataniel Borges Jr. `<nataniel dot borges at cispa dot saarland>`
+* Jenny Hotzkow `<jenny dot hotzkow at cispa dot saarland>`
 
-# Introduction #
+Date of last full review of this document: 16 Mar 2018
 
-**DroidMate** is an automated execution generator / GUI fuzzer / dynamic analysis engine for Android apps.
+## Repository structure:
 
-This file pertains to DroidMate source. You should have found it at DroidMate
-repository root dir, denoted in this file as `repo`.
+Following directories are sources which can be opened  as IntelliJ projects (`File -> Open`):
 
-This file explains:
+| project in `repo/dev`| description |
+| ------- | ----------- |
+| droidmate | main sources of DroidMate. |
+| apk_fixtures_src | sources of apk fixtures used in the `droidmate` project tests. |
+| droidmate_usage_examples | java project showing how to use DroidMate API |
 
-- What DroidMate is and overview of how it works.
-- With which operating systems and Android devices DroidMate is compatible.
+Note that `apk_fixtures_src` is being built as part of the `droidmate` build. 
 
-Furthermore:
-
-- `repo/BUILDING.md` explains how to build and test DroidMate.
-- `repo/RUNNING.md` explains how to:
-  - use DroidMate API from your Java project, with examples;
-  - run DroidMate directly from built sources (this method is not recommended, use API instead); 
-  - obtain input apks;
-  - prepare (`inline`) input apks to be compatible with DroidMate method call monitoring; 
-  - configure the emulator.
-- `repo/DEVELOPING.md` explains how to: 
-  - setup an IDE for DroidMate development;
-  - navigate DroidMate sources and technical documentation;
-  - edit the list of monitored APIs;
-  - provide your own hooks to the monitored APIs.
-- `repo/TROUBLESHOOTING.md` explains how to work around known bugs & problems.
-
-# How DroidMate works #
-
-DroidMate fully automatically explores behavior of an Android app by interacting with its GUI. DroidMate repeatedly reads the device state, makes a decision and interacts with the GUI, until some termination criterion is satisfied. This process is called an **exploration** of the **Application Under Exploration (AUE)**.
-
-DroidMate is fully automatic: after it has been set up and started, the exploration itself does not require human presence.
-
-DroidMate can be run from command line or through its Java API. As input, it reads a directory containing Android apps (.apk files). It outputs a serialized Java object representing the exploration output. It also outputs .txt files having various human-readable information extracted from the serialized exploration output.
-
-DroidMate can click and long-click the AUE’s GUI, restart the AUE,  press ‘home’ button and  it can terminate the exploration. Any of this is called an **exploration action**. DroidMate’s **exploration strategy** decides which exploration action to execute based on the XML representation of the currently visible device GUI, i.e. a **GUI snapshot**, and on the set of Android framework methods that have been called after last exploration action, i.e. a set of **API calls**.
-
-For more information, please see the papers available on the website linked above.
+### For information about building, running or extending DroidMate, check our [wiki](https://github.com/uds-se/droidmate/wiki) ###
 
 
-## Compatibility ##
-### OS compatibility ###
+##### Former Maintainers #####
 
-DroidMate works on Ubuntu, Windows 10 and Mac OS X. 
-
-Primary development of DroidMate is done on Windows 10. Ubuntu is used in the CI server. Mac OS X is actively being used by DroidMate users.
- 
-### Android devices and emulators compatibility ###
-
-DroidMate works on Android 6.0 (API 23), 7.0 (API24) and 7.1 (API25) on physical devices. **From May 10th onward support for Android 4.4.2 (API 19) was removed because the libraries required for compatibility are no longer shipped with Android SDK.**
-
-DroidMate works on emulators, but with limitations. It works fully on the slow, ARM-based emulators. In the fast x86 emulators, DroidMate cannot work with _inlined_ (see `repo/RUNNING.md`) apks and thus, cannot monitor calls to Android framework. This is due to the fact ArtHook, the library used in DroidMate for monitoring when running on API 23+, is compatible only with ARM architecture, not x86.
-
-DroidMate works on following devices:
-
-API 23+:
-* Google Nexus 5X
-* Google Nexus 6
-* Google Nexus 7 2013
-* Google Nexus 9
-* Google Pixel C
-* Huawei Honor 8
-
-If DroidMate doesn't recognize a device it defaults to Nexus 7. You can change the default by editing [DeviceModel](https://github.com/natanieljr/droidmate/blob/master/dev/droidmate/projects/core/src/main/groovy/org/droidmate/device/model/DeviceModel.groovy#L76-L79). In your device model you just have to ensure the package name of the home screen is correct. You can check the package name by doing the following:
-
-* launch Android Device Monitor, e.g. with `android-sdk/tools/monitor.bat`; 
-* select running device. If device is running, `adb devices` will show it;
-* click on `Dump View Hierarchy for UI Automator`;
-* click on the top level `FrameLayout` and look at `package`.
-
-## Contributions ##
-
-Nataniel Borges Jr., @natanieljr:
- 
-- Added support for multiple Android devices. 
-- Added support for UI Automator 2.0.
-- Added support for Android 6 (API23).
-- Added support for Android 7 (API24).
-- Added support for Android 7.1 (API25).
-- Added support for policy enforcement.
-- Removed compatibility with Android 4.4
+* Konrad Jamrozik `<jamrozik at st dot cs dot uni-saarland dot de>`

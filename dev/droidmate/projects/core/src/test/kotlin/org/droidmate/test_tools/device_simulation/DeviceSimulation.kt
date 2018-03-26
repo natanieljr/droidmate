@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
@@ -59,7 +65,6 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 
     private var lastAction: Action? = null
 
-
     constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
             this(GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
 
@@ -76,36 +81,34 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
     }
 
     override fun getAppIsRunning(): Boolean {
-        if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackage))
-            return false
-
-        if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
+        return if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackage))
+            false
+        else if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
             assert(this.lastAction !is SimulationAdbClearPackage)
-            return true
-        }
-
-        return false
+            true
+        } else
+            false
     }
 
     override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot {
-        if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackage))
-            return this.initialScreen.getGuiSnapshot()
-
-        return this.getCurrentScreen().getGuiSnapshot()
+        return if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackage))
+            this.initialScreen.getGuiSnapshot()
+        else
+            this.getCurrentScreen().getGuiSnapshot()
     }
 
     override fun getCurrentLogs(): List<ITimeFormattedLogcatMessage> {
-        if (this.currentTransitionResult == null)
-            return ArrayList()
-
-        return this.currentTransitionResult!!.logs
+        return if (this.currentTransitionResult == null)
+            ArrayList()
+        else
+            this.currentTransitionResult!!.logs
     }
 
     private fun getCurrentScreen(): IGuiScreen {
-        if (currentTransitionResult == null)
-            return this.initialScreen
+        return if (currentTransitionResult == null)
+            this.initialScreen
         else
-            return this.currentTransitionResult!!.screen
+            this.currentTransitionResult!!.screen
     }
 
     override fun assertEqual(other: IDeviceSimulation) {

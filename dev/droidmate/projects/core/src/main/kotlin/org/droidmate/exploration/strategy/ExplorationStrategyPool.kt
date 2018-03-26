@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
@@ -50,7 +56,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
 
         private fun getTerminationStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-            val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+            val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
             if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0)
                 strategies.add(ActionBasedTerminate(cfg))
@@ -64,7 +70,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
         }
 
         private fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-            val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+            val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
             strategies.add(InitialReset())
             strategies.add(AppCrashedReset())
@@ -73,6 +79,21 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             // Interval reset
             if (cfg.resetEveryNthExplorationForward > 0)
                 strategies.add(IntervalReset(cfg.resetEveryNthExplorationForward))
+
+            return strategies
+        }
+
+        private fun getBackStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
+            val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
+
+            strategies.add(AfterResetBack())
+            strategies.add(NoLongerInAppBack())
+            strategies.add(GUIFullyExploredBack(cfg.minimumActionsPerUIElementBack))
+
+            // Randomly press back
+            if (cfg.pressBackProbability > 0.0)
+                strategies.add(RandomBack(cfg))
+
             return strategies
         }
 
@@ -83,10 +104,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
             // Default strategies
             strategies.addAll(getTerminationStrategies(cfg))
             strategies.addAll(getResetStrategies(cfg))
-
-            // Press back
-            if (cfg.pressBackProbability > 0.0)
-                strategies.add(PressBack.build(cfg.pressBackProbability, cfg))
+            strategies.addAll(getBackStrategies(cfg))
 
             // Random exploration
             if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
@@ -119,7 +137,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
     /**
      * Internal list of strategies
      */
-    private val strategies: MutableList<ISelectableExplorationStrategy> = ArrayList()
+    private val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
     /**
      * Strategy which is currently active

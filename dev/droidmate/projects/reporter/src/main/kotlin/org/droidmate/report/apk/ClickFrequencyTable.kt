@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
@@ -27,28 +33,28 @@ import java.util.*
 class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
     constructor(data: AbstractContext) : this(build(data))
-  
+
   companion object {
     const val headerNoOfClicks = "No_of_clicks"
     const val headerViewsCount = "Views_count"
 
       fun build(data: AbstractContext): Table<Int, String, Int> {
 
-      val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
+            val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
 
-      return buildTable(
-              headers = listOf(headerNoOfClicks, headerViewsCount),
-              rowCount = countOfViewsHavingNoOfClicks.keys.size,
-              computeRow = { rowIndex ->
-                  check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
-                  val noOfClicks = rowIndex
-                  listOf(
-                          noOfClicks,
-                          countOfViewsHavingNoOfClicks[noOfClicks]!!
-                  )
-              }
-      )
-    }
+            return buildTable(
+                    headers = listOf(headerNoOfClicks, headerViewsCount),
+                    rowCount = countOfViewsHavingNoOfClicks.keys.size,
+                    computeRow = { rowIndex ->
+                        check(countOfViewsHavingNoOfClicks.containsKey(rowIndex))
+                        val noOfClicks = rowIndex
+                        listOf(
+                                noOfClicks,
+                                countOfViewsHavingNoOfClicks[noOfClicks]!!
+                        )
+                    }
+            )
+        }
 
     /** computing how many new widgets become visible after each action (#actions -> #newWidgets) **/
     private val AbstractContext.countOfViewsHavingNoOfClicks: Map<Int, Int>
