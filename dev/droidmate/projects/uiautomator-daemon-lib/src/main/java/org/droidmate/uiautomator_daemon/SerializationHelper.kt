@@ -21,38 +21,47 @@
 // web: www.droidmate.org
 package org.droidmate.uiautomator_daemon
 
-import org.nustaq.serialization.FSTConfiguration
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.IOException
+import java.io.*
 
 
 class SerializationHelper {
     companion object {
-        private val serializationConfig = FSTConfiguration.createDefaultConfiguration()
+        private val serializationConfig by lazy { org.nustaq.serialization.FSTConfiguration.createDefaultConfiguration() }
 
+        @JvmOverloads
         @Throws(IOException::class)
-        fun writeObjectToStream(outputStream: DataOutputStream, toWrite: Any) {
-            // write object
-            val objectOutput = serializationConfig.objectOutput // could also do new with minor perf impact
-            // write object to internal buffer
-            objectOutput.writeObject(toWrite)
-            // write length
-            outputStream.writeInt(objectOutput.written)
-            // write bytes
-            outputStream.write(objectOutput.buffer, 0, objectOutput.written)
+        fun writeObjectToStream(outputStream: DataOutputStream, toWrite: Any, useLegacySerialization: Boolean = false) {
 
-            objectOutput.flush() // return for reuse to conf
+            if (useLegacySerialization) {
+                ObjectOutputStream(outputStream).writeObject(toWrite)
+            } else {
+                // write object
+                val objectOutput = serializationConfig.objectOutput // could also do new with minor perf impact
+                // write object to internal buffer
+                objectOutput.writeObject(toWrite)
+                // write length
+                outputStream.writeInt(objectOutput.written)
+                // write bytes
+                outputStream.write(objectOutput.buffer, 0, objectOutput.written)
+
+                objectOutput.flush() // return for reuse to conf
+            }
         }
 
+        @JvmOverloads
         @Throws(IOException::class, ClassNotFoundException::class)
-        fun readObjectFromStream(inputStream: DataInputStream): Any {
-            var len = inputStream.readInt()
-            val buffer = ByteArray(len) // this could be reused !
-            while (len > 0)
-                len -= inputStream.read(buffer, buffer.size - len, len)
+        fun readObjectFromStream(inputStream: DataInputStream, useLegacySerialization: Boolean = false): Any {
 
-            return serializationConfig.getObjectInput(buffer).readObject()
+            if (useLegacySerialization) {
+                return ObjectInputStream(inputStream).readObject()
+            } else {
+                var len = inputStream.readInt()
+                val buffer = ByteArray(len) // this could be reused !
+                while (len > 0)
+                    len -= inputStream.read(buffer, buffer.size - len, len)
+
+                return serializationConfig.getObjectInput(buffer).readObject()
+            }
         }
     }
 }

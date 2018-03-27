@@ -36,8 +36,9 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
                              uiautomatorDaemonTcpPort: Int,
                              uiautomatorDaemonServerStartTimeout: Int,
                              uiautomatorDaemonServerStartQueryDelay: Int,
-                             portOffset: Int) : ITcpClients {
-    private val monitorsClient: IMonitorsClient = MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, portOffset)
+                             portOffset: Int,
+                             useLegacyStreamMonitor: Boolean) : ITcpClients {
+    private val monitorsClient: IMonitorsClient = MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, portOffset, useLegacyStreamMonitor)
     private val uiautomatorClient: IUiautomatorDaemonClient = UiautomatorDaemonClient(
             adbWrapper,
             deviceSerialNumber,
