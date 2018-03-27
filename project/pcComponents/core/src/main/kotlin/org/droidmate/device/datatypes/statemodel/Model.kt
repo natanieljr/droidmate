@@ -88,7 +88,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 					//traceUpdate.join();
 					trace.dump(config)
 				}
-				if (config.dumpImg) launch {
+				if (config.dumpStateImg) launch {
 					//traceUpdate.join()
 					trace.last()!!.screenshot.let {
 						// if there is any screen-shot copy it to the state extraction directory

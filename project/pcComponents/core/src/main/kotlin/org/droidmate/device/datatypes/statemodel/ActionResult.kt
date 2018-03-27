@@ -94,9 +94,11 @@ open class ActionResult(val action: ExplorationAction,
 	fun getWidgets(config: ModelDumpConfig): List<Widget> {
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
 
-		(if (screenshot.toASCIIString() != "test://empty" && Files.exists(java.nio.file.Paths.get(screenshot))) debugT("img file read", { ImageIO.read(java.nio.file.Paths.get(screenshot).toAbsolutePath().toFile()) }) else null
-		)
-				.let { img ->
+//		val img:BufferedImage? =
+		getPathOrNull(screenshot)?.let {
+			// load the image if there is any
+			if (Files.exists(java.nio.file.Paths.get(screenshot))) debugT("img file read", { ImageIO.read(java.nio.file.Paths.get(screenshot).toAbsolutePath().toFile()) }) else null
+		}.let { img ->
 					guiSnapshot.let { g ->
 						debugT(" \n filter device objects",
 								{ g.widgets.filterNot { deviceObjects.contains(it.xpath) } } // ignore the overall layout containing the Android Status-bar
@@ -134,3 +136,4 @@ open class ActionResult(val action: ExplorationAction,
 
 private var timeS: Long = 0
 private var timeP: Long = 0
+private fun getPathOrNull(uri:URI):java.nio.file.Path? = if(uri.toASCIIString() != "test://empty") java.nio.file.Paths.get(uri) else null

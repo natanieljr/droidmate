@@ -64,6 +64,7 @@ abstract class ConfigProperties {
 		val installApk by booleanType
 		val installAux by booleanType
 		val inline by booleanType
+		val runOnNotInlined by booleanType
 	}
 
 	object exploration : PropertyGroup() {

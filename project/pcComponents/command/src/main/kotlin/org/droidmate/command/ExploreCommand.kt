@@ -36,6 +36,7 @@ import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
+import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.logging.Markers
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ITimeProvider
@@ -64,11 +65,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		@JvmStatic
 		@JvmOverloads
-		fun build(cfg: Configuration,
+		fun build(cfg: Configuration, // TODO initialize pool according to strategies parameter and allow for Model parameter for custom/shared model experiments
 		          strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
 		          timeProvider: ITimeProvider = TimeProvider(),
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
-		          reportCreators: List<Reporter> = defaultReportWatcher(cfg)): ExploreCommand {
+		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
+							strategies: List<ISelectableExplorationStrategy> = emptyList()): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val storage2 = Storage2(cfg.droidmateOutputDirPath)

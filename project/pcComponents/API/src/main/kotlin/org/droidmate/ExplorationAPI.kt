@@ -29,12 +29,9 @@ import org.droidmate.ConfigProperties.deploy.installApk
 import org.droidmate.ConfigProperties.deploy.installAux
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
-import org.droidmate.command.InlineCommand
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.frontend.DroidmateFrontend
 import org.droidmate.frontend.ExceptionHandler
-import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.misc.DroidmateException
 import org.droidmate.report.Reporter
 import org.slf4j.LoggerFactory
@@ -45,34 +42,35 @@ import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
 object ExplorationAPI : ConfigProperties() {
-	private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
+	private val log = LoggerFactory.getLogger(ExplorationAPI::class.java)
 
 	/**
 	 * entry-point to explore an application with a (subset) of default exploration strategies
 	 * 1. inline the apks in the directory if they do not end on '-inlined.apk'
 	 * 2. run the exploration with the strategies listed in the property 'explorationStrategies'
 	 */
-	@JvmStatic
-	fun main(args: Array<String>) {
+	@JvmStatic  // -config project/pcComponents/API/src/main/resources/defaultConfig.properties
+	fun main(args: Array<String>) { // e.g.`-config filePath` or `--configPath=filePath`
 		val cmdOptions = arrayOf(CommandLineOption(configPath, short = "config", description = "path to the file containing custom configuration properties")
 				, CommandLineOption(ConfigProperties.output.reportOutputDir))
 
-		val (cmd_config, cmd_args) = parseArgs(args, *cmdOptions)
+		val (cmd_config, _) = parseArgs(args, *cmdOptions)
 		inlineAndExplore(cmd_config)
 	}
 
 	@JvmStatic
-	fun inlineAndExplore(cmd_config: Configuration?, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
-		val config = (   // highest priority overriding lower priority
+	fun inlineAndExplore(cmd_config: Configuration, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
+		val config:Configuration = (   // highest priority overriding lower priority
 //            EnvironmentVariables() overriding           // any JVM arguments (i.e. "-DpropName=value")
 				ConfigurationProperties.fromResource("defaultConfig.properties") // overwrite any system property by definitions of resource file
 //        overriding systemProperties()
-				).apply {
-			cmd_config?.overriding(this)
-			File(this[configPath].path).let { customConfigFile ->
-				if (customConfigFile.exists()) ConfigurationProperties.fromFile(customConfigFile) overriding this // highest priority any custom file, e.g given via command line
-			}
-		}
+				).let { default ->
+					cmd_config.overriding(default).let{
+					File(it[configPath].path).let { customConfigFile ->
+						if (customConfigFile.exists()) ConfigurationProperties.fromFile(customConfigFile) overriding it // highest priority any custom file, e.g given via command line
+						else it
+					}}
+				}
 
 		var exitStatus = 0
 
@@ -80,7 +78,7 @@ object ExplorationAPI : ConfigProperties() {
 			println(copyRight)
 			validateConfig(config)
 
-			LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
+//			LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
 			log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.Configuration::class.java.simpleName} from args " +
 					"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
 			log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
@@ -88,16 +86,16 @@ object ExplorationAPI : ConfigProperties() {
 //			log.info("inline the apks if necessary")
 			val cfg = ConfigurationBuilder().build(ConfigWrapper.createOldConfigArgs(config), FileSystems.getDefault())
 //			InlineCommand().execute(cfg)
-			cfg.runOnNotInlined = true
 
 			val runStart = Date()
-			val command = ExploreCommand.build(cfg, reportCreators = reportCreators)
+			val command = ExploreCommand.build(cfg, reportCreators = reportCreators, strategies = strategies)
 			log.info("EXPLORATION start timestamp: $runStart")
 			log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
 			command.execute(cfg)
 
 		} catch (e: Throwable) {
+			e.printStackTrace()
 			exitStatus = ExceptionHandler().handle(e)
 		}
 		System.exit(exitStatus)

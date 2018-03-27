@@ -59,7 +59,8 @@ class ModelDumpConfig(path: String, appName: String) {
 	}
 
 	val traceFile = { date: String -> "$modelBaseDir${traceFilePrefix}$date.txt" }
-	val dumpImg = false
+	val dumpWidgetImg = false
+	val dumpStateImg = true
 }
 
 private const val datePattern = "ddMM-HHmmss"

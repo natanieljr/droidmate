@@ -206,7 +206,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 						.let { widgetId ->
 							launch { widgetId.value }  // issue initialization in parallel
 							// print the screen img if there is one
-							if (config.dumpImg && wImg != null && w.content() == "") launch {
+							if (config.dumpWidgetImg && wImg != null && w.content() == "") launch {
 								File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {
 									if (!it.exists()) ImageIO.write(wImg, "png", it)
 								}

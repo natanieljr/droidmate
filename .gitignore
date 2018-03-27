@@ -60,6 +60,7 @@ lib-apk_fixtures.jar
 monitor.apk
 uiautomator2-daemon.apk
 uiautomator2-daemon-test.apk
+generated_Monitor_api23.java
 
 # Temporary stuff
 out

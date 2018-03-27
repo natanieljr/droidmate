@@ -25,18 +25,22 @@
 package org.droidmate
 
 import com.natpryce.konfig.Configuration
+import org.droidmate.ConfigProperties.deploy.runOnNotInlined
 
 object ConfigWrapper {
-	private val presenceFlags = arrayOf("inline", "takeScreenshots")
+	private val presenceFlags = arrayOf("inline", "runOnNotInlined"//, "takeScreenshots"
+	)
 	fun createOldConfigArgs(config: Configuration): Array<String> =
 			config.list().flatMap { (_, map) ->
-				map.map { (prop, value) ->
-					prop.substringAfterLast(".").let { propName
-						->
-						"-$propName" + if (!presenceFlags.contains(propName)) "=$value" else ""
-					}
+				map.toList()
+			}.distinctBy { it.first }.map { (prop, value) ->
+				prop.substringAfterLast(".").let { propName
+					->
+					"-$propName" + if (!presenceFlags.contains(propName)) "=$value" else ""
 				}
 			}
-					.filterNot { it.contains("configPath") || (it.contains("inline") && !config[ConfigProperties.deploy.inline]) }
+					.filterNot {
+						it.contains("configPath")|| it.contains("--config=") || (it.contains("inline") && !config[ConfigProperties.deploy.inline])
+							|| (it.contains("runOnNotInlined") && !config[ConfigProperties.deploy.runOnNotInlined])}
 					.toTypedArray()
 }
