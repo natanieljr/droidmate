@@ -166,38 +166,50 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				arrayListOf(cfg.alwaysClickFirstWidget, cfg.widgetIndexes.isNotEmpty()).map { if (it) 1 else 0 }.sum()
 
 		@JvmStatic
-		private fun getResourcePath(cfg: Configuration, fs: FileSystem, resourceName: String): Path {
-			var dstPath = "out"+File.separator+BuildConstants.dir_name_temp_extracted_resources
+		private fun getDeviceDir(cfg: Configuration, fs: FileSystem): String{
 			// If not using main device, export again
-			if (cfg.deviceSerialNumber.isNotEmpty())
-				dstPath += cfg.deviceSerialNumber.replace(":", "-")
+			return if (cfg.deviceSerialNumber.isNotEmpty())
+				"device" + cfg.deviceSerialNumber.replace(":", "-")
 			else if (cfg.deviceIndex > 0)
-				dstPath += cfg.deviceIndex
+				"device" + cfg.deviceIndex
+			else
+				""
+		}
 
-			val path = fs.getPath(dstPath, resourceName)
+		@JvmStatic
+		private fun getResourcePath(cfg: Configuration, resourceName: String): Path {
+			val dstPath = cfg.droidmateOutputDirPath
+					.resolve(BuildConstants.dir_name_temp_extracted_resources)
+			val path = dstPath.resolve(resourceName)
 
 			if (!cfg.replaceExtractedResources && Files.exists(path))
 				return path
 
-			return Resource(resourceName).extractTo(fs.getPath(dstPath))
+			return Resource(resourceName).extractTo(dstPath)
 		}
 
 		@JvmStatic
 		@Throws(ConfigurationException::class)
 		private fun setupResourcesAndPaths(cfg: Configuration, fs: FileSystem) {
-			cfg.uiautomator2DaemonApk = getResourcePath(cfg, fs, "deviceControlDaemon.apk").toAbsolutePath()
+			cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir).resolve(getDeviceDir(cfg, fs)).toAbsolutePath()
+			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubDir).toAbsolutePath()
+			cfg.reportInputDirPath = fs.getPath(cfg.reportInputDir).toAbsolutePath()
+			cfg.reportOutputDirPath = fs.getPath(cfg.reportOutputDir).toAbsolutePath()
+			cfg.coverageReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.coverageReportSubDir).toAbsolutePath()
+
+			cfg.uiautomator2DaemonApk = getResourcePath(cfg, "deviceControlDaemon.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon.apk located at " + cfg.uiautomator2DaemonApk.toString())
 
-			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, fs, "deviceControlDaemon-test.apk").toAbsolutePath()
+			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, "deviceControlDaemon-test.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon-test.apk located at " + cfg.uiautomator2DaemonTestApk.toString())
 
-			cfg.monitorApkApi23 = getResourcePath(cfg, fs, BuildConstants.monitor_api23_apk_name).toAbsolutePath()
+			cfg.monitorApkApi23 = getResourcePath(cfg, BuildConstants.monitor_api23_apk_name).toAbsolutePath()
 			log.info("Using ${BuildConstants.monitor_api23_apk_name} located at " + cfg.monitorApkApi23.toString())
 
-			cfg.apiPoliciesFile = getResourcePath(cfg, fs, BuildConstants.api_policies_file_name).toAbsolutePath()
+			cfg.apiPoliciesFile = getResourcePath(cfg, BuildConstants.api_policies_file_name).toAbsolutePath()
 			log.info("Using ${BuildConstants.api_policies_file_name} located at " + cfg.apiPoliciesFile.toString())
 
-			cfg.coverageMonitorScriptPath = getResourcePath(cfg, fs, BuildConstants.coverage_monitor_script).toAbsolutePath()
+			cfg.coverageMonitorScriptPath = getResourcePath(cfg, BuildConstants.coverage_monitor_script).toAbsolutePath()
 			log.info("Using ${BuildConstants.coverage_monitor_script} located at " + cfg.coverageMonitorScriptPath.toString())
 
 			val portFile = File.createTempFile(BuildConstants.port_file_name, ".tmp")
@@ -206,11 +218,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			cfg.portFile = portFile.toPath().toAbsolutePath()
 			log.info("Using ${BuildConstants.port_file_name} located at " + cfg.portFile.toString())
 
-			cfg.droidmateOutputDirPath = fs.getPath(cfg.droidmateOutputDir).toAbsolutePath()
-			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.reportOutputSubDir).toAbsolutePath()
-			cfg.reportInputDirPath = fs.getPath(cfg.reportInputDir).toAbsolutePath()
-			cfg.reportOutputDirPath = fs.getPath(cfg.reportOutputDir).toAbsolutePath()
-			cfg.coverageReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg.coverageReportSubDir).toAbsolutePath()
 			cfg.apksDirPath = if (cfg.useApkFixturesDir)
 				ResourcePath(BuildConstants.apk_fixtures).path.toAbsolutePath()
 			else

@@ -37,6 +37,7 @@ import org.droidmate.exploration.device.IRobustDevice
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.logging.Markers
+import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.ThrowablesCollection
 import org.droidmate.misc.TimeProvider
@@ -147,9 +148,14 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				dirToDelete.deleteDir()
 		}
 
-		Files.walk(outputDir).filter { it.isRegularFile }.forEach { Files.delete(it) }
+		Files.walk(outputDir)
+				.filter { it.parent.fileName.toString() != BuildConstants.dir_name_temp_extracted_resources }
+				.filter { it.isRegularFile }
+				.forEach { Files.delete(it) }
 
-		Files.walk(outputDir).forEach { assert(Files.isDirectory(it)) }
+		Files.walk(outputDir)
+				.filter { it.parent.fileName.toString() != BuildConstants.dir_name_temp_extracted_resources }
+				.forEach { assert(Files.isDirectory(it), {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"}) }
 	}
 
 	protected open fun execute(cfg: Configuration, apks: List<Apk>): List<ExplorationException> {
