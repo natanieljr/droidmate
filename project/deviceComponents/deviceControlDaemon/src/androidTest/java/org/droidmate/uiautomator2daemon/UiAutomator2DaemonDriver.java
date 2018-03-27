@@ -66,6 +66,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 
 		this.automation = instr.getUiAutomation();
 		if (this.automation == null) throw new AssertionError();
+		//automation.setRunAsMonkey(true); // tell the app that it is run in test-framework TODO check if that helps with adds or hides behavior
 
 		this.context = InstrumentationRegistry.getTargetContext();
 		if (context == null) throw new AssertionError();

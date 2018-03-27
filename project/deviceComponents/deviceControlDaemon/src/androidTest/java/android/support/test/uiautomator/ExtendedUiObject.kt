@@ -19,7 +19,8 @@ val hasInteractive = object : SearchCondition<Boolean>() {
 					.find(interactive)
 		} catch (e: StaleObjectException) {
 			Log.w(logTag, "WARN: StaleObjectException in SearchCondition: ${e.message}\t${e.localizedMessage}")
-			findInteractive()
+//			findInteractive()
+			null  // wait for next poll as currently unstable
 		}
 	}
 

@@ -90,7 +90,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 				}
 				if (config.dumpStateImg) launch {
 					//traceUpdate.join()
-					trace.last()!!.screenshot.let {
+					trace.last()!!.screenshot?.let {  //FIXME if no screenshot this issues exceptions (probably this strange default value of ActionResult)
 						// if there is any screen-shot copy it to the state extraction directory
 						java.io.File(config.statePath(newState.stateId, "_${newState.configId}", "png")).let { file ->
 							if (!file.exists())
