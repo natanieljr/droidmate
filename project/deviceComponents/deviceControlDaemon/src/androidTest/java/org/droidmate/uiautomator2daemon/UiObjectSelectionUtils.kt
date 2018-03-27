@@ -29,12 +29,14 @@ private val processNode = { s: UiSelector?, n: String ->
 	}
 }
 val findByXPath: Selector = { xPath ->
-	val nodes = with(xPath.split("/".toRegex()).dropLastWhile({ it.isEmpty() })) { subList(2, size).toTypedArray() }    // the initial '//' creates two empty strings which we have to skip
-	nodes.fold(null, processNode)!!
+	debugT( "find xPath", {
+		val nodes = with(xPath.split("/".toRegex()).dropLastWhile({ it.isEmpty() })) { subList(2, size).toTypedArray() }    // the initial '//' creates two empty strings which we have to skip
+		nodes.fold(null, processNode)!!
+	}, inMillis = true)
 }
-val findByResId: Selector = { id -> UiSelector().resourceId(id) }
-val findByClassName: Selector = { id -> UiSelector().className(id) }
-val findByDescription: Selector = { id -> UiSelector().descriptionContains(id) }
+val findByResId: Selector = { id -> debugT( "find ResId", {UiSelector().resourceId(id) }, inMillis = true)}
+val findByClassName: Selector = { id -> debugT( "find className", {UiSelector().className(id) }, inMillis = true)}
+val findByDescription: Selector = { id -> debugT( "find Desc", {UiSelector().descriptionContains(id) }, inMillis = true)}
 
 /**
  * the action to be executed on object <O> as lambda function (e.g. `{o->o.click()}`), where R is the return type
@@ -59,12 +61,14 @@ private typealias Action<O, R> = (O) -> R
  */
 fun executeAction(device: UiDevice, action: Action<UiObject, Boolean>, id: String, selector: Selector = findByXPath): Boolean {
 	assert(id.isNotEmpty(), { "parameter id must not be empty to use this function" })
-	return device.findObject(selector(id)).let {
-		if (it.exists()) action(it) else {
-			Log.w(uiaDaemon_logcatTag, "Target element could not be found with $id: $it")
-			false
+	return debugT("find Object", {
+		device.findObject(selector(id)).let {
+			if (it.exists()) action(it) else {
+				Log.w(uiaDaemon_logcatTag, "Target element could not be found with $id: $it")
+				false
+			}
 		}
-	}
+	}, inMillis = true)
 }
 
 /**

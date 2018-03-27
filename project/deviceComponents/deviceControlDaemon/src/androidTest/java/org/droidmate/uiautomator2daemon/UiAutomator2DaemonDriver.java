@@ -40,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
+import static org.droidmate.uiautomator2daemon.DeviceAction.fetchDeviceData;
 import static org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*;
 
 // WISH there is code duplication between uiad-1 and uiad-2. When DM no longer needs to work with Android 4, remove uiad-1. 
@@ -83,12 +84,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 		this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
 	}
 
-	private DeviceResponse fetchDeviceData(){
-		String dump = DeviceAction.getWindowHierarchyDump(device);
-		byte[] imgBytes = DeviceAction.getScreenShot(device,automation);
-		return GuiStatusResponse.fromUIDump(dump, this.getDeviceModel(), this.device.getDisplayWidth(), this.device.getDisplayHeight(),imgBytes);
-	}
-
 	@Override
 	public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException {
 		Log.v(uiaDaemon_logcatTag, "Executing device command: " + deviceCommand.command);
@@ -103,7 +98,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 					// in the caller, i.e. Uiautomator2DaemonTcpServerBase.
 					break;
 				case DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP:
-					response = fetchDeviceData();
+					response = fetchDeviceData(device,automation,getDeviceModel());
 					break;
 				case DEVICE_COMMAND_PERFORM_ACTION:
 					response = performAction(deviceCommand);
@@ -153,7 +148,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 		if (action != null)
 			action.execute(device, context);
 
-		return fetchDeviceData();
+		return fetchDeviceData(device,automation,getDeviceModel());
 	}
 
   /*boolean isKeyboardOpened() {

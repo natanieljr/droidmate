@@ -45,15 +45,15 @@ abstract class ExplorationAction : Serializable {
 
 		@JvmStatic
 		@JvmOverloads
-		fun newWidgetExplorationAction(widget: Widget, delay: Int, useCoordinates: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
+		fun newWidgetExplorationAction(widget: Widget, delay: Int, useCoordinates: Boolean = true): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
 
 		@JvmStatic
 		@JvmOverloads
-		fun newWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = false, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
+		fun newWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
 
 		@JvmStatic
 		@JvmOverloads
-		fun newIgnoreActionForTerminationWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = false, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
+		fun newIgnoreActionForTerminationWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
 
 		@JvmStatic
 		@JvmOverloads

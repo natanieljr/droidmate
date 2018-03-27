@@ -6,10 +6,11 @@ import android.graphics.Bitmap
 import android.net.wifi.WifiManager
 import android.support.test.uiautomator.*
 import android.util.Log
+import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
-import android.support.test.uiautomator.UiObject2
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -30,7 +31,7 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 			res = block.invoke()
 		}.let {
 			timer(it)
-			Log.d(uiaDaemon_logcatTag,"time ${if (inMillis) "${it / 1000000.0} ms" else "${it / 1000.0} ns/1000"} \t $msg")
+			Log.d(uiaDaemon_logcatTag,"TIME: ${if (inMillis) "${(it / 1000000.0).toInt()} ms" else "${it / 1000.0} ns/1000"} \t $msg")
 		}
 	} else res = block.invoke()
 	return res!!
@@ -66,13 +67,12 @@ internal sealed class DeviceAction {
 		const val defaultTimeout: Long = 2000
 		private const val waitTimeout: Long = 5000
 		@JvmStatic private var time: Long = 0
-		@JvmStatic private var cnt = 0
+		@JvmStatic private var cnt = 1
 		@JvmStatic private var lastDump:String = "ERROR"
 
 		@JvmStatic protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
 			if (actionSuccessful) {
-				val preDump = lastDump
-				measureTimeMillis {
+				debugT("UI-stab avg = ${time / cnt} ms", {
 					//            device.waitForWindowUpdate(null,defaultTimeout)
 					measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 //					do {
@@ -90,14 +90,14 @@ internal sealed class DeviceAction {
 //					Log.e(uiaDaemon_logcatTag," found $c non-systemui clickable elements out of $cc")
 
 					device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
-				}.let {
+				},timer = {
+					time += it/1000000
 					cnt += 1
-					time += it
-					Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization on average ${time / cnt} ms dump changed = ${lastDump != preDump}")
-				}
+				},inMillis = true)
 			}
 		}
-		@JvmStatic fun getWindowHierarchyDump(device: UiDevice):String{
+		@JvmStatic
+		private fun getWindowHierarchyDump(device: UiDevice):String{
 			return debugT(" fetching gui Dump ", {
 				val os = ByteArrayOutputStream()
 				try {
@@ -112,22 +112,34 @@ internal sealed class DeviceAction {
 				lastDump
 			}, inMillis = true)
 		}
-		@JvmStatic fun getScreenShot(device: UiDevice,automation: UiAutomation): ByteArray {
-			var bytes = ByteArray(0)
-			val stream = ByteArrayOutputStream()
-			try {
-				val screenshot = automation.takeScreenshot()
-				screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
-				stream.flush()
+		@JvmStatic
+		private fun getScreenShot(automation: UiAutomation): ByteArray {
+			return debugT(" fetching screen-shot ", {
+				var bytes = ByteArray(0)
+				val stream = ByteArrayOutputStream()
+				try {
+					val screenshot = automation.takeScreenshot()
+					screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
+					stream.flush()
 
-				bytes = stream.toByteArray()
-				stream.close()
-			} catch (e: IOException) {
-				stream.close()
-				e.printStackTrace()
-			}
-			return bytes
+					bytes = stream.toByteArray()
+					stream.close()
+				} catch (e: IOException) {
+					stream.close()
+					e.printStackTrace()
+				}
+				bytes
+				}, inMillis = true)
 		}
+		@JvmStatic fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String): DeviceResponse {
+			val dump = DeviceAction.getWindowHierarchyDump(device)
+			val imgBytes = DeviceAction.getScreenShot(automation)
+
+			return debugT("compute UI-dump", {
+				GuiStatusResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes)
+			}, inMillis = true)
+		}
+
 	}
 }
 
@@ -286,20 +298,28 @@ private data class DeviceWaitAction(private val id: String, private val criteria
 	}
 }
 
+private var eTime: Long =0
+private var eCnt: Int =1
 private sealed class DeviceObjectAction : DeviceAction() {
 	abstract val xPath: String
 	abstract val resId: String
 
+
 	protected fun executeAction(device: UiDevice, action: (UiObject) -> Boolean, action2: (UiObject2) -> Unit) {
-		Log.d(uiaDaemon_logcatTag, "execute action on target element with resId=$resId xPath=$xPath")
-		val success = if (xPath.isNotEmpty()) executeAction(device, action, xPath) else {
-			Log.d(uiaDaemon_logcatTag, "select element by resourceId")
-			executeAction(device, action, resId, findByResId)
-		}
-		if (!success) {
-			Log.w(uiaDaemon_logcatTag, "action on UiObject failed, try to perform on UiObject2 By.resourceId")
-			executeAction2(device, action2, resId)
-		}
+		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
+			Log.d(uiaDaemon_logcatTag, "execute action on target element with resId=$resId xPath=$xPath")
+			val success = if (xPath.isNotEmpty()) executeAction(device, action, xPath) else {
+				Log.d(uiaDaemon_logcatTag, "select element by resourceId")
+				executeAction(device, action, resId, findByResId)
+			}
+			if (!success) {
+				Log.w(uiaDaemon_logcatTag, "action on UiObject failed, try to perform on UiObject2 By.resourceId")
+				executeAction2(device, action2, resId)
+			}
+		},timer = {
+			eTime += it/1000000
+			eCnt += 1
+		},inMillis = true)
 	}
 }
 
@@ -314,11 +334,17 @@ private data class DeviceClickAction(override val xPath: String, override val re
 
 private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceAction() {
 	override fun execute(device: UiDevice, context: Context) {
-		Log.d(uiaDaemon_logcatTag, "Clicking coordinates ($x,$y)")
-		assert(x >= 0 && x < device.displayWidth, { "Error on coordinate click invalid x:$x" })
-		assert(y >= 0 && y < device.displayHeight, { "Error on coordinate click invalid y:$y" })
-		device.click(x, y)
-		Log.d(uiaDaemon_logcatTag, "Clicked coordinates $x, $y")
+		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
+
+			Log.d(uiaDaemon_logcatTag, "Clicking coordinates ($x,$y)")
+			assert(x >= 0 && x < device.displayWidth, { "Error on coordinate click invalid x:$x" })
+			assert(y >= 0 && y < device.displayHeight, { "Error on coordinate click invalid y:$y" })
+			device.click(x, y)
+			Log.d(uiaDaemon_logcatTag, "Clicked coordinates $x, $y")
+		},timer = {
+			eTime += it/1000000
+			eCnt += 1
+		},inMillis = true)
 		waitForChanges(device)
 	}
 }
@@ -332,13 +358,15 @@ private data class DeviceLongClickAction(override val xPath: String, override va
 
 private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : DeviceAction() {
 	override fun execute(device: UiDevice, context: Context) {
-		Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
+		debugT("executeAction ${this.javaClass.simpleName}", {
+			Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
 
-		assert(x >= 0 && x < device.displayWidth, { "Error on coordinate long click invalid x:$x" })
-		assert(y >= 0 && y < device.displayHeight, { "Error on coordinate long click invalid y:$y" })
+			assert(x >= 0 && x < device.displayWidth, { "Error on coordinate long click invalid x:$x" })
+			assert(y >= 0 && y < device.displayHeight, { "Error on coordinate long click invalid y:$y" })
 
-		device.swipe(x, y, x, y, 100) // 100 ~ 2s. Empirical evaluation.
-		Log.d(uiaDaemon_logcatTag, "Long clicked coordinates ($x, $y)")
+			device.swipe(x, y, x, y, 100) // 100 ~ 2s. Empirical evaluation.
+			Log.d(uiaDaemon_logcatTag, "Long clicked coordinates ($x, $y)")
+		},inMillis = true)
 		waitForChanges(device)
 	}
 }
