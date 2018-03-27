@@ -83,6 +83,11 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 		this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
 	}
 
+	private DeviceResponse fetchDeviceData(){
+		String dump = DeviceAction.getWindowHierarchyDump(device);
+		byte[] imgBytes = DeviceAction.getScreenShot(device,automation);
+		return GuiStatusResponse.fromUIDump(dump, this.getDeviceModel(), this.device.getDisplayWidth(), this.device.getDisplayHeight(),imgBytes);
+	}
 
 	@Override
 	public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException {
@@ -98,7 +103,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 					// in the caller, i.e. Uiautomator2DaemonTcpServerBase.
 					break;
 				case DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP:
-					response = getGuiStatus();
+					response = fetchDeviceData();
 					break;
 				case DEVICE_COMMAND_PERFORM_ACTION:
 					response = performAction(deviceCommand);
@@ -148,7 +153,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 		if (action != null)
 			action.execute(device, context);
 
-		return new DeviceResponse();
+		return fetchDeviceData();
 	}
 
   /*boolean isKeyboardOpened() {

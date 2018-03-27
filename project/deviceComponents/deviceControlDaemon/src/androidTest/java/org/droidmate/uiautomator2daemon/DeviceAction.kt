@@ -1,6 +1,8 @@
 package org.droidmate.uiautomator2daemon
 
+import android.app.UiAutomation
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.wifi.WifiManager
 import android.support.test.uiautomator.*
 import android.util.Log
@@ -109,6 +111,22 @@ internal sealed class DeviceAction {
 				}
 				lastDump
 			}, inMillis = true)
+		}
+		@JvmStatic fun getScreenShot(device: UiDevice,automation: UiAutomation): ByteArray {
+			var bytes = ByteArray(0)
+			val stream = ByteArrayOutputStream()
+			try {
+				val screenshot = automation.takeScreenshot()
+				screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
+				stream.flush()
+
+				bytes = stream.toByteArray()
+				stream.close()
+			} catch (e: IOException) {
+				stream.close()
+				e.printStackTrace()
+			}
+			return bytes
 		}
 	}
 }

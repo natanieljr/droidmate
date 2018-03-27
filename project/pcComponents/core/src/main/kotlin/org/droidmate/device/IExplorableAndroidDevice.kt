@@ -42,7 +42,7 @@ interface IExplorableAndroidDevice {
 	fun getGuiSnapshot(): GuiStatusResponse
 
 	@Throws(DeviceException::class)
-	fun perform(action: Action)
+	fun perform(action: Action) //TODO change interface to return DeviceResult (the daemonController already implements the behavior)
 
 	@Throws(DeviceException::class)
 	fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage>
