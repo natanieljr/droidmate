@@ -11,6 +11,7 @@ import android.support.test.uiautomator.UiObject2
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
@@ -61,7 +62,7 @@ internal sealed class DeviceAction {
 			}
 		}
 		const val defaultTimeout: Long = 2000
-		private const val waitTimeout: Long = 2000
+		private const val waitTimeout: Long = 5000
 		@JvmStatic private var time: Long = 0
 		@JvmStatic private var cnt = 0
 		@JvmStatic private var lastDump:String = "ERROR"
@@ -77,8 +78,14 @@ internal sealed class DeviceAction {
 //						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
 //						getWindowHierarchyDump(device)
 //					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
-					device.wait(Until.findObject(By.clickable(true)),5000)  // this only checks for clickable but is much more reliable than a custom Search-Condition
+
+					// exclude android internal elements
+					device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)  // this only checks for clickable but is much more reliable than a custom Search-Condition
 					// so if we need more we would have to implement something similar to `Until`
+// DEBUG_CODE:
+//					val c = device.findObjects(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))).size
+//					val cc = device.findObjects(By.clickable(true)).size
+//					Log.e(uiaDaemon_logcatTag," found $c non-systemui clickable elements out of $cc")
 
 					device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
 				}.let {
@@ -101,7 +108,7 @@ internal sealed class DeviceAction {
 					throw UiAutomatorDaemonException(e)
 				}
 				lastDump
-			})
+			}, inMillis = true)
 		}
 	}
 }
@@ -132,7 +139,7 @@ private class DeviceEnableWifi : DeviceAction() {
 }
 
 private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction() {
-	private val AppListResId = "com.google.android.googlequicksearchbox:id/apps_list_view"
+	private val appListResId = "com.google.android.googlequicksearchbox:id/apps_list_view"
 	override fun execute(device: UiDevice, context: Context) {
 		Log.d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text $appLaunchIconName")
 
@@ -193,7 +200,7 @@ private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction
 
 		try {
 			Log.i(uiaDaemon_logcatTag, "Attempting to locate app list by resourceId.")
-			appViews = UiScrollable(UiSelector().resourceId(AppListResId))
+			appViews = UiScrollable(UiSelector().resourceId(appListResId))
 
 			// Set the swiping mode to horizontal (the default is vertical)
 			appViews.setAsHorizontalList()
