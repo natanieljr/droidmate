@@ -90,8 +90,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 					DEVICE_COMMAND_PERFORM_ACTION,
 					DEVICE_COMMAND_STOP_UIADAEMON,
 					DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP,
-					DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE,
-					DEVICE_COMMAND_GET_DEVICE_MODEL
+					DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE
 			)
 		}
 	}
@@ -357,26 +356,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun installApk(apk: Path) {
 		log.debug("installApk($apk.fileName)")
 		adbWrapper.installApk(serialNumber, apk)
-	}
-
-	override fun takeScreenshot(app: IApk, suffix: String): Path {
-		log.debug("takeScreenshot($app, $suffix)")
-
-		assert(suffix.isNotEmpty())
-
-		val targetFile = Paths.get("${cfg.droidmateOutputDir}/${cfg.screenshotsOutputSubDir}/${app.fileNameWithoutExtension}_$suffix.png")
-		targetFile.mkdirs()
-		assert(!Files.exists(targetFile))
-		val targetFileString = targetFile.toString().replace(File.separator, "/")
-
-		try {
-			adbWrapper.takeScreenshot(serialNumber, targetFileString)
-		} catch (e: AdbWrapperException) {
-			log.warn(Markers.appHealth, "! Failed to take screenshot for ${app.fileName} with exception: $e " +
-					"Discarding the exception and continuing without the screenshot.")
-		}
-
-		return targetFile
 	}
 
 	override fun appIsRunning(appPackageName: String): Boolean =

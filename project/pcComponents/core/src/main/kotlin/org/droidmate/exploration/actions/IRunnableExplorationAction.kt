@@ -40,7 +40,5 @@ interface IRunnableExplorationAction : Serializable {
 
 	val timestamp: LocalDateTime
 
-	var screenshot: URI
-
 	val takeScreenshot: Boolean
 }

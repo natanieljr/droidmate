@@ -194,9 +194,6 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun takeScreenshot(app: IApk, suffix: String): Path {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
 	// TODO Fix tests
 	/*companion object {
 			private val log = LoggerFactory.getLogger(AndroidDeviceSimulator::class.java)

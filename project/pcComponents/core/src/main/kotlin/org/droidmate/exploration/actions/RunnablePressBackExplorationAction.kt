@@ -53,10 +53,10 @@ class RunnablePressBackExplorationAction constructor(action: PressBackExploratio
 		log.debug("4. Get GUI snapshot.")
 		this.snapshot = device.getGuiSnapshot()
 
-		if (this.takeScreenshot) {
+		/*if (this.takeScreenshot) {
 			log.debug("5. Get GUI screenshot.")
 			val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
 			this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
-		}
+		}*/
 	}
 }

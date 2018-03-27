@@ -66,7 +66,6 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
 	protected lateinit var snapshot: GuiStatusResponse
 	protected lateinit var logs: IDeviceLogs
 	protected lateinit var exception: DeviceException
-	override var screenshot: URI = URI.create("test://empty")
 
 	override fun run(app: IApk, device: IRobustDevice): ActionResult {
 		// @formatter:off
@@ -88,7 +87,7 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
 		val endTime = LocalDateTime.now()
 
 		// For post-conditions, see inside the constructor call made line below.
-		return ActionResult(this.base, startTime, endTime, this.logs, this.snapshot, exception = this.exception, screenshot = this.screenshot)
+		return ActionResult(this.base, startTime, endTime, this.logs, this.snapshot, exception = this.exception, screenshot = this.snapshot.screenshot)
 	}
 
 	@Throws(DeviceException::class)

@@ -20,11 +20,12 @@ package org.droidmate.uiautomator2daemon;
 
 import android.annotation.TargetApi;
 import android.app.Instrumentation;
+import android.app.UiAutomation;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Build;
 
 import android.os.RemoteException;
-import android.view.accessibility.AccessibilityWindowInfo;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.uiautomator.*;
@@ -35,6 +36,7 @@ import org.droidmate.uiautomator_daemon.DeviceResponse;
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException;
 import org.droidmate.uiautomator_daemon.GuiStatusResponse;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -51,17 +53,19 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 	private final boolean waitForGuiToStabilize;
 	private final int waitForWindowUpdateTimeout;
 	private final Context context;
+	private UiAutomation automation;
 
 	UiAutomator2DaemonDriver(boolean waitForGuiToStabilize, int waitForWindowUpdateTimeout) {
-		Log.d(uiaDaemon_logcatTag, "XXX");
 		// Disabling waiting for selector implicit timeout
 		Configurator.getInstance().setWaitForSelectorTimeout(0L);
-
 
 		// The instrumentation required to run uiautomator2-daemon is
 		// provided by the command: adb shell instrument <PACKAGE>/<RUNNER>
 		Instrumentation instr = InstrumentationRegistry.getInstrumentation();
 		if (instr == null) throw new AssertionError();
+
+		this.automation = instr.getUiAutomation();
+		if (this.automation == null) throw new AssertionError();
 
 		this.context = InstrumentationRegistry.getTargetContext();
 		if (context == null) throw new AssertionError();
@@ -76,12 +80,11 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 
 		this.waitForGuiToStabilize = waitForGuiToStabilize;
 		this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
-		Log.d(uiaDaemon_logcatTag, "YYY");
 	}
 
 
 	@Override
-	public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException { //TODO can use UiAutomator to create screenshot bitmap instead of adb
+	public DeviceResponse executeCommand(DeviceCommand deviceCommand) throws UiAutomatorDaemonException {
 		Log.v(uiaDaemon_logcatTag, "Executing device command: " + deviceCommand.command);
 
 		DeviceResponse response = new DeviceResponse();
@@ -297,9 +300,21 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
      See: http://stackoverflow.com/questions/3873659/android-how-can-i-get-the-current-foreground-activity-from-a-service
      */
 
+		byte[] bytes = new byte[0];
+		try {
+			Bitmap screenshot = this.automation.takeScreenshot();
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream);
+			stream.flush();
+
+			bytes = stream.toByteArray();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		Log.d(uiaDaemon_logcatTag, "Creating response");
 
-		GuiStatusResponse response = GuiStatusResponse.fromUIDump(windowHierarchyDump, model, width, height);
+		GuiStatusResponse response = GuiStatusResponse.fromUIDump(windowHierarchyDump, model, width, height, bytes);
 
 		Log.d(uiaDaemon_logcatTag, "Sending response");
 

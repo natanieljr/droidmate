@@ -34,12 +34,12 @@ import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.properties.Delegates
 
 class ActionData private constructor(val actionType: String, val targetWidget: Widget?,
-                                     val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime, val screenshot: URI?,
+                                     val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime, val screenshot: ByteArray,
                                      val successful: Boolean, val exception: String,
                                      val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs) {
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
-	            deviceLogs: IDeviceLogs, screenshot: URI?, exception: DeviceException, successful: Boolean, resState: ConcreteId)
+	            deviceLogs: IDeviceLogs, screenshot: ByteArray, exception: DeviceException, successful: Boolean, resState: ConcreteId)
 			: this(action::class.simpleName ?: "Unknown", action.widget,
 			startTimestamp, endTimestamp, screenshot, successful, exception.toString(), resState, deviceLogs)
 
@@ -68,7 +68,7 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 		}
 	}
 
-	val hasScreenshot: Boolean = screenshot != null
+	val hasScreenshot: Boolean = this.screenshot.size > 0
 
 	companion object {
 //		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):ActionData =
@@ -77,12 +77,12 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 		@JvmStatic
 		fun createFromString(e: List<String>, target: Widget?): ActionData = ActionData(
 				e[P.Action.ordinal], target, LocalDateTime.parse(e[P.StartTime.ordinal]), LocalDateTime.parse(e[P.EndTime.ordinal]),
-				null, e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal])
+				ByteArray(0), e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal])
 		).apply { prevState = stateIdFromString(e[P.Id.ordinal]) }
 
 		@JvmStatic
 		val empty: ActionData by lazy {
-			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, null, true, "empty action", emptyId
+			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, ByteArray(0), true, "empty action", emptyId
 			).apply { prevState = emptyId }
 		}
 

@@ -93,7 +93,8 @@ class Model private constructor(val config: ModelDumpConfig) {
 					trace.last()!!.screenshot.let {
 						// if there is any screen-shot copy it to the state extraction directory
 						java.io.File(config.statePath(newState.stateId, "_${newState.configId}", "png")).let { file ->
-							if (!file.exists()) java.nio.file.Paths.get(it)?.toFile()?.copyTo(file)
+							if (!file.exists())
+								Files.write(file.toPath(), it)
 						}
 					}
 				}

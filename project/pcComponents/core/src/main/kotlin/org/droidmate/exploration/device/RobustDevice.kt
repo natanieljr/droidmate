@@ -621,9 +621,5 @@ class RobustDevice : IRobustDevice {
 
 	override fun appIsRunning(appPackageName: String): Boolean = this.device.appIsRunning(appPackageName)
 
-	override fun takeScreenshot(app: IApk, suffix: String): Path {
-		return this.device.takeScreenshot(app, suffix)
-	}
-
 	override fun resetTimeSync() = this.messagesReader.resetTimeSync()
 }

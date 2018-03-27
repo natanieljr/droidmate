@@ -25,6 +25,7 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.EmptyAction
 import org.droidmate.exploration.device.DeviceLogs
 import java.time.LocalDateTime

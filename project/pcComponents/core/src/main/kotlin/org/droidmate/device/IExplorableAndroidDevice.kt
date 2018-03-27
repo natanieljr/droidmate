@@ -70,8 +70,5 @@ interface IExplorableAndroidDevice {
 
 	@Throws(DeviceException::class)
 	fun clickAppIcon(iconLabel: String)
-
-	@Throws(DeviceException::class)
-	fun takeScreenshot(app: IApk, suffix: String): Path
 }
 

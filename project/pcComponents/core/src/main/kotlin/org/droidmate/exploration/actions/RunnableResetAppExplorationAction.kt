@@ -68,11 +68,11 @@ class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, times
 		log.debug("7. Launch app $app.packageName.")
 		device.launchApp(app)
 
-		if (this.isFirst || this.takeScreenshot) {
+		/*if (this.isFirst || this.takeScreenshot) {
 			log.debug("7.firstReset: Take a screenshot of first reset action.")
 			val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
 			this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
-		}
+		}*/
 
 		log.debug("8. Get GUI snapshot.")
 		this.snapshot = device.getGuiSnapshot()

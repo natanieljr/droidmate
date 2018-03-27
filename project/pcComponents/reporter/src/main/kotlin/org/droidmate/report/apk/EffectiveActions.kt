@@ -32,6 +32,7 @@ import org.droidmate.withExtension
 import java.awt.Point
 import java.awt.image.BufferedImage
 import java.awt.image.Raster
+import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -112,11 +113,8 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 		require(prevAction.hasScreenshot, { "Action has no screenshot attached $prevAction" })
 		require(currAction.hasScreenshot, { "Action has no screenshot attached $currAction" })
 
-		val prevScreenshot = Paths.get(prevAction.screenshot).toAbsolutePath()
-		val currScreenshot = Paths.get(currAction.screenshot).toAbsolutePath()
-
-		assert(Files.exists(prevScreenshot), { "Screenshot file not found $prevScreenshot" })
-		assert(Files.exists(currScreenshot), { "Screenshot file not found $currScreenshot" })
+		val prevScreenshot = prevAction.screenshot
+		val currScreenshot = currAction.screenshot
 
 		return if ((prevAction.actionType != WidgetExplorationAction::class.java.simpleName) ||
 				(currAction.actionType != WidgetExplorationAction::class.java.simpleName))
@@ -139,16 +137,16 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 	/**
 	 * Returns the percentage similarity between 2 image files
 	 */
-	private fun compareImage(fileA: Path, fileB: Path): Double {
+	private fun compareImage(screenshotA: ByteArray, screenshotB: ByteArray): Double {
 		var percentage = 0.0
 		try {
 			// take buffer data from both image files
-			val biA = ImageIO.read(fileA.toFile())
+			val biA = ImageIO.read(ByteArrayInputStream(screenshotA))
 			//Original code: val dbA = biA.data.dataBuffer
 			val dbA = getDataWithoutStatusBar(biA).dataBuffer //Get screenshot without Status bar
 			val sizeA = dbA.size
 
-			val biB = ImageIO.read(fileB.toFile())
+			val biB = ImageIO.read(ByteArrayInputStream(screenshotB))
 			//Original code: val dbB = biB.data.dataBuffer
 			val dbB = getDataWithoutStatusBar(biB).dataBuffer //Get screenshot without Status bar
 			val sizeB = dbB.size
@@ -165,7 +163,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 				log.info("Both images have different size")
 
 		} catch (e: Exception) {
-			log.error("Failed to compare image files: ${fileA.fileName} and ${fileB.fileName}")
+			log.error("Failed to compare image files: ${screenshotA} and ${screenshotB}")
 			e.printStackTrace()
 		}
 

@@ -50,12 +50,12 @@ class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime,
 		this.logs = logsHandler.getLogs()
 
 
-		if (this.takeScreenshot) {
+		/*if (this.takeScreenshot) {
 			log.debug("3. Get GUI screenshot.")
 			val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
 			val screenshotsPath = device.takeScreenshot(app, timestamp.format(formatter) + "__WAIT")
 			this.screenshot = screenshotsPath.toUri()
-		}
+		}*/
 
 		log.debug("4. Get GUI snapshot.")
 		this.snapshot = device.getGuiSnapshot()

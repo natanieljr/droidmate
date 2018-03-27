@@ -29,6 +29,8 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
 import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.Serializable
 import java.net.URI
 import java.nio.file.Files
@@ -55,7 +57,7 @@ open class ActionResult(val action: ExplorationAction,
                         val endTimestamp: LocalDateTime,
                         val deviceLogs: IDeviceLogs = MissingDeviceLogs,
                         val guiSnapshot: GuiStatusResponse = GuiStatusResponse.empty,
-                        val screenshot: URI = URI("test://empty"),
+                        val screenshot: ByteArray = ByteArray(0),
                         val exception: DeviceException = DeviceExceptionMissing()) : Serializable {
 	companion object {
 		private const val serialVersionUID: Long = 1
@@ -95,10 +97,16 @@ open class ActionResult(val action: ExplorationAction,
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
 
 //		val img:BufferedImage? =
-		getPathOrNull(screenshot)?.let {
-			// load the image if there is any
-			if (Files.exists(java.nio.file.Paths.get(screenshot))) debugT("img file read", { ImageIO.read(java.nio.file.Paths.get(screenshot).toAbsolutePath().toFile()) }) else null
-		}.let { img ->
+		debugT("img file read", {
+			// TODO Nataniel remove later, debug code
+			//val buff = ImageIO.read(ByteArrayInputStream(this.screenshot))
+			//val outputFile = File("saved.png")
+			//ImageIO.write(buff, "png", outputFile)
+			 //buff
+
+			ImageIO.read(ByteArrayInputStream(this.screenshot))
+		})
+		.let { img ->
 					guiSnapshot.let { g ->
 						debugT(" \n filter device objects",
 								{ g.widgets.filterNot { deviceObjects.contains(it.xpath) } } // ignore the overall layout containing the Android Status-bar

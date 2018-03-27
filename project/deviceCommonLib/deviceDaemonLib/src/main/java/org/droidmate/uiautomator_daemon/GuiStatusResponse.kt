@@ -30,7 +30,8 @@ class GuiStatusResponse private constructor(val windowHierarchyDump: String,
                                             val widgets: List<WidgetData>,
                                             val androidLauncherPackageName: String,
                                             val deviceDisplayWidth: Int,
-                                            val deviceDisplayHeight: Int) : DeviceResponse() {
+                                            val deviceDisplayHeight: Int,
+											val screenshot: ByteArray) : DeviceResponse() {
 	companion object {
 		private val log = LoggerFactory.getLogger(GuiStatusResponse::class.java)
 
@@ -41,7 +42,8 @@ class GuiStatusResponse private constructor(val windowHierarchyDump: String,
 					emptyList(),
 					"",
 					0,
-					0)
+					0,
+					ByteArray(0))
 		}
 
 		/**
@@ -156,7 +158,7 @@ class GuiStatusResponse private constructor(val windowHierarchyDump: String,
 		}
 
 		@JvmStatic
-		fun fromUIDump(windowHierarchyDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int): GuiStatusResponse {
+		fun fromUIDump(windowHierarchyDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray): GuiStatusResponse {
 			val androidLauncherPackageName = androidLauncher(deviceModel)
 			val dbf = DocumentBuilderFactory.newInstance()
 			val db = dbf.newDocumentBuilder()
@@ -190,7 +192,7 @@ class GuiStatusResponse private constructor(val windowHierarchyDump: String,
 				addWidget(widgets, null, it)
 			}
 
-			return GuiStatusResponse(windowHierarchyDump, topNodePackage, widgets, androidLauncherPackageName, displayWidth, displayHeight)
+			return GuiStatusResponse(windowHierarchyDump, topNodePackage, widgets, androidLauncherPackageName, displayWidth, displayHeight, screenshot)
 		}
 	}
 

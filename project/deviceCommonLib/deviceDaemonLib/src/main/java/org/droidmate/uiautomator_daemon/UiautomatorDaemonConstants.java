@@ -46,7 +46,6 @@ public class UiautomatorDaemonConstants {
 	public static final String DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE = "get_is_orientation_landscape";
 	public static final String DEVICE_COMMAND_PERFORM_ACTION = "perform_action";
 	public static final String DEVICE_COMMAND_STOP_UIADAEMON = "stop_uiadaemon";
-	public static final String DEVICE_COMMAND_GET_DEVICE_MODEL = "get_device_model";
 
 	public static final String uiaDaemon_packageName = "org.droidmate.uiautomator_daemon";
 	/**
