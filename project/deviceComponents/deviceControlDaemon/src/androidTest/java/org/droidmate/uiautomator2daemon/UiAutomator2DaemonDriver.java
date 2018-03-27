@@ -20,6 +20,7 @@ package org.droidmate.uiautomator2daemon;
 
 import android.annotation.TargetApi;
 import android.app.Instrumentation;
+import android.app.UiAutomation;
 import android.content.Context;
 import android.os.Build;
 
@@ -51,6 +52,7 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 	private final boolean waitForGuiToStabilize;
 	private final int waitForWindowUpdateTimeout;
 	private final Context context;
+	private final UiAutomation automation;
 
 	UiAutomator2DaemonDriver(boolean waitForGuiToStabilize, int waitForWindowUpdateTimeout) {
 		Log.d(uiaDaemon_logcatTag, "XXX");
@@ -62,6 +64,8 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 		// provided by the command: adb shell instrument <PACKAGE>/<RUNNER>
 		Instrumentation instr = InstrumentationRegistry.getInstrumentation();
 		if (instr == null) throw new AssertionError();
+		automation = instr.getUiAutomation();
+		automation.setRunAsMonkey(true); // tell the app that it is run in test-framework TODO check if that helps with adds or hides behavior
 
 		this.context = InstrumentationRegistry.getTargetContext();
 		if (context == null) throw new AssertionError();
@@ -94,7 +98,10 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 					// in the caller, i.e. Uiautomator2DaemonTcpServerBase.
 					break;
 				case DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP:
-					response = getGuiStatus();
+					String dump = DeviceAction.getWindowHierarchyDump(device);
+
+					response = GuiStatusResponse.fromUIDump(dump, this.getDeviceModel(), this.device.getDisplayWidth(), this.device.getDisplayHeight());
+
 					break;
 				case DEVICE_COMMAND_PERFORM_ACTION:
 					response = performAction(deviceCommand);

@@ -8,37 +8,22 @@ import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
 import android.support.test.uiautomator.UiObject2
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.nio.charset.StandardCharsets
 import kotlin.system.measureTimeMillis
 
 /**
  * Created by J.H. on 05.02.2018.
  */
 internal sealed class DeviceAction {
-	val defaultTimeout: Long = 2000
-	private val waitTimeout: Long = 20000
-	private var time: Long = 0
-	private var cnt = 0
 
 	@Throws(UiAutomatorDaemonException::class)
 	abstract fun execute(device: UiDevice, context: Context)
 
-	protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
-		if (actionSuccessful) {
-			measureTimeMillis {
-				//            device.waitForWindowUpdate(null,defaultTimeout)
-				measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
-				device.wait(hasInteractive, waitTimeout)
-				device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
-			}.let {
-				cnt += 1
-				time += it
-				Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization on average ${time / cnt} ms")
-			}
-		}
-	}
-
 	companion object {
-		fun fromAction(a: Action): DeviceAction? = with(a) {
+
+		@JvmStatic fun fromAction(a: Action): DeviceAction? = with(a) {
 			return when (this) {
 				is WaitAction -> DeviceWaitAction(target, criteria)
 				is LongClickAction -> DeviceLongClickAction(xPath, resId)
@@ -58,6 +43,46 @@ internal sealed class DeviceAction {
 					null /* There's no equivalent device action */
 				}
 			}
+		}
+		const val defaultTimeout: Long = 2000
+		private const val waitTimeout: Long = 2000
+		@JvmStatic private var time: Long = 0
+		@JvmStatic private var cnt = 0
+		@JvmStatic private var lastDump:String = "ERROR"
+
+		@JvmStatic protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
+			if (actionSuccessful) {
+				val preDump = lastDump
+				measureTimeMillis {
+					//            device.waitForWindowUpdate(null,defaultTimeout)
+					measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
+					do {
+						val res = device.wait(hasInteractive, waitTimeout)  //FIXME this seams to sometimes take extremely long maybe because the dump is instable?
+						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
+						getWindowHierarchyDump(device)
+					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
+
+					device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
+				}.let {
+					cnt += 1
+					time += it
+					Log.d(uiaDaemon_logcatTag, "waited $it millis for UI stabilization on average ${time / cnt} ms dump changed = ${lastDump != preDump}")
+				}
+			}
+		}
+		@JvmStatic fun getWindowHierarchyDump(device: UiDevice):String{
+			val os = ByteArrayOutputStream()
+			try{
+				device.dumpWindowHierarchy(os)
+				os.flush()
+				lastDump = os.toString(StandardCharsets.UTF_8.name())
+				os.close()
+			} catch (e: IOException)
+			{
+				os.close()
+				throw UiAutomatorDaemonException(e)
+			}
+			return lastDump
 		}
 	}
 }
@@ -88,9 +113,9 @@ private class DeviceEnableWifi : DeviceAction() {
 }
 
 private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction() {
-	private val APP_LIST_RES_ID = "com.google.android.googlequicksearchbox:id/apps_list_view"
+	private val AppListResId = "com.google.android.googlequicksearchbox:id/apps_list_view"
 	override fun execute(device: UiDevice, context: Context) {
-		Log.d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text " + appLaunchIconName)
+		Log.d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text $appLaunchIconName")
 
 		val clickResult: Boolean
 		try {
@@ -149,7 +174,7 @@ private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction
 
 		try {
 			Log.i(uiaDaemon_logcatTag, "Attempting to locate app list by resourceId.")
-			appViews = UiScrollable(UiSelector().resourceId(APP_LIST_RES_ID))
+			appViews = UiScrollable(UiSelector().resourceId(AppListResId))
 
 			// Set the swiping mode to horizontal (the default is vertical)
 			appViews.setAsHorizontalList()
@@ -268,7 +293,7 @@ private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : Dev
 		assert(x >= 0 && x < device.displayWidth, { "Error on coordinate long click invalid x:$x" })
 		assert(y >= 0 && y < device.displayHeight, { "Error on coordinate long click invalid y:$y" })
 
-		device.swipe(x, y, x, y, 100); // 100 ~ 2s. Empirical evaluation.
+		device.swipe(x, y, x, y, 100) // 100 ~ 2s. Empirical evaluation.
 		Log.d(uiaDaemon_logcatTag, "Long clicked coordinates ($x, $y)")
 		waitForChanges(device)
 	}
