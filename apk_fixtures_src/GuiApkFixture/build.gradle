@@ -1,0 +1,66 @@
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018 Saarland University
+// All rights reserved.
+//
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// This file is part of the "DroidMate" project.
+//
+// www.droidmate.org
+buildscript {
+	// Reference: http://stackoverflow.com/a/35186295/986533
+	System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
+	repositories {
+		google()
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.android.tools.build:gradle:2.3.3'
+	}
+}
+
+apply plugin: 'com.android.application'
+apply from: "$rootDir/shared.gradle"
+
+repositories {
+	jcenter()
+}
+
+android {
+	compileSdkVersion 26
+	buildToolsVersion "26.0.2"
+
+	defaultConfig {
+		applicationId "org.droidmate.fixtures.apks.gui"
+		minSdkVersion 23
+		targetSdkVersion 26
+		versionCode 1
+		versionName "1.0"
+
+		jackOptions {
+			enabled true
+		}
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_8
+		targetCompatibility JavaVersion.VERSION_1_8
+	}
+	buildTypes {
+		release {
+			// WISH migrate
+//            runProguard false
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+	}
+
+	lintOptions {
+		abortOnError false
+	}
+}
+
+dependencies {
+	compile fileTree(dir: 'libs', include: ['*.jar'])
+}

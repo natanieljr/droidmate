@@ -1,0 +1,73 @@
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018. Saarland University
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
+// web: www.droidmate.org
+import java.nio.file.Files
+import java.nio.file.Paths
+
+apply plugin: 'kotlin'
+apply plugin: 'project-report' // http://www.gradle.org/docs/current/userguide/project_reports_plugin.html
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
+shadowJar {
+	baseName = 'shadow'
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
+	}
+}
+
+dependOnJunit(project)
+
+dependWithTest([project, ":project:pcComponents:core", "kotlin"])
+dependWithTest([project, ":project:pcComponents:reporter", "kotlin"])
+dependWithTest([project, ":project:pcComponents:lib-kotlin", "kotlin"])
+dependWithTest([project, ":project:pcComponents:lib-common", "kotlin"])
+
+dependencies {
+	// Necessary to make tests from 'lib-kotlin' work.
+	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
+
+	// Necessary to make tests from 'reporter' work.
+	testCompile 'org.hamcrest:hamcrest-library:1.3'
+
+	// Workaround for: 'gradlew :p:command:test' fails when reporter tests are run from command line.
+	// It works when run from IntelliJ or when run with 'gradlew :p:reporter:test'
+	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+	compile project(":project:pcComponents:apk-inliner")
+}
+
+apply from: file("test.gradle")
+
+apply from: project(":project:pcComponents").file("maven.gradle")
+// So the published jar to local maven repo with task "install" won't be called command.jar but droidmate.jar
+jar.baseName = rootProject.name
+
+apply from: project(":project:pcComponents").file("debug.gradle")

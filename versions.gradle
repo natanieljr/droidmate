@@ -1,0 +1,14 @@
+project.ext {
+	internalTask = null  // use this as .group value of any task to make them invisable from gradle task list
+
+	javaVersion = JavaVersion.VERSION_1_8
+
+	kotlin_version = '1.2.30'
+	androidBuildToolsVersion = "26.0.2"
+	androidMinSdkVersion = 23
+	androidTargetSdkVersion = 25
+	androidCompileSdkVersion = 26
+
+	// for core package some strange konrad.utilities
+	utilities_version = '19115bab35'
+}
