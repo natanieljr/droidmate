@@ -1,9 +1,9 @@
 project.ext {
-	internalTask = null  // use this as .group value of any task to make them invisable from gradle task list
+	internalTask = null  // use this as .group value of any task to make them invisible from gradle task list
 
 	javaVersion = JavaVersion.VERSION_1_8
 
-	kotlin_version = '1.2.30'
+	kotlin_version = '1.2.31'
 	androidBuildToolsVersion = "26.0.2"
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25

@@ -68,7 +68,7 @@ class AaptWrapperTest : DroidmateTestCase() {
 		assert(launchableActivityName == expectedLaunchableActivityName)
 	}
 
-	@Test
+	/*@Test
 	fun `Gets launchable activity component name`() {
 
 		val sut = AaptWrapper(Configuration.getDefault(), SysCmdExecutor())
@@ -80,5 +80,5 @@ class AaptWrapperTest : DroidmateTestCase() {
 		val launchableActivityName = sut.getLaunchableActivityComponentName(Paths.get(ignoredApk.absolutePath))
 
 		assert(launchableActivityName == expectedLaunchableActivityName)
-	}
+	}*/
 }

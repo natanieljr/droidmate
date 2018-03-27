@@ -98,9 +98,9 @@ dependencies {
 apply from: file("resources.gradle")
 
 configureTest([project, ['**/LibKotlinTestSuite.class']])
-test.configure {
+/*test.configure {
 	inputs.dir apkFixturesDir.absolutePath
-}
+}*/
 
 apply from: project(":project:pcComponents").file("maven.gradle")
 

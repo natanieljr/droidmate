@@ -104,7 +104,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 			cfg.uiautomatorDaemonTcpPort,
 			cfg.uiautomatorDaemonServerStartTimeout,
 			cfg.uiautomatorDaemonServerStartQueryDelay,
-			cfg.port)
+			cfg.port,
+			cfg.monitorUseLegacyStream)
 
 	@Throws(DeviceException::class)
 	override fun pushFile(jar: Path) {

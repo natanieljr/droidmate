@@ -101,6 +101,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 		const val pn_launchActivityTimeout = "-launchActivityTimeout"
 		const val pn_monitorSocketTimeout = "-monitorSocketTimeout"
 		const val pn_monitorUseLogcat = "-monitorUseLogcat"
+		const val pn_monitorUseLegacyStream = "-monitorUseLegacyStream"
 		const val pn_pressBackProbability = "-pressBack"
 		const val pn_minimumActionsPerUIElementBack = "-minActionsPerUIElementBack"
 		const val pn_randomSeed = "-randomSeed"
@@ -271,6 +272,11 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
 	@Parameter(names = [(Configuration.pn_monitorUseLogcat)], arity = 1)
 	public var monitorUseLogcat = false
+
+	@Parameter(names = [(Configuration.pn_monitorUseLegacyStream)],
+			arity = 1,
+			description = "Use legacy monitor stream. Use with custom Monitor implementations, doesn't work with DroidMate's default.")
+	public var monitorUseLegacyStream = false
 
 	@Parameter(names = [pn_uninstallAux], arity = 1, description =
 	"Uninstall auxiliary files (UIAutomator and Monitor) after the exploration.")
