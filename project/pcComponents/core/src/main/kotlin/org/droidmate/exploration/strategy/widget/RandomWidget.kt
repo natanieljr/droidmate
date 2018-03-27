@@ -113,7 +113,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
 		val actionList: MutableList<ExplorationAction> = mutableListOf()
 
 		if (chosenWidget.longClickable)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, false))
+			actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, longClick = true))
 
 		if (chosenWidget.clickable)
 			actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget))
