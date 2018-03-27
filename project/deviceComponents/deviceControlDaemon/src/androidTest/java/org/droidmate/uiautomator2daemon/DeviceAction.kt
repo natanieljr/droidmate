@@ -11,11 +11,27 @@ import android.support.test.uiautomator.UiObject2
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
 /**
  * Created by J.H. on 05.02.2018.
  */
+const val measurePerformance = true
+
+@Suppress("ConstantConditionIf")
+inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
+	var res: T? = null
+	if (measurePerformance) {
+		measureNanoTime {
+			res = block.invoke()
+		}.let {
+			timer(it)
+			Log.d(uiaDaemon_logcatTag,"time ${if (inMillis) "${it / 1000000.0} ms" else "${it / 1000.0} ns/1000"} \t $msg")
+		}
+	} else res = block.invoke()
+	return res!!
+}
 internal sealed class DeviceAction {
 
 	@Throws(UiAutomatorDaemonException::class)
@@ -56,11 +72,13 @@ internal sealed class DeviceAction {
 				measureTimeMillis {
 					//            device.waitForWindowUpdate(null,defaultTimeout)
 					measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
-					do {
-						val res = device.wait(hasInteractive, waitTimeout)  //FIXME this seams to sometimes take extremely long maybe because the dump is instable?
-						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
-						getWindowHierarchyDump(device)
-					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
+//					do {
+//						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is instable?
+//						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
+//						getWindowHierarchyDump(device)
+//					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
+					device.wait(Until.findObject(By.clickable(true)),5000)  // this only checks for clickable but is much more reliable than a custom Search-Condition
+					// so if we need more we would have to implement something similar to `Until`
 
 					device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
 				}.let {
@@ -71,18 +89,19 @@ internal sealed class DeviceAction {
 			}
 		}
 		@JvmStatic fun getWindowHierarchyDump(device: UiDevice):String{
-			val os = ByteArrayOutputStream()
-			try{
-				device.dumpWindowHierarchy(os)
-				os.flush()
-				lastDump = os.toString(StandardCharsets.UTF_8.name())
-				os.close()
-			} catch (e: IOException)
-			{
-				os.close()
-				throw UiAutomatorDaemonException(e)
-			}
-			return lastDump
+			return debugT(" fetching gui Dump ", {
+				val os = ByteArrayOutputStream()
+				try {
+					device.dumpWindowHierarchy(os)
+					os.flush()
+					lastDump = os.toString(StandardCharsets.UTF_8.name())
+					os.close()
+				} catch (e: IOException) {
+					os.close()
+					throw UiAutomatorDaemonException(e)
+				}
+				lastDump
+			})
 		}
 	}
 }
