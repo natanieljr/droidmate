@@ -83,8 +83,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			return deviceCommand.command in arrayListOf(
 					DEVICE_COMMAND_PERFORM_ACTION,
 					DEVICE_COMMAND_STOP_UIADAEMON,
-					DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP,
-					DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE
+					DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP
 			)
 		}
 	}

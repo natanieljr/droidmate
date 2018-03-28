@@ -43,7 +43,6 @@ public class UiautomatorDaemonConstants {
 	public static final String UIADAEMON_SERVER_START_MSG = "uiad server start success";
 
 	public static final String DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP = "get_uiautomator_window_hierarchy_dump";
-	public static final String DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE = "get_is_orientation_landscape";
 	public static final String DEVICE_COMMAND_PERFORM_ACTION = "perform_action";
 	public static final String DEVICE_COMMAND_STOP_UIADAEMON = "stop_uiadaemon";
 

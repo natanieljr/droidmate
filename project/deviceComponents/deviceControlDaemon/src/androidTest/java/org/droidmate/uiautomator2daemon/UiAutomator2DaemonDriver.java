@@ -103,9 +103,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 				case DEVICE_COMMAND_PERFORM_ACTION:
 					response = performAction(deviceCommand);
 					break;
-				case DEVICE_COMMAND_GET_IS_ORIENTATION_LANDSCAPE:
-					response = getIsNaturalOrientation();
-					break;
 				default:
 					throw new UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command));
 			}
