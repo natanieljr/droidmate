@@ -67,13 +67,18 @@ open class RandomWidget protected constructor(randomSeed: Long,
 		return false
 	}
 
+	/** if we trigger any functionality which requires (not yet granted) Android permissions an PermissionDialogue
+	 * will appear, but the functionality may not be triggered yet.
+	 * Now we do not want to penalize this target just because it required a permission and the functionality was not yet triggered
+	 */
 	private fun repeatLastAction(): ExplorationAction {
-		val lastActionBeforePermission = currentState.let {
-			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
-		}
+//		val lastActionBeforePermission = currentState.let {
+//			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
+//		}
 
 //        return lastActionBeforePermission.action
-		TODO("extract WidgetId from recorded trace and look it up in current Context to choose as target")
+		TODO("instead PermissionStrategy should decrease the widgetCounter again, if the prev state is the same like after handling permission " +
+				"to avoid penalizing the target")
 	}
 
 	protected open fun getAvailableWidgets(): List<Widget> {

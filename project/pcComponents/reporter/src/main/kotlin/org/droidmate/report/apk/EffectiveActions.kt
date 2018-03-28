@@ -75,20 +75,12 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 			val currTimestamp = currAction.startTimestamp
 			val currTimeDiff = ChronoUnit.SECONDS.between(startTimeStamp, currTimestamp)
 
-			if (prevAction.hasScreenshot && currAction.hasScreenshot) {
+			if (actionWasEffective(prevAction, currAction))
+				effectiveActions++
 
-				if (actionWasEffective(prevAction, currAction))
-					effectiveActions++
+			totalActions++
 
-				totalActions++
-
-				reportData[currTimeDiff] = Pair(totalActions, effectiveActions)
-			} else {
-				if (!prevAction.hasScreenshot)
-					log.warn("No screenshot for action ${prevAction.actionString()}")
-				if (!currAction.hasScreenshot)
-					log.warn("No screenshot for action ${currAction.actionString()}")
-			}
+			reportData[currTimeDiff] = Pair(totalActions, effectiveActions)
 
 			if (i % 100 == 0)
 				log.info("Processing $i")
@@ -110,18 +102,11 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
 	private fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
 
-		require(prevAction.hasScreenshot, { "Action has no screenshot attached $prevAction" })
-		require(currAction.hasScreenshot, { "Action has no screenshot attached $currAction" })
-
-		val prevScreenshot = prevAction.screenshot
-		val currScreenshot = currAction.screenshot
-
 		return if ((prevAction.actionType != WidgetExplorationAction::class.java.simpleName) ||
 				(currAction.actionType != WidgetExplorationAction::class.java.simpleName))
 			true
 		else {
-			val imageSimilarity = compareImage(prevScreenshot, currScreenshot)
-			imageSimilarity < 100.0
+			currAction.prevState != currAction.resState
 		}
 	}
 

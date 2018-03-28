@@ -97,7 +97,7 @@ open class ActionResult(val action: ExplorationAction,
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
 
 //		val img:BufferedImage? =
-		debugT("img file read", { ImageIO.read(ByteArrayInputStream(this.screenshot)) })
+		debugT("img file read", { ImageIO.read(ByteArrayInputStream(this.screenshot)) },inMillis = true)
 		.let { img ->
 					guiSnapshot.let { g ->
 						debugT(" \n filter device objects",
@@ -129,7 +129,7 @@ open class ActionResult(val action: ExplorationAction,
 	fun resultState(widgets: Lazy<List<Widget>>): StateData {
 		return guiSnapshot.let { g ->
 			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName, g.isHomeScreen, g.isAppHasStoppedDialogBox,
-					g.isRequestRuntimePermissionDialogBox, g.isCompleteActionUsingDialogBox, g.isSelectAHomeAppDialogBox, g.isUseLauncherAsHomeDialogBox)
+					g.isRequestRuntimePermissionDialogBox)
 		}
 	}
 }

@@ -26,7 +26,6 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.device.IDeviceLogs
 import org.droidmate.exploration.device.MissingDeviceLogs
 import java.io.File
-import java.net.URI
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -34,16 +33,16 @@ import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.properties.Delegates
 
 class ActionData private constructor(val actionType: String, val targetWidget: Widget?,
-                                     val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime, val screenshot: ByteArray,
+                                     val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
                                      val successful: Boolean, val exception: String,
                                      val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs) {
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
-	            deviceLogs: IDeviceLogs, screenshot: ByteArray, exception: DeviceException, successful: Boolean, resState: ConcreteId)
+	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId)
 			: this(action::class.simpleName ?: "Unknown", action.widget,
-			startTimestamp, endTimestamp, screenshot, successful, exception.toString(), resState, deviceLogs)
+			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs)
 
-	constructor(res: ActionResult, resStateId: ConcreteId, prevStateId: ConcreteId) : this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.screenshot, res.exception, res.successful, resStateId) {
+	constructor(res: ActionResult, resStateId: ConcreteId, prevStateId: ConcreteId) : this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId) {
 		prevState = prevStateId
 	}
 
@@ -68,8 +67,6 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 		}
 	}
 
-	val hasScreenshot: Boolean = this.screenshot.size > 0
-
 	companion object {
 //		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):ActionData =
 //				ActionData(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
@@ -77,12 +74,12 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 		@JvmStatic
 		fun createFromString(e: List<String>, target: Widget?): ActionData = ActionData(
 				e[P.Action.ordinal], target, LocalDateTime.parse(e[P.StartTime.ordinal]), LocalDateTime.parse(e[P.EndTime.ordinal]),
-				ByteArray(0), e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal])
+				e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal])
 		).apply { prevState = stateIdFromString(e[P.Id.ordinal]) }
 
 		@JvmStatic
 		val empty: ActionData by lazy {
-			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, ByteArray(0), true, "empty action", emptyId
+			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId
 			).apply { prevState = emptyId }
 		}
 
@@ -147,7 +144,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList()) {
 		{
 			debugT("create actionData", { ActionData(action, newState.stateId, newState.stateId) })
 					.also {
-						debugT("add action", { trace.add(it) })
+						debugT("add action", { P_addAction(it) })
 					}
 		}
 	}
@@ -161,7 +158,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList()) {
 	}
 
 	val currentState get() = newState.first
-	val size: Int get() = waitFor { trace.size }
+	val size: Int get() { return waitFor { trace.size } }
 
 	val interactedEditFields: Map<UUID, List<Pair<StateData, Widget>>> get() = editFields
 
@@ -171,10 +168,10 @@ class Trace(private val watcher: List<ModelFeature> = emptyList()) {
 		}
 	}
 
-	/** this directly accesses the [trace] without any synchronization.
-	 * the caller should ensure that this method is only called in sequential/synchronized context
+	/** this directly accesses the [trace] and therefore uses synchronization.
+	 * It could be probably optimized with and channel/actor approach instead, if necessary.
 	 */
-	internal fun S_addAction(action: ActionData) = trace.add(action)
+	internal fun P_addAction(action:ActionData) = launch(context, parent = actionProcessorJob){ synchronized(trace){ trace.add(action)} }
 
 	fun getActions(): List<ActionData> = waitFor { trace }
 	fun last(): ActionData? = waitFor { trace.lastOrNull() }

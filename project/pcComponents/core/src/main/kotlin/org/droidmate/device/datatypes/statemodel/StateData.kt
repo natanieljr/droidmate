@@ -18,10 +18,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
                             val topNodePackageName: String = "", val androidLauncherPackageName: String = "", //TODO check if androidLauncherPackageName really necessary
                             val isHomeScreen: Boolean = false,
                             val isAppHasStoppedDialogBox: Boolean = false,
-                            val isRequestRuntimePermissionDialogBox: Boolean = false,
-                            val isCompleteActionUsingDialogBox: Boolean = false,
-                            val isSelectAHomeAppDialogBox: Boolean = false,
-                            val isUseLauncherAsHomeDialogBox: Boolean = false) {
+                            val isRequestRuntimePermissionDialogBox: Boolean = false) {
 
 	constructor(widgets: Set<Widget>) : this(lazyOf(widgets.toList()))
 

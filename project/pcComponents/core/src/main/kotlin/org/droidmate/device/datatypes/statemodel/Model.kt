@@ -90,7 +90,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 				}
 				if (config.dumpStateImg) launch {
 					//traceUpdate.join()
-					trace.last()!!.screenshot?.let {  //FIXME if no screenshot this issues exceptions (probably this strange default value of ActionResult)
+					action.screenshot.let {  //FIXME if no screenshot this issues exceptions (probably this strange default value of ActionResult)
 						// if there is any screen-shot copy it to the state extraction directory
 						java.io.File(config.statePath(newState.stateId, "_${newState.configId}", "png")).let { file ->
 							if (!file.exists())
@@ -199,7 +199,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 
 	private suspend fun P_parseTrace(file: Path) {
 		Trace().apply {
-			P_processLines(file.toFile(), sep, lineProcessor = _actionParser).forEach { it.await().let { S_addAction(it) } }
+			P_processLines(file.toFile(), sep, lineProcessor = _actionParser).forEach { it.await().let { P_addAction(it) } }
 		}.also { synchronized(paths) { paths.add(it) } }
 	}
 
