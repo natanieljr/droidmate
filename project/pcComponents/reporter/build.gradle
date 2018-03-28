@@ -52,4 +52,9 @@ apply from: project(":project:pcComponents").file("maven.gradle")
 repositories {
 	mavenCentral()
 }
+kotlin {
+	experimental {
+		coroutines "enable"
+	}
+}
 

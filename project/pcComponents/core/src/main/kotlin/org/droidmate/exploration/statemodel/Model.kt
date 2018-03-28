@@ -28,51 +28,72 @@ internal inline fun <T> P_processLines(file: File, sep: String, skip: Long = 1, 
 /** s_* should be only used in sequential context as it currently does not handle parallelism*/
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class Model private constructor(val config: ModelDumpConfig) {
-	private val states = HashSet<StateData>()
-	private val widgets = HashSet<Widget>()
 	private val paths = HashSet<Trace>()
+	private var nWidgets = 0
+	private var nStates = 0
 
-	fun getStates(): Set<StateData> = states // return a view to the data
-	fun addState(s: StateData) = synchronized(states) {
-		states.find { x -> x.stateId == s.stateId } ?: states.add(s)
+	private val states = stateQueue()
+	suspend fun getStates(): Set<StateData>{ // return a view to the data
+		return CompletableDeferred<Collection<StateData>>().let{ response ->
+			states.send(GetStates(response))
+			response.await() as Set
+		}
+	}
+	suspend fun addState(s: StateData){
+		nStates +=1
+		states.send(AddState(s))
 	}
 
-	fun getState(id: ConcreteId) = states.find { it.stateId == id }
+	suspend fun getState(id: ConcreteId) = getStates().find { it.stateId == id }
 
-	private val widgetAdder: LinkedList<Deferred<Unit>> = LinkedList()
-	fun getWidgets(): Set<Widget> = widgets
-	fun addWidget(w: Widget) = synchronized(widgets) {
-		widgets.find { it.id == w.id } ?: widgets.add(w)
+	private val widgets = widgetQueue()
+	suspend fun getWidgets(): Set<Widget>{
+		return CompletableDeferred<Collection<Widget>>().let{ response ->
+			widgets.send(GetWidgets(response))
+			response.await() as Set
+		}
 	}
-
-	fun waitForOverallWidgetsUpdates() = widgetAdder.apply { removeAll { it.isCompleted } }
+	suspend fun addWidget(w: Widget) {
+		nWidgets +=1
+		widgets.send(AddWidget(w))
+	}
+	suspend fun addWidgets(w: Collection<Widget>) {
+		nWidgets += w.size
+		widgets.send(AddWidgets(w))
+	}
 
 	fun getPaths(): Set<Trace> = paths
 	fun addTrace(t: Trace) = paths.add(t)
 
-	fun S_findWidget(predicate: (Widget) -> Boolean) = widgets.find(predicate)
+	suspend fun P_findWidget(predicate: (Widget) -> Boolean) = getWidgets().find(predicate)
 	val findWidget: (uuid: String, c: Collection<Widget>) -> Widget? = { id, c ->
-		findWidgetOrElse(id, c) { throw RuntimeException("ERROR on state parsing, the target widget $id was not instantiated correctly") }
+		runBlocking { findWidgetOrElse(id, c) { throw RuntimeException("ERROR on state parsing, the target widget $id was not instantiated correctly") } }
 	}
 
-	inline fun findWidgetOrElse(uuid: String, widgets: Collection<Widget> = getWidgets(), crossinline otherwise: (UUID) -> Widget): Widget? {
+	/** use this function to find widgets with a specific uuid
+	 * REMARK if @widgets is set you have to ensure synchronization for this set on your own
+	 * if it is not set it will automatically use the models widget actor
+	 */
+	suspend inline fun findWidgetOrElse(uuid: String, widgets: Collection<Widget>? = null, crossinline otherwise: (UUID) -> Widget): Widget? {
 		return if (uuid == "null") null
-		else UUID.fromString(uuid).let { synchronized(widgets) { widgets.find { w -> w.uid == it } ?: otherwise(it) } }
+		else UUID.fromString(uuid).let {
+			(widgets ?: getWidgets()).let{ widgets -> widgets.find { w -> w.uid == it } ?: otherwise(it) }
+		}
 	}
 
-	private suspend fun P_findOrAddState(stateId: ConcreteId): StateData = states.find { s -> s.stateId == stateId }  // allow parsing in parallel but ensure atomic adding
+	private suspend fun P_findOrAddState(stateId: ConcreteId): StateData = getStates().find { s -> s.stateId == stateId }  // allow parsing in parallel but ensure atomic adding
 			?: P_parseState(stateId).also { addState(it) }
 
 	fun P_dumpModel(config: ModelDumpConfig) = launch(CoroutineName("Model-dump")) {
 		paths.map { t -> launch(CoroutineName("trace-dump")) { t.dump(config) } }.let { traceDump ->
-			states.map { s -> launch(CoroutineName("state-dump ${s.uid}")) { s.dump(config) } }.forEach { it.join() }
+			getStates().map { s -> launch(CoroutineName("state-dump ${s.uid}")) { s.dump(config) } }.forEach { it.join() }
 			traceDump.forEach { it.join() }
 		}
 	}
 
 	private var uTime: Long = 0
 	/** update the model with any [action] executed as part of an execution [trace] **/
-	fun S_updateModel(action: ActionResult, trace: Trace) {
+	fun S_updateModel(action: ActionResult, trace: Trace) = runBlocking {
 		measureTimeMillis {
 			var s: StateData? = null
 			measureTimeMillis {
@@ -99,17 +120,12 @@ class Model private constructor(val config: ModelDumpConfig) {
 					}
 				}
 
-//						widgetAdder.add(async{
-				launch {
-					debugT("${newState.widgets.size} widget adding ", {
-						//FIXME do this via actor to ensure synchroniced add/get
-//					widgets.addAll(newState.widgets)
-						newState.widgets.forEach { addWidget(it) }
-					})
-//					})
-				}
-				// FIXME this can occationally take much time, therefore create an actor for it as well
-				launch { debugT("state adding", { states.add(newState) }) }
+				debugT("${newState.widgets.size} widget adding ", {
+					addWidgets(newState.widgets)
+				}, inMillis = true)
+
+				// this can occasionally take much time, therefore we use an actor for it as well
+				debugT("state adding", { addState(newState) }, inMillis = true)
 //				debugT("model join trace update",{ runBlocking{traceUpdate.join()} })  // wait until we are sure the model is completely updated
 			}
 		}.let {
@@ -208,7 +224,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 			async(CoroutineName("WidgetParsing-$id")) {
 				findWidgetOrElse(id) { id ->
 					Widget.fromString(line).also {
-						addWidget(it)
+						runBlocking { addWidget(it) }
 					}.also {
 						assert(id == it.uid, {
 							"ERROR on widget parsing inconsistent UUID created ${it.uid} instead of $id"
@@ -228,7 +244,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 					it.await()?.also {
 						// add the parsed widget to temporary set AND initialize the parent property
 						add(it)
-						if (it.parentXpath != "") it.parentId = widgets.find { w -> w.xpath == it.parentXpath }?.id
+						if (it.parentXpath != "") it.parentId = P_findWidget { w -> w.xpath == it.parentXpath }?.id
 					}
 				}
 		}.let {
@@ -258,6 +274,6 @@ class Model private constructor(val config: ModelDumpConfig) {
 	}
 
 	override fun toString(): String {
-		return "Model[states=${states.size},widgets=${widgets.size},paths=${paths.size}]"
+		return "Model[states=$nStates,widgets=$nWidgets,paths=${paths.size}]"
 	}
 }

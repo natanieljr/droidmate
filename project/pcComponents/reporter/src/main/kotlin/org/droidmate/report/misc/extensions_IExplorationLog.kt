@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.emptyUUID
@@ -32,10 +33,10 @@ import org.droidmate.exploration.AbstractContext
 import java.util.*
 
 val AbstractContext.uniqueActionableWidgets: Set<Widget>
-	get() = mutableSetOf<Widget>().apply {
+	get() = mutableSetOf<Widget>().apply {	runBlocking {
 		getRecords().getWidgets().filter { it.canBeActedUpon() }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
 				.forEach { add(it.value.first()) }
-	}
+	} }
 
 val AbstractContext.uniqueClickedWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {

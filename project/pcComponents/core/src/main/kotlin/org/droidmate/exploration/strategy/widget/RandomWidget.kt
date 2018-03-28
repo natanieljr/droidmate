@@ -55,7 +55,7 @@ open class RandomWidget protected constructor(randomSeed: Long,
 					// Has last action
 					this.context.lastTarget != null &&
 					// Has a state that is not a runtime permission
-					this.context.getRecords().getStates()
+					context.getRecords().let{runBlocking { it.getStates() }}
 							.filterNot { it.stateId == emptyId }
 							.filterNot { it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&

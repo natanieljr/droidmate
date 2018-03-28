@@ -152,13 +152,14 @@ class Trace(private val watcher: List<ModelFeature> = emptyList()) {
 	/*************** public interface ******************/
 
 	fun update(action: ActionResult, newState: StateData) {
+		size += 1
 		launch(context, parent = actionProcessorJob, block = actionProcessor(action, newState))
 
 		debugT("set newState", { this.newState = Pair(newState, action.action.widget) })
 	}
 
 	val currentState get() = newState.first
-	val size: Int get() { return waitFor { trace.size } }
+	var size: Int = 0 // avoid delay from trace access and just count how many actions were created
 
 	val interactedEditFields: Map<UUID, List<Pair<StateData, Widget>>> get() = editFields
 

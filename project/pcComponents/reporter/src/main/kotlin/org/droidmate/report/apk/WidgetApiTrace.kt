@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
@@ -40,7 +41,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 
 		data.actionTrace.getActions().forEachIndexed { actionNr, record ->
 			if (record.actionType == WidgetExplorationAction::class.simpleName) {
-				val text = data.getState(record.resState)?.let { getActionWidget(record, it) }
+				val text = runBlocking { data.getState(record.resState)?.let { getActionWidget(record, it) } }
 				val logs = record.deviceLogs.apiLogs
 				val widget = record.targetWidget
 

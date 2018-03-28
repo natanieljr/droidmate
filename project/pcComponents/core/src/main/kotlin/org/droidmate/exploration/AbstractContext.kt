@@ -53,7 +53,7 @@ abstract class AbstractContext : Serializable {
 	abstract val model: Model
 	abstract val watcher: LinkedList<ModelFeature>
 
-	fun getState(sId: ConcreteId) = model.getState(sId)
+	suspend fun getState(sId: ConcreteId) = model.getState(sId)
 
 	abstract fun add(action: IRunnableExplorationAction, result: ActionResult)
 
