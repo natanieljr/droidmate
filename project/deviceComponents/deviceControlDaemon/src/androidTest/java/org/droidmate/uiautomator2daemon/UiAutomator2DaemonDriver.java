@@ -125,7 +125,8 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 		Log.d(uiaDaemon_logcatTag, "getDeviceModel()");
 		String model = Build.MODEL;
 		String manufacturer = Build.MANUFACTURER;
-		String fullModelName = manufacturer + "-" + model;
+		int api = Build.VERSION.SDK_INT;
+		String fullModelName = manufacturer + "-" + model + "/" + api;
 		Log.d(uiaDaemon_logcatTag, "Device model: " + fullModelName);
 		return fullModelName;
 	}
@@ -305,8 +306,10 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver {
 		try {
 			Bitmap screenshot = this.automation.takeScreenshot();
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream);
-			stream.flush();
+			if (screenshot != null) {
+				screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream);
+				stream.flush();
+			}
 
 			bytes = stream.toByteArray();
 		} catch (IOException e) {
