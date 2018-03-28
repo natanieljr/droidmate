@@ -418,7 +418,7 @@ public class MonitorJavaTemplate
 
 	/**
 	 * Called by the inlined Application class when the inlined AUE launches activity, as done by
-	 * org.droidmate.exploration.device.IRobustDevice#launchApp(org.droidmate.android_sdk.IApk)
+	 * org.droidmate.exploration.device.IRobustDevice#launchApp(org.droidmate.device.android_sdk.IApk)
 	 */
 	@SuppressWarnings("unused")
 	public void init(android.content.Context initContext) {

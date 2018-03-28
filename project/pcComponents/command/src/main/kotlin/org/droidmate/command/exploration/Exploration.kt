@@ -25,18 +25,18 @@
 
 package org.droidmate.command.exploration
 
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.debug.debugT
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
-import org.droidmate.exploration.data_aggregators.AbstractContext
-import org.droidmate.exploration.data_aggregators.ExplorationContext
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy

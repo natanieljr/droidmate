@@ -25,7 +25,7 @@
 package org.droidmate.report
 
 import com.google.common.collect.Table
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.report.misc.*
 
 class AggregateStatsTable private constructor(val table: Table<Int, String, String>) : Table<Int, String, String> by table {

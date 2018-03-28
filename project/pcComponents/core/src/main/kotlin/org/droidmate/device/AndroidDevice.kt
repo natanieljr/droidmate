@@ -25,17 +25,14 @@
 
 package org.droidmate.device
 
-import com.konradjamrozik.mkdirs
-import org.droidmate.android_sdk.AdbWrapperException
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.android_sdk.IAdbWrapper
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IAdbWrapper
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.Configuration
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
-import org.droidmate.logging.Markers
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
@@ -45,11 +42,8 @@ import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
 import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.lang.Thread.sleep
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

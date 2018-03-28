@@ -25,8 +25,8 @@
 package org.droidmate.report
 
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.WaitA
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.actions.WaitA
+import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import java.time.LocalDateTime

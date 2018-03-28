@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.device.datatypes.statemodel.ActionData
+import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.report.misc.plot
 import org.droidmate.withExtension
 import java.awt.Point
@@ -35,7 +35,6 @@ import java.awt.image.Raster
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.temporal.ChronoUnit
 import javax.imageio.ImageIO
 
@@ -75,20 +74,12 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 			val currTimestamp = currAction.startTimestamp
 			val currTimeDiff = ChronoUnit.SECONDS.between(startTimeStamp, currTimestamp)
 
-			if (prevAction.hasScreenshot && currAction.hasScreenshot) {
+			if (actionWasEffective(prevAction, currAction))
+				effectiveActions++
 
-				if (actionWasEffective(prevAction, currAction))
-					effectiveActions++
+			totalActions++
 
-				totalActions++
-
-				reportData[currTimeDiff] = Pair(totalActions, effectiveActions)
-			} else {
-				if (!prevAction.hasScreenshot)
-					log.warn("No screenshot for action ${prevAction.actionString()}")
-				if (!currAction.hasScreenshot)
-					log.warn("No screenshot for action ${currAction.actionString()}")
-			}
+			reportData[currTimeDiff] = Pair(totalActions, effectiveActions)
 
 			if (i % 100 == 0)
 				log.info("Processing $i")
@@ -110,18 +101,11 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
 	private fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
 
-		require(prevAction.hasScreenshot, { "Action has no screenshot attached $prevAction" })
-		require(currAction.hasScreenshot, { "Action has no screenshot attached $currAction" })
-
-		val prevScreenshot = prevAction.screenshot
-		val currScreenshot = currAction.screenshot
-
 		return if ((prevAction.actionType != WidgetExplorationAction::class.java.simpleName) ||
 				(currAction.actionType != WidgetExplorationAction::class.java.simpleName))
 			true
 		else {
-			val imageSimilarity = compareImage(prevScreenshot, currScreenshot)
-			imageSimilarity < 100.0
+			currAction.prevState != currAction.resState
 		}
 	}
 

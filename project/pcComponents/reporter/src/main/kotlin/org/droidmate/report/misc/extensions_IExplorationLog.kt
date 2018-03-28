@@ -25,10 +25,10 @@
 package org.droidmate.report.misc
 
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.statemodel.Widget
-import org.droidmate.device.datatypes.statemodel.emptyUUID
+import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.exploration.statemodel.emptyUUID
 import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import java.util.*
 
 val AbstractContext.uniqueActionableWidgets: Set<Widget>

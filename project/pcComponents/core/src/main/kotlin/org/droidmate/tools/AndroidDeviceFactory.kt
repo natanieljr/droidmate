@@ -25,7 +25,7 @@
 
 package org.droidmate.tools
 
-import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.AndroidDevice
 import org.droidmate.device.IAndroidDevice

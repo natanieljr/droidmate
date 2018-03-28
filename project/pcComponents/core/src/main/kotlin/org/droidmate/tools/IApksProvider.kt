@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.tools
 
-import org.droidmate.android_sdk.Apk
+import org.droidmate.device.android_sdk.Apk
 
 import java.nio.file.Path
 

@@ -25,9 +25,9 @@
 
 package org.droidmate.test_tools.android_sdk
 
-import org.droidmate.android_sdk.AndroidDeviceDescriptor
-import org.droidmate.android_sdk.IAdbWrapper
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.AndroidDeviceDescriptor
+import org.droidmate.device.android_sdk.IAdbWrapper
+import org.droidmate.device.android_sdk.IApk
 
 import java.nio.file.Path
 

@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 
 class GuiScreensBuilderFromApkExplorationOutput2(private val output: AbstractContext) : IGuiScreensBuilder {
 	override fun build(): List<IGuiScreen> {

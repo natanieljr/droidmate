@@ -25,16 +25,16 @@
 
 package org.droidmate.tools
 
-import org.droidmate.android_sdk.ApkExplorationException
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.ApkExplorationException
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IDeployableAndroidDevice
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 
 /**
- * @see IApkDeployer#withDeployedApk(IDeployableAndroidDevice, org.droidmate.android_sdk.IApk, (IApk) -> Any)
+ * @see IApkDeployer#withDeployedApk(IDeployableAndroidDevice, org.droidmate.device.android_sdk.IApk, (IApk) -> Any)
  */
 class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
 	companion object {

@@ -19,11 +19,11 @@
 2016-08-19 21:58:28.233 DEBUG org.droidmate.device.AndroidDevice       installApk(uiautomator2-daemon-test.apk)
 2016-08-19 21:58:33.241 DEBUG org.droidmate.device.AndroidDevice       pushJar(temp_extracted_resources\monitor_api23.apk, monitor.apk)
 2016-08-19 21:58:33.322 TRACE org.droidmate.device.AndroidDevice       setupConnection(079fc239) / this.tcpClients.forwardPorts()
-2016-08-19 21:58:33.323 TRACE org.droidmate.android_sdk.AdbWrapper     forwardPort(079fc239, 59800)
-2016-08-19 21:58:33.353 TRACE org.droidmate.android_sdk.AdbWrapper     forwardPort(079fc239, 59701)
-2016-08-19 21:58:33.377 TRACE org.droidmate.android_sdk.AdbWrapper     forwardPort(079fc239, 59702)
-2016-08-19 21:58:33.401 TRACE org.droidmate.android_sdk.AdbWrapper     forwardPort(079fc239, 59703)
-2016-08-19 21:58:33.425 TRACE org.droidmate.android_sdk.AdbWrapper     forwardPort(079fc239, 59704)
+2016-08-19 21:58:33.323 TRACE org.droidmate.device.android_sdk.AdbWrapper     forwardPort(079fc239, 59800)
+2016-08-19 21:58:33.353 TRACE org.droidmate.device.android_sdk.AdbWrapper     forwardPort(079fc239, 59701)
+2016-08-19 21:58:33.377 TRACE org.droidmate.device.android_sdk.AdbWrapper     forwardPort(079fc239, 59702)
+2016-08-19 21:58:33.401 TRACE org.droidmate.device.android_sdk.AdbWrapper     forwardPort(079fc239, 59703)
+2016-08-19 21:58:33.425 TRACE org.droidmate.device.android_sdk.AdbWrapper     forwardPort(079fc239, 59704)
 2016-08-19 21:58:33.449 TRACE org.droidmate.device.AndroidDevice       setupConnection(079fc239) / this.startUiaDaemon()
 2016-08-19 21:58:33.450 DEBUG org.droidmate.device.AndroidDevice       startUiaDaemon()
 2016-08-19 21:58:35.518 TRACE org.droidmate.device.AndroidDevice       DONE startUiaDaemon()
@@ -35,7 +35,7 @@
 2016-08-19 21:58:35.568 DEBUG org.droidmate.device.AndroidDevice       clearLogcat()
 2016-08-19 21:58:35.622 INFO  org.droidmate.tools.ApkDeployer          Reinstalling MonitoredApkFixture_api23-debug-inlined.apk
 2016-08-19 21:58:35.623 DEBUG org.droidmate.device.AndroidDevice       uninstallApk(org.droidmate.fixtures.apks.monitored, ignoreFailure: true)
-2016-08-19 21:58:36.688 TRACE org.droidmate.android_sdk.AdbWrapper     Ignored failure of uninstalling of org.droidmate.fixtures.apks.monitored.
+2016-08-19 21:58:36.688 TRACE org.droidmate.device.android_sdk.AdbWrapper     Ignored failure of uninstalling of org.droidmate.fixtures.apks.monitored.
 2016-08-19 21:58:36.689 DEBUG org.droidmate.device.AndroidDevice       installApk(MonitoredApkFixture_api23-debug-inlined.apk)
 2016-08-19 21:58:38.169 INFO  o.d.command.exploration.Exploration      run(org.droidmate.fixtures.apks.monitored, device)
 2016-08-19 21:58:38.171 TRACE o.d.command.exploration.Exploration      tryDeviceHasPackageInstalled(device, org.droidmate.fixtures.apks.monitored)

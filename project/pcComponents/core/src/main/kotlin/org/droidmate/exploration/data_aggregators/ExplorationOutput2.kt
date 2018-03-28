@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.data_aggregators
 
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.storage.IStorage2
 import org.slf4j.LoggerFactory
 

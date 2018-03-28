@@ -25,7 +25,7 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.uiautomator_daemon.WidgetData
 import java.io.Serializable
 

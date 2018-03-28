@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy.termination
 
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
-import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.ActionResult
 import java.util.concurrent.TimeUnit
 
 /**

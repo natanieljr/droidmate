@@ -24,15 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.WaitA
-import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.slf4j.LoggerFactory
 
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime, takeScreenShot: Boolean)
 	: RunnableExplorationAction(action, timestamp, takeScreenShot) {

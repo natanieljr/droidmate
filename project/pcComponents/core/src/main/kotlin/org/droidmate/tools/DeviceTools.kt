@@ -25,10 +25,10 @@
 
 package org.droidmate.tools
 
-import org.droidmate.android_sdk.AaptWrapper
-import org.droidmate.android_sdk.AdbWrapper
-import org.droidmate.android_sdk.IAaptWrapper
-import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.device.android_sdk.AaptWrapper
+import org.droidmate.device.android_sdk.AdbWrapper
+import org.droidmate.device.android_sdk.IAaptWrapper
+import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.SysCmdExecutor
 import java.util.*

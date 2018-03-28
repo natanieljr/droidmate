@@ -25,7 +25,7 @@
 
 package org.droidmate.tests.android_sdk
 
-import org.droidmate.android_sdk.AdbWrapper
+import org.droidmate.device.android_sdk.AdbWrapper
 import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
 import org.junit.Test

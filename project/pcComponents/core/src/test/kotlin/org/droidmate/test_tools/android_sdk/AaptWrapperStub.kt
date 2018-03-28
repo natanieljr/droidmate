@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.android_sdk
 
-import org.droidmate.android_sdk.IAaptWrapper
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.IAaptWrapper
+import org.droidmate.device.android_sdk.IApk
 
 import java.nio.file.Path
 

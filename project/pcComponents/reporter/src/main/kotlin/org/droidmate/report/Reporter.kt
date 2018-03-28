@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files

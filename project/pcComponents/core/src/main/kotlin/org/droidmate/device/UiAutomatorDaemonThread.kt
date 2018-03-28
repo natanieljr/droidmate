@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.device
 
-import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.device.android_sdk.IAdbWrapper
 import org.slf4j.LoggerFactory
 
 class UiAutomatorDaemonThread constructor(private val adbWrapper: IAdbWrapper,

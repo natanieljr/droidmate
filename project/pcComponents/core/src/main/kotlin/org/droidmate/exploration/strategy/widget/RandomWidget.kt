@@ -27,10 +27,10 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.statemodel.Widget
-import org.droidmate.device.datatypes.statemodel.emptyId
-import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
-import org.droidmate.device.datatypes.statemodel.features.listOfSmallest
+import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.exploration.statemodel.emptyId
+import org.droidmate.exploration.statemodel.features.ActionCounterMF
+import org.droidmate.exploration.statemodel.features.listOfSmallest
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
@@ -67,13 +67,18 @@ open class RandomWidget protected constructor(randomSeed: Long,
 		return false
 	}
 
+	/** if we trigger any functionality which requires (not yet granted) Android permissions an PermissionDialogue
+	 * will appear, but the functionality may not be triggered yet.
+	 * Now we do not want to penalize this target just because it required a permission and the functionality was not yet triggered
+	 */
 	private fun repeatLastAction(): ExplorationAction {
-		val lastActionBeforePermission = currentState.let {
-			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
-		}
+//		val lastActionBeforePermission = currentState.let {
+//			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
+//		}
 
 //        return lastActionBeforePermission.action
-		TODO("extract WidgetId from recorded trace and look it up in current Context to choose as target")
+		TODO("instead PermissionStrategy should decrease the widgetCounter again, if the prev state is the same like after handling permission " +
+				"to avoid penalizing the target")
 	}
 
 	protected open fun getAvailableWidgets(): List<Widget> {

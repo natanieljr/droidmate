@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.tools
 
-import org.droidmate.android_sdk.IAaptWrapper
-import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.device.android_sdk.IAaptWrapper
+import org.droidmate.device.android_sdk.IAdbWrapper
 
 interface IDeviceTools {
 	val aapt: IAaptWrapper

@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.report.Reporter
 import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
 import java.nio.file.Files

@@ -24,11 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.device.datatypes.statemodel.ActionData
-import org.droidmate.device.datatypes.statemodel.StateData
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.exploration.statemodel.StateData
+import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import java.nio.file.Files
 import java.nio.file.Path
 

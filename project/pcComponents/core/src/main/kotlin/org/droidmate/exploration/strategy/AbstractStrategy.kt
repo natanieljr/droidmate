@@ -24,11 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.device.datatypes.statemodel.ActionData
-import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.device.datatypes.statemodel.StateData
+import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.strategy.widget.Explore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

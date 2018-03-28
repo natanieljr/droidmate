@@ -24,12 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.android_sdk.IApk
-import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.device.deviceInterface.IRobustDevice
 import java.io.Serializable
-import java.net.URI
 import java.time.LocalDateTime
 
 interface IRunnableExplorationAction : Serializable {

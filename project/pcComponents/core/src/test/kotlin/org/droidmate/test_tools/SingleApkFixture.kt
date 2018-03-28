@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools
 
-import org.droidmate.android_sdk.IAaptWrapper
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.IAaptWrapper
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.configuration.Configuration
 import org.droidmate.tools.ApksProvider
 

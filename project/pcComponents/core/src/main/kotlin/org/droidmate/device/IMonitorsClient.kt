@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.device
 
-import org.droidmate.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.DeviceException
 
 interface IMonitorsClient {
 	@Throws(DeviceException::class)
