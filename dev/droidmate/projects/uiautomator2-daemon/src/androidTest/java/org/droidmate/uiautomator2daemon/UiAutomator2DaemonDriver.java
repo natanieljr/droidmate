@@ -57,7 +57,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
   UiAutomator2DaemonDriver(boolean waitForGuiToStabilize, int waitForWindowUpdateTimeout)
   {
-    Log.d(uiaDaemon_logcatTag, "XXX");
     // Disabling waiting for selector implicit timeout
     Configurator.getInstance().setWaitForSelectorTimeout(0L);
 
@@ -80,7 +79,6 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
 
     this.waitForGuiToStabilize = waitForGuiToStabilize;
     this.waitForWindowUpdateTimeout = waitForWindowUpdateTimeout;
-    Log.d(uiaDaemon_logcatTag, "YYY");
   }
 
 
@@ -124,8 +122,9 @@ class UiAutomator2DaemonDriver implements IUiAutomator2DaemonDriver
     Log.d(uiaDaemon_logcatTag, "getDeviceModel()");
     String model = Build.MODEL;
     String manufacturer = Build.MANUFACTURER;
+    int api = Build.VERSION.SDK_INT;
     DeviceResponse deviceResponse = new DeviceResponse();
-    deviceResponse.model = manufacturer + "-" + model;
+    deviceResponse.model = manufacturer + "-" + model + "/" + api;
     Log.d(uiaDaemon_logcatTag, "Device model: "+deviceResponse.model);
     return deviceResponse;
   }

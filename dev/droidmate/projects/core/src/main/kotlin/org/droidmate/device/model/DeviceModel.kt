@@ -42,7 +42,7 @@ class DeviceModel {
          */
         @JvmStatic
         @Throws(UnknownDeviceException::class)
-        fun build(deviceModel: String): IDeviceModel = when (deviceModel) {
+        fun build(deviceModel: String): IDeviceModel = when {
         /*
                      Obtained from emulator with following settings->
                         Name-> Nexus_7_2012_API_19
@@ -56,16 +56,18 @@ class DeviceModel {
                         hw.ramSize-> 1024
                         hw.gpu.enabled-> yes
                      */
-            UiautomatorDaemonConstants.DEVICE_EMULATOR -> Nexus7_2013_AVD_API23_Model()
-            UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_7 -> Nexus7_API19_Model()
-            UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_5X -> Nexus5XModel()
-            UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_10 -> Nexus10Model()
-            UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_6 -> Nexus6Model()
-            UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_9 -> Nexus9Model()
-            UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C_API23 -> PixelC_API23_Model()
-            UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C_API25 -> PixelC_API25_Model()
-            UiautomatorDaemonConstants.DEVICE_SAMSUNG_GALAXY_S3_GT_I9300 -> GalaxyS3Model()
-            UiautomatorDaemonConstants.DEVICE_HUAWEI_HONOR_8 -> HuaweiHonor8Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_EMULATOR_5X_25) -> Nexus5XEmulator25()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_EMULATOR_5X) -> Nexus7_API19_Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_EMULATOR) -> Nexus7_API19_Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_7) -> Nexus7_API19_Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_5X) -> Nexus5XModel()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_10) -> Nexus10Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_6) -> Nexus6Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_GOOGLE_NEXUS_9) -> Nexus9Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C_API23) -> PixelC_API23_Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_GOOGLE_PIXEL_C_API25) -> PixelC_API25_Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_SAMSUNG_GALAXY_S3_GT_I9300) -> GalaxyS3Model()
+            deviceModel.startsWith(UiautomatorDaemonConstants.DEVICE_HUAWEI_HONOR_8) -> HuaweiHonor8Model()
             else -> {
                 log.warn(Markers.appHealth,
                         "Unrecognized device model of $deviceModel. Using the default.")
@@ -75,6 +77,6 @@ class DeviceModel {
 
         @JvmStatic
         fun buildDefault(): IDeviceModel
-                = Nexus7_API19_Model()
+                = Nexus5XModel()
     }
 }
