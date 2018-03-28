@@ -33,7 +33,7 @@ import org.droidmate.exploration.strategy.StrategyPriority
 class NoLongerInAppBack : Back() {
 	override fun getFitness(): StrategyPriority {
 		return if (!context.explorationCanMoveOn() &&
-				this.lastAction().actionType == "PressBackExplorationAction")
+				this.lastAction().actionType != "PressBackExplorationAction")
 			StrategyPriority.BACK
 		else
 			StrategyPriority.NONE

@@ -25,7 +25,6 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
@@ -54,7 +53,7 @@ open class ModelBased protected constructor(randomSeed: Long,
 	/**
 	 * Instances originally used to train the model.
 	 */
-	protected val wekaInstances: Instances by lazy {
+	private val wekaInstances: Instances by lazy {
 		val modelData: InputStream by lazy { ResourceManager.getResource(arffName) }
 		initializeInstances(modelData)
 	}
@@ -96,22 +95,22 @@ open class ModelBased protected constructor(randomSeed: Long,
 	}
 
 	/**
-	 * Converts a widget info given a [context where the widget is inserted][currentState] (used to locate parents
+	 * Converts a widget info given a context where the widget is inserted (used to locate parents
 	 * and children) and a [Weka model][model]
 	 *
 	 * @receiver [Widget]
 	 */
-	protected fun Widget.toWekaInstance(currentState: StateData, model: Instances): Instance {
-		val attributeValues: DoubleArray = kotlin.DoubleArray(5)
+	private fun Widget.toWekaInstance(model: Instances): Instance {
+		val attributeValues = DoubleArray(5)
 
 		attributeValues[0] = model.getNominalIndex(0, this.getRefinedType())
 
 		if (this.parentId != null)
-			attributeValues[1] = model.getNominalIndex(1, currentState.widgets.find { it.id == parentId }!!.className)  //TODO get rectified name
+			attributeValues[1] = model.getNominalIndex(1, currentState.widgets.first { it.id == parentId }.getRefinedType())
 		else
 			attributeValues[1] = model.getNominalIndex(1, "none")
 
-		val children = context.getCurrentState().widgets
+		val children = currentState.widgets
 				.filter { p -> p.parentId == this.id }
 
 		if (children.isNotEmpty())
@@ -130,16 +129,16 @@ open class ModelBased protected constructor(randomSeed: Long,
 	}
 
 	/**
-	 * Get all widgets which from a [widget context][currentState] that are classified as "with event"
+	 * Get all widgets which from the current state that are classified as "with event"
 	 *
 	 * @return List of widgets which have an associated event (according to the model)
 	 */
-	protected open fun internalGetWidgets(currentState: StateData): List<Widget> {
+	protected open fun internalGetWidgets(): List<Widget> {
 		wekaInstances.delete()
 
-		val actionableWidgets = currentState.getActionableWidgetsInclChildren()//.actionableWidgetsInfo
+		val actionableWidgets = currentState.actionableWidgets
 		actionableWidgets
-				.forEach { p -> wekaInstances.add(p.toWekaInstance(currentState, wekaInstances)) }
+				.forEach { p -> wekaInstances.add(p.toWekaInstance(wekaInstances)) }
 
 		val candidates: MutableList<Widget> = mutableListOf()
 		for (i in 0..(wekaInstances.numInstances() - 1)) {
@@ -167,38 +166,12 @@ open class ModelBased protected constructor(randomSeed: Long,
 	 * @return List of widgets which have an associated event (according to the model)
 	 */
 	override fun getAvailableWidgets(): List<Widget> {
-		var candidates = internalGetWidgets(context.getCurrentState())
+		var candidates = internalGetWidgets()
 
-		this.context.lastTarget?.let { candidates = candidates.filterNot { it.uid == it.uid } }
+		this.context.lastTarget?.let { candidates = candidates.filterNot { p -> p.uid == it.uid } }
 
 		return candidates
 	}
-
-	fun StateData.getActionableWidgetsInclChildren(): List<Widget> {
-		val result = ArrayList<Widget>()
-
-		context.getCurrentState().widgets
-//                .filter { !it.blackListed }   //TODO
-				.filter { it.canBeActedUpon() }
-				.forEach { p -> addWidgets(result, p, this) }
-
-		return result
-	}
-
-	private fun addWidgets(result: MutableList<Widget>, widget: Widget, currentState: StateData) {
-
-		// Does not check can be acted upon because it was check on the parentID
-		if (widget.visible && widget.enabled) {
-			if (!result.any { it == widget })
-				result.add(widget)
-
-			// Add children
-			context.getCurrentState().widgets
-					.filter { it.parentId == widget.id }
-					.forEach { addWidgets(result, it, currentState) }
-		}
-	}
-
 
 	/**
 	 * Returns a high priority when the model found widgets with events. Otherwise this strategy's priority is 0
