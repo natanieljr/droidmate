@@ -32,7 +32,10 @@ assert testResDirs.srcDirs.size() == 1
 File testResDir = testResDirs.srcDirs[0]
 assert testResDir.path.endsWith("test" + File.separator + "resources")
 File apkFixturesDir = new File(testResDir, BuildKt.apk_fixtures)
-assert apkFixturesDir.directory
+if (!apkFixturesDir.exists())
+	apkFixturesDir.mkdirs()
+
+assert apkFixturesDir.isDirectory()
 
 def configureTestTask = { Test task ->
 	task.group = "verification"
