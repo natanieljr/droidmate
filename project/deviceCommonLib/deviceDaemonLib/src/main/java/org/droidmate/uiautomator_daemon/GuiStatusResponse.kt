@@ -56,30 +56,20 @@ class GuiStatusResponse private constructor(val windowHierarchyDump: String,
 		 * </p>
 		 */
 		@JvmStatic
-		private fun androidLauncher(deviceModel: String): String = when (deviceModel) {
-		/*
-					Obtained from emulator with following settings->
-						 Name-> Nexus_7_2012_API_19
-						 CPU/ABI-> Intel Atom (x86)
-						 Target-> Android 4.4.2 (API level 19)
-						 Skin-> nexus_7
-						 hw.device.name-> Nexus 7
-						 hw.device.manufacturer-> Google
-						 AvdId-> Nexus_7_2012_API_19
-						 avd.ini.displayname-> Nexus 7 (2012) API 19
-						 hw.ramSize-> 1024
-						 hw.gpu.enabled-> yes
-					*/
-			"unknown-Android SDK built for x86" -> "com.android.launcher3"
-			"samsung-GT-I9300" -> "com.android.launcher"
-			"LGE-Nexus 5X" -> "com.google.android.googlequicksearchbox"
-			"motorola-Nexus 6" -> "com.google.android.googlequicksearchbox"
-			"asus-Nexus 7" -> "com.android.launcher"
-			"htc-Nexus 9" -> "com.google.android.googlequicksearchbox"
-			"samsung-Nexus 10" -> "com.android.launcher"
-			"google-Pixel C" -> "com.android.launcher"
-			"Google-Pixel C" -> "com.google.android.apps.pixelclauncher"
-			"HUAWEI-FRD-L09" -> "com.huawei.android.launcher"
+		private fun androidLauncher(deviceModel: String): String = when {
+
+			deviceModel.startsWith("Google-Android SDK built for x86/25") -> "com.google.android.apps.nexuslauncher"
+			deviceModel.startsWith("Google-Android SDK built for x86") -> "com.android.launcher"
+			deviceModel.startsWith("unknown-Android SDK built for x86") -> "com.android.launcher3"
+			deviceModel.startsWith("samsung-GT-I9300") -> "com.android.launcher"
+			deviceModel.startsWith("LGE-Nexus 5X") -> "com.google.android.googlequicksearchbox"
+			deviceModel.startsWith("motorola-Nexus 6") -> "com.google.android.googlequicksearchbox"
+			deviceModel.startsWith("asus-Nexus 7") -> "com.android.launcher"
+			deviceModel.startsWith("htc-Nexus 9") -> "com.google.android.googlequicksearchbox"
+			deviceModel.startsWith("samsung-Nexus 10") -> "com.android.launcher"
+			deviceModel.startsWith("google-Pixel C") -> "com.android.launcher"
+			deviceModel.startsWith("Google-Pixel C") -> "com.google.android.apps.pixelclauncher"
+			deviceModel.startsWith("HUAWEI-FRD-L09") -> "com.huawei.android.launcher"
 			else -> {
 				log.warn("Unrecognized device model of $deviceModel. Using the default.")
 				"com.android.launcher"
