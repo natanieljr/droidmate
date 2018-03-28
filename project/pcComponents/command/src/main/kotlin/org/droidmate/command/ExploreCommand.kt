@@ -31,6 +31,8 @@ import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
 import org.droidmate.deleteDir
+import org.droidmate.device.datatypes.statemodel.Model
+import org.droidmate.device.datatypes.statemodel.ModelDumpConfig
 import org.droidmate.exploration.data_aggregators.AbstractContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.exploration.device.IRobustDevice
@@ -70,7 +72,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		          timeProvider: ITimeProvider = TimeProvider(),
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-							strategies: List<ISelectableExplorationStrategy> = emptyList()): ExploreCommand {
+							strategies: List<ISelectableExplorationStrategy> = emptyList(),
+		          model: (ModelDumpConfig)->Model = {config -> Model.emptyModel(config)}): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val storage2 = Storage2(cfg.droidmateOutputDirPath)
