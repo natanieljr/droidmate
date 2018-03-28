@@ -77,6 +77,6 @@ class DeviceModel {
 
         @JvmStatic
         fun buildDefault(): IDeviceModel
-                = Nexus5XModel()
+                = Nexus7_API19_Model()
     }
 }
