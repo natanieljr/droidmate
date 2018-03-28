@@ -25,7 +25,7 @@
 package org.droidmate.exploration.strategy.termination
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.ActionResult
 
 /**
  * Determines if exploration shall be terminated based on the number of actionTrace performed

@@ -27,7 +27,7 @@ package org.droidmate.storage
 
 import com.konradjamrozik.isRegularFile
 import com.konradjamrozik.toList
-import org.droidmate.exploration.data_aggregators.ExplorationContext
+import org.droidmate.exploration.ExplorationContext
 import org.nustaq.serialization.FSTConfiguration
 import org.slf4j.LoggerFactory
 import java.net.URI

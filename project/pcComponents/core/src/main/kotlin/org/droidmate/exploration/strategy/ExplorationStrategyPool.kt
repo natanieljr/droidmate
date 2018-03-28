@@ -26,10 +26,10 @@ package org.droidmate.exploration.strategy
 
 import com.google.common.base.Ticker
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.statemodel.ActionResult
-import org.droidmate.device.datatypes.statemodel.StateData
+import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.strategy.back.AfterResetBack
 import org.droidmate.exploration.strategy.back.NoLongerInAppBack
 import org.droidmate.exploration.strategy.back.RandomBack

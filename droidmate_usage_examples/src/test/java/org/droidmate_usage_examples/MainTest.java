@@ -13,8 +13,8 @@ package org.droidmate_usage_examples;
 
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
-import org.droidmate.android_sdk.DeviceException;
-import org.droidmate.android_sdk.IApk;
+import org.droidmate.device.android_sdk.DeviceException;
+import org.droidmate.device.android_sdk.IApk;
 import org.droidmate.apis.IApiLogcatMessage;
 import org.droidmate.command.DroidmateCommand;
 import org.droidmate.configuration.Configuration;

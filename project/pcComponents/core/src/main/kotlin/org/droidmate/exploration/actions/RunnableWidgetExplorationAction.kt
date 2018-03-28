@@ -27,17 +27,16 @@ package org.droidmate.exploration.actions
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.debug.debugT
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateClickAction
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateLongClickAction
 import org.droidmate.uiautomator_daemon.guimodel.LongClickAction
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 private var performT: Long = 0
 private var performN: Int = 1

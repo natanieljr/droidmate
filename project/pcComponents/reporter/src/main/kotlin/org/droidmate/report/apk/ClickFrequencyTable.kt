@@ -25,7 +25,7 @@
 package org.droidmate.report.apk
 
 import com.google.common.collect.Table
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.report.misc.buildTable
 import java.util.*
 

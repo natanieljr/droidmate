@@ -26,7 +26,7 @@ package org.droidmate.test_tools.filesystem
 
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.configuration.Configuration.Companion.defaultApksDir
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 

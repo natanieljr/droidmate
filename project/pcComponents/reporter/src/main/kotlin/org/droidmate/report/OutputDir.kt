@@ -25,7 +25,7 @@
 package org.droidmate.report
 
 import org.droidmate.deleteDir
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.storage.Storage2
 import java.nio.file.Files

@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.misc.Pair
 
 @Deprecated("should not be used anymore")

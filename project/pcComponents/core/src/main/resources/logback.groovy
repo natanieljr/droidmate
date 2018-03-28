@@ -232,7 +232,7 @@ List loggersWithLazyFileAppenders = [
 				//@formatter:off
 				// Uncomment if a detailed SysCmdExecutor log is needed.
 //  [loggerName: "SysCmdExecutor",                                              additivity: false, pattern: pat_date_level],
-//  [loggerName: "org.droidmate.android_sdk.AaptWrapper",                       additivity: true,  pattern: pat_date_level],
+//  [loggerName: "org.droidmate.device.android_sdk.AaptWrapper",                       additivity: true,  pattern: pat_date_level],
 				// Has to be commented out to prevent it from polluting master log (prevented by additivity set to false)
 				[loggerName: "WidgetStrategy", additivity: false, pattern: pat_date_level, additionalAppenders: warnAppenders],
 //  [loggerName: "org.droidmate.exploration",                                   additivity: true,  pattern: pat_date_level_logger],//, additionalAppenders: warnAppenders],

@@ -25,17 +25,17 @@
 package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
-import org.droidmate.android_sdk.*
+import org.droidmate.device.android_sdk.*
 import org.droidmate.command.exploration.CoverageMonitor
 import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
 import org.droidmate.deleteDir
-import org.droidmate.device.datatypes.statemodel.Model
-import org.droidmate.device.datatypes.statemodel.ModelDumpConfig
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.statemodel.Model
+import org.droidmate.exploration.statemodel.ModelDumpConfig
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
@@ -72,7 +72,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		          timeProvider: ITimeProvider = TimeProvider(),
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-							strategies: List<ISelectableExplorationStrategy> = emptyList(),
+		          strategies: List<ISelectableExplorationStrategy> = emptyList(),
 		          model: (ModelDumpConfig)->Model = {config -> Model.emptyModel(config)}): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 

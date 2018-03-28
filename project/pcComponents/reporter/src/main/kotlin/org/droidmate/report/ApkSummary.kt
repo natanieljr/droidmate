@@ -26,11 +26,11 @@ package org.droidmate.report
 
 import com.konradjamrozik.Resource
 import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
-import org.droidmate.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.statemodel.ActionData
+import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable

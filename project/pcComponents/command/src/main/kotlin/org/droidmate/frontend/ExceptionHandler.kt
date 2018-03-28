@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.frontend
 
-import org.droidmate.android_sdk.ApkExplorationException
-import org.droidmate.android_sdk.ExplorationException
+import org.droidmate.device.android_sdk.ApkExplorationException
+import org.droidmate.device.android_sdk.ExplorationException
 import org.droidmate.configuration.Configuration
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.Markers.Companion.exceptions

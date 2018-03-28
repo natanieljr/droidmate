@@ -24,12 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import org.droidmate.android_sdk.IApk
-import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.uiautomator_daemon.guimodel.TextAction
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class RunnableEnterTextExplorationAction constructor(action: EnterTextExplorationAction, timestamp: LocalDateTime, takeScreenshot: Boolean)
 	: RunnableExplorationAction(action, timestamp, takeScreenshot) {

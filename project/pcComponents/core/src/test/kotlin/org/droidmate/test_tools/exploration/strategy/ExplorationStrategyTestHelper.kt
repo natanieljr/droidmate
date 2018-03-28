@@ -26,8 +26,8 @@
 package org.droidmate.test_tools.exploration.strategy
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.exploration.data_aggregators.AbstractContext
-import org.droidmate.exploration.data_aggregators.ExplorationContext
+import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy

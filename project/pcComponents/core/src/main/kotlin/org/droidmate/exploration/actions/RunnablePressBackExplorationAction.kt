@@ -24,13 +24,12 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-import org.droidmate.android_sdk.IApk
-import org.droidmate.exploration.device.DeviceLogsHandler
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.uiautomator_daemon.guimodel.PressBack
 
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class RunnablePressBackExplorationAction constructor(action: PressBackExplorationAction, timestamp: LocalDateTime, takescreenshot: Boolean)
 	: RunnableExplorationAction(action, timestamp, takescreenshot) {

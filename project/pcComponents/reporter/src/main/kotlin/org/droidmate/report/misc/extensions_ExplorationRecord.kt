@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.EnterTextExplorationAction
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.actions.WidgetExplorationAction

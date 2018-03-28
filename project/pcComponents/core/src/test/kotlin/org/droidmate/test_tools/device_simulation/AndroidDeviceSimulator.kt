@@ -25,7 +25,7 @@
 
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.android_sdk.IApk
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.uiautomator_daemon.GuiStatusResponse

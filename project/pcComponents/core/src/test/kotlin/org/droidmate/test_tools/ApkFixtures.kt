@@ -26,9 +26,9 @@
 package org.droidmate.test_tools
 
 import com.konradjamrozik.Resource
-import org.droidmate.android_sdk.AaptWrapper
-import org.droidmate.android_sdk.Apk
-import org.droidmate.android_sdk.IAaptWrapper
+import org.droidmate.device.android_sdk.AaptWrapper
+import org.droidmate.device.android_sdk.Apk
+import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.SysCmdExecutor

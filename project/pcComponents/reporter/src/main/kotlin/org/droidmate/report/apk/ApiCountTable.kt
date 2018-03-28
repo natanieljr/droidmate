@@ -25,8 +25,8 @@
 package org.droidmate.report.apk
 
 import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.device.datatypes.statemodel.ActionData
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import java.time.Duration
 import java.util.*

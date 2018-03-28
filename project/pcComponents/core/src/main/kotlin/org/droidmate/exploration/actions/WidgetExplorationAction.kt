@@ -25,7 +25,7 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.statemodel.Widget
 
 open class WidgetExplorationAction @JvmOverloads constructor(override val widget: Widget,
                                                              val longClick: Boolean = false,

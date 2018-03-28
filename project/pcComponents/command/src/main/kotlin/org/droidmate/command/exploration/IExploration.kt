@@ -24,10 +24,10 @@
 // web: www.droidmate.org
 package org.droidmate.command.exploration
 
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.android_sdk.IApk
-import org.droidmate.exploration.data_aggregators.AbstractContext
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.exploration.AbstractContext
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.misc.Failable
 
 interface IExploration {

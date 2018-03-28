@@ -25,8 +25,8 @@
 package org.droidmate.command
 
 import com.konradjamrozik.createDirIfNotExists
-import org.droidmate.android_sdk.AaptWrapper
-import org.droidmate.android_sdk.Apk
+import org.droidmate.device.android_sdk.AaptWrapper
+import org.droidmate.device.android_sdk.Apk
 import org.droidmate.apk_inliner.ApkInliner
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.SysCmdExecutor

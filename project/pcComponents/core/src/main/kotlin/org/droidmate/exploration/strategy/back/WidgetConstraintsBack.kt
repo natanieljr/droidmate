@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.back
 
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.strategy.StrategyPriority
 
 /**

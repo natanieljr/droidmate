@@ -25,9 +25,9 @@
 
 package org.droidmate.tools
 
-import org.droidmate.android_sdk.ApkExplorationException
-import org.droidmate.android_sdk.ExplorationException
-import org.droidmate.exploration.device.IRobustDevice
+import org.droidmate.device.android_sdk.ApkExplorationException
+import org.droidmate.device.android_sdk.ExplorationException
+import org.droidmate.device.deviceInterface.IRobustDevice
 
 /**
  * @see AndroidDeviceDeployer

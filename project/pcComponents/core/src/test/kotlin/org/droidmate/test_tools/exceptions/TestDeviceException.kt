@@ -25,7 +25,7 @@
 
 package org.droidmate.test_tools.exceptions
 
-import org.droidmate.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.DeviceException
 
 class TestDeviceException(override val exceptionSpec: IExceptionSpec)
 	: DeviceException("Test-enforced device exception. Package name: $exceptionSpec.packageName Method name: " +

@@ -25,7 +25,7 @@
 
 package org.droidmate.storage
 
-import org.droidmate.exploration.data_aggregators.ExplorationContext
+import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Path
 
 /**

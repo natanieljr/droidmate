@@ -25,13 +25,13 @@
 
 package org.droidmate.tools
 
-import org.droidmate.android_sdk.*
+import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.IDeployableAndroidDevice
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.device.IRobustDevice
-import org.droidmate.exploration.device.RobustDevice
+import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.device.deviceInterface.RobustDevice
 import org.droidmate.logging.Markers
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.DroidmateException

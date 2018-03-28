@@ -25,10 +25,7 @@
 
 package org.droidmate.tests.android_sdk
 
-import org.droidmate.android_sdk.AaptWrapper
-import org.droidmate.configuration.Configuration
-import org.droidmate.misc.SysCmdExecutor
-import org.droidmate.test_tools.ApkFixtures
+import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.test_tools.DroidmateTestCase
 import org.droidmate.tests.fixture_aaptBadgingDump
 import org.junit.FixMethodOrder

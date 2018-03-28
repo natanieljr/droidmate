@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.device
 
-import org.droidmate.android_sdk.DeviceException
-import org.droidmate.android_sdk.IAdbWrapper
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 

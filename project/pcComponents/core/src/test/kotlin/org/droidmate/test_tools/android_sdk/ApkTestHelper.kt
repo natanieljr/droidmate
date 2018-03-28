@@ -25,7 +25,7 @@
 package org.droidmate.test_tools.android_sdk
 
 import org.apache.commons.io.FilenameUtils
-import org.droidmate.android_sdk.Apk
+import org.droidmate.device.android_sdk.Apk
 
 import java.nio.file.Path
 import java.nio.file.Paths

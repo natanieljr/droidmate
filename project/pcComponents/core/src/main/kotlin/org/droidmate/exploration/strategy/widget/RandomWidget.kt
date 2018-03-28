@@ -27,10 +27,10 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.statemodel.Widget
-import org.droidmate.device.datatypes.statemodel.emptyId
-import org.droidmate.device.datatypes.statemodel.features.ActionCounterMF
-import org.droidmate.device.datatypes.statemodel.features.listOfSmallest
+import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.exploration.statemodel.emptyId
+import org.droidmate.exploration.statemodel.features.ActionCounterMF
+import org.droidmate.exploration.statemodel.features.listOfSmallest
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority

@@ -25,7 +25,7 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.statemodel.Widget
 
 open class EnterTextExplorationAction constructor(val textToEnter: String,
                                                   override val widget: Widget) : ExplorationAction() {

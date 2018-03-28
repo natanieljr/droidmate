@@ -25,8 +25,8 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
-import org.droidmate.device.datatypes.statemodel.StateData
-import org.droidmate.device.datatypes.statemodel.Widget
+import org.droidmate.exploration.statemodel.StateData
+import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
 import org.droidmate.exploration.strategy.StrategyPriority

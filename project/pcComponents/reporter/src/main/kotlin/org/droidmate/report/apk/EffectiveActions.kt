@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.device.datatypes.statemodel.ActionData
+import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.data_aggregators.AbstractContext
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.report.misc.plot
 import org.droidmate.withExtension
 import java.awt.Point
@@ -35,7 +35,6 @@ import java.awt.image.Raster
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.temporal.ChronoUnit
 import javax.imageio.ImageIO
 

@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.reset
 
-import org.droidmate.device.datatypes.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.strategy.StrategyPriority
 
