@@ -44,9 +44,6 @@ buildscript {
 	apply from: file("./versions.gradle") // contains kotlin_version
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
-//		// NOTE: Do not place your application dependencies here; they belong
-//		// in the individual module build.gradle files
-		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'  // requires jcenter
 	}
 }
 
@@ -57,12 +54,6 @@ configure(pcJvmTargets) {
 	apply plugin: "kotlin"
 	sourceCompatibility = project.ext.javaVersion
 	targetCompatibility = project.ext.javaVersion
-
-	//FIXME
-	apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
-	shadowJar {
-		baseName = 'shadow'
-	}
 
 	dependencies {
 		compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
