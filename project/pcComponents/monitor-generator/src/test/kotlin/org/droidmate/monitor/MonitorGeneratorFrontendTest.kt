@@ -26,7 +26,7 @@
 package org.droidmate.monitor
 
 import org.droidmate.misc.BuildConstants
-import org.droidmate.text
+import org.droidmate.misc.text
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith

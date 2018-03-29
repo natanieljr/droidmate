@@ -22,31 +22,26 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate
+package org.droidmate.misc
 
-import org.droidmate.logging.Markers
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.hamcrest.CoreMatchers.equalTo
+import org.junit.Assert.assertThat
+import org.junit.Test
 import java.time.Duration
 import java.time.LocalDateTime
 
-class TimeDiffWithTolerance(private val tolerance: Duration) {
+class TimeDiffWithToleranceTest {
+	@Test
+	fun `warnIfBeyond test`() {
 
-	private val log: Logger = LoggerFactory.getLogger(TimeDiffWithTolerance::class.java)
+		val diff = TimeDiffWithTolerance(Duration.ofMillis(3000))
 
-	fun warnIfBeyond(start: LocalDateTime, end: LocalDateTime, startName: String, endName: String, apkFileName: String): Boolean {
-		val startAfterEnd = Duration.between(end, start)
-		if (startAfterEnd > tolerance) {
+		// Act
+		val result1 = diff.warnIfBeyond(LocalDateTime.now(), LocalDateTime.now().minusSeconds(4), "First element", "2nd item", "apkFileName")
+		val result2 = diff.warnIfBeyond(LocalDateTime.now(), LocalDateTime.now().minusSeconds(2), "Item1", "Thing2", "apkFileName")
 
-			val (startNamePadded, endNamePadded) = Pad(startName, endName)
-			log.warn(Markers.appHealth,
-					"For $apkFileName, the expected start time '$startName' is after the expected end time '$endName' by more than the tolerance.\n" +
-							"$startNamePadded : $start\n" +
-							"$endNamePadded : $end\n" +
-							"Tolerance  : ${tolerance.toMillis()} ms\n" +
-							"Difference : ${startAfterEnd.toMillis()} ms")
-			return true
-		} else
-			return false
+		assertThat(result1, equalTo(true))
+		assertThat(result2, equalTo(false))
 	}
+
 }

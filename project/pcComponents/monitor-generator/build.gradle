@@ -36,7 +36,6 @@ dependOnJunit(project)
 dependencies {
 
 	compile project(":project:pcComponents:lib-common")
-	compile project(":project:pcComponents:lib-kotlin")
 
 	compile 'com.google.code.gson:gson:2.4'
 

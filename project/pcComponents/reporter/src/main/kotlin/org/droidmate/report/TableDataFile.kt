@@ -26,7 +26,7 @@ package org.droidmate.report
 
 import com.google.common.collect.Table
 import org.droidmate.report.misc.plot
-import org.droidmate.withExtension
+import org.droidmate.misc.withExtension
 import java.nio.file.Files
 import java.nio.file.Path
 

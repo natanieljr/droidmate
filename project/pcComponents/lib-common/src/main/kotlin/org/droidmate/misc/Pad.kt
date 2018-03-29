@@ -22,23 +22,19 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-
 package org.droidmate.misc
 
-import java.io.Serializable
+class Pad(private val first: String, private val second: String) {
 
-class LabeledEdge<out TSource : Serializable, out TLabel : Serializable, out TTarget : Serializable> constructor(val source: TSource,
-                                                                                                                 val label: TLabel,
-                                                                                                                 val target: TTarget) : Serializable {
-	companion object {
-		private const val serialVersionUID: Long = 1
-	}
+	val firstPadded: String
+	val secondPadded: String
 
-	override fun toString(): String {
-		return "LabeledEdge{\n" +
-				"source = " + source + System.lineSeparator() +
-				"label  = " + label + System.lineSeparator() +
-				"target = " + target + System.lineSeparator() +
-				"} " + super.toString()
+	operator fun component1() = firstPadded
+	operator fun component2() = secondPadded
+
+	init {
+		val padSize = Math.max(first.length, second.length)
+		firstPadded = first.padEnd(padSize)
+		secondPadded = second.padEnd(padSize)
 	}
 }

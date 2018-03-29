@@ -22,22 +22,21 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-/*
-  This project contains classes reused by multiple projects, some of which are run on an Android device.
-  Because some of them are run on an Android Device, the classes in this project have to be compiled with Java 7, not Java 8.
-*/
 
 import org.droidmate.buildsrc.BuildKt
 
 apply plugin: 'kotlin'
 apply plugin: 'project-report'
 
-/* 
-   This project has to be built with Java 7. Otherwise the ant call from :project:pcComponents:monitor-generator:buildMonitorApk task:
+/*
+	This project contains classes reused by multiple projects, some of which are run on an Android device.
+	Because some of them are run on an Android Device, the classes in this project have to be compiled with Java 7, not Java 8.
+
+	This project has to be built with Java 7. Otherwise the ant call from :project:pcComponents:monitor-generator:buildMonitorApk task:
    
-     ant -f repo/dev/droidmate/projects/monitor-generator/monitor-apk-scaffolding/build.xml debug
+    	ant -f repo/dev/droidmate/projects/monitor-generator/monitor-apk-scaffolding/build.xml debug
      
-   fails with:
+	fails with:
 
        [dx] UNEXPECTED TOP-LEVEL EXCEPTION:
        [dx] com.android.dx.cf.iface.ParseException: bad class file magic (cafebabe) or version (0034.0000)
@@ -66,6 +65,10 @@ dependencies {
 	compile 'com.google.jimfs:jimfs:1.0'
 
 	testCompile 'junit:junit:4.12'
+	// TODO check
+//	testCompile 'org.hamcrest:hamcrest-core:1.3'
+//	testCompile 'org.hamcrest:hamcrest-library:1.3'
+//	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
 }
 
 File resDir = sourceSets.main.resources.srcDirs.first()
@@ -121,8 +124,6 @@ task cleanConstantsFile(type: Delete) {
 clean.dependsOn "cleanConstantsFile"
 
 processResources.dependsOn("writeBuildConstantsProperties")
-
-configureTest(project, ['**/LibCommonTestSuite.class'])
 
 task testi(type: Test, dependsOn: "testClasses") { Test it ->
 	it.group = "verification"

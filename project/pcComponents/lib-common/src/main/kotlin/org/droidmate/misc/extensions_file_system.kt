@@ -22,9 +22,8 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate
+package org.droidmate.misc
 
-import com.konradjamrozik.FileSystemsOperations
 import com.konradjamrozik.createDirIfNotExists
 import com.konradjamrozik.isDirectory
 import com.konradjamrozik.toList
@@ -33,7 +32,6 @@ import java.io.IOException
 import java.nio.file.FileSystem
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
-import java.nio.file.Files.newDirectoryStream
 import java.nio.file.Path
 
 val Path.text: String
@@ -60,23 +58,8 @@ fun Path.withExtension(extension: String): Path {
 	return this.resolveSibling(File(this.fileName.toString()).nameWithoutExtension + "." + extension)
 }
 
-val Path.fileNames: Iterable<String>
-	get() {
-		require(this.isDirectory)
-		return newDirectoryStream(this).map { it.fileName.toString() }
-	}
-
-fun Path.withFiles(vararg files: Path): Path {
-	files.asList().copyFilesToDirInDifferentFileSystem(this)
-	return this
-}
-
 fun FileSystem.dir(dirName: String): Path {
 	val dir = this.getPath(dirName)
 	dir.createDirIfNotExists()
 	return dir
-}
-
-fun List<Path>.copyFilesToDirInDifferentFileSystem(destDir: Path): Unit {
-	FileSystemsOperations().copyFilesToDirInDifferentFileSystem(this, destDir)
 }

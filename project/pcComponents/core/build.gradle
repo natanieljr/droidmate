@@ -39,10 +39,7 @@ apply from: project(":project:pcComponents").file("debug.gradle")
 
 dependOnJunit(project)
 evaluationDependsOn(':project:pcComponents:lib-common')
-evaluationDependsOn(':project:pcComponents:lib-kotlin')
 compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:lib-common:testClasses')
-compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:lib-kotlin:testClasses')
-dependWithTest([project, ":project:pcComponents:lib-kotlin", "kotlin"])
 dependWithTest([project, ":project:pcComponents:lib-common", "kotlin"])
 
 kotlin {

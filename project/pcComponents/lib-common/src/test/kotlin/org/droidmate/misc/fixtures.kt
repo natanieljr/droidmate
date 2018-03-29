@@ -22,11 +22,9 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.tests
+package org.droidmate.misc
 
 import com.konradjamrozik.Resource
-import org.droidmate.extractedPath
-import org.droidmate.extractedText
 import java.nio.file.Path
 
 /**

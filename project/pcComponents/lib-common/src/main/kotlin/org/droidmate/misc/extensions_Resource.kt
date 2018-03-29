@@ -22,19 +22,24 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate
+package org.droidmate.misc
 
-class Pad(private val first: String, private val second: String) {
+import com.konradjamrozik.Resource
+import java.nio.file.Path
+import java.nio.file.Paths
 
-	val firstPadded: String
-	val secondPadded: String
-
-	operator fun component1() = firstPadded
-	operator fun component2() = secondPadded
-
-	init {
-		val padSize = Math.max(first.length, second.length)
-		firstPadded = first.padEnd(padSize)
-		secondPadded = second.padEnd(padSize)
+val Resource.extractedPath: Path
+	get() {
+		val resDir = Paths.get("out", BuildConstants.dir_name_temp_extracted_resources)
+		return this.extractTo(resDir).toAbsolutePath()
 	}
-}
+
+val Resource.extractedPathString: String
+	get() {
+		return this.extractedPath.toString()
+	}
+
+val Resource.extractedText: String
+	get() {
+		return extractedPath.text
+	}

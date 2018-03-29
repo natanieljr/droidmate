@@ -22,15 +22,31 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-
 package org.droidmate.misc
 
-class TextUtilsCategory {
-	companion object {
-		@JvmStatic
-		fun wrapWith(self: String, brackets: String): String {
-			assert(brackets.length == 2)
-			return self.replaceFirst('^', brackets[0]).replaceFirst('\$', brackets[1])
-		}
+import org.droidmate.logging.Markers
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.time.Duration
+import java.time.LocalDateTime
+
+class TimeDiffWithTolerance(private val tolerance: Duration) {
+
+	private val log: Logger = LoggerFactory.getLogger(TimeDiffWithTolerance::class.java)
+
+	fun warnIfBeyond(start: LocalDateTime, end: LocalDateTime, startName: String, endName: String, apkFileName: String): Boolean {
+		val startAfterEnd = Duration.between(end, start)
+		if (startAfterEnd > tolerance) {
+
+			val (startNamePadded, endNamePadded) = Pad(startName, endName)
+			log.warn(Markers.appHealth,
+					"For $apkFileName, the expected start time '$startName' is after the expected end time '$endName' by more than the tolerance.\n" +
+							"$startNamePadded : $start\n" +
+							"$endNamePadded : $end\n" +
+							"Tolerance  : ${tolerance.toMillis()} ms\n" +
+							"Difference : ${startAfterEnd.toMillis()} ms")
+			return true
+		} else
+			return false
 	}
 }

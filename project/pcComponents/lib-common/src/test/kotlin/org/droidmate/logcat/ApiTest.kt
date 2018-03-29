@@ -37,7 +37,7 @@ import org.junit.runners.MethodSorters
 class ApiTest {
 
 	@Test
-	public fun `Gets unique string on non-content-prefix uri`() {
+	fun `Gets unique string on non-content-prefix uri`() {
 		// Before this test passed, only "content://" was allowed.
 		val offendingVal = "android.resource://com.twitter.android/2130837752"
 

@@ -30,7 +30,7 @@ import org.droidmate.command.exploration.CoverageMonitor
 import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
-import org.droidmate.deleteDir
+import org.droidmate.misc.deleteDir
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelDumpConfig
 import org.droidmate.exploration.AbstractContext
