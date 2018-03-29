@@ -54,9 +54,9 @@ repositories {
 dependencies {
 	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
 
-	compile("com.github.natanieljr:konrads_utilities:${project.ext.utilities_version}") {
-		exclude group: "org.slf4j", module: "slf4j-simple"
-	}
+//	compile("com.github.natanieljr:konrads_utilities:${project.ext.utilities_version}") {
+//		exclude group: "org.slf4j", module: "slf4j-simple"
+//	}
 
 	testCompile 'org.hamcrest:hamcrest-core:1.3'
 
@@ -82,6 +82,8 @@ dependencies {
 	compile 'com.google.jimfs:jimfs:1.0'
 
 	compile 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
+
+	compile 'com.github.npryce:konfig:1.6.2.0'  // configuration library
 
 	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
 

@@ -27,3 +27,4 @@ dependencies {
 
 	compile 'com.github.npryce:konfig:1.6.2.0'
 }
+

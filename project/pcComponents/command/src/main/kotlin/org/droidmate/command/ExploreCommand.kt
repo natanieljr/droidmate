@@ -32,10 +32,10 @@ import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.deleteDir
 import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.ModelDumpConfig
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
@@ -48,7 +48,6 @@ import org.droidmate.report.AggregateStats
 import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
-import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
 import org.slf4j.Logger
@@ -59,8 +58,7 @@ import java.nio.file.Path
 open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
-                                      private val exploration: IExploration,
-                                      private val storage2: IStorage2) : DroidmateCommand() {
+                                      private val exploration: IExploration) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
@@ -73,12 +71,11 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
 		          strategies: List<ISelectableExplorationStrategy> = emptyList(),
-		          model: (ModelDumpConfig)->Model = {config -> Model.emptyModel(config)}): ExploreCommand {
+		          model: (String)->Model = { appName -> Model.emptyModel(ModelConfig(appName))}): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
-			val storage2 = Storage2(cfg.droidmateOutputDirPath)
 			val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 

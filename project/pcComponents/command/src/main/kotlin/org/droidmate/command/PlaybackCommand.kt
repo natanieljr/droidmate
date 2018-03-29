@@ -36,7 +36,6 @@ import org.droidmate.misc.TimeProvider
 import org.droidmate.report.Reporter
 import org.droidmate.report.apk.playback.ReproducibilityRate
 import org.droidmate.report.apk.playback.TraceDump
-import org.droidmate.storage.IStorage2
 import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
 import java.nio.file.Files
@@ -45,8 +44,7 @@ import java.nio.file.Paths
 class PlaybackCommand(apksProvider: IApksProvider,
                       deviceDeployer: IAndroidDeviceDeployer,
                       apkDeployer: IApkDeployer,
-                      exploration: IExploration,
-                      storage2: IStorage2) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer, exploration, storage2) {
+                      exploration: IExploration) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer, exploration) {
 	companion object {
 		private lateinit var playbackStrategy: MemoryPlayback
 
@@ -65,10 +63,9 @@ class PlaybackCommand(apksProvider: IApksProvider,
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg)): PlaybackCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
-			val storage2 = Storage2(cfg.droidmateOutputDirPath)
 			val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
 
-			val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration, storage2)
+			val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration)
 
 			val storedLogFile = Paths.get(cfg.playbackFile).toAbsolutePath()
 			assert(Files.exists(storedLogFile), { "Stored exploration log $storedLogFile not found." })

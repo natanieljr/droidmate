@@ -28,6 +28,7 @@ import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
+import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import java.io.ByteArrayInputStream
 import java.io.Serializable
@@ -91,7 +92,7 @@ open class ActionResult(val action: ExplorationAction,
 	}
 
 	/** this method should be exclusively used for StateData generation */
-	fun getWidgets(config: ModelDumpConfig): List<Widget> {
+	fun getWidgets(config: ModelConfig): List<Widget> {
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
 
 //		val img:BufferedImage? =

@@ -1,19 +1,16 @@
 package org.droidmate.exploration.statemodel
 
 import org.droidmate.exploration.statemodel.Widget.Companion.widgetHeader
+import org.droidmate.exploration.statemodel.config.ConcreteId
+import org.droidmate.exploration.statemodel.config.ModelConfig
+import org.droidmate.exploration.statemodel.config.dump.sep
+import org.droidmate.exploration.statemodel.config.emptyUUID
 import java.io.File
 import java.util.*
 
 /**
- * States have two components, the Id determined by its Widgets image, text and description and the ConfigId defined by the WidgetsProperties
- */
-typealias ConcreteId = Pair<UUID, UUID>
-
-fun stateIdFromString(s: String) = s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
-fun ConcreteId.toString() = "${first}_$second"
-val emptyId = ConcreteId(emptyUUID, emptyUUID)
-
-/** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
+ * States have two components, the Id determined by its Widgets image, text and description and the ConfigId defined by the WidgetsProperties.
+ ** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
 class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
                             val topNodePackageName: String = "", val androidLauncherPackageName: String = "", //TODO check if androidLauncherPackageName really necessary
                             val isHomeScreen: Boolean = false,
@@ -71,13 +68,13 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	 *
 	 * [uid] => state_id as file name
 	 */
-	fun dump(config: ModelDumpConfig) {
+	fun dump(config: ModelConfig) {
 		File(config.widgetFile(stateId)).bufferedWriter().use { all ->
-			all.write(widgetHeader)
+			all.write(widgetHeader(config[sep]))
 
 			widgets.sortedBy { it.uid }.forEach {
 				all.newLine()
-				all.write(it.dataString)
+				all.write(it.dataString(config[sep]))
 			}
 		}
 	}

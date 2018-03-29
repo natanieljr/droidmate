@@ -23,6 +23,7 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.IRunnableExplorationAction
+import org.droidmate.exploration.statemodel.config.ModelConfig
 import java.awt.Rectangle
 import java.time.LocalDateTime
 import java.util.*
@@ -31,13 +32,13 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    override val watcher: LinkedList<ModelFeature> = LinkedList(),
-                                                   override val actionTrace: Trace = Trace(watcher),
-                                                   override val model: Model = Model.emptyModel(ModelDumpConfig(apk.packageName))) : AbstractContext() {
+                                                   override val model: Model = Model.emptyModel(ModelConfig(apk.packageName)),
+		                                               override val actionTrace: Trace = model.initNewTrace(watcher)
+) : AbstractContext() {
 
 	override var deviceDisplayBounds: Rectangle? = null
 
 	init {
-		model.addTrace(actionTrace)
 		if (explorationStartTime > LocalDateTime.MIN)
 			this.verify()
 	}
