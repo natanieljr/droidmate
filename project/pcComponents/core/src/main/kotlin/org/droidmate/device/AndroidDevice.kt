@@ -39,7 +39,12 @@ import org.droidmate.misc.Utils
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.GuiStatusResponse
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.*
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_PERFORM_ACTION
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_STOP_UIADAEMON
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.logcatLogFileName
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_packageName
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_testPackageName
 import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep

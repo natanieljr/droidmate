@@ -23,15 +23,17 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.uiautomator_daemon;
+package org.droidmate.uiautomator_daemon
 
-import java.io.Serializable;
+class UiAutomatorDaemonException : Exception {
 
-public class DeviceResponse implements Serializable {
 
-	public Throwable throwable;
+	constructor() : super() {}
 
-	public boolean isNaturalOrientation;
+	constructor(arg0: String, arg1: Throwable) : super(arg0, arg1) {}
 
-	public String model;
+	constructor(arg0: String) : super(arg0) {}
+
+	constructor(arg0: Throwable) : super(arg0) {}
+
 }

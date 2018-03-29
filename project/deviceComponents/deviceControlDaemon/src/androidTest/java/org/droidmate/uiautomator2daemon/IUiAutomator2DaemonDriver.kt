@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018. Saarland University
+// Copyright (C) 2012-2016 Konrad Jamrozik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,34 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// Current Maintainers:
-// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
-// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
-//
-// Former Maintainers:
-// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
-//
+// email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
+package org.droidmate.uiautomator2daemon
 
-package org.droidmate.uiautomator_daemon;
+import org.droidmate.uiautomator_daemon.DeviceCommand
+import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 
-public class UiAutomatorDaemonException extends Exception {
-
-
-	public UiAutomatorDaemonException() {
-		super();
-	}
-
-	public UiAutomatorDaemonException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
-
-	public UiAutomatorDaemonException(String arg0) {
-		super(arg0);
-	}
-
-	public UiAutomatorDaemonException(Throwable arg0) {
-		super(arg0);
-	}
+interface IUiAutomator2DaemonDriver {
+	@Throws(UiAutomatorDaemonException::class)
+	fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse
 
 }
