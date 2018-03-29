@@ -25,6 +25,8 @@ import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
+import org.droidmate.exploration.statemodel.config.*
+import org.droidmate.exploration.statemodel.config.dump.sep
 import java.io.File
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -35,14 +37,16 @@ import kotlin.properties.Delegates
 class ActionData private constructor(val actionType: String, val targetWidget: Widget?,
                                      val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
                                      val successful: Boolean, val exception: String,
-                                     val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs) {
+                                     val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
+                                     private val sep:String) {
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
-	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId)
+	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId, sep:String)
 			: this(action::class.simpleName ?: "Unknown", action.widget,
-			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs)
+			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep)
 
-	constructor(res: ActionResult, resStateId: ConcreteId, prevStateId: ConcreteId) : this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId) {
+	constructor(res: ActionResult, resStateId: ConcreteId, prevStateId: ConcreteId, sep:String)
+			: this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId, sep) {
 		prevState = prevStateId
 	}
 
@@ -72,19 +76,19 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 //				ActionData(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
 
 		@JvmStatic
-		fun createFromString(e: List<String>, target: Widget?): ActionData = ActionData(
+		fun createFromString(e: List<String>, target: Widget?, contentSeparator: String): ActionData = ActionData(
 				e[P.Action.ordinal], target, LocalDateTime.parse(e[P.StartTime.ordinal]), LocalDateTime.parse(e[P.EndTime.ordinal]),
-				e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal])
+				e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal]), sep = contentSeparator
 		).apply { prevState = stateIdFromString(e[P.Id.ordinal]) }
 
 		@JvmStatic
 		val empty: ActionData by lazy {
-			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId
+			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId, sep = ";"
 			).apply { prevState = emptyId }
 		}
 
 		@JvmStatic
-		val header = P.values().joinToString(separator = sep) { it.header }
+		val header:(String)-> String = { sep -> P.values().joinToString(separator = sep) { it.header } }
 		val widgetIdx = P.WId.ordinal
 
 		private enum class P(var header: String = "") { Id("Source State"), Action, WId("Interacted Widget"),
@@ -101,7 +105,8 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 	}
 }
 
-class Trace(private val watcher: List<ModelFeature> = emptyList()) {
+class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig) {
+	constructor(_config: ModelConfig): this(config = _config)
 	/** REMARK: the completion of action processing has to be ensured by calling actionProcessorJob.joinChildren() before accessing this property */
 	private val trace = LinkedList<ActionData>()
 
@@ -142,7 +147,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList()) {
 
 	private val actionProcessor: (ActionResult, StateData) -> suspend CoroutineScope.() -> Unit = { action, newState ->
 		{
-			debugT("create actionData", { ActionData(action, newState.stateId, newState.stateId) })
+			debugT("create actionData", { ActionData(action, newState.stateId, newState.stateId, config[sep]) })
 					.also {
 						debugT("add action", { P_addAction(it) })
 					}
@@ -184,9 +189,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList()) {
 	}
 
 	//TODO this can be nicely done with a buffered channel instead of requiring a explicit launch call each time
-	suspend fun dump(config: ModelDumpConfig) = dumpMutex.withLock("trace dump") {
+	suspend fun dump(config: ModelConfig = this.config) = dumpMutex.withLock("trace dump") {
 		File(config.traceFile(date)).bufferedWriter().use { out ->
-			out.write(ActionData.header)
+			out.write(ActionData.header(config[sep]))
 			out.newLine()
 			waitFor { }  // ensure that our trace is complete before dumping it
 			trace.forEach { action ->

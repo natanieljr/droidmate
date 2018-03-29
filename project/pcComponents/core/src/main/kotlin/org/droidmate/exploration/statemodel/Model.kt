@@ -2,6 +2,9 @@ package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.*
 import org.droidmate.debug.debugT
+import org.droidmate.exploration.statemodel.config.*
+import org.droidmate.exploration.statemodel.config.dump.sep
+import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,7 +30,7 @@ internal inline fun <T> P_processLines(file: File, sep: String, skip: Long = 1, 
 
 /** s_* should be only used in sequential context as it currently does not handle parallelism*/
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class Model private constructor(val config: ModelDumpConfig) {
+class Model private constructor(val config: ModelConfig) {
 	private val paths = HashSet<Trace>()
 	private var nWidgets = 0
 	private var nStates = 0
@@ -84,7 +87,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 	private suspend fun P_findOrAddState(stateId: ConcreteId): StateData = getStates().find { s -> s.stateId == stateId }  // allow parsing in parallel but ensure atomic adding
 			?: P_parseState(stateId).also { addState(it) }
 
-	fun P_dumpModel(config: ModelDumpConfig) = launch(CoroutineName("Model-dump")) {
+	fun P_dumpModel(config: ModelConfig) = launch(CoroutineName("Model-dump")) {
 		paths.map { t -> launch(CoroutineName("trace-dump")) { t.dump(config) } }.let { traceDump ->
 			getStates().map { s -> launch(CoroutineName("state-dump ${s.uid}")) { s.dump(config) } }.forEach { it.join() }
 			traceDump.forEach { it.join() }
@@ -109,7 +112,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 					//traceUpdate.join();
 					trace.dump(config)
 				}
-				if (config.dumpStateImg) launch {
+				if (config[imgDump.states]) launch {
 					//traceUpdate.join()
 					action.screenshot.let {  //FIXME if no screenshot this issues exceptions (probably this strange default value of ActionResult)
 						// if there is any screen-shot copy it to the state extraction directory
@@ -208,14 +211,14 @@ class Model private constructor(val config: ModelDumpConfig) {
 			// we createFromString the source state and target widget if there is any
 			stateIdFromString(entries[0]).let { srcId ->
 				// pars the src state with the contained widgets and add the respective objects to our model
-				ActionData.createFromString(entries, findWidget(entries[ActionData.widgetIdx], P_findOrAddState(srcId).widgets))
+				ActionData.createFromString(entries, findWidget(entries[ActionData.widgetIdx], P_findOrAddState(srcId).widgets),config[sep])
 			}
 		}
 	}
 
 	private suspend fun P_parseTrace(file: Path) {
-		Trace().apply {
-			P_processLines(file.toFile(), sep, lineProcessor = _actionParser).forEach { it.await().let { P_addAction(it) } }
+		Trace(config).apply {
+			P_processLines(file.toFile(),config[sep], lineProcessor = _actionParser).forEach { it.await().let { P_addAction(it) } }
 		}.also { synchronized(paths) { paths.add(it) } }
 	}
 
@@ -240,7 +243,7 @@ class Model private constructor(val config: ModelDumpConfig) {
 			// create the set of contained elements (widgets)
 			val contentFile = File(config.widgetFile(stateId))
 			if (contentFile.exists())  // otherwise this state has no widgets
-				P_processLines(file = contentFile, sep = sep, lineProcessor = _widgetParser).forEach {
+				P_processLines(file = contentFile, sep = config[sep], lineProcessor = _widgetParser).forEach {
 					it.await()?.also {
 						// add the parsed widget to temporary set AND initialize the parent property
 						add(it)
@@ -257,16 +260,16 @@ class Model private constructor(val config: ModelDumpConfig) {
 
 	companion object {
 		@JvmStatic
-		fun emptyModel(config: ModelDumpConfig): Model = Model(config)
+		fun emptyModel(config: ModelConfig): Model = Model(config)
 
 		// parallel parsing of multiple traces => need to lock states/widgets and paths when modifying them
 		internal fun loadAppModel(appName: String): Model {
-			return loadAppModel(ModelDumpConfig(appName))
+			return loadAppModel(ModelConfig(appName))
 		}
 
-		fun loadAppModel(config: ModelDumpConfig): Model {
+		fun loadAppModel(config: ModelConfig): Model {
 			return emptyModel(config).apply {
-				Files.list(Paths.get(config.modelBaseDir)).filter { it.fileName.toString().startsWith(traceFilePrefix) }.map {
+				Files.list(Paths.get(config.baseDir)).filter { it.fileName.toString().startsWith(config[dump.traceFilePrefix]) }.map {
 					launch(CoroutineName("TraceParsing")) { P_parseTrace(it) }
 				}.forEach { runBlocking { it.join() } }
 			}
@@ -275,5 +278,11 @@ class Model private constructor(val config: ModelDumpConfig) {
 
 	override fun toString(): String {
 		return "Model[states=$nStates,widgets=$nWidgets,paths=${paths.size}]"
+	}
+
+	fun initNewTrace(watcher: LinkedList<ModelFeature>): Trace {
+		return Trace(watcher,config).also {actionTrace ->
+			addTrace(actionTrace)
+		}
 	}
 }

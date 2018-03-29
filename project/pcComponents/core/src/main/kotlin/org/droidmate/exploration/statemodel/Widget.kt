@@ -17,16 +17,21 @@
 package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.launch
+import org.droidmate.exploration.statemodel.config.ModelConfig
+import org.droidmate.exploration.statemodel.config.dump.sep
+import org.droidmate.exploration.statemodel.config.emptyUUID
+import org.droidmate.exploration.statemodel.config.imgDump
+import org.droidmate.exploration.statemodel.config.stateIdFromString
 import org.droidmate.uiautomator_daemon.P
 import org.droidmate.uiautomator_daemon.WidgetData
 import org.droidmate.uiautomator_daemon.toUUID
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.SystemColor.text
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
-
 
 /**
  * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a coroutine running to compute the Widget.uid
@@ -97,7 +102,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		return "x=$x, y=$y, width=$width, height=$height"
 	}
 
-	val dataString by lazy {
+	val dataString:(String)->String by lazy {{ sep:String ->
 		P.values().joinToString(separator = sep) { p ->
 			when (p) {
 				P.UID -> uid.toString()
@@ -126,7 +131,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.PackageName -> packageName
 			}
 		}
-	}
+	}}
 
 	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 	fun center(): Point = Point(bounds.centerX.toInt(), bounds.centerY.toInt())
@@ -198,19 +203,24 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 
 
 		@JvmStatic
-		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelDumpConfig): Widget {
+		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
 			screenImg?.getSubimage(w.boundsRect).let { wImg ->
 				lazy {
 					computeId(w, wImg, true)
 				}
 						.let { widgetId ->
 							launch { widgetId.value }  // issue initialization in parallel
-							// print the screen img if there is one
-							if (config.dumpWidgetImg && wImg != null && w.content() == "") launch {
-								File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {
-									if (!it.exists()) ImageIO.write(wImg, "png", it)
+							// print the screen img if there is one and it is configured to be printed
+							if (wImg != null && config[imgDump.widgets] && (!config[imgDump.widget.onlyWhenNoText] ||
+											(config[imgDump.widget.onlyWhenNoText] && w.content() == "" ) ) &&
+									( config[imgDump.widget.interactable] && w.canBeActedUpon() ||
+											config[imgDump.widget.nonInteractable] && !w.canBeActedUpon() ) )
+
+								launch {
+									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {
+										if (!it.exists()) ImageIO.write(wImg, "png", it)
+									}
 								}
-							}
 							return /* debugT("create to Widget ", { */ Widget(w, widgetId)
 //							})
 						}
@@ -220,7 +230,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		val idIdx by lazy { P.UID.ordinal }
 		@JvmStatic
-		val widgetHeader by lazy { P.values().joinToString(separator = sep) { it.header } }
+		val widgetHeader:(String)->String by lazy {{ sep:String -> P.values().joinToString(separator = sep) { it.header } } }
 
 		@JvmStatic
 		private fun BufferedImage.getSubimage(r: Rectangle) = this.getSubimage(r.x, r.y, r.width, r.height)
