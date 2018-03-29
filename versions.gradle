@@ -9,6 +9,6 @@ project.ext {
 	androidTargetSdkVersion = 25
 	androidCompileSdkVersion = 26
 
-	// for core package some strange konrad.utilities
+	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = '19115bab35'
 }

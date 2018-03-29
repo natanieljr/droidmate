@@ -23,17 +23,6 @@
 //
 // web: www.droidmate.org
 
-buildscript {
-	apply from: file("${rootProject.projectDir}/versions.gradle")
-	repositories {
-		mavenCentral()
-		maven { url "https://jitpack.io" }
-	}
-	dependencies {
-		classpath "com.github.natanieljr:konrads_utilities:${project.ext.utilities_version}"
-	}
-}
-
 apply from: project(":project:pcComponents").file("debug.gradle")
 
 
@@ -53,10 +42,6 @@ repositories {
 
 dependencies {
 	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
-
-//	compile("com.github.natanieljr:konrads_utilities:${project.ext.utilities_version}") {
-//		exclude group: "org.slf4j", module: "slf4j-simple"
-//	}
 
 	testCompile 'org.hamcrest:hamcrest-core:1.3'
 

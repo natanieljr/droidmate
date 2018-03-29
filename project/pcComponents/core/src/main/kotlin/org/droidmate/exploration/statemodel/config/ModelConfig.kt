@@ -1,12 +1,12 @@
 package org.droidmate.exploration.statemodel.config
 
 import com.natpryce.konfig.*
-import org.droidmate.deleteDir
 import org.droidmate.exploration.statemodel.config.dump.stateFileExtension
 import org.droidmate.exploration.statemodel.config.dump.traceFilePrefix
 import org.droidmate.exploration.statemodel.config.path.cleanDirs
 import org.droidmate.exploration.statemodel.config.path.statesSubDir
 import org.droidmate.exploration.statemodel.config.path.widgetsSubDir
+import org.droidmate.misc.deleteDir
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
