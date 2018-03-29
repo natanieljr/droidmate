@@ -28,7 +28,7 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.report.misc.plot
-import org.droidmate.withExtension
+import org.droidmate.misc.withExtension
 import java.awt.Point
 import java.awt.image.BufferedImage
 import java.awt.image.Raster

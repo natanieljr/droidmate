@@ -50,8 +50,8 @@ proguard/
 *.jar
 *.apk
 *.dex
-lib-common-dev.jar
-lib-common-android-dev.jar
+commonLib-dev.jar
+commonLib-android-dev.jar
 uiautomator-daemon-lib-dev.jar
 lib-android-dev.jar
 autAddonBytecode.dex

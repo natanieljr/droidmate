@@ -27,7 +27,7 @@ package org.droidmate.report.apk.playback
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.report.misc.plot
-import org.droidmate.withExtension
+import org.droidmate.misc.withExtension
 import java.nio.file.Files
 import java.nio.file.Path
 

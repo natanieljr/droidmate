@@ -22,34 +22,26 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.misc
 
-import org.droidmate.misc.deleteDir
-import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.storage.Storage2
-import java.nio.file.Files
-import java.nio.file.Path
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Test
+import java.nio.file.Paths
 
-class OutputDir(val dir: Path) {
+class extensions_file_systemKtTest {
 
-	val explorationOutput2: List<AbstractContext> by lazy {
-		ExplorationOutput2.from(Storage2(dir))
-	}
+	@Test
+	fun withExtensionTest() {
+		val fixture = Paths.get("/some/path/xyz.txt")
 
-	val notEmptyExplorationOutput2: List<AbstractContext> by lazy {
-		check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
-		explorationOutput2
-	}
+		// Act
+		val actual = fixture.withExtension("newext")
 
-	fun clearContents() {
-		if (Files.exists(dir)) {
-			Files.list(dir).forEach {
-				if (Files.isDirectory(it))
-					it.deleteDir()
-				else
-					Files.delete(it)
-			}
-		}
+		assertThat(actual.parent.toString(), equalTo(fixture.parent.toString()))
+		assertThat(actual.fileName.toString(), equalTo("xyz.newext"))
 	}
 }
+
+
+

@@ -29,7 +29,7 @@ import com.google.common.collect.Table
 import com.konradjamrozik.Resource
 import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
-import org.droidmate.extractedPathString
+import org.droidmate.misc.extractedPathString
 import org.droidmate.misc.SysCmdExecutor
 import java.nio.file.Paths
 

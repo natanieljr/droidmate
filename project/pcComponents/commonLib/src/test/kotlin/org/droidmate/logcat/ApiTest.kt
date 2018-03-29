@@ -22,34 +22,30 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.report
 
-import org.droidmate.misc.deleteDir
-import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.storage.Storage2
-import java.nio.file.Files
-import java.nio.file.Path
+package org.droidmate.logcat
 
-class OutputDir(val dir: Path) {
+import org.droidmate.apis.Api
+import org.junit.FixMethodOrder
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.junit.runners.MethodSorters
 
-	val explorationOutput2: List<AbstractContext> by lazy {
-		ExplorationOutput2.from(Storage2(dir))
-	}
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@RunWith(JUnit4::class)
+class ApiTest {
 
-	val notEmptyExplorationOutput2: List<AbstractContext> by lazy {
-		check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
-		explorationOutput2
-	}
+	@Test
+	fun `Gets unique string on non-content-prefix uri`() {
+		// Before this test passed, only "content://" was allowed.
+		val offendingVal = "android.resource://com.twitter.android/2130837752"
 
-	fun clearContents() {
-		if (Files.exists(dir)) {
-			Files.list(dir).forEach {
-				if (Files.isDirectory(it))
-					it.deleteDir()
-				else
-					Files.delete(it)
-			}
-		}
+		val api = Api("ContentResolver", "someMethod", "void",
+				arrayListOf("android.net.Uri"), arrayListOf(offendingVal), "1",
+				"dalvik.system.VMStack.getThreadStackTrace(Native Method)->dalvik.system.NativeStart.main(Native Method)")
+
+		// Act
+		api.uniqueString
 	}
 }

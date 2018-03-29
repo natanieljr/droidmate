@@ -35,8 +35,7 @@ dependOnJunit(project)
 
 dependencies {
 
-	compile project(":project:pcComponents:lib-common")
-	compile project(":project:pcComponents:lib-kotlin")
+	compile project(":project:pcComponents:commonLib")
 
 	compile 'com.google.code.gson:gson:2.4'
 
@@ -91,8 +90,8 @@ task generateMonitor_api23(type: JavaExec) { generateMonitor(it as JavaExec, ["a
 evaluationDependsOn(":project:pcComponents:monitor-hook")
 Jar monitorHookJarTask = findProject(":project:pcComponents:monitor-hook").jar as Jar
 
-evaluationDependsOn(":project:pcComponents:lib-common")
-Jar libCommonJarTask = findProject(":project:pcComponents:lib-common").jar as Jar
+evaluationDependsOn(":project:pcComponents:commonLib")
+Jar libCommonJarTask = findProject(":project:pcComponents:commonLib").jar as Jar
 
 File monitorApkScaffoldingDir = project(":project:pcComponents").file("monitor-apk-scaffolding")
 assert monitorApkScaffoldingDir.directory

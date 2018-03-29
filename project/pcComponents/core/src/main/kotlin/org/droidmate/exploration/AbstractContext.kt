@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration
 
-import org.droidmate.TimeDiffWithTolerance
+import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ApiLogcatMessageListExtensions
