@@ -41,9 +41,9 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_log
  * Decides if UiAutomator2DaemonDriver should wait for the window to go to idle state after each click.
  */
 internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
-	private val device: UiDevice?
-	private val context: Context?
-	private val automation: UiAutomation?
+	private val device: UiDevice
+	private val context: Context
+	private val automation: UiAutomation
 
 	private val deviceModel: String
 		get() {
@@ -92,7 +92,7 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 			when (deviceCommand.command) {
 				DEVICE_COMMAND_STOP_UIADAEMON -> {
 				}
-				DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP -> response = fetchDeviceData(device!!, automation!!, deviceModel)
+				DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP -> response = fetchDeviceData(device, automation, deviceModel)
 				DEVICE_COMMAND_PERFORM_ACTION -> response = performAction(deviceCommand)
 				else -> throw UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command))
 			}// The server will be closed after this response is sent, because the given deviceCommand.command will be interpreted
@@ -116,8 +116,8 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 
 		val action = DeviceAction.fromAction(deviceCommand.guiAction!!)
 
-		action?.execute(device!!, context!!)
+		action?.execute(device, context)
 
-		return fetchDeviceData(device!!, automation!!, deviceModel)
+		return fetchDeviceData(device, automation, deviceModel)
 	}
 }
