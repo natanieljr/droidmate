@@ -22,34 +22,25 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.report
 
-import org.droidmate.misc.deleteDir
-import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.storage.Storage2
-import java.nio.file.Files
-import java.nio.file.Path
+package org.droidmate.debug
 
-class OutputDir(val dir: Path) {
+import java.io.File
+import java.lang.Thread.sleep
+import kotlin.system.measureNanoTime
 
-	val explorationOutput2: List<AbstractContext> by lazy {
-		ExplorationOutput2.from(Storage2(dir))
-	}
+// TODO we would like to read this property from the DroidMate.Configuration instead
+const val measurePerformance = true
 
-	val notEmptyExplorationOutput2: List<AbstractContext> by lazy {
-		check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
-		explorationOutput2
-	}
-
-	fun clearContents() {
-		if (Files.exists(dir)) {
-			Files.list(dir).forEach {
-				if (Files.isDirectory(it))
-					it.deleteDir()
-				else
-					Files.delete(it)
-			}
+inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
+	var res: T? = null
+	if (measurePerformance) {
+		measureNanoTime {
+			res = block.invoke()
+		}.let {
+			timer(it)
+			println("time ${if (inMillis) "${it / 1000000.0} ms" else "${it / 1000.0} ns/1000"} \t $msg")
 		}
-	}
+	} else res = block.invoke()
+	return res!!
 }

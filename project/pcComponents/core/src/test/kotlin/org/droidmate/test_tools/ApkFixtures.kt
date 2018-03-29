@@ -32,7 +32,7 @@ import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.configuration.Configuration
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.SysCmdExecutor
-import org.droidmate.text
+import org.droidmate.misc.text
 import java.nio.file.Path
 import java.nio.file.Paths
 

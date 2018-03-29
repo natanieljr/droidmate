@@ -22,34 +22,44 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.misc
 
-import org.droidmate.misc.deleteDir
-import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.storage.Storage2
+import com.konradjamrozik.createDirIfNotExists
+import com.konradjamrozik.isDirectory
+import com.konradjamrozik.toList
+import java.io.File
+import java.io.IOException
+import java.nio.file.FileSystem
+import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
 
-class OutputDir(val dir: Path) {
-
-	val explorationOutput2: List<AbstractContext> by lazy {
-		ExplorationOutput2.from(Storage2(dir))
+val Path.text: String
+	get() {
+		return Files.readAllLines(this).joinToString(System.lineSeparator())
 	}
 
-	val notEmptyExplorationOutput2: List<AbstractContext> by lazy {
-		check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
-		explorationOutput2
+fun Path.deleteDir(): Boolean {
+	return try {
+		if (Files.exists(this))
+			Files.walk(this, FileVisitOption.FOLLOW_LINKS)
+					.toList()
+					.sorted()
+					.reversed()
+					.forEach { Files.delete(it) }
+		true
+	} catch (e: IOException) {
+		false
 	}
+}
 
-	fun clearContents() {
-		if (Files.exists(dir)) {
-			Files.list(dir).forEach {
-				if (Files.isDirectory(it))
-					it.deleteDir()
-				else
-					Files.delete(it)
-			}
-		}
-	}
+fun Path.withExtension(extension: String): Path {
+	require(!this.isDirectory)
+	return this.resolveSibling(File(this.fileName.toString()).nameWithoutExtension + "." + extension)
+}
+
+fun FileSystem.dir(dirName: String): Path {
+	val dir = this.getPath(dirName)
+	dir.createDirIfNotExists()
+	return dir
 }

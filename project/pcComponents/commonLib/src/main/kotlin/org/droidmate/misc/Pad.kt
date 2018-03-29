@@ -22,34 +22,19 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.report
+package org.droidmate.misc
 
-import org.droidmate.misc.deleteDir
-import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
-import org.droidmate.storage.Storage2
-import java.nio.file.Files
-import java.nio.file.Path
+class Pad(private val first: String, private val second: String) {
 
-class OutputDir(val dir: Path) {
+	val firstPadded: String
+	val secondPadded: String
 
-	val explorationOutput2: List<AbstractContext> by lazy {
-		ExplorationOutput2.from(Storage2(dir))
-	}
+	operator fun component1() = firstPadded
+	operator fun component2() = secondPadded
 
-	val notEmptyExplorationOutput2: List<AbstractContext> by lazy {
-		check(explorationOutput2.isNotEmpty(), { "Check failed: explorationOutput2.isNotEmpty()" })
-		explorationOutput2
-	}
-
-	fun clearContents() {
-		if (Files.exists(dir)) {
-			Files.list(dir).forEach {
-				if (Files.isDirectory(it))
-					it.deleteDir()
-				else
-					Files.delete(it)
-			}
-		}
+	init {
+		val padSize = Math.max(first.length, second.length)
+		firstPadded = first.padEnd(padSize)
+		secondPadded = second.padEnd(padSize)
 	}
 }

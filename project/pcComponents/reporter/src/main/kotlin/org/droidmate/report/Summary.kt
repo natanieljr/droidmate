@@ -26,7 +26,7 @@ package org.droidmate.report
 
 import com.konradjamrozik.Resource
 import org.droidmate.exploration.AbstractContext
-import org.droidmate.extractedText
+import org.droidmate.misc.extractedText
 import java.nio.file.Files
 import java.nio.file.Path
 
