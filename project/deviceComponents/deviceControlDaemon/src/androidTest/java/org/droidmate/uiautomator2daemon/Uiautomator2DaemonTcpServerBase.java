@@ -34,7 +34,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Serializable, ServerOutputT extends Serializable> {
-	static final String tag = UiautomatorDaemonConstants.uiaDaemon_logcatTag + "/server";
+	static final String tag = UiautomatorDaemonConstants.INSTANCE.getUiaDaemon_logcatTag() + "/server";
 	private int port;
 	private ServerSocket serverSocket;
 	private String serverStartMessageTag;
@@ -46,7 +46,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 		this.serverStartMessage = serverStartMessage;
 	}
 
-	protected abstract ServerOutputT OnServerRequest(ServerInputT input, Exception inputReadEx);
+	protected abstract ServerOutputT onServerRequest(ServerInputT input, Exception inputReadEx);
 
 	protected abstract boolean shouldCloseServerSocket(ServerInputT serverInput);
 
@@ -141,8 +141,8 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 					}
 
 					ServerOutputT serverOutput;
-					Log.v(tag, "serverOutput = OnServerRequest(serverInput, serverInputReadEx);");
-					serverOutput = OnServerRequest(serverInput, serverInputReadEx);
+					Log.v(tag, "serverOutput = onServerRequest(serverInput, serverInputReadEx);");
+					serverOutput = onServerRequest(serverInput, serverInputReadEx);
 					Log.v(tag, "output.writeObject(serverOutput);");
 					SerializationHelper.Companion.writeObjectToStream(output, serverOutput);
 					Log.v(tag, "clientSocket.close();");
