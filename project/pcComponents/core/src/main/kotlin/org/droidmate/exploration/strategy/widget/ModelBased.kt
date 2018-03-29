@@ -26,106 +26,29 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.exploration.statemodel.features.EventProbabilityMF
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.ResourceManager
 import org.droidmate.exploration.strategy.StrategyPriority
-import weka.classifiers.trees.RandomForest
-import weka.core.DenseInstance
-import weka.core.Instance
-import weka.core.Instances
-import weka.core.converters.ConverterUtils
-import java.io.InputStream
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class ModelBased protected constructor(randomSeed: Long,
-                                            modelName: String,
-                                            arffName: String) : RandomWidget(randomSeed) {
-
+open class ModelBased @JvmOverloads constructor(randomSeed: Long,
+												modelName: String = "HasModel.model",
+												arffName: String = "baseModelFile.arff") : RandomWidget(randomSeed) {
 	/**
-	 * Weka classifier with pre-trained model
+	 * Creates a new exploration strategy instance reading the random seed from the configuration file
 	 */
-	protected val classifier: RandomForest by lazy {
-		val model: InputStream by lazy { ResourceManager.getResource(modelName) }
-		weka.core.SerializationHelper.read(model) as RandomForest
-	}
-	/**
-	 * Instances originally used to train the model.
-	 */
-	private val wekaInstances: Instances by lazy {
-		val modelData: InputStream by lazy { ResourceManager.getResource(arffName) }
-		initializeInstances(modelData)
-	}
+	@JvmOverloads
+	constructor(cfg: Configuration,
+				modelName: String = "HasModel.model",
+				arffName: String = "baseModelFile.arff") : this(cfg.randomSeed.toLong(), modelName, arffName)
 
-	/**
-	 * Load instances used to train the model and then remove all elements.
-	 *
-	 * This is necessary because we applied a String-to-Nominal filter and, therefore,
-	 * we are required to use the same indices for the attributes on new instances, i.e.,
-	 * otherwise the model would give false results.
-	 *
-	 * @return Empty Weka instance set (with loaded nominal attributes)
-	 */
-	private fun initializeInstances(modelData: InputStream): Instances {
-		val source = ConverterUtils.DataSource(modelData)
-		val model = source.dataSet
 
-		// Remove all instances (keep attributes)
-		model.delete()
-
-		// Set HasEvent attribute as Class attribute to predict
-		val numAttributes = model.numAttributes()
-		model.setClassIndex(numAttributes - 1)
-
-		return model
-	}
-
-	/**
-	 * Get the index of a String value on the original Weka training data (ARFF file)
-	 *
-	 * @return Index of the String in the attribute list or -1 if not found
-	 */
-	private fun Instances.getNominalIndex(attributeNumber: Int, value: String): Double {
-		return this.attribute(attributeNumber)
-				.enumerateValues()
-				.toList()
-				.indexOf(value)
-				.toDouble()
-	}
-
-	/**
-	 * Converts a widget info given a context where the widget is inserted (used to locate parents
-	 * and children) and a [Weka model][model]
-	 *
-	 * @receiver [Widget]
-	 */
-	private fun Widget.toWekaInstance(model: Instances): Instance {
-		val attributeValues = DoubleArray(5)
-
-		attributeValues[0] = model.getNominalIndex(0, this.getRefinedType())
-
-		if (this.parentId != null)
-			attributeValues[1] = model.getNominalIndex(1, currentState.widgets.first { it.id == parentId }.getRefinedType())
-		else
-			attributeValues[1] = model.getNominalIndex(1, "none")
-
-		val children = currentState.widgets
-				.filter { p -> p.parentId == this.id }
-
-		if (children.isNotEmpty())
-			attributeValues[2] = model.getNominalIndex(2, children.first().getRefinedType())
-		else
-			attributeValues[2] = model.getNominalIndex(2, "none")
-
-		if (children.size > 1)
-			attributeValues[3] = model.getNominalIndex(3, children[1].getRefinedType())
-		else
-			attributeValues[3] = model.getNominalIndex(3, "none")
-
-		attributeValues[4] = model.getNominalIndex(4, "false")
-
-		return DenseInstance(1.0, attributeValues)
+	private val watcher: EventProbabilityMF by lazy {
+		(context.watcher.find { it is EventProbabilityMF }
+				?: EventProbabilityMF(modelName, arffName, false)
+						.also { context.watcher.add(it) }) as EventProbabilityMF
 	}
 
 	/**
@@ -134,29 +57,9 @@ open class ModelBased protected constructor(randomSeed: Long,
 	 * @return List of widgets which have an associated event (according to the model)
 	 */
 	protected open fun internalGetWidgets(): List<Widget> {
-		wekaInstances.delete()
-
-		val actionableWidgets = currentState.actionableWidgets
-		actionableWidgets
-				.forEach { p -> wekaInstances.add(p.toWekaInstance(wekaInstances)) }
-
-		val candidates: MutableList<Widget> = mutableListOf()
-		for (i in 0..(wekaInstances.numInstances() - 1)) {
-			val instance = wekaInstances.instance(i)
-			try {
-				val classification = classifier.classifyInstance(instance)
-				// Classified as true
-				if (classification == 1.0) {
-					val equivWidget = actionableWidgets[i]
-					candidates.add(equivWidget)
-				}
-			} catch (e: ArrayIndexOutOfBoundsException) {
-				logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
-				// do nothing
-			}
-		}
-
-		return candidates
+		return watcher.getProbabilities(currentState)
+				.filter { it.value == 1.0 }
+				.map { it.key }
 	}
 
 	/**
@@ -192,27 +95,12 @@ open class ModelBased protected constructor(randomSeed: Long,
 		if (other !is ModelBased)
 			return false
 
-		return other.classifier == this.classifier
+		return other.watcher == this.watcher
 	}
 
 	override fun hashCode(): Int {
-		return this.classifier.hashCode()
-	}
-
-	override fun toString(): String {
-		val thisClassifierName = this.classifier.javaClass.simpleName
-		return "${this.javaClass}\tClassifier: $thisClassifierName"
+		return this.watcher.hashCode()
 	}
 
 	// endregion
-
-	companion object {
-		/**
-		 * Creates a new exploration strategy instance
-		 */
-		fun build(cfg: Configuration, modelName: String = "HasModel.model",
-		          arffName: String = "baseModelFile.arff"): ISelectableExplorationStrategy {
-			return ModelBased(cfg.randomSeed.toLong(), modelName, arffName)
-		}
-	}
 }

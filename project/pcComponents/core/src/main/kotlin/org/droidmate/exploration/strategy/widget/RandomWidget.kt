@@ -115,25 +115,26 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	}
 
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
+		var widget = chosenWidget
 
 		while (!chosenWidget.canBeActedUpon()) {
-			currentState.widgets.find { it.id == chosenWidget.parentId }
+			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
 		val actionList: MutableList<ExplorationAction> = mutableListOf()
 
-		if (chosenWidget.longClickable)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, longClick = true))
+		if (widget.longClickable)
+			actionList.add(ExplorationAction.newWidgetExplorationAction(widget, longClick = true))
 
-		if (chosenWidget.clickable)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget))
+		if (widget.clickable)
+			actionList.add(ExplorationAction.newWidgetExplorationAction(widget))
 
-		if (chosenWidget.checked != null)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget))
+		if (widget.checked != null)
+			actionList.add(ExplorationAction.newWidgetExplorationAction(widget))
 
 		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
-		if (chosenWidget.scrollable)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget))
+		if (widget.scrollable)
+			actionList.add(ExplorationAction.newWidgetExplorationAction(widget))
 
 		/*if (chosenWidget.scrollable) {
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))
@@ -142,9 +143,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_down))
 		}*/
 
-//        chosenWidget.actedUponCount++ //TODO this has to be implemented as Model Feature
-
-		logger.debug("Chosen widget info: $chosenWidget")
+		logger.debug("Chosen widget info: $widget")
 
 		val maxVal = actionList.size
 		assert(maxVal > 0)

@@ -112,11 +112,11 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 
 			// Random exploration
 			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
-				strategies.add(RandomWidget.build(cfg))
+				strategies.add(RandomWidget(cfg))
 
 			// ExplorationContext based
 			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
-				strategies.add(ModelBased.build(cfg))
+				strategies.add(ModelBased(cfg))
 
 			// Allow runtime dialogs
 			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))

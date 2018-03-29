@@ -27,6 +27,8 @@ package org.droidmate.exploration.strategy.widget
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.statemodel.features.ActionCounterMF
+import org.droidmate.exploration.statemodel.features.EventProbabilityMF
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 
 /**
@@ -36,56 +38,38 @@ import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 open class FitnessProportionateSelection protected constructor(randomSeed: Long,
                                                                modelName: String,
                                                                arffName: String) : ModelBased(randomSeed, modelName, arffName) {
+	private val eventWatcher: EventProbabilityMF by lazy {
+		(context.watcher.find { it is EventProbabilityMF }
+				?: EventProbabilityMF(modelName, arffName, true)
+						.also { context.watcher.add(it) }) as EventProbabilityMF
+	}
 
-//    /**
-//     * Get all widgets which from a [widget context][currentState].
-//     * For each widget, stores the estimated probability to have an event (according to the model)
-//     *
-//     * @return List of widgets with their probability to have an event
-//     */
-//    override fun internalGetWidgets(): List<Widget> {
-//	    TODO()
-////        wekaInstances.delete()
-////
-////        val actionableWidgets = currentState.actionableWidgetsInfo
-////        actionableWidgets
-////                .forEach { p -> wekaInstances.add(p.toWekaInstance(currentState, wekaInstances)) }
-////
-////        val candidates: MutableList<WidgetInfo> = ArrayList()
-////        for (i in 0..(wekaInstances.numInstances() - 1)) {
-////            val instance = wekaInstances.instance(i)
-////            try {
-////                    // Get probability distribution of the prediction ( [false, true] )
-////                    val predictionProbabilities = classifier.distributionForInstance(instance)
-////                    // Probability of having event
-////                    val probabilityTrue = predictionProbabilities[1]
-////
-////                    val equivWidget = actionableWidgets[i]
-////                    equivWidget.probabilityHaveEvent = probabilityTrue//Math.pow(probabilityTrue, 2.0)
-////
-////                    if (equivWidget.actedUponCount == 0)
-////                        equivWidget.probabilityHaveEvent = 2 * equivWidget.probabilityHaveEvent
-////
-////                candidates.add(equivWidget)
-////
-////            } catch (e: ArrayIndexOutOfBoundsException) {
-////                logger.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
-////                // do nothing
-////            }
-////        }
-////
-////        return candidates
-//    }
+	private val countWatcher: ActionCounterMF by lazy {
+		(context.watcher.find { it is ActionCounterMF }
+				?: ActionCounterMF()
+						.also { context.watcher.add(it) }) as ActionCounterMF
+	}
+
+	/**
+     * Get all widgets which from a [widget context][currentState].
+     * For each widget, stores the estimated probability to have an event (according to the model)
+     *
+     * @return List of widgets with their probability to have an event
+     */
+    override fun internalGetWidgets(): List<Widget> {
+		return eventWatcher.getProbabilities(currentState)
+				.map { it.key }
+	}
 
 	/**
 	 * Selects a widget following "Fitness Proportionate Selection"
 	 */
 	override fun chooseRandomWidget(): ExplorationAction {
-		val candidates = this.context.getCurrentState().widgets
+		val candidates = this.internalGetWidgets()
 		assert(candidates.isNotEmpty())
 
-		val probabilities = getCandidatesProbabilities(candidates)
-		val selectedIdx = stochasticSelect(probabilities, 10)
+		val probabilities = getCandidatesProbabilities()
+		val selectedIdx = stochasticSelect(probabilities.values, 10)
 		val chosenWidgetInfo = candidates[selectedIdx]
 
 		this.context.lastTarget = chosenWidgetInfo
@@ -95,13 +79,15 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
 	/**
 	 * Returns an array with the probabilities of the candidates
 	 */
-	protected open fun getCandidatesProbabilities(candidates: List<Widget>): DoubleArray {
-		val candidateProbabilities = DoubleArray(candidates.size)
-
-		for (i in candidates.indices)
-			candidateProbabilities[i] = 0.5//candidates[i].probabilityHaveEvent    //TODO
-
-		return candidateProbabilities
+	protected open fun getCandidatesProbabilities(): Map<Widget,Double> {
+		return eventWatcher.getProbabilities(currentState)
+				.map { it.key to
+						(if (countWatcher.widgetCnt(it.key.uid) == 0)
+							it.value * 2
+						else
+							it.value)
+				}
+				.toMap()
 	}
 
 	/**
@@ -110,7 +96,7 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
 	 * weight: array with the probabilities of each candidate
 	 * n_select: number of iterations
 	 */
-	private fun stochasticSelect(weight: DoubleArray, n_select: Int): Int {
+	private fun stochasticSelect(weight: Collection<Double>, n_select: Int): Int {
 
 		val n = weight.size
 		val counter = IntArray(n)
@@ -133,7 +119,7 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
 	 *
 	 * Returns the selected index based on the weights(probabilities)
 	 */
-	private fun rouletteSelect(weight: DoubleArray): Int {
+	private fun rouletteSelect(weight: Collection<Double>): Int {
 		// calculate the total weight
 		val weightSum = weight.sum()
 
@@ -142,7 +128,7 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
 
 		// locate the random value based on the weights
 		for (i in weight.indices) {
-			value -= weight[i]
+			value -= weight.elementAt(i)
 			if (value <= 0)
 				return i
 		}
@@ -157,11 +143,12 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
 		if (other !is FitnessProportionateSelection)
 			return false
 
-		return other.classifier == this.classifier
+		return other.eventWatcher == this.eventWatcher &&
+				other.countWatcher == this.countWatcher
 	}
 
 	override fun hashCode(): Int {
-		return this.classifier.hashCode()
+		return this.eventWatcher.hashCode() * this.countWatcher.hashCode()
 	}
 
 	// endregion

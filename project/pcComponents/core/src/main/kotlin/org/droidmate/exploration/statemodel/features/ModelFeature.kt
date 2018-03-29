@@ -21,6 +21,8 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.ExplorationContext
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import kotlin.coroutines.experimental.CoroutineContext
 
 /**
@@ -29,6 +31,11 @@ import kotlin.coroutines.experimental.CoroutineContext
  */
 @Suppress("unused", "UNUSED_ANONYMOUS_PARAMETER")
 abstract class ModelFeature {
+	companion object {
+		@JvmStatic
+		val log: Logger = LoggerFactory.getLogger(ModelFeature::class.java)
+	}
+
 	/** used in the strategy to ensure that the updating coroutine function already finished.
 	 * calling job.joinChildren() will wait for all currently running [onNewAction] and [update] instances to complete*/
 	var job = Job()

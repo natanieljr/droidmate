@@ -61,21 +61,7 @@ abstract class Explore : AbstractStrategy() {
 
 	// region extensions
 
-
-	protected fun Widget.getRefinedType(): String {
-		return if (VALID_WIDGETS.contains(this.className.toLowerCase()))
-			className.toLowerCase()
-		else {
-			//Get last part
-			val parts = className.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-			var refType = parts[parts.size - 1].toLowerCase()
-			refType = findClosestView(refType)
-
-			refType.toLowerCase()
-		}
-	}
-
-	protected fun Widget.getActionableParent(): Widget? {
+	/*protected fun Widget.getActionableParent(): Widget? {
 		var parent: Widget? = context.getCurrentState().widgets.find { it.id == this.parentId }
 		// Just check for layouts
 		while (parent != null && (parent.getRefinedType().contains("layout") || parent.getRefinedType().contains("group"))) {
@@ -87,23 +73,9 @@ abstract class Explore : AbstractStrategy() {
 		}
 
 		return null
-	}
+	}*/
 
 	// endregion
-
-	private fun findClosestView(target: String): String {
-		var distance = Integer.MAX_VALUE
-		var closest = ""
-
-		for (compareObject in VALID_WIDGETS) {
-			val currentDistance = StringUtils.getLevenshteinDistance(compareObject, target)
-			if (currentDistance < distance) {
-				distance = currentDistance
-				closest = compareObject
-			}
-		}
-		return closest
-	}
 
 	protected fun updateState(): Boolean {
 		if (!context.belongsToApp(context.getCurrentState())) {
