@@ -32,15 +32,20 @@ import org.droidmate.exploration.statemodel.emptyId
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.statemodel.features.listOfSmallest
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.StrategyPriority
 import java.util.*
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class RandomWidget protected constructor(randomSeed: Long,
-                                              private val priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET) : Explore() {
+open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
+												  private val priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET) : Explore() {
+	/**
+	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
+	 */
+	constructor(cfg: Configuration,
+				priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET): this(cfg.randomSeed.toLong(), priority)
+
 	protected val random = Random(randomSeed)
 	private val counter: ActionCounterMF by lazy {
 		(context.watcher.find { it is ActionCounterMF }
@@ -178,13 +183,4 @@ open class RandomWidget protected constructor(randomSeed: Long,
 	}
 
 	// endregion
-
-	companion object {
-		/**
-		 * Creates a new exploration strategy instance
-		 */
-		fun build(cfg: Configuration): ISelectableExplorationStrategy {
-			return RandomWidget(cfg.randomSeed.toLong())
-		}
-	}
 }
