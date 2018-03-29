@@ -53,11 +53,11 @@ dependOnJunit(project)
 
 dependWithTest([project, ":project:pcComponents:core", "kotlin"])
 dependWithTest([project, ":project:pcComponents:reporter", "kotlin"])
-dependWithTest([project, ":project:pcComponents:lib-common", "kotlin"])
+dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
 
 dependencies {
 	// TODO check this, does not seem so anymore
-	// Necessary to make tests from 'lib-kotlin' ('lib-common') work.
+	// Necessary to make tests from 'lib-kotlin' ('commonLib') work.
 //	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
 
 	// Necessary to make tests from 'reporter' work.

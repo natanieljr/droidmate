@@ -53,7 +53,7 @@ dependencies {
 
 	compileOnly files(BuildKt.android_jar_api23.toString())
 
-	compile project(":project:pcComponents:lib-common")
+	compile project(":project:pcComponents:commonLib")
 }
 
 configureTest(project, ['**/MonitorJavaTemplateTest.class'])

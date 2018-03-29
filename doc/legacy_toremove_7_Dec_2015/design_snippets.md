@@ -23,7 +23,7 @@ To avoid introducing needless formats, the logcat API log could be in exactly th
 What about the permission required? It should also be logged immediately, e.g. after line break or vertical bar `|` or similar. The instrumentation code will be generated from the API mapping file anyway, so it can associate with each generated method the permission it requires.
 
 #### Design details ####
-The logcat message construction will be called by the tool-generated instrumentation code as well as in hand-coded instrumentation in apk fixtures for testing purposes. The messages will be parsed in DroidMate's `core` module. Thus, the code has to live in a shared, common library: `lib-common`.
+The logcat message construction will be called by the tool-generated instrumentation code as well as in hand-coded instrumentation in apk fixtures for testing purposes. The messages will be parsed in DroidMate's `core` module. Thus, the code has to live in a shared, common library: `commonLib`.
 
 The log interface will be `IApiLog` with `LogcatApiLog` implementation. The interface will be used to obtain semantic data like method name, parameters, permission required, etc. 
 
