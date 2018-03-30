@@ -323,6 +323,11 @@ class AndroidDevice constructor(private val serialNumber: String,
 		adbWrapper.installApk(serialNumber, apk)
 	}
 
+	override fun isApkInstalled(apkPackageName: String): Boolean {
+		log.debug("Check if $apkPackageName is installed")
+		return adbWrapper.isApkInstalled(serialNumber, apkPackageName)
+	}
+
 	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
 		log.debug("uninstallApk($apkPackageName, ignoreFailure: $ignoreFailure)")
 		adbWrapper.uninstallApk(serialNumber, apkPackageName, ignoreFailure)
@@ -369,8 +374,12 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	override fun reinstallUiautomatorDaemon() {
 		if (cfg.androidApi == Configuration.api23) {
-			this.uninstallApk(uia2Daemon_testPackageName, true)
-			this.uninstallApk(uia2Daemon_packageName, true)
+			if (this.isApkInstalled(uia2Daemon_testPackageName)) {
+				this.uninstallApk(uia2Daemon_testPackageName, true)
+			}
+			if (this.isApkInstalled(uia2Daemon_packageName)) {
+				this.uninstallApk(uia2Daemon_packageName, true)
+			}
 
 			this.installApk(this.cfg.uiautomator2DaemonApk)
 			this.installApk(this.cfg.uiautomator2DaemonTestApk)

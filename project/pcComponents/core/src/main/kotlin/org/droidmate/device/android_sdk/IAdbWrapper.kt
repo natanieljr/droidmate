@@ -66,6 +66,9 @@ interface IAdbWrapper {
 	fun uninstallApk(deviceSerialNumber: String, apkPackageName: String, ignoreFailure: Boolean)
 
 	@Throws(AdbWrapperException::class)
+	fun isApkInstalled(deviceSerialNumber: String, packageName: String): Boolean
+
+	@Throws(AdbWrapperException::class)
 	fun launchMainActivity(deviceSerialNumber: String, launchableActivityName: String)
 
 	@Throws(AdbWrapperException::class)

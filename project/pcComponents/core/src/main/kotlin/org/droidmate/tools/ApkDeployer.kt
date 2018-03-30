@@ -122,11 +122,13 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
 	private fun tryReinstallApk(device: IDeployableAndroidDevice, apk: IApk) {
 		log.info("Reinstalling {}", apk.fileName)
 		/* The apk is uninstalled before installation to ensure:
- - any cache will be purged.
- - a different version of the same app can be installed, if necessary (without uninstall, an error will be issued about
- certificates not matching (or something like that))
-*/
-		device.uninstallApk(apk.packageName, /* ignoreFailure  = */ true)
+		 - any cache will be purged.
+		 - a different version of the same app can be installed, if necessary (without uninstall, an error will be issued about
+		 certificates not matching (or something like that))
+		*/
+		if (device.isApkInstalled(apk.packageName)) {
+			device.uninstallApk(apk.packageName, /* ignoreFailure  = */ true)
+		}
 
 		if (!device.isAvailable())
 			throw DeviceException("No device is available just before installing $apk", /* stopFurtherApkExplorations */ true)
