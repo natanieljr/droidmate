@@ -530,6 +530,10 @@ class RobustDevice : IRobustDevice {
 		this.device.installApk(apk)
 	}
 
+	override fun isApkInstalled(apkPackageName: String): Boolean {
+		return this.device.isApkInstalled(apkPackageName)
+	}
+
 	override fun closeMonitorServers() {
 		this.device.closeMonitorServers()
 	}

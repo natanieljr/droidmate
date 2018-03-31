@@ -47,6 +47,9 @@ interface IDeployableAndroidDevice {
 	fun installApk(apk: IApk)
 
 	@Throws(DeviceException::class)
+	fun isApkInstalled(apkPackageName: String): Boolean
+
+	@Throws(DeviceException::class)
 	fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean)
 
 	@Throws(DeviceException::class)

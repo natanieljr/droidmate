@@ -153,6 +153,10 @@ class AdbWrapper constructor(private val cfg: Configuration,
 		this.installApk(deviceSerialNumber, apkFile)
 	}
 
+	/**
+	 * Android 8 throws an exception, if an APK is tried to be uninstalled, although
+	 * it is not installed.
+	 */
 	override fun uninstallApk(deviceSerialNumber: String, apkPackageName: String, ignoreFailure: Boolean) {
 		try {
 			val commandDescription = "Executing adb (Android Debug Bridge) to uninstall $apkPackageName from Android Device with s/n $deviceSerialNumber."
@@ -171,10 +175,17 @@ class AdbWrapper constructor(private val cfg: Configuration,
 				log.trace("Ignored failure of uninstalling of $apkPackageName.")
 
 		} catch (e: SysCmdExecutorException) {
-			// Android 8 compatibility: ADB Uninstall command now generates an excaption when package not found
-			// Ex: java.lang.IllegalArgumentException: Unknown package: org.droidmate.uiautomator2daemon.UiAutomator2Daemon.test
 			if (!ignoreFailure || e.message?.contains("Unknown package:") == false)
 				throw AdbWrapperException("Calling 'adb uninstall' failed. Oh my.", e)
+		}
+	}
+
+	override fun isApkInstalled(deviceSerialNumber: String, packageName: String): Boolean {
+		try {
+			val packages = listPackages(deviceSerialNumber)
+			return packages.contains(packageName)
+		} catch (e: SysCmdExecutorException) {
+			throw AdbWrapperException(e)
 		}
 	}
 
