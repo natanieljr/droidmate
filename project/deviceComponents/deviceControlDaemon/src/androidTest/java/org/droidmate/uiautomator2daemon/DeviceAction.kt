@@ -7,7 +7,6 @@ import android.net.wifi.WifiManager
 import android.support.test.uiautomator.*
 import android.util.Log
 import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
@@ -59,6 +58,7 @@ internal sealed class DeviceAction {
 				is PressHome -> DevicePressHome()
 				is EnableWifi -> DeviceEnableWifi()
 				is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
+				is FetchGUI -> DeviceFetchGUIAction()
 				is SimulationAdbClearPackage -> {
 					null /* There's no equivalent device action */
 				}
@@ -131,12 +131,14 @@ internal sealed class DeviceAction {
 				bytes
 				}, inMillis = true)
 		}
-		@JvmStatic fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String): DeviceResponse {
+
+		@JvmStatic
+		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String): DeviceResponse {
 			val dump = DeviceAction.getWindowHierarchyDump(device)
 			val imgBytes = DeviceAction.getScreenShot(automation)
 
 			return debugT("compute UI-dump", {
-				GuiStatusResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes)
+				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes)
 			}, inMillis = true)
 		}
 
@@ -386,5 +388,11 @@ private data class DeviceTextAction(override val xPath: String, override val res
 					o.setText(text)
 				})
 		device.findObject(selector.text(text)).waitForExists(defaultTimeout)  // wait until the text is set
+	}
+}
+
+private class DeviceFetchGUIAction(): DeviceAction() {
+	override fun execute(device: UiDevice, context: Context) {
+		// do nothing
 	}
 }

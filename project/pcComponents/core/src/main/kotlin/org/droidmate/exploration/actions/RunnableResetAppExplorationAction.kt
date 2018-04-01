@@ -28,6 +28,7 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
+import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import java.time.LocalDateTime
 
 class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, timestamp: LocalDateTime, takeScreenshot: Boolean)
@@ -35,8 +36,6 @@ class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, times
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
-
-	private val isFirst: Boolean = (action.isFirst)
 
 	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
 		log.debug("1. Clear package ${app.packageName}.")
@@ -55,8 +54,8 @@ class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, times
 		log.debug("4. Turn wifi on.")
 		device.perform(EnableWifi())
 
-		log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
-		device.getGuiSnapshot()
+		//log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
+		//device.perform(FetchGUI())
 
 		log.debug("6. Ensure app is not running.")
 		if (device.appIsRunning(app.packageName)) {
@@ -65,18 +64,9 @@ class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, times
 		}
 
 		log.debug("7. Launch app $app.packageName.")
-		device.launchApp(app)
+		this.snapshot = device.launchApp(app)
 
-		/*if (this.isFirst || this.takeScreenshot) {
-			log.debug("7.firstReset: Take a screenshot of first reset action.")
-			val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-			this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
-		}*/
-
-		log.debug("8. Get GUI snapshot.")
-		this.snapshot = device.getGuiSnapshot()
-
-		log.debug("9. Try to read API logs.")
+		log.debug("8. Try to read API logs.")
 		val logsHandler = DeviceLogsHandler(device)
 		logsHandler.readAndClearApiLogs()
 		this.logs = logsHandler.getLogs()

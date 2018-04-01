@@ -42,9 +42,9 @@ object UiautomatorDaemonConstants {
 	val UIADAEMON_SERVER_START_TAG = "$uiaDaemon_logcatTag/notify"
 	val UIADAEMON_SERVER_START_MSG = "uiad server start success"
 
-	val DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP = "get_uiautomator_window_hierarchy_dump"
-	val DEVICE_COMMAND_PERFORM_ACTION = "perform_action"
-	val DEVICE_COMMAND_STOP_UIADAEMON = "stop_uiadaemon"
+	//val DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP = "get_uiautomator_window_hierarchy_dump"
+	//val DEVICE_COMMAND_PERFORM_ACTION = "perform_action"
+	//val DEVICE_COMMAND_STOP_UIADAEMON = "stop_uiadaemon"
 
 	val uiaDaemon_packageName = "org.droidmate.uiautomator_daemon"
 	/**

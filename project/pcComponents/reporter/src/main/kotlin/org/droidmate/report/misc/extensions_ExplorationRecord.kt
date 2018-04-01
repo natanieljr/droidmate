@@ -29,7 +29,7 @@ import org.droidmate.exploration.actions.EnterTextExplorationAction
 import org.droidmate.exploration.actions.ExplorationRecord
 import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.report.EventApiPair
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 
 val ExplorationRecord.clickedWidget: Set<Widget>
 	get() {
@@ -45,7 +45,7 @@ val ExplorationRecord.actionableWidgets: Iterable<Widget>
 	get() {
 		val result = getResult()
 		return when {
-			result.guiSnapshot.equals(GuiStatusResponse.empty) -> this.clickedWidget
+			result.guiSnapshot.equals(DeviceResponse.empty) -> this.clickedWidget
 			else -> {
 				if (!(result.guiSnapshot.belongsToApp(result.guiSnapshot.topNodePackageName)))
 					return this.clickedWidget

@@ -36,12 +36,7 @@ import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
-import org.droidmate.uiautomator_daemon.DeviceCommand
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_PERFORM_ACTION
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_STOP_UIADAEMON
+import org.droidmate.uiautomator_daemon.*
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.logcatLogFileName
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_packageName
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_testPackageName
@@ -82,15 +77,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 								"try inspecting the logcat output of the A(V)D.",
 						deviceResponse.throwable))
 		}
-
-		@JvmStatic
-		private fun uiaDaemonHandlesCommand(deviceCommand: DeviceCommand): Boolean {
-			return deviceCommand.command in arrayListOf(
-					DEVICE_COMMAND_PERFORM_ACTION,
-					DEVICE_COMMAND_STOP_UIADAEMON,
-					DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP
-			)
-		}
 	}
 
 	private val tcpClients: ITcpClients = TcpClients(
@@ -120,17 +106,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return adbWrapper.listPackage(serialNumber, packageName).contains(packageName)
 	}
 
-	override fun getGuiSnapshot(): GuiStatusResponse {
-		log.debug("getGuiSnapshot()")
-
-		val response = this.issueCommand(
-				DeviceCommand(DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP)) as GuiStatusResponse
-
-		log.debug("getGuiSnapshot(): $response")
-		return response
-	}
-
-	override fun perform(action: Action) {
+	override fun perform(action: Action): DeviceResponse {
 		log.debug("perform($action)")
 		assert(action::class in arrayListOf(ClickAction::class,
 				CoordinateClickAction::class,
@@ -145,41 +121,35 @@ class AndroidDevice constructor(private val serialNumber: String,
 				LaunchApp::class,
 				SimulationAdbClearPackage::class))
 
-		when (action) {
-			is WaitAction -> performWaitAction(action)
-			is LaunchApp -> assert(false, { "call .launchMainActivity() directly instead" })
-			is ClickAction -> performGuiClick(action)
-			is CoordinateClickAction -> performGuiClick(action)
-			is LongClickAction -> performGuiClick(action)
-			is CoordinateLongClickAction -> performGuiClick(action)
-			is TextAction -> performGuiClick(action)
-			is SwipeAction -> performGuiClick(action)
-			is PressBack -> performGuiClick(action)
-			is PressHome -> performGuiClick(action)
-			is EnableWifi -> performGuiClick(action)
-			is SimulationAdbClearPackage -> assert(false, { "call .clearPackage() directly instead" })
-			else -> throw UnexpectedIfElseFallthroughError()
+		return when (action) {
+			is WaitAction -> wait(action)
+			is LaunchApp -> throw DeviceException("call .launchMainActivity() directly instead")
+			is ClickAction -> execute(action)
+			is CoordinateClickAction -> execute(action)
+			is LongClickAction -> execute(action)
+			is CoordinateLongClickAction -> execute(action)
+			is TextAction -> execute(action)
+			is SwipeAction -> execute(action)
+			is PressBack -> execute(action)
+			is PressHome -> execute(action)
+			is EnableWifi -> execute(action)
+			is FetchGUI -> execute(action)
+			is SimulationAdbClearPackage -> throw DeviceException("call .clearPackage() directly instead")
 		}
 	}
 
 	@Throws(DeviceException::class)
-	private fun performWaitAction(action: WaitAction): DeviceResponse {
+	private fun wait(action: WaitAction): DeviceResponse {
 		log.debug("perform wait action")
-		return issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action))
+		return issueCommand(ExecuteCommand(action))
 	}
 
-
 	@Throws(DeviceException::class)
-	private fun performGuiClick(action: Action): DeviceResponse =
-			issueCommand(DeviceCommand(DEVICE_COMMAND_PERFORM_ACTION, action))
+	private fun execute(action: Action): DeviceResponse =
+			issueCommand(ExecuteCommand(action))
 
 	@Throws(DeviceException::class)
 	private fun issueCommand(deviceCommand: DeviceCommand): DeviceResponse {
-		val uiaDaemonHandlesCommand = uiaDaemonHandlesCommand(deviceCommand)
-
-		if (!uiaDaemonHandlesCommand)
-			throw DeviceException(String.format("Unhandled command of %s", deviceCommand.command))
-
 		val deviceResponse = this.tcpClients.sendCommandToUiautomatorDaemon(deviceCommand)
 
 		throwDeviceResponseThrowableIfAny(deviceResponse)
@@ -195,7 +165,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 		log.trace("stopUiaDaemon(uiaDaemonThreadIsNull:$uiaDaemonThreadIsNull)")
 
-		this.issueCommand(DeviceCommand(DEVICE_COMMAND_STOP_UIADAEMON))
+		this.issueCommand(StopDaemonCommand())
 
 		if (uiaDaemonThreadIsNull)
 			assert(this.tcpClients.getUiaDaemonThreadIsNull())

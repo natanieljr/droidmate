@@ -25,7 +25,7 @@
 package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
 
 class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuilder,
@@ -38,7 +38,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun getCurrentGuiSnapshot(): GuiStatusResponse {
+	override fun getCurrentGuiSnapshot(): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 

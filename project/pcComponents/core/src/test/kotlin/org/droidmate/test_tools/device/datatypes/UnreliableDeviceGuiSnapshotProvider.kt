@@ -24,10 +24,10 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device.datatypes
 
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 
-class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: GuiStatusResponse) : IUnreliableDeviceGuiSnapshotProvider {
-	override fun provide(): GuiStatusResponse {
+class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: DeviceResponse) : IUnreliableDeviceGuiSnapshotProvider {
+	override fun provide(): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -35,7 +35,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: GuiSt
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun getCurrentWithoutChange(): GuiStatusResponse {
+	override fun getCurrentWithoutChange(): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 	// TODO Fix tests
@@ -52,7 +52,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: GuiSt
 					appHasStoppedGuiSnapshot
 	)
 
-	private var currentGuiSnapshot: GuiStatusResponse = guiSnapshotsSequence.first()
+	private var currentGuiSnapshot: DeviceResponse = guiSnapshotsSequence.first()
 
 	private var okOnAppHasStoppedWasPressed = false
 
@@ -64,11 +64,11 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: GuiSt
 			this.currentGuiSnapshot = originalGuiSnapshot
 	}
 
-	override fun getCurrentWithoutChange(): GuiStatusResponse {
+	override fun getCurrentWithoutChange(): DeviceResponse {
 			return this.currentGuiSnapshot
 	}
 
-	override fun provide(): GuiStatusResponse {
+	override fun provide(): DeviceResponse {
 			log.trace("provide($currentGuiSnapshot)")
 
 			val out = this.currentGuiSnapshot

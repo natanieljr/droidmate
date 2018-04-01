@@ -41,22 +41,11 @@ class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime,
 		val logsHandler = DeviceLogsHandler(device)
 
 		log.debug("1. Wait for the widget (until load-screen is finished)")
-		device.perform(this.action.action)
+		this.snapshot = device.perform(this.action.action)
 
 		log.debug("2. Read and clear API logs if any, then seal logs reading.")
 		logsHandler.readAndClearApiLogs()
 		this.logs = logsHandler.getLogs()
-
-
-		/*if (this.takeScreenshot) {
-			log.debug("3. Get GUI screenshot.")
-			val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-			val screenshotsPath = device.takeScreenshot(app, timestamp.format(formatter) + "__WAIT")
-			this.screenshot = screenshotsPath.toUri()
-		}*/
-
-		log.debug("4. Get GUI snapshot.")
-		this.snapshot = device.getGuiSnapshot()
 	}
 
 	companion object {

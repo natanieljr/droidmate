@@ -32,6 +32,9 @@ import org.droidmate.device.android_sdk.IApk
 import java.nio.file.Path
 
 class AdbWrapperStub : IAdbWrapper {
+	override fun isApkInstalled(deviceSerialNumber: String, packageName: String): Boolean {
+		return false
+	}
 
 	override fun startAdbServer() {
 	}

@@ -29,10 +29,9 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
 import org.droidmate.exploration.statemodel.config.ModelConfig
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 import java.io.ByteArrayInputStream
 import java.io.Serializable
-import java.net.URI
 import java.time.LocalDateTime
 import javax.imageio.ImageIO
 
@@ -55,7 +54,7 @@ open class ActionResult(val action: ExplorationAction,
                         val startTimestamp: LocalDateTime,
                         val endTimestamp: LocalDateTime,
                         val deviceLogs: IDeviceLogs = MissingDeviceLogs,
-                        val guiSnapshot: GuiStatusResponse = GuiStatusResponse.empty,
+                        val guiSnapshot: DeviceResponse = DeviceResponse.empty,
                         val screenshot: ByteArray = ByteArray(0),
                         val exception: DeviceException = DeviceExceptionMissing()) : Serializable {
 	companion object {
@@ -135,4 +134,3 @@ open class ActionResult(val action: ExplorationAction,
 
 private var timeS: Long = 0
 private var timeP: Long = 0
-private fun getPathOrNull(uri:URI):java.nio.file.Path? = if(uri.toASCIIString() != "test://empty") java.nio.file.Paths.get(uri) else null

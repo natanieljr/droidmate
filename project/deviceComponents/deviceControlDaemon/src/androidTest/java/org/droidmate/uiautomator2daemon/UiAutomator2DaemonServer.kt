@@ -22,8 +22,8 @@ package org.droidmate.uiautomator2daemon
 import android.util.Log
 import org.droidmate.uiautomator_daemon.DeviceCommand
 import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.uiautomator_daemon.StopDaemonCommand
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_STOP_UIADAEMON
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG
 
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG
@@ -42,27 +42,18 @@ class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver:
 		} catch (e: UiAutomatorDaemonException) {
 			Log.e(uiaDaemon_logcatTag, String.format("Server: Failed to execute command %s and thus, obtain appropriate GuiState. " + "Returning exception-DeviceResponse.", deviceCommand), e)
 
-			val exceptionDeviceResponse = DeviceResponse()
-			exceptionDeviceResponse.throwable = e
-
-			return exceptionDeviceResponse
+			return DeviceResponse.empty.apply { throwable = e }
 		} catch (t: Throwable) {
 			Log.wtf(uiaDaemon_logcatTag, String.format(
 					"Server: Failed, with a non-" + UiAutomatorDaemonException::class.java.simpleName + " (!), to execute command %s and thus, " +
 							"obtain appropriate GuiState. Returning throwable-DeviceResponse.", deviceCommand), t)
 
-			val throwableDeviceResponse = DeviceResponse()
-			throwableDeviceResponse.throwable = t
-
-			return throwableDeviceResponse
+			return DeviceResponse.empty.apply { throwable = t }
 		}
-
 	}
 
-	override fun shouldCloseServerSocket(deviceCommand: DeviceCommand?): Boolean {
-
-		return deviceCommand == null || deviceCommand.command == DEVICE_COMMAND_STOP_UIADAEMON
-
+	override fun shouldCloseServerSocket(deviceCommand: DeviceCommand): Boolean {
+		return deviceCommand is StopDaemonCommand
 	}
 
 }

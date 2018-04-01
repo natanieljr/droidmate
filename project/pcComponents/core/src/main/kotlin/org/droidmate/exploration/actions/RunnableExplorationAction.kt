@@ -32,7 +32,7 @@ import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
 import org.droidmate.logging.Markers
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.slf4j.LoggerFactory
 
 import java.time.LocalDateTime
@@ -61,14 +61,14 @@ abstract class RunnableExplorationAction(override val base: ExplorationAction,
 				}
 	}
 
-	protected lateinit var snapshot: GuiStatusResponse
+	protected lateinit var snapshot: DeviceResponse
 	protected lateinit var logs: IDeviceLogs
 	protected lateinit var exception: DeviceException
 
 	override fun run(app: IApk, device: IRobustDevice): ActionResult {
 		// @formatter:off
 		this.logs = MissingDeviceLogs
-		this.snapshot = GuiStatusResponse.empty
+		this.snapshot = DeviceResponse.empty
 		this.exception = DeviceExceptionMissing()
 		// @formatter:on
 

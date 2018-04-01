@@ -26,35 +26,10 @@
 package org.droidmate.uiautomator_daemon
 
 import org.droidmate.uiautomator_daemon.guimodel.Action
-
 import java.io.Serializable
 
-class DeviceCommand @JvmOverloads constructor(var command: String, var guiAction: Action? = null) : Serializable {
+sealed class DeviceCommand() : Serializable
 
-	override fun equals(other: Any?): Boolean {
-		if (other !is DeviceCommand) return false
-		if (this === other) return true
+class StopDaemonCommand: DeviceCommand()
 
-		return command == other.command &&
-				if (guiAction != null) guiAction == other.guiAction else other.guiAction == null
-
-	}
-
-	override fun hashCode(): Int {
-		var result = command.hashCode()
-		result = 31 * result + if (guiAction != null) guiAction!!.hashCode() else 0
-		return result
-	}
-
-	override fun toString(): String {
-		return "DeviceCommand{" +
-				"command='" + command + '\''.toString() +
-				", guiAction=" + guiAction +
-				'}'.toString()
-	}
-
-	companion object {
-
-		private const val serialVersionUID = 8439619323391358530L
-	}
-}
+class ExecuteCommand(val guiAction: Action) : DeviceCommand()

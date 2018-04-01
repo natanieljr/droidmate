@@ -27,17 +27,17 @@ package org.droidmate.device.deviceInterface
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.IAndroidDevice
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 
 interface IRobustDevice : IAndroidDevice, IDeviceMessagesReader {
 	@Throws(DeviceException::class)
-	fun ensureHomeScreenIsDisplayed(): GuiStatusResponse
+	fun ensureHomeScreenIsDisplayed(): DeviceResponse
 
 	@Throws(DeviceException::class)
 	fun appIsNotRunning(apk: IApk): Boolean
 
 	@Throws(DeviceException::class)
-	fun launchApp(apk: IApk)
+	fun launchApp(apk: IApk): DeviceResponse
 
 	@Throws(DeviceException::class)
 	fun rebootAndRestoreConnection()

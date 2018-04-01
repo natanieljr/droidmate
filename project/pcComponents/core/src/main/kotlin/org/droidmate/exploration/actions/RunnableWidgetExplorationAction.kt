@@ -63,7 +63,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
 			debugT("perform action on average ${performT / performN} ms", {
 				launch {
 					// do the perform as launch to inject a suspension point, as perform is currently no suspend function
-					when {
+					snapshot = when {
 						action.useCoordinates && !action.longClick -> device.perform(CoordinateClickAction(x, y))
 						action.useCoordinates && action.longClick -> device.perform(CoordinateLongClickAction(x, y))
 						!action.useCoordinates && !action.longClick -> device.perform(ClickAction(action.widget.xpath, action.widget.resourceId))
@@ -79,9 +79,10 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
 			if (!action.useCoordinates) {
 				log.warn("2.1. Failed to click using XPath and resourceID, attempting restart UIAutomatorDaemon and to click coordinates: $action.")
 				device.restartUiaDaemon(false)
-				when {
+				snapshot = when {
 					!action.longClick -> device.perform(CoordinateClickAction(x, y))
 					action.longClick -> device.perform(CoordinateLongClickAction(x, y))
+					else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
 				}
 			}
 		}
@@ -90,20 +91,7 @@ class RunnableWidgetExplorationAction constructor(action: WidgetExplorationActio
 		debugT("read log after action", { logsHandler.readAndClearApiLogs() }, inMillis = true)
 		logs = logsHandler.getLogs()
 
-//        Thread.sleep(action.delay.toLong())
 		delay(action.delay)
-
-		/*if (takeScreenshot) {
-			// this was moved before the snapshot, as otherwise the screen may show the loaded page but the snapshot does not contain the elements
-			log.debug("4. Get GUI screenshot.")
-
-			val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-			screenshot = debugT("get screenshot", { device.takeScreenshot(app, timestamp.format(formatter)).toUri() }, inMillis = true)
-		}*/
-
-		log.debug("4. Get GUI snapshot.")
-		snapshot = debugT("windowDump retrieve", { device.getGuiSnapshot() }, inMillis = true)
-		//TODO take screenshot before and after dump to ensure they are matching, if not equal => take another device GuiSnapshot
 	}
 }
 

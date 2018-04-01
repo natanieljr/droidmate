@@ -27,14 +27,9 @@ import android.os.RemoteException
 import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.*
 import android.util.Log
-import org.droidmate.uiautomator_daemon.DeviceCommand
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 
 import org.droidmate.uiautomator2daemon.DeviceAction.Companion.fetchDeviceData
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_PERFORM_ACTION
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.DEVICE_COMMAND_STOP_UIADAEMON
+import org.droidmate.uiautomator_daemon.*
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 
 /**
@@ -83,38 +78,30 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 
 	@Throws(UiAutomatorDaemonException::class)
 	override fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse {
-		Log.v(uiaDaemon_logcatTag, "Executing device command: " + deviceCommand.command)
+		Log.v(uiaDaemon_logcatTag, "Executing device command: $deviceCommand")
 
-		var response = DeviceResponse()
+		return try {
 
-		try {
-
-			when (deviceCommand.command) {
-				DEVICE_COMMAND_STOP_UIADAEMON -> {
-				}
-				DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP -> response = fetchDeviceData(device, automation, deviceModel)
-				DEVICE_COMMAND_PERFORM_ACTION -> response = performAction(deviceCommand)
-				else -> throw UiAutomatorDaemonException(String.format("The command %s is not implemented yet!", deviceCommand.command))
-			}// The server will be closed after this response is sent, because the given deviceCommand.command will be interpreted
-			// in the caller, i.e. Uiautomator2DaemonTcpServerBase.
-
+			when (deviceCommand) {
+				is ExecuteCommand -> performAction(deviceCommand)
+			// The server will be closed after this response is sent, because the given deviceCommand
+			// will be interpreted in the caller, i.e. Uiautomator2DaemonTcpServerBase.
+				is StopDaemonCommand -> DeviceResponse.empty
+			}
 		} catch (e: Throwable) {
 			Log.e(uiaDaemon_logcatTag, "Error: " + e.message)
 			Log.e(uiaDaemon_logcatTag, "Printing stack trace for debug")
 			e.printStackTrace()
 
-			response.throwable = e
+			DeviceResponse.empty.apply { throwable = e }
 		}
-
-		return response
 	}
 
-
 	@Throws(UiAutomatorDaemonException::class)
-	private fun performAction(deviceCommand: DeviceCommand): DeviceResponse {
+	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse {
 		Log.v(uiaDaemon_logcatTag, "Performing GUI action")
 
-		val action = DeviceAction.fromAction(deviceCommand.guiAction!!)
+		val action = DeviceAction.fromAction(deviceCommand.guiAction)
 
 		action?.execute(device, context)
 

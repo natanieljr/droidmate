@@ -44,6 +44,7 @@ import org.droidmate.logging.Markers
 import org.droidmate.misc.Failable
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
+import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.slf4j.LoggerFactory
 import kotlin.system.measureTimeMillis
 
@@ -104,7 +105,7 @@ class Exploration constructor(private val cfg: Configuration,
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 		while (isFirst || (result.successful && !(action is RunnableTerminateExplorationAction))) {
 			// decide for an action
-			action = debugT("strategy decition time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots) })
+			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots) })
 			// execute action
 			measureTimeMillis { result = action.run(app, device) }.let {
 				actionT += it
@@ -144,7 +145,7 @@ class Exploration constructor(private val cfg: Configuration,
 	private fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
 		log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
 
-		val initialGuiSnapshot = device.getGuiSnapshot()
+		val initialGuiSnapshot = device.perform(FetchGUI())
 
 		if (!initialGuiSnapshot.isHomeScreen)
 			log.warn(Markers.appHealth,

@@ -65,6 +65,9 @@ class SwipeAction private constructor(val start: Pair<Int, Int>? = null, val dst
 class PressBack : Action()
 class PressHome : Action()
 class EnableWifi : Action()
+
+class FetchGUI: Action()
+
 data class LaunchApp(val appLaunchIconName: String) : Action()
 
 data class SimulationAdbClearPackage(val packageName: String) : Action()

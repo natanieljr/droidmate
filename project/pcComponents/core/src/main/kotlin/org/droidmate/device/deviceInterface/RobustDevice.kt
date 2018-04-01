@@ -36,9 +36,10 @@ import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import org.droidmate.uiautomator_daemon.guimodel.ClickAction
+import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.droidmate.uiautomator_daemon.guimodel.PressHome
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
@@ -153,8 +154,6 @@ class RobustDevice : IRobustDevice {
 		assert(waitForCanRebootDelay >= 0)
 	}
 
-	override fun getGuiSnapshot(): GuiStatusResponse = this.getExplorableGuiSnapshot()
-
 	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
 		if (ignoreFailure)
 			device.uninstallApk(apkPackageName, ignoreFailure)
@@ -166,15 +165,15 @@ class RobustDevice : IRobustDevice {
 				try {
 					appIsInstalled = device.hasPackageInstalled(apkPackageName)
 				} catch (e2: DeviceException) {
-					throw DeviceException("Uninstallation of $apkPackageName failed with exception E1: '$e'. " +
+					throw DeviceException("Uninstalling of $apkPackageName failed with exception E1: '$e'. " +
 							"Tried to check if the app that was to be uninstalled is still installed, but that also resulted in exception, E2. " +
 							"Discarding E1 and throwing an exception having as a cause E2", e2)
 				}
 
 				if (appIsInstalled)
-					throw DeviceException("Uninstallation of $apkPackageName threw an exception (given as cause of this exception) and the app is indeed still installed.", e)
+					throw DeviceException("Uninstalling of $apkPackageName threw an exception (given as cause of this exception) and the app is indeed still installed.", e)
 				else {
-					log.debug("Uninstallation of $apkPackageName threw na exception, but the app is no longer installed. Note: this situation has proven to make the uiautomator be unable to dump window hierarchy. Discarding the exception '$e', resetting connection to the device and continuing.")
+					log.debug("Uninstalling of $apkPackageName threw na exception, but the app is no longer installed. Note: this situation has proven to make the uiautomator be unable to dump window hierarchy. Discarding the exception '$e', resetting connection to the device and continuing.")
 					// Doing .rebootAndRestoreConnection() just hangs the emulator: http://stackoverflow.com/questions/9241667/how-to-reboot-emulator-to-test-action-boot-completed
 					this.closeConnection()
 					this.setupConnection()
@@ -211,8 +210,8 @@ class RobustDevice : IRobustDevice {
 				0)
 	}
 
-	override fun ensureHomeScreenIsDisplayed(): GuiStatusResponse {
-		var guiSnapshot = this.getGuiSnapshot()
+	override fun ensureHomeScreenIsDisplayed(): DeviceResponse {
+		var guiSnapshot = this.getExplorableGuiSnapshot()
 		if (guiSnapshot.isHomeScreen)
 			return guiSnapshot
 
@@ -223,7 +222,6 @@ class RobustDevice : IRobustDevice {
 					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
 						device.perform(PressHome())
-						this.getGuiSnapshot()
 					}
 				}
 			}
@@ -234,7 +232,7 @@ class RobustDevice : IRobustDevice {
 
 		if (!guiSnapshot.isHomeScreen) {
 			throw DeviceException("Failed to ensure home screen is displayed. " +
-					"Pressing 'home' button didn't help. Instead, ended with GUI state of: ${guiSnapshot}.\n" +
+					"Pressing 'home' button didn't help. Instead, ended with GUI state of: $guiSnapshot.\n" +
 					"Full window hierarchy dump:\n" +
 					guiSnapshot.windowHierarchyDump)
 		}
@@ -242,32 +240,32 @@ class RobustDevice : IRobustDevice {
 		return guiSnapshot
 	}
 
-	private fun closeSelectAHomeAppDialogBox(snapshot: GuiStatusResponse): GuiStatusResponse {
+	private fun closeSelectAHomeAppDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val launcherWidget = snapshot.widgets.single { it.text == "Launcher" }
 		device.perform(ClickAction(launcherWidget.xpath, launcherWidget.resourceId))
 
-		var guiSnapshot = this.getGuiSnapshot()
+		var guiSnapshot = this.getExplorableGuiSnapshot()
 		if (guiSnapshot.isSelectAHomeAppDialogBox) {
 			val justOnceWidget = guiSnapshot.widgets.single { it.text == "Just once" }
 			device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
-			guiSnapshot = this.getGuiSnapshot()
+			guiSnapshot = this.getExplorableGuiSnapshot()
 		}
 		assert(!guiSnapshot.isSelectAHomeAppDialogBox)
 
 		return guiSnapshot
 	}
 
-	private fun closeUseLauncherAsHomeDialogBox(snapshot: GuiStatusResponse): GuiStatusResponse {
+	private fun closeUseLauncherAsHomeDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val justOnceWidget = snapshot.widgets.single { it.text == "Just once" }
 		device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
 
-		val guiSnapshot = this.getGuiSnapshot()
+		val guiSnapshot = this.getExplorableGuiSnapshot()
 		assert(!guiSnapshot.isUseLauncherAsHomeDialogBox)
 		return guiSnapshot
 	}
 
-	override fun perform(action: Action) {
-		Utils.retryOnException(
+	override fun perform(action: Action): DeviceResponse {
+		return Utils.retryOnException(
 				{ this.device.perform(action) },
 				{ this.restartUiaDaemon(false) },
 				DeviceException::class,
@@ -286,7 +284,7 @@ class RobustDevice : IRobustDevice {
 	@Throws(DeviceException::class)
 	private fun getAppIsRunningRebootingIfNecessary(packageName: String): Boolean = rebootIfNecessary("device.appIsRunning(packageName:$packageName)", true) { this.device.appIsRunning(packageName) }
 
-	override fun launchApp(apk: IApk) {
+	override fun launchApp(apk: IApk): DeviceResponse {
 		log.debug("launchApp(${apk.packageName})")
 
 		if (apk.launchableActivityName.isNotEmpty())
@@ -295,6 +293,8 @@ class RobustDevice : IRobustDevice {
 			assert(apk.applicationLabel.isNotEmpty())
 			this.clickAppIcon(apk.applicationLabel)
 		}
+
+		return this.perform(FetchGUI())
 	}
 
 	override fun clickAppIcon(iconLabel: String) {
@@ -333,17 +333,17 @@ class RobustDevice : IRobustDevice {
 	}
 
 	@Throws(DeviceException::class)
-	private fun getExplorableGuiSnapshot(): GuiStatusResponse {
+	private fun getExplorableGuiSnapshot(): DeviceResponse {
 		var guiSnapshot = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 		guiSnapshot = closeANRIfNecessary(guiSnapshot)
 		return guiSnapshot
 	}
 
 	@Throws(DeviceException::class)
-	private fun getExplorableGuiSnapshotWithoutClosingANR(): GuiStatusResponse = this.getRetryValidGuiSnapshotRebootingIfNecessary()
+	private fun getExplorableGuiSnapshotWithoutClosingANR(): DeviceResponse = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 
 	@Throws(DeviceException::class)
-	private fun closeANRIfNecessary(guiSnapshot: GuiStatusResponse): GuiStatusResponse {
+	private fun closeANRIfNecessary(guiSnapshot: DeviceResponse): DeviceResponse {
 		if (!guiSnapshot.isAppHasStoppedDialogBox)
 			return guiSnapshot
 
@@ -352,7 +352,7 @@ class RobustDevice : IRobustDevice {
 		assert(okWidget.enabled)
 		log.debug("ANR encountered")
 
-		var out: GuiStatusResponse? = null
+		var out: DeviceResponse? = null
 
 		Utils.retryOnFalse({
 
@@ -375,37 +375,29 @@ class RobustDevice : IRobustDevice {
 	}
 
 	@Throws(DeviceException::class)
-	private fun getRetryValidGuiSnapshotRebootingIfNecessary(): GuiStatusResponse = rebootIfNecessary("device.getRetryValidGuiSnapshot()", true) { this.getRetryValidGuiSnapshot() }
+	private fun getRetryValidGuiSnapshotRebootingIfNecessary(): DeviceResponse = rebootIfNecessary("device.getRetryValidGuiSnapshot()", true) { this.getRetryValidGuiSnapshot() }
 
 	@Throws(DeviceException::class)
-	private fun getRetryValidGuiSnapshot(): GuiStatusResponse {
+	private fun getRetryValidGuiSnapshot(): DeviceResponse {
 		try {
-			val guiSnapshot = Utils.retryOnException(
-					{ this.getValidGuiSnapshot() },
-					{ this.restartUiaDaemon(false) },
+			return Utils.retryOnException(
+					{ getValidGuiSnapshot() },
+					{ restartUiaDaemon(false) },
 					DeviceException::class,
 					getValidGuiSnapshotRetryAttempts,
 					getValidGuiSnapshotRetryDelay,
 					"getValidGuiSnapshot")
-
-			return guiSnapshot
 		} catch (e: DeviceException) {
 			throw AllDeviceAttemptsExhaustedException("All attempts at getting valid GUI snapshot failed", e)
 		}
 	}
 
 	@Throws(DeviceException::class)
-	private fun getValidGuiSnapshot(): GuiStatusResponse {
+	private fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
-		val snapshot = rebootIfNecessary("device.getGuiSnapshot()", true) { this.device.getGuiSnapshot() }
-
-		// TODO Check
-		/*val vres = snapshot.validationResult
-
-		if (!vres.valid)
-				throw DeviceException("Failed to obtain valid GUI snapshot. Validation (failed) result: ${vres.description}")*/
-
-		return snapshot
+		return rebootIfNecessary("device.getGuiSnapshot()", true) {
+			this.device.perform(FetchGUI())
+		}
 	}
 
 	@Throws(DeviceException::class)
@@ -448,12 +440,6 @@ class RobustDevice : IRobustDevice {
 			}
 		}
 	}
-
-	/*@Throws(DeviceException::class)
-	private fun reconnectAdbDiscardingException(exceptionMsg: String) =// Removed by Nataniel
-					// This is not feasible when using the device farm, upon restart of the ADB server the connection
-					// to the device is lost and it's assigned a new, random port, which doesn't allow automatic reconnection.
-					Unit*/
 
 	override fun reboot() {
 		if (this.device.isAvailable()) {

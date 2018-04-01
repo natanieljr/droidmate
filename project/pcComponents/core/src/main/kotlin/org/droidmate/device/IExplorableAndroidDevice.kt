@@ -27,7 +27,7 @@ package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
 
 import java.time.LocalDateTime
@@ -36,11 +36,11 @@ interface IExplorableAndroidDevice {
 	@Throws(DeviceException::class)
 	fun hasPackageInstalled(packageName: String): Boolean
 
-	@Throws(DeviceException::class)
-	fun getGuiSnapshot(): GuiStatusResponse
+	//@Throws(DeviceException::class)
+	//fun getGuiSnapshot(): GuiStatusResponse
 
 	@Throws(DeviceException::class)
-	fun perform(action: Action) //TODO change interface to return DeviceResult (the daemonController already implements the behavior)
+	fun perform(action: Action): DeviceResponse
 
 	@Throws(DeviceException::class)
 	fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage>

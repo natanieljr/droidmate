@@ -27,6 +27,7 @@ package org.droidmate.exploration.actions
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.PressBack
 
 import java.time.LocalDateTime
@@ -43,19 +44,10 @@ class RunnablePressBackExplorationAction constructor(action: PressBackExploratio
 		logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
 		log.debug("2. Press back.")
-		device.perform(PressBack())
+		this.snapshot = device.perform(PressBack())
 
 		log.debug("3. Read and clear API logs if any, then seal logs reading.")
 		logsHandler.readAndClearApiLogs()
 		this.logs = logsHandler.getLogs()
-
-		log.debug("4. Get GUI snapshot.")
-		this.snapshot = device.getGuiSnapshot()
-
-		/*if (this.takeScreenshot) {
-			log.debug("5. Get GUI screenshot.")
-			val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-			this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()
-		}*/
 	}
 }

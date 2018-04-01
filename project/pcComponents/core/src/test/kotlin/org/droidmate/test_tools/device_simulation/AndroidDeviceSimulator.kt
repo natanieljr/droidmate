@@ -28,7 +28,7 @@ package org.droidmate.test_tools.device_simulation
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.IAndroidDevice
-import org.droidmate.uiautomator_daemon.GuiStatusResponse
+import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -45,6 +45,10 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
                              private val exceptionSpecs: List<IExceptionSpec> = ArrayList(),
                              unreliableSimulation: Boolean = false)*/ // TODO Fix tests
 	: IAndroidDevice {
+	override fun isApkInstalled(apkPackageName: String): Boolean {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
 	// TODO Fix tests
 	override fun pushFile(jar: Path) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -154,11 +158,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun getGuiSnapshot(): GuiStatusResponse {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	override fun perform(action: Action) {
+	override fun perform(action: Action): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
