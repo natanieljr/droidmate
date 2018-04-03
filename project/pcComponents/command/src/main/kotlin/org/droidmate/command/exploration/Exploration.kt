@@ -81,7 +81,7 @@ class Exploration constructor(private val cfg: Configuration,
 			log.warn(Markers.appHealth, "! Encountered ${output.exception.javaClass.simpleName} during the exploration of ${app.packageName} " +
 					"after already obtaining some exploration output.")
 
-		return Failable<AbstractContext, DeviceException>(output, if (output.exceptionIsPresent) output.exception else null)
+		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
 	}
 
 	private var actionT: Long = 0
@@ -103,7 +103,7 @@ class Exploration constructor(private val cfg: Configuration,
 		val strategy: IExplorationStrategy = strategyProvider.invoke(output)
 
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
-		while (isFirst || (result.successful && !(action is RunnableTerminateExplorationAction))) {
+		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
 			// decide for an action
 			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots) })
 			// execute action
