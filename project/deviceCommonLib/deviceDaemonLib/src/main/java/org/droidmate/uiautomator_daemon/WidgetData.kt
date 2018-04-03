@@ -30,7 +30,7 @@ fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.fo
  * @param index only used during dumpParsing to create xPath !! should not be used otherwise !!
  * @param parent only used during dumpParsing to create xPath and to determine the Widget.parentId within the state model !! should not be used otherwise !!
  */
-class WidgetData(map: Map<String, Any?>, val index: Int = -1, val parent: WidgetData? = null) : Serializable {
+class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: Int = -1, val parent: WidgetData? = null) : Serializable {
 	constructor(resId: String, xPath: String)
 			: this(defaultProperties.toMutableMap().apply { replace(WidgetData::resourceId.name, resId) }) {
 		this.xpath = xPath
