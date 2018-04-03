@@ -18,6 +18,7 @@
 // web: www.droidmate.org
 package org.droidmate.uiautomator_daemon
 
+import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.nio.charset.Charset
 import java.util.*
@@ -76,6 +77,9 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 
 	companion object {
 		@JvmStatic
+		private val log = LoggerFactory.getLogger(DeviceResponse::class.java)
+
+		@JvmStatic
 		val defaultProperties by lazy {
 			P.propertyMap(
 					Array(P.values().size, { "false" }).toList())
@@ -91,8 +95,10 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 			// The input is of form "[xLow,yLow][xHigh,yHigh]" and the regex below will capture four groups: xLow yLow xHigh yHigh
 			val boundsMatcher = Regex("\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]\\[(-?\\p{Digit}+),(-?\\p{Digit}+)\\]")
 			val foundResults = boundsMatcher.findAll(bounds).toList()
-			if (foundResults.isEmpty())
-				throw InvalidWidgetBoundsException("The window hierarchy bounds matcher was unable to match $bounds against the regex")
+			if (foundResults.isEmpty()) {
+				log.warn("The window hierarchy bounds matcher was unable to match $bounds against the regex")
+				return listOf(0, 0, 0, 0)
+			}
 
 			val matchedGroups = foundResults[0].groups
 
@@ -101,7 +107,7 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 			val highX = matchedGroups[3]!!.value.toInt()
 			val highY = matchedGroups[4]!!.value.toInt()
 
-			return arrayListOf(lowX, lowY, highX - lowX, highY - lowY)
+			return listOf(lowX, lowY, highX - lowX, highY - lowY)
 		}
 	}
 }

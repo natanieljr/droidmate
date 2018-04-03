@@ -95,41 +95,33 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 
 		@JvmStatic
 		private fun createWidget(n: Node, parentWidget: WidgetData?): WidgetData? {
-			try {
-				/*Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:uid/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-contentDesc="" check="false" check="false" clickable="true" enabled="true" focusable="true" focus="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>*/
-				val getBool: (property: String) -> Boolean = { n.attributes.getNamedItem(it)?.nodeValue == "true" }
-				val getStringVal: (property: String) -> String = { n.attributes.getNamedItem(it)?.nodeValue ?: "" }
-				val boundsList = WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue)
+			/*Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:uid/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-contentDesc="" check="false" check="false" clickable="true" enabled="true" focusable="true" focus="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>*/
+			val getBool: (property: String) -> Boolean = { n.attributes.getNamedItem(it)?.nodeValue == "true" }
+			val getStringVal: (property: String) -> String = { n.attributes.getNamedItem(it)?.nodeValue ?: "" }
+			val boundsList = WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue)
 
-				return WidgetData(mapOf(
-						WidgetData::id.name to getStringVal("id"), // Appears only in test code simulating the device, never on actual devices or their emulators.
-						WidgetData::text.name to getStringVal("text"),
-						WidgetData::resourceId.name to getStringVal("resource-id"),
-						WidgetData::className.name to getStringVal("class"),
-						WidgetData::packageName.name to getStringVal("package"),
-						WidgetData::contentDesc.name to getStringVal("content-contentDesc"),
-						WidgetData::checked.name to (if (getBool("checkable")) getBool("checked") else null),
-						WidgetData::clickable.name to getBool("clickable"),
-						WidgetData::enabled.name to getBool("enabled"),
-						WidgetData::focused.name to (if (getBool("focusable")) getBool("focused") else null),
-						WidgetData::scrollable.name to getBool("scrollable"),
-						WidgetData::longClickable.name to getBool("long-clickable"),
-						WidgetData::visible.name to getBool("visible-to-user"),  // TODO check invisible nodes are probably never in the dump anyway
-						WidgetData::isPassword.name to getBool("password"),
-						WidgetData::selected.name to getBool("selected"),
-						WidgetData::boundsX.name to boundsList[0],
-						WidgetData::boundsY.name to boundsList[1],
-						WidgetData::boundsWidth.name to boundsList[2],
-						WidgetData::boundsHeight.name to boundsList[3],
-						WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
-				), n.attributes.getNamedItem("index")?.nodeValue?.toInt() ?: -1, parentWidget)
-
-			} catch (e: InvalidWidgetBoundsException) {
-				// TODO Check log.error("Catching exception: parsing widget bounds failed. Please see the exceptions log for details.\n" +
-				// TODO		"Continuing execution, skipping the widget with empty bounds.")
-				// TODO Check log.error(exceptions, "parsing widget bounds failed with exception:\n", e)
-				return null
-			}
+			return WidgetData(mapOf(
+					WidgetData::id.name to getStringVal("id"), // Appears only in test code simulating the device, never on actual devices or their emulators.
+					WidgetData::text.name to getStringVal("text"),
+					WidgetData::resourceId.name to getStringVal("resource-id"),
+					WidgetData::className.name to getStringVal("class"),
+					WidgetData::packageName.name to getStringVal("package"),
+					WidgetData::contentDesc.name to getStringVal("content-contentDesc"),
+					WidgetData::checked.name to (if (getBool("checkable")) getBool("checked") else null),
+					WidgetData::clickable.name to getBool("clickable"),
+					WidgetData::enabled.name to getBool("enabled"),
+					WidgetData::focused.name to (if (getBool("focusable")) getBool("focused") else null),
+					WidgetData::scrollable.name to getBool("scrollable"),
+					WidgetData::longClickable.name to getBool("long-clickable"),
+					WidgetData::visible.name to getBool("visible-to-user"),  // TODO check invisible nodes are probably never in the dump anyway
+					WidgetData::isPassword.name to getBool("password"),
+					WidgetData::selected.name to getBool("selected"),
+					WidgetData::boundsX.name to boundsList[0],
+					WidgetData::boundsY.name to boundsList[1],
+					WidgetData::boundsWidth.name to boundsList[2],
+					WidgetData::boundsHeight.name to boundsList[3],
+					WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
+			), n.attributes.getNamedItem("index")?.nodeValue?.toInt() ?: -1, parentWidget)
 		}
 
 		@JvmStatic
