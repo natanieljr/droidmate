@@ -126,9 +126,7 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
 		 - a different version of the same app can be installed, if necessary (without uninstall, an error will be issued about
 		 certificates not matching (or something like that))
 		*/
-		if (device.isApkInstalled(apk.packageName)) {
-			device.uninstallApk(apk.packageName, /* ignoreFailure  = */ true)
-		}
+		device.uninstallApk(apk.packageName, /* ignoreFailure  = */ true)
 
 		if (!device.isAvailable())
 			throw DeviceException("No device is available just before installing $apk", /* stopFurtherApkExplorations */ true)

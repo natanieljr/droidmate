@@ -304,7 +304,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun launchMainActivity(launchableActivityComponentName: String) {
-
 		log.debug("launchMainActivity($launchableActivityComponentName)")
 		adbWrapper.launchMainActivity(serialNumber, launchableActivityComponentName)
 		log.info("Sleeping after launching $launchableActivityComponentName for ${cfg.launchActivityDelay} ms")
@@ -344,12 +343,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	override fun reinstallUiautomatorDaemon() {
 		if (cfg.androidApi == Configuration.api23) {
-			if (this.isApkInstalled(uia2Daemon_testPackageName)) {
-				this.uninstallApk(uia2Daemon_testPackageName, true)
-			}
-			if (this.isApkInstalled(uia2Daemon_packageName)) {
-				this.uninstallApk(uia2Daemon_packageName, true)
-			}
+			this.uninstallApk(uia2Daemon_testPackageName, true)
+			this.uninstallApk(uia2Daemon_packageName, true)
 
 			this.installApk(this.cfg.uiautomator2DaemonApk)
 			this.installApk(this.cfg.uiautomator2DaemonTestApk)

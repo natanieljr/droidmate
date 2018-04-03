@@ -155,25 +155,26 @@ class AdbWrapper constructor(private val cfg: Configuration,
 
 	/**
 	 * Android 8 throws an exception, if an APK is tried to be uninstalled, although
-	 * it is not installed.
+	 * it is not installed, therefore check if the APK is installed.
 	 */
 	override fun uninstallApk(deviceSerialNumber: String, apkPackageName: String, ignoreFailure: Boolean) {
 		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to uninstall $apkPackageName from Android Device with s/n $deviceSerialNumber."
+			if (isApkInstalled(deviceSerialNumber, apkPackageName)) {
+				val commandDescription = "Executing adb (Android Debug Bridge) to uninstall $apkPackageName from Android Device with s/n $deviceSerialNumber."
 
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s",
-					deviceSerialNumber, "uninstall", apkPackageName)
-			removeAdbStartedMsgIfPresent(stdStreams)
+				val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s",
+						deviceSerialNumber, "uninstall", apkPackageName)
+				removeAdbStartedMsgIfPresent(stdStreams)
 
-			val stdout = stdStreams[0]
+				val stdout = stdStreams[0]
 
-			// "Failure" is what the adb's "uninstall" command outputs when it fails.
-			if (!ignoreFailure && stdout.contains("Failure"))
-				throw AdbWrapperException("Failed to uninstall the apk package $apkPackageName.")
+				// "Failure" is what the adb's "uninstall" command outputs when it fails.
+				if (!ignoreFailure && stdout.contains("Failure"))
+					throw AdbWrapperException("Failed to uninstall the apk package $apkPackageName.")
 
-			if (ignoreFailure && stdout.contains("Failure"))
-				log.trace("Ignored failure of uninstalling of $apkPackageName.")
-
+				if (ignoreFailure && stdout.contains("Failure"))
+					log.trace("Ignored failure of uninstalling of $apkPackageName.")
+			}
 		} catch (e: SysCmdExecutorException) {
 			if (!ignoreFailure || e.message?.contains("Unknown package:") == false)
 				throw AdbWrapperException("Calling 'adb uninstall' failed. Oh my.", e)
