@@ -79,8 +79,6 @@ dependencies {
 	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
 	// Fast serialization library
 	compile 'de.ruedigermoeller:fst:2.56'
-	// Fast serialization library
-	compile 'de.ruedigermoeller:fst:2.56'
 	compile 'org.slf4j:slf4j-api:1.7.25'
 }
 
