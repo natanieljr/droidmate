@@ -43,6 +43,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
+	@JvmOverloads
 	constructor(cfg: Configuration,
 				priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET): this(cfg.randomSeed.toLong(), priority)
 

@@ -34,7 +34,7 @@ import org.droidmate.exploration.strategy.StrategyPriority
  * It has maximum priority (0.99) when it identifies a runtime permission dialog,
  * otherwise its priority is 0.
  */
-class AllowRuntimePermission private constructor() : Explore() {
+class AllowRuntimePermission : Explore() {
 	override fun chooseAction(): ExplorationAction {
 		val allowButton = context.getCurrentState().widgets.let { widgets ->
 			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
@@ -67,14 +67,4 @@ class AllowRuntimePermission private constructor() : Explore() {
 	override fun toString(): String {
 		return "${this.javaClass}"
 	}
-
-	companion object {
-		/**
-		 * Creates a new exploration strategy instance
-		 */
-		fun build(): ISelectableExplorationStrategy {
-			return AllowRuntimePermission()
-		}
-	}
-
 }

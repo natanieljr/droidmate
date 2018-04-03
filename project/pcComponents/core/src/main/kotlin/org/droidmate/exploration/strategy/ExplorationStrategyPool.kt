@@ -52,13 +52,15 @@ import org.slf4j.LoggerFactory
  *
  * @author Nataniel P. Borges Jr.
  */
+@Suppress("MemberVisibilityCanBePrivate")
 class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>,
                               private val memory: AbstractContext) : IExplorationStrategy, IControlObserver {
 
 	companion object {
 		private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
 
-		private fun getTerminationStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
+		@JvmStatic
+		fun getTerminationStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
 			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
 			if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0)
@@ -72,7 +74,8 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 			return strategies
 		}
 
-		private fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
+		@JvmStatic
+		fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
 			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
 			strategies.add(InitialReset())
@@ -86,7 +89,8 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 			return strategies
 		}
 
-		private fun getBackStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
+		@JvmStatic
+		fun getBackStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
 			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
 			strategies.add(AfterResetBack())
@@ -120,7 +124,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 
 			// Allow runtime dialogs
 			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
-				strategies.add(AllowRuntimePermission.build())
+				strategies.add(AllowRuntimePermission())
 
 			// Seek targets
 			if (cfg.explorationStrategies.contains(StrategyTypes.SeekTargets.strategyName)) {
