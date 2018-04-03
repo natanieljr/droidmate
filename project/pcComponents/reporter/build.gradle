@@ -37,12 +37,10 @@ dependencies {
 
 	testCompile 'org.hamcrest:hamcrest-library:1.3'
 
-//  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 	testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 
-	compile 'com.google.jimfs:jimfs:1.0'
-	compile 'org.zeroturnaround:zt-exec:1.9'
+	compile 'com.google.jimfs:jimfs:1.1'
 }
 
 configureTest([project, ['**/ReporterTestSuite.class']])

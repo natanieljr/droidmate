@@ -51,24 +51,20 @@ dependencies {
 	}
 
 	compile 'org.apache.commons:commons-exec:1.2'
-	compile 'org.apache.commons:commons-lang3:3.3'
-	compile 'commons-io:commons-io:2.4'
+	compile 'org.apache.commons:commons-lang3:3.4'
+	compile 'commons-io:commons-io:2.6'
 
 	compile 'net.sf.jopt-simple:jopt-simple:4.9'
 
-	compile 'ch.qos.logback:logback-classic:1.0.13'
-	compile 'ch.qos.logback:logback-core:1.0.13'
+	compile 'ch.qos.logback:logback-classic:1.2.3'
+	compile 'ch.qos.logback:logback-core:1.2.3'
 	compile 'org.slf4j:slf4j-api:1.7.25'
 
-	compile 'com.google.guava:guava:19.0'
+	compile 'com.google.guava:guava:23.0'
 
-	compile 'com.google.jimfs:jimfs:1.0'
+	compile 'com.google.jimfs:jimfs:1.1'
 
 	testCompile 'junit:junit:4.12'
-	// TODO check
-//	testCompile 'org.hamcrest:hamcrest-core:1.3'
-//	testCompile 'org.hamcrest:hamcrest-library:1.3'
-//	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
 }
 
 File resDir = sourceSets.main.resources.srcDirs.first()

@@ -47,14 +47,14 @@ dependencies {
 
 	compile project(":deviceDaemonLib")
 
-	compile 'com.beust:jcommander:1.35'
-	compile 'com.google.guava:guava:19.0'
-	compile 'org.apache.commons:commons-lang3:3.3'
-	compile 'commons-io:commons-io:2.4'
+	compile 'com.beust:jcommander:1.72'
+	compile 'com.google.guava:guava:23.0'
+	compile 'org.apache.commons:commons-lang3:3.4'
+	compile 'commons-io:commons-io:2.6'
 	compile 'org.apache.commons:commons-exec:1.2'
 	compile 'org.slf4j:slf4j-api:1.7.25'
-	compile 'ch.qos.logback:logback-classic:1.0.13'
-	compile 'ch.qos.logback:logback-core:1.0.13'
+	compile 'ch.qos.logback:logback-classic:1.2.3'
+	compile 'ch.qos.logback:logback-core:1.2.3'
 	compile 'net.sf.opencsv:opencsv:2.3'
 
 	// Fast serialization library
@@ -64,11 +64,11 @@ dependencies {
 	compile 'org.graphstream:gs-core:1.3'
 
 	// Filesystem stubbing
-	compile 'com.google.jimfs:jimfs:1.0'
+	compile 'com.google.jimfs:jimfs:1.1'
 
 	compile 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
 
-	compile 'com.github.npryce:konfig:1.6.2.0'  // configuration library
+	compile 'com.github.npryce:konfig:1.6.4.0'  // configuration library
 
 	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
 
@@ -76,7 +76,6 @@ dependencies {
 	testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
 
 	testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
-
 }
 
 apply from: file("resources.gradle")
