@@ -54,19 +54,16 @@ class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, times
 		log.debug("4. Turn wifi on.")
 		device.perform(EnableWifi())
 
-		//log.debug("5. Get GUI snapshot to ensure device displays valid screen that is not \"app has stopped\" dialog box.")
-		//device.perform(FetchGUI())
-
-		log.debug("6. Ensure app is not running.")
+		log.debug("5. Ensure app is not running.")
 		if (device.appIsRunning(app.packageName)) {
 			log.trace("App is still running. Clearing package again.")
 			device.clearPackage(app.packageName)
 		}
 
-		log.debug("7. Launch app $app.packageName.")
+		log.debug("6. Launch app $app.packageName.")
 		this.snapshot = device.launchApp(app)
 
-		log.debug("8. Try to read API logs.")
+		log.debug("7. Try to read API logs.")
 		val logsHandler = DeviceLogsHandler(device)
 		logsHandler.readAndClearApiLogs()
 		this.logs = logsHandler.getLogs()
