@@ -22,13 +22,15 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
+package org.droidmate.device.datatypes
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
+import org.droidmate.uiautomator_daemon.DeviceResponse
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+
+interface IUnreliableDeviceGuiSnapshotProvider {
+	fun provide(): DeviceResponse
+
+	fun pressOkOnAppHasStopped()
+
+	fun getCurrentWithoutChange(): DeviceResponse
+}

@@ -22,13 +22,14 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
+package org.droidmate.exploration.actions
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+class ExplorationActionTestHelper {
+	// TODO Fix tests
+	/*companion object {
+			@JvmStatic
+			fun newWidgetClickExplorationAction(args: Map<String, Any> = hashMapOf()): WidgetExplorationAction
+							= ExplorationAction.newWidgetExplorationAction(WidgetTestHelper.newClickableButton(args.toMutableMap()), true)
+	}*/
+}

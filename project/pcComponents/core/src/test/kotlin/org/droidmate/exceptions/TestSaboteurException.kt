@@ -22,13 +22,17 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
+package org.droidmate.exceptions
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+import org.droidmate.misc.DroidmateException
+
+class TestSaboteurException : DroidmateException {
+	companion object {
+		private const val serialVersionUID: Long = 1
+	}
+
+	constructor() : super()
+
+	constructor(message: String) : super(message)
+}

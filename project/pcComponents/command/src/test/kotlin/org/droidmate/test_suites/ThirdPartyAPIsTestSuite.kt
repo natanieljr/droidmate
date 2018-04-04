@@ -25,12 +25,9 @@
 package org.droidmate.test_suites
 
 import org.droidmate.tests_misc.JavaTest
-import org.droidmate.tests_misc.LogbackTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
 @RunWith(Suite::class)
-@Suite.SuiteClasses(
-		JavaTest::class,
-		LogbackTest::class)
+@Suite.SuiteClasses(JavaTest::class)
 class ThirdPartyAPIsTestSuite

@@ -22,13 +22,37 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
+package org.droidmate.android_sdk
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
+import org.droidmate.device.android_sdk.IAaptWrapper
+import org.droidmate.device.android_sdk.IApk
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+import java.nio.file.Path
+
+class AaptWrapperStub(private val apks: List<IApk>) : IAaptWrapper {
+
+	override fun getPackageName(apk: Path): String {
+		assert(false, { "Not yet implemented!" })
+		return ""
+	}
+
+	override fun getLaunchableActivityName(apk: Path): String {
+		assert(false, { "Not yet implemented!" })
+		return ""
+	}
+
+	override fun getLaunchableActivityComponentName(apk: Path): String {
+		assert(false, { "Not yet implemented!" })
+		return ""
+	}
+
+	override fun getApplicationLabel(apk: Path): String {
+		assert(false, { "Not yet implemented!" })
+		return ""
+	}
+
+	override fun getMetadata(apk: Path): List<String> {
+		val data = apks.single { it.absolutePath == apk.toAbsolutePath().toString() }
+		return arrayListOf(data.packageName, data.launchableActivityName, data.launchableActivityComponentName, data.applicationLabel)
+	}
+}
