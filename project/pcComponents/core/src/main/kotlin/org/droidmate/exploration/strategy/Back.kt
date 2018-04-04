@@ -22,29 +22,28 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.exploration.strategy.back
+package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.strategy.StrategyPriority
+import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
+import org.droidmate.exploration.strategy.AbstractStrategy
 
 /**
- * Presses back if it can' move forward and last action was to reset
- * try to press back because sometimes an account selection dialog pops up
+ * Exploration strategy that presses the back button on the device.
  *
- * exception to rule: if before the reset it was a back action, allows to terminate,
- * otherwise the exploration would enter a loop of Back -> Reset -> Back -> Reset....
+ * Usually has a small probability of being triggered. When triggered has a high priority.
+ *
+ * @constructor Creates a new class instance with [probability of triggering the event][probability]
+ * and with a random seed to allow test reproducibility.
+ *
+ * @author Nataniel P. Borges Jr.
  */
-class AfterResetBack : Back() {
-	override fun getFitness(): StrategyPriority {
-		return if (!context.explorationCanMoveOn() &&
-				this.lastAction().actionType == ResetAppExplorationAction::class.java.simpleName)
-			if (context.getCurrentState().isAppHasStoppedDialogBox ||
-					this.getSecondLastAction().actionType == PressBackExplorationAction::class.java.simpleName)
-				StrategyPriority.BACK
-			else
-				StrategyPriority.BACK_BEFORE_TERMINATE
-		else
-			StrategyPriority.NONE
+class Back : AbstractStrategy() {
+	override fun mustPerformMoreActions(): Boolean {
+		return false
+	}
+
+	override fun internalDecide(): ExplorationAction {
+		return newPressBackExplorationAction()
 	}
 }

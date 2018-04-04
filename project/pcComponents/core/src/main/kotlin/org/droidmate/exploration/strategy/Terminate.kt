@@ -22,36 +22,22 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.exploration.strategy.back
+package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
-import org.droidmate.exploration.strategy.AbstractStrategy
+import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
 
 /**
- * Exploration strategy that presses the back button on the device.
- *
- * Usually has a small probability of being triggered. When triggered has a high priority.
- *
- * @constructor Creates a new class instance with [probability of triggering the event][probability]
- * and with a random seed to allow test reproducibility.
+ * Determines if exploration shall be terminated based on the terminate criteria
  *
  * @author Nataniel P. Borges Jr.
  */
-abstract class Back : AbstractStrategy() {
+class Terminate : AbstractStrategy() {
 	override fun mustPerformMoreActions(): Boolean {
 		return false
 	}
 
 	override fun internalDecide(): ExplorationAction {
-		return newPressBackExplorationAction()
-	}
-
-	override fun toString(): String {
-		return this.javaClass.toString()
-	}
-
-	override fun start() {
-		// Nothing to do here.
+		return newTerminateExplorationAction()
 	}
 }

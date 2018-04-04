@@ -25,8 +25,6 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.StrategyPriority
 
 /**
  * Exploration strategy that always selects the first widget on the screen.
@@ -35,40 +33,8 @@ import org.droidmate.exploration.strategy.StrategyPriority
  *
  * @author Nataniel P. Borges Jr.
  */
-class AlwaysFirstWidget private constructor() : Explore() {
+class AlwaysFirstWidget() : Explore() {
 	override fun chooseAction(): ExplorationAction {
-		//TODO
-//        val selectedWidgetInfo = currentState.actionableWidgetsInfo.first()
-//        this.context.lastTarget = selectedWidgetInfo
-
-//        return ExplorationAction.newWidgetExplorationAction(selectedWidgetInfo.widget)
 		return ExplorationAction.newWidgetExplorationAction(context.getCurrentState().widgets.first())
-	}
-
-	override fun getFitness(): StrategyPriority {
-		// If this strategy is active it should always have preference
-		// unless competing against termination, first reset or runtime permission dialog
-		return StrategyPriority.SPECIFIC_WIDGET
-	}
-
-	override fun equals(other: Any?): Boolean {
-		return other is AlwaysFirstWidget
-	}
-
-	override fun hashCode(): Int {
-		return 0
-	}
-
-	override fun toString(): String {
-		return "${this.javaClass}"
-	}
-
-	companion object {
-		/**
-		 * Creates a new exploration strategy instance
-		 */
-		fun build(): ISelectableExplorationStrategy {
-			return AlwaysFirstWidget()
-		}
 	}
 }

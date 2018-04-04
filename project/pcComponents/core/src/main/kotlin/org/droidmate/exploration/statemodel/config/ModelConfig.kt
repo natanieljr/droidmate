@@ -45,8 +45,9 @@ class ModelConfig private constructor(path: String, appName: String,private val 
 	val traceFile = { date: String -> "$baseDir${config[traceFilePrefix]}$date.txt" }
 
 	companion object {
-		private val resourceConfig by lazy { //ConfigurationProperties.fromResource("defaultModelConfig.properties")  //FIXME use this in final version when modelConfig build parameter is available, until then use this as IntelliJ resource reload workaround
-			ConfigurationProperties.fromFile(File("project/pcComponents/core/src/main/resources/runtime/defaultModelConfig.properties").apply { println(absolutePath) })
+		private val resourceConfig by lazy {
+			ConfigurationProperties.fromResource("runtime/defaultModelConfig.properties")  //FIXME use this in final version when modelConfig build parameter is available, until then use this as IntelliJ resource reload workaround
+			//ConfigurationProperties.fromFile(File("project/pcComponents/core/src/main/resources/runtime/defaultModelConfig.properties").apply { println(absolutePath) })
 		}
 		operator fun invoke(path: String, appName: String, customFilePath: URI):ModelConfig{
 			val config = File(customFilePath.path).let{customConfigFile ->

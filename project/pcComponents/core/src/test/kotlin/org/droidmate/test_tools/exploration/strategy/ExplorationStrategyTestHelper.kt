@@ -31,10 +31,6 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.reset.AppCrashedReset
-import org.droidmate.exploration.strategy.reset.CannotExploreReset
-import org.droidmate.exploration.strategy.reset.InitialReset
-import org.droidmate.exploration.strategy.reset.IntervalReset
 import org.droidmate.test_tools.android_sdk.ApkTestHelper
 import org.droidmate.test_tools.configuration.ConfigurationForTests
 
@@ -56,7 +52,7 @@ class ExplorationStrategyTestHelper {
 			return ExplorationContext(testApk)
 		}
 
-		@JvmStatic
+		/*@JvmStatic
 		fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
 			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 			strategies.add(InitialReset())
@@ -68,8 +64,6 @@ class ExplorationStrategyTestHelper {
 				strategies.add(IntervalReset(cfg.resetEveryNthExplorationForward))
 
 			return strategies
-		}
-
-
+		}*/
 	}
 }

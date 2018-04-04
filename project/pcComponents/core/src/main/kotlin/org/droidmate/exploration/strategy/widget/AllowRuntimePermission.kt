@@ -25,8 +25,6 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.StrategyPriority
 
 /**
  * Exploration strategy that always clicks "Allow" on runtime permission dialogs.
@@ -45,26 +43,5 @@ class AllowRuntimePermission : Explore() {
 //        this.context.lastTarget.blackListed = false    //TODO
 
 		return ExplorationAction.newIgnoreActionForTerminationWidgetExplorationAction(allowButton)
-	}
-
-	override fun getFitness(): StrategyPriority {
-		// If the permission dialog appears this strategy should always have
-		// preference unless competing against Terminate or First Reset
-		return if (context.getCurrentState().isRequestRuntimePermissionDialogBox)
-			StrategyPriority.SPECIFIC_WIDGET
-		else
-			StrategyPriority.NONE
-	}
-
-	override fun equals(other: Any?): Boolean {
-		return other is AllowRuntimePermission
-	}
-
-	override fun hashCode(): Int {
-		return 0
-	}
-
-	override fun toString(): String {
-		return "${this.javaClass}"
 	}
 }

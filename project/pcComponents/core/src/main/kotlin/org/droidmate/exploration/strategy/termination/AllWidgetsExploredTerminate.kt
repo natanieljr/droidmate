@@ -29,7 +29,7 @@ package org.droidmate.exploration.strategy.termination
  *
  * @author Nataniel P. Borges Jr.
  */
-class AllWidgetsExploredTerminate : Terminate() {
+/*class AllWidgetsExploredTerminate : Terminate() {
 	override fun getLogMessage(): String = ""
 
 	override fun met(): Boolean {
@@ -44,4 +44,4 @@ class AllWidgetsExploredTerminate : Terminate() {
 	override fun metReason(): String {
 		return "All widgets have been explored at least once"
 	}
-}
+}*/

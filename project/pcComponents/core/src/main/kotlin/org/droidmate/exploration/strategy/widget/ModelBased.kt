@@ -27,8 +27,6 @@ package org.droidmate.exploration.strategy.widget
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.features.EventProbabilityMF
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.StrategyPriority
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
@@ -74,19 +72,6 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 		this.context.lastTarget?.let { candidates = candidates.filterNot { p -> p.uid == it.uid } }
 
 		return candidates
-	}
-
-	/**
-	 * Returns a high priority when the model found widgets with events. Otherwise this strategy's priority is 0
-	 */
-	override fun getFitness(): StrategyPriority {
-		val candidates = getAvailableWidgets()
-
-		// Lower priority than reset, more than random exploration
-		return if (candidates.isNotEmpty())
-			StrategyPriority.BIASED_RANDOM_WIDGET
-		else
-			StrategyPriority.NONE
 	}
 
 	// region java overrides

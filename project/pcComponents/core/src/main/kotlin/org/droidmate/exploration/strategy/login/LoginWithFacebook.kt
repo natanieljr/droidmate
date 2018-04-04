@@ -30,7 +30,6 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
-import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.widget.Explore
 import org.droidmate.misc.DroidmateException
 import java.io.IOException
@@ -181,7 +180,8 @@ class LoginWithFacebook : Explore() {
 		return signInClicked && !loginClicked
 	}
 
-	override fun getFitness(): StrategyPriority {
+	// TODO
+	/*override fun getFitness(): StrategyPriority {
 		// Not the correct app, or already logged in
 		if (continueClicked)
 			return StrategyPriority.NONE
@@ -197,7 +197,7 @@ class LoginWithFacebook : Explore() {
 			return StrategyPriority.SPECIFIC_WIDGET
 
 		return StrategyPriority.NONE
-	}
+	}*/
 
 	private fun getWidgetAction(widgets: List<Widget>): ExplorationAction {
 		// Can click on login

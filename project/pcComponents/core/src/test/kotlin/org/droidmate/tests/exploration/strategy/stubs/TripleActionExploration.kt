@@ -27,7 +27,6 @@ package org.droidmate.tests.exploration.strategy.stubs
 
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.exploration.strategy.StrategyPriority
 
 /**
  * Test exploration strategy that does three actionTrace before handling control
@@ -42,45 +41,4 @@ class TripleActionExploration : AbstractStrategy() {
 	override fun internalDecide(): ExplorationAction {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
-
-	override fun start() {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	override fun getFitness(): StrategyPriority {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	/*override fun start() {
-			// Nothing to do here.
-	}
-
-	override fun getFitness(currentState: WidgetContext): StrategyPriority {
-			if (this.actionNr == 3)
-					return StrategyPriority.SPECIFIC_WIDGET
-
-			return StrategyPriority.NONE
-	}
-
-	override fun mustPerformMoreActions(currentState: WidgetContext): Boolean {
-			return this.actionNr >= 3 && this.actionNr < 5
-	}
-
-	override fun internalDecide(widgetContext: WidgetContext): ExplorationAction {
-			return DummyExplorationAction()
-	}
-
-	override fun equals(other: Any?): Boolean {
-			return other is TripleActionExploration
-	}
-
-	override fun hashCode(): Int {
-			return 0
-	}
-
-	companion object {
-			fun build(): ISelectableExplorationStrategy {
-					return TripleActionExploration()
-			}
-	}*/
 }

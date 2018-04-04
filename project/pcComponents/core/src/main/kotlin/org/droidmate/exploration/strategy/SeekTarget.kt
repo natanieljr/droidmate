@@ -60,14 +60,15 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
 		}
 	}
 
-	override fun getFitness(): StrategyPriority {
+	// TODO
+	/*override fun getFitness(): StrategyPriority {
 		// If it is not yet satisfied and can handle action
 		if (this.getAvailableWidgets().isNotEmpty())
 			return StrategyPriority.SPECIFIC_WIDGET
 
 		// Otherwise does nothing
 		return StrategyPriority.NONE
-	}
+	}*/
 
 	override fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
 	                           result: ActionResult) {

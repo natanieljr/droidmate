@@ -35,9 +35,14 @@ import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
  * Exploration strategy which selects widgets following Fitness Proportionate Selection
  * The fitness is calculated considering the probability to have an event according to a model
  */
-open class FitnessProportionateSelection protected constructor(randomSeed: Long,
-                                                               modelName: String,
-                                                               arffName: String) : ModelBased(randomSeed, modelName, arffName) {
+open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: Long,
+																   modelName: String = "HasModel.model",
+																   arffName: String = "baseModelFile.arff") : ModelBased(randomSeed, modelName, arffName) {
+
+	@JvmOverloads
+	constructor(cfg: Configuration, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
+		: this(cfg.randomSeed.toLong(), modelName, arffName)
+
 	private val eventWatcher: EventProbabilityMF by lazy {
 		(context.watcher.find { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
@@ -152,15 +157,4 @@ open class FitnessProportionateSelection protected constructor(randomSeed: Long,
 	}
 
 	// endregion
-
-	companion object {
-		/**
-		 * Creates a new exploration strategy instance
-		 */
-		@JvmOverloads
-		fun build(cfg: Configuration, modelName: String = "HasModel.model",
-		          arffName: String = "baseModelFile.arff"): ISelectableExplorationStrategy {
-			return FitnessProportionateSelection(cfg.randomSeed.toLong(), modelName, arffName)
-		}
-	}
 }

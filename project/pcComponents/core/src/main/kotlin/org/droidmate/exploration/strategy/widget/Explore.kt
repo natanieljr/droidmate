@@ -43,10 +43,6 @@ abstract class Explore : AbstractStrategy() {
 		return false
 	}
 
-	override fun start() {
-		// Nothing to do here.
-	}
-
 	override fun internalDecide(): ExplorationAction {
 		assert(context.explorationCanMoveOn(), {"Selected and explore action, but exploration cannot proceed."})
 
@@ -56,26 +52,6 @@ abstract class Explore : AbstractStrategy() {
 
 		return chooseAction()
 	}
-
-	// endregion
-
-	// region extensions
-
-	/*protected fun Widget.getActionableParent(): Widget? {
-		var parent: Widget? = context.getCurrentState().widgets.find { it.id == this.parentId }
-		// Just check for layouts
-		while (parent != null && (parent.getRefinedType().contains("layout") || parent.getRefinedType().contains("group"))) {
-			if (parent.canBeActedUpon()) {
-				return parent
-			}
-
-			parent = context.getCurrentState().widgets.find { it.id == parent!!.parentId }
-		}
-
-		return null
-	}*/
-
-	// endregion
 
 	protected fun updateState(): Boolean {
 		if (!context.belongsToApp(context.getCurrentState())) {

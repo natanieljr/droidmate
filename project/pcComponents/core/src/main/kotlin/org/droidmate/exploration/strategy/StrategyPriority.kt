@@ -35,7 +35,7 @@ package org.droidmate.exploration.strategy
  * - Purely Random widget
  * - None (when the strategy shouldn't do anything)
  */
-enum class StrategyPriority(val value: Double) {
+/*enum class StrategyPriority(val value: Double) {
 	PLAYBACK(0.95),
 	FIRST_RESET(0.9),
 	BACK_BEFORE_TERMINATE(0.81),
@@ -47,4 +47,4 @@ enum class StrategyPriority(val value: Double) {
 	BIASED_RANDOM_WIDGET(0.2),
 	PURELY_RANDOM_WIDGET(0.1),
 	NONE(0.0)
-}
+}*/

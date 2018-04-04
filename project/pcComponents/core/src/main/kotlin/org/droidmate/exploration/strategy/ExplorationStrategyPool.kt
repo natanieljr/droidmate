@@ -24,27 +24,18 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import com.google.common.base.Ticker
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.strategy.back.AfterResetBack
-import org.droidmate.exploration.strategy.back.NoLongerInAppBack
-import org.droidmate.exploration.strategy.back.RandomBack
-import org.droidmate.exploration.strategy.reset.AppCrashedReset
-import org.droidmate.exploration.strategy.reset.CannotExploreReset
-import org.droidmate.exploration.strategy.reset.InitialReset
-import org.droidmate.exploration.strategy.reset.IntervalReset
-import org.droidmate.exploration.strategy.termination.ActionBasedTerminate
-import org.droidmate.exploration.strategy.termination.CannotExploreTerminate
-import org.droidmate.exploration.strategy.termination.TimeBasedTerminate
+import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.LoggerFactory
+import java.util.*
 
 /**
  * Exploration strategy pool that selects an exploration for a pool
@@ -60,83 +51,85 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 		private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
 
 		@JvmStatic
-		fun getTerminationStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
+		private fun getDefaultSelectors(cfg: Configuration): List<StrategySelector>{
+			val res : MutableList<StrategySelector> = mutableListOf()
 
-			if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0)
-				strategies.add(ActionBasedTerminate(cfg))
+			var priority = 0
+			res.add(StrategySelector(++priority, StrategySelector.startExplorationReset))
+			res.add(StrategySelector(++priority, StrategySelector.appCrashedReset))
 
+			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.allowPermission))
+			
+			res.add(StrategySelector(++priority, StrategySelector.cannotExplore))
+
+			// Action based terminate
+			if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0) {
+				val actionLimit = if (cfg.widgetIndexes.size > 0)
+					cfg.widgetIndexes.size
+				else
+					cfg.actionsLimit
+
+				res.add(StrategySelector(++priority, StrategySelector.actionBasedTerminate, actionLimit))
+			}
+
+			// Time based terminate
 			if (cfg.timeLimit > 0)
-				strategies.add(TimeBasedTerminate(cfg.timeLimit, Ticker.systemTicker()))
-
-			strategies.add(CannotExploreTerminate())
-
-			return strategies
-		}
-
-		@JvmStatic
-		fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
-
-			strategies.add(InitialReset())
-			strategies.add(AppCrashedReset())
-			strategies.add(CannotExploreReset())
+		 		res.add(StrategySelector(++priority, StrategySelector.timeBasedTerminate, cfg.timeLimit))
 
 			// Interval reset
 			if (cfg.resetEveryNthExplorationForward > 0)
-				strategies.add(IntervalReset(cfg.resetEveryNthExplorationForward))
+				res.add(StrategySelector(++priority, StrategySelector.intervalReset, cfg.resetEveryNthExplorationForward))
 
-			return strategies
-		}
-
-		@JvmStatic
-		fun getBackStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
-			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
-
-			strategies.add(AfterResetBack())
-			strategies.add(NoLongerInAppBack())
-			// TODO
-			//strategies.add(GUIFullyExploredBack(cfg.minimumActionsPerUIElementBack))
-
-			// Randomly press back
+			// Random back
 			if (cfg.pressBackProbability > 0.0)
-				strategies.add(RandomBack(cfg))
+				res.add(StrategySelector(++priority, StrategySelector.randomBack, cfg.pressBackProbability, Random(cfg.randomSeed.toLong())))
 
-			return strategies
+			// Fitness Proportionate Selection
+			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.randomBiased))
+
+			// ExplorationContext based
+			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.randomWithModel))
+
+			// Random exploration
+			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.randomWidget))
+
+			return res
 		}
 
 		fun build(explorationLog: AbstractContext, cfg: Configuration): ExplorationStrategyPool {
 
 			val strategies = ArrayList<ISelectableExplorationStrategy>()
 
-			// Default strategies
-			strategies.addAll(getTerminationStrategies(cfg))
-			strategies.addAll(getResetStrategies(cfg))
-			strategies.addAll(getBackStrategies(cfg))
+			strategies.add(Back())
+			strategies.add(Reset())
+			strategies.add(Terminate())
 
-			// Random exploration
 			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
 				strategies.add(RandomWidget(cfg))
 
-			// ExplorationContext based
+			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+				strategies.add(FitnessProportionateSelection(cfg))
+
 			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
 				strategies.add(ModelBased(cfg))
 
-			// Allow runtime dialogs
 			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
 				strategies.add(AllowRuntimePermission())
 
+			val selectors = getDefaultSelectors(cfg)
+
 			// Seek targets
-			if (cfg.explorationStrategies.contains(StrategyTypes.SeekTargets.strategyName)) {
+			// TODO Check necessity
+			/*if (cfg.explorationStrategies.contains(StrategyTypes.SeekTargets.strategyName)) {
 				val targetedStrategies = SeekTarget.build(ArrayList(), "")
 				targetedStrategies.forEach { p -> strategies.add(p) }
-			}
+			}*/
 
-			// Fitness Proportionate Selection
-			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
-				strategies.add(FitnessProportionateSelection.build(cfg))
-
-			return ExplorationStrategyPool(strategies, explorationLog)
+			return ExplorationStrategyPool(strategies, selectors, explorationLog)
 		}
 	}
 
@@ -273,21 +266,12 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 		logger.debug("pool decide")
 		assert(!this.strategies.isEmpty())
 
-		if (this.memory.isEmpty())
-			this.startStrategies()
-
-		// state was already updated after the previous action was executed in Exploration.kt class
-//        val currentState = this.context.currentState()
-
 		if (this.hasControl())
 			this.handleControl()
 		else
 			logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
-		//val explorationType = this.activeStrategy!!.type
 		val selectedAction = this.activeStrategy!!.decide()
-
-		//this.updateState(selectedAction, explorationType, currentState, startTimestamp)
 
 		logger.info("(${this.memory.getSize()}) $selectedAction")
 
@@ -310,4 +294,9 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 		this.allWidgetsBlackListed = false
 	}
 
+	fun <R> getFirstInstanceOf(klass: Class<R>): R?{
+		return strategies
+				.filterIsInstance(klass)
+				.firstOrNull()
+	}
 }

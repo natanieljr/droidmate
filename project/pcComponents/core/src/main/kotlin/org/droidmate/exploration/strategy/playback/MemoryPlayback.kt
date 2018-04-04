@@ -28,7 +28,6 @@ import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.widget.Explore
 
 @Suppress("unused")
@@ -186,9 +185,10 @@ open class MemoryPlayback private constructor() : Explore() {
 		return getNextAction()
 	}
 
-	override fun getFitness(): StrategyPriority {
+	// TODO
+	/*override fun getFitness(): StrategyPriority {
 		return StrategyPriority.PLAYBACK
-	}
+	}*/
 
 	override fun initialize(memory: AbstractContext) {
 		super.initialize(memory)

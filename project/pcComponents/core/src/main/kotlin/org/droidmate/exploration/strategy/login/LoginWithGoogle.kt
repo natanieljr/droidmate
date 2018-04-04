@@ -29,7 +29,6 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.StrategyPriority
 import org.droidmate.exploration.strategy.widget.Explore
 import org.droidmate.misc.DroidmateException
 
@@ -96,7 +95,8 @@ class LoginWithGoogle : Explore() {
 				}
 	}
 
-	override fun getFitness(): StrategyPriority {
+	// TODO
+	/*override fun getFitness(): StrategyPriority {
 		// Not the correct app, or already logged in
 		if (this.state == LoginState.Done)
 			return StrategyPriority.NONE
@@ -109,7 +109,7 @@ class LoginWithGoogle : Explore() {
 			return StrategyPriority.SPECIFIC_WIDGET
 
 		return StrategyPriority.NONE
-	}
+	}*/
 
 	private fun getWidgetAction(widgets: List<Widget>): ExplorationAction {
 		// Can click on login

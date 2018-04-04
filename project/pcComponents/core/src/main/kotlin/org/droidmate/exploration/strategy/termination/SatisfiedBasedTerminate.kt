@@ -31,7 +31,7 @@ import org.droidmate.exploration.strategy.ITargetWidget
  *
  * @author Nataniel P. Borges Jr.
  */
-class SatisfiedBasedTerminate constructor(private val targets: List<ITargetWidget>) : Terminate() {
+/*class SatisfiedBasedTerminate constructor(private val targets: List<ITargetWidget>) : Terminate() {
 
 	override fun met(): Boolean {
 		// All widgets have been explored, no need to continue exploration
@@ -69,4 +69,4 @@ class SatisfiedBasedTerminate constructor(private val targets: List<ITargetWidge
 	override fun hashCode(): Int {
 		return targets.hashCode()
 	}
-}
+}*/

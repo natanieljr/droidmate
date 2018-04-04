@@ -32,22 +32,19 @@ import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.config.emptyId
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.statemodel.features.listOfSmallest
-import org.droidmate.exploration.strategy.StrategyPriority
 import java.util.*
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
-												  private val priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET) : Explore() {
+open class RandomWidget constructor(randomSeed: Long) : Explore() {
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
-	@JvmOverloads
-	constructor(cfg: Configuration,
-				priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET): this(cfg.randomSeed.toLong(), priority)
+	constructor(cfg: Configuration): this(cfg.randomSeed.toLong())
 
 	protected val random = Random(randomSeed)
+
 	private val counter: ActionCounterMF by lazy {
 		(context.watcher.find { it is ActionCounterMF }
 				?: ActionCounterMF().also { context.watcher.add(it) }) as ActionCounterMF
@@ -152,11 +149,6 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 		return actionList[randomIdx]
 	}
 
-	override fun getFitness(): StrategyPriority {
-		// Arbitrary established
-		return this.priority
-	}
-
 	override fun chooseAction(): ExplorationAction {
 		// Repeat previous action is last action was to click on a runtime permission dialog
 		if (mustRepeatLastAction())
@@ -164,23 +156,4 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 
 		return chooseRandomWidget()
 	}
-
-	// region java overrides
-
-	override fun equals(other: Any?): Boolean {
-		if (other !is RandomWidget)
-			return false
-
-		return other.priority == this.priority
-	}
-
-	override fun hashCode(): Int {
-		return this.priority.value.hashCode()
-	}
-
-	override fun toString(): String {
-		return "${this.javaClass}\tPriority: ${this.priority}"
-	}
-
-	// endregion
 }
