@@ -4,6 +4,7 @@ import org.droidmate.exploration.statemodel.Widget.Companion.widgetHeader
 import org.droidmate.exploration.statemodel.config.ConcreteId
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.statemodel.config.dump.sep
+import org.droidmate.exploration.statemodel.config.dumpString
 import org.droidmate.exploration.statemodel.config.emptyUUID
 import java.io.File
 import java.util.*
@@ -26,7 +27,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 //              isRequestRuntimePermissionDialogBox: Boolean = false, isCompleteActionUsingDialogBox: Boolean,
 //              isSelectAHomeAppDialogBox: Boolean = false, isUseLauncherAsHomeDialogBox: Boolean
 //  )
-//        :this(widgets/*.sortedBy { it.uid.toString() }*/,topNodePackageName, androidLauncherPackageName, isHomeScreen,
+//        :this(widgets/*.sortedBy { it.uid.dumpString() }*/,topNodePackageName, androidLauncherPackageName, isHomeScreen,
 //      isAppHasStoppedDialogBox,isRequestRuntimePermissionDialogBox,isCompleteActionUsingDialogBox,
 //      isSelectAHomeAppDialogBox,isUseLauncherAsHomeDialogBox)
 
@@ -81,12 +82,12 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	companion object {
 		// this is basically extending the primary constructor
-//    @JvmStatic operator fun invoke(widgets: Set<Widget>): StateData = StateData(widgets.toList()//.sortedBy { it.uid.toString() }
+//    @JvmStatic operator fun invoke(widgets: Set<Widget>): StateData = StateData(widgets.toList()//.sortedBy { it.uid.dumpString() }
 //    )
 
 		// to load the model from previously stored files
 		@JvmStatic
-		fun fromFile(widgets: Set<Widget>): StateData = StateData(widgets//.sortedBy { it.uid.toString() }
+		fun fromFile(widgets: Set<Widget>): StateData = StateData(widgets//.sortedBy { it.uid.dumpString() }
 		)
 
 		/** dummy element if a state has to be given but no widget data is available */
@@ -116,6 +117,6 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	}
 
 	override fun toString(): String {
-		return "StateData[uuid=$uid, configId=$configId, widgets=${widgets.size}]"
+		return "StateData[${stateId.dumpString()}, widgets=${widgets.size}]"
 	}
 }

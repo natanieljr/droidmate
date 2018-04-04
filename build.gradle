@@ -56,14 +56,15 @@ configure(pcJvmTargets) {
 	targetCompatibility = project.ext.javaVersion
 
 	dependencies {
-		compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+		compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 		compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 	}
 
 	repositories {
 		mavenLocal()
 		mavenCentral()
-		maven { url "https://jitpack.io" }
+		maven { //noinspection GroovyAssignabilityCheck
+			url 'https://jitpack.io' }
 	}
 
 }

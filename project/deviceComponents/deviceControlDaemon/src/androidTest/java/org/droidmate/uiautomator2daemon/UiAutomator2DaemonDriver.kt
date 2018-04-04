@@ -70,6 +70,7 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 		if (device == null) throw AssertionError()
 		try {
 			device.setOrientationNatural()
+			device.freezeRotation()
 		} catch (e: RemoteException) {
 			e.printStackTrace()
 		}

@@ -105,7 +105,7 @@ class Exploration constructor(private val cfg: Configuration,
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
 			// decide for an action
-			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots) })
+			action = debugT("strategy decision time ${strategy::class.simpleName}", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots) })
 			// execute action
 			measureTimeMillis { result = action.run(app, device) }.let {
 				actionT += it

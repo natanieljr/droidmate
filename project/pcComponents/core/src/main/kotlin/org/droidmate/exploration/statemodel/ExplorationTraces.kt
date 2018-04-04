@@ -65,9 +65,9 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 			P.EndTime -> endTimestamp.toString()
 			P.Exception -> exception
 			P.SuccessFul -> successful.toString()
-			P.DstId -> resState.toString()
-			P.Id -> prevState.toString()
-			P.WId -> targetWidget?.uid.toString()
+			P.DstId -> resState.dumpString()
+			P.Id -> prevState.dumpString()
+			P.WId -> targetWidget?.run { id.dumpString() } ?: "null"
 		}
 	}
 
@@ -78,8 +78,8 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 		@JvmStatic
 		fun createFromString(e: List<String>, target: Widget?, contentSeparator: String): ActionData = ActionData(
 				e[P.Action.ordinal], target, LocalDateTime.parse(e[P.StartTime.ordinal]), LocalDateTime.parse(e[P.EndTime.ordinal]),
-				e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], stateIdFromString(e[P.DstId.ordinal]), sep = contentSeparator
-		).apply { prevState = stateIdFromString(e[P.Id.ordinal]) }
+				e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], idFromString(e[P.DstId.ordinal]), sep = contentSeparator
+		).apply { prevState = idFromString(e[P.Id.ordinal]) }
 
 		@JvmStatic
 		val empty: ActionData by lazy {
@@ -87,9 +87,10 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 			).apply { prevState = emptyId }
 		}
 
-		@JvmStatic
-		val header:(String)-> String = { sep -> P.values().joinToString(separator = sep) { it.header } }
-		val widgetIdx = P.WId.ordinal
+		@JvmStatic val header:(String)-> String = { sep -> P.values().joinToString(separator = sep) { it.header } }
+		@JvmStatic val widgetIdx = P.WId.ordinal
+		@JvmStatic val resStateIdx = P.DstId.ordinal
+		@JvmStatic val srcStateIdx = P.Id.ordinal
 
 		private enum class P(var header: String = "") { Id("Source State"), Action, WId("Interacted Widget"),
 			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception;
@@ -105,12 +106,11 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 	}
 }
 
-class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig) {
-	constructor(_config: ModelConfig): this(config = _config)
+class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig, modelJob: Job) {
 	/** REMARK: the completion of action processing has to be ensured by calling actionProcessorJob.joinChildren() before accessing this property */
 	private val trace = LinkedList<ActionData>()
 
-	private val actionProcessorJob = Job()
+	private val actionProcessorJob = Job(parent = modelJob)
 	private fun <T> waitFor(block: () -> T): T = runBlocking { actionProcessorJob.joinChildren(); block() }
 	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionProcessor"), parent = actionProcessorJob)
 
@@ -163,6 +163,26 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		debugT("set newState", { this.newState = Pair(newState, action.action.widget) })
 	}
 
+	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
+	 * this function is purposely not called for the whole ActionData set, such that we can issue all watcher updates
+	 * if no watchers are registered use [updateAll] instead
+	 * ASSUMPTION only one coroutine is simultaneously working on this Trace object*/
+	internal fun update(action: ActionData, newState: StateData) {
+		size += 1
+		trace.add(action)
+		this.newState = Pair(newState, action.targetWidget)
+	}
+
+	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
+	 * to update the whole trace at once
+	 * ASSUMPTION no watchers are to be notified
+	 */
+	internal fun updateAll(actions: Collection<ActionData>, latestState: StateData){
+		size += actions.size
+		trace.addAll(actions)
+		this.newState = Pair(latestState, actions.last().targetWidget)
+	}
+
 	val currentState get() = newState.first
 	var size: Int = 0 // avoid delay from trace access and just count how many actions were created
 
@@ -177,7 +197,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	/** this directly accesses the [trace] and therefore uses synchronization.
 	 * It could be probably optimized with and channel/actor approach instead, if necessary.
 	 */
-	internal fun P_addAction(action:ActionData) = launch(context, parent = actionProcessorJob){ synchronized(trace){ trace.add(action)} }
+	private fun P_addAction(action:ActionData) = launch(context, parent = actionProcessorJob){ synchronized(trace){ trace.add(action)} }
 
 	fun getActions(): List<ActionData> = waitFor { trace }
 	fun last(): ActionData? = waitFor { trace.lastOrNull() }
