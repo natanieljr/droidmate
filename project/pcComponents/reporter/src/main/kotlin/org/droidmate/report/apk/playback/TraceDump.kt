@@ -42,11 +42,12 @@ class TraceDump @JvmOverloads constructor(playbackStrategy: MemoryPlayback,
 		val header = "TraceNr\tActionNr\tRequested\tReproduced\tAction\n"
 		sb.append(header)
 
-		playbackStrategy.traces.forEachIndexed { traceNr, trace ->
-			trace.getTraceCopy().forEachIndexed { actionNr, traceData ->
-				sb.append("$traceNr\t$actionNr\t${traceData.requested}\t${traceData.explored}\t${traceData.action}\n")
-			}
-		}
+		TODO("use ModelFeature with own dump method if the current model does not have sufficient data")
+//		playbackStrategy.traces.forEachIndexed { traceNr, trace ->
+//			trace.getTraceCopy().forEachIndexed { actionNr, traceData ->
+//				sb.append("$traceNr\t$actionNr\t${traceData.requested}\t${traceData.explored}\t${traceData.action}\n")
+//			}
+//		}
 
 		val reportFile = reportSubDir.resolve(fileName)
 		Files.write(reportFile, sb.toString().toByteArray())

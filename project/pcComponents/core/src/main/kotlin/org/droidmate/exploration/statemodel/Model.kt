@@ -50,6 +50,12 @@ class Model private constructor(val config: ModelConfig) {
 			response.await() as Set
 		}
 	}
+	fun S_getStates(): Set<StateData> = runBlocking{ // return a view to the data
+		CompletableDeferred<Collection<StateData>>().let{ response ->
+			states.send(GetStates(response))
+			response.await() as Set
+		}
+	}
 	suspend fun addState(s: StateData){
 		nStates +=1
 		states.send(AddState(s))

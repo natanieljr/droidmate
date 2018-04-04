@@ -24,13 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.playback
 
-import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 
-class PlaybackResetAction(action: ExplorationAction) : ResetAppExplorationAction((action as ResetAppExplorationAction).isFirst) {
-	init {
-		runtimePermission = action.isEndorseRuntimePermission()
-	}
+class PlaybackResetAction : ResetAppExplorationAction() {
 
 	override fun toShortString(): String {
 		return "(Playback) ${super.toShortString()}"

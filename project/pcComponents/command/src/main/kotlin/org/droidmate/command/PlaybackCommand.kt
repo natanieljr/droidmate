@@ -28,6 +28,8 @@ import org.droidmate.command.exploration.Exploration
 import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.statemodel.ModelLoader
+import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
@@ -72,7 +74,8 @@ class PlaybackCommand(apksProvider: IApksProvider,
 
 			log.info("Loading stored exploration log from $storedLogFile")
 			val storedLog = Storage2(storedLogFile.parent).deserialize(storedLogFile)
-			playbackStrategy = MemoryPlayback(storedLog)
+
+			playbackStrategy = MemoryPlayback(storedLog.apk.packageName)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
