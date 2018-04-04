@@ -34,32 +34,7 @@ import org.droidmate.exploration.AbstractContext
  * @author Nataniel P. Borges Jr.
  */
 interface ISelectableExplorationStrategy {
-	/**
-	 * Notify the exploration strategy that the exploration is starting
-	 */
-	fun start()
-
-	/**
-	 * Configure the exploration strategy with the []shared context][memory]
-	 */
 	fun initialize(memory: AbstractContext)
-
-	/**
-	 * Estimate of confident the exploration strategy is that it can perform an action.
-	 *
-	 * Ideally, the priority should reflect how good the action is. Currently:
-	 * - Terminate strategy ALWAYS HAS MAXIMUM PRIORITY
-	 * - Targeted exploration (when target is on sight)
-	 * - Reset exploration (when hit interval)
-	 * - Press back (if probability)
-	 * - ExplorationContext based (if event found)
-	 * - Random based (last choice)
-	 *
-	 * @param currentState Current GUI
-	 *
-	 * @return Fitness of the exploration strategy between 0 and 1
-	 */
-	fun getFitness(): StrategyPriority
 
 	/**
 	 * Add a new [listener] to receive execution flow back, as well as to receive notification about

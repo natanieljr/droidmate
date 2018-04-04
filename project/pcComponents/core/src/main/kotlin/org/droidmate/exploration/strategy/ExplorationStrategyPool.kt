@@ -45,6 +45,7 @@ import java.util.*
  */
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>,
+                              private val selectors: List<StrategySelector>,
                               private val memory: AbstractContext) : IExplorationStrategy, IControlObserver {
 
 	companion object {
@@ -136,7 +137,7 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 	// region properties
 
 	/**
-	 * Internal list of strategies
+	 * List of installed strategies
 	 */
 	private val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
@@ -193,12 +194,13 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 	 */
 	private fun selectStrategy(): ISelectableExplorationStrategy {
 		ExplorationStrategyPool.logger.debug("Selecting best strategy.")
-		val maxFitness = this.strategies
-				.map { Pair(it, it.getFitness()) }
-				.maxBy { it.second.value }
+		val bestStrategy = selectors
+				.sortedBy { it.priority }
+				.map { it -> it.selector(this.memory, this, it.bundle) }
+				.filterIsInstance<ISelectableExplorationStrategy>()
+				.first()
 
-		val bestStrategy = maxFitness!!.first
-		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy with fitness ${maxFitness.second}.")
+		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy.")
 
 		return bestStrategy
 	}
@@ -216,14 +218,6 @@ class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplora
 
 	init {
 		receivedStrategies.forEach { this.registerStrategy(it) }
-	}
-
-	/**
-	 * Notifies all internal strategies that the exploration will start
-	 */
-	private fun startStrategies() {
-		for (strategy in this.strategies)
-			strategy.start()
 	}
 
 	fun registerStrategy(strategy: ISelectableExplorationStrategy): Boolean {
