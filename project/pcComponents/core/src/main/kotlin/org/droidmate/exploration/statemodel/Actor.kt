@@ -21,13 +21,13 @@ inline fun<reified MsgType> Actor<MsgType>.create(job: Job)
  */
 class CollectionActor<T>(private val actorState: MutableCollection<T>, private val actorName: String): Actor<CollectionMsg<T>>{
 	override suspend fun onReceive(msg: CollectionMsg<T>){
-		println("[${Thread.currentThread().name}] START msg handling ${msg::class.simpleName}: ${actorState.size}")
+//		println("[${Thread.currentThread().name}] START msg handling ${msg::class.simpleName}: ${actorState.size}")
 		when(msg){
 			is Add -> actorState.add(msg.elem)
 			is AddAll -> actorState.addAll(msg.elements)
 			is GetAll -> msg.response.complete(actorState)
 		}.run{  /* do nothing but keep this .run to ensure when raises compile error if not all sealed class cases are implemented */  }
-		println("[${Thread.currentThread().name}] msg handling ${msg::class.simpleName}: ${actorState.size}")
+//		println("[${Thread.currentThread().name}] msg handling ${msg::class.simpleName}: ${actorState.size}")
 	}
 	override fun toString(): String = actorName
 }
