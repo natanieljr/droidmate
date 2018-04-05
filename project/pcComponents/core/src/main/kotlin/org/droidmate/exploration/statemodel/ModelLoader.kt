@@ -147,7 +147,7 @@ class ModelLoader(val config: ModelConfig) {  // TODO integrate logger for the i
 		}
 	}
 
-	companion object {
+	companion object {  // FIXME watcher state restoration requires context.onUpdate function & model.onUpdate currently only onActionUpdate is supported
 		@JvmStatic fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList()): Model{
 			return debugT("model loading", { ModelLoader(config).execute(watcher) }, inMillis = true)
 		}

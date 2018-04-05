@@ -1,6 +1,7 @@
 package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.CoroutineName
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.apache.commons.lang3.StringUtils
 import org.droidmate.exploration.statemodel.StateData
@@ -19,6 +20,9 @@ import kotlin.coroutines.experimental.CoroutineContext
 open class EventProbabilityMF(modelName: String,
 							  arffName: String,
 							  private val useClassMembershipProbability: Boolean) : ModelFeature() {
+	init{
+		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
+	}
 
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("EventProbabilityMF"), parent = job)
 

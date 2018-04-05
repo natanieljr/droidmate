@@ -20,7 +20,7 @@ import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
-import java.util.*
+import java.util.UUID
 import kotlin.coroutines.experimental.CoroutineContext
 
 /** ASSUMPTION:
@@ -43,12 +43,6 @@ class ActionCounterMF : ModelFeature() {
 	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt = mutableMapOf<UUID, MutableMap<UUID, Int>>()
 
-	private inline fun <reified K> MutableMap<K, Int>.incCnt(id: K): MutableMap<K, Int> = this.apply {
-		compute(id, { _, c ->
-			c?.inc() ?: 1
-		})
-	}
-
 	fun getStateCnt(): Map<UUID, Int> = sCnt
 	fun getWidgetCnt(): Map<UUID, Map<UUID, Int>> = wCnt
 
@@ -63,16 +57,13 @@ class ActionCounterMF : ModelFeature() {
 		it to it.uid.cntForState(s.uid)//(wCnt[w.uid]?.get(s.uid)?:0)
 	}.toMap()
 
-	private fun UUID.cntForState(sId: UUID): Int = wCnt[this]?.get(sId) ?: 0
+	private fun UUID.cntForState(sId: UUID): Int = wCnt.getCounter(this, sId)
 	/** @return how often widget.uid was triggered in the given state-context **/
 	fun widgetCntForState(wId: UUID, sId: UUID): Int = wId.cntForState(sId)
 
 	/** @return how often the widget.uid was triggered other all states **/
-	fun widgetCnt(wId: UUID): Int = wCnt[wId]?.values?.sum() ?: 0
+	fun widgetCnt(wId: UUID): Int = wCnt.sumCounter(wId)
 
 }
 
-/** use this function on a list, grouped by it's counter, to retrieve all entries which have the smallest counter value
- * e.g. numExplored(state).entries.groupBy { it.value }.listOfSmallest */
-inline fun <reified K> Map<Int, List<K>>.listOfSmallest(): List<K>? = this[this.keys.fold(Int.MAX_VALUE, { res, c -> if (c < res) c else res })]
 

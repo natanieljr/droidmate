@@ -9,6 +9,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.*
+import kotlin.collections.HashSet
 import kotlin.streams.toList
 import kotlin.system.measureTimeMillis
 
@@ -43,22 +44,22 @@ class Model private constructor(val config: ModelConfig) {
 		}
 	}
 
-	private val states = StateActor().create(modelJob)
+	private val states = CollectionActor(HashSet<StateData>(),"StateActor").create(modelJob)
 	suspend fun getStates(): Set<StateData>{ // return a view to the data
 		return CompletableDeferred<Collection<StateData>>().let{ response ->
-			states.send(GetStates(response))
+			states.send(GetAll(response))
 			response.await() as Set
 		}
 	}
 	fun S_getStates(): Set<StateData> = runBlocking{ // return a view to the data
 		CompletableDeferred<Collection<StateData>>().let{ response ->
-			states.send(GetStates(response))
+			states.send(GetAll(response))
 			response.await() as Set
 		}
 	}
 	suspend fun addState(s: StateData){
 		nStates +=1
-		states.send(AddState(s))
+		states.send(Add(s))
 	}
 
 	suspend fun getState(id: ConcreteId):StateData?{
@@ -69,23 +70,23 @@ class Model private constructor(val config: ModelConfig) {
 	}
 
 
-	private val widgets = WidgetActor().create(modelJob)
+	private val widgets = CollectionActor(HashSet<Widget>(), "WidgetActor").create(modelJob)
 
 	suspend fun getWidgets(): Set<Widget>{
 		return CompletableDeferred<Collection<Widget>>().let{ response ->
-			widgets.send(GetWidgets(response))
+			widgets.send(GetAll(response))
 			response.await() as Set
 		}
 	}
 
 	fun S_addWidget(w: Widget) {
 		nWidgets +=1
-		widgets.sendBlocking(AddWidget(w))
+		widgets.sendBlocking(Add(w))
 	}
 
 	suspend fun addWidgets(w: Collection<Widget>) {
 		nWidgets += w.size
-		widgets.send(AddWidgets(w))
+		widgets.send(AddAll(w))
 	}
 
 	@Suppress("unused")
@@ -123,8 +124,8 @@ class Model private constructor(val config: ModelConfig) {
 				trace.update(action, newState)
 
 				if (config[dump.onEachAction]) {
-					launch { newState.dump(config) }
-					launch { trace.dump(config) }
+					launch(CoroutineName("state-dump")) { newState.dump(config) }
+					launch(CoroutineName("trace-dump")) { trace.dump(config) }
 				}
 
 				if (config[imgDump.states]) launch {

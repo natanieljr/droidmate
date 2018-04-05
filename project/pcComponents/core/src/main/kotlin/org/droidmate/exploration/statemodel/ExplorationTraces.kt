@@ -17,16 +17,17 @@
 package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.sendBlocking
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.debug.debugT
-import org.droidmate.exploration.statemodel.features.ModelFeature
-import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
+import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.exploration.statemodel.config.dump.sep
+import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -107,14 +108,11 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 }
 
 class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig, modelJob: Job) {
-	/** REMARK: the completion of action processing has to be ensured by calling actionProcessorJob.joinChildren() before accessing this property */
-	private val trace = LinkedList<ActionData>()
+	private val date by lazy { "${timestamp()}_${hashCode()}" }
 
 	private val actionProcessorJob = Job(parent = modelJob)
-	private fun <T> waitFor(block: () -> T): T = runBlocking { actionProcessorJob.joinChildren(); block() }
+	private val trace = CollectionActor(LinkedList<ActionData>(),"TraceActor").create(actionProcessorJob)
 	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionProcessor"), parent = actionProcessorJob)
-
-	private val date by lazy { "${timestamp()}_${hashCode()}" }
 
 	private val targets: MutableList<Widget?> = LinkedList()
 	/** used for special id creation of interacted edit fields, map< iEditId -> (state -> collection<widget> )> */
@@ -131,7 +129,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun notifyObserver(old: StateData, new: StateData, target: Widget?) {
 		watcher.forEach {
 			launch(it.context, parent = it.job) { it.onNewInteracted(target, old, new) }
-			launch(it.context, parent = it.job) { it.onNewAction(lazy { last()!! }, old, new) }
+			launch(it.context, parent = it.job) { it.onNewAction(lazy { runBlocking{ last()!! } }, old, new) }
 		}
 	}
 
@@ -158,7 +156,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 
 	fun update(action: ActionResult, newState: StateData) {
 		size += 1
-		launch(context, parent = actionProcessorJob, block = actionProcessor(action, newState))
+		launch(context, block = actionProcessor(action, newState))
 
 		debugT("set newState", { this.newState = Pair(newState, action.action.widget) })
 	}
@@ -167,9 +165,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	 * this function is purposely not called for the whole ActionData set, such that we can issue all watcher updates
 	 * if no watchers are registered use [updateAll] instead
 	 * ASSUMPTION only one coroutine is simultaneously working on this Trace object*/
-	internal fun update(action: ActionData, newState: StateData) {
+	internal suspend fun update(action: ActionData, newState: StateData) {
 		size += 1
-		trace.add(action)
+		trace.send(Add(action))
 		this.newState = Pair(newState, action.targetWidget)
 	}
 
@@ -177,9 +175,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	 * to update the whole trace at once
 	 * ASSUMPTION no watchers are to be notified
 	 */
-	internal fun updateAll(actions: Collection<ActionData>, latestState: StateData){
+	internal suspend fun updateAll(actions: Collection<ActionData>, latestState: StateData){
 		size += actions.size
-		trace.addAll(actions)
+		trace.send(AddAll(actions))
 		this.newState = Pair(latestState, actions.last().targetWidget)
 	}
 
@@ -197,24 +195,26 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	/** this directly accesses the [trace] and therefore uses synchronization.
 	 * It could be probably optimized with and channel/actor approach instead, if necessary.
 	 */
-	private fun P_addAction(action:ActionData) = launch(context, parent = actionProcessorJob){ synchronized(trace){ trace.add(action)} }
+	private fun P_addAction(action:ActionData) = trace.sendBlocking(Add(action))  // this does never actually block the sending since the capacity is unlimited
 
-	fun getActions(): List<ActionData> = waitFor { trace }
-	fun last(): ActionData? = waitFor { trace.lastOrNull() }
-	fun isEmpty(): Boolean = waitFor { trace.isEmpty() }
-	fun isNotEmpty(): Boolean = waitFor { trace.isNotEmpty() }
-	fun first(): ActionData {
-		return if (trace.isNotEmpty()) trace.first
-		else waitFor { trace.first }
-	}
+	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
+	fun getActions(): List<ActionData> = runBlocking { P_getActions() }
+	@Suppress("MemberVisibilityCanBePrivate")
+	/** use this method within coroutines to make complete use of suspendable feature */
+	suspend fun P_getActions(): List<ActionData> = with(CompletableDeferred<Collection<ActionData>>()){ trace.send(GetAll(this)); this.await() } as List
 
-	//TODO this can be nicely done with a buffered channel instead of requiring a explicit launch call each time
+	suspend fun last(): ActionData? = P_getActions().lastOrNull()
+	suspend fun isEmpty(): Boolean = P_getActions().isEmpty()
+	suspend fun isNotEmpty(): Boolean = P_getActions().isNotEmpty()
+	fun first(): ActionData = getActions().first()
+
+	//FIXME ensure that the latest dump is not overwritten due to scheduling issues, for example by using a nice buffered channel only keeping the last value offer
 	suspend fun dump(config: ModelConfig = this.config) = dumpMutex.withLock("trace dump") {
 		File(config.traceFile(date)).bufferedWriter().use { out ->
 			out.write(ActionData.header(config[sep]))
 			out.newLine()
-			waitFor { }  // ensure that our trace is complete before dumping it
-			trace.forEach { action ->
+			// ensure that our trace is complete before dumping it by calling blocking getActions
+			P_getActions().forEach { action ->
 				out.write(action.actionString())
 				out.newLine()
 			}
@@ -227,9 +227,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	}
 
 	override fun equals(other: Any?): Boolean {
-		return (other as? Trace)?.let {
-			val t = other.trace
-			trace.foldIndexed(true, { i, res, a -> res && a == t[i] })
+		return(other as? Trace)?.let {
+			val t = other.getActions()
+			getActions().foldIndexed(true, { i, res, a -> res && a == t[i] })
 		} ?: false
 	}
 
