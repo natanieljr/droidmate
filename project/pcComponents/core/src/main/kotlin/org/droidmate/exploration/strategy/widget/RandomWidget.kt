@@ -28,9 +28,11 @@ import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.config.emptyId
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
+import org.droidmate.exploration.statemodel.features.BlackListMF
 import org.droidmate.exploration.statemodel.features.listOfSmallest
 import org.droidmate.exploration.strategy.StrategyPriority
 import java.util.*
@@ -48,10 +50,8 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 				priority: StrategyPriority = StrategyPriority.PURELY_RANDOM_WIDGET): this(cfg.randomSeed.toLong(), priority)
 
 	protected val random = Random(randomSeed)
-	private val counter: ActionCounterMF by lazy {
-		(context.watcher.find { it is ActionCounterMF }
-				?: ActionCounterMF().also { context.watcher.add(it) }) as ActionCounterMF
-	}
+	private val counter: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>()	}
+	private val blackList: BlackListMF by lazy {	context.getOrCreateWatcher<BlackListMF>() }
 
 	private fun mustRepeatLastAction(): Boolean {
 		if (!this.context.isEmpty()) {
@@ -61,7 +61,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 					// Has last action
 					this.context.lastTarget != null &&
 					// Has a state that is not a runtime permission
-					context.getRecords().let{runBlocking { it.getStates() }}
+					context.getModel().let{runBlocking { it.getStates() }}
 							.filterNot { it.stateId == emptyId }
 							.filterNot { it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&
@@ -88,12 +88,29 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	}
 
 	protected open fun getAvailableWidgets(): List<Widget> {
-		return currentState.actionableWidgets//.actionableWidgetsInfo
-//                .filterNot { it.blackListed } //TODO
+		return currentState.actionableWidgets
+	}
+
+	/** use this function to filter potential candidates against previously blacklisted widgets
+	 * @param block your function determining the ExplorationAction based on the filtered candidates
+	 * @param t1 the threshold to consider the widget blacklisted within the current state context
+	 * @param t2 the threshold to consider the widget blacklisted over all states
+	 */
+	protected open fun excludeBlacklisted(candidates: List<Widget>, t1:Int=1, t2:Int=2, block:( listedInsState:List<Widget>, blacklisted: List<Widget>)->ExplorationAction): ExplorationAction =
+			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, t1) }.let{ noBlacklistedInState ->
+				noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, t2) }.let{ noBlacklisted ->
+					block(noBlacklistedInState, noBlacklisted)
+				}
+			}
+
+
+	private fun List<Widget>.chooseRandomly():ExplorationAction{
+		context.lastTarget = this[random.nextInt(this.size)]
+		return chooseActionForWidget(context.lastTarget!!)
 	}
 
 	protected open fun chooseRandomWidget(): ExplorationAction {
-		runBlocking { counter.job.joinChildren() }
+		runBlocking { counter.job.joinChildren() }  // this waits for both children counter and blacklist
 		val candidates =
 		// for each widget in this state the number of interactions
 				counter.numExplored(currentState).entries.groupBy { it.value }.let {
@@ -108,11 +125,13 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 						?: currentState.actionableWidgets
 
 		assert(candidates.isNotEmpty())
-
-		val chosenWidget = candidates[random.nextInt(candidates.size)]
-
-		this.context.lastTarget = chosenWidget
-		return chooseActionForWidget(chosenWidget)
+		return excludeBlacklisted(candidates){ noBlacklistedInState, noBlacklisted ->
+			when {
+				noBlacklisted.isNotEmpty() -> noBlacklisted.chooseRandomly()
+				noBlacklistedInState.isEmpty() -> noBlacklistedInState.chooseRandomly()
+				else -> PressBackExplorationAction() // we are stuck, everything is blacklisted
+			}
+		}
 	}
 
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {

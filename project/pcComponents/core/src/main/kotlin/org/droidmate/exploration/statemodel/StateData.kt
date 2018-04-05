@@ -51,8 +51,8 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	val actionableWidgets by lazy { widgets.filter { it.canBeActedUpon() } }
 	val hasEdit: Boolean by lazy { widgets.any { it.isEdit } }
 
-	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it can be acted upon, has text content or it is a leaf) */
-	private fun addRelevantId(id: UUID, w: Widget): UUID = if (w.isLeaf || w.canBeActedUpon() || w.hasContent()) id + w.uid else id
+	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text content or it is a leaf) */
+	private fun addRelevantId(id: UUID, w: Widget): UUID = if (!isHomeScreen && w.packageName == topNodePackageName && (w.isLeaf || w.canBeActedUpon() || w.hasContent())) id + w.uid else id
 
 	private fun addRelevantNonEdit(id: UUID, w: Widget): UUID = if (w.isEdit) addRelevantId(id, w) else id
 

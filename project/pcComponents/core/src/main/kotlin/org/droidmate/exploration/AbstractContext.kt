@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration
 
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
@@ -51,10 +52,13 @@ import java.util.*
  * @author Nataniel P. Borges Jr.
  */ //TODO cleanup code between ExplorationContext and IExplorationLog
 abstract class AbstractContext : Serializable {
-	abstract val model: Model
+	protected abstract val _model: Model
 	abstract val watcher: LinkedList<ModelFeature>
 
-	suspend fun getState(sId: ConcreteId) = model.getState(sId)
+	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
+		= (watcher.find { it is T } ?: T::class.java.newInstance().also { watcher.add(it) }) as T
+
+	suspend fun getState(sId: ConcreteId) = _model.getState(sId)
 
 	abstract fun add(action: IRunnableExplorationAction, result: ActionResult)
 
@@ -93,6 +97,7 @@ abstract class AbstractContext : Serializable {
 
 	/**
 	 * Get the last widget the exploration has interacted with
+	 * REMARK: currently the executed ExplorationStrategy is responsible to write to this value
 	 *
 	 * @returns Last widget interacted with or null when none
 	 */
@@ -103,7 +108,7 @@ abstract class AbstractContext : Serializable {
 	 *
 	 * @return Information of the last action performed or instance of [EmptyActionResult]
 	 */
-	fun getLastAction(): ActionData = actionTrace.last() ?: ActionData.empty
+	fun getLastAction(): ActionData = runBlocking { actionTrace.last() } ?: ActionData.empty
 
 	/**
 	 * Get the exploration duration in miliseconds
@@ -125,7 +130,7 @@ abstract class AbstractContext : Serializable {
 	 *
 	 * @return If the context is empty
 	 */
-	fun isEmpty(): Boolean = actionTrace.isEmpty()
+	fun isEmpty(): Boolean = actionTrace.size == 0
 
 	//	/**
 //	 * Get the widget context referring to the [current UI][StateData] and to the
@@ -152,20 +157,16 @@ abstract class AbstractContext : Serializable {
 	@Deprecated("should be handled by ModelFeature with custom criteria instead")
 	abstract fun areAllWidgetsExplored(): Boolean
 
-	/**
-	 * Get data stored during this information
-	 *
-	 * @return List of context records (or empty list when empty)
-	 */
-	fun getRecords(): Model = model
-
+	fun getModel(): Model {
+		return _model
+	}
 	//    fun serialize(storage2: IStorage2)
 	abstract fun dump()
 
 	@Throws(DroidmateError::class)
 	fun verify() {
 		try {
-			assert(this.actionTrace.isNotEmpty())
+			assert(this.actionTrace.size > 0)
 			assert(this.explorationStartTime > LocalDateTime.MIN)
 			assert(this.explorationEndTime > LocalDateTime.MIN)
 
@@ -263,7 +264,7 @@ abstract class AbstractContext : Serializable {
 		assert(actionTrace.first().actionType == ResetAppExplorationAction::class.simpleName)
 	}
 
-	private fun assertLastActionIsTerminateOrResultIsFailure() {
+	private fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {
 		actionTrace.last()?.let {
 			assert(!it.successful || it.actionType == TerminateExplorationAction::class.simpleName)
 		}

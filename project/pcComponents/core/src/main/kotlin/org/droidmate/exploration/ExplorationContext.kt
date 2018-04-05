@@ -19,6 +19,7 @@
 package org.droidmate.exploration
 
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
@@ -32,8 +33,8 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    override val watcher: LinkedList<ModelFeature> = LinkedList(),
-                                                   override val model: Model = Model.emptyModel(ModelConfig(apk.packageName)),
-		                                               override val actionTrace: Trace = model.initNewTrace(watcher)
+                                                   override val _model: Model = Model.emptyModel(ModelConfig(apk.packageName)),
+                                                   override val actionTrace: Trace = _model.initNewTrace(watcher)
 ) : AbstractContext() {
 
 	override var deviceDisplayBounds: Rectangle? = null
@@ -57,12 +58,12 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
-		model.S_updateModel(result, actionTrace)
+		_model.S_updateModel(result, actionTrace)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}
 
 	override fun dump() {
-		model.P_dumpModel(model.config)
+		_model.P_dumpModel(_model.config)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.dump(context) } } }
 	}
 
@@ -70,10 +71,10 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		return actionTrace.unexplored(getCurrentState().actionableWidgets).isNotEmpty()
 	}
 
-	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() {
+	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() { runBlocking {
 		actionTrace.last()?.let {
 			assert(!it.successful || getCurrentState().isHomeScreen)
 		}
-	}
+	}}
 
 }
