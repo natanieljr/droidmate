@@ -24,12 +24,12 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import org.droidmate.command.exploration.Exploration
-import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
+import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.misc.ITimeProvider
 import org.droidmate.misc.TimeProvider
@@ -42,30 +42,40 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 class PlaybackCommand(apksProvider: IApksProvider,
-                      deviceDeployer: IAndroidDeviceDeployer,
-                      apkDeployer: IApkDeployer,
-                      exploration: IExploration) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer, exploration) {
+					  deviceDeployer: IAndroidDeviceDeployer,
+					  apkDeployer: IApkDeployer,
+					  timeProvider: ITimeProvider,
+					  strategyProvider: (AbstractContext) -> IExplorationStrategy,
+					  cfg: Configuration,
+					  context: AbstractContext?) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer,
+		timeProvider, strategyProvider, cfg, context) {
 	companion object {
 		private lateinit var playbackStrategy: MemoryPlayback
 
-		private fun getExplorationStrategy(explorationLog: AbstractContext, cfg: Configuration): IExplorationStrategy {
-			val pool = ExplorationStrategyPool.build(explorationLog, cfg)
+		private fun getExplorationStrategy(strategies: List<ISelectableExplorationStrategy>, selectors: List<StrategySelector>,
+										   context: AbstractContext): IExplorationStrategy {
+			val strategiesWithPlayback = strategies.toMutableList().also { it.add(playbackStrategy) }
+
+			val selectorsWithPlayback = selectors.toMutableList()//.also { // TODO Instantiate playback selectors, waiting Jenny implementation }
+			val pool = ExplorationStrategyPool(strategiesWithPlayback, selectorsWithPlayback, context)
 
 			pool.registerStrategy(playbackStrategy)
 
 			return pool
 		}
 
-		fun build(cfg: Configuration,
-		          strategyProvider: (AbstractContext) -> IExplorationStrategy = { getExplorationStrategy(it, cfg) },
-		          timeProvider: ITimeProvider = TimeProvider(),
-		          deviceTools: IDeviceTools = DeviceTools(cfg),
-		          reportCreators: List<Reporter> = defaultReportWatcher(cfg)): PlaybackCommand {
+		fun build(cfg: Configuration, // TODO initialize pool according to strategies parameter and allow for Model parameter for custom/shared model experiments
+				  deviceTools: IDeviceTools = DeviceTools(cfg),
+				  timeProvider: ITimeProvider = TimeProvider(),
+				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
+				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
+				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { getExplorationStrategy(strategies, selectors, it) },
+				  reportCreators: List<Reporter> = defaultReportWatcher(cfg),
+				  context: AbstractContext? = null): PlaybackCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
-			val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-
-			val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration)
+			val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+					timeProvider, strategyProvider, cfg, context)
 
 			val storedLogFile = Paths.get(cfg.playbackFile).toAbsolutePath()
 			assert(Files.exists(storedLogFile), { "Stored exploration log $storedLogFile not found." })

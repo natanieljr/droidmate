@@ -24,18 +24,12 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
-import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
-import org.droidmate.exploration.strategy.widget.ModelBased
-import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.LoggerFactory
-import java.util.*
 
 /**
  * Exploration strategy pool that selects an exploration for a pool
@@ -44,94 +38,13 @@ import java.util.*
  * @author Nataniel P. Borges Jr.
  */
 @Suppress("MemberVisibilityCanBePrivate")
-class ExplorationStrategyPool(receivedStrategies: MutableList<ISelectableExplorationStrategy>,
+class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStrategy>,
                               private val selectors: List<StrategySelector>,
                               private val memory: AbstractContext) : IExplorationStrategy, IControlObserver {
 
 	companion object {
-		private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
-
 		@JvmStatic
-		private fun getDefaultSelectors(cfg: Configuration): List<StrategySelector>{
-			val res : MutableList<StrategySelector> = mutableListOf()
-
-			var priority = 0
-			res.add(StrategySelector(++priority, StrategySelector.startExplorationReset))
-			res.add(StrategySelector(++priority, StrategySelector.appCrashedReset))
-
-			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
-				res.add(StrategySelector(++priority, StrategySelector.allowPermission))
-			
-			res.add(StrategySelector(++priority, StrategySelector.cannotExplore))
-
-			// Action based terminate
-			if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0) {
-				val actionLimit = if (cfg.widgetIndexes.size > 0)
-					cfg.widgetIndexes.size
-				else
-					cfg.actionsLimit
-
-				res.add(StrategySelector(++priority, StrategySelector.actionBasedTerminate, actionLimit))
-			}
-
-			// Time based terminate
-			if (cfg.timeLimit > 0)
-		 		res.add(StrategySelector(++priority, StrategySelector.timeBasedTerminate, cfg.timeLimit))
-
-			// Interval reset
-			if (cfg.resetEveryNthExplorationForward > 0)
-				res.add(StrategySelector(++priority, StrategySelector.intervalReset, cfg.resetEveryNthExplorationForward))
-
-			// Random back
-			if (cfg.pressBackProbability > 0.0)
-				res.add(StrategySelector(++priority, StrategySelector.randomBack, cfg.pressBackProbability, Random(cfg.randomSeed.toLong())))
-
-			// Fitness Proportionate Selection
-			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
-				res.add(StrategySelector(++priority, StrategySelector.randomBiased))
-
-			// ExplorationContext based
-			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
-				res.add(StrategySelector(++priority, StrategySelector.randomWithModel))
-
-			// Random exploration
-			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
-				res.add(StrategySelector(++priority, StrategySelector.randomWidget))
-
-			return res
-		}
-
-		fun build(explorationLog: AbstractContext, cfg: Configuration): ExplorationStrategyPool {
-
-			val strategies = ArrayList<ISelectableExplorationStrategy>()
-
-			strategies.add(Back())
-			strategies.add(Reset())
-			strategies.add(Terminate())
-
-			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
-				strategies.add(RandomWidget(cfg))
-
-			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
-				strategies.add(FitnessProportionateSelection(cfg))
-
-			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
-				strategies.add(ModelBased(cfg))
-
-			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
-				strategies.add(AllowRuntimePermission())
-
-			val selectors = getDefaultSelectors(cfg)
-
-			// Seek targets
-			// TODO Check necessity
-			/*if (cfg.explorationStrategies.contains(StrategyTypes.SeekTargets.strategyName)) {
-				val targetedStrategies = SeekTarget.build(ArrayList(), "")
-				targetedStrategies.forEach { p -> strategies.add(p) }
-			}*/
-
-			return ExplorationStrategyPool(strategies, selectors, explorationLog)
-		}
+		private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
 	}
 
 	// region properties

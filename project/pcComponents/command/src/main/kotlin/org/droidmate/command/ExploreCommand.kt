@@ -26,56 +26,136 @@ package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
 import org.droidmate.device.android_sdk.*
-import org.droidmate.command.exploration.CoverageMonitor
-import org.droidmate.command.exploration.Exploration
-import org.droidmate.command.exploration.IExploration
 import org.droidmate.configuration.Configuration
-import org.droidmate.misc.deleteDir
-import org.droidmate.exploration.statemodel.Model
+import org.droidmate.debug.debugT
+import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.exploration.statemodel.config.ModelConfig
-import org.droidmate.exploration.strategy.ExplorationStrategyPool
-import org.droidmate.exploration.strategy.IExplorationStrategy
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
+import org.droidmate.exploration.ExplorationContext
+import org.droidmate.exploration.StrategySelector
+import org.droidmate.exploration.actions.IRunnableExplorationAction
+import org.droidmate.exploration.actions.RunnableExplorationAction
+import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
+import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
+import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
+import org.droidmate.exploration.strategy.widget.ModelBased
+import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.droidmate.logging.Markers
-import org.droidmate.misc.BuildConstants
-import org.droidmate.misc.ITimeProvider
-import org.droidmate.misc.ThrowablesCollection
-import org.droidmate.misc.TimeProvider
+import org.droidmate.misc.*
 import org.droidmate.report.AggregateStats
 import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
-import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
+import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
+import kotlin.system.measureTimeMillis
 
 open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
-                                      private val exploration: IExploration) : DroidmateCommand() {
+									  private val timeProvider: ITimeProvider,
+									  private val strategyProvider: (AbstractContext) -> IExplorationStrategy,
+									  private val cfg: Configuration,
+									  private var context: AbstractContext?) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
 
 		@JvmStatic
+		fun getDefaultSelectors(cfg: Configuration): List<StrategySelector>{
+			val res : MutableList<StrategySelector> = mutableListOf()
+
+			var priority = 0
+			res.add(StrategySelector(++priority, StrategySelector.startExplorationReset))
+			res.add(StrategySelector(++priority, StrategySelector.appCrashedReset))
+
+			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.allowPermission))
+
+			res.add(StrategySelector(++priority, StrategySelector.cannotExplore))
+
+			// Action based terminate
+			if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0) {
+				val actionLimit = if (cfg.widgetIndexes.size > 0)
+					cfg.widgetIndexes.size
+				else
+					cfg.actionsLimit
+
+				res.add(StrategySelector(++priority, StrategySelector.actionBasedTerminate, actionLimit))
+			}
+
+			// Time based terminate
+			if (cfg.timeLimit > 0)
+				res.add(StrategySelector(++priority, StrategySelector.timeBasedTerminate, cfg.timeLimit))
+
+			// Interval reset
+			if (cfg.resetEveryNthExplorationForward > 0)
+				res.add(StrategySelector(++priority, StrategySelector.intervalReset, cfg.resetEveryNthExplorationForward))
+
+			// Random back
+			if (cfg.pressBackProbability > 0.0)
+				res.add(StrategySelector(++priority, StrategySelector.randomBack, cfg.pressBackProbability, Random(cfg.randomSeed.toLong())))
+
+			// Fitness Proportionate Selection
+			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.randomBiased))
+
+			// ExplorationContext based
+			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.randomWithModel))
+
+			// Random exploration
+			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
+				res.add(StrategySelector(++priority, StrategySelector.randomWidget))
+
+			return res
+		}
+
+		@JvmStatic
+		fun getDefaultStrategies(cfg: Configuration): List<ISelectableExplorationStrategy>{
+			val strategies = LinkedList<ISelectableExplorationStrategy>()
+
+			strategies.add(Back())
+			strategies.add(Reset())
+			strategies.add(Terminate())
+
+			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
+				strategies.add(RandomWidget(cfg))
+
+			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+				strategies.add(FitnessProportionateSelection(cfg))
+
+			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
+				strategies.add(ModelBased(cfg))
+
+			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
+				strategies.add(AllowRuntimePermission())
+
+			return strategies
+		}
+
+		@JvmStatic
 		@JvmOverloads
-		fun build(cfg: Configuration, // TODO initialize pool according to strategies parameter and allow for Model parameter for custom/shared model experiments
-		          strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool.build(it, cfg) },
-		          timeProvider: ITimeProvider = TimeProvider(),
+		fun build(cfg: Configuration,
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
+				  timeProvider: ITimeProvider = TimeProvider(),
+				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
+				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
+				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) },
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-		          strategies: List<ISelectableExplorationStrategy> = emptyList(),
-		          model: (String)->Model = { appName -> Model.emptyModel(ModelConfig(appName))}): ExploreCommand {
+		          context: AbstractContext? = null): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
-			val exploration = Exploration.build(cfg, timeProvider, strategyProvider)
-			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer, exploration)
+			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+					timeProvider, strategyProvider, cfg, context)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -90,6 +170,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 	}
 
 	private val reporters: MutableList<Reporter> = mutableListOf()
+	private var actionT: Long = 0
+	private var nActions = 0
 
 	override fun execute(cfg: Configuration) {
 		cleanOutputDir(cfg)
@@ -109,8 +191,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
 
 		log.info("Writing reports")
-		val reportData = rawData
-		reporters.forEach { it.write(reportDir.toAbsolutePath(), reportData) }
+		reporters.forEach { it.write(reportDir.toAbsolutePath(), rawData) }
 	}
 
 	fun registerReporter(report: Reporter) {
@@ -224,7 +305,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 	@Throws(DeviceException::class)
 	private fun tryExploreOnDeviceAndSerialize(
 			deployedApk: IApk, device: IRobustDevice, out: ExplorationOutput2) {
-		val fallibleApkOut2 = this.exploration.run(deployedApk, device)
+		val fallibleApkOut2 = this.run(deployedApk, device)
 
 		if (fallibleApkOut2.result != null) {
 //      fallibleApkOut2.result!!.serialize(this.storage2) //TODO
@@ -233,5 +314,98 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		if (fallibleApkOut2.exception != null)
 			throw fallibleApkOut2.exception!!
+	}
+
+	fun run(app: IApk, device: IRobustDevice): Failable<AbstractContext, DeviceException> {
+		log.info("run(${app.packageName}, device)")
+
+		device.resetTimeSync()
+
+		try {
+			tryDeviceHasPackageInstalled(device, app.packageName)
+			tryWarnDeviceDisplaysHomeScreen(device, app.fileName)
+		} catch (e: DeviceException) {
+			return Failable<AbstractContext, DeviceException>(null, e)
+		}
+
+		val output = explorationLoop(app, device)
+
+		output.verify()
+
+		if (output.exceptionIsPresent)
+			log.warn(Markers.appHealth, "! Encountered ${output.exception.javaClass.simpleName} during the exploration of ${app.packageName} " +
+					"after already obtaining some exploration output.")
+
+		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
+	}
+
+	private fun explorationLoop(app: IApk, device: IRobustDevice): AbstractContext {
+		log.debug("explorationLoop(app=${app.fileName}, device)")
+
+		// Use the received exploration context (if any) otherwise construct the object that
+		// will hold the exploration output and that will be returned from this method.
+		// Note that a different context is created for each exploration if none it provieder
+		val output = context ?: ExplorationContext(app, timeProvider.getNow())
+
+		log.debug("Exploration start time: " + output.explorationStartTime)
+
+		// Construct initial action and run it on the device to obtain initial result.
+		var action: IRunnableExplorationAction? = null
+		var result: ActionResult = EmptyActionResult
+
+		var isFirst = true
+		val strategy: IExplorationStrategy = strategyProvider.invoke(output)
+
+		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
+		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
+			// decide for an action
+			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots) })
+			// execute action
+			measureTimeMillis { result = action.run(app, device) }.let {
+				actionT += it
+				nActions += 1
+				println("$it millis elapsed until result was available on average ${actionT / nActions}")
+			}
+			output.add(action, result)
+			// update strategy
+			strategy.update(result)
+
+			if (isFirst) {
+				log.info("Initial action: ${action.base}")
+				isFirst = false
+			}
+		}
+
+		assert(!result.successful || action is RunnableTerminateExplorationAction)
+
+		// Propagate exception if there was any
+		if (!result.successful)
+			output.exception = result.exception
+
+		output.explorationEndTime = timeProvider.getNow()
+
+		return output
+	}
+
+	@Throws(DeviceException::class)
+	private fun tryDeviceHasPackageInstalled(device: IExplorableAndroidDevice, packageName: String) {
+		log.trace("tryDeviceHasPackageInstalled(device, $packageName)")
+
+		if (!device.hasPackageInstalled(packageName))
+			throw DeviceException()
+	}
+
+	@Throws(DeviceException::class)
+	private fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
+		log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
+
+		val initialGuiSnapshot = device.perform(FetchGUI())
+
+		if (!initialGuiSnapshot.isHomeScreen)
+			log.warn(Markers.appHealth,
+					"An exploration process for $fileName is about to start but the device doesn't display home screen. " +
+							"Instead, its GUI state is: $initialGuiSnapshot.guiStatus. " +
+							"Continuing the exploration nevertheless, hoping that the first \"reset app\" " +
+							"exploration action will force the device into the home screen.")
 	}
 }

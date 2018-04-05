@@ -33,13 +33,13 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    override val watcher: LinkedList<ModelFeature> = LinkedList(),
                                                    override val model: Model = Model.emptyModel(ModelConfig(apk.packageName)),
-		                                               override val actionTrace: Trace = model.initNewTrace(watcher)
+		                                           override val actionTrace: Trace = model.initNewTrace(watcher)
 ) : AbstractContext() {
 
 	override var deviceDisplayBounds: Rectangle? = null
 
 	init {
-		if (explorationStartTime > LocalDateTime.MIN)
+		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
 	}
 
