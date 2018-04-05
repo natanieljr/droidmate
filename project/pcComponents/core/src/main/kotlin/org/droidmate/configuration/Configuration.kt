@@ -359,10 +359,6 @@ class Configuration(val args: Array<String>) : IConfiguration {
 			description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy.")
 	public var pressBackProbability = 0.05
 
-	@Parameter(names = [pn_minimumActionsPerUIElementBack],
-			description = "Minimum number of click on all widgets on a screen not to explore it anymore.")
-	public var minimumActionsPerUIElementBack = 5
-
 	@Parameter(names = [pn_report],
 			description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data.")
 	public var report = false

@@ -347,7 +347,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Use the received exploration context (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different context is created for each exploration if none it provieder
-		val output = ExplorationContext(app, timeProvider.getNow(), model = modelProvider(app.packageName))
+		val output = ExplorationContext(app, timeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + output.explorationStartTime)
 
