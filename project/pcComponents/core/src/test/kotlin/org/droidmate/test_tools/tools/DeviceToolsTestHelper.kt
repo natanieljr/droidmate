@@ -28,7 +28,7 @@ import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.configuration.Configuration
 import org.droidmate.device.IAndroidDevice
-import org.droidmate.test_tools.android_sdk.AdbWrapperStub
+import org.droidmate.android_sdk.AdbWrapperStub
 import org.droidmate.test_tools.device_simulation.AndroidDeviceSimulator
 import org.droidmate.tools.DeviceTools
 import org.droidmate.tools.IAndroidDeviceFactory

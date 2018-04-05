@@ -27,10 +27,10 @@ package org.droidmate.test_suites
 
 
 import org.droidmate.report.ReporterTestSuite
-import org.droidmate.tests.android_sdk.AaptWrapperTest
-import org.droidmate.tests.android_sdk.AdbWrapperTest
-import org.droidmate.tests.configuration.ConfigurationBuilderTest
-import org.droidmate.tests.device.DeviceTest
+import org.droidmate.android_sdk.AaptWrapperTest
+import org.droidmate.android_sdk.AdbWrapperTest
+import org.droidmate.configuration.ConfigurationBuilderTest
+import org.droidmate.device.DeviceTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 

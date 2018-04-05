@@ -22,13 +22,25 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
 
-import org.droidmate.logging.LogbackAppendersTest
+package org.droidmate.configuration
+
+import org.droidmate.configuration.ConfigurationBuilder
+import org.droidmate.test_tools.DroidmateTestCase
+import org.junit.FixMethodOrder
+import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runners.Suite
+import org.junit.runners.JUnit4
+import org.junit.runners.MethodSorters
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+import java.nio.file.FileSystems
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@RunWith(JUnit4::class)
+class ConfigurationBuilderTest : DroidmateTestCase() {
+	@Test
+	fun `Builds configuration`() {
+		// Act
+		ConfigurationBuilder().build(emptyArray(), FileSystems.getDefault())
+	}
+}

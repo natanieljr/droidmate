@@ -22,13 +22,12 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
+package org.droidmate.exceptions
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
-
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+class TestAssertionError(override val exceptionSpec: IExceptionSpec)
+	: AssertionError("Test-enforced assertion error. Package name: $exceptionSpec.packageName Method name: " +
+		"$exceptionSpec.methodName Call index: $exceptionSpec.callIndex"), ITestException {
+	companion object {
+		private const val serialVersionUID: Long = 1
+	}
+}
