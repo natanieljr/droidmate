@@ -36,6 +36,7 @@ class Model private constructor(val config: ModelConfig) {
 	/** debugging counter do not use it in productive code, instead access the respective element set */
 	private var nStates = 0
 	val modelJob = Job()
+	val modelDumpJob = Job()
 
 
 	fun initNewTrace(watcher: LinkedList<ModelFeature>): Trace {
@@ -104,11 +105,9 @@ class Model private constructor(val config: ModelConfig) {
 		}
 	}
 
-	fun P_dumpModel(config: ModelConfig) = launch(CoroutineName("Model-dump")) {
-		paths.map { t -> launch(CoroutineName("trace-dump")) { t.dump(config) } }.let { traceDump ->
-			getStates().map { s -> launch(CoroutineName("state-dump ${s.uid}")) { s.dump(config) } }.forEach { it.join() }
-			traceDump.forEach { it.join() }
-		}
+	fun P_dumpModel(config: ModelConfig) = launch(CoroutineName("Model-dump"),parent = modelDumpJob) {
+		paths.map { t -> launch(CoroutineName("trace-dump"),parent = modelDumpJob) { t.dump(config) } }
+		getStates().map { s -> launch(CoroutineName("state-dump ${s.uid}"),parent = modelDumpJob) { s.dump(config) } }
 	}
 
 	private var uTime: Long = 0
@@ -124,13 +123,13 @@ class Model private constructor(val config: ModelConfig) {
 				trace.update(action, newState)
 
 				if (config[dump.onEachAction]) {
-					launch(CoroutineName("state-dump")) { newState.dump(config) }
-					launch(CoroutineName("trace-dump")) { trace.dump(config) }
+					launch(CoroutineName("state-dump"),parent = modelDumpJob) { newState.dump(config) }
+					launch(CoroutineName("trace-dump"),parent = modelDumpJob) { trace.dump(config) }
 				}
 
-				if (config[imgDump.states]) launch {
+				if (config[imgDump.states]) launch(CoroutineName("screen-dump"),parent = modelDumpJob) {
 					action.screenshot.let { 	// if there is any screen-shot write it to the state extraction directory
-						java.io.File(config.statePath(newState.stateId, "_${newState.configId}", ".png")).let { file ->
+						java.io.File(config.statePath(newState.stateId,  fileExtension = ".png")).let { file ->
 							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
 						}
 					}
@@ -230,6 +229,12 @@ class Model private constructor(val config: ModelConfig) {
 		@Suppress("unused")
 		@JvmStatic fun loadAppModel(appName: String, watcher: LinkedList<ModelFeature> = LinkedList())
 				= ModelLoader.loadModel(ModelConfig(appName, isLoadC = true), watcher)
+
+		@JvmStatic
+		fun main(args: Array<String>) {
+			val test = loadAppModel("ch.bailu.aat")
+			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
+		}
 
 	} /** end COMPANION **/
 

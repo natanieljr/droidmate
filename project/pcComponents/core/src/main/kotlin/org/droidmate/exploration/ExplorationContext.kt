@@ -18,6 +18,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration
 
+import kotlinx.coroutines.experimental.CoroutineName
+import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.IApk
@@ -64,7 +66,14 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 
 	override fun dump() {
 		_model.P_dumpModel(_model.config)
-		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(CoroutineName("context-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
+
+		// wait until all dump's completed
+		runBlocking {
+			println("dump models and watcher") //TODO Logger.info
+			ModelFeature.dumpJob.joinChildren()
+			_model.modelDumpJob.joinChildren()
+		}
 	}
 
 	override fun areAllWidgetsExplored(): Boolean {

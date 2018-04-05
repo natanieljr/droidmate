@@ -34,10 +34,12 @@ abstract class ModelFeature {
 	companion object {
 		@JvmStatic
 		val log: Logger = LoggerFactory.getLogger(ModelFeature::class.java)
+		/** dump is waiting for other job's completion, therefore it needs its own independent job, the context.dump waits for the children of this job */
+		@JvmStatic val dumpJob = Job()
 	}
 
 	/** used in the strategy to ensure that the updating coroutine function already finished.
-	 * calling job.joinChildren() will wait for all currently running [onNewAction] and [update] instances to complete*/
+	 * calling job.joinChildren() will wait for all currently running [onNewAction] and update instances to complete*/
 	var job = Job()
 
 	/** the context in which the update tasks of the class are going to be started,

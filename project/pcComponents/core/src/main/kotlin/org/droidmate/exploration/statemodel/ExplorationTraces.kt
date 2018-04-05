@@ -209,7 +209,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	fun first(): ActionData = getActions().first()
 
 	//FIXME ensure that the latest dump is not overwritten due to scheduling issues, for example by using a nice buffered channel only keeping the last value offer
-	suspend fun dump(config: ModelConfig = this.config) = dumpMutex.withLock("trace dump") {
+	suspend fun dump(config: ModelConfig = this.config) = dumpMutex.withLock {
 		File(config.traceFile(date)).bufferedWriter().use { out ->
 			out.write(ActionData.header(config[sep]))
 			out.newLine()

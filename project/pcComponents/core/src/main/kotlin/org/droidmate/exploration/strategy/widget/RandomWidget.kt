@@ -27,6 +27,7 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.Configuration
+import org.droidmate.debug.debugT
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.statemodel.Widget
@@ -121,13 +122,15 @@ open class RandomWidget constructor(randomSeed: Long) : Explore() {
 						?: currentState.actionableWidgets
 
 		assert(candidates.isNotEmpty())
-		return excludeBlacklisted(candidates){ noBlacklistedInState, noBlacklisted ->
-			when {
-				noBlacklisted.isNotEmpty() -> noBlacklisted.chooseRandomly()
-				noBlacklistedInState.isEmpty() -> noBlacklistedInState.chooseRandomly()
-				else -> PressBackExplorationAction() // we are stuck, everything is blacklisted
+		return debugT("blacklist computation", {
+			excludeBlacklisted(candidates){ noBlacklistedInState, noBlacklisted ->
+				when {
+					noBlacklisted.isNotEmpty() -> noBlacklisted.chooseRandomly()
+					noBlacklistedInState.isEmpty() -> noBlacklistedInState.chooseRandomly()
+					else -> PressBackExplorationAction() // we are stuck, everything is blacklisted
+				}
 			}
-		}
+		}, inMillis = true)
 	}
 
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {

@@ -1,13 +1,15 @@
 package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.CoroutineName
+import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
-import java.util.UUID
+import java.io.File
+import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
 class BlackListMF: ModelFeature() {
@@ -41,5 +43,19 @@ class BlackListMF: ModelFeature() {
 
 	fun isBlacklistedInState(wId: UUID, sId:UUID, threshold: Int = 1): Boolean = wCnt.getCounter(wId, sId) >= threshold
 
-	//TODO overwrite dump method for debugging or even watcher loading from previous run
+	override suspend fun dump(context: ExplorationContext) {
+		job.joinChildren()  // wait until all other coroutines of this feature are completed
+		File(context.getModel().config.baseDir + "lastBlacklist.txt").bufferedWriter().use { out ->
+			out.write(header)
+			wCnt.forEach { wMap ->	wMap.value.entries.forEach { (sId, cnt) ->
+					out.newLine()
+					out.write("${wMap.key} ;\t$sId ;\t$cnt")
+			}}
+		}
+	}
+
+	companion object {
+		val header = "WidgetId".padEnd(38)+"; State-Context".padEnd(38)+"; # listed"
+
+	}
 }
