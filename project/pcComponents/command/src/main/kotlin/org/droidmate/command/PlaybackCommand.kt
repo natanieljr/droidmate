@@ -82,7 +82,8 @@ class PlaybackCommand(apksProvider: IApksProvider,
 
 			log.info("Loading stored exploration log from $storedLogFile")
 			val storedLog = Storage2(storedLogFile.parent).deserialize(storedLogFile)
-			playbackStrategy = MemoryPlayback(storedLog)
+
+			playbackStrategy = MemoryPlayback(storedLog.apk.packageName)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 

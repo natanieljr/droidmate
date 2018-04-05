@@ -27,10 +27,7 @@ package org.droidmate.exploration.strategy.playback
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.TerminateExplorationAction
 
-class PlaybackTerminateAction(action: ExplorationAction) : TerminateExplorationAction() {
-	init {
-		runtimePermission = action.isEndorseRuntimePermission()
-	}
+class PlaybackTerminateAction : TerminateExplorationAction() {
 
 	override fun toShortString(): String {
 		return "(Playback) ${super.toShortString()}"

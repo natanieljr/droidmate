@@ -1,16 +1,14 @@
 package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.sendBlocking
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.statemodel.config.*
-import org.droidmate.exploration.statemodel.config.dump.sep
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 import java.util.*
-import kotlin.collections.HashSet
 import kotlin.streams.toList
 import kotlin.system.measureTimeMillis
 
@@ -29,15 +27,31 @@ internal inline fun <T> P_processLines(file: File, sep: String, skip: Long = 1, 
 }
 
 /** s_* should be only used in sequential context as it currently does not handle parallelism*/
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate")
 class Model private constructor(val config: ModelConfig) {
-	private val paths = HashSet<Trace>()
+	private val paths = LinkedList<Trace>()
+	/** debugging counter do not use it in productive code, instead access the respective element set */
 	private var nWidgets = 0
+	/** debugging counter do not use it in productive code, instead access the respective element set */
 	private var nStates = 0
+	val modelJob = Job()
 
-	private val states = stateQueue()
+
+	fun initNewTrace(watcher: LinkedList<ModelFeature>): Trace {
+		return Trace(watcher,config, modelJob).also {actionTrace ->
+			addTrace(actionTrace)
+		}
+	}
+
+	private val states = StateActor().create(modelJob)
 	suspend fun getStates(): Set<StateData>{ // return a view to the data
 		return CompletableDeferred<Collection<StateData>>().let{ response ->
+			states.send(GetStates(response))
+			response.await() as Set
+		}
+	}
+	fun S_getStates(): Set<StateData> = runBlocking{ // return a view to the data
+		CompletableDeferred<Collection<StateData>>().let{ response ->
 			states.send(GetStates(response))
 			response.await() as Set
 		}
@@ -47,45 +61,47 @@ class Model private constructor(val config: ModelConfig) {
 		states.send(AddState(s))
 	}
 
-	suspend fun getState(id: ConcreteId) = getStates().find { it.stateId == id }
+	suspend fun getState(id: ConcreteId):StateData?{
+//		println("call getStates")
+		val states = getStates()
+//		println("[${Thread.currentThread().name}] retrieved ${states.size} states")
+		return states.find { it.stateId == id }
+	}
 
-	private val widgets = widgetQueue()
+
+	private val widgets = WidgetActor().create(modelJob)
+
 	suspend fun getWidgets(): Set<Widget>{
 		return CompletableDeferred<Collection<Widget>>().let{ response ->
 			widgets.send(GetWidgets(response))
 			response.await() as Set
 		}
 	}
-	suspend fun addWidget(w: Widget) {
+
+	fun S_addWidget(w: Widget) {
 		nWidgets +=1
-		widgets.send(AddWidget(w))
+		widgets.sendBlocking(AddWidget(w))
 	}
+
 	suspend fun addWidgets(w: Collection<Widget>) {
 		nWidgets += w.size
 		widgets.send(AddWidgets(w))
 	}
 
-	fun getPaths(): Set<Trace> = paths
+	@Suppress("unused")
+	fun getPaths(): List<Trace> = paths
 	fun addTrace(t: Trace) = paths.add(t)
 
-	suspend fun P_findWidget(predicate: (Widget) -> Boolean) = getWidgets().find(predicate)
-	val findWidget: (uuid: String, c: Collection<Widget>) -> Widget? = { id, c ->
-		runBlocking { findWidgetOrElse(id, c) { throw RuntimeException("ERROR on state parsing, the target widget $id was not instantiated correctly") } }
-	}
-
-	/** use this function to find widgets with a specific uuid
+	/** use this function to find widgets with a specific [ConcreteId]
 	 * REMARK if @widgets is set you have to ensure synchronization for this set on your own
 	 * if it is not set it will automatically use the models widget actor
 	 */
-	suspend inline fun findWidgetOrElse(uuid: String, widgets: Collection<Widget>? = null, crossinline otherwise: (UUID) -> Widget): Widget? {
-		return if (uuid == "null") null
-		else UUID.fromString(uuid).let {
-			(widgets ?: getWidgets()).let{ widgets -> widgets.find { w -> w.uid == it } ?: otherwise(it) }
+	suspend inline fun findWidgetOrElse(id: String, widgets: Collection<Widget>? = null, crossinline otherwise: (ConcreteId) -> Widget?): Widget? {
+		return if (id == "null") null
+		else idFromString(id).let {
+			(widgets ?: getWidgets()).let{ widgets -> widgets.find { w -> w.id == it } ?: otherwise(it) }
 		}
 	}
-
-	private suspend fun P_findOrAddState(stateId: ConcreteId): StateData = getStates().find { s -> s.stateId == stateId }  // allow parsing in parallel but ensure atomic adding
-			?: P_parseState(stateId).also { addState(it) }
 
 	fun P_dumpModel(config: ModelConfig) = launch(CoroutineName("Model-dump")) {
 		paths.map { t -> launch(CoroutineName("trace-dump")) { t.dump(config) } }.let { traceDump ->
@@ -104,21 +120,17 @@ class Model private constructor(val config: ModelConfig) {
 			}.let { println("state computation takes $it millis for ${s!!.widgets.size}") }
 			s?.also { newState ->
 				launch { newState.widgets } // initialize the widgets in parallel
-//				val traceUpdate = launch{ debugT("trace update",{
 				trace.update(action, newState)
-//					}) }
-				launch { newState.dump(config) }
-				launch {
-					//traceUpdate.join();
-					trace.dump(config)
+
+				if (config[dump.onEachAction]) {
+					launch { newState.dump(config) }
+					launch { trace.dump(config) }
 				}
+
 				if (config[imgDump.states]) launch {
-					//traceUpdate.join()
-					action.screenshot.let {  //FIXME if no screenshot this issues exceptions (probably this strange default value of ActionResult)
-						// if there is any screen-shot copy it to the state extraction directory
-						java.io.File(config.statePath(newState.stateId, "_${newState.configId}", "png")).let { file ->
-							if (!file.exists())
-								Files.write(file.toPath(), it)
+					action.screenshot.let { 	// if there is any screen-shot write it to the state extraction directory
+						java.io.File(config.statePath(newState.stateId, "_${newState.configId}", ".png")).let { file ->
+							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
 						}
 					}
 				}
@@ -129,7 +141,6 @@ class Model private constructor(val config: ModelConfig) {
 
 				// this can occasionally take much time, therefore we use an actor for it as well
 				debugT("state adding", { addState(newState) }, inMillis = true)
-//				debugT("model join trace update",{ runBlocking{traceUpdate.join()} })  // wait until we are sure the model is completely updated
 			}
 		}.let {
 			println("model update took $it millis")
@@ -165,7 +176,6 @@ class Model private constructor(val config: ModelConfig) {
 //		else null
 //	}
 	/** check for all edit fields of the state if we already interacted with them and thus potentially changed their text property, if so overwrite the uid to the original one (before we interacted with it) */
-	//TODO this takes unusual much time
 	private val handleEditFields: (StateData, List<Pair<StateData, Widget>>) -> List<Widget> = { state, interactedEF ->
 		//		async {
 		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
@@ -205,84 +215,28 @@ class Model private constructor(val config: ModelConfig) {
 //		}
 	}
 
-
-	private val _actionParser: (List<String>) -> Deferred<ActionData> = { entries ->
-		async(CoroutineName("ActionParsing-$entries")) {
-			// we createFromString the source state and target widget if there is any
-			stateIdFromString(entries[0]).let { srcId ->
-				// pars the src state with the contained widgets and add the respective objects to our model
-				ActionData.createFromString(entries, findWidget(entries[ActionData.widgetIdx], P_findOrAddState(srcId).widgets),config[sep])
-			}
-		}
-	}
-
-	private suspend fun P_parseTrace(file: Path) {
-		Trace(config).apply {
-			P_processLines(file.toFile(),config[sep], lineProcessor = _actionParser).forEach { it.await().let { P_addAction(it) } }
-		}.also { synchronized(paths) { paths.add(it) } }
-	}
-
-	private val _widgetParser: (List<String>) -> Deferred<Widget?> = { line ->
-		line[Widget.idIdx].let { id ->
-			async(CoroutineName("WidgetParsing-$id")) {
-				findWidgetOrElse(id) { id ->
-					Widget.fromString(line).also {
-						runBlocking { addWidget(it) }
-					}.also {
-						assert(id == it.uid, {
-							"ERROR on widget parsing inconsistent UUID created ${it.uid} instead of $id"
-						})
-					}
-				}
-			}
-		}
-	}
-
-	private suspend fun P_parseState(stateId: ConcreteId): StateData {
-		return mutableSetOf<Widget>().apply {
-			// create the set of contained elements (widgets)
-			val contentFile = File(config.widgetFile(stateId))
-			if (contentFile.exists())  // otherwise this state has no widgets
-				P_processLines(file = contentFile, sep = config[sep], lineProcessor = _widgetParser).forEach {
-					it.await()?.also {
-						// add the parsed widget to temporary set AND initialize the parent property
-						add(it)
-						if (it.parentXpath != "") it.parentId = P_findWidget { w -> w.xpath == it.parentXpath }?.id
-					}
-				}
-		}.let {
-			if (it.isNotEmpty())
-				StateData.fromFile(it)
-			else StateData.emptyState
-		}
-				.also { assert(stateId == it.stateId, { "ERROR on state parsing inconsistent UUID created ${it.uid} instead of $stateId" }) }
-	}
-
 	companion object {
 		@JvmStatic
-		fun emptyModel(config: ModelConfig): Model = Model(config)
+		fun emptyModel(config: ModelConfig): Model = Model(config).apply { runBlocking { addState(StateData.emptyState) }}
 
-		// parallel parsing of multiple traces => need to lock states/widgets and paths when modifying them
-		internal fun loadAppModel(appName: String): Model {
-			return loadAppModel(ModelConfig(appName))
-		}
+		/**
+		 * use this method to load a specific app model from its dumped data
+		 *
+		 * example:
+		 * val test = loadAppModel("ch.bailu.aat")
+		 * runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
+		 */
+		@Suppress("unused")
+		@JvmStatic fun loadAppModel(appName: String, watcher: LinkedList<ModelFeature> = LinkedList())
+				= ModelLoader.loadModel(ModelConfig(appName, isLoadC = true), watcher)
 
-		fun loadAppModel(config: ModelConfig): Model {
-			return emptyModel(config).apply {
-				Files.list(Paths.get(config.baseDir)).filter { it.fileName.toString().startsWith(config[dump.traceFilePrefix]) }.map {
-					launch(CoroutineName("TraceParsing")) { P_parseTrace(it) }
-				}.forEach { runBlocking { it.join() } }
-			}
-		}
-	}
+	} /** end COMPANION **/
 
+	/**
+	 * this only shows how often the addState or addWidget function was called, but if identical id's were added multiple
+	 * times the real set will contain less elements then these counter indicate
+	 */
 	override fun toString(): String {
-		return "Model[states=$nStates,widgets=$nWidgets,paths=${paths.size}]"
-	}
-
-	fun initNewTrace(watcher: LinkedList<ModelFeature>): Trace {
-		return Trace(watcher,config).also {actionTrace ->
-			addTrace(actionTrace)
-		}
+		return "Model[#addState=$nStates, #addWidget=$nWidgets, paths=${paths.size}]"
 	}
 }

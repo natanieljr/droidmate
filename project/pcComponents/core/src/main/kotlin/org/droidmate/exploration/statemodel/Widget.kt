@@ -17,17 +17,12 @@
 package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.launch
-import org.droidmate.exploration.statemodel.config.ModelConfig
-import org.droidmate.exploration.statemodel.config.dump.sep
-import org.droidmate.exploration.statemodel.config.emptyUUID
-import org.droidmate.exploration.statemodel.config.imgDump
-import org.droidmate.exploration.statemodel.config.stateIdFromString
+import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.uiautomator_daemon.P
 import org.droidmate.uiautomator_daemon.WidgetData
 import org.droidmate.uiautomator_daemon.toUUID
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.SystemColor.text
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.*
@@ -76,7 +71,6 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 	val xpath: String = properties.xpath
 	var parentId: Pair<UUID, UUID>? = null
 	val isLeaf: Boolean = properties.isLeaf
-	internal val parentXpath: String = properties.parent?.xpath ?: ""
 	//TODO we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
 	//TODO check if still buggy in amazon "Sign In" does not always compute to same id
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
@@ -112,7 +106,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.Desc -> contentDesc
 				P.Clickable -> clickable.toString()
 				P.Scrollable -> scrollable.toString()
-				P.Checked -> checked?.toString() ?: "disabled"
+				P.Checked -> checked?.toString() ?: "disabled"  //FIXME this was probably bugged by Nathaniel
 				P.Focused -> focused?.toString() ?: "disabled"
 				P.BoundsX -> bounds.x.toString()
 				P.BoundsY -> bounds.y.toString()
@@ -121,7 +115,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.ResId -> resourceId
 				P.XPath -> xpath
 				P.WdId -> propertyConfigId.toString()
-				P.ParentUID -> parentId?.toString() ?: "null"
+				P.ParentID -> parentId?.dumpString() ?: "null"
 				P.Enabled -> enabled.toString()
 				P.LongClickable -> longClickable.toString()
 				P.Selected -> selected.toString()
@@ -181,7 +175,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		fun fromString(line: List<String>): Widget {
 			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
 				return Widget(w, lazyOf(UUID.fromString(line[P.UID.ordinal])))
-						.apply { parentId = line[P.UID.ordinal].let { if (it == "null") null else stateIdFromString(it) } }
+						.apply { parentId = line[P.ParentID.ordinal].let { if (it == "null") null else idFromString(it) } }
 			}
 		}
 
@@ -228,7 +222,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		}
 
 		@JvmStatic
-		val idIdx by lazy { P.UID.ordinal }
+		val idIdx by lazy { Pair(P.UID.ordinal,P.WdId.ordinal) }
 		@JvmStatic
 		val widgetHeader:(String)->String by lazy {{ sep:String -> P.values().joinToString(separator = sep) { it.header } } }
 

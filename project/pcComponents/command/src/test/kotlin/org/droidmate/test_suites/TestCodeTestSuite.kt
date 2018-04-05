@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.test_suites
 
-import org.droidmate.tests.logging.LogbackAppendersTest
+import org.droidmate.logging.LogbackAppendersTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 

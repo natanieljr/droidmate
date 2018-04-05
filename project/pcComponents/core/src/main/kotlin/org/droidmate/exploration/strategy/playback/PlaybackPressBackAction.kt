@@ -27,10 +27,7 @@ package org.droidmate.exploration.strategy.playback
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
 
-class PlaybackPressBackAction(action: ExplorationAction) : PressBackExplorationAction() {
-	init {
-		runtimePermission = action.isEndorseRuntimePermission()
-	}
+class PlaybackPressBackAction : PressBackExplorationAction() {
 
 	override fun toShortString(): String {
 		return "(Playback) ${super.toShortString()}"

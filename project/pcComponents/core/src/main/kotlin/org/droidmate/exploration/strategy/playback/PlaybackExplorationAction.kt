@@ -25,9 +25,9 @@
 package org.droidmate.exploration.strategy.playback
 
 import org.droidmate.exploration.actions.WidgetExplorationAction
+import org.droidmate.exploration.statemodel.Widget
 
-class PlaybackExplorationAction(action: WidgetExplorationAction) : WidgetExplorationAction(action.widget,
-		action.longClick, action.useCoordinates, action.delay, action.swipe, action.direction) {
+class PlaybackExplorationAction(widget: Widget) : WidgetExplorationAction(widget,	useCoordinates = true) { // FIXME some meta-data missing like longClick or swipe
 	override fun toShortString(): String {
 		return "(Playback) ${super.toShortString()}"
 	}

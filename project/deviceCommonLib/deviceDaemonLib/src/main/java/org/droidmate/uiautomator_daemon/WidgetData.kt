@@ -119,7 +119,7 @@ enum class P(val pName: String = "", var header: String = "") {
 	Interactive,
 	Text(WidgetData::text.name),
 	Desc(WidgetData::contentDesc.name, "Description"),
-	ParentUID(header = "parentID"),
+	ParentID(header = "parentID"),
 	Enabled(WidgetData::enabled.name),
 	Visible(WidgetData::visible.name),
 	Clickable(WidgetData::clickable.name),

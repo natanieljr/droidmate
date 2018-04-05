@@ -51,19 +51,20 @@ class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: MemoryPlay
 		var actionNr = 0
 		var requested = 0
 		var explored = 0
-		playbackStrategy.traces.forEach { trace ->
-			trace.getTraceCopy().forEach { traceData ->
-				actionNr++
-
-				if (traceData.requested)
-					requested++
-
-				if (traceData.explored)
-					explored++
-
-				sb.append("$actionNr\t$requested\t$explored\n")
-			}
-		}
+		TODO("this should be done with ModelFeature, probably the already existing counter is sufficient")
+//		playbackStrategy.traces.forEach { trace ->
+//			trace.getTraceCopy().forEach { traceData ->
+//				actionNr++
+//
+//				if (traceData.requested)
+//					requested++
+//
+//				if (traceData.explored)
+//					explored++
+//
+//				sb.append("$actionNr\t$requested\t$explored\n")
+//			}
+//		}
 
 		val reportFile = reportSubDir.resolve(fileName)
 		Files.write(reportFile, sb.toString().toByteArray())

@@ -24,55 +24,46 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.playback
 
-import org.droidmate.exploration.statemodel.StateData
-import org.droidmate.exploration.statemodel.Widget
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.statemodel.*
+import org.droidmate.exploration.statemodel.config.ModelConfig
+import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.strategy.widget.Explore
 
 @Suppress("unused")
 open class MemoryPlayback private constructor() : Explore() {
 
 	private lateinit var packageName: String
-	private var storedMemoryData: AbstractContext? = null
+	private var model: Model? = null
+	var traceIdx = 0
+	var actionIdx = 0
 
-	constructor(storedMemoryData: AbstractContext) : this() {
-		this.packageName = storedMemoryData.apk.packageName
-		this.storedMemoryData = storedMemoryData
-	}
-
-	constructor(packageName: String, newTraces: List<PlaybackTrace>) : this() {
-		this.traces.addAll(newTraces)
+	constructor(packageName: String) : this() {
 		this.packageName = packageName
-	}
-
-	val traces: MutableList<PlaybackTrace> = mutableListOf()
-
-	private fun initializeFromMemory() {
-		val memoryRecords = storedMemoryData!!.actionTrace.getActions()
-
-		// Create traces from context records
-		// Each trace starts with a reset
-		// Last trace ends with terminate exploration
-		for (i in 0 until memoryRecords.size) {
-			val memoryRecord = memoryRecords[i]
-
-			if (memoryRecord.actionType == ResetAppExplorationAction::class.simpleName)
-				traces.add(PlaybackTrace())
-
-//            val state = context.getState(memoryRecord.state.guiStatus)
-
-			TODO()
-//            traces.last().add(memoryRecord.action, state)
-		}
+		model = ModelLoader.loadModel(ModelConfig(packageName))
 	}
 
 	private fun isComplete(): Boolean {
-		return traces.all { it.isComplete() }
+		return model?.getPaths()?.let { traceIdx+1 == it.size && actionIdx+1 == it[traceIdx].size } ?: false
 	}
 
-	private fun getNextTrace(): PlaybackTrace {
-		return traces.first { !it.isComplete() }
+	private fun getNextTraceAction(peek: Boolean = false): ActionData {
+		model!!.let{
+			it.getPaths()[traceIdx].let{ currentTrace ->
+				if(currentTrace.size-1 == actionIdx){ // check if all actions of this trace were handled
+					return it.getPaths()[traceIdx + 1].first().also {
+						if(!peek) {
+							traceIdx += 1
+							actionIdx = 0
+						}
+					}
+				}
+				return currentTrace.getActions()[actionIdx+1].also {
+					if(!peek) actionIdx += 1
+				}
+			}
+		}
 	}
 
 	private fun StateData.similarity(other: StateData): Double {
@@ -86,7 +77,8 @@ open class MemoryPlayback private constructor() : Explore() {
 		return mappedWidgets.sum() / this.widgets.size.toDouble()
 	}
 
-	private fun Widget.canExecute(context: StateData, ignoreLocation: Boolean = false): Boolean {
+	private fun Widget?.canExecute(context: StateData, ignoreLocation: Boolean = false): Boolean {
+		if( this == null ) return false
 		return if (ignoreLocation)
 			(!(this.text.isEmpty() && (this.resourceId.isEmpty()))) &&
 					(context.widgets.any { it.uid == this.uid })
@@ -100,38 +92,36 @@ open class MemoryPlayback private constructor() : Explore() {
 		if (isComplete())
 			return TerminateExplorationAction()
 
-		val currTrace = getNextTrace()
-		val currTraceData = currTrace.requestNext()
-		val action = currTraceData.action
+		val currTraceData = getNextTraceAction()
+		val action = currTraceData.actionType
 		when (action) {
-			is WidgetExplorationAction -> {
-				return if (action.widget.canExecute(context.getCurrentState())) {
-					currTrace.explore(action)
-					PlaybackExplorationAction(action)
-					// not found, try ignoring the location if it has text and or resourceID
-				} else if (action.widget.canExecute(context.getCurrentState(), true)) {
-					logger.warn("Same widget not found. Located similar (text and resourceID) widget in different position. Selecting it.")
-					currTrace.explore(action)
-					PlaybackExplorationAction(action)
-				}
+			WidgetExplorationAction::class.simpleName -> {
+				return when {
+					currTraceData.targetWidget.canExecute(context.getCurrentState()) -> {
+						PlaybackExplorationAction(currTraceData.targetWidget!!)
+						// not found, try ignoring the location if it has text and or resourceID
+					}
+					currTraceData.targetWidget.canExecute(context.getCurrentState(), true) -> {
+						logger.warn("Same widget not found. Located similar (text and resourceID) widget in different position. Selecting it.")
+						PlaybackExplorationAction(currTraceData.targetWidget!!)
+					}
+
 				// not found, go to the next
-				else
-					getNextAction()
+					else -> getNextAction()
+				}
 			}
-			is TerminateExplorationAction -> {
-				currTrace.explore(action)
-				return PlaybackTerminateAction(action)
+			TerminateExplorationAction::class.simpleName -> {
+				return PlaybackTerminateAction()
 			}
-			is ResetAppExplorationAction -> {
-				currTrace.explore(action)
-				return PlaybackResetAction(action)
+			ResetAppExplorationAction::class.simpleName -> {
+				return PlaybackResetAction()
 			}
-			is PressBackExplorationAction -> {
+			PressBackExplorationAction::class.simpleName -> {
 				// If already in home screen, ignore
 				if (context.getCurrentState().isHomeScreen)
 					return getNextAction()
 
-				val similarity = context.getCurrentState().similarity(currTraceData.state)
+				val similarity = context.getCurrentState().similarity(runBlocking {model!!.getState(currTraceData.resState)!!})
 
 				// Rule:
 				// 0 - Doesn't belong to app, skip
@@ -141,36 +131,31 @@ open class MemoryPlayback private constructor() : Explore() {
 				// Known issues: multiple press back / reset in a row
 
 				return if (similarity == 1.0) {
-					currTrace.explore(action)
-					PlaybackPressBackAction(action)
+					PlaybackPressBackAction()
 				} else {
-					val nextTraceData = currTrace.peekNextWidgetAction()
+					val nextTraceData = getNextTraceAction(peek = true)
 
-					if (nextTraceData != null) {
-						val nextWidgetAction = nextTraceData.action as WidgetExplorationAction
-						val nextWidget = nextWidgetAction.widget
+						val nextWidget = nextTraceData.targetWidget
 
 						if (nextWidget.canExecute(context.getCurrentState(), true))
 							getNextAction()
-					}
 
-					currTrace.explore(action)
-					PlaybackPressBackAction(action)
+					PlaybackPressBackAction()
 				}
 			}
 			else -> {
-				currTrace.explore(action)
-				return action
+				return WidgetExplorationAction(currTraceData.targetWidget!!, useCoordinates = true)
 			}
 		}
 	}
 
 	fun getExplorationRatio(widget: Widget? = null): Double {
-		val totalSize = traces.map { it.getSize(widget) }.sum()
-
-		return traces
-				.map { trace -> trace.getExploredRatio(widget) * (trace.getSize(widget) / totalSize.toDouble()) }
-				.sum()
+		TODO()
+//		val totalSize = traces.map { it.getSize(widget) }.sum()
+//
+//		return traces
+//				.map { trace -> trace.getExploredRatio(widget) * (trace.getSize(widget) / totalSize.toDouble()) }
+//				.sum()
 	}
 
 	override fun internalDecide(): ExplorationAction {
@@ -190,13 +175,6 @@ open class MemoryPlayback private constructor() : Explore() {
 		return StrategyPriority.PLAYBACK
 	}*/
 
-	override fun initialize(memory: AbstractContext) {
-		super.initialize(memory)
-
-		if (this.storedMemoryData != null)
-			initializeFromMemory()
-	}
-
 	// region Java overrides
 
 	override fun toString(): String {
@@ -211,7 +189,7 @@ open class MemoryPlayback private constructor() : Explore() {
 	}
 
 	override fun hashCode(): Int {
-		return this.traces.hashCode()
+		return this.model?.hashCode() ?: 0
 	}
 
 	// endregion

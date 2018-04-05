@@ -9,8 +9,9 @@ import java.util.*
 
 val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
 typealias ConcreteId = Pair<UUID, UUID>
-fun stateIdFromString(s: String) = s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
-fun ConcreteId.toString() = "${first}_$second"
+fun idFromString(s: String):ConcreteId = s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
+/** custom dumpString method used for model dump & load **/
+fun ConcreteId.dumpString() = "${first}_$second"
 val emptyId = ConcreteId(emptyUUID, emptyUUID)
 
 private const val datePattern = "ddMM-HHmmss"

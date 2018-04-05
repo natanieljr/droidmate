@@ -75,7 +75,7 @@ if (findProject(":project:pcComponents"))
 	apply from: project(":project:pcComponents").file("maven.gradle")
 
 dependencies {
-	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.ext.kotlin_version}"
+	compile "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
 	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
 	// Fast serialization library
 	compile 'de.ruedigermoeller:fst:2.56'
