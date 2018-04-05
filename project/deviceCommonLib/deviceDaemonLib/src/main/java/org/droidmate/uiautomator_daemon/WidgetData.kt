@@ -33,7 +33,7 @@ fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.fo
  */
 class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: Int = -1, val parent: WidgetData? = null) : Serializable {
 	constructor(resId: String, xPath: String)
-			: this(defaultProperties.toMutableMap().apply { replace(WidgetData::resourceId.name, resId) }) {
+			: this(defaultProperties.toMutableMap().apply { replaceKt(WidgetData::resourceId.name, resId) }) {
 		this.xpath = xPath
 	}
 
@@ -108,6 +108,13 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 			val highY = matchedGroups[4]!!.value.toInt()
 
 			return listOf(lowX, lowY, highX - lowX, highY - lowY)
+		}
+
+		@JvmStatic
+		private fun <K, V> MutableMap<K,V>.replaceKt(key: K, value: V) {
+			if (this[key] != null || this.containsKey(key)) {
+				this.put(key, value)
+			}
 		}
 	}
 }
