@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.debug.debugT
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
@@ -107,11 +108,11 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 	 */
 	private fun selectStrategy(): ISelectableExplorationStrategy {
 		ExplorationStrategyPool.logger.debug("Selecting best strategy.")
-		val bestStrategy = selectors
+		val bestStrategy = debugT("strategy selection time",
+				{ selectors
 				.sortedBy { it.priority }
-				.map { it -> it.selector(this.memory, this, it.bundle) }
-				.filterIsInstance<ISelectableExplorationStrategy>()
-				.first()
+				.mapNotNull { it -> it.selector(this.memory, this, it.bundle) }
+				.first() } )
 
 		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy.")
 

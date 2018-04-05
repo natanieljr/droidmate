@@ -38,6 +38,8 @@ import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.exploration.statemodel.Model
+import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
@@ -64,7 +66,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 									  private val timeProvider: ITimeProvider,
 									  private val strategyProvider: (AbstractContext) -> IExplorationStrategy,
 									  private val cfg: Configuration,
-									  private var context: AbstractContext?) : DroidmateCommand() {
+									  private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
@@ -151,11 +153,11 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
 				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) },
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-		          context: AbstractContext? = null): ExploreCommand {
+				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName))}): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-					timeProvider, strategyProvider, cfg, context)
+					timeProvider, strategyProvider, cfg, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -345,7 +347,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Use the received exploration context (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different context is created for each exploration if none it provieder
-		val output = context ?: ExplorationContext(app, timeProvider.getNow())
+		val output = ExplorationContext(app, timeProvider.getNow(), model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + output.explorationStartTime)
 

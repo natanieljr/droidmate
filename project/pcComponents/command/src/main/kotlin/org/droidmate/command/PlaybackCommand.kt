@@ -27,6 +27,8 @@ package org.droidmate.command
 import org.droidmate.configuration.Configuration
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.StrategySelector
+import org.droidmate.exploration.statemodel.Model
+import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
@@ -47,8 +49,8 @@ class PlaybackCommand(apksProvider: IApksProvider,
 					  timeProvider: ITimeProvider,
 					  strategyProvider: (AbstractContext) -> IExplorationStrategy,
 					  cfg: Configuration,
-					  context: AbstractContext?) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer,
-		timeProvider, strategyProvider, cfg, context) {
+					  modelProvider: (String) -> Model) : ExploreCommand(apksProvider, deviceDeployer, apkDeployer,
+		timeProvider, strategyProvider, cfg, modelProvider) {
 	companion object {
 		private lateinit var playbackStrategy: MemoryPlayback
 
@@ -71,11 +73,11 @@ class PlaybackCommand(apksProvider: IApksProvider,
 				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
 				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { getExplorationStrategy(strategies, selectors, it) },
 				  reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-				  context: AbstractContext? = null): PlaybackCommand {
+				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName))}): PlaybackCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-					timeProvider, strategyProvider, cfg, context)
+					timeProvider, strategyProvider, cfg, modelProvider)
 
 			val storedLogFile = Paths.get(cfg.playbackFile).toAbsolutePath()
 			assert(Files.exists(storedLogFile), { "Stored exploration log $storedLogFile not found." })
