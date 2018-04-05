@@ -22,13 +22,17 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
+package org.droidmate.exploration.strategy.stubs
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+import org.droidmate.exploration.actions.ExplorationAction
+
+/**
+ * Stuff for exploration action
+ */
+class DummyExplorationAction : ExplorationAction() {
+
+	override fun toShortString(): String {
+		return "STUB!"
+	}
+}

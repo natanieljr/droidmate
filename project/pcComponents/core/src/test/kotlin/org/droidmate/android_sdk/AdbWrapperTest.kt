@@ -22,13 +22,34 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
 
-import org.droidmate.logging.LogbackAppendersTest
+package org.droidmate.android_sdk
+
+import org.droidmate.device.android_sdk.AdbWrapper
+import org.droidmate.test_tools.DroidmateTestCase
+import org.junit.FixMethodOrder
+import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runners.Suite
+import org.junit.runners.JUnit4
+import org.junit.runners.MethodSorters
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@RunWith(JUnit4::class)
+class AdbWrapperTest : DroidmateTestCase() {
+	@Test
+	fun `Removes adb started message if present`() {
+		val sep = System.lineSeparator()
+
+		val stdout = "* daemon not running. starting it now on port 5037 *$sep" +
+				"* daemon started successfully *$sep" +
+				"List of devices attached $sep$sep"
+		val stderr = ""
+		val stdStreams = arrayOf(stdout, stderr)
+
+		// Act
+		AdbWrapper.removeAdbStartedMsgIfPresent(stdStreams)
+
+		assert(stdStreams[0] == "List of devices attached $sep$sep")
+		assert(stdStreams[1] == "")
+	}
+}

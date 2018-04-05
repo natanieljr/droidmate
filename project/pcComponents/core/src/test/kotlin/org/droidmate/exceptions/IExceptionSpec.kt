@@ -22,13 +22,21 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
+package org.droidmate.exceptions
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
+interface IExceptionSpec : java.io.Serializable {
+	fun matches(methodName: String, packageName: String, callIndex: Int): Boolean
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+	val throwsEx: Boolean
+
+	val packageName: String
+
+	val methodName: String
+
+	val callIndex: Int
+
+	@Throws(TestDeviceException::class)
+	fun throwEx()
+
+	val exceptionalReturnBool: Boolean?
+}

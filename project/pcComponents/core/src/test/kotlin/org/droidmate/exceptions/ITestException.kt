@@ -22,13 +22,8 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.test_suites
+package org.droidmate.exceptions
 
-import org.droidmate.logging.LogbackAppendersTest
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
-
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
-class TestCodeTestSuite
+interface ITestException {
+	val exceptionSpec: IExceptionSpec
+}
