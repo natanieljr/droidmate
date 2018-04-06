@@ -91,8 +91,8 @@ abstract class AbstractContext : Serializable {
 
 	abstract val actionTrace: Trace
 
-	fun explorationCanMoveOn() = isEmpty() ||  // we are starting the app -> no terminate yet
-			(getCurrentState().topNodePackageName == apk.packageName && getCurrentState().actionableWidgets.isNotEmpty()) ||
+	fun explorationCanMoveOn() = isEmpty() || // we are starting the app -> no terminate yet
+			(!getCurrentState().isHomeScreen && getCurrentState().topNodePackageName == apk.packageName && getCurrentState().actionableWidgets.isNotEmpty()) ||
 			getCurrentState().isRequestRuntimePermissionDialogBox
 
 	/**
