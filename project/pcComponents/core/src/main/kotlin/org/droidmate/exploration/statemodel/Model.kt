@@ -46,18 +46,11 @@ class Model private constructor(val config: ModelConfig) {
 	}
 
 	private val states = CollectionActor(HashSet<StateData>(),"StateActor").create(modelJob)
-	suspend fun getStates(): Set<StateData>{ // return a view to the data
-		return CompletableDeferred<Collection<StateData>>().let{ response ->
-			states.send(GetAll(response))
-			response.await() as Set
-		}
-	}
-	fun S_getStates(): Set<StateData> = runBlocking{ // return a view to the data
-		CompletableDeferred<Collection<StateData>>().let{ response ->
-			states.send(GetAll(response))
-			response.await() as Set
-		}
-	}
+	/** @return a view to the data (suspending function) */
+	suspend fun getStates(): Set<StateData> = states.getAll()
+	/** @return a view to the data (blocking function) */
+	fun S_getStates(): Set<StateData> = runBlocking{ states.getAll<StateData,Set<StateData>>() }
+
 	suspend fun addState(s: StateData){
 		nStates +=1
 		states.send(Add(s))
