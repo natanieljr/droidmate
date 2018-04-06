@@ -52,6 +52,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
         /**
          * Terminate the exploration after a predefined number of actions
          */
+		@JvmStatic
         val actionBasedTerminate : SelectorFunction = { context, pool, bundle ->
             val maxActions = bundle!![0] .toString().toInt()
             if (context.actionTrace.size == maxActions) {
@@ -65,6 +66,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
         /**
          * Terminate the exploration after a predefined elapsed time
          */
+		@JvmStatic
         val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
             val timeLimit = bundle!![0].toString().toInt()
             val now = LocalDateTime.now()
@@ -81,6 +83,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
         /**
          * Restarts the exploration when the current state is an "app not responding" dialog
          */
+		@JvmStatic
         val appCrashedReset: SelectorFunction = { context, pool, _ ->
             val currentState = context.getCurrentState()
 
@@ -95,6 +98,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
         /**
          * Sets the device to a known state (wifi on, empty logcat) and starts the app
          */
+		@JvmStatic
         val startExplorationReset: SelectorFunction = { context, pool, _ ->
             if (context.isEmpty()) {
                 logger.debug("Context is empty, must start exploration. Returning 'Reset'")
@@ -107,6 +111,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
         /**
          * Resets the exploration once a predetermined number of non-reset actions has been executed
          */
+		@JvmStatic
         val intervalReset: SelectorFunction = { context, pool, bundle ->
             val interval = bundle!![0].toString().toInt()
 
@@ -127,6 +132,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
         /**
          * Selects a random widget and acts over it
          */
+		@JvmStatic
         val randomWidget: SelectorFunction = { _, pool, _ ->
             pool.getFirstInstanceOf(RandomWidget::class.java)
         }
@@ -134,6 +140,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 		/**
 		 * Randomly selects a widget among those classified by a static model as "has event" and acts over it
 		 */
+		@JvmStatic
 		val randomWithModel: SelectorFunction = { _, pool, _ ->
 			pool.getFirstInstanceOf(ModelBased::class.java)
 		}
@@ -141,6 +148,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 		/**
 		 * Selects a widget among those classified by a static model as "has event" and acts over it
 		 */
+		@JvmStatic
 		val randomBiased: SelectorFunction = { _, pool, _ ->
 			pool.getFirstInstanceOf(ModelBased::class.java)
 		}
@@ -152,6 +160,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
          *
          * Passing a different bundle will crash the execution.
          */
+		@JvmStatic
         val randomBack: SelectorFunction = {context, pool, bundle ->
             val bundleArray = bundle!!
             val probability = bundleArray[0].toString().toDouble()
@@ -166,6 +175,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
             }
         }
 
+		@JvmStatic
         val cannotExplore: SelectorFunction = { context, pool, _ ->
 			if (!context.explorationCanMoveOn()){
 				val lastActionType = context.getLastAction().actionType
@@ -179,18 +189,21 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 
 					ResetAppExplorationAction::class.java.simpleName -> {
 						// if previous action was back, terminate
-						if (context.getCurrentState().isAppHasStoppedDialogBox){
-							logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
-							pool.getFirstInstanceOf(Terminate::class.java)
-						}
-						else if (context.getSecondLastAction().actionType == PressBackExplorationAction::class.java.simpleName) {
-							logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
-							pool.getFirstInstanceOf(Terminate::class.java)
-						}
+						when {
+							context.getCurrentState().isAppHasStoppedDialogBox -> {
+								logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
+								pool.getFirstInstanceOf(Terminate::class.java)
+							}
+							context.getSecondLastAction().actionType == PressBackExplorationAction::class.java.simpleName -> {
+								logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
+								pool.getFirstInstanceOf(Terminate::class.java)
+							}
+
 						// otherwise, press back
-						else {
-							logger.debug("Cannot explore. Returning 'Back'")
-							pool.getFirstInstanceOf(Back::class.java)
+							else -> {
+								logger.debug("Cannot explore. Returning 'Back'")
+								pool.getFirstInstanceOf(Back::class.java)
+							}
 						}
 					}
 
@@ -206,6 +219,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 		/**
 		 * Selects the allow runtime permission command
 		 */
+		@JvmStatic
 		val allowPermission: SelectorFunction = { context, pool, _ ->
 			val widgets = context.getCurrentState().widgets
 			var hasAllowButton = widgets.any { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
@@ -222,6 +236,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 		/**
 		 * Finishes the exploration once all widgets have been explored
 		 */
+		@JvmStatic
 		val explorationExhausted: SelectorFunction = { context, pool, _ ->
 			val exhausted = !context.isEmpty() && context.areAllWidgetsExplored()
 
