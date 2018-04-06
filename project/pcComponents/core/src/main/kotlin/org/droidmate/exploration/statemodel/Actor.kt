@@ -20,14 +20,18 @@ inline fun<reified MsgType> Actor<MsgType>.create(job: Job)
  * Therefore this computation and the set management was taken from the critical path of the execution by using this actor
  */
 class CollectionActor<T>(private val actorState: MutableCollection<T>, private val actorName: String): Actor<CollectionMsg<T>>{
+	val test = actorState.toList()
 	override suspend fun onReceive(msg: CollectionMsg<T>){
 //		println("[${Thread.currentThread().name}] START msg handling ${msg::class.simpleName}: ${actorState.size}")
 		when(msg){
 			is Add -> actorState.add(msg.elem)
 			is AddAll -> actorState.addAll(msg.elements)
-			is GetAll -> msg.response.complete(actorState)
+			is GetAll ->
+				if(actorState is Set<*>) msg.response.complete(actorState.toSet<T>())
+				else msg.response.complete(actorState.toList())
 		}.run{  /* do nothing but keep this .run to ensure when raises compile error if not all sealed class cases are implemented */  }
 //		println("[${Thread.currentThread().name}] msg handling ${msg::class.simpleName}: ${actorState.size}")
+
 	}
 	override fun toString(): String = actorName
 }
