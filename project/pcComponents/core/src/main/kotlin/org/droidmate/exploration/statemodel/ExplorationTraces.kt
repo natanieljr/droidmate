@@ -27,7 +27,6 @@ import org.droidmate.device.deviceInterface.MissingDeviceLogs
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.exploration.statemodel.config.dump.sep
-import org.droidmate.exploration.statemodel.config.imgDump.states
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.time.LocalDateTime
@@ -202,17 +201,14 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	fun getActions(): List<ActionData> = runBlocking { P_getActions() }
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within coroutines to make complete use of suspendable feature */
-	suspend fun P_getActions(): List<ActionData>   = with(CompletableDeferred<Collection<ActionData>>()){ trace.send(GetAll(this)); this.await() as List }
-//	{ return CompletableDeferred<Collection<ActionData>>().let{ response ->
-//			states.send(GetAll(response))
-//			response.await() as List
-//		}
-//	}
+	suspend fun P_getActions(): List<ActionData>   = trace.getAll()
 
-	suspend fun last(): ActionData? = P_getActions().lastOrNull()
-	suspend fun isEmpty(): Boolean = P_getActions().isEmpty()
-	suspend fun isNotEmpty(): Boolean = P_getActions().isNotEmpty()
-	fun first(): ActionData = getActions().first()
+	suspend fun last(): ActionData? = trace.getOrNull { it.lastOrNull() }
+	/** this has to acsess a couroutine actor prefer using [size] if synchronization is not critical */
+	suspend fun isEmpty(): Boolean = trace.get { it.isEmpty() }
+	/** this has to acsess a couroutine actor prefer using [size] if synchronization is not critical */
+	suspend fun isNotEmpty(): Boolean = trace.get { it.isNotEmpty() }
+	fun first(): ActionData = runBlocking { trace.getOrNull { it.first() } ?: ActionData.empty }
 
 	//FIXME ensure that the latest dump is not overwritten due to scheduling issues, for example by using a nice buffered channel only keeping the last value offer
 	suspend fun dump(config: ModelConfig = this.config) = dumpMutex.withLock {
