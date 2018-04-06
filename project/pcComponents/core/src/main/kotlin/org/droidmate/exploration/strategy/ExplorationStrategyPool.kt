@@ -24,7 +24,10 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.debug.debugT
+import org.droidmate.debug.nullableDebugT
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
@@ -108,15 +111,29 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 	 */
 	private fun selectStrategy(): ISelectableExplorationStrategy {
 		ExplorationStrategyPool.logger.debug("Selecting best strategy.")
+		val mem = this.memory
+		val pool = this
 		val bestStrategy = debugT("strategy selection time",
-				{ selectors
-				.sortedBy { it.priority }
-				.mapNotNull { it -> it.selector(this.memory, this, it.bundle) }
-				.first() } )
+				{
+					/*
+					selectors
+					.sortedBy { it.priority }
+					.mapNotNull { it -> nullableDebugT("decision time [${it.priority}]", { it.selector(this.memory, this, it.bundle) } ) }
+					.first()
+					*/
+					runBlocking {
+						selectors
+								.map { Pair(it.priority, async { nullableDebugT("decision time [${it.priority}]", { it.selector(mem, pool, it.bundle) } ) } ) }
+								.sortedBy { it.first }
+								.first { it.second.await() != null }
+								.also { println("best: ${it.first}") }
+								.second.await()
+					}
+				} )
 
 		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy.")
 
-		return bestStrategy
+		return bestStrategy!!
 	}
 
 	override fun takeControl(strategy: ISelectableExplorationStrategy) {

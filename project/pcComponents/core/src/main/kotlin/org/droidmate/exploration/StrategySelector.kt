@@ -27,11 +27,9 @@ import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 
-typealias SelectorFunction = (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
+typealias SelectorFunction = suspend (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
 
 class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg val bundle: Any){
     companion object {
@@ -69,8 +67,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 		@JvmStatic
         val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
             val timeLimit = bundle!![0].toString().toInt()
-            val now = LocalDateTime.now()
-            val diff = ChronoUnit.SECONDS.between(context.explorationStartTime, now)
+			val diff = context.getExplorationTimeInMs()
 
             if (diff >= timeLimit) {
                 logger.debug("Exploration time exhausted. Returning 'Terminate'")
@@ -211,9 +208,9 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 					else -> pool.getFirstInstanceOf(Back::class.java)
 				}
 			}
-
+			else
 			// can move forwards
-			null
+				null
 		}
 
 		/**
