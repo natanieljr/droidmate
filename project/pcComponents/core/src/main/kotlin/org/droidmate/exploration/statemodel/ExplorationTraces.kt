@@ -201,7 +201,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	fun getActions(): List<ActionData> = runBlocking { P_getActions() }
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within coroutines to make complete use of suspendable feature */
-	suspend fun P_getActions(): List<ActionData> = with(CompletableDeferred<Collection<ActionData>>()){ trace.send(GetAll(this)); this.await() } as List
+	suspend fun P_getActions(): List<ActionData> = with(CompletableDeferred<Collection<ActionData>>()){ trace.send(GetAll(this)); this.await() }.toList()
 
 	suspend fun last(): ActionData? = P_getActions().lastOrNull()
 	suspend fun isEmpty(): Boolean = P_getActions().isEmpty()
