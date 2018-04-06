@@ -126,7 +126,6 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 								.map { Pair(it.priority, async { nullableDebugT("decision time [${it.priority}]", { it.selector(mem, pool, it.bundle) } ) } ) }
 								.sortedBy { it.first }
 								.first { it.second.await() != null }
-								.also { println("best: ${it.first}") }
 								.second.await()
 					}
 				} )
