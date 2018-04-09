@@ -49,8 +49,10 @@ val AbstractContext.uniqueApis: Set<IApiLogcatMessage>
 
 val AbstractContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
 	get() = mutableSetOf<Pair<UUID, IApiLogcatMessage>>().apply {
-		actionTrace.getActions().forEach {
-			apiLogs.forEach { apiList -> apiList.forEach { api -> add(Pair(it.targetWidget?.uid ?: emptyUUID, api)) } }
+		actionTrace.getActions().forEach { action ->
+			action.deviceLogs.apiLogs.forEach{ api ->
+				add(Pair(action.targetWidget?.uid ?: emptyUUID, api))
+			}
 		}
 	}
 

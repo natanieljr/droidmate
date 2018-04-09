@@ -29,7 +29,6 @@ import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ApiLogcatMessageListExtensions
-import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.errors.DroidmateError
@@ -86,9 +85,6 @@ abstract class AbstractContext : Serializable {
 
 	abstract val apk: IApk
 
-	val apiLogs: List<List<IApiLogcatMessage>>  // TODO it may be more useful to have a map WidgetId->ApiLog, and why the heck is this List of List??
-		get() = actionTrace.getActions().map { it.deviceLogs.apiLogs }
-
 	abstract val actionTrace: Trace
 
 	fun explorationCanMoveOn() = isEmpty() || // we are starting the app -> no terminate yet
@@ -111,7 +107,7 @@ abstract class AbstractContext : Serializable {
 	fun getLastAction(): ActionData = runBlocking { actionTrace.last() } ?: ActionData.empty
 
 	/**
-	 * Get the exploration duration in miliseconds
+	 * Get the exploration duration in milliseconds
 	 */
 	fun getExplorationTimeInMs(): Int = Duration.between(explorationStartTime, explorationEndTime).toMillis().toInt()
 
@@ -235,16 +231,18 @@ abstract class AbstractContext : Serializable {
 	}
 
 	private fun warnIfExplorationStartTimeIsNotBeforeFirstLogTime(diff: TimeDiffWithTolerance, apkFileName: String) {
-		if (this.apiLogs.isNotEmpty()) {
-			val firstLog = this.apiLogs.firstOrNull { it.isNotEmpty() }
+		if (!this.isEmpty()) {
+			val firstActionWithLog = this.actionTrace.getActions().firstOrNull { it.deviceLogs.apiLogs.isNotEmpty() }
+			val firstLog = firstActionWithLog?.deviceLogs?.apiLogs?.firstOrNull()
 			if (firstLog != null)
-				diff.warnIfBeyond(this.explorationStartTime, firstLog.first().time, "exploration start time", "first API log", apkFileName)
+				diff.warnIfBeyond(this.explorationStartTime, firstLog.time, "exploration start time", "first API log", apkFileName)
 		}
 	}
 
 	private fun warnIfLastLogTimeIsNotBeforeExplorationEndTime(diff: TimeDiffWithTolerance, apkFileName: String) {
-		if (this.apiLogs.isNotEmpty()) {
-			val lastLog = this.apiLogs.find { !it.isEmpty() }?.last()
+		if (!this.isEmpty()) {
+			val lastActionWithLog = this.actionTrace.getActions().lastOrNull { it.deviceLogs.apiLogs.isNotEmpty() }
+			val lastLog = lastActionWithLog?.deviceLogs?.apiLogs?.lastOrNull()
 			if (lastLog != null)
 				diff.warnIfBeyond(lastLog.time, this.explorationEndTime, "last API log", "exploration end time", apkFileName)
 		}
