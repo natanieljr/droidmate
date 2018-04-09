@@ -29,7 +29,6 @@ import com.beust.jcommander.Parameters
 import org.droidmate.exploration.strategy.StrategyTypes
 import org.droidmate.misc.BuildConstants
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
-import java.io.File
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -313,7 +312,7 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
 	@Parameter(names = [pn_playback], description =
 	"Path do a previously recorded exploration for playback.")
-	public var playbackFile = ""
+	public var modelDir = ""
 
 	@Parameter(names = [pn_uiautomatorDaemonServerStartTimeout], description =
 	"How long DroidMate should wait, in milliseconds, for message on logcat confirming that UiAutomatorDaemonServer has started on android (virtual) device.")
@@ -455,6 +454,6 @@ class Configuration(val args: Array<String>) : IConfiguration {
 
 	// region dynamically calculated values
 	public val playback: Boolean
-		get() = this.playbackFile.isNotEmpty()
+		get() = this.modelDir.isNotEmpty()
 	// endregion
 }

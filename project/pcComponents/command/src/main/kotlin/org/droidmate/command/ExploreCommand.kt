@@ -39,8 +39,10 @@ import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
+import org.droidmate.exploration.statemodel.ModelLoader
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
 import org.droidmate.exploration.strategy.widget.ModelBased
@@ -51,12 +53,14 @@ import org.droidmate.report.AggregateStats
 import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
+import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
 import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -76,6 +80,10 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			val res : MutableList<StrategySelector> = mutableListOf()
 
 			var priority = 0
+
+			if (cfg.playback)
+				res.add(StrategySelector(++priority, StrategySelector.playback))
+
 			res.add(StrategySelector(++priority, StrategySelector.startExplorationReset))
 			res.add(StrategySelector(++priority, StrategySelector.appCrashedReset))
 
@@ -128,6 +136,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			strategies.add(Back())
 			strategies.add(Reset())
 			strategies.add(Terminate())
+
+			if (cfg.playback)
+				strategies.add(MemoryPlayback(cfg.modelDir))
 
 			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
 				strategies.add(RandomWidget(cfg))

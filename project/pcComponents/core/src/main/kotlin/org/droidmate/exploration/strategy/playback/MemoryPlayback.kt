@@ -25,31 +25,33 @@
 package org.droidmate.exploration.strategy.playback
 
 import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.strategy.widget.Explore
+import java.nio.file.Path
 
 @Suppress("unused")
-open class MemoryPlayback private constructor() : Explore() {
+open class MemoryPlayback constructor(private val modelDir: String) : Explore() {
 
-	private lateinit var packageName: String
-	private var model: Model? = null
-	var traceIdx = 0
-	var actionIdx = 0
+	private var traceIdx = 0
+	private var actionIdx = 0
+	private lateinit var model : Model
 
-	constructor(packageName: String) : this() {
-		this.packageName = packageName
-		model = ModelLoader.loadModel(ModelConfig(packageName))
+	override fun initialize(memory: AbstractContext) {
+		super.initialize(memory)
+
+		model = ModelLoader.loadModel(ModelConfig(modelDir, context.apk.packageName, true))
 	}
 
 	private fun isComplete(): Boolean {
-		return model?.getPaths()?.let { traceIdx+1 == it.size && actionIdx+1 == it[traceIdx].size } ?: false
+		return model.getPaths().let { traceIdx+1 == it.size && actionIdx+1 == it[traceIdx].size }
 	}
 
 	private fun getNextTraceAction(peek: Boolean = false): ActionData {
-		model!!.let{
+		model.let{
 			it.getPaths()[traceIdx].let{ currentTrace ->
 				if(currentTrace.size-1 == actionIdx){ // check if all actions of this trace were handled
 					return it.getPaths()[traceIdx + 1].first().also {
@@ -121,7 +123,7 @@ open class MemoryPlayback private constructor() : Explore() {
 				if (context.getCurrentState().isHomeScreen)
 					return getNextAction()
 
-				val similarity = context.getCurrentState().similarity(runBlocking {model!!.getState(currTraceData.resState)!!})
+				val similarity = context.getCurrentState().similarity(runBlocking { model.getState(currTraceData.resState)!!})
 
 				// Rule:
 				// 0 - Doesn't belong to app, skip
@@ -174,23 +176,4 @@ open class MemoryPlayback private constructor() : Explore() {
 	/*override fun getFitness(): StrategyPriority {
 		return StrategyPriority.PLAYBACK
 	}*/
-
-	// region Java overrides
-
-	override fun toString(): String {
-		return "${this.javaClass}\tApk: $packageName"
-	}
-
-	override fun equals(other: Any?): Boolean {
-		if (other !is MemoryPlayback)
-			return false
-
-		return this.packageName == other.packageName
-	}
-
-	override fun hashCode(): Int {
-		return this.model?.hashCode() ?: 0
-	}
-
-	// endregion
 }

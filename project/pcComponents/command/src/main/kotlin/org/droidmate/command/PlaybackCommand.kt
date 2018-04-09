@@ -43,7 +43,7 @@ import org.droidmate.tools.*
 import java.nio.file.Files
 import java.nio.file.Paths
 
-class PlaybackCommand(apksProvider: IApksProvider,
+/*class PlaybackCommand(apksProvider: IApksProvider,
 					  deviceDeployer: IAndroidDeviceDeployer,
 					  apkDeployer: IApkDeployer,
 					  timeProvider: ITimeProvider,
@@ -79,7 +79,7 @@ class PlaybackCommand(apksProvider: IApksProvider,
 			val command = PlaybackCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
 					timeProvider, strategyProvider, cfg, modelProvider)
 
-			val storedLogFile = Paths.get(cfg.playbackFile).toAbsolutePath()
+			val storedLogFile = Paths.get(cfg.modelDir).toAbsolutePath()
 			assert(Files.exists(storedLogFile), { "Stored exploration log $storedLogFile not found." })
 
 			log.info("Loading stored exploration log from $storedLogFile")
@@ -95,4 +95,4 @@ class PlaybackCommand(apksProvider: IApksProvider,
 			return command
 		}
 	}
-}
+}*/

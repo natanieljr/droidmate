@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory
  *
  * @author Nataniel P. Borges Jr.
  */
-@Suppress("MemberVisibilityCanBePrivate")
 class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStrategy>,
                               private val selectors: List<StrategySelector>,
                               private val memory: AbstractContext) : IExplorationStrategy, IControlObserver {
@@ -123,10 +122,10 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 					*/
 					runBlocking {
 						selectors
-								.map { Pair(it.priority, async { nullableDebugT("decision time [${it.priority}]", { it.selector(mem, pool, it.bundle) } ) } ) }
-								.sortedBy { it.first }
-								.first { it.second.await() != null }
-								.second.await()
+								.sortedBy { it.priority }
+								.map { async { nullableDebugT("decision time [${it.priority}]", { it.selector(mem, pool, it.bundle) } ) } }
+								.first{ it.await() != null }
+								.getCompleted()
 					}
 				} )
 

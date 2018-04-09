@@ -22,6 +22,7 @@ import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
@@ -224,8 +225,10 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 			if (!hasAllowButton)
 				hasAllowButton = widgets.any { it.text.toUpperCase() == "ALLOW" }
 
-			if (hasAllowButton)
+			if (hasAllowButton) {
+				logger.debug("Runtime permission dialog. Returning 'AllowRuntimePermission'")
 				pool.getFirstInstanceOf(AllowRuntimePermission::class.java)
+			}
 			else
 				null
 		}
@@ -241,6 +244,12 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 				pool.getFirstInstanceOf(Terminate::class.java)
 			else
 				null
+		}
+
+		@JvmStatic
+		val playback: SelectorFunction = { context, pool, bundle ->
+			logger.debug("Playback. Returning 'MemoryPlayback'")
+			pool.getFirstInstanceOf(MemoryPlayback::class.java)
 		}
     }
 }
