@@ -35,6 +35,19 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 	} else res = block.invoke()
 	return res!!
 }
+
+/**
+ * Triggers an action on the device.
+ *
+ * Known issue: In some cases the setting of text does open the keyboard and is hiding some widgets
+ * but these widgets are still in the uiautomator dump. Therefore it may be that DroidMate
+ * clicks on the keyboard thinking it clicked one of the widgets below it.
+ * http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
+ * -> It seems there is no reliable way to suppress the keyboard.
+ *
+ * Even when triggering a "widget.click()" action, UIAutomator internally locates the center coordinates
+ * of the widget and clicks it.
+ */
 internal sealed class DeviceAction {
 
 	@Throws(UiAutomatorDaemonException::class)
@@ -373,12 +386,6 @@ private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : Dev
 	}
 }
 
-// TODO check if this is still an issue at all
-// NEED FIX: In some cases the setting of text does open the keyboard and is hiding some widgets
-// but these widgets are still in the uiautomator dump. Therefore it may be that DroidMate
-// clicks on the keyboard thinking it clicked one of the widgets below it.
-// http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
-// -> It seems there is no reliable way to suppress the keyboard.
 private data class DeviceTextAction(override val xPath: String, override val resId: String, val text: String) : DeviceObjectAction() {
 	val selector by lazy { if (xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
 	override fun execute(device: UiDevice, context: Context) {
