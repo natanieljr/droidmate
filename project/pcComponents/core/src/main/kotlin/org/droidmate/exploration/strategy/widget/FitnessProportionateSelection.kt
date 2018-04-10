@@ -42,7 +42,11 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	constructor(cfg: ConfigurationWrapper, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
 		: this(cfg.randomSeed.toLong(), modelName, arffName)
 
-	private val eventWatcher: EventProbabilityMF by lazy { context.getOrCreateWatcher<EventProbabilityMF>() }
+	private val eventWatcher: EventProbabilityMF by lazy {
+		(context.watcher.find { it is EventProbabilityMF }
+				?: EventProbabilityMF(modelName, arffName, true)
+						.also { context.watcher.add(it) }) as EventProbabilityMF
+	}
 
 	private val countWatcher: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>() }
 
@@ -144,7 +148,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	}
 
 	override fun hashCode(): Int {
-		return this.eventWatcher.hashCode() * this.countWatcher.hashCode()
+		return this.javaClass.hashCode()
 	}
 
 	// endregion

@@ -43,7 +43,11 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 				arffName: String = "baseModelFile.arff") : this(cfg.randomSeed.toLong(), modelName, arffName)
 
 
-	private val watcher: EventProbabilityMF by lazy { context.getOrCreateWatcher<EventProbabilityMF>() }
+	private val watcher: EventProbabilityMF by lazy {
+		(context.watcher.find { it is EventProbabilityMF }
+				?: EventProbabilityMF(modelName, arffName, true)
+						.also { context.watcher.add(it) }) as EventProbabilityMF
+	}
 
 	/**
 	 * Get all widgets which from the current state that are classified as "with event"
@@ -80,7 +84,7 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 	}
 
 	override fun hashCode(): Int {
-		return this.watcher.hashCode()
+		return this.javaClass.hashCode()
 	}
 
 	// endregion
