@@ -24,6 +24,20 @@
 // web: www.droidmate.org
 package org.droidmate.configuration
 
+import com.natpryce.konfig.CommandLineOption
+import org.droidmate.configuration.ConfigProperties.Deploy.useApkFixturesDir
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkAppIsRunningRetryDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
+import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
+import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
+import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
+import org.droidmate.configuration.ConfigProperties.Output.reportDir
+import org.droidmate.configuration.ConfigProperties.Report.includePlots
+import org.droidmate.configuration.ConfigProperties.Selectors.randomSeed
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForWindowUpdateTimeout
 import org.droidmate.misc.BuildConstants
 
 import java.nio.file.FileSystem
@@ -36,23 +50,23 @@ class ConfigurationForTests() {
 
 	companion object {
 		private val zeroedTestConfig = arrayListOf(
-				Configuration.pn_randomSeed, "0",
-				Configuration.pn_uiautomatorDaemonWaitForWindowUpdateTimeout, "50",
-				Configuration.pn_launchActivityDelay, "0",
-				Configuration.pn_checkAppIsRunningRetryDelay, "0",
+				randomSeed.name, "0",
+				waitForWindowUpdateTimeout.name, "0",
+				launchActivityDelay.name, "0",
+				checkAppIsRunningRetryDelay.name, "0",
 				// Commented out, as there are no tests simulating rebooting. However, sometimes I am manually testing real-world rebooting.
 				// Such real-world rebooting require the delays to be present, not zeroed.
 //    Configuration.pn_checkDeviceAvailableAfterRebootFirstDelay, "0",
 //    Configuration.pn_checkDeviceAvailableAfterRebootLaterDelays, "0",
 //    Configuration.pn_waitForCanRebootDelay, "0",
-				Configuration.pn_clearPackageRetryDelay, "0",
-				Configuration.pn_getValidGuiSnapshotRetryDelay, "0",
-				Configuration.pn_stopAppSuccessCheckDelay, "0",
-				Configuration.pn_closeANRDelay, "0"
+				clearPackageRetryDelay.name, "0",
+				getValidGuiSnapshotRetryDelay.name, "0",
+				stopAppSuccessCheckDelay.name, "0",
+				closeANRDelay.name, "0"
 		)
 	}
 
-	fun get(): Configuration {
+	fun get(): ConfigurationWrapper {
 		return ConfigurationBuilder().build(this.argsList.toTypedArray(), this.fs)
 	}
 
@@ -60,13 +74,13 @@ class ConfigurationForTests() {
 		this.fs = fs
 		// false, because plots require gnuplot, which does not work on non-default file system
 		// For details, see org.droidmate.report.plot
-		this.setArg(arrayListOf(Configuration.pn_reportIncludePlots, "false"))
+		this.setArg(arrayListOf(includePlots.name, "false"))
 
 		return this
 	}
 
 	fun forDevice(): ConfigurationForTests {
-		this.setArg(arrayListOf(Configuration.pn_useApkFixturesDir, "true"))
+		this.setArg(arrayListOf(useApkFixturesDir.name, "true"))
 		return this
 	}
 
@@ -83,7 +97,7 @@ class ConfigurationForTests() {
 		return this
 	}
 
-	internal fun setArg(argNameAndVal: List<String>) {
+	private fun setArg(argNameAndVal: List<String>) {
 		assert(argNameAndVal.size == 2)
 
 		// Index of arg name
@@ -100,10 +114,9 @@ class ConfigurationForTests() {
 
 	init {
 		val newData = mutableListOf(
-				Configuration.pn_droidmateOutputDir, Paths.get(BuildConstants.test_temp_dir_name).toString(),
-				Configuration.pn_reportInputDir, Paths.get(BuildConstants.test_temp_dir_name).toString(),
-				Configuration.pn_reportOutputDir, Paths.get(BuildConstants.test_temp_dir_name).toString(),
-				Configuration.pn_runOnNotInlined)
+				droidmateOutputDirPath.name, Paths.get(BuildConstants.test_temp_dir_name).toAbsolutePath().toString(),
+				reportDir.name, Paths.get(BuildConstants.test_temp_dir_name).toAbsolutePath().toString(),
+				runOnNotInlined.name, "true")
 		newData.addAll(zeroedTestConfig)
 		this.argsList = newData
 	}

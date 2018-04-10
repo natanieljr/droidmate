@@ -28,7 +28,7 @@ import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.apk_inliner.ApkInliner
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 import org.slf4j.LoggerFactory
@@ -42,7 +42,7 @@ class InlineCommand @JvmOverloads constructor(private val inliner: ApkInliner = 
 		private val log = LoggerFactory.getLogger(InlineCommand::class.java)
 	}
 
-	override fun execute(cfg: Configuration) {
+	override fun execute(cfg: ConfigurationWrapper) {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 

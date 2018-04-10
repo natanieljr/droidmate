@@ -29,7 +29,7 @@ import com.konradjamrozik.Resource
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.device.android_sdk.IAaptWrapper
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.misc.text
@@ -42,7 +42,7 @@ class ApkFixtures(aapt: IAaptWrapper) {
 		val apkFixture_simple_packageName = "org.droidmate.fixtures.apks.simple"
 
 		@JvmStatic
-		fun build(): ApkFixtures = ApkFixtures(AaptWrapper(Configuration.getDefault(), SysCmdExecutor()))
+		fun build(): ApkFixtures = ApkFixtures(AaptWrapper(ConfigurationWrapper.getDefault(), SysCmdExecutor()))
 
 	}
 

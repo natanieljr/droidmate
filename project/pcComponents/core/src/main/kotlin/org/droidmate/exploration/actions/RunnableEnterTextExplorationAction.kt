@@ -31,8 +31,8 @@ import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.TextAction
 import java.time.LocalDateTime
 
-class RunnableEnterTextExplorationAction constructor(action: EnterTextExplorationAction, timestamp: LocalDateTime, takeScreenshot: Boolean)
-	: RunnableExplorationAction(action, timestamp, takeScreenshot) {
+class RunnableEnterTextExplorationAction constructor(action: EnterTextExplorationAction, timestamp: LocalDateTime)
+	: RunnableExplorationAction(action, timestamp) {
 
 	companion object {
 		private const val serialVersionUID: Long = 1
@@ -51,15 +51,11 @@ class RunnableEnterTextExplorationAction constructor(action: EnterTextExploratio
 		//					-> It seems there is no reliable way to suppress the keyboard.
 		log.debug("2. Perform widget text input: $action.")
 		this.snapshot = device.perform(TextAction(action.widget.xpath,
-				action.widget.resourceId, action.textToEnter)) as DeviceResponse
+				action.widget.resourceId, action.textToEnter))
 
 		log.debug("3. Read and clear API logs if any, then seal logs reading.")
 		logsHandler.readAndClearApiLogs()
 		this.logs = logsHandler.getLogs()
-
-		/*log.debug("5. Take a screenshot.")
-		val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
-		this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()*/
 	}
 
 }

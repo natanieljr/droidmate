@@ -46,8 +46,8 @@ task pullApkFixtures(type: Copy, dependsOn: "buildApkFixtures") {
  This project sometimes has to fire apk-inliner:run. For that, this project needs to know input and output dirs of apk-inliner,
  which is the reason for evaluation dependence.
  */
-evaluationDependsOn(":project:pcComponents:apk-inliner")
-JavaExec inlinerExec = project(":project:pcComponents:apk-inliner").tasks.run as JavaExec
+evaluationDependsOn(":project:tools:apk-inliner")
+JavaExec inlinerExec = project(":project:tools:apk-inliner").tasks.run as JavaExec
 def inlineMonitoredApkFixture = { JavaExec je, String apkName, String inlinedApkName ->
 	group = "build"
 	["main", "classpath", "standardOutput"].each { je."$it" = inlinerExec."$it" }

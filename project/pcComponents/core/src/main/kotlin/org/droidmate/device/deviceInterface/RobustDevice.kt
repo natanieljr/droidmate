@@ -30,7 +30,8 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigProperties
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
@@ -54,7 +55,7 @@ class RobustDevice : IRobustDevice {
 	private val ensureHomeScreenIsDisplayedAttempts = 3
 
 	private val device: IAndroidDevice
-	private val cfg: Configuration
+	private val cfg: ConfigurationWrapper
 
 	private val messagesReader: IDeviceMessagesReader
 
@@ -79,26 +80,26 @@ class RobustDevice : IRobustDevice {
 
 	private val waitForCanRebootDelay: Int
 
-	constructor(device: IAndroidDevice, cfg: Configuration) : this(device,
+	constructor(device: IAndroidDevice, cfg: ConfigurationWrapper) : this(device,
 			cfg,
-			cfg.clearPackageRetryAttempts,
-			cfg.clearPackageRetryDelay,
-			cfg.getValidGuiSnapshotRetryAttempts,
-			cfg.getValidGuiSnapshotRetryDelay,
-			cfg.checkAppIsRunningRetryAttempts,
-			cfg.checkAppIsRunningRetryDelay,
-			cfg.stopAppRetryAttempts,
-			cfg.stopAppSuccessCheckDelay,
-			cfg.closeANRAttempts,
-			cfg.closeANRDelay,
-			cfg.checkDeviceAvailableAfterRebootAttempts,
-			cfg.checkDeviceAvailableAfterRebootFirstDelay,
-			cfg.checkDeviceAvailableAfterRebootLaterDelays,
-			cfg.waitForCanRebootDelay,
-			cfg.monitorUseLogcat)
+			cfg[ConfigProperties.DeviceCommunication.clearPackageRetryAttempts],
+			cfg[ConfigProperties.DeviceCommunication.clearPackageRetryDelay],
+			cfg[ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryAttempts],
+			cfg[ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryDelay],
+			cfg[ConfigProperties.DeviceCommunication.checkAppIsRunningRetryAttempts],
+			cfg[ConfigProperties.DeviceCommunication.checkAppIsRunningRetryDelay],
+			cfg[ConfigProperties.DeviceCommunication.stopAppRetryAttempts],
+			cfg[ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay],
+			cfg[ConfigProperties.DeviceCommunication.closeANRAttempts],
+			cfg[ConfigProperties.DeviceCommunication.closeANRDelay],
+			cfg[ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts],
+			cfg[ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootFirstDelay],
+			cfg[ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootLaterDelays],
+			cfg[ConfigProperties.DeviceCommunication.waitForCanRebootDelay],
+			cfg[ConfigProperties.ApiMonitorServer.monitorUseLogcat])
 
 	constructor(device: IAndroidDevice,
-	            cfg: Configuration,
+	            cfg: ConfigurationWrapper,
 	            clearPackageRetryAttempts: Int,
 	            clearPackageRetryDelay: Int,
 	            getValidGuiSnapshotRetryAttempts: Int,

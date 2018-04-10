@@ -77,3 +77,8 @@ apply from: project(":project:pcComponents").file("maven.gradle")
 jar.baseName = rootProject.name
 
 apply from: project(":project:pcComponents").file("debug.gradle")
+kotlin {
+	experimental {
+		coroutines "enable"
+	}
+}

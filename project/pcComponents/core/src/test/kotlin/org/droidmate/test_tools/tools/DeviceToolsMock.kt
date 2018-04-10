@@ -25,11 +25,11 @@
 package org.droidmate.test_tools.tools
 
 import org.droidmate.device.android_sdk.IAaptWrapper
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.test_tools.device_simulation.AndroidDeviceSimulator
 import org.droidmate.tools.IDeviceTools
 
-class DeviceToolsMock constructor(cfg: Configuration,
+class DeviceToolsMock constructor(cfg: ConfigurationWrapper,
                                   aaptWrapper: IAaptWrapper,
                                   simulator: AndroidDeviceSimulator,
                                   private val deviceTools: IDeviceTools = DeviceToolsTestHelper.buildForTesting(cfg, aaptWrapper, simulator)) : IDeviceTools by deviceTools {

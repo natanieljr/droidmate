@@ -30,8 +30,8 @@ import org.droidmate.device.deviceInterface.IRobustDevice
 
 import java.time.LocalDateTime
 
-class RunnableTerminateExplorationAction(action: TerminateExplorationAction, timestamp: LocalDateTime, takeScreenshot: Boolean)
-	: RunnableExplorationAction(action, timestamp, takeScreenshot) {
+class RunnableTerminateExplorationAction(action: TerminateExplorationAction, timestamp: LocalDateTime)
+	: RunnableExplorationAction(action, timestamp) {
 
 	companion object {
 		private const val serialVersionUID: Long = 1

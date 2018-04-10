@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
@@ -39,7 +39,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 																   arffName: String = "baseModelFile.arff") : ModelBased(randomSeed, modelName, arffName) {
 
 	@JvmOverloads
-	constructor(cfg: Configuration, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
+	constructor(cfg: ConfigurationWrapper, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
 		: this(cfg.randomSeed.toLong(), modelName, arffName)
 
 	private val eventWatcher: EventProbabilityMF by lazy { context.getOrCreateWatcher<EventProbabilityMF>() }

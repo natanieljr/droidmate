@@ -24,7 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.logging.Markers
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,7 +35,7 @@ import java.nio.file.Files
  * Class to monitor the Logcat to extract method coverage information from the exploration
  */
 class CoverageMonitor(private val apkName: String,
-                      private val cfg: Configuration) : Runnable {
+                      private val cfg: ConfigurationWrapper) : Runnable {
 	private val log: Logger = LoggerFactory.getLogger(CoverageMonitor::class.java)
 	private var p: Process? = null
 
@@ -47,7 +48,7 @@ class CoverageMonitor(private val apkName: String,
 
 			val outputDir = cfg.coverageReportDirPath
 			Files.createDirectories(outputDir)
-			val pb = ProcessBuilder("python", script.toString(), outputDir.toString(), apkName, cfg.deviceIndex.toString())
+			val pb = ProcessBuilder("python", script.toString(), outputDir.toString(), apkName, cfg[deviceIndex].toString())
 
 			println(pb.command())
 

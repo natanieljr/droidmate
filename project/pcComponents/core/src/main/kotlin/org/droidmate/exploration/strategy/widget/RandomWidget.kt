@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
@@ -44,7 +44,7 @@ open class RandomWidget constructor(randomSeed: Long) : Explore() {
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
-	constructor(cfg: Configuration): this(cfg.randomSeed.toLong())
+	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed.toLong())
 
 	protected val random = Random(randomSeed)
 	private val counter: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>()	}

@@ -63,8 +63,7 @@ configure(pcJvmTargets) {
 	repositories {
 		mavenLocal()
 		mavenCentral()
-		maven { //noinspection GroovyAssignabilityCheck
-			url 'https://jitpack.io' }
+		maven { url = 'https://jitpack.io' }
 	}
 
 }

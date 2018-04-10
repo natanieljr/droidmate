@@ -24,29 +24,29 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigProperties.Report.includePlots
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.report.AggregateStats
 import org.droidmate.report.OutputDir
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 
 class ReportCommand : DroidmateCommand() {
-	override fun execute(cfg: Configuration) {
+	override fun execute(cfg: ConfigurationWrapper) {
 		val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
 		val data = out
+		val includePlots = cfg[includePlots]
 
 		AggregateStats().write(cfg.droidmateOutputReportDirPath, data)
 		Summary().write(cfg.droidmateOutputReportDirPath, data)
 		ApkViewsFile().write(cfg.droidmateOutputReportDirPath, data)
-		ApiCount(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
-		ClickFrequency(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
-		WidgetSeenClickedCount(cfg.reportIncludePlots).write(cfg.droidmateOutputReportDirPath, data)
+		ApiCount(includePlots).write(cfg.droidmateOutputReportDirPath, data)
+		ClickFrequency(includePlots).write(cfg.droidmateOutputReportDirPath, data)
+		WidgetSeenClickedCount(includePlots).write(cfg.droidmateOutputReportDirPath, data)
 		ApiActionTrace().write(cfg.droidmateOutputReportDirPath, data)
 		ActivitySeenSummary().write(cfg.droidmateOutputReportDirPath, data)
 		ActionTrace().write(cfg.droidmateOutputReportDirPath, data)
 		WidgetApiTrace().write(cfg.droidmateOutputReportDirPath, data)
-
-		if (cfg.takeScreenshots)
-			EffectiveActions().write(cfg.droidmateOutputReportDirPath, data)
+		EffectiveActions().write(cfg.droidmateOutputReportDirPath, data)
 	}
 }

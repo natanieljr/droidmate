@@ -24,16 +24,20 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools
 
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.tools.ApksProvider
 
 class SingleApkFixture constructor(aapt: IAaptWrapper,
-                                   cfg: Configuration,
-                                   apksProvider: ApksProvider = ApksProvider(aapt),
-                                   apks: List<IApk> = apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks),
-                                   private val apk: IApk = apks.first()
+								   cfg: ConfigurationWrapper,
+								   apksProvider: ApksProvider = ApksProvider(aapt),
+								   apks: List<IApk> = apksProvider.getApks(cfg.apksDirPath,
+										   cfg[ConfigProperties.Exploration.apksLimit],
+										   cfg[ConfigProperties.Exploration.apkNames],
+										   cfg[ConfigProperties.Deploy.shuffleApks]),
+								   private val apk: IApk = apks.first()
 ) : IApk by apk {
 
 	init {

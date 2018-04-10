@@ -25,6 +25,6 @@
 dependencies {
 	compile project(":project:pcComponents:command")
 
-	compile 'com.github.npryce:konfig:1.6.4.0'
+	compile 'com.github.npryce:konfig:1.6.6.0'
 }
 

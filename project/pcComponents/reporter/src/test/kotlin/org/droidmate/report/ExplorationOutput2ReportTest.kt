@@ -37,9 +37,9 @@ class ExplorationOutput2ReportTest {
 			assert(true)
 	}
 
-	private fun getTestData(fs: FileSystem, cfg: Configuration): List<AbstractContext> {
+	private fun getTestData(fileSystem: FileSystem, cfg: Configuration): List<AbstractContext> {
 			val serExplOutput: Path = fixture_monitoredSer2
-			val mockFsDirWithOutput: Path = fs.dir(cfg.droidmateOutputDir).withFiles(serExplOutput)
+			val mockFsDirWithOutput: Path = fileSystem.dir(cfg.droidmateOutputDir).withFiles(serExplOutput)
 
 			return OutputDir(mockFsDirWithOutput).notEmptyExplorationOutput2
 	}

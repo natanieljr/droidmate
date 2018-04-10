@@ -25,13 +25,16 @@
 
 package org.droidmate.configuration
 
+import com.natpryce.konfig.Configuration
 import java.nio.file.FileSystem
 
 /**
  * @see ConfigurationBuilder
  */
 interface IConfigurationBuilder {
-	fun build(args: Array<String>): Configuration
+	fun build(args: Array<String>): ConfigurationWrapper
 
-	fun build(args: Array<String>, fs: FileSystem): Configuration
+	fun build(args: Array<String>, fs: FileSystem): ConfigurationWrapper
+
+	fun build(cmdLineConfig: Configuration, fs: FileSystem): ConfigurationWrapper
 }

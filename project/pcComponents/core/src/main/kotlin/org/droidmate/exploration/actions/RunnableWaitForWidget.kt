@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory
 
 import java.time.LocalDateTime
 
-class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime, takeScreenShot: Boolean)
-	: RunnableExplorationAction(action, timestamp, takeScreenShot) {
+class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime)
+	: RunnableExplorationAction(action, timestamp) {
 
 	@Throws(DeviceException::class)
 	override fun performDeviceActions(app: IApk, device: IRobustDevice) {

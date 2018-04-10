@@ -24,23 +24,22 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.misc.ThrowablesCollection
 
 abstract class DroidmateCommand {
 
 	@Throws(ThrowablesCollection::class)
-	abstract fun execute(cfg: Configuration)
+	abstract fun execute(cfg: ConfigurationWrapper)
 
 	companion object {
 		@JvmStatic
-		fun build(report: Boolean, inline: Boolean, playback: Boolean, cfg: Configuration): DroidmateCommand {
-			assert(arrayListOf(report, inline, playback).count { it } <= 1)
+		fun build(report: Boolean, inline: Boolean, cfg: ConfigurationWrapper): DroidmateCommand {
+			assert(arrayListOf(report, inline).count { it } <= 1)
 
 			return when {
 				report -> ReportCommand()
 				inline -> InlineCommand()
-				//playback -> PlaybackCommand.build(cfg)
 				else -> ExploreCommand.build(cfg)
 			}
 		}
