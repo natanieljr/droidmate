@@ -5,7 +5,7 @@ includeBuild 'project/deviceComponents/deviceControlDaemon/'
 include(
 				"project:pcComponents", // use this to identify all child projects
 				"project:pcComponents:commonLib",
-				"project:pcComponents:apk-inliner",
+				"project:pcComponents:tools:apk-inliner",
 				"project:pcComponents:monitor-template",
 				"project:pcComponents:monitor-hook",
 				"project:pcComponents:monitor-generator",

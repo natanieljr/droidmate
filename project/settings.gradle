@@ -28,7 +28,7 @@ rootProject.name = 'droidmate'
 
 include(
 				"projects:commonLib",
-				"projects:apk-inliner",
+				"projects:tools:apk-inliner",
 				"projects:uiautomator-daemon-lib",
 				"projects:monitor-template",
 				"projects:monitor-hook",
