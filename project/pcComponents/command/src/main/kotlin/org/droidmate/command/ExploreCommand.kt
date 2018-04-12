@@ -257,7 +257,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		if (!Files.isDirectory(outputDir))
 			return
 
-		arrayListOf(cfg[screenshotDir], cfg[reportDir]).forEach {
+		arrayListOf(cfg[reportDir]).forEach {
 
 			val dirToDelete = outputDir.resolve(it)
 			if (Files.isDirectory(dirToDelete))
