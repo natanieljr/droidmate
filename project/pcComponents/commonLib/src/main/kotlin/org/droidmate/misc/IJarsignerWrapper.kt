@@ -22,9 +22,11 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-dependencies {
-	compile project(":project:pcComponents:command")
 
-	compile 'com.natpryce:konfig:1.6.6.0'
+package org.droidmate.misc
+
+import java.nio.file.Path
+
+interface IJarsignerWrapper {
+	fun signWithDebugKey(apk: Path): Path
 }
-

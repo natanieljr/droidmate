@@ -27,25 +27,15 @@
 rootProject.name = 'droidmate'
 
 include(
-				"projects:commonLib",
-				"projects:tools:apk-inliner",
-				"projects:uiautomator-daemon-lib",
-				"projects:monitor-template",
-				"projects:monitor-hook",
-				"projects:monitor-generator",
-				"projects:core",
-				"projects:reporter",
-				"projects:command",
-				"projects:API"
+		"projects:commonLib",
+		"projects:tools:apk-inliner",
+		"projects:tools:androcov",
+		"projects:uiautomator-daemon-lib",
+		"projects:monitor-template",
+		"projects:monitor-hook",
+		"projects:monitor-generator",
+		"projects:core",
+		"projects:reporter",
+		"projects:command",
+		"projects:API"
 )
-
-/* The path navigates from github/droidmate/dev/droidmate to github/utilities
-
-   Konrad Jamrozik's note to self: 
-   Commented out, as it will fail if the path is invalid, thus forcing anyone to also clone my utilities repository.
-   Instead, just configure IntelliJ to do composite build, but remember to actually publish any changes made to utilities and update
-   the version in dev/droidmate/buildSrc/build.gradle and dev/droidmate/build.gradle.
-   
-   Reference: https://docs.gradle.org/3.2.1/userguide/composite_builds.html
-*/
-// includeBuild('../../../utilities')

@@ -23,7 +23,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.apk_inliner
+/*package org.droidmate.apk_inliner
 
 import joptsimple.OptionParser
 import org.droidmate.misc.BuildConstants
@@ -79,4 +79,4 @@ class ApkInlinerFrontend {
 					System.exit(1)
 				}
 	}
-}
+}*/

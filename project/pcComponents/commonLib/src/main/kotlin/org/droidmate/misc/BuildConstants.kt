@@ -49,6 +49,8 @@ class BuildConstants {
 		val adb_command = safeGetProperty(properties, "ANDROID_HOME", "adb_command_relative")
 		@JvmStatic
 		val jarsigner = safeGetProperty(properties, "JAVA_HOME", "jarsigner_relative_path")
+		@JvmStatic
+		val android_jar_api23 = safeGetProperty(properties, "ANDROID_HOME", "android_jar_api23")
 
 		@JvmStatic
 		val apk_fixtures = safeGetProperty(properties, "apk_fixtures")

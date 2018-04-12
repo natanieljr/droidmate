@@ -49,6 +49,11 @@ jar {
 	}
 }
 
+repositories {
+	maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"}
+	maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"}
+}
+
 dependOnJunit(project)
 
 dependWithTest([project, ":project:pcComponents:core", "kotlin"])
@@ -68,6 +73,7 @@ dependencies {
 	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
 	compile project(":project:pcComponents:tools:apk-inliner")
+	compile project(":project:pcComponents:tools:androcov")
 }
 
 apply from: file("test.gradle")

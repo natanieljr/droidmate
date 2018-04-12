@@ -23,10 +23,25 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.apk_inliner
+import org.droidmate.buildsrc.BuildKt
 
-import java.nio.file.Path
+apply plugin: 'kotlin'
 
-interface IJarsignerWrapper {
-	fun signWithDebugKey(apk: Path): Path
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+	compile "ca.mcgill.sable:soot:3.0.1"
+
+	compile 'org.json:json:20140107'
+	//compile 'commons-cli:commons-cli:1.4'
+	//compile 'commons-io:commons-io:2.6'
+
+	compile project(":project:pcComponents:core")
+	compile project(":project:pcComponents:commonLib")
+
+	testCompile 'junit:junit:4.12'
+
 }
+
+apply from: project(":project:pcComponents").file("maven.gradle")

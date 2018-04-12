@@ -28,8 +28,6 @@ package org.droidmate.frontend
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.configuration.ConfigProperties.Deploy.installApk
 import org.droidmate.configuration.ConfigProperties.Deploy.installAux
-import org.droidmate.configuration.ConfigProperties.ExecutionMode.inline
-import org.droidmate.configuration.ConfigProperties.ExecutionMode.report
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
@@ -136,7 +134,7 @@ class DroidmateFrontend {
 		}
 
 		@JvmStatic
-		private fun determineAndBuildCommand(cfg: ConfigurationWrapper): DroidmateCommand = DroidmateCommand.build(cfg[report], cfg[inline], cfg)
+		private fun determineAndBuildCommand(cfg: ConfigurationWrapper): DroidmateCommand = DroidmateCommand.build(cfg)
 
 		@JvmStatic
 		private fun validateStdoutLogLevel() {

@@ -66,6 +66,8 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 
 	lateinit var monitorApkApi23: Path
 
+	lateinit var resourceDir: Path
+
 	val aaptCommand = BuildConstants.aapt_command
 	val adbCommand = BuildConstants.adb_command
 
@@ -129,6 +131,7 @@ abstract class ConfigProperties {
 		val inline by booleanType
 		val report by booleanType
 		val explore by booleanType
+		val coverage by booleanType
 	}
 
 	object Deploy : PropertyGroup() {

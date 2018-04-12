@@ -34,6 +34,7 @@ mainClassName = "org.droidmate.apk_inliner.ApkInlinerFrontend"
 
 dependencies {
 
+	compile project(":project:pcComponents:core")
 	compile project(":project:pcComponents:commonLib")
 
 	testCompile 'junit:junit:4.12'

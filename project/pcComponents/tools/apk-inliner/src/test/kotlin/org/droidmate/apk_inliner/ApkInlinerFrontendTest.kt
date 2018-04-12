@@ -23,7 +23,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.apk_inliner
+/*package org.droidmate.apk_inliner
 
 import com.konradjamrozik.ResourcePath
 import org.apache.commons.io.FileUtils
@@ -76,4 +76,4 @@ class ApkInlinerFrontendTest {
 		assert(Files.list(outputDir).count() == 1L)
 		assert(Files.list(outputDir).findFirst().isPresent)
 	}
-}
+}*/

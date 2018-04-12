@@ -23,10 +23,10 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.apk_inliner
+/*package org.droidmate.apk_inliner
 
 import java.nio.file.Path
 
 interface IApkInliner {
 	fun inline(inputPath: Path, outputDir: Path)
-}
+}*/

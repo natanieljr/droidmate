@@ -23,11 +23,8 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.apk_inliner
+package org.droidmate.misc
 
-import org.droidmate.misc.DroidmateException
-import org.droidmate.misc.ISysCmdExecutor
-import org.droidmate.misc.SysCmdExecutorException
 import java.nio.file.Files
 
 import java.nio.file.Path

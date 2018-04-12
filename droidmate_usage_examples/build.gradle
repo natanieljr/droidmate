@@ -29,7 +29,7 @@ repositories {
 	//   gradlew build install
 	//
 	mavenLocal()
-	maven { url "https://jitpack.io" }
+	//maven { url = "https://jitpack.io" }
 	mavenCentral()
 }
 

@@ -61,6 +61,7 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppR
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForCanRebootDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
+import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.explore
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.inline
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.report
@@ -124,7 +125,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(logLevel), CommandLineOption(configPath),
 			CommandLineOption(monitorSocketTimeout), CommandLineOption(monitorUseLogcat),
 			CommandLineOption(monitorUseLegacyStream), CommandLineOption(ConfigProperties.ApiMonitorServer.basePort),
-			CommandLineOption(inline), CommandLineOption(report), CommandLineOption(explore),
+			CommandLineOption(inline), CommandLineOption(report), CommandLineOption(explore), CommandLineOption(coverage),
 			CommandLineOption(installApk), CommandLineOption(installAux), CommandLineOption(uninstallApk),
 			CommandLineOption(uninstallAux), CommandLineOption(replaceResources), CommandLineOption(shuffleApks), 
 			CommandLineOption(useApkFixturesDir), CommandLineOption(deployRawApks), 
@@ -263,23 +264,26 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 		@JvmStatic
 		private fun getResourcePath(cfg: ConfigurationWrapper, resourceName: String): Path {
-			val dstPath = cfg.droidmateOutputDirPath
-					.resolve(BuildConstants.dir_name_temp_extracted_resources)
-			val path = dstPath.resolve(resourceName)
+			val path = cfg.resourceDir.resolve(resourceName)
 
 			if (!cfg[replaceResources] && Files.exists(path))
 				return path
 
-			return Resource(resourceName).extractTo(dstPath)
+			return Resource(resourceName).extractTo(cfg.resourceDir)
 		}
 
 		@JvmStatic
 		@Throws(ConfigurationException::class)
 		private fun setupResourcesAndPaths(cfg: ConfigurationWrapper) {
-			cfg.droidmateOutputDirPath = cfg.getPath(cfg[droidmateOutputDirPath]).resolve(getDeviceDir(cfg)).toAbsolutePath()
-			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg[reportDir]).toAbsolutePath()
+			cfg.droidmateOutputDirPath = cfg.getPath(cfg[droidmateOutputDirPath])
+					.resolve(getDeviceDir(cfg)).toAbsolutePath()
+			cfg.resourceDir = cfg.droidmateOutputDirPath
+					.resolve(BuildConstants.dir_name_temp_extracted_resources)
+			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath
+					.resolve(cfg[reportDir]).toAbsolutePath()
+			cfg.coverageReportDirPath = cfg.droidmateOutputDirPath
+					.resolve(cfg[coverageDir]).toAbsolutePath()
 			cfg.reportInputDirPath = cfg.getPath(cfg[ConfigProperties.Report.inputDir]).toAbsolutePath()
-			cfg.coverageReportDirPath = cfg.droidmateOutputDirPath.resolve(cfg[coverageDir]).toAbsolutePath()
 
 			cfg.uiautomator2DaemonApk = getResourcePath(cfg, "deviceControlDaemon.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon.apk located at ${cfg.uiautomator2DaemonApk}")

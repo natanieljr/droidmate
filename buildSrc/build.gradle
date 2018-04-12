@@ -48,7 +48,7 @@ ext.utilities_version = '19115bab35'
 repositories {
 	mavenCentral()
 	mavenLocal()
-	maven { url "https://jitpack.io" }
+	//maven { url = "https://jitpack.io" }
 }
 
 dependencies {
@@ -57,7 +57,7 @@ dependencies {
 		exclude group: "org.slf4j", module: "slf4j-simple"
 	}
 
-	compile 'org.zeroturnaround:zt-exec:1.8'
+	compile 'org.zeroturnaround:zt-exec:1.9'
 
 	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 	compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"

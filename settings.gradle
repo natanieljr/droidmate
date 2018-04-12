@@ -3,17 +3,18 @@ rootProject.name = 'droidmate'
 includeBuild 'project/deviceComponents/deviceControlDaemon/'
 
 include(
-				"project:pcComponents", // use this to identify all child projects
-				"project:pcComponents:commonLib",
-				"project:pcComponents:tools:apk-inliner",
-				"project:pcComponents:monitor-template",
-				"project:pcComponents:monitor-hook",
-				"project:pcComponents:monitor-generator",
-				"project:pcComponents:core",
-				"project:pcComponents:reporter",
-				"project:pcComponents:command",
-				"project:pcComponents:API"
-				, ':deviceDaemonLib'
+		"project:pcComponents", // use this to identify all child projects
+		"project:pcComponents:commonLib",
+		"project:pcComponents:tools:apk-inliner",
+		"project:pcComponents:tools:androcov",
+		"project:pcComponents:monitor-template",
+		"project:pcComponents:monitor-hook",
+		"project:pcComponents:monitor-generator",
+		"project:pcComponents:core",
+		"project:pcComponents:reporter",
+		"project:pcComponents:command",
+		"project:pcComponents:API",
+		':deviceDaemonLib'
 )
 
 

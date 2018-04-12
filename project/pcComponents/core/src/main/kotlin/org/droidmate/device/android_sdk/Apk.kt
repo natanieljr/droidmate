@@ -108,6 +108,9 @@ class Apk constructor(internalPath: Path,
 	override val inlined: Boolean
 		get() = this.fileName.endsWith("-inlined.apk")
 
+	override val instrumented: Boolean
+		get() = this.fileName.endsWith("-instrumented.apk")
+
 	override val isDummy: Boolean
 		get() = this.packageName == Apk.dummyVal
 
