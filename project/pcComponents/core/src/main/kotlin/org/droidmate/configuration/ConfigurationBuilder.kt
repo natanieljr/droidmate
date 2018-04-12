@@ -254,12 +254,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		@JvmStatic
 		private fun getDeviceDir(cfg: Configuration): String{
 			// If not using main device, export again
-			return if (cfg[deviceSerialNumber].isNotEmpty())
-				"device" + cfg[deviceSerialNumber].replace(":", "-")
-			else if (cfg[deviceIndex] > 0)
-				"device" + cfg[deviceIndex]
-			else
-				""
+			return when {
+				cfg[deviceSerialNumber].isNotEmpty() -> "device" + cfg[deviceSerialNumber].replace(":", "-")
+				cfg[deviceIndex] > 0 -> "device" + cfg[deviceIndex]
+				else -> ""
+			}
 		}
 
 		@JvmStatic

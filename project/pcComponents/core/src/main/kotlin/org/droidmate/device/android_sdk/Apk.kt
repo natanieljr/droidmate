@@ -43,7 +43,7 @@ class Apk constructor(internalPath: Path,
 		private const val serialVersionUID: Long = 1
 		private val log = LoggerFactory.getLogger(Apk::class.java)
 
-		private val dummyVal = "DUMMY"
+		private const val dummyVal = "DUMMY"
 		private val dummyApk = Apk(Paths.get("./dummy.apk"), dummyVal, dummyVal, dummyVal, dummyVal)
 
 		@JvmStatic
@@ -79,14 +79,13 @@ class Apk constructor(internalPath: Path,
 		}
 	}
 
-	private val fileURI: URI
+	private val fileURI: URI = internalPath.toUri()
 
 	override val fileName: String
 	override val fileNameWithoutExtension: String
 	override val absolutePath: String
 
 	init {
-		fileURI = internalPath.toUri()
 		val fileName = path.fileName.toString()
 		val absolutePath = path.toAbsolutePath().toString()
 

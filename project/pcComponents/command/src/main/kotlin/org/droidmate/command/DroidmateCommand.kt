@@ -30,6 +30,7 @@ import org.droidmate.configuration.ConfigProperties.ExecutionMode.report
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.ThrowablesCollection
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -41,7 +42,7 @@ abstract class DroidmateCommand {
 
 	companion object {
 		@JvmStatic
-		protected val log = LoggerFactory.getLogger(DroidmateCommand::class.java)
+		protected val log: Logger = LoggerFactory.getLogger(DroidmateCommand::class.java)
 
 		@JvmStatic
 		fun build(cfg: ConfigurationWrapper): DroidmateCommand {
