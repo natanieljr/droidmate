@@ -40,7 +40,8 @@ import java.util.*
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class RandomWidget constructor(randomSeed: Long) : Explore() {
+open class RandomWidget constructor(randomSeed: Long,
+									private val biased: Boolean = true) : Explore() {
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
@@ -106,7 +107,7 @@ open class RandomWidget constructor(randomSeed: Long) : Explore() {
 		return chooseActionForWidget(context.lastTarget!!)
 	}
 
-	protected open fun chooseRandomWidget(): ExplorationAction {
+	private fun chooseBiased(): ExplorationAction{
 		runBlocking { counter.job.joinChildren() }  // this waits for both children counter and blacklist
 		val candidates =
 		// for each widget in this state the number of interactions
@@ -131,6 +132,17 @@ open class RandomWidget constructor(randomSeed: Long) : Explore() {
 				}
 			}
 		}, inMillis = true)
+	}
+
+	private fun chooseRandomly(): ExplorationAction{
+		return currentState.actionableWidgets.chooseRandomly()
+	}
+
+	protected open fun chooseRandomWidget(): ExplorationAction {
+		return if (biased)
+			chooseBiased()
+		else
+			chooseRandomly()
 	}
 
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
