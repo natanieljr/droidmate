@@ -25,10 +25,12 @@
 
 package org.droidmate.tools
 
+import org.droidmate.configuration.ConfigProperties.Deploy.installApk
+import org.droidmate.configuration.ConfigProperties.Deploy.uninstallApk
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.configuration.Configuration
 import org.droidmate.device.IDeployableAndroidDevice
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
@@ -36,7 +38,7 @@ import org.slf4j.LoggerFactory
 /**
  * @see IApkDeployer#withDeployedApk(IDeployableAndroidDevice, org.droidmate.device.android_sdk.IApk, (IApk) -> Any)
  */
-class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
+class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeployer {
 	companion object {
 		private val log = LoggerFactory.getLogger(ApkDeployer::class.java)
 	}
@@ -84,7 +86,7 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
 
 	private fun deployApk(device: IDeployableAndroidDevice, apk: IApk): ApkExplorationException? {
 
-		if (cfg.installApk) {
+		if (cfg[installApk]) {
 			try {
 				tryReinstallApk(device, apk)
 
@@ -101,7 +103,7 @@ class ApkDeployer constructor(private val cfg: Configuration) : IApkDeployer {
 
 	@Throws(DeviceException::class)
 	private fun tryUndeployApk(device: IDeployableAndroidDevice, apk: IApk) {
-		if (cfg.uninstallApk) {
+		if (cfg[uninstallApk]) {
 			if (device.isAvailable()) {
 				log.info("Uninstalling $apk.fileName")
 				// This method is called in RunnableTerminateExplorationAction.performDeviceActions

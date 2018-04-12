@@ -27,13 +27,12 @@ package org.droidmate.exploration.actions
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.PressBack
 
 import java.time.LocalDateTime
 
-class RunnablePressBackExplorationAction constructor(action: PressBackExplorationAction, timestamp: LocalDateTime, takescreenshot: Boolean)
-	: RunnableExplorationAction(action, timestamp, takescreenshot) {
+class RunnablePressBackExplorationAction constructor(action: PressBackExplorationAction, timestamp: LocalDateTime)
+	: RunnableExplorationAction(action, timestamp) {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}

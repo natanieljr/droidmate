@@ -28,7 +28,7 @@ import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.apk_inliner.ApkInliner
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 import org.slf4j.LoggerFactory
@@ -36,13 +36,10 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
-class InlineCommand @JvmOverloads constructor(private val inliner: ApkInliner = ApkInliner.build()) : DroidmateCommand() {
+class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
+											  private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
 
-	companion object {
-		private val log = LoggerFactory.getLogger(InlineCommand::class.java)
-	}
-
-	override fun execute(cfg: Configuration) {
+	override fun execute(cfg: ConfigurationWrapper) {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
@@ -51,26 +48,15 @@ class InlineCommand @JvmOverloads constructor(private val inliner: ApkInliner = 
 			return
 		}
 
-		val originalsDir = cfg.apksDirPath.resolve("originals")
+		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
 		if (originalsDir.createDirIfNotExists())
-			log.info("Created directory to hold original apks, before inlining: " + originalsDir.toAbsolutePath().toString())
+			log.info("Created directory to hold original apks, before inlining: $originalsDir")
 
 		apks.filter { !it.inlined }.forEach { apk ->
 
 			inliner.inline(apk.path, apk.path.parent)
 			log.info("Inlined ${apk.fileName}")
 			moveOriginal(apk, originalsDir)
-		}
-	}
-
-	private fun moveOriginal(apk: Apk, originalsDir: Path) {
-		val original = originalsDir.resolve(apk.fileName)
-
-		if (!Files.exists(original)) {
-			Files.move(apk.path, original)
-			log.info("Moved ${original.fileName} to '${originalsDir.fileName}' sub dir.")
-		} else {
-			log.info("Skipped moving ${original.fileName} to '${originalsDir.fileName}' sub dir: it already exists there.")
 		}
 	}
 }

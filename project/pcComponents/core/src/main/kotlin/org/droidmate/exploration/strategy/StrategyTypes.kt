@@ -29,7 +29,7 @@ package org.droidmate.exploration.strategy
  *
  * @author Nataniel P. Borges Jr.
  */
-enum class StrategyTypes(val strategyName: String) {
+/*enum class StrategyTypes(val strategyName: String) {
 	// Default
 	RandomWidget("RandomWidget"),
 	PressBack("PressBack"),
@@ -44,4 +44,4 @@ enum class StrategyTypes(val strategyName: String) {
 
 	// Testify
 	SeekTargets("SeekTargets")
-}
+}*/

@@ -25,7 +25,6 @@
 
 package org.droidmate.configuration
 
-import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
 import org.junit.Test

@@ -24,24 +24,47 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
+import org.droidmate.configuration.ConfigProperties.ExecutionMode.inline
+import org.droidmate.configuration.ConfigProperties.ExecutionMode.report
+import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.ThrowablesCollection
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.nio.file.Files
+import java.nio.file.Path
 
 abstract class DroidmateCommand {
 
 	@Throws(ThrowablesCollection::class)
-	abstract fun execute(cfg: Configuration)
+	abstract fun execute(cfg: ConfigurationWrapper)
 
 	companion object {
 		@JvmStatic
-		fun build(report: Boolean, inline: Boolean, playback: Boolean, cfg: Configuration): DroidmateCommand {
-			assert(arrayListOf(report, inline, playback).count { it } <= 1)
+		protected val log: Logger = LoggerFactory.getLogger(DroidmateCommand::class.java)
+
+		@JvmStatic
+		fun build(cfg: ConfigurationWrapper): DroidmateCommand {
+			assert(arrayListOf(cfg[report], cfg[inline], cfg[coverage]).count { it } <= 1)
 
 			return when {
-				report -> ReportCommand()
-				inline -> InlineCommand()
-				playback -> PlaybackCommand.build(cfg)
+				cfg[report] -> ReportCommand()
+				cfg[inline] -> InlineCommand(cfg)
+				cfg[coverage] -> CoverageCommand(cfg)
 				else -> ExploreCommand.build(cfg)
+			}
+		}
+
+		@JvmStatic
+		protected fun moveOriginal(apk: Apk, originalsDir: Path) {
+			val original = originalsDir.resolve(apk.fileName)
+
+			if (!Files.exists(original)) {
+				Files.move(apk.path, original)
+				log.info("Moved ${original.fileName} to '${originalsDir.fileName}' sub dir.")
+			} else {
+				log.info("Skipped moving ${original.fileName} to '${originalsDir.fileName}' sub dir: it already exists there.")
 			}
 		}
 	}

@@ -50,7 +50,7 @@ class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
 				.sorted()
 				.toList()
 
-		if (!(apksNames.isEmpty())) {
+		if (apksNames.isNotEmpty() && apksNames.first().isNotEmpty()) {
 			apks = apks.filter { apk -> apk.fileName.toString() in apksNames }
 			assert(apksNames.all { apks.map { p -> p.fileName.toString() }.toList().contains(it) })
 		}

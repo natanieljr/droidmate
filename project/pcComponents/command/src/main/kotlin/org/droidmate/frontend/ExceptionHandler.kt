@@ -26,7 +26,6 @@ package org.droidmate.frontend
 
 import org.droidmate.device.android_sdk.ApkExplorationException
 import org.droidmate.device.android_sdk.ExplorationException
-import org.droidmate.configuration.Configuration
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.Markers.Companion.exceptions
 import org.droidmate.misc.ThrowablesCollection
@@ -109,7 +108,7 @@ class ExceptionHandler : IExceptionHandler {
 			val message = "An unhandled exception of ${e.javaClass.simpleName} was thrown during DroidMate run. If you cannot diagnose " +
 					"and fix the problem yourself by inspecting the logs, this might a bug in the code. Sorry!\n" +
 					"In such case, please contact the DroidMate developer, Konrad Jamrozik, at jamrozik@st.cs.uni-saarland.de.\n" +
-					"Please include the output dir (by default set to ${Configuration.defaultDroidmateOutputDir}).\n" +
+					"Please include the output dir.\n" +
 					"A cookie for you, brave human.\n"
 
 			log.error("$message$e")

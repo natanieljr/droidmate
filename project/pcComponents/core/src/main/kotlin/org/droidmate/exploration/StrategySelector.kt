@@ -22,16 +22,15 @@ import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 
-typealias SelectorFunction = (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
+typealias SelectorFunction = suspend (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
 
 class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg val bundle: Any){
     companion object {
@@ -69,8 +68,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 		@JvmStatic
         val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
             val timeLimit = bundle!![0].toString().toInt()
-            val now = LocalDateTime.now()
-            val diff = ChronoUnit.SECONDS.between(context.explorationStartTime, now)
+			val diff = context.getExplorationTimeInMs()
 
             if (diff >= timeLimit) {
                 logger.debug("Exploration time exhausted. Returning 'Terminate'")
@@ -211,9 +209,9 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 					else -> pool.getFirstInstanceOf(Back::class.java)
 				}
 			}
-
+			else
 			// can move forwards
-			null
+				null
 		}
 
 		/**
@@ -227,8 +225,10 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 			if (!hasAllowButton)
 				hasAllowButton = widgets.any { it.text.toUpperCase() == "ALLOW" }
 
-			if (hasAllowButton)
+			if (hasAllowButton) {
+				logger.debug("Runtime permission dialog. Returning 'AllowRuntimePermission'")
 				pool.getFirstInstanceOf(AllowRuntimePermission::class.java)
+			}
 			else
 				null
 		}
@@ -244,6 +244,12 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
 				pool.getFirstInstanceOf(Terminate::class.java)
 			else
 				null
+		}
+
+		@JvmStatic
+		val playback: SelectorFunction = { context, pool, bundle ->
+			logger.debug("Playback. Returning 'MemoryPlayback'")
+			pool.getFirstInstanceOf(MemoryPlayback::class.java)
 		}
     }
 }

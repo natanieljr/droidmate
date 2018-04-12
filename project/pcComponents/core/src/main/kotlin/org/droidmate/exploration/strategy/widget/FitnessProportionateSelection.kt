@@ -24,12 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.statemodel.features.EventProbabilityMF
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 
 /**
  * Exploration strategy which selects widgets following Fitness Proportionate Selection
@@ -40,7 +39,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 																   arffName: String = "baseModelFile.arff") : ModelBased(randomSeed, modelName, arffName) {
 
 	@JvmOverloads
-	constructor(cfg: Configuration, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
+	constructor(cfg: ConfigurationWrapper, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
 		: this(cfg.randomSeed.toLong(), modelName, arffName)
 
 	private val eventWatcher: EventProbabilityMF by lazy {
@@ -49,11 +48,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 						.also { context.watcher.add(it) }) as EventProbabilityMF
 	}
 
-	private val countWatcher: ActionCounterMF by lazy {
-		(context.watcher.find { it is ActionCounterMF }
-				?: ActionCounterMF()
-						.also { context.watcher.add(it) }) as ActionCounterMF
-	}
+	private val countWatcher: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>() }
 
 	/**
      * Get all widgets which from a [widget context][currentState].
@@ -153,7 +148,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	}
 
 	override fun hashCode(): Int {
-		return this.eventWatcher.hashCode() * this.countWatcher.hashCode()
+		return this.javaClass.hashCode()
 	}
 
 	// endregion

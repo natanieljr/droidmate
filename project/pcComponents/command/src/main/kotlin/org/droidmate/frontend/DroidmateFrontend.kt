@@ -26,8 +26,11 @@
 package org.droidmate.frontend
 
 import org.droidmate.command.DroidmateCommand
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigProperties.Deploy.installApk
+import org.droidmate.configuration.ConfigProperties.Deploy.installAux
+import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigurationBuilder
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.LogbackConstants.Companion.system_prop_stdout_loglevel
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
@@ -35,7 +38,6 @@ import org.droidmate.logging.Markers
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.DroidmateException
 import org.slf4j.LoggerFactory
-import java.io.File
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -80,13 +82,14 @@ class DroidmateFrontend {
 			System.exit(exitStatus)
 		}
 
+		@Suppress("MemberVisibilityCanBePrivate")
 		@JvmStatic
 		@JvmOverloads
 		fun execute(args: Array<String>,
-		            commandProvider: (Configuration) -> DroidmateCommand = { determineAndBuildCommand(it) },
+		            commandProvider: (ConfigurationWrapper) -> DroidmateCommand = { determineAndBuildCommand(it) },
 		            fs: FileSystem = FileSystems.getDefault(),
 		            exceptionHandler: IExceptionHandler = ExceptionHandler(),
-		            receivedCfg: Configuration? = null): Int {
+		            cfg: ConfigurationWrapper = ConfigurationBuilder().build(args, fs)): Int {
 			println("DroidMate, an automated execution generator for Android apps.")
 			println("Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik")
 			println("This program is free software licensed under GNU GPL v3.")
@@ -103,24 +106,22 @@ class DroidmateFrontend {
 			try {
 				validateStdoutLogLevel()
 				LogbackUtilsRequiringLogbackLog.cleanLogsDir()
-				log.info("Bootstrapping DroidMate: building ${Configuration::class.java.simpleName} from args " +
+				log.info("Bootstrapping DroidMate: building ${ConfigurationWrapper::class.java.simpleName} from args " +
 						"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
 				log.info("IMPORTANT: for help on how to configure DroidMate, run it with -help")
 				log.info("IMPORTANT: for detailed logs from DroidMate run, please see ${LogbackConstants.LOGS_DIR_PATH}.")
 
-				val cfg = receivedCfg ?: ConfigurationBuilder().build(args, fs)
-
-				if (!cfg.installApk)
+				if (!cfg[installApk])
 					log.warn("DroidMate will not reinstall the target APK(s). If the APK(s) are not previously installed on the device the exploration will fail.")
 
-				if (!cfg.installAux)
+				if (!cfg[installAux])
 					log.warn("DroidMate will not reinstall its auxiliary components (UIAutomator and Monitor). If the they are not previously installed on the device the exploration will fail.")
 
 				val command = commandProvider.invoke(cfg)
 
 				log.info("Successfully instantiated ${command.javaClass.simpleName}. Welcome to DroidMate. Lie back, relax and enjoy.")
-				log.info("Run start timestamp: " + runStart)
-				log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
+				log.info("Run start timestamp: $runStart")
+				log.info("Running in Android ${cfg[apiVersion]} compatibility mode (api23+ = version 6.0 or newer).")
 
 				command.execute(cfg)
 
@@ -128,12 +129,12 @@ class DroidmateFrontend {
 				exitStatus = exceptionHandler.handle(e)
 			}
 
-			logDroidmateRunEnd(runStart, /* boolean encounteredExceptionsDuringTheRun = */ exitStatus > 0)
+			logDroidmateRunEnd(runStart, /* boolean encounteredExceptionsDuringTheRun = */ exitStatus > 0, cfg)
 			return exitStatus
 		}
 
 		@JvmStatic
-		private fun determineAndBuildCommand(cfg: Configuration): DroidmateCommand = DroidmateCommand.build(cfg.report, cfg.inline, cfg.playback, cfg)
+		private fun determineAndBuildCommand(cfg: ConfigurationWrapper): DroidmateCommand = DroidmateCommand.build(cfg)
 
 		@JvmStatic
 		private fun validateStdoutLogLevel() {
@@ -145,7 +146,7 @@ class DroidmateFrontend {
 						"DEBUG, INFO, WARN or ERROR. Instead, it is set to ${System.getProperty(system_prop_stdout_loglevel)}.")
 		}
 
-		private fun logDroidmateRunEnd(runStart: Date, encounteredExceptionsDuringTheRun: Boolean) {
+		private fun logDroidmateRunEnd(runStart: Date, encounteredExceptionsDuringTheRun: Boolean, cfg: ConfigurationWrapper) {
 			val runEnd = Date()
 			val diffInMillis = runEnd.time - runStart.time
 			val runDuration = TimeUnit.SECONDS.convert(diffInMillis, TimeUnit.MILLISECONDS)
@@ -158,7 +159,7 @@ class DroidmateFrontend {
 				log.info("DroidMate run finished successfully.")
 
 			log.info("Run finish timestamp: ${runEnd.toString().format(timestampFormat)}. DroidMate ran for $runDuration.")
-			log.info("By default, the results from the run can be found in .${File.separator}${Configuration.defaultDroidmateOutputDir} directory.")
+			log.info("The results from the run can be found in ${cfg.droidmateOutputDirPath} directory.")
 			log.info("By default, for detailed diagnostics logs from the run, see ${LogbackConstants.LOGS_DIR_PATH} directory.")
 
 			log.info(runData, "Run start  timestamp: ${runStart.toString().format(timestampFormat)}")

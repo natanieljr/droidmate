@@ -42,8 +42,7 @@ private var performT: Long = 0
 private var performN: Int = 1
 
 class RunnableWidgetExplorationAction constructor(action: WidgetExplorationAction,
-                                                  timestamp: LocalDateTime,
-                                                  takeScreenshot: Boolean) : RunnableExplorationAction(action, timestamp, takeScreenshot) {
+                                                  timestamp: LocalDateTime) : RunnableExplorationAction(action, timestamp) {
 
 	companion object {
 		private const val serialVersionUID: Long = 1

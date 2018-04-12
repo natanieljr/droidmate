@@ -26,11 +26,11 @@
 package org.droidmate.tools
 
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.AndroidDevice
 import org.droidmate.device.IAndroidDevice
 
-class AndroidDeviceFactory constructor(private val cfg: Configuration,
+class AndroidDeviceFactory constructor(private val cfg: ConfigurationWrapper,
                                        private val adbWrapper: IAdbWrapper) : IAndroidDeviceFactory {
 	override fun create(serialNumber: String): IAndroidDevice = AndroidDevice(serialNumber, cfg, adbWrapper)
 }

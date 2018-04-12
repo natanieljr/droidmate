@@ -26,7 +26,7 @@
 package org.droidmate.device.android_sdk
 
 import com.konradjamrozik.FirstMatchFirstGroup
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
@@ -37,7 +37,7 @@ import java.nio.file.Path
 /**
  * Wrapper for the {@code aapt} tool from Android SDK.
  */
-class AaptWrapper constructor(private val cfg: Configuration,
+class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
                               private val sysCmdExecutor: ISysCmdExecutor) : IAaptWrapper {
 
 	companion object {

@@ -99,6 +99,7 @@ task writeBuildConstantsProperties() { Task it ->
 		map["monitor_generator_res_name_monitor_template"] = BuildKt.monitor_generator_res_name_monitor_template
 		map["aapt_command_relative"] = BuildKt.aapt_command_relative
 		map["adb_command_relative"] = BuildKt.adb_command_relative
+		map["android_jar_api23"] = BuildKt.android_jar_api23
 		map["monitor_on_avd_apk_name"] = BuildKt.monitor_on_avd_apk_name
 		map["monitor_api23_apk_name"] = BuildKt.monitor_api23_apk_name
 		map["api_policies_file_name"] = BuildKt.api_policies_file_name

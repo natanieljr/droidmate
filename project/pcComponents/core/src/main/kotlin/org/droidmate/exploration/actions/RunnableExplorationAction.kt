@@ -38,24 +38,22 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
 abstract class RunnableExplorationAction(override val base: ExplorationAction,
-                                         override val timestamp: LocalDateTime,
-                                         override val takeScreenshot: Boolean = false) : IRunnableExplorationAction {
+                                         override val timestamp: LocalDateTime) : IRunnableExplorationAction {
 
 	companion object {
 		private const val serialVersionUID: Long = 1
 		internal val log = LoggerFactory.getLogger(RunnableExplorationAction::class.java)
 
 		@JvmStatic
-		@JvmOverloads
-		fun from(action: ExplorationAction, timestamp: LocalDateTime, takeScreenShot: Boolean = false): RunnableExplorationAction =//    log.trace("Building exploration action ${action.class} with timestamp: $timestamp")
+		fun from(action: ExplorationAction, timestamp: LocalDateTime): RunnableExplorationAction =//    log.trace("Building exploration action ${action.class} with timestamp: $timestamp")
 
 				when (action) {
-					is ResetAppExplorationAction -> RunnableResetAppExplorationAction(action, timestamp, takeScreenShot)
-					is WidgetExplorationAction -> RunnableWidgetExplorationAction(action, timestamp, takeScreenShot)
-					is TerminateExplorationAction -> RunnableTerminateExplorationAction(action, timestamp, takeScreenShot)
-					is EnterTextExplorationAction -> RunnableEnterTextExplorationAction(action, timestamp, takeScreenShot)
-					is PressBackExplorationAction -> RunnablePressBackExplorationAction(action, timestamp, takeScreenShot)
-					is WaitA -> RunnableWaitForWidget(action, timestamp, takeScreenShot)
+					is ResetAppExplorationAction -> RunnableResetAppExplorationAction(action, timestamp)
+					is WidgetExplorationAction -> RunnableWidgetExplorationAction(action, timestamp)
+					is TerminateExplorationAction -> RunnableTerminateExplorationAction(action, timestamp)
+					is EnterTextExplorationAction -> RunnableEnterTextExplorationAction(action, timestamp)
+					is PressBackExplorationAction -> RunnablePressBackExplorationAction(action, timestamp)
+					is WaitA -> RunnableWaitForWidget(action, timestamp)
 
 					else -> throw UnexpectedIfElseFallthroughError("Unhandled ExplorationAction class. The class: ${action.javaClass}")
 				}

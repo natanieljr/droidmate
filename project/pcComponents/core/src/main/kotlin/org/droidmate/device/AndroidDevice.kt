@@ -30,7 +30,15 @@ import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigProperties
+import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
+import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
+import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
+import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
@@ -62,7 +70,7 @@ import java.time.format.DateTimeFormatter
  * </p>
  */
 class AndroidDevice constructor(private val serialNumber: String,
-                                private val cfg: Configuration,
+                                private val cfg: ConfigurationWrapper,
                                 private val adbWrapper: IAdbWrapper) : IAndroidDevice {
 	companion object {
 		private val log = LoggerFactory.getLogger(AndroidDevice::class.java)
@@ -79,16 +87,24 @@ class AndroidDevice constructor(private val serialNumber: String,
 		}
 	}
 
+	init {
+		// If the device serial number is not empty, update the device index from the serial number
+		// it can't be done in the configuration because it needs access to the AdbWrapper
+		if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isNotEmpty()){
+			cfg.indexFromSN = adbWrapper.getAndroidDevicesDescriptors().indexOfFirst { it.deviceSerialNumber == this.serialNumber }
+		}
+	}
+
 	private val tcpClients: ITcpClients = TcpClients(
 			this.adbWrapper,
 			this.serialNumber,
-			cfg.monitorSocketTimeout,
-			cfg.uiautomatorDaemonSocketTimeout,
-			cfg.uiautomatorDaemonTcpPort,
-			cfg.uiautomatorDaemonServerStartTimeout,
-			cfg.uiautomatorDaemonServerStartQueryDelay,
-			cfg.port,
-			cfg.monitorUseLegacyStream)
+			cfg[monitorSocketTimeout],
+			cfg[socketTimeout],
+			cfg.uiAutomatorPort,
+			cfg[startTimeout],
+			cfg[startQueryDelay],
+			cfg.monitorPort,
+			cfg[monitorUseLegacyStream])
 
 	@Throws(DeviceException::class)
 	override fun pushFile(jar: Path) {
@@ -215,16 +231,18 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun removeLogcatLogFile() {
 
 		log.debug("removeLogcatLogFile()")
-		if (cfg.androidApi == Configuration.api23)
-			this.adbWrapper.removeFile_api23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
-		else throw UnexpectedIfElseFallthroughError()
+		if (cfg[apiVersion] == ConfigurationWrapper.api23)
+			this.adbWrapper.removeFileApi23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
+		else
+			throw UnexpectedIfElseFallthroughError()
 	}
 
 	override fun pullLogcatLogFile() {
 		log.debug("pullLogcatLogFile()")
-		if (cfg.androidApi == Configuration.api23)
-			this.adbWrapper.pullFile_api23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
-		else throw UnexpectedIfElseFallthroughError()
+		if (cfg[apiVersion] == ConfigurationWrapper.api23)
+			this.adbWrapper.pullFileApi23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
+		else
+			throw UnexpectedIfElseFallthroughError()
 	}
 
 	override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> {
@@ -306,8 +324,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun launchMainActivity(launchableActivityComponentName: String) {
 		log.debug("launchMainActivity($launchableActivityComponentName)")
 		adbWrapper.launchMainActivity(serialNumber, launchableActivityComponentName)
-		log.info("Sleeping after launching $launchableActivityComponentName for ${cfg.launchActivityDelay} ms")
-		sleep(cfg.launchActivityDelay.toLong())
+		log.info("Sleeping after launching $launchableActivityComponentName for ${cfg[launchActivityDelay]} ms")
+		sleep(cfg[launchActivityDelay].toLong())
 	}
 
 	override fun closeMonitorServers() {
@@ -337,26 +355,28 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 		log.debug("perform(newLaunchAppDeviceAction(iconLabel:$iconLabel))")
 		this.perform(LaunchApp(iconLabel))
-		log.info("Sleeping after clicking app icon labeled '$iconLabel' for ${cfg.launchActivityDelay} ms")
-		sleep(cfg.launchActivityDelay.toLong())
+		log.info("Sleeping after clicking app icon labeled '$iconLabel' for ${cfg[launchActivityDelay]} ms")
+		sleep(cfg[launchActivityDelay].toLong())
 	}
 
 	override fun reinstallUiautomatorDaemon() {
-		if (cfg.androidApi == Configuration.api23) {
+		if (cfg[apiVersion] == ConfigurationWrapper.api23) {
 			this.uninstallApk(uia2Daemon_testPackageName, true)
 			this.uninstallApk(uia2Daemon_packageName, true)
 
 			this.installApk(this.cfg.uiautomator2DaemonApk)
 			this.installApk(this.cfg.uiautomator2DaemonTestApk)
 
-		} else throw UnexpectedIfElseFallthroughError()
+		} else
+			throw UnexpectedIfElseFallthroughError()
 	}
 
 	override fun pushMonitorJar() {
-		if (cfg.androidApi == Configuration.api23) {
+		if (cfg[apiVersion] == ConfigurationWrapper.api23) {
 			this.pushFile(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
 
-		} else throw UnexpectedIfElseFallthroughError()
+		} else
+			throw UnexpectedIfElseFallthroughError()
 
 		this.pushFile(this.cfg.apiPoliciesFile, BuildConstants.api_policies_file_name)
 		this.pushFile(this.cfg.portFile, BuildConstants.port_file_name)
@@ -371,7 +391,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun uiaDaemonIsRunning(): Boolean {
-		if (cfg.androidApi != Configuration.api23)
+		if (cfg[apiVersion] != ConfigurationWrapper.api23)
 			throw UnexpectedIfElseFallthroughError()
 
 		val packageName = uia2Daemon_packageName

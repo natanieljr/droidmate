@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
@@ -40,11 +40,12 @@ import java.util.*
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class RandomWidget constructor(randomSeed: Long) : Explore() {
+open class RandomWidget constructor(randomSeed: Long,
+									private val biased: Boolean = true) : Explore() {
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
-	constructor(cfg: Configuration): this(cfg.randomSeed.toLong())
+	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed.toLong())
 
 	protected val random = Random(randomSeed)
 	private val counter: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>()	}
@@ -106,7 +107,7 @@ open class RandomWidget constructor(randomSeed: Long) : Explore() {
 		return chooseActionForWidget(context.lastTarget!!)
 	}
 
-	protected open fun chooseRandomWidget(): ExplorationAction {
+	private fun chooseBiased(): ExplorationAction{
 		runBlocking { counter.job.joinChildren() }  // this waits for both children counter and blacklist
 		val candidates =
 		// for each widget in this state the number of interactions
@@ -131,6 +132,17 @@ open class RandomWidget constructor(randomSeed: Long) : Explore() {
 				}
 			}
 		}, inMillis = true)
+	}
+
+	private fun chooseRandomly(): ExplorationAction{
+		return currentState.actionableWidgets.chooseRandomly()
+	}
+
+	protected open fun chooseRandomWidget(): ExplorationAction {
+		return if (biased)
+			chooseBiased()
+		else
+			chooseRandomly()
 	}
 
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {

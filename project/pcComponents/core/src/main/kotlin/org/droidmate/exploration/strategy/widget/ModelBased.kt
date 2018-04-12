@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.features.EventProbabilityMF
 
@@ -38,14 +38,14 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 	 * Creates a new exploration strategy instance reading the random seed from the configuration file
 	 */
 	@JvmOverloads
-	constructor(cfg: Configuration,
+	constructor(cfg: ConfigurationWrapper,
 				modelName: String = "HasModel.model",
 				arffName: String = "baseModelFile.arff") : this(cfg.randomSeed.toLong(), modelName, arffName)
 
 
 	private val watcher: EventProbabilityMF by lazy {
 		(context.watcher.find { it is EventProbabilityMF }
-				?: EventProbabilityMF(modelName, arffName, false)
+				?: EventProbabilityMF(modelName, arffName, true)
 						.also { context.watcher.add(it) }) as EventProbabilityMF
 	}
 
@@ -84,7 +84,7 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 	}
 
 	override fun hashCode(): Int {
-		return this.watcher.hashCode()
+		return this.javaClass.hashCode()
 	}
 
 	// endregion

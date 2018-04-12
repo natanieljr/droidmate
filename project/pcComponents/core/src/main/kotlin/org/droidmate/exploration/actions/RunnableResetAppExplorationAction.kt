@@ -28,11 +28,10 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
-import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import java.time.LocalDateTime
 
-class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, timestamp: LocalDateTime, takeScreenshot: Boolean)
-	: RunnableExplorationAction(action, timestamp, takeScreenshot) {
+class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, timestamp: LocalDateTime)
+	: RunnableExplorationAction(action, timestamp) {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}

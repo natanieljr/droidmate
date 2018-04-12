@@ -112,7 +112,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 					WidgetData::focused.name to (if (getBool("focusable")) getBool("focused") else null),
 					WidgetData::scrollable.name to getBool("scrollable"),
 					WidgetData::longClickable.name to getBool("long-clickable"),
-					WidgetData::visible.name to getBool("visible-to-user"),  // TODO check invisible nodes are probably never in the dump anyway
+					WidgetData::visible.name to getBool("visible-to-user"),
 					WidgetData::isPassword.name to getBool("password"),
 					WidgetData::selected.name to getBool("selected"),
 					WidgetData::boundsX.name to boundsList[0],

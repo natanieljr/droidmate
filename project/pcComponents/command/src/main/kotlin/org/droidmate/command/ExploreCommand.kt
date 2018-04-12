@@ -25,8 +25,29 @@
 package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
+import org.droidmate.configuration.ConfigProperties
+import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
+import org.droidmate.configuration.ConfigProperties.Exploration.apkNames
+import org.droidmate.configuration.ConfigProperties.Exploration.apksLimit
+import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
+import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
+import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
+import org.droidmate.configuration.ConfigProperties.Output.reportDir
+import org.droidmate.configuration.ConfigProperties.Output.screenshotDir
+import org.droidmate.configuration.ConfigProperties.Report.includePlots
+import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
+import org.droidmate.configuration.ConfigProperties.Selectors.playbackModelDir
+import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbability
+import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
+import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
+import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
+import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
+import org.droidmate.configuration.ConfigProperties.Strategies.explore
+import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
+import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
+import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.device.android_sdk.*
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.AbstractContext
@@ -39,8 +60,10 @@ import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
+import org.droidmate.exploration.statemodel.ModelLoader
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.playback.MemoryPlayback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
 import org.droidmate.exploration.strategy.widget.ModelBased
@@ -51,12 +74,14 @@ import org.droidmate.report.AggregateStats
 import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
+import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
 import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -65,80 +90,86 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private val apkDeployer: IApkDeployer,
 									  private val timeProvider: ITimeProvider,
 									  private val strategyProvider: (AbstractContext) -> IExplorationStrategy,
-									  private val cfg: Configuration,
 									  private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
 
 		@JvmStatic
-		fun getDefaultSelectors(cfg: Configuration): List<StrategySelector>{
+		fun getDefaultSelectors(cfg: ConfigurationWrapper): List<StrategySelector>{
 			val res : MutableList<StrategySelector> = mutableListOf()
 
 			var priority = 0
+
+			if (cfg[playback])
+				res.add(StrategySelector(++priority, StrategySelector.playback))
+
 			res.add(StrategySelector(++priority, StrategySelector.startExplorationReset))
 			res.add(StrategySelector(++priority, StrategySelector.appCrashedReset))
 
-			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
+			if (cfg[allowRuntimeDialog])
 				res.add(StrategySelector(++priority, StrategySelector.allowPermission))
 
 			res.add(StrategySelector(++priority, StrategySelector.cannotExplore))
 
 			// Action based terminate
-			if (cfg.widgetIndexes.isNotEmpty() || cfg.actionsLimit > 0) {
-				val actionLimit = if (cfg.widgetIndexes.size > 0)
-					cfg.widgetIndexes.size
+			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
+				val actionLimit = if (cfg[widgetIndexes].first() >= 0)
+					cfg[widgetIndexes].size
 				else
-					cfg.actionsLimit
+					cfg[actionLimit]
 
 				res.add(StrategySelector(++priority, StrategySelector.actionBasedTerminate, actionLimit))
 			}
 
 			// Time based terminate
-			if (cfg.timeLimit > 0)
-				res.add(StrategySelector(++priority, StrategySelector.timeBasedTerminate, cfg.timeLimit))
+			if (cfg[timeLimit] > 0)
+				res.add(StrategySelector(++priority, StrategySelector.timeBasedTerminate, cfg[timeLimit]))
 
 			// Interval reset
-			if (cfg.resetEveryNthExplorationForward > 0)
-				res.add(StrategySelector(++priority, StrategySelector.intervalReset, cfg.resetEveryNthExplorationForward))
+			if (cfg[resetEvery] > 0)
+				res.add(StrategySelector(++priority, StrategySelector.intervalReset, cfg[resetEvery]))
 
 			// Random back
-			if (cfg.pressBackProbability > 0.0)
-				res.add(StrategySelector(++priority, StrategySelector.randomBack, cfg.pressBackProbability, Random(cfg.randomSeed.toLong())))
+			if (cfg[pressBackProbability] > 0.0)
+				res.add(StrategySelector(++priority, StrategySelector.randomBack, cfg[pressBackProbability], Random(cfg.randomSeed.toLong())))
 
 			// Fitness Proportionate Selection
-			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+			if (cfg[fitnessProportionate])
 				res.add(StrategySelector(++priority, StrategySelector.randomBiased))
 
 			// ExplorationContext based
-			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
+			if (cfg[modelBased])
 				res.add(StrategySelector(++priority, StrategySelector.randomWithModel))
 
 			// Random exploration
-			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
+			if (cfg[explore])
 				res.add(StrategySelector(++priority, StrategySelector.randomWidget))
 
 			return res
 		}
 
 		@JvmStatic
-		fun getDefaultStrategies(cfg: Configuration): List<ISelectableExplorationStrategy>{
+		fun getDefaultStrategies(cfg: ConfigurationWrapper): List<ISelectableExplorationStrategy>{
 			val strategies = LinkedList<ISelectableExplorationStrategy>()
 
 			strategies.add(Back())
 			strategies.add(Reset())
 			strategies.add(Terminate())
 
-			if (cfg.explorationStrategies.contains(StrategyTypes.RandomWidget.strategyName))
+			if (cfg[playback])
+				strategies.add(MemoryPlayback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath().toString()))
+
+			if (cfg[explore])
 				strategies.add(RandomWidget(cfg))
 
-			if (cfg.explorationStrategies.contains(StrategyTypes.FitnessProportionate.strategyName))
+			if (cfg[fitnessProportionate])
 				strategies.add(FitnessProportionateSelection(cfg))
 
-			if (cfg.explorationStrategies.contains(StrategyTypes.ModelBased.strategyName))
+			if (cfg[modelBased])
 				strategies.add(ModelBased(cfg))
 
-			if (cfg.explorationStrategies.contains(StrategyTypes.AllowRuntimePermission.strategyName))
+			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
 
 			return strategies
@@ -146,7 +177,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		@JvmStatic
 		@JvmOverloads
-		fun build(cfg: Configuration,
+		fun build(cfg: ConfigurationWrapper,
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
 				  timeProvider: ITimeProvider = TimeProvider(),
 				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
@@ -157,7 +188,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-					timeProvider, strategyProvider, cfg, modelProvider)
+					timeProvider, strategyProvider, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -165,8 +196,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		}
 
 		@JvmStatic
-		protected fun defaultReportWatcher(cfg: Configuration): List<Reporter> =
-				listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg.reportIncludePlots), ClickFrequency(cfg.reportIncludePlots),
+		protected fun defaultReportWatcher(cfg: ConfigurationWrapper): List<Reporter> =
+				listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg[includePlots]), ClickFrequency(cfg[includePlots]),
 						//TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
 						ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())
 	}
@@ -175,11 +206,11 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 	private var actionT: Long = 0
 	private var nActions = 0
 
-	override fun execute(cfg: Configuration) {
+	override fun execute(cfg: ConfigurationWrapper) {
 		cleanOutputDir(cfg)
 
-		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks)
-		if (!validateApks(apks, cfg.runOnNotInlined)) return
+		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
+		if (!validateApks(apks, cfg[runOnNotInlined])) return
 
 		val explorationExceptions = execute(cfg, apks)
 		if (!explorationExceptions.isEmpty())
@@ -211,8 +242,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				log.info("Not inlined input apks have been detected, but DroidMate was instructed to run anyway. Continuing with execution.")
 			} else {
 				log.warn("At least one input apk is not inlined. DroidMate will not be able to monitor any calls to Android SDK methods done by such apps.")
-				log.warn("If you want to inline apks, run DroidMate with ${Configuration.pn_inline}")
-				log.warn("If you want to run DroidMate on non-inlined apks, run it with ${Configuration.pn_runOnNotInlined}")
+				log.warn("If you want to inline apks, run DroidMate with ${ConfigProperties.ExecutionMode.inline.name}")
+				log.warn("If you want to run DroidMate on non-inlined apks, run it with ${ConfigProperties.Exploration.runOnNotInlined.name}")
 				log.warn("DroidMate will now abort due to the not-inlined apk.")
 				return false
 			}
@@ -220,13 +251,13 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		return true
 	}
 
-	private fun cleanOutputDir(cfg: Configuration) {
+	private fun cleanOutputDir(cfg: ConfigurationWrapper) {
 		val outputDir = cfg.droidmateOutputDirPath
 
 		if (!Files.isDirectory(outputDir))
 			return
 
-		arrayListOf(cfg.screenshotsOutputSubDir, cfg.reportOutputSubDir).forEach {
+		arrayListOf(cfg[screenshotDir], cfg[reportDir]).forEach {
 
 			val dirToDelete = outputDir.resolve(it)
 			if (Files.isDirectory(dirToDelete))
@@ -243,7 +274,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				.forEach { assert(Files.isDirectory(it), {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"}) }
 	}
 
-	protected open fun execute(cfg: Configuration, apks: List<Apk>): List<ExplorationException> {
+	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): List<ExplorationException> {
 		val out = ExplorationOutput2()
 
 
@@ -252,7 +283,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			explorationExceptions += deployExploreSerialize(cfg, apks, out)
 		} catch (deployExploreSerializeThrowable: Throwable) {
 			log.error("!!! Caught ${deployExploreSerializeThrowable.javaClass.simpleName} " +
-					"in execute(configuration, apks)->deployExploreSerialize(${cfg.deviceIndex}, apks, out). " +
+					"in execute(configuration, apks)->deployExploreSerialize(${cfg[deviceIndex]}, apks, out). " +
 					"This means ${ExplorationException::class.java.simpleName}s have been lost, if any! " +
 					"Skipping summary output analysis persisting. " +
 					"Rethrowing.")
@@ -264,10 +295,10 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		return explorationExceptions
 	}
 
-	private fun deployExploreSerialize(cfg: Configuration,
+	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
 	                                   apks: List<Apk>,
 	                                   out: ExplorationOutput2): List<ExplorationException> {
-		return this.deviceDeployer.withSetupDevice(cfg.deviceSerialNumber, cfg.deviceIndex) { device ->
+		return this.deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
 
 			val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
 
@@ -361,7 +392,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
 			// decide for an action
-			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow(), cfg.takeScreenshots) })
+			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow()) })
 			// execute action
 			measureTimeMillis { result = action.run(app, device) }.let {
 				actionT += it

@@ -32,7 +32,7 @@ import kotlin.system.measureNanoTime
 // TODO we would like to read this property from the DroidMate.Configuration instead
 const val measurePerformance = true
 
-inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
+inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T? {
 	var res: T? = null
 	if (measurePerformance) {
 		measureNanoTime {
@@ -42,5 +42,9 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 			println("time ${if (inMillis) "${it / 1000000.0} ms" else "${it / 1000.0} ns/1000"} \t $msg")
 		}
 	} else res = block.invoke()
-	return res!!
+	return res
+}
+
+inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
+	return nullableDebugT(msg, block, timer, inMillis)!!
 }

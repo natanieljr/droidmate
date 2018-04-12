@@ -27,7 +27,12 @@ package org.droidmate.device.android_sdk
 
 import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigProperties
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
+import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityTimeout
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForGuiToStabilize
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForWindowUpdateTimeout
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ISysCmdExecutor
@@ -53,7 +58,7 @@ import java.util.regex.Pattern
  * @author Konrad Jamrozik
  */
 // WISH for commands using sysCmdExecutor.execute, use instead this.executeCommand
-class AdbWrapper constructor(private val cfg: Configuration,
+class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
                              private val sysCmdExecutor: ISysCmdExecutor) : IAdbWrapper {
 	companion object {
 		private val log = LoggerFactory.getLogger(AdbWrapper::class.java)
@@ -109,7 +114,7 @@ class AdbWrapper constructor(private val cfg: Configuration,
 	override fun getAndroidDevicesDescriptors(): List<AndroidDeviceDescriptor> {
 		var deviceDescriptors = internalGetAndroidDevicesDescriptors()
 
-		if (cfg.waitForDevice) {
+		if (cfg[waitForDevice]) {
 			log.warn("No devices connected. Waiting for device.")
 			while (deviceDescriptors.isEmpty()) {
 				Thread.sleep(1000)
@@ -453,7 +458,7 @@ Logcat reference:
 
 			// Reference:
 			// http://developer.android.com/tools/help/adb.html#am
-			val stdStreams = sysCmdExecutor.executeWithTimeout(commandDescription, cfg.launchActivityTimeout, cfg.adbCommand,
+			val stdStreams = sysCmdExecutor.executeWithTimeout(commandDescription, cfg[launchActivityTimeout], cfg.adbCommand,
 					"-s", deviceSerialNumber,
 					"shell am start", // start an activity using Activity Manager (am)
 					"-W", // wait for launch to complete
@@ -505,18 +510,19 @@ Logcat reference:
 	}
 
 	override fun startUiautomatorDaemon(deviceSerialNumber: String, port: Int) {
-		if (cfg.androidApi == Configuration.api23)
-			startUiautomatorDaemon_api23(deviceSerialNumber, port)
-		else throw UnexpectedIfElseFallthroughError()
+		if (cfg[ConfigProperties.Exploration.apiVersion] == ConfigurationWrapper.api23)
+			startUiautomatorDaemonApi23(deviceSerialNumber, port)
+		else
+			throw UnexpectedIfElseFallthroughError()
 	}
 
 	@Throws(AdbWrapperException::class)
-	private fun startUiautomatorDaemon_api23(deviceSerialNumber: String, port: Int) {
+	private fun startUiautomatorDaemonApi23(deviceSerialNumber: String, port: Int) {
 		val commandDescription = "Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
 
 		val uiaDaemonCmdLine = String.format("-e %s %s -e %s %s -e %s %s",
-				UiautomatorDaemonConstants.uiaDaemonParam_waitForGuiToStabilize, cfg.uiautomatorDaemonWaitForGuiToStabilize,
-				UiautomatorDaemonConstants.uiaDaemonParam_waitForWindowUpdateTimeout, cfg.uiautomatorDaemonWaitForWindowUpdateTimeout,
+				UiautomatorDaemonConstants.uiaDaemonParam_waitForGuiToStabilize, cfg[waitForGuiToStabilize],
+				UiautomatorDaemonConstants.uiaDaemonParam_waitForWindowUpdateTimeout, cfg[waitForWindowUpdateTimeout],
 				UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
 
 		val testRunner = UiautomatorDaemonConstants.uia2Daemon_testPackageName + "/" + UiautomatorDaemonConstants.uia2Daemon_testRunner
@@ -545,7 +551,7 @@ Logcat reference:
 		}
 	}
 
-	override fun pullFile_api23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: String, shellPackageName: String) {
+	override fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: String, shellPackageName: String) {
 		assert(pulledFileName.isNotEmpty())
 		assert(destinationFilePath.isNotEmpty())
 		assert(shellPackageName.isNotEmpty())
@@ -562,7 +568,7 @@ Logcat reference:
 		writer.close()
 	}
 
-	override fun removeFile_api23(deviceSerialNumber: String, fileName: String, shellPackageName: String) {
+	override fun removeFileApi23(deviceSerialNumber: String, fileName: String, shellPackageName: String) {
 		assert(fileName.isNotEmpty())
 		assert(shellPackageName.isNotEmpty())
 

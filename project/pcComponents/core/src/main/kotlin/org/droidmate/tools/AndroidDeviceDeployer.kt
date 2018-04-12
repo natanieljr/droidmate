@@ -25,8 +25,12 @@
 
 package org.droidmate.tools
 
+import org.droidmate.configuration.ConfigProperties
+import org.droidmate.configuration.ConfigProperties.Deploy.installAux
+import org.droidmate.configuration.ConfigProperties.Deploy.uninstallAux
+import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.device.android_sdk.*
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.IDeployableAndroidDevice
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
@@ -40,7 +44,7 @@ import org.slf4j.LoggerFactory
 
 import java.nio.file.Paths
 
-class AndroidDeviceDeployer constructor(private val cfg: Configuration,
+class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
                                         private val adbWrapper: IAdbWrapper,
                                         private val deviceFactory: IAndroidDeviceFactory) : IAndroidDeviceDeployer {
 
@@ -116,7 +120,7 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
 		this.adbWrapper.startAdbServer()
 
 		// Nataniel: Had to invert order, otherwise it crashes on the first time it's executed because the UiAutomator2Daemon was never installed on the device
-		if (cfg.installAux) {
+		if (cfg[installAux]) {
 			device.reinstallUiautomatorDaemon()
 			device.pushMonitorJar()
 		}
@@ -141,8 +145,8 @@ class AndroidDeviceDeployer constructor(private val cfg: Configuration,
 			device.pullLogcatLogFile()
 			device.closeConnection()
 
-			if (cfg.uninstallAux) {
-				if (cfg.androidApi == Configuration.api23) {
+			if (cfg[uninstallAux]) {
+				if (cfg[apiVersion] == ConfigurationWrapper.api23) {
 					device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, true)
 					device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, true)
 				} else

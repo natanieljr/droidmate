@@ -25,11 +25,14 @@
 package org.droidmate
 
 import com.natpryce.konfig.*
-import org.droidmate.ConfigProperties.deploy.installApk
-import org.droidmate.ConfigProperties.deploy.installAux
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
-import org.droidmate.configuration.ConfigurationBuilder
+import org.droidmate.configuration.ConfigProperties.Core.configPath
+import org.droidmate.configuration.ConfigProperties.Core.logLevel
+import org.droidmate.configuration.ConfigProperties.Deploy.installApk
+import org.droidmate.configuration.ConfigProperties.Deploy.installAux
+import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.frontend.ExceptionHandler
 import org.droidmate.misc.DroidmateException
@@ -41,7 +44,7 @@ import java.time.LocalDate
 import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
-object ExplorationAPI : ConfigProperties() {
+object ExplorationAPI {
 	private val log = LoggerFactory.getLogger(ExplorationAPI::class.java)
 
 	/**
@@ -51,21 +54,24 @@ object ExplorationAPI : ConfigProperties() {
 	 */
 	@JvmStatic  // -config project/pcComponents/API/src/main/resources/defaultConfig.properties
 	fun main(args: Array<String>) { // e.g.`-config filePath` or `--configPath=filePath`
-		val cmdOptions = arrayOf(CommandLineOption(configPath, short = "config", description = "path to the file containing custom configuration properties")
-				, CommandLineOption(ConfigProperties.output.reportOutputDir))
+		val cmdOptions = arrayOf(CommandLineOption(configPath,
+				short = "config",
+				description = "path to the file containing custom configuration properties"),
+				CommandLineOption(droidmateOutputDirPath))
 
-		val (cmd_config, _) = parseArgs(args, *cmdOptions)
-		inlineAndExplore(cmd_config)
+		val (cmdConfig, _) = parseArgs(args, *cmdOptions)
+		inlineAndExplore(cmdConfig)
 	}
 
 	@JvmStatic
-	fun inlineAndExplore(cmd_config: Configuration, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
-		val config:Configuration = (   // highest priority overriding lower priority
+	fun inlineAndExplore(cmdConfig: Configuration, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
+		val config:Configuration = (
+				// highest priority overriding lower priority
 //            EnvironmentVariables() overriding           // any JVM arguments (i.e. "-DpropName=value")
 				ConfigurationProperties.fromResource("defaultConfig.properties") // overwrite any system property by definitions of resource file
 //        overriding systemProperties()
 				).let { default ->
-					cmd_config.overriding(default).let{
+					cmdConfig.overriding(default).let{
 					File(it[configPath].path).let { customConfigFile ->
 						if (customConfigFile.exists()) ConfigurationProperties.fromFile(customConfigFile) overriding it // highest priority any custom file, e.g given via command line
 						else it
@@ -79,12 +85,12 @@ object ExplorationAPI : ConfigProperties() {
 			validateConfig(config)
 
 //			LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
-			log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.Configuration::class.java.simpleName} from args " +
+			log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.ConfigurationWrapper::class.java.simpleName} from args " +
 					"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
 			log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
 
 //			log.info("inline the apks if necessary")
-			val cfg = ConfigurationBuilder().build(ConfigWrapper.createOldConfigArgs(config), FileSystems.getDefault())
+			val cfg = ConfigurationWrapper(config, FileSystems.getDefault())
 //			InlineCommand().execute(cfg)
 
 			val runStart = Date()
@@ -93,7 +99,6 @@ object ExplorationAPI : ConfigProperties() {
 			log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
 			command.execute(cfg)
-
 		} catch (e: Throwable) {
 			e.printStackTrace()
 			exitStatus = ExceptionHandler().handle(e)
@@ -102,18 +107,21 @@ object ExplorationAPI : ConfigProperties() {
 	}
 
 	private fun validateConfig(config: Configuration) {
-		if (config[logLevel].toUpperCase() !in arrayListOf("TRACE", "DEBUG", "INFO", "WARN", "ERROR")) throw DroidmateException("The $logLevel variable has to be set to TRACE, " +
+		if (config[logLevel].toUpperCase() !in arrayListOf("TRACE", "DEBUG", "INFO", "WARN", "ERROR"))
+			throw DroidmateException("The $logLevel variable has to be set to TRACE, " +
 				"DEBUG, INFO, WARN or ERROR. Instead, it is set to ${config[logLevel]}.")
 
-		if (!config[installApk]) log.warn("DroidMate will not reinstall the target APK(s). If the APK(s) are not previously installed on the device the exploration will fail.")
+		if (!config[installApk])
+			log.warn("DroidMate will not reinstall the target APK(s). If the APK(s) are not previously installed on the device the exploration will fail.")
 
-		if (!config[installAux]) log.warn("DroidMate will not reinstall its auxiliary components (UIAutomator and Monitor). If the they are not previously installed on the device the exploration will fail.")
+		if (!config[installAux])
+			log.warn("DroidMate will not reinstall its auxiliary components (UIAutomator and Monitor). " +
+					"If the they are not previously installed on the device the exploration will fail.")
 	}
-
 }
 
 val copyRight = """ |DroidMate, an automated execution generator for Android apps.
-                  |Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik
+                  |Copyright (c) 2012 - ${LocalDate.now().year} Saarland University
                   |This program is free software licensed under GNU GPL v3.
                   |
                   |You should have received a copy of the GNU General Public License

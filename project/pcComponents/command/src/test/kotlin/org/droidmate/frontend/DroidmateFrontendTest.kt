@@ -132,7 +132,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 					mockedFs: MockFileSystem,
 					exceptionSpecs: List<ExceptionSpec>,
 					expectedApkPackageNamesOfSer2FilesInOutputDir: List<String>) {
-			val cfg = ConfigurationForTests().withFileSystem(mockedFs.fs).get()
+			val cfg = ConfigurationForTests().withFileSystem(mockedFs.fileSystem).get()
 			val timeGenerator = TimeGenerator()
 			val deviceToolsMock = DeviceToolsMock(
 							cfg,
@@ -145,7 +145,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			val exitStatus = DroidmateFrontend.execute(
 							cfg.args,
 							{ ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock) },
-							mockedFs.fs,
+							mockedFs.fileSystem,
 							spy
 			)
 
@@ -175,7 +175,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	@Test
 	fun `Explores on a device simulator`() {
 			val mockedFs = MockFileSystem(arrayListOf("mock_app1"))
-			val cfg = ConfigurationForTests().withFileSystem(mockedFs.fs).get()
+			val cfg = ConfigurationForTests().withFileSystem(mockedFs.fileSystem).get()
 			val apks = mockedFs.apks
 			val timeGenerator = TimeGenerator()
 			val simulator = AndroidDeviceSimulator.build(timeGenerator, apks.map { it.packageName }, ArrayList(), true)
@@ -186,7 +186,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			val exitStatus = DroidmateFrontend.execute(
 							cfg.args,
 							{ ExploreCommand.build(cfg, { ExplorationStrategyPool.build(it, cfg) }, timeGenerator, deviceToolsMock) },
-							mockedFs.fs,
+							mockedFs.fileSystem,
 							handler
 			)
 
@@ -242,14 +242,14 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			// Parameters
 			val dirStr = "out"
 			val outputStr = "raw_data"
-			val fs = FileSystems.getDefault()
+			val fileSystem = FileSystems.getDefault()
 
 			// Setup output dir
-			var outputDir = fs.getPath(dirStr, outputStr)
+			var outputDir = fileSystem.getPath(dirStr, outputStr)
 			outputDir.createDirIfNotExists()
 
 			// Initialize storage
-			val droidmateOutputDirPath = fs.getPath(dirStr)
+			val droidmateOutputDirPath = fileSystem.getPath(dirStr)
 			val storage2 = Storage2(droidmateOutputDirPath)
 
 			// Process files
@@ -265,7 +265,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 							//val packageName = obj.apk.packageName
 
 							// Create output dir
-							//val newDir = fs.getPath(dirStr, outputStr, packageName)
+							//val newDir = fileSystem.getPath(dirStr, outputStr, packageName)
 							//newDir.deleteDir()
 							//newDir.createDirIfNotExists()
 

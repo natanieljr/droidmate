@@ -29,11 +29,11 @@ import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.AdbWrapper
 import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.misc.SysCmdExecutor
 import java.util.*
 
-class DeviceTools @JvmOverloads constructor(cfg: Configuration = Configuration.getDefault(),
+class DeviceTools @JvmOverloads constructor(cfg: ConfigurationWrapper = ConfigurationWrapper.getDefault(),
                                             substitutes: Map<Any, Any> = HashMap()) : IDeviceTools {
 
 	override val aapt: IAaptWrapper

@@ -38,6 +38,4 @@ interface IRunnableExplorationAction : Serializable {
 	val base: ExplorationAction
 
 	val timestamp: LocalDateTime
-
-	val takeScreenshot: Boolean
 }

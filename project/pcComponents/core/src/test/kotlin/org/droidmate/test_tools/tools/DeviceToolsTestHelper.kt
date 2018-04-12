@@ -26,7 +26,7 @@ package org.droidmate.test_tools.tools
 
 import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.configuration.Configuration
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.android_sdk.AdbWrapperStub
 import org.droidmate.test_tools.device_simulation.AndroidDeviceSimulator
@@ -38,7 +38,7 @@ class DeviceToolsTestHelper {
 	companion object {
 		@JvmStatic
 		fun buildForTesting(
-				deviceToolsCfg: Configuration = Configuration.getDefault(),
+				deviceToolsCfg: ConfigurationWrapper = ConfigurationWrapper.getDefault(),
 				aaptWrapper: IAaptWrapper?,
 				simulator: AndroidDeviceSimulator): IDeviceTools {
 			val substitutes = mutableMapOf(

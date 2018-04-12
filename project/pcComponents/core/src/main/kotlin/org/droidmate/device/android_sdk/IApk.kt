@@ -39,6 +39,7 @@ interface IApk : Serializable {
 	val absolutePath: String
 
 	val inlined: Boolean
+	val instrumented: Boolean
 
 	val isDummy: Boolean
 }
