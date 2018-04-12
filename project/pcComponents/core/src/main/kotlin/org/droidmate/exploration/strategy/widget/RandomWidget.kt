@@ -30,6 +30,7 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
+import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.config.emptyId
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
@@ -103,6 +104,7 @@ open class RandomWidget constructor(randomSeed: Long,
 
 
 	private fun List<Widget>.chooseRandomly():ExplorationAction{
+		if(this.isEmpty()) return ResetAppExplorationAction()
 		context.lastTarget = this[random.nextInt(this.size)]
 		return chooseActionForWidget(context.lastTarget!!)
 	}

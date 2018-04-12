@@ -392,7 +392,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
 			// decide for an action
-			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow()) })
+			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow()) }, inMillis = true)
 			// execute action
 			measureTimeMillis { result = action.run(app, device) }.let {
 				actionT += it

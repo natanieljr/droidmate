@@ -27,7 +27,11 @@ package org.droidmate
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.ConfigurationBuilder
+import org.droidmate.exploration.strategy.Back
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
+import org.droidmate.exploration.strategy.Reset
+import org.droidmate.exploration.strategy.Terminate
+import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.droidmate.frontend.ExceptionHandler
 import org.droidmate.report.Reporter
 import org.slf4j.LoggerFactory
@@ -44,13 +48,13 @@ object ExplorationAPI {
 	 * 1. inline the apks in the directory if they do not end on '-inlined.apk'
 	 * 2. run the exploration with the strategies listed in the property 'explorationStrategies'
 	 */
-	@JvmStatic  // -config project/pcComponents/API/src/main/resources/defaultConfig.properties
+	@JvmStatic  // -config project/pcComponents/API/src/main/resources/customConfig.properties
 	fun main(args: Array<String>) { // e.g.`-config filePath` or `--configPath=filePath`
 		inlineAndExplore(args)
 	}
 
 	@JvmStatic
-	fun inlineAndExplore(args: Array<String>, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
+	fun inlineAndExplore(args: Array<String>, strategies: List<ISelectableExplorationStrategy> = listOf(RandomWidget(0), Terminate(), Back(), Reset()), reportCreators: List<Reporter> = emptyList()) {
 		var exitStatus = 0
 
 		try {
@@ -71,6 +75,7 @@ object ExplorationAPI {
 			log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
 			command.execute(cfg)
+
 		} catch (e: Throwable) {
 			e.printStackTrace()
 			exitStatus = ExceptionHandler().handle(e)

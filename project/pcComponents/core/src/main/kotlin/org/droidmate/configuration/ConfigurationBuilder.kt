@@ -154,13 +154,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 	override fun build(cmdLineConfig: Configuration, fs: FileSystem): ConfigurationWrapper {
 		val defaultConfig = ConfigurationProperties.fromResource("defaultConfig.properties")
 
-		val customFile = if (cmdLineConfig.contains(configPath))
-			File(cmdLineConfig[configPath].path)
-		else if (defaultConfig.contains(configPath))
-			File(defaultConfig[configPath].path)
-		else
-			null
-
+		val customFile = when {
+			cmdLineConfig.contains(configPath) -> File(cmdLineConfig[configPath].path)
+			defaultConfig.contains(configPath) -> File(defaultConfig[configPath].path)
+			else -> null
+		}
 
 		val config : Configuration =
 				// command line
@@ -183,11 +181,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		private fun memoizedBuildConfiguration(cfg: Configuration, fs: FileSystem): ConfigurationWrapper {
 			log.debug("memoizedBuildConfiguration(args, fileSystem)")
 
-			var config = ConfigurationWrapper(cfg, fs)
-
-			config = bindAndValidate(config)
-
-			return config
+			return bindAndValidate( ConfigurationWrapper(cfg, fs) )
 		}
 
 		@JvmStatic
