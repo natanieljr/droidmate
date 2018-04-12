@@ -122,7 +122,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 	@Throws(ConfigurationException::class)
 	override fun build(args: Array<String>, fs: FileSystem): ConfigurationWrapper = build(parseArgs(args,
-			CommandLineOption(logLevel), CommandLineOption(configPath),
+			CommandLineOption(logLevel), CommandLineOption(configPath, short = "config"),
 			CommandLineOption(monitorSocketTimeout), CommandLineOption(monitorUseLogcat),
 			CommandLineOption(monitorUseLegacyStream), CommandLineOption(ConfigProperties.ApiMonitorServer.basePort),
 			CommandLineOption(inline), CommandLineOption(report), CommandLineOption(explore), CommandLineOption(coverage),

@@ -48,7 +48,7 @@ ext.utilities_version = '19115bab35'
 repositories {
 	mavenCentral()
 	mavenLocal()
-	//maven { url = "https://jitpack.io" }
+	maven { url = "https://jitpack.io" }
 }
 
 dependencies {

@@ -24,21 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate
 
-import com.natpryce.konfig.*
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
-import org.droidmate.configuration.ConfigProperties.Core.configPath
-import org.droidmate.configuration.ConfigProperties.Core.logLevel
-import org.droidmate.configuration.ConfigProperties.Deploy.installApk
-import org.droidmate.configuration.ConfigProperties.Deploy.installAux
-import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
-import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.frontend.ExceptionHandler
-import org.droidmate.misc.DroidmateException
 import org.droidmate.report.Reporter
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.nio.file.FileSystems
 import java.time.LocalDate
 import java.util.*
@@ -54,35 +46,15 @@ object ExplorationAPI {
 	 */
 	@JvmStatic  // -config project/pcComponents/API/src/main/resources/defaultConfig.properties
 	fun main(args: Array<String>) { // e.g.`-config filePath` or `--configPath=filePath`
-		val cmdOptions = arrayOf(CommandLineOption(configPath,
-				short = "config",
-				description = "path to the file containing custom configuration properties"),
-				CommandLineOption(droidmateOutputDirPath))
-
-		val (cmdConfig, _) = parseArgs(args, *cmdOptions)
-		inlineAndExplore(cmdConfig)
+		inlineAndExplore(args)
 	}
 
 	@JvmStatic
-	fun inlineAndExplore(cmdConfig: Configuration, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
-		val config:Configuration = (
-				// highest priority overriding lower priority
-//            EnvironmentVariables() overriding           // any JVM arguments (i.e. "-DpropName=value")
-				ConfigurationProperties.fromResource("defaultConfig.properties") // overwrite any system property by definitions of resource file
-//        overriding systemProperties()
-				).let { default ->
-					cmdConfig.overriding(default).let{
-					File(it[configPath].path).let { customConfigFile ->
-						if (customConfigFile.exists()) ConfigurationProperties.fromFile(customConfigFile) overriding it // highest priority any custom file, e.g given via command line
-						else it
-					}}
-				}
-
+	fun inlineAndExplore(args: Array<String>, strategies: List<ISelectableExplorationStrategy> = emptyList(), reportCreators: List<Reporter> = emptyList()) {
 		var exitStatus = 0
 
 		try {
 			println(copyRight)
-			validateConfig(config)
 
 //			LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
 			log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.ConfigurationWrapper::class.java.simpleName} from args " +
@@ -90,7 +62,7 @@ object ExplorationAPI {
 			log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
 
 //			log.info("inline the apks if necessary")
-			val cfg = ConfigurationWrapper(config, FileSystems.getDefault())
+			val cfg = ConfigurationBuilder().build(args, FileSystems.getDefault())//ConfigurationWrapper(config, FileSystems.getDefault())
 //			InlineCommand().execute(cfg)
 
 			val runStart = Date()
@@ -104,19 +76,6 @@ object ExplorationAPI {
 			exitStatus = ExceptionHandler().handle(e)
 		}
 		System.exit(exitStatus)
-	}
-
-	private fun validateConfig(config: Configuration) {
-		if (config[logLevel].toUpperCase() !in arrayListOf("TRACE", "DEBUG", "INFO", "WARN", "ERROR"))
-			throw DroidmateException("The $logLevel variable has to be set to TRACE, " +
-				"DEBUG, INFO, WARN or ERROR. Instead, it is set to ${config[logLevel]}.")
-
-		if (!config[installApk])
-			log.warn("DroidMate will not reinstall the target APK(s). If the APK(s) are not previously installed on the device the exploration will fail.")
-
-		if (!config[installAux])
-			log.warn("DroidMate will not reinstall its auxiliary components (UIAutomator and Monitor). " +
-					"If the they are not previously installed on the device the exploration will fail.")
 	}
 }
 
