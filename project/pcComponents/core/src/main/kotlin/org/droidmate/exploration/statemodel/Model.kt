@@ -9,22 +9,13 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.*
+import java.util.stream.Stream
 import kotlin.collections.HashSet
 import kotlin.streams.toList
 import kotlin.system.measureTimeMillis
 
 internal operator fun UUID.plus(uuid: UUID): UUID {
 	return UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
-}
-
-internal inline fun <T> P_processLines(file: File, sep: String, skip: Long = 1, crossinline lineProcessor: (List<String>) -> Deferred<T>): List<Deferred<T>> {
-	file.bufferedReader().lines().skip(skip).use {
-		it.toList().let { br ->
-			// skip the first line (headline)
-			assert(br.count() > 0, { "ERROR on model loading: file ${file.name} does not contain any entries" })
-			return br.map { line -> lineProcessor(line.split(sep).map { it.trim() }) }
-		}
-	}
 }
 
 /** s_* should be only used in sequential context as it currently does not handle parallelism*/
@@ -225,8 +216,11 @@ class Model private constructor(val config: ModelConfig) {
 
 		@JvmStatic
 		fun main(args: Array<String>) {
-			val test = loadAppModel("ch.bailu.aat")
+			val test = loadAppModel("loadTest")
 			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
+			test.getPaths().first().getActions().forEach { a ->
+				println("ACTION: " + a.actionString())
+			}
 		}
 
 	} /** end COMPANION **/

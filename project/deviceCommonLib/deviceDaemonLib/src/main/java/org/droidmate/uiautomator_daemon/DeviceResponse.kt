@@ -101,7 +101,6 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			val boundsList = WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue)
 
 			return WidgetData(mapOf(
-					WidgetData::id.name to getStringVal("id"), // Appears only in test code simulating the device, never on actual devices or their emulators.
 					WidgetData::text.name to getStringVal("text"),
 					WidgetData::resourceId.name to getStringVal("resource-id"),
 					WidgetData::className.name to getStringVal("class"),

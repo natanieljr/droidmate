@@ -174,6 +174,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		fun fromString(line: List<String>): Widget {
 			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
+				assert(w.uid.toString()==line[P.WdId.ordinal],{" ERROR on widget parsing: property-Id was ${w.uid} but should have been $line"})
 				return Widget(w, lazyOf(UUID.fromString(line[P.UID.ordinal])))
 						.apply { parentId = line[P.ParentID.ordinal].let { if (it == "null") null else idFromString(it) } }
 			}

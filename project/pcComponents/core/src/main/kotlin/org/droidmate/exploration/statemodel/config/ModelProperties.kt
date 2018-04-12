@@ -9,6 +9,8 @@ import java.util.*
 
 val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
 typealias ConcreteId = Pair<UUID, UUID>
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun ConcreteId.toString() = "${first}_$second"  // mainly for nicer debugging strings
 fun idFromString(s: String):ConcreteId = s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
 /** custom dumpString method used for model dump & load **/
 fun ConcreteId.dumpString() = "${first}_$second"

@@ -13,7 +13,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
-class ModelConfig private constructor(path: String, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration{
+class ModelConfig private constructor(path: String, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration by config{
 	/** @path path-string locationg the base directory where all model data is supposed to be dumped */
 	constructor(path: String, appName: String, isLoadC: Boolean = false): this(path, appName, resourceConfig, isLoadC)
 	constructor(appName: String, isLoadC: Boolean = false) : this("out${File.separator}model", appName, isLoadC)
@@ -23,16 +23,18 @@ class ModelConfig private constructor(path: String, appName: String,private val 
 	private val widgetImgDst = "$baseDir${config[widgetsSubDir]}${File.separator}"  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
 
 	init {  // initialize directories (clear them if cleanDirs is enabled)
-		if( !isLoadC && config[cleanDirs] ) Paths.get(baseDir).deleteDir()
-		Files.createDirectories(Paths.get(baseDir))
-		Files.createDirectories(Paths.get(stateDst))
-		Files.createDirectories(Paths.get(widgetImgDst))
-		Files.createDirectories(Paths.get("${widgetImgDst}nonInteractive${File.separator}"))
+		if(!isLoadC){
+			if (config[cleanDirs]) Paths.get(baseDir).deleteDir()
+			Files.createDirectories(Paths.get(baseDir))
+			Files.createDirectories(Paths.get(stateDst))
+			Files.createDirectories(Paths.get(widgetImgDst))
+			Files.createDirectories(Paths.get("${widgetImgDst}nonInteractive${File.separator}"))
+		}
 	}
 
 	private val idPath: (String, String, String, String) -> String = { baseDir, id, postfix, fileExtension -> "$baseDir$id$postfix$fileExtension" }
 
-	val widgetFile: (ConcreteId) -> String = { id -> statePath(id, postfix = "_AllWidgets") }
+	val widgetFile: (ConcreteId) -> String = { id -> statePath(id, postfix = defaultWidgetSuffix) }
 	fun statePath(id: ConcreteId, postfix: String = "", fileExtension: String = config[stateFileExtension]): String {
 		return idPath(stateDst, id.dumpString(), postfix, fileExtension)
 	}
@@ -45,6 +47,7 @@ class ModelConfig private constructor(path: String, appName: String,private val 
 	val traceFile = { date: String -> "$baseDir${config[traceFilePrefix]}$date${config[dump.traceFileExtension]}" }
 
 	companion object {
+		const val defaultWidgetSuffix = "_AllWidgets"
 		private val resourceConfig by lazy {
 			ConfigurationProperties.fromResource("runtime/defaultModelConfig.properties")  //FIXME use this in final version when modelConfig build parameter is available, until then use this as IntelliJ resource reload workaround
 			//ConfigurationProperties.fromFile(File("project/pcComponents/core/src/main/resources/runtime/defaultModelConfig.properties").apply { println(absolutePath) })
@@ -58,10 +61,6 @@ class ModelConfig private constructor(path: String, appName: String,private val 
 		}
 
 	} /** end COMPANION **/
-
-	override fun <T> getOrNull(key: Key<T>): T? = config.getOrNull(key)
-	override fun list(): List<Pair<Location, Map<String, String>>> = config.list()
-	override fun searchPath(key: Key<*>): List<PropertyLocation> = config.searchPath(key)
 }
 
 

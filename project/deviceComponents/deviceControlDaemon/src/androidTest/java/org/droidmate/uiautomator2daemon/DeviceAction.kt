@@ -3,6 +3,7 @@ package org.droidmate.uiautomator2daemon
 import android.app.UiAutomation
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.wifi.WifiManager
 import android.support.test.uiautomator.*
 import android.util.Log
@@ -112,15 +113,41 @@ internal sealed class DeviceAction {
 				lastDump
 			}, inMillis = true)
 		}
+		private fun Int.binaryColor():Int = if(this>127) 1 else 0
+		private fun Bitmap.simplifyImg(): Bitmap =	Bitmap.createBitmap(width,height, config).let{ newImg ->
+			for(y in 0 until height)
+			for(x in 0 until width){
+				getPixel(x,y).let { c ->
+//					Log.d(uiaDaemon_logcatTag,"pixel $x,$y = $c DEBUG")
+					val binColor = Color.red(c).binaryColor()+Color.green(c).binaryColor()+Color.blue(c).binaryColor() + Color.alpha(c).binaryColor()
+//					Log.d(uiaDaemon_logcatTag,"binColorSum $binColor")
+					if(binColor>1) Color.WHITE
+					else Color.BLACK
+				}.let{ newColor ->
+//					Log.d(uiaDaemon_logcatTag,"newColor = $newColor")
+					try {
+						newImg.setPixel(x, y, newColor)
+					}catch (e:Throwable){
+						Log.e(uiaDaemon_logcatTag,e.message,e)
+						throw e
+					}
+				}
+			}
+				newImg
+		}
+
 		@JvmStatic
-		private fun getScreenShot(automation: UiAutomation): ByteArray {
+		private fun getScreenShot(automation: UiAutomation, simplify: Boolean =false): ByteArray {
 			return debugT(" fetching screen-shot ", {
 				var bytes = ByteArray(0)
 				val stream = ByteArrayOutputStream()
 				try {
-					val screenshot = automation.takeScreenshot()
+					var screenshot = automation.takeScreenshot()
+//					if(simplify) debugT("img modification", {screenshot = screenshot.simplifyImg()},inMillis = true)
+
 					screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
 					stream.flush()
+
 
 					bytes = stream.toByteArray()
 					stream.close()
@@ -133,9 +160,9 @@ internal sealed class DeviceAction {
 		}
 
 		@JvmStatic
-		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String): DeviceResponse {
+		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String, simplify: Boolean = true): DeviceResponse {
 			val dump = DeviceAction.getWindowHierarchyDump(device)
-			val imgBytes = DeviceAction.getScreenShot(automation)
+			val imgBytes = DeviceAction.getScreenShot(automation, simplify)
 
 			return debugT("compute UI-dump", {
 				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes)

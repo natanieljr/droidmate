@@ -37,7 +37,7 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 		this.xpath = xPath
 	}
 
-	val uid = map.values.toString().toUUID()
+	val uid: UUID = map.toSortedMap().values.toString().toUUID()
 	val text: String by map
 	val contentDesc: String by map
 	val resourceId: String by map
@@ -61,11 +61,7 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 	val isLeaf: Boolean by map
 	var xpath: String = ""
 
-	@Deprecated("use the new UUID from state model instead")
-	val id: String = if (map.containsKey("id")) map["id"].toString() else ""// only used for testing
-
 	fun content(): String = text + contentDesc
-
 
 	fun canBeActedUpon(): Boolean = enabled && visible && (clickable || checked ?: false || longClickable || scrollable)
 
@@ -74,7 +70,6 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 		return this::class.declaredMemberProperties.find { it.name == p.name }?.call(this) as T
 	}
 
-
 	companion object {
 		@JvmStatic
 		private val log = LoggerFactory.getLogger(DeviceResponse::class.java)
@@ -82,7 +77,12 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 		@JvmStatic
 		val defaultProperties by lazy {
 			P.propertyMap(
-					Array(P.values().size, { "false" }).toList())
+					Array(P.values().size, { "false" }).apply{
+						this[P.BoundsX.ordinal] = "0"
+						this[P.BoundsY.ordinal] = "0"
+						this[P.BoundsWidth.ordinal] = "0"
+						this[P.BoundsHeight.ordinal] = "0"
+					}.toList())
 		}
 
 		@JvmStatic
@@ -150,13 +150,13 @@ enum class P(val pName: String = "", var header: String = "") {
 	}
 
 	companion object {
-		val propertyValues = P.values().filter { it.pName != "" }
+		@JvmStatic private val propertyValues = P.values().filter { it.pName != "" }
 		fun propertyMap(line: List<String>): Map<String, Any?> = propertyValues.map {
 			(it.pName to
 					when (it) {
 						Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible, IsLeaf -> line[it.ordinal].toBoolean()
 						Focused, Checked -> flag(line[it.ordinal])
-						BoundsX, BoundsY, BoundsWidth, BoundsHeight -> 0
+						BoundsX, BoundsY, BoundsWidth, BoundsHeight -> line[it.ordinal].toInt()
 						else -> line[it.ordinal]  // Strings
 					})
 		}.toMap()

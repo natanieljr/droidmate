@@ -35,7 +35,7 @@ import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.properties.Delegates
 
-class ActionData private constructor(val actionType: String, val targetWidget: Widget?,
+open class ActionData protected constructor(val actionType: String, val targetWidget: Widget?,
                                      val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
                                      val successful: Boolean, val exception: String,
                                      val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
@@ -103,7 +103,7 @@ class ActionData private constructor(val actionType: String, val targetWidget: W
 	}
 
 	override fun toString(): String {
-		return "$actionType:$targetWidget"
+		return "$actionType:$targetWidget: ${prevState.dumpString()}->${resState.dumpString()}"
 	}
 }
 

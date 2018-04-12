@@ -30,10 +30,17 @@ import junit.framework.TestCase
 import org.droidmate.logging.LogbackAppenders
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.misc.BuildConstants
+import org.junit.Assert
 import org.junit.Before
 import java.util.*
 
 open class DroidmateTestCase : TestCase() {
+
+	protected inline fun<reified T> expect(res:T, ref: T){
+		assertTrue("expected \n${ref.toString()} \nbut result was \n${res.toString()}",res == ref)
+	}
+
+
 	/*
 		Used for profiling the JUnit test runs with VisualVM. Uncomment, run the tests with -Xverify:none JVM option and make sure
 		that in those 5 seconds you will select the process in VisualVM, click the "profiler" tab and start CPU profiling.

@@ -95,7 +95,7 @@ open class ActionResult(val action: ExplorationAction,
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
 
 //		val img:BufferedImage? =
-		debugT("img file read", { ImageIO.read(ByteArrayInputStream(this.screenshot)) },inMillis = true)
+		(if(screenshot.isNotEmpty()) debugT("img file read", { ImageIO.read(ByteArrayInputStream(this.screenshot)) },inMillis = true) else null)
 		.let { img ->
 					guiSnapshot.let { g ->
 						debugT(" \n filter device objects",
