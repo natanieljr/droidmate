@@ -104,7 +104,9 @@ open class RandomWidget constructor(randomSeed: Long,
 
 
 	private fun List<Widget>.chooseRandomly():ExplorationAction{
-		if(this.isEmpty()) return ResetAppExplorationAction()
+		if(this.isEmpty())
+			return ResetAppExplorationAction()
+
 		context.lastTarget = this[random.nextInt(this.size)]
 		return chooseActionForWidget(context.lastTarget!!)
 	}
@@ -129,7 +131,7 @@ open class RandomWidget constructor(randomSeed: Long,
 			excludeBlacklisted(candidates){ noBlacklistedInState, noBlacklisted ->
 				when {
 					noBlacklisted.isNotEmpty() -> noBlacklisted.chooseRandomly()
-					noBlacklistedInState.isEmpty() -> noBlacklistedInState.chooseRandomly()
+					noBlacklistedInState.isNotEmpty() -> noBlacklistedInState.chooseRandomly()
 					else -> PressBackExplorationAction() // we are stuck, everything is blacklisted
 				}
 			}
