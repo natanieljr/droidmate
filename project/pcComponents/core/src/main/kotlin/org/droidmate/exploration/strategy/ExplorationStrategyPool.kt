@@ -114,24 +114,17 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		val pool = this
 		val bestStrategy = debugT("strategy selection time",
 				{
-					/*
-					selectors
-					.sortedBy { it.priority }
-					.mapNotNull { it -> nullableDebugT("decision time [${it.priority}]", { it.selector(this.memory, this, it.bundle) } ) }
-					.first()
-					*/
 					runBlocking {
 						selectors
 								.sortedBy { it.priority }
-								.map { async { nullableDebugT("decision time [${it.priority}]", { it.selector(mem, pool, it.bundle) } ) } }
-								.first{ it.await() != null }
-								.getCompleted()
+								.map { Pair(it, async { nullableDebugT("decision time [${it.priority}]", { it.selector(mem, pool, it.bundle) } ) }) }
+								.first{ it.second.await() != null }
 					}
 				} )
 
-		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy.")
+		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy")
 
-		return bestStrategy!!
+		return bestStrategy.second.getCompleted()!!
 	}
 
 	override fun takeControl(strategy: ISelectableExplorationStrategy) {
