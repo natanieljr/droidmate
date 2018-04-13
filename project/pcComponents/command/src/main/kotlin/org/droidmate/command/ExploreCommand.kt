@@ -107,11 +107,6 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			res.add(StrategySelector(++priority, "startExplorationReset", StrategySelector.startExplorationReset))
 			res.add(StrategySelector(++priority, "appCrashedReset", StrategySelector.appCrashedReset))
 
-			if (cfg[allowRuntimeDialog])
-				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
-
-			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
-
 			// Action based terminate
 			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
 				val actionLimit = if (cfg[widgetIndexes].first() >= 0)
@@ -125,6 +120,11 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			// Time based terminate
 			if (cfg[timeLimit] > 0)
 				res.add(StrategySelector(++priority, "timeBasedTerminate", StrategySelector.timeBasedTerminate, cfg[timeLimit]))
+
+			if (cfg[allowRuntimeDialog])
+				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
+
+			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
 
 			// Interval reset
 			if (cfg[resetEvery] > 0)
