@@ -31,7 +31,14 @@ fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.fo
  * @param index only used during dumpParsing to create xPath !! should not be used otherwise !!
  * @param parent only used during dumpParsing to create xPath and to determine the Widget.parentId within the state model !! should not be used otherwise !!
  */
-class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: Int = -1, val parent: WidgetData? = null) : Serializable {
+class WidgetData @JvmOverloads constructor(map: MutableMap<String, Any?>, val index: Int = -1, val parent: WidgetData? = null) : Serializable {
+	init{
+		map.keys.forEach { key ->
+			if (map[key] is String)
+				map.replaceKt(key, sanitize(map[key] as String))
+		}
+	}
+
 	constructor(resId: String, xPath: String)
 			: this(defaultProperties.toMutableMap().apply { replaceKt(WidgetData::resourceId.name, resId) }) {
 		this.xpath = xPath
@@ -75,6 +82,13 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 		private val log = LoggerFactory.getLogger(DeviceResponse::class.java)
 
 		@JvmStatic
+		private fun sanitize(value: String): String{
+			return value
+					.replace(";", "<semicolon>")
+					.replace("\n", "<newline>")
+		}
+
+		@JvmStatic
 		val defaultProperties by lazy {
 			P.propertyMap(
 					Array(P.values().size, { "false" }).apply{
@@ -86,7 +100,7 @@ class WidgetData @JvmOverloads constructor(map: Map<String, Any?>, val index: In
 		}
 
 		@JvmStatic
-		fun empty() = WidgetData(defaultProperties)
+		fun empty() = WidgetData(defaultProperties.toMutableMap())
 
 		@JvmStatic
 		fun parseBounds(bounds: String): List<Int> {
@@ -151,7 +165,7 @@ enum class P(val pName: String = "", var header: String = "") {
 
 	companion object {
 		@JvmStatic private val propertyValues = P.values().filter { it.pName != "" }
-		fun propertyMap(line: List<String>): Map<String, Any?> = propertyValues.map {
+		fun propertyMap(line: List<String>): MutableMap<String, Any?> = propertyValues.map {
 			(it.pName to
 					when (it) {
 						Clickable, LongClickable, Scrollable, IsPassword, Enabled, Selected, Visible, IsLeaf -> line[it.ordinal].toBoolean()
@@ -159,7 +173,7 @@ enum class P(val pName: String = "", var header: String = "") {
 						BoundsX, BoundsY, BoundsWidth, BoundsHeight -> line[it.ordinal].toInt()
 						else -> line[it.ordinal]  // Strings
 					})
-		}.toMap()
+		}.toMap().toMutableMap()
 	}
 }
 

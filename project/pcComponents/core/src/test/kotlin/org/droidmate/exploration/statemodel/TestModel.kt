@@ -22,7 +22,7 @@ interface TestModel{
 }
 
 class DefaultTestModel: TestModel {
-	override val testWidgetData by lazy{ WidgetData(mapOf(
+	override val testWidgetData by lazy{ WidgetData(mutableMapOf(
 			WidgetData::text.name to "text-mock",
 			WidgetData::contentDesc.name to "description-mock",
 			WidgetData::resourceId.name to "resourceId-mock",

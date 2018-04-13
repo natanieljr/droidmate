@@ -100,7 +100,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			val getStringVal: (property: String) -> String = { n.attributes.getNamedItem(it)?.nodeValue ?: "" }
 			val boundsList = WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue)
 
-			return WidgetData(mapOf(
+			return WidgetData(mutableMapOf(
 					WidgetData::text.name to getStringVal("text"),
 					WidgetData::resourceId.name to getStringVal("resource-id"),
 					WidgetData::className.name to getStringVal("class"),
