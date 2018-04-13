@@ -118,7 +118,7 @@ class StrategySelector(val priority: Int, val description: String, val selector:
             val interval = bundle!![0].toString().toInt()
 
             val lastReset = context.actionTrace.getActions()
-                    .indexOfLast { it -> it.actionType == "Reset" }
+                    .indexOfLast { it -> it.actionType == ResetAppExplorationAction::class.java.simpleName }
 
             val currAction = context.actionTrace.size
             val diff = currAction - lastReset
