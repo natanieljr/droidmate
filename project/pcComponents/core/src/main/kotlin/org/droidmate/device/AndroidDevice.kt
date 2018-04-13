@@ -135,6 +135,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 				PressHome::class,
 				EnableWifi::class,
 				LaunchApp::class,
+				FetchGUI::class,
 				SimulationAdbClearPackage::class))
 
 		return when (action) {
