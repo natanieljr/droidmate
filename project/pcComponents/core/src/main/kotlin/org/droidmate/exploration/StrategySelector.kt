@@ -32,6 +32,7 @@ import java.util.*
 
 typealias SelectorFunction = suspend (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
 
+@Suppress("unused")
 class StrategySelector(val priority: Int, val description: String, val selector: SelectorFunction, vararg val bundle: Any){
 	override fun toString(): String {
 		return "($priority)-$description"
@@ -251,7 +252,7 @@ class StrategySelector(val priority: Int, val description: String, val selector:
 		}
 
 		@JvmStatic
-		val playback: SelectorFunction = { context, pool, bundle ->
+		val playback: SelectorFunction = { context, pool, _ ->
 			logger.debug("Playback. Returning 'MemoryPlayback'")
 			pool.getFirstInstanceOf(MemoryPlayback::class.java)
 		}
