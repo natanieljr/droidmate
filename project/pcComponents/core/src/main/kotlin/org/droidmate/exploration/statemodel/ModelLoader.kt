@@ -5,10 +5,8 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.produce
 import org.droidmate.debug.debugT
-import org.droidmate.exploration.statemodel.config.ConcreteId
-import org.droidmate.exploration.statemodel.config.ModelConfig
-import org.droidmate.exploration.statemodel.config.dump
-import org.droidmate.exploration.statemodel.config.idFromString
+import org.droidmate.exploration.statemodel.config.*
+import org.droidmate.exploration.statemodel.config.ModelConfig.Companion.defaultWidgetSuffix
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Files
 import java.nio.file.Path
@@ -34,7 +32,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 		// the very first state of any trace is always an empty state which is automatically added on Model initialization
 		StateData.emptyState.let{ stateQueue[it.stateId] = async { it } }
 		val producer = traceProducer()
-		repeat(1){ traceProcessor( producer, watcher ) }  // process up to 5 exploration traces in parallel
+		repeat(5){ traceProcessor( producer, watcher ) }  // process up to 5 exploration traces in parallel
 		runBlocking {
 			log("wait for children completion")
 			job.joinChildren() } // wait until all traces were processed (the processor adds the trace to the model)
@@ -57,8 +55,12 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 			synchronized(model) { model.initNewTrace(watcher) }.let { trace ->
 				P_processLines(tracePath, lineProcessor = _actionParser).let { actionPairs ->  // use maximal parallelism to process the single actions/states
 					if (watcher.isEmpty()){
+						val resState = actionPairs.last().await().second
 						log(" wait for completion of actions")
-						trace.updateAll(actionPairs.map { it.await().first }, actionPairs.last().await().second)
+						val buggy = actionPairs.map { it.await().first }
+						val actions = actionPairs.map { it.await() }
+//						log("PARSED-ACTIONS\n"+actions.joinToString(separator = "\n"){it.first.actionString()})
+						trace.updateAll(actions.map { it.first }, resState)
 					}  // update trace actions
 					else {
 						log(" wait for completion of EACH action")
@@ -74,13 +76,17 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 		log("\n getFileContent skip=$skip, path= ${path.toUri()} \n")
 
 		if (!file.exists()) { return null } // otherwise this state has no widgets
-		file.bufferedReader().lines().skip(skip).use { return it.toList() }
-
+		file.bufferedReader().use { return it.lines().skip(skip).toList().also {
+			if(path.toUri().toString().contains("trace")) {
+				log(" FILE-Content ")
+				it.forEach { log(it) }
+				log(" END FileContent")
+			}
+		} }
 	}
 	private inline fun <reified T> P_processLines(path: Path, skip: Long = 1, crossinline lineProcessor: (List<String>) -> Deferred<T>): List<Deferred<T>> {
 		log("call P_processLines for ${path.toUri()}")
-		getFileContent(path,skip)?.let { br ->
-			// skip the first line (headline)
+		getFileContent(path,skip)?.let { br ->	// skip the first line (headline)
 			assert(br.count() > 0, { "ERROR on model loading: file ${path.fileName} does not contain any entries" })
 			return br.map { line -> lineProcessor(line.split(config[dump.sep]).map { it.trim() }) }
 		} ?: return emptyList()
@@ -104,26 +110,34 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 				idFromString(entries[ActionData.srcStateIdx]).let { srcId ->
 					stateQueue.computeIfAbsent(srcId, stateTask)
 							.await().let { srcState ->
-								log("SRC-State computed")
+								log("SRC-State $srcId computed")
 								assert(srcState.stateId == srcId, {" ERROR source state $srcState should have id $srcId"})
 								srcState.widgets.find { it.id == targetWidgetId }
 										.also { assert(it != null, {" ERROR could not find target widget $targetWidgetId in source state $srcState" }) }
 							}
 				}
-			}
+			}.also { assert(it != null, {" ERROR could not find target widget $widgetIdString in source state ${entries[ActionData.srcStateIdx]}" }) }
 		}
-		Pair(ActionData.createFromString(entries, targetWidget, config[dump.sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}") }
+		Pair(ActionData.createFromString(entries, targetWidget, config[dump.sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}}
+	protected open fun getStateFile(stateId: ConcreteId): Triple<Path,Boolean,String>{
+		val contentPath = Files.list(Paths.get(config.stateDst)).toList().first {
+			it.fileName.toString().startsWith( stateId.dumpString()+ defaultWidgetSuffix ) }
+		return contentPath.fileName.toString().let {
+			Triple(contentPath, it.contains("HS"), it.substring(it.indexOf("_PN-")+4,it.indexOf(config[dump.stateFileExtension])))
+		}
+	}
 
 	protected suspend fun P_parseState(stateId: ConcreteId):StateData {
 		log("parse state $stateId")
+		val(contentPath,isHomeScreen,topPackage) = getStateFile(stateId)
 		return mutableSetOf<Widget>().apply {	// create the set of contained elements (widgets)
-			val contentPath = Paths.get(config.widgetFile(stateId))
-
 			log(" parse file ${contentPath.toUri()}")
-				P_processLines(path = contentPath, lineProcessor = _widgetParser).forEach {
+				val widgets = P_processLines(path = contentPath, lineProcessor = _widgetParser).map{it.await()}
+
+					widgets.forEach {
 					log("await for each")
-					it.await()?.also {
+					it.also {
 						// add the parsed widget to temporary set AND initialize the parent property
 						log(" add widget $it")
 						add(it)
@@ -131,16 +145,17 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 				}
 		}.let {
 			if (it.isNotEmpty())
-				StateData.fromFile(it).also { newState -> model.addState(newState) }
+				StateData.fromFile(it,isHomeScreen,topPackage).also { newState -> model.addState(newState) }
 			else StateData.emptyState
 		}.also {
 					log("computed state $stateId with ${it.widgets.size} widgets")
-					assert(stateId == it.stateId, { "ERROR on state parsing inconsistent UUID created ${it.stateId} instead of $stateId" }) }
+					assert(stateId == it.stateId, {
+						"ERROR on state parsing inconsistent UUID created ${it.stateId} instead of $stateId" }) }
 	}
 
 	/** temporary map of all processed widgets for state parsing */
 	private val widgetQueue: MutableMap<ConcreteId,Deferred<Widget>> = ConcurrentHashMap()
-	protected val _widgetParser: (List<String>) -> Deferred<Widget?> = { line ->
+	protected val _widgetParser: (List<String>) -> Deferred<Widget> = { line ->
 		log("parse widget $line")
 		Pair((UUID.fromString(line[Widget.idIdx.first])),UUID.fromString(line[Widget.idIdx.second])).let { widgetId ->
 			widgetQueue.computeIfAbsent(widgetId) { id ->

@@ -156,6 +156,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 
 	fun update(action: ActionResult, newState: StateData) {
 		size += 1
+		lastActionType = action.action::class.simpleName ?: "ERROR"
 		launch(context, block = actionProcessor(action, newState))
 
 		debugT("set newState", { this.newState = Pair(newState, action.action.widget) })
@@ -167,6 +168,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	 * ASSUMPTION only one coroutine is simultaneously working on this Trace object*/
 	internal suspend fun update(action: ActionData, newState: StateData) {
 		size += 1
+		lastActionType = action.actionType
 		trace.send(Add(action))
 		this.newState = Pair(newState, action.targetWidget)
 	}
@@ -177,12 +179,14 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	 */
 	internal suspend fun updateAll(actions: Collection<ActionData>, latestState: StateData){
 		size += actions.size
+		lastActionType = actions.last().actionType
 		trace.send(AddAll(actions))
 		this.newState = Pair(latestState, actions.last().targetWidget)
 	}
 
 	val currentState get() = newState.first
 	var size: Int = 0 // avoid delay from trace access and just count how many actions were created
+	var lastActionType: String = ""
 
 	val interactedEditFields: Map<UUID, List<Pair<StateData, Widget>>> get() = editFields
 
@@ -198,7 +202,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun P_addAction(action:ActionData) = trace.sendBlocking(Add(action))  // this does never actually block the sending since the capacity is unlimited
 
 	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
-	fun getActions(): List<ActionData> = runBlocking { P_getActions() }
+	fun getActions(): List<ActionData> = trace.S_getAll()
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within coroutines to make complete use of suspendable feature */
 	suspend fun P_getActions(): List<ActionData>   = trace.getAll()

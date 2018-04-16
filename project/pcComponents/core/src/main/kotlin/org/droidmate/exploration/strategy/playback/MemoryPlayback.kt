@@ -61,7 +61,7 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 						}
 					}
 				}
-				return currentTrace.getActions()[actionIdx+1].also {
+				return currentTrace.getActions()[actionIdx].also {
 					if(!peek) actionIdx += 1
 				}
 			}
@@ -169,7 +169,7 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 	}
 
 	override fun chooseAction(): ExplorationAction {
-		return getNextAction()
+		return getNextAction().also{ println("PLAYBACK: $it")}
 	}
 
 	// TODO

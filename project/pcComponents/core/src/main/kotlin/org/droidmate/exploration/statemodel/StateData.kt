@@ -18,9 +18,9 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
                             val isAppHasStoppedDialogBox: Boolean = false,
                             val isRequestRuntimePermissionDialogBox: Boolean = false) {
 
-	constructor(widgets: Set<Widget>) : this(lazyOf(widgets.toList()))
+	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),isHomeScreen = homeScreen, topNodePackageName = topPackage)
 
-	val widgets by lazy { _widgets.value }
+	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() } }
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
 //              isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,
@@ -32,7 +32,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 //      isSelectAHomeAppDialogBox,isUseLauncherAsHomeDialogBox)
 
 	// ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
-	private val lazyIds: Lazy<Pair<UUID, UUID>> =
+	private val lazyIds: Lazy<ConcreteId> =
 			lazy({
 				widgets.fold(Pair(emptyUUID, emptyUUID), { (id, configId), widget ->
 					Pair(addRelevantId(id, widget), configId + widget.propertyConfigId)
@@ -41,7 +41,8 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	val uid: UUID by lazy { lazyIds.value.first }
 	val configId: UUID by lazy { lazyIds.value.second }
-	val stateId by lazy { ConcreteId(uid, configId) }
+	val stateId by lazy {
+		ConcreteId(uid, configId) }
 	/** id computed like uid while ignoring all edit fields */
 	val iEditId: UUID by lazy {
 		//lazyIds.value.third
@@ -63,14 +64,14 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 		if (!widgets.contains(w)) addRelevantId(id, w) else id
 	})
 
-	fun hasActionableWidgets() = actionableWidgets.isNotEmpty()
+	val hasActionableWidgets by lazy{ actionableWidgets.isNotEmpty() }
 
 	/** write CSV
 	 *
 	 * [uid] => state_id as file name
 	 */
 	fun dump(config: ModelConfig) {
-		File(config.widgetFile(stateId)).bufferedWriter().use { all ->
+		File(config.widgetFile(stateId,isHomeScreen,topNodePackageName)).bufferedWriter().use { all ->
 			all.write(widgetHeader(config[sep]))
 
 			widgets.sortedBy { it.uid }.forEach {
@@ -87,12 +88,11 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 		// to load the model from previously stored files
 		@JvmStatic
-		fun fromFile(widgets: Set<Widget>): StateData = StateData(widgets//.sortedBy { it.uid.dumpString() }
-		)
+		fun fromFile(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String): StateData = StateData(widgets,homeScreen,topPackage)
 
 		/** dummy element if a state has to be given but no widget data is available */
 		@JvmStatic
-		val emptyState: StateData by lazy { StateData(emptySet()) }
+		val emptyState: StateData by lazy { StateData(lazy{ emptyList<Widget>() }) }
 
 		/** compute the unique id containing all widgets with [widgetIds] and the [iEditId]
 		 * assume that the given set of ids are all relevant for the uid computation*/

@@ -34,7 +34,7 @@ class BlackListMF: ModelFeature() {
 	 * and blacklist the widget of the action before this one to be not/ less likely explored
 	 */
 	override suspend fun onContextUpdate(context: ExplorationContext) {
-		if(!lastActionableState.isHomeScreen && context.lastTarget != null && isStuck(context.getLastAction().actionType))
+		if(!lastActionableState.isHomeScreen && context.lastTarget != null && isStuck(context.getLastActionType()))
 			wCnt.compute( context.lastTarget!!.uid,
 					{ _, m -> m?.incCnt(lastActionableState.uid) ?: mutableMapOf(lastActionableState.uid to 1) })
 	}

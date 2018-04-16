@@ -53,8 +53,10 @@ object ExplorationAPI {
 		inlineAndExplore(args)
 	}
 
+	val minimalStrategySet = listOf(RandomWidget(0), Terminate(), Back(), Reset())
+
 	@JvmStatic
-	fun inlineAndExplore(args: Array<String>, strategies: List<ISelectableExplorationStrategy> = listOf(RandomWidget(0), Terminate(), Back(), Reset()), reportCreators: List<Reporter> = emptyList()) {
+	fun inlineAndExplore(args: Array<String>, strategies: List<ISelectableExplorationStrategy>? = null, reportCreators: List<Reporter> = emptyList()) {
 		var exitStatus = 0
 
 		try {
@@ -70,7 +72,7 @@ object ExplorationAPI {
 //			InlineCommand().execute(cfg)
 
 			val runStart = Date()
-			val command = ExploreCommand.build(cfg, reportCreators = reportCreators, strategies = strategies)
+			val command = ExploreCommand.build(cfg, reportCreators = reportCreators, strategies = strategies?: ExploreCommand.getDefaultStrategies(cfg))
 			log.info("EXPLORATION start timestamp: $runStart")
 			log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
