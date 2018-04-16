@@ -40,7 +40,6 @@ import org.droidmate.misc.SysCmdExecutorException
 import org.droidmate.misc.Utils
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import org.slf4j.LoggerFactory
-import java.io.FileWriter
 import java.io.IOException
 
 import java.nio.file.Files
@@ -202,8 +201,8 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 			val commandDescription = "Executing adb (Android Debug Bridge) to forward port $port to android device with s/n $deviceSerialNumber."
 
 			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s", deviceSerialNumber, "forward",
-					"tcp:" + port,
-					"tcp:" + port)
+					"tcp:$port",
+					"tcp:$port")
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb forward' failed. Oh my.", e)
@@ -218,8 +217,8 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 			val commandDescription = "Executing adb (Android Debug Bridge) to reverse-forward port $port to android device with s/n $deviceSerialNumber."
 
 			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s", deviceSerialNumber, "reverse",
-					"tcp:" + port,
-					"tcp:" + port)
+					"tcp:$port",
+					"tcp:$port")
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb forward' failed. Oh my.", e)
@@ -551,21 +550,19 @@ Logcat reference:
 		}
 	}
 
-	override fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: String, shellPackageName: String) {
+	override fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: Path, shellPackageName: String) {
 		assert(pulledFileName.isNotEmpty())
-		assert(destinationFilePath.isNotEmpty())
 		assert(shellPackageName.isNotEmpty())
 
-		assert(Files.notExists(Paths.get(destinationFilePath)))
+		if (Files.exists(destinationFilePath))
+			Files.delete(destinationFilePath)
 
 		val pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + pulledFileName
 
 		val stdout = this.executeCommand(deviceSerialNumber, "", "Pull file (API23 compatibility)",
 				"exec-out run-as", shellPackageName, "cat", pulledFilePath)
 
-		val writer = FileWriter(destinationFilePath)
-		writer.write(stdout)
-		writer.close()
+		Files.write(destinationFilePath, stdout.toByteArray())
 	}
 
 	override fun removeFileApi23(deviceSerialNumber: String, fileName: String, shellPackageName: String) {

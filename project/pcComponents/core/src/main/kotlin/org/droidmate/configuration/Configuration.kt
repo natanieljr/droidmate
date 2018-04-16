@@ -99,8 +99,12 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	constructor(parsedData: Pair<Configuration, List<String>>, fileSystem: FileSystem = FileSystems.getDefault())
 			: this(parsedData.first, fileSystem)
 
+	fun getPath(path: String): Path {
+		return fileSystem.getPath(path).toAbsolutePath()
+	}
+
 	fun getPath(uri: URI): Path {
-		return fileSystem.getPath(uri.path).toAbsolutePath()
+		return getPath(uri.path)
 	}
 
 	companion object {

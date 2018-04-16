@@ -130,7 +130,7 @@ class AdbWrapperStub : IAdbWrapper {
 	override fun removeFileApi23(deviceSerialNumber: String, fileName: String, shellPackageName: String) {
 	}
 
-	override fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: String, shellPackageName: String) {
+	override fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: Path, shellPackageName: String) {
 
 	}
 

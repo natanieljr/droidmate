@@ -241,7 +241,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun pullLogcatLogFile() {
 		log.debug("pullLogcatLogFile()")
 		if (cfg[apiVersion] == ConfigurationWrapper.api23)
-			this.adbWrapper.pullFileApi23(this.serialNumber, logcatLogFileName, LogbackUtils.getLogFilePath("logcat.txt"), uia2Daemon_packageName)
+			this.adbWrapper.pullFileApi23(this.serialNumber, logcatLogFileName, cfg.getPath(LogbackUtils.getLogFilePath("logcat.txt")), uia2Daemon_packageName)
 		else
 			throw UnexpectedIfElseFallthroughError()
 	}

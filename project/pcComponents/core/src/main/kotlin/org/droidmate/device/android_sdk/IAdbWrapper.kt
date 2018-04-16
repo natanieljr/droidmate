@@ -99,7 +99,7 @@ interface IAdbWrapper {
 	fun removeFileApi23(deviceSerialNumber: String, fileName: String, shellPackageName: String)
 
 	@Throws(AdbWrapperException::class)
-	fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: String, shellPackageName: String)
+	fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: Path, shellPackageName: String)
 
 	@Throws(AdbWrapperException::class)
 	fun takeScreenshot(deviceSerialNumber: String, targetPath: String)
