@@ -33,7 +33,6 @@ import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
-import org.droidmate.configuration.ConfigProperties.Output.screenshotDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.playbackModelDir
@@ -60,7 +59,6 @@ import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.ModelLoader
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.MemoryPlayback
@@ -74,14 +72,12 @@ import org.droidmate.report.AggregateStats
 import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
-import org.droidmate.storage.Storage2
 import org.droidmate.tools.*
 import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -95,6 +91,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		@JvmStatic
 		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
 
+		@Suppress("MemberVisibilityCanBePrivate")
 		@JvmStatic
 		fun getDefaultSelectors(cfg: ConfigurationWrapper): List<StrategySelector>{
 			val res : MutableList<StrategySelector> = mutableListOf()
@@ -149,6 +146,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			return res
 		}
 
+		@Suppress("MemberVisibilityCanBePrivate")
 		@JvmStatic
 		fun getDefaultStrategies(cfg: ConfigurationWrapper): List<ISelectableExplorationStrategy>{
 			val strategies = LinkedList<ISelectableExplorationStrategy>()
@@ -349,7 +347,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			throw fallibleApkOut2.exception!!
 	}
 
-	fun run(app: IApk, device: IRobustDevice): Failable<AbstractContext, DeviceException> {
+	private fun run(app: IApk, device: IRobustDevice): Failable<AbstractContext, DeviceException> {
 		log.info("run(${app.packageName}, device)")
 
 		device.resetTimeSync()
@@ -377,7 +375,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		// Use the received exploration context (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
-		// Note that a different context is created for each exploration if none it provieder
+		// Note that a different context is created for each exploration if none it provider
 		val output = ExplorationContext(app, timeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + output.explorationStartTime)
