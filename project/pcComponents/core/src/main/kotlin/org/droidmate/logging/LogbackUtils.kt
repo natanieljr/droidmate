@@ -30,10 +30,10 @@ import java.io.File
 class LogbackUtils {
 	companion object {
 		@JvmStatic
-		public fun getLogFilePath(logName: String): String = "${LogbackConstants.LOGS_DIR_PATH}${File.separator}$logName"
+		fun getLogFilePath(logName: String): String = "${LogbackConstants.LOGS_DIR_PATH}${File.separator}$logName"
 
 		@JvmStatic
-		public fun getLogFilePathForLastElement(className: String): String = getLogFilePath("${className.substring(className.lastIndexOf(".") + 1)}.txt")
+		fun getLogFilePathForLastElement(className: String): String = getLogFilePath("${className.substring(className.lastIndexOf(".") + 1)}.txt")
 	}
 }
 
