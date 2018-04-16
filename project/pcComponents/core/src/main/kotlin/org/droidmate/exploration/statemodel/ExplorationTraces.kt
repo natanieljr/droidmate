@@ -46,7 +46,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 			: this(action::class.simpleName ?: "Unknown", action.widget,
 			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep)
 
-	constructor(res: ActionResult, resStateId: ConcreteId, prevStateId: ConcreteId, sep:String)
+	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
 			: this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId, sep) {
 		prevState = prevStateId
 	}
@@ -66,8 +66,8 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 			P.EndTime -> endTimestamp.toString()
 			P.Exception -> exception
 			P.SuccessFul -> successful.toString()
+			P.PrevId -> prevState.dumpString()
 			P.DstId -> resState.dumpString()
-			P.Id -> prevState.dumpString()
 			P.WId -> targetWidget?.run { id.dumpString() } ?: "null"
 		}
 	}
@@ -78,9 +78,10 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 
 		@JvmStatic
 		fun createFromString(e: List<String>, target: Widget?, contentSeparator: String): ActionData = ActionData(
-				e[P.Action.ordinal], target, LocalDateTime.parse(e[P.StartTime.ordinal]), LocalDateTime.parse(e[P.EndTime.ordinal]),
-				e[P.SuccessFul.ordinal].toBoolean(), e[P.Exception.ordinal], idFromString(e[P.DstId.ordinal]), sep = contentSeparator
-		).apply { prevState = idFromString(e[P.Id.ordinal]) }
+				actionType = e[P.Action.ordinal], targetWidget = target, startTimestamp = LocalDateTime.parse(e[P.StartTime.ordinal]),
+				endTimestamp = LocalDateTime.parse(e[P.EndTime.ordinal]), successful = e[P.SuccessFul.ordinal].toBoolean(),
+				exception = e[P.Exception.ordinal], resState = idFromString(e[P.DstId.ordinal]), sep = contentSeparator
+		).apply { prevState = idFromString(e[P.PrevId.ordinal]) }
 
 		@JvmStatic
 		val empty: ActionData by lazy {
@@ -91,9 +92,9 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 		@JvmStatic val header:(String)-> String = { sep -> P.values().joinToString(separator = sep) { it.header } }
 		@JvmStatic val widgetIdx = P.WId.ordinal
 		@JvmStatic val resStateIdx = P.DstId.ordinal
-		@JvmStatic val srcStateIdx = P.Id.ordinal
+		@JvmStatic val srcStateIdx = P.PrevId.ordinal
 
-		private enum class P(var header: String = "") { Id("Source State"), Action, WId("Interacted Widget"),
+		private enum class P(var header: String = "") { PrevId("Source State"), Action, WId("Interacted Widget"),
 			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception;
 
 			init {
@@ -143,9 +144,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		}
 	}
 
-	private val actionProcessor: (ActionResult, StateData) -> suspend CoroutineScope.() -> Unit = { action, newState ->
+	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { action, oldState, newState ->
 		{
-			debugT("create actionData", { ActionData(action, newState.stateId, newState.stateId, config[sep]) })
+			debugT("create actionData", { ActionData(res = action, prevStateId = oldState.stateId, resStateId = newState.stateId, sep =config[sep]) })
 					.also {
 						debugT("add action", { P_addAction(it) })
 					}
@@ -157,7 +158,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	fun update(action: ActionResult, newState: StateData) {
 		size += 1
 		lastActionType = action.action::class.simpleName ?: "ERROR"
-		launch(context, block = actionProcessor(action, newState))
+		launch(context, block = actionProcessor(action, this.newState.first, newState)) // we did not update this.newState yet, therefore it contains the now 'old' state
 
 		debugT("set newState", { this.newState = Pair(newState, action.action.widget) })
 	}

@@ -116,7 +116,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 										.also { assert(it != null, {" ERROR could not find target widget $targetWidgetId in source state $srcState" }) }
 							}
 				}
-			}.also { assert(it != null, {" ERROR could not find target widget $widgetIdString in source state ${entries[ActionData.srcStateIdx]}" }) }
+			}
 		}
 		Pair(ActionData.createFromString(entries, targetWidget, config[dump.sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}}
