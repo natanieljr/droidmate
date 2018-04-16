@@ -102,15 +102,10 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			var priority = 0
 
 			if (cfg[playback])
-				res.add(StrategySelector(++priority, StrategySelector.playback))
+				res.add(StrategySelector(++priority, "playback", StrategySelector.playback))
 
-			res.add(StrategySelector(++priority, StrategySelector.startExplorationReset))
-			res.add(StrategySelector(++priority, StrategySelector.appCrashedReset))
-
-			if (cfg[allowRuntimeDialog])
-				res.add(StrategySelector(++priority, StrategySelector.allowPermission))
-
-			res.add(StrategySelector(++priority, StrategySelector.cannotExplore))
+			res.add(StrategySelector(++priority, "startExplorationReset", StrategySelector.startExplorationReset))
+			res.add(StrategySelector(++priority, "appCrashedReset", StrategySelector.appCrashedReset))
 
 			// Action based terminate
 			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
@@ -119,32 +114,37 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				else
 					cfg[actionLimit]
 
-				res.add(StrategySelector(++priority, StrategySelector.actionBasedTerminate, actionLimit))
+				res.add(StrategySelector(++priority, "actionBasedTerminate", StrategySelector.actionBasedTerminate, actionLimit))
 			}
 
 			// Time based terminate
 			if (cfg[timeLimit] > 0)
-				res.add(StrategySelector(++priority, StrategySelector.timeBasedTerminate, cfg[timeLimit]))
+				res.add(StrategySelector(++priority, "timeBasedTerminate", StrategySelector.timeBasedTerminate, cfg[timeLimit]))
+
+			if (cfg[allowRuntimeDialog])
+				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
+
+			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
 
 			// Interval reset
 			if (cfg[resetEvery] > 0)
-				res.add(StrategySelector(++priority, StrategySelector.intervalReset, cfg[resetEvery]))
+				res.add(StrategySelector(++priority, "intervalReset", StrategySelector.intervalReset, cfg[resetEvery]))
 
 			// Random back
 			if (cfg[pressBackProbability] > 0.0)
-				res.add(StrategySelector(++priority, StrategySelector.randomBack, cfg[pressBackProbability], Random(cfg.randomSeed.toLong())))
+				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, cfg[pressBackProbability], Random(cfg.randomSeed.toLong())))
 
 			// Fitness Proportionate Selection
 			if (cfg[fitnessProportionate])
-				res.add(StrategySelector(++priority, StrategySelector.randomBiased))
+				res.add(StrategySelector(++priority, "randomBiased", StrategySelector.randomBiased))
 
 			// ExplorationContext based
 			if (cfg[modelBased])
-				res.add(StrategySelector(++priority, StrategySelector.randomWithModel))
+				res.add(StrategySelector(++priority, "randomWithModel", StrategySelector.randomWithModel))
 
 			// Random exploration
 			if (cfg[explore])
-				res.add(StrategySelector(++priority, StrategySelector.randomWidget))
+				res.add(StrategySelector(++priority, "randomWidget", StrategySelector.randomWidget))
 
 			return res
 		}

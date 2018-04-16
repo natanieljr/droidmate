@@ -32,7 +32,11 @@ import java.util.*
 
 typealias SelectorFunction = suspend (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
 
-class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg val bundle: Any){
+class StrategySelector(val priority: Int, val description: String, val selector: SelectorFunction, vararg val bundle: Any){
+	override fun toString(): String {
+		return "($priority)-$description"
+	}
+
     companion object {
         val logger: Logger = LoggerFactory.getLogger(StrategySelector::class.java)
 
@@ -114,7 +118,7 @@ class StrategySelector(val priority: Int, val selector: SelectorFunction, vararg
             val interval = bundle!![0].toString().toInt()
 
             val lastReset = context.actionTrace.getActions()
-                    .indexOfLast { it -> it.actionType == "Reset" }
+                    .indexOfLast { it -> it.actionType == ResetAppExplorationAction::class.java.simpleName }
 
             val currAction = context.actionTrace.size
             val diff = currAction - lastReset
