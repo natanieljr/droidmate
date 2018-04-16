@@ -14,7 +14,6 @@ import soot.options.Options
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.*
 
@@ -24,7 +23,7 @@ import java.util.*
 class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 							private val sysCmdExecutor: ISysCmdExecutor = SysCmdExecutor(),
 							private val jarsignerWrapper: IJarsignerWrapper = JarsignerWrapper(sysCmdExecutor,
-									Paths.get(BuildConstants.jarsigner),
+									cfg.getPath(BuildConstants.jarsigner),
 									Resource("debug.keystore").extractTo(cfg.resourceDir))) {
 	private val allMethods = HashSet<String>()
 

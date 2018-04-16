@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 
@@ -128,7 +127,7 @@ class ApkInliner constructor(private val sysCmdExecutor: ISysCmdExecutor,
 
 			return ApkInliner(sysCmdExecutor,
 					JarsignerWrapper(sysCmdExecutor,
-							Paths.get(BuildConstants.jarsigner),
+							cfg.getPath(BuildConstants.jarsigner),
 							Resource("debug.keystore").extractTo(cfg.resourceDir)),
 					Jar(Resource("appguard-inliner.jar").extractTo(cfg.resourceDir)),
 					Dex(Resource("appguard-loader.dex").extractTo(cfg.resourceDir)),

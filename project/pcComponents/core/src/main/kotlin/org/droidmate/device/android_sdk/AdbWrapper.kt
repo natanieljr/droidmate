@@ -153,7 +153,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	override fun installApk(deviceSerialNumber: String, apkToInstall: IApk) {
-		val apkFile = Paths.get(apkToInstall.absolutePath)
+		val apkFile = cfg.getPath(apkToInstall.absolutePath)
 		this.installApk(deviceSerialNumber, apkFile)
 	}
 
