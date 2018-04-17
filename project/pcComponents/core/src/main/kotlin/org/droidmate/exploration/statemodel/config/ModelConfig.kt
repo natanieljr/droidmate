@@ -16,7 +16,7 @@ import java.util.*
 class ModelConfig private constructor(path: String, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration by config{
 	/** @path path-string locationg the base directory where all model data is supposed to be dumped */
 	constructor(path: String, appName: String, isLoadC: Boolean = false): this(path, appName, resourceConfig, isLoadC)
-	constructor(appName: String, isLoadC: Boolean = false) : this("..${File.separator}out${File.separator}model", appName, isLoadC)
+	constructor(appName: String, isLoadC: Boolean = false) : this("out${File.separator}model", appName, isLoadC)
 
 	val baseDir = "$path${File.separator}$appName${File.separator}"  // directory path where the model file(s) should be stored
 	val stateDst = "$baseDir${config[statesSubDir].path}${File.separator}"       // each state gets an own file named according to UUID in this directory
