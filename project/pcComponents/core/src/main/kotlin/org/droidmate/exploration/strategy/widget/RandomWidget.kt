@@ -95,7 +95,7 @@ open class RandomWidget constructor(randomSeed: Long,
 	 * @param t1 the threshold to consider the widget blacklisted within the current state context
 	 * @param t2 the threshold to consider the widget blacklisted over all states
 	 */
-	protected open fun excludeBlacklisted(candidates: List<Widget>, t1:Int=1, t2:Int=2, block:( listedInsState:List<Widget>, blacklisted: List<Widget>)->ExplorationAction): ExplorationAction =
+	protected open fun excludeBlacklisted(candidates: List<Widget>, t1:Int=1, t2:Int=2, block:( listedInsState:List<Widget>, blacklisted: List<Widget>)->List<Widget>): List<Widget> =
 			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, t1) }.let{ noBlacklistedInState ->
 				noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, t2) }.let{ noBlacklisted ->
 					block(noBlacklistedInState, noBlacklisted)
@@ -113,29 +113,30 @@ open class RandomWidget constructor(randomSeed: Long,
 
 	private fun chooseBiased(): ExplorationAction{
 		runBlocking { counter.job.joinChildren() }  // this waits for both children counter and blacklist
-		val candidates =
-		// for each widget in this state the number of interactions
-				counter.numExplored(currentState).entries.groupBy { it.value }.let {
-					it.listOfSmallest()?.map { it.key }?.let { leastInState: List<Widget> ->
-						// determine the subset of widgets which were least interacted with
-						// if multiple widgets clicked with same frequency, choose the one least clicked over all states
-						if (leastInState.size > 1) {
-							leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
-						} else leastInState
-					}
-				}
-						?: currentState.actionableWidgets
-
-		assert(candidates.isNotEmpty())
-		return debugT("blacklist computation", {
-			excludeBlacklisted(candidates){ noBlacklistedInState, noBlacklisted ->
+		val candidates = debugT("blacklist computation", {
+			excludeBlacklisted(currentState.actionableWidgets){ noBlacklistedInState, noBlacklisted ->
 				when {
-					noBlacklisted.isNotEmpty() -> noBlacklisted.chooseRandomly()
-					noBlacklistedInState.isNotEmpty() -> noBlacklistedInState.chooseRandomly()
-					else -> PressBackExplorationAction() // we are stuck, everything is blacklisted
+					noBlacklisted.isNotEmpty() -> noBlacklisted
+					noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
+					else -> emptyList() // we are stuck, everything is blacklisted
 				}
 			}
-		}, inMillis = true)
+		}, inMillis = true).let { filteredCandidates ->
+			// for each widget in this state the number of interactions
+			counter.numExplored(currentState, filteredCandidates).entries.groupBy { it.value }.let {
+				it.listOfSmallest()?.map { it.key }?.let { leastInState: List<Widget> ->
+					// determine the subset of widgets which were least interacted with
+					// if multiple widgets clicked with same frequency, choose the one least clicked over all states
+					if (leastInState.size > 1) {
+						leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
+					} else leastInState
+				}
+			}
+					?: emptyList()
+		}
+		return if(candidates.isEmpty()){
+			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
+			PressBackExplorationAction()} else candidates.chooseRandomly()
 	}
 
 	private fun chooseRandomly(): ExplorationAction{
