@@ -105,6 +105,9 @@ abstract class AbstractContext : Serializable {
 	 * @return Information of the last action performed or instance of [EmptyActionResult]
 	 */
 	fun getLastAction(): ActionData = runBlocking { actionTrace.last() } ?: ActionData.empty
+	/** @returns the name of the last executed action.
+	 * This method should be prefered to [getLastAction] as it does not have to wait for any other coroutines. */
+	fun getLastActionType(): String = actionTrace.lastActionType
 
 	/**
 	 * Get the exploration duration in milliseconds

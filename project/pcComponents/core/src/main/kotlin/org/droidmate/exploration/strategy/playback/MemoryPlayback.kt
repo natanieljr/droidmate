@@ -169,7 +169,7 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 	}
 
 	override fun chooseAction(): ExplorationAction {
-		return getNextAction()
+		return getNextAction().also{ println("PLAYBACK: $it")}
 	}
 
 	// TODO

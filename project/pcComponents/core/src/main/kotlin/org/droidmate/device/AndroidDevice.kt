@@ -125,6 +125,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun perform(action: Action): DeviceResponse {
 		log.debug("perform($action)")
 		assert(action::class in arrayListOf(ClickAction::class,
+				FetchGUI::class,
 				CoordinateClickAction::class,
 				CoordinateLongClickAction::class,
 				LongClickAction::class,
@@ -135,8 +136,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 				PressHome::class,
 				EnableWifi::class,
 				LaunchApp::class,
-				FetchGUI::class,
-				SimulationAdbClearPackage::class))
+				SimulationAdbClearPackage::class),{"tried to perform unknown action ${action::class.simpleName}"})
 
 		return when (action) {
 			is WaitAction -> wait(action)

@@ -90,6 +90,7 @@ class Model private constructor(val config: ModelConfig) {
 	}
 
 	fun P_dumpModel(config: ModelConfig) = launch(CoroutineName("Model-dump"),parent = modelDumpJob) {
+		println("dump Model with ${getStates().size}")
 		paths.map { t -> launch(CoroutineName("trace-dump"),parent = modelDumpJob) { t.dump(config) } }
 		getStates().map { s -> launch(CoroutineName("state-dump ${s.uid}"),parent = modelDumpJob) { s.dump(config) } }
 	}
@@ -216,7 +217,7 @@ class Model private constructor(val config: ModelConfig) {
 
 		@JvmStatic
 		fun main(args: Array<String>) {
-			val test = loadAppModel("loadTest")
+			val test = ModelLoader.loadModel(ModelConfig(path="../out/playback", appName = "testModel", isLoadC=true))//loadAppModel("loadTest")
 			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
 			test.getPaths().first().getActions().forEach { a ->
 				println("ACTION: " + a.actionString())

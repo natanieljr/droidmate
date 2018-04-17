@@ -180,7 +180,7 @@ class StrategySelector constructor(val priority: Int,
             val random = bundleArray[1] as Random
             val value = random.nextDouble()
 
-            if ((context.getLastAction().actionType == ResetAppExplorationAction::class.java.simpleName) || (value > probability))
+            if ((context.getLastActionType() == ResetAppExplorationAction::class.java.simpleName) || (value > probability))
                 null
             else {
                 logger.debug("Has triggered back probability and previous action was not to press back. Returning 'Back'")
@@ -191,7 +191,7 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
         val cannotExplore: SelectorFunction = { context, pool, _ ->
 			if (!context.explorationCanMoveOn()){
-				val lastActionType = context.getLastAction().actionType
+				val lastActionType = context.getLastActionType()
 
 				// last action was reset
 				when (lastActionType){
