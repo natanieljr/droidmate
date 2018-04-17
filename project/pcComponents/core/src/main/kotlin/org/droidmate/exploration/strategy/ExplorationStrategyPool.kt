@@ -122,7 +122,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 					}
 				} )
 
-		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy")
+		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy (${bestStrategy.second.getCompleted()})")
 
 		// notify
 		bestStrategy.first.onSelected?.invoke(this.memory)
