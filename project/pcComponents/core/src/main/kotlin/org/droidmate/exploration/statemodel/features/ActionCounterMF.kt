@@ -57,6 +57,13 @@ class ActionCounterMF : ModelFeature() {
 		it to it.uid.cntForState(s.uid)//(wCnt[w.uid]?.get(s.uid)?:0)
 	}.toMap()
 
+	/** determine how often any widget was explored in the context of the given state [s] for the given subset of widgets [selection]
+	 * @return map of the widget.uid to the number of interactions from state-context [s]
+	 */
+	fun numExplored(s: StateData, selection: Collection<Widget>): Map<Widget, Int> = selection.map {
+		it to it.uid.cntForState(s.uid)//(wCnt[w.uid]?.get(s.uid)?:0)
+	}.toMap()
+
 	private fun UUID.cntForState(sId: UUID): Int = wCnt.getCounter(this, sId)
 	/** @return how often widget.uid was triggered in the given state-context **/
 	fun widgetCntForState(wId: UUID, sId: UUID): Int = wId.cntForState(sId)

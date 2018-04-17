@@ -1,9 +1,17 @@
 package org.droidmate.exploration.statemodel.features
 
+import java.lang.Integer.max
+
 /** used to increase the counter value of a map **/
 internal inline fun <reified K> MutableMap<K, Int>.incCnt(id: K): MutableMap<K, Int> = this.apply {
 	compute(id, { _, c ->
 		c?.inc() ?: 1
+	})
+}
+/** used to decrease the counter value of a map **/
+internal inline fun <reified K> MutableMap<K, Int>.decCnt(id: K): MutableMap<K, Int> = this.apply {
+	compute(id, { _, c ->
+		max(c?.dec() ?: 0, 0)
 	})
 }
 

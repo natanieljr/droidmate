@@ -39,6 +39,14 @@ class BlackListMF: ModelFeature() {
 					{ _, m -> m?.incCnt(lastActionableState.uid) ?: mutableMapOf(lastActionableState.uid to 1) })
 	}
 
+	suspend fun decreaseCounter(context: ExplorationContext){
+		context.lastTarget?.let { lastTarget ->
+			job.joinChildren() // wait that all updates are applied before changing the counter value
+			wCnt.compute(lastTarget.uid,
+			{ _,m -> m?.decCnt(lastActionableState.uid) ?: mutableMapOf(lastActionableState.uid to 0)})
+		}
+	}
+
 	fun isBlacklisted(wId: UUID, threshold: Int = 1): Boolean = wCnt.sumCounter(wId) >= threshold
 
 	fun isBlacklistedInState(wId: UUID, sId:UUID, threshold: Int = 1): Boolean = wCnt.getCounter(wId, sId) >= threshold
