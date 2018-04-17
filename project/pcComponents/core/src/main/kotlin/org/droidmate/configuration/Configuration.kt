@@ -206,6 +206,7 @@ abstract class ConfigProperties {
 		val actionLimit by intType
 		val timeLimit by intType
 		val randomSeed by intType
+		val stopOnExhaustion by booleanType
 	}
 
 	object Report : PropertyGroup() {

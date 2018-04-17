@@ -38,6 +38,7 @@ import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.playbackModelDir
 import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbability
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
+import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
@@ -129,7 +130,11 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			// Random back
 			if (cfg[pressBackProbability] > 0.0)
-				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, cfg[pressBackProbability], Random(cfg.randomSeed.toLong())))
+				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed.toLong())))
+
+			// Exploration exhausted
+			if (cfg[stopOnExhaustion])
+				res.add(StrategySelector(++priority, "explorationExhausted", StrategySelector.explorationExhausted))
 
 			// Fitness Proportionate Selection
 			if (cfg[fitnessProportionate])

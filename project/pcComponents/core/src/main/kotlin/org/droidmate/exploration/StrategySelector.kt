@@ -31,9 +31,19 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 typealias SelectorFunction = suspend (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
+typealias OnSelected = (context: AbstractContext) -> Unit
 
-@Suppress("unused")
-class StrategySelector(val priority: Int, val description: String, val selector: SelectorFunction, vararg val bundle: Any){
+class StrategySelector constructor(val priority: Int,
+									private val description: String,
+									val selector: SelectorFunction,
+									val onSelected: OnSelected? = null,
+									vararg val bundle: Any){
+	constructor(priority: Int,
+				description: String,
+				selector: SelectorFunction,
+				bundle: Any): this(priority, description, selector, null, bundle)
+
+
 	override fun toString(): String {
 		return "($priority)-$description"
 	}
