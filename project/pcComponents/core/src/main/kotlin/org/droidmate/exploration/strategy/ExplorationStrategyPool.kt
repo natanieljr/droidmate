@@ -24,8 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.*
 import org.droidmate.debug.debugT
 import org.droidmate.debug.nullableDebugT
 import org.droidmate.exploration.statemodel.ActionResult
@@ -34,6 +33,7 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.StrategySelector
 import org.slf4j.LoggerFactory
+import java.lang.Math.max
 
 /**
  * Exploration strategy pool that selects an exploration for a pool
@@ -112,15 +112,17 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		ExplorationStrategyPool.logger.debug("Selecting best strategy.")
 		val mem = this.memory
 		val pool = this
-		val bestStrategy = debugT("strategy selection time",
-				{
-					runBlocking {
-						selectors
-								.sortedBy { it.priority }
-								.map { Pair(it, async { nullableDebugT("decision time [${it.priority}]", { it.selector(mem, pool, it.bundle) } ) }) }
-								.first{ it.second.await() != null }
-					}
-				} )
+		var cnt:Long = 0
+		val bestStrategy = debugT("strategy selection time",	{
+			//runBlocking(newSingleThreadContext("SelectorsThread")) { // to make it single threaded
+			runBlocking(newFixedThreadPoolContext (max(Runtime.getRuntime().availableProcessors()-1,1),name="SelectorsThread")){
+				selectors
+						.sortedBy { it.priority }
+						.map { Pair(it, async(coroutineContext) { nullableDebugT("decision time $it ", { it.selector(mem, pool, it.bundle) }
+								, timer = {cnt+=it} ) }) }
+						.first{ it.second.await() != null }
+			}
+		}, timer = { println("SELECTORS: ${it/1000000} vs ${cnt/1000000}")}, inMillis = true )
 
 		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy (${bestStrategy.second.getCompleted()})")
 

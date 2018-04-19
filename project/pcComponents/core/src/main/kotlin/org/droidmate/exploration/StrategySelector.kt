@@ -56,11 +56,11 @@ class StrategySelector constructor(val priority: Int,
 		 *
 		 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
 		 */
-		private fun AbstractContext.getSecondLastAction(): ActionData {
+		private suspend fun AbstractContext.getSecondLastAction(): ActionData {
 			if (this.getSize() < 2)
 				return ActionData.empty
 
-			return this.actionTrace.getActions().dropLast(1).last()
+			return this.actionTrace.P_getActions().dropLast(1).last()
 		}
 
         /**
@@ -128,7 +128,7 @@ class StrategySelector constructor(val priority: Int,
         val intervalReset: SelectorFunction = { context, pool, bundle ->
             val interval = bundle!![0].toString().toInt()
 
-            val lastReset = context.actionTrace.getActions()
+            val lastReset = context.actionTrace.P_getActions()
                     .indexOfLast { it -> it.actionType == ResetAppExplorationAction::class.java.simpleName }
 
             val currAction = context.actionTrace.size
@@ -176,7 +176,7 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
         val randomBack: SelectorFunction = {context, pool, bundle ->
             val bundleArray = bundle!!
-            val probability = bundleArray[0].toString().toDouble()
+            val probability = bundleArray[0] as Double
             val random = bundleArray[1] as Random
             val value = random.nextDouble()
 

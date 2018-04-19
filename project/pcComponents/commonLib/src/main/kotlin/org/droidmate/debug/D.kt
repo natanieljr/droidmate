@@ -25,8 +25,6 @@
 
 package org.droidmate.debug
 
-import java.io.File
-import java.lang.Thread.sleep
 import kotlin.system.measureNanoTime
 
 // TODO we would like to read this property from the DroidMate.Configuration instead
@@ -34,6 +32,7 @@ const val measurePerformance = true
 
 inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T? {
 	var res: T? = null
+	@Suppress("ConstantConditionIf")
 	if (measurePerformance) {
 		measureNanoTime {
 			res = block.invoke()

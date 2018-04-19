@@ -152,9 +152,9 @@ abstract class AbstractContext : Serializable {
 
 	/**
 	 * Check if all widgets that have been found up to now have been already explored
+	 * REMARK could probably be better handled by ModelFeature with custom criteria instead
 	 */
-	@Deprecated("should be handled by ModelFeature with custom criteria instead")
-	abstract fun areAllWidgetsExplored(): Boolean
+	abstract suspend fun areAllWidgetsExplored(): Boolean
 
 	fun getModel(): Model {
 		return _model
