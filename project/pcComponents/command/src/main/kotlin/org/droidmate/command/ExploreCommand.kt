@@ -62,7 +62,7 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.playback.MemoryPlayback
+import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
 import org.droidmate.exploration.strategy.widget.ModelBased
@@ -161,7 +161,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			strategies.add(Terminate())
 
 			if (cfg[playback])
-				strategies.add(MemoryPlayback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath().toString()))
+				strategies.add(Playback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath().toString()))
 
 			if (cfg[explore])
 				strategies.add(RandomWidget(cfg))

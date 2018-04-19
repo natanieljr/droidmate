@@ -30,15 +30,21 @@ import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.statemodel.Model
+import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
 import org.droidmate.exploration.strategy.widget.Explore
-import java.nio.file.Path
 
 @Suppress("unused")
-open class MemoryPlayback constructor(private val modelDir: String) : Explore() {
+open class Playback constructor(private val modelDir: String) : Explore() {
 
 	private var traceIdx = 0
 	private var actionIdx = 0
 	private lateinit var model : Model
+
+	private val watcher: ActionPlaybackFeature by lazy {
+		(context.watcher.find { it is ActionPlaybackFeature }
+				?: ActionPlaybackFeature(model)
+						.also { context.watcher.add(it) }) as ActionPlaybackFeature
+	}
 
 	override fun initialize(memory: AbstractContext) {
 		super.initialize(memory)
@@ -62,7 +68,8 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 					}
 				}
 				return currentTrace.getActions()[actionIdx].also {
-					if(!peek) actionIdx += 1
+					if(!peek)
+						actionIdx += 1
 				}
 			}
 		}
@@ -109,7 +116,10 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 					}
 
 				// not found, go to the next
-					else -> getNextAction()
+					else -> {
+						watcher.addNonReplayableActions(traceIdx, actionIdx)
+						getNextAction()
+					}
 				}
 			}
 			TerminateExplorationAction::class.simpleName -> {
@@ -120,8 +130,10 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 			}
 			PressBackExplorationAction::class.simpleName -> {
 				// If already in home screen, ignore
-				if (context.getCurrentState().isHomeScreen)
+				if (context.getCurrentState().isHomeScreen) {
+					watcher.addNonReplayableActions(traceIdx, actionIdx)
 					return getNextAction()
+				}
 
 				val similarity = context.getCurrentState().similarity(runBlocking { model.getState(currTraceData.resState)!!})
 
@@ -139,8 +151,10 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 
 						val nextWidget = nextTraceData.targetWidget
 
-						if (nextWidget.canExecute(context.getCurrentState(), true))
+						if (nextWidget.canExecute(context.getCurrentState(), true)) {
+							watcher.addNonReplayableActions(traceIdx, actionIdx)
 							getNextAction()
+						}
 
 					PlaybackPressBackAction()
 				}
@@ -151,14 +165,14 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 		}
 	}
 
-	fun getExplorationRatio(widget: Widget? = null): Double {
+	/*fun getExplorationRatio(widget: Widget? = null): Double {
 		TODO()
 //		val totalSize = traces.map { it.getSize(widget) }.sum()
 //
 //		return traces
 //				.map { trace -> trace.getExploredRatio(widget) * (trace.getSize(widget) / totalSize.toDouble()) }
 //				.sum()
-	}
+	}*/
 
 	override fun internalDecide(): ExplorationAction {
 		val allWidgetsBlackListed = this.updateState()
@@ -171,9 +185,4 @@ open class MemoryPlayback constructor(private val modelDir: String) : Explore() 
 	override fun chooseAction(): ExplorationAction {
 		return getNextAction().also{ println("PLAYBACK: $it")}
 	}
-
-	// TODO
-	/*override fun getFitness(): StrategyPriority {
-		return StrategyPriority.PLAYBACK
-	}*/
 }

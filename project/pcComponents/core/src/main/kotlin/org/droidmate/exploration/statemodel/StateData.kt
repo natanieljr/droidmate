@@ -20,7 +20,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),isHomeScreen = homeScreen, topNodePackageName = topPackage)
 
-	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() } }
+	val widgets by lazy { _widgets.value.distinctBy { it.id }.sortedBy { it.id.dumpString() } }
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
 //              isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,

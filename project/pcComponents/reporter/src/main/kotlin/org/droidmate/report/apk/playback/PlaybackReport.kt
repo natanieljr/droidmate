@@ -24,13 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk.playback
 
-import org.droidmate.exploration.strategy.playback.MemoryPlayback
+import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.report.apk.ApkReport
 import java.nio.file.Files
 import java.nio.file.Path
 
-abstract class PlaybackReport(protected val playbackStrategy: MemoryPlayback,
-                              protected val fileName: String) : ApkReport() {
+abstract class PlaybackReport(protected val playbackStrategy: Playback,
+							  protected val fileName: String) : ApkReport() {
 	fun getPlaybackReportDir(apkReportDir: Path): Path {
 		val playbackDir = apkReportDir.resolve("playback")
 

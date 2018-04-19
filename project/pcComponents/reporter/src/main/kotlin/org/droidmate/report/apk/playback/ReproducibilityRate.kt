@@ -25,7 +25,8 @@
 package org.droidmate.report.apk.playback
 
 import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.strategy.playback.MemoryPlayback
+import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
+import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.report.misc.plot
 import org.droidmate.misc.withExtension
 import java.nio.file.Files
@@ -37,34 +38,49 @@ import java.nio.file.Path
  * Ideally the report should show a line where X and Y are equal. Any difference means that some actions could not
  * be reproduced
  */
-class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: MemoryPlayback,
-                                                    private val includePlots: Boolean = true,
-                                                    fileName: String = "reproducibilityRate.txt") : PlaybackReport(playbackStrategy, fileName) {
+class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: Playback,
+													private val includePlots: Boolean = true,
+													fileName: String = "reproducibilityRate.txt") : PlaybackReport(playbackStrategy, fileName) {
 	override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
 		val reportSubDir = getPlaybackReportDir(apkReportDir)
 
 		val sb = StringBuilder()
 
-		val header = "ActionNr\tRequested\tReproduced\n"
+		val header = "ActionNr\tReproduced\n"
 		sb.append(header)
 
 		var actionNr = 0
-		var requested = 0
 		var explored = 0
-		TODO("this should be done with ModelFeature, probably the already existing counter is sufficient")
-//		playbackStrategy.traces.forEach { trace ->
-//			trace.getTraceCopy().forEach { traceData ->
-//				actionNr++
-//
-//				if (traceData.requested)
-//					requested++
-//
-//				if (traceData.explored)
-//					explored++
-//
-//				sb.append("$actionNr\t$requested\t$explored\n")
-//			}
-//		}
+
+		val playbackFeature = data.getOrCreateWatcher<ActionPlaybackFeature>()
+		val skippedActions = playbackFeature.skippedActions
+
+		playbackFeature.storedModel.let {model ->
+			model.getPaths().forEachIndexed { traceIdx, trace ->
+				trace.getActions().forEachIndexed { actionIdx, action ->
+					actionNr++
+
+					if (!skippedActions.contains(Pair(traceIdx, actionIdx)))
+						explored++
+
+					sb.append("$actionNr\t$explored\n")
+				}
+			}
+		}
+
+		/*playbackStrategy.traces.forEach { trace ->
+			trace.getTraceCopy().forEach { traceData ->
+				actionNr++
+
+				if (traceData.requested)
+					requested++
+
+				if (traceData.explored)
+					explored++
+
+				sb.append("$actionNr\t$requested\t$explored\n")
+			}
+		}*/
 
 		val reportFile = reportSubDir.resolve(fileName)
 		Files.write(reportFile, sb.toString().toByteArray())

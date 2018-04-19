@@ -35,7 +35,7 @@ class WidgetData @JvmOverloads constructor(map: MutableMap<String, Any?>, val in
 	init{
 		map.keys.forEach { key ->
 			if (map[key] is String)
-				map.replaceKt(key, sanitize(map[key] as String))
+				map.replaceKt(key, sanitize(map[key] as String).trim())
 		}
 	}
 

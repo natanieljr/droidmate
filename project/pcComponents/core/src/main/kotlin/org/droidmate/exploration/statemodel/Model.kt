@@ -5,13 +5,10 @@ import kotlinx.coroutines.experimental.channels.sendBlocking
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.*
-import java.util.stream.Stream
 import kotlin.collections.HashSet
-import kotlin.streams.toList
 import kotlin.system.measureTimeMillis
 
 internal operator fun UUID.plus(uuid: UUID): UUID {

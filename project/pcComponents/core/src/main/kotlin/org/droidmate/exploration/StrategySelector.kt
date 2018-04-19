@@ -22,7 +22,7 @@ import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.playback.MemoryPlayback
+import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
@@ -264,7 +264,7 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
 		val playback: SelectorFunction = { context, pool, _ ->
 			logger.debug("Playback. Returning 'MemoryPlayback'")
-			pool.getFirstInstanceOf(MemoryPlayback::class.java)
+			pool.getFirstInstanceOf(Playback::class.java)
 		}
     }
 }

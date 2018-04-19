@@ -174,7 +174,8 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		fun fromString(line: List<String>): Widget {
 			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
-				assert(w.uid.toString()==line[P.WdId.ordinal],{" ERROR on widget parsing: property-Id was ${w.uid} but should have been $line"})
+				assert(w.uid.toString()==line[P.WdId.ordinal],{
+					"ERROR on widget parsing: property-Id was ${w.uid} but should have been $line"})
 				return Widget(w, lazyOf(UUID.fromString(line[P.UID.ordinal])))
 						.apply { parentId = line[P.ParentID.ordinal].let { if (it == "null") null else idFromString(it) } }
 			}
@@ -183,7 +184,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		/** compute the pair of (widget.uid,widget.imgId), if [isCut] is true we assume the screenImage already matches the widget.bounds */
 		@JvmStatic
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
-				w.content().let {
+				w.content().trim().let {
 					if (it != "") it.toUUID()  // compute id from textual content if there is any
 					else screenImg?.let {
 						if (isCut) idOfImgCut(screenImg)

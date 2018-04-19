@@ -25,15 +25,15 @@
 package org.droidmate.report.apk.playback
 
 import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.strategy.playback.MemoryPlayback
+import org.droidmate.exploration.strategy.playback.Playback
 import java.nio.file.Files
 import java.nio.file.Path
 
 /**
  * Report to print the state of each playback action, as well as the action which was taken
  */
-class TraceDump @JvmOverloads constructor(playbackStrategy: MemoryPlayback,
-                                          fileName: String = "dump.txt") : PlaybackReport(playbackStrategy, fileName) {
+class TraceDump @JvmOverloads constructor(playbackStrategy: Playback,
+										  fileName: String = "dump.txt") : PlaybackReport(playbackStrategy, fileName) {
 	override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
 		val reportSubDir = getPlaybackReportDir(apkReportDir)
 
