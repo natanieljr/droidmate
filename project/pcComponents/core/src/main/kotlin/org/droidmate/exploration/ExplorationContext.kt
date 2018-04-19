@@ -76,8 +76,8 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		}
 	}
 
-	override fun areAllWidgetsExplored(): Boolean {
-		return actionTrace.size>0 && actionTrace.unexplored( runBlocking { _model.getWidgets()}.filter { it.canBeActedUpon() }).isEmpty()
+	override suspend fun areAllWidgetsExplored(): Boolean {
+		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.canBeActedUpon() }).isEmpty()
 	}
 
 	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() { runBlocking {
