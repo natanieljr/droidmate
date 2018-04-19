@@ -63,8 +63,8 @@ configure(pcJvmTargets) {
 	repositories {
 		mavenLocal()
 		mavenCentral()
-		//maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"}
-		maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"}
+		maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"}
+		//maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"}
 		maven { url = 'https://jitpack.io' }
 	}
 

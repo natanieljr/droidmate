@@ -31,7 +31,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-	compile "ca.mcgill.sable:soot:3.0.1"
+	compile "ca.mcgill.sable:soot:3.1.0-SNAPSHOT"
 
 	compile 'org.json:json:20140107'
 	//compile 'commons-cli:commons-cli:1.4'
