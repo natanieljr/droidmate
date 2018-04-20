@@ -41,7 +41,7 @@ buildscript {
 	repositories {
 		jcenter()
 	}
-	apply from: file("./versions.gradle") // contains kotlin_version
+	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
 	}
