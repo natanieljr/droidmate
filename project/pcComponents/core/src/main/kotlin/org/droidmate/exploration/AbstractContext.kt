@@ -38,6 +38,7 @@ import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.actions.TerminateExplorationAction
 import org.droidmate.exploration.statemodel.config.ConcreteId
 import org.droidmate.exploration.strategy.EmptyActionResult
+import org.droidmate.exploration.strategy.playback.PlaybackResetAction
 import java.awt.Rectangle
 import java.io.Serializable
 import java.time.Duration
@@ -262,7 +263,7 @@ abstract class AbstractContext : Serializable {
 	}
 
 	private fun assertFirstActionIsReset() {
-		assert(actionTrace.first().actionType == ResetAppExplorationAction::class.simpleName)
+		assert(actionTrace.first().actionType == ResetAppExplorationAction::class.simpleName || actionTrace.first().actionType == PlaybackResetAction::class.simpleName)
 	}
 
 	private fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {

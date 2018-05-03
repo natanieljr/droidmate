@@ -100,6 +100,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		ExplorationStrategyPool.logger.debug("Control handled to strategy ${this.activeStrategy!!}")
 	}
 
+	private val selectorThreadPool = newFixedThreadPoolContext (max(Runtime.getRuntime().availableProcessors()-1,1),name="SelectorsThread")
 	/**
 	 * Selects an exploration strategy to [handle control to][handleControl], given the [current UI][StateData].
 	 * The selected strategy is the one with best fitness.
@@ -115,7 +116,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		var cnt:Long = 0
 		val bestStrategy = debugT("strategy selection time",	{
 			//runBlocking(newSingleThreadContext("SelectorsThread")) { // to make it single threaded
-			runBlocking(newFixedThreadPoolContext (max(Runtime.getRuntime().availableProcessors()-1,1),name="SelectorsThread")){
+			runBlocking(selectorThreadPool){
 				selectors
 						.sortedBy { it.priority }
 						.map { Pair(it, async(coroutineContext) { nullableDebugT("decision time $it ", { it.selector(mem, pool, it.bundle) }
