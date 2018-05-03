@@ -1,10 +1,7 @@
 package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.exploration.statemodel.config.ConcreteId
-import org.droidmate.exploration.statemodel.config.ModelConfig
-import org.droidmate.exploration.statemodel.config.dump
-import org.droidmate.exploration.statemodel.config.idFromString
+import org.droidmate.configuration.ConfigProperties.ModelProperties
 import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -13,7 +10,7 @@ import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 import java.util.*
 
-private val config = ModelConfig("JUnit",true)
+private val config = ModelConfig("JUnit", true)
 
 /** verify the ModelLoader correctly initializes/loads a model by using
  * - mocked model (mock the dump-file content read)
@@ -32,7 +29,7 @@ class ModelLoadTester: DroidmateTestCase(), TestModel by DefaultTestModel(), Mod
 	@Test
 	fun widgetParsingTest() = runBlocking{
 		parseWidget(testWidget).await()!!.let{
-			expect(it.dataString(config[dump.sep]),testWidget.dataString(config[dump.sep]))
+			expect(it.dataString(config[ModelProperties.dump.sep]),testWidget.dataString(config[ModelProperties.dump.sep]))
 		}
 	}
 

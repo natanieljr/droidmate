@@ -32,7 +32,7 @@ import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.actions.PressBackExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.statemodel.config.emptyId
+import org.droidmate.exploration.statemodel.emptyId
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.statemodel.features.BlackListMF
 import org.droidmate.exploration.statemodel.features.listOfSmallest

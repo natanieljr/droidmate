@@ -29,7 +29,7 @@ import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.AbstractContext
-import org.droidmate.exploration.statemodel.config.emptyUUID
+import org.droidmate.exploration.statemodel.emptyUUID
 import java.util.*
 
 val AbstractContext.uniqueActionableWidgets: Set<Widget>

@@ -2,10 +2,7 @@ package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.channels.produce
-import org.droidmate.exploration.statemodel.config.ConcreteId
-import org.droidmate.exploration.statemodel.config.ModelConfig
-import org.droidmate.exploration.statemodel.config.dump
-import org.droidmate.exploration.statemodel.config.idFromString
+import org.droidmate.configuration.ConfigProperties.ModelProperties
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -36,20 +33,20 @@ class ModelLoaderT(config: ModelConfig): ModelLoader(config), ModelLoaderTI {
 		log("Produce trace paths")
 		testTraces.forEach { log(it.toString() + "\n") }
 		for (i in 0 until testTraces.size) {
-			send(Paths.get(config[dump.traceFilePrefix] + i.toString()))
+			send(Paths.get(config[ModelProperties.dump.traceFilePrefix] + i.toString()))
 		}
 	}
 
 	override fun getFileContent(path: Path, skip: Long): List<String>? = path.fileName.toString().let { name ->
 		log("getFileContent for ${path.toUri()}")
 		when {
-			(name.startsWith(config[dump.traceFilePrefix])) ->
-				traceContents(name.removePrefix(config[dump.traceFilePrefix]).toInt())
+			(name.startsWith(config[ModelProperties.dump.traceFilePrefix])) ->
+				traceContents(name.removePrefix(config[ModelProperties.dump.traceFilePrefix]).toInt())
 			name.contains("fa5d6ec4-129e-cde6-cfbf-eb837096de60_829a5484-73d6-ba71-57fc-d143d1cecaeb") ->
 				debugString.split("\n")
 			else ->
 				idFromString(name.removeSuffix(ModelConfig.defaultWidgetSuffix)).let { stateId ->
-					testStates.find { s -> s.stateId == stateId }!!.widgetsDump(config[dump.sep])
+					testStates.find { s -> s.stateId == stateId }!!.widgetsDump(config[ModelProperties.dump.sep])
 				}
 		}
 	}
@@ -65,7 +62,7 @@ class ModelLoaderT(config: ModelConfig): ModelLoader(config), ModelLoaderTI {
 		return execute(watcher)
 	}
 
-	override fun parseWidget(widget: Widget): Deferred<Widget?> = _widgetParser(widget.splittedDumpString(config[dump.sep]))
+	override fun parseWidget(widget: Widget): Deferred<Widget?> = _widgetParser(widget.splittedDumpString(config[ModelProperties.dump.sep]))
 
 	override val actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData>> = _actionParser
 	override suspend fun parseState(stateId: ConcreteId): StateData = P_parseState(stateId)

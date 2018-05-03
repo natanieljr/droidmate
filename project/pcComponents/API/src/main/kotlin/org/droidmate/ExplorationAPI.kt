@@ -33,7 +33,7 @@ import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.config.ModelConfig
+import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.frontend.ExceptionHandler
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog

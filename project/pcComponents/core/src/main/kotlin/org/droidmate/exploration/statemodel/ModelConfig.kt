@@ -1,18 +1,21 @@
-package org.droidmate.exploration.statemodel.config
+package org.droidmate.exploration.statemodel
 
 import com.natpryce.konfig.*
 import org.droidmate.configuration.ConfigProperties
-import org.droidmate.exploration.statemodel.config.dump.stateFileExtension
-import org.droidmate.exploration.statemodel.config.dump.traceFilePrefix
-import org.droidmate.exploration.statemodel.config.path.cleanDirs
-import org.droidmate.exploration.statemodel.config.path.defaultBaseDir
-import org.droidmate.exploration.statemodel.config.path.statesSubDir
-import org.droidmate.exploration.statemodel.config.path.widgetsSubDir
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFileExtension
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFileExtension
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
+import org.droidmate.configuration.ConfigProperties.ModelProperties.path.cleanDirs
+import org.droidmate.configuration.ConfigProperties.ModelProperties.path.defaultBaseDir
+import org.droidmate.configuration.ConfigProperties.ModelProperties.path.statesSubDir
+import org.droidmate.configuration.ConfigProperties.ModelProperties.path.widgetsSubDir
 import org.droidmate.misc.deleteDir
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 class ModelConfig private constructor(path: Path, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration by config{
@@ -47,7 +50,7 @@ class ModelConfig private constructor(path: Path, appName: String,private val co
 		return idPath(baseDir, id.toString(), postfix, fileExtension)
 	}
 
-	val traceFile = { date: String -> "${baseDir.toString()}${File.separator}${config[traceFilePrefix]}$date${config[dump.traceFileExtension]}" }
+	val traceFile = { date: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$date${config[traceFileExtension]}" }
 
 	companion object {
 		const val defaultWidgetSuffix = "_AllWidgets"
@@ -59,7 +62,7 @@ class ModelConfig private constructor(path: Path, appName: String,private val co
 
 		@JvmOverloads operator fun invoke(appName: String, isLoadC: Boolean = false, cfg: Configuration? = null): ModelConfig{
 			val (config, path) = if (cfg != null) Pair(cfg overriding resourceConfig, cfg[ConfigProperties.Output.droidmateOutputDirPath].resolve("model"))
-				else Pair(resourceConfig, resourceConfig[defaultBaseDir])
+			else Pair(resourceConfig, resourceConfig[defaultBaseDir])
 
 			return ModelConfig(Paths.get(path.path).toAbsolutePath(), appName, config, isLoadC)
 		}
@@ -67,4 +70,15 @@ class ModelConfig private constructor(path: Path, appName: String,private val co
 	} /** end COMPANION **/
 }
 
+val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
+typealias ConcreteId = Pair<UUID, UUID>
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun ConcreteId.toString() = "${first}_$second"  // mainly for nicer debugging strings
+fun idFromString(s: String): ConcreteId = s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
+/** custom dumpString method used for model dump & load **/
+fun ConcreteId.dumpString() = "${first}_$second"
+val emptyId = ConcreteId(emptyUUID, emptyUUID)
+
+private const val datePattern = "ddMM-HHmmss"
+internal fun timestamp(): String = DateTimeFormatter.ofPattern(datePattern).format(LocalDateTime.now())
 

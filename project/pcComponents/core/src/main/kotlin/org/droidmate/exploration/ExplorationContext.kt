@@ -27,7 +27,6 @@ import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.statemodel.config.ModelConfig
 import java.awt.Rectangle
 import java.time.LocalDateTime
 import java.util.*

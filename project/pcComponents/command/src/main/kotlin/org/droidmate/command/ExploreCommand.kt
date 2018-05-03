@@ -60,7 +60,7 @@ import org.droidmate.exploration.actions.RunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.config.ModelConfig
+import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission

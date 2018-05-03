@@ -20,13 +20,12 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.sendBlocking
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.debug.debugT
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.statemodel.config.*
-import org.droidmate.exploration.statemodel.config.dump.sep
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.time.LocalDateTime
@@ -36,10 +35,10 @@ import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.properties.Delegates
 
 open class ActionData protected constructor(val actionType: String, val targetWidget: Widget?,
-                                     val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
-                                     val successful: Boolean, val exception: String,
-                                     val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
-                                     private val sep:String) {
+                                            val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
+                                            val successful: Boolean, val exception: String,
+                                            val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
+                                            private val sep:String) {
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId, sep:String)

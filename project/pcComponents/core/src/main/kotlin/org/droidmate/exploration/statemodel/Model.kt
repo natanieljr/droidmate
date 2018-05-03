@@ -2,8 +2,8 @@ package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.sendBlocking
+import org.droidmate.configuration.ConfigProperties.ModelProperties
 import org.droidmate.debug.debugT
-import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -105,12 +105,12 @@ class Model private constructor(val config: ModelConfig) {
 				launch { newState.widgets } // initialize the widgets in parallel
 				trace.update(action, newState)
 
-				if (config[dump.onEachAction]) {
+				if (config[ModelProperties.dump.onEachAction]) {
 					launch(CoroutineName("state-dump"),parent = modelDumpJob) { newState.dump(config) }
 					launch(CoroutineName("trace-dump"),parent = modelDumpJob) { trace.dump(config) }
 				}
 
-				if (config[imgDump.states]) launch(CoroutineName("screen-dump"),parent = modelDumpJob) {
+				if (config[ModelProperties.imgDump.states]) launch(CoroutineName("screen-dump"),parent = modelDumpJob) {
 					action.screenshot.let { 	// if there is any screen-shot write it to the state extraction directory
 						java.io.File(config.statePath(newState.stateId,  fileExtension = ".png")).let { file ->
 							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)

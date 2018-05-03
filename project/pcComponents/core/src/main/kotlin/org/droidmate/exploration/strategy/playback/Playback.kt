@@ -28,7 +28,7 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
-import org.droidmate.exploration.statemodel.config.ModelConfig
+import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
 import org.droidmate.exploration.strategy.widget.Explore

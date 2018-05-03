@@ -1,7 +1,5 @@
 package org.droidmate.exploration.statemodel
 
-import org.droidmate.exploration.statemodel.config.ConcreteId
-import org.droidmate.exploration.statemodel.config.dumpString
 import org.droidmate.test_tools.DroidmateTestCase
 import org.droidmate.uiautomator_daemon.WidgetData
 import org.droidmate.uiautomator_daemon.toUUID
@@ -36,7 +34,7 @@ class ModelTester: DroidmateTestCase(), TestModel by DefaultTestModel() {
 		expect(testWidgetData.uid, UUID.fromString("b207f26f-96a4-31fa-9083-ad677c2b4931"))
 		expect(testWidget.uid, Widget.computeId(testWidgetData))
 		expect(testWidget.propertyConfigId, testWidgetData.uid)
-		expect(testWidget.id, ConcreteId(Widget.computeId(testWidgetData),testWidgetData.uid))
+		expect(testWidget.id, ConcreteId(Widget.computeId(testWidgetData), testWidgetData.uid))
 		expect(testWidget.parentId, emptyWidget.id)
 	}
 

@@ -1,8 +1,5 @@
 package org.droidmate.exploration.statemodel
 
-import org.droidmate.exploration.statemodel.config.ConcreteId
-import org.droidmate.exploration.statemodel.config.dumpString
-import org.droidmate.exploration.statemodel.config.emptyId
 import org.droidmate.uiautomator_daemon.WidgetData
 import java.time.LocalDateTime
 
@@ -13,7 +10,7 @@ interface TestModel{
 	val testWidget: Widget get() = Widget(testWidgetData).apply { parentId = parentWidget.id }
 	val testWidgetDumpString: String
 
-	class TestAction(targetWidget:Widget?=null, prevState:ConcreteId= emptyId, nextState:ConcreteId =emptyId, actionType:String = "TEST_ACTION")
+	class TestAction(targetWidget:Widget?=null, prevState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION")
 		:ActionData(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";"){
 		init {
 			super.prevState = prevState

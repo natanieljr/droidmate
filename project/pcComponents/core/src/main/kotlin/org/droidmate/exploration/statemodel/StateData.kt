@@ -1,11 +1,7 @@
 package org.droidmate.exploration.statemodel
 
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.exploration.statemodel.Widget.Companion.widgetHeader
-import org.droidmate.exploration.statemodel.config.ConcreteId
-import org.droidmate.exploration.statemodel.config.ModelConfig
-import org.droidmate.exploration.statemodel.config.dump.sep
-import org.droidmate.exploration.statemodel.config.dumpString
-import org.droidmate.exploration.statemodel.config.emptyUUID
 import java.io.File
 import java.util.*
 
@@ -44,7 +40,8 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	val uid: UUID by lazy { lazyIds.value.first }
 	val configId: UUID by lazy { lazyIds.value.second }
 	val stateId by lazy {
-		ConcreteId(uid, configId) }
+		ConcreteId(uid, configId)
+	}
 	/** id computed like uid while ignoring all edit fields */
 	val iEditId: UUID by lazy {
 		//lazyIds.value.third

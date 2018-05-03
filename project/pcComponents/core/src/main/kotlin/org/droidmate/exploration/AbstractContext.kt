@@ -36,7 +36,7 @@ import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.actions.TerminateExplorationAction
-import org.droidmate.exploration.statemodel.config.ConcreteId
+import org.droidmate.exploration.statemodel.ConcreteId
 import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.playback.PlaybackResetAction
 import java.awt.Rectangle

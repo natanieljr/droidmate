@@ -28,7 +28,6 @@ import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
-import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import java.io.ByteArrayInputStream
 import java.io.Serializable

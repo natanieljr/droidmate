@@ -16,8 +16,8 @@
 //
 package org.droidmate.exploration.statemodel
 
+import org.droidmate.configuration.ConfigProperties.ModelProperties
 import kotlinx.coroutines.experimental.launch
-import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.uiautomator_daemon.P
 import org.droidmate.uiautomator_daemon.WidgetData
 import org.droidmate.uiautomator_daemon.toUUID
@@ -207,10 +207,10 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 						.let { widgetId ->
 							launch { widgetId.value }  // issue initialization in parallel
 							// print the screen img if there is one and it is configured to be printed
-							if (wImg != null && config[imgDump.widgets] && (!config[imgDump.widget.onlyWhenNoText] ||
-											(config[imgDump.widget.onlyWhenNoText] && w.content() == "" ) ) &&
-									( config[imgDump.widget.interactable] && w.canBeActedUpon() ||
-											config[imgDump.widget.nonInteractable] && !w.canBeActedUpon() ) )
+							if (wImg != null && config[ModelProperties.imgDump.widgets] && (!config[ModelProperties.imgDump.widget.onlyWhenNoText] ||
+											(config[ModelProperties.imgDump.widget.onlyWhenNoText] && w.content() == "" ) ) &&
+									( config[ModelProperties.imgDump.widget.interactable] && w.canBeActedUpon() ||
+											config[ModelProperties.imgDump.widget.nonInteractable] && !w.canBeActedUpon() ) )
 
 								launch {
 									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {

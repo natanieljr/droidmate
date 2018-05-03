@@ -8,10 +8,12 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.produce
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.sep
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFileExtension
+import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
+import org.droidmate.configuration.ConfigProperties.ModelProperties.path.statesSubDir
 import org.droidmate.debug.debugT
-import org.droidmate.exploration.statemodel.config.*
-import org.droidmate.exploration.statemodel.config.ModelConfig.Companion.defaultWidgetSuffix
-import org.droidmate.exploration.statemodel.config.path.statesSubDir
+import org.droidmate.exploration.statemodel.ModelConfig.Companion.defaultWidgetSuffix
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Files
 import java.nio.file.Path
@@ -48,7 +50,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 
 	protected open fun traceProducer() = produce<Path>(context, parent = job, capacity = 5){
 		log("TRACE PRODUCER CALL")
-		Files.list(Paths.get(config.baseDir.toUri())).filter { it.fileName.toString().startsWith(config[dump.traceFilePrefix]) }
+		Files.list(Paths.get(config.baseDir.toUri())).filter { it.fileName.toString().startsWith(config[traceFilePrefix]) }
 				.also{
 			for( p in it){	send(p)	}
 		}
@@ -90,7 +92,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 		log("call P_processLines for ${path.toUri()}")
 		getFileContent(path,skip)?.let { br ->	// skip the first line (headline)
 			assert(br.count() > 0, { "ERROR on model loading: file ${path.fileName} does not contain any entries" })
-			return br.map { line -> lineProcessor(line.split(config[dump.sep]).map { it.trim() }) }
+			return br.map { line -> lineProcessor(line.split(config[sep]).map { it.trim() }) }
 		} ?: return emptyList()
 	}
 	private val stateTask: (ConcreteId)->Deferred<StateData> = { key -> async(CoroutineName("parseState $key"),parent = job){ P_parseState(key)} }
@@ -120,13 +122,13 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 				}
 			}
 		}
-		Pair(ActionData.createFromString(entries, targetWidget, config[dump.sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}: ${it.first.actionString()}") }
+		Pair(ActionData.createFromString(entries, targetWidget, config[sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}}
 	protected open fun getStateFile(stateId: ConcreteId): Triple<Path,Boolean,String>{
 		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).toList().first {
 			it.fileName.toString().startsWith( stateId.dumpString()+ defaultWidgetSuffix ) }
 		return contentPath.fileName.toString().let {
-			Triple(contentPath, it.contains("HS"), it.substring(it.indexOf("_PN-")+4,it.indexOf(config[dump.stateFileExtension])))
+			Triple(contentPath, it.contains("HS"), it.substring(it.indexOf("_PN-")+4,it.indexOf(config[stateFileExtension])))
 		}
 	}
 
