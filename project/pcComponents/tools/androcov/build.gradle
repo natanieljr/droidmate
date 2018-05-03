@@ -23,7 +23,6 @@
 //
 // web: www.droidmate.org
 
-import org.droidmate.buildsrc.BuildKt
 
 apply plugin: 'kotlin'
 
