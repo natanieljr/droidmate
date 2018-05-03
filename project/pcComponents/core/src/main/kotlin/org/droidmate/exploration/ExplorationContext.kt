@@ -26,6 +26,7 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.IRunnableExplorationAction
+import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.statemodel.config.ModelConfig
 import java.awt.Rectangle
 import java.time.LocalDateTime
@@ -60,6 +61,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
+		if(action is WidgetExplorationAction) assert(result.action.widget == action.widget,{ "ERROR on ACTION-RESULT construction the wrong action was instanciated widget was ${result.action.widget} instead of ${action.widget}"})
 		_model.S_updateModel(result, actionTrace)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}
@@ -76,8 +78,9 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 		}
 	}
 
-	override suspend fun areAllWidgetsExplored(): Boolean {
-		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.canBeActedUpon() }).isEmpty()
+	//TODO it may be more performent to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
+	override suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keybord/icon widgets available
+		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.canBeActedUpon() }).isEmpty()
 	}
 
 	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() { runBlocking {

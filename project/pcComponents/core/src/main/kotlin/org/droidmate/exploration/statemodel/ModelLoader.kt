@@ -1,5 +1,9 @@
 package org.droidmate.exploration.statemodel
 
+import com.natpryce.konfig.CommandLineOption
+import com.natpryce.konfig.getValue
+import com.natpryce.konfig.parseArgs
+import com.natpryce.konfig.stringType
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
@@ -7,6 +11,7 @@ import kotlinx.coroutines.experimental.channels.produce
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.exploration.statemodel.config.ModelConfig.Companion.defaultWidgetSuffix
+import org.droidmate.exploration.statemodel.config.path.statesSubDir
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Files
 import java.nio.file.Path
@@ -173,6 +178,30 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 	companion object {  // FIXME watcher state restoration requires context.onUpdate function & model.onUpdate currently only onActionUpdate is supported
 		@JvmStatic fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList()): Model{
 			return debugT("model loading", { ModelLoader(config).execute(watcher) }, inMillis = true)
+		}
+
+		@JvmStatic fun main(args: Array<String>) {  // helping function to identify differences of two state files  // --statesSubDir=.
+			val id1 by stringType
+			val id2 by stringType
+
+			val config = ModelConfig.withConfig("","debug_diffs",parseArgs(args,	CommandLineOption(statesSubDir), CommandLineOption(id1), CommandLineOption(id2)).first, true)
+			val loader = ModelLoader(config)
+
+			runBlocking {
+				val s1 = loader.P_parseState(idFromString(config[id1]))
+				val s2 = loader.P_parseState(idFromString(config[id2]))
+				val onlyInS1 = s1.widgets.filterNot { s2.widgets.contains(it) }.filter{s1.isRelevantForId(it)}
+				println("widgets which are only in s1")
+				onlyInS1.forEach{
+					if(s1.isRelevantForId(it)) println(it.dataString("\t"))
+				}
+				println("\n widgets which are only in s2")
+				val onlyInS2 = s2.widgets.filterNot { s1.widgets.contains(it) }.filter{s2.isRelevantForId(it)}
+				onlyInS2.forEach{
+					if(s2.isRelevantForId(it)) println(it.dataString("\t"))
+				}
+
+			}
 		}
 
 	} /** end COMPANION **/

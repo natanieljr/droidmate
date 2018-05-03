@@ -20,7 +20,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),isHomeScreen = homeScreen, topNodePackageName = topPackage)
 
-	val widgets by lazy { _widgets.value.distinctBy { it.id }.sortedBy { it.id.dumpString() } }
+	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } }
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
 //              isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,
@@ -34,10 +34,12 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	// ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
 	private val lazyIds: Lazy<ConcreteId> =
 			lazy({
-				widgets.fold(Pair(emptyUUID, emptyUUID), { (id, configId), widget ->
-					Pair(addRelevantId(id, widget), configId + widget.propertyConfigId)
+				widgets.fold(Pair(emptyUUID, emptyUUID), { (id, configId), widget ->  // e.g. keyboard elements have a different package-name and are therefore ignored for uid computation
+					// however different selectable auto-completion proposes are only 'rendered' such that we have to include the img id to ensure different state configuration id's if these are different
+					Pair(addRelevantId(id, widget), configId + if(ignoredTarget(widget)) widget.uid + widget.propertyConfigId else widget.propertyConfigId)
 				})
 			})
+	val ignoredTarget:(Widget)->Boolean = {w -> w.packageName != topNodePackageName && w.canBeActedUpon()}
 
 	val uid: UUID by lazy { lazyIds.value.first }
 	val configId: UUID by lazy { lazyIds.value.second }
@@ -52,8 +54,11 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	val actionableWidgets by lazy { widgets.filter { it.canBeActedUpon() } }
 	val hasEdit: Boolean by lazy { widgets.any { it.isEdit } }
 
+	// for elements without text content only the image is available which may introduce variance just due to sligh color differences, therefore
+	// non-text elements are only considered if they can be acted upon and they are leafs
+	fun isRelevantForId(w: Widget): Boolean = !isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon()) || w.canBeActedUpon())
 	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text content or it is a leaf) */
-	private fun addRelevantId(id: UUID, w: Widget): UUID = if (!isHomeScreen && w.packageName == topNodePackageName && (w.isLeaf || w.canBeActedUpon() || w.hasContent())) id + w.uid else id
+	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)) id + w.uid else id
 
 	private fun addRelevantNonEdit(id: UUID, w: Widget): UUID = if (w.isEdit) addRelevantId(id, w) else id
 

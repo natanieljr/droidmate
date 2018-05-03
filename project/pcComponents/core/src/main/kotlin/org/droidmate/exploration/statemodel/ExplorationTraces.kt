@@ -85,7 +85,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 
 		@JvmStatic
 		val empty: ActionData by lazy {
-			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId, sep = ";"
+			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId, sep = ";"  //FIXME sep should be read from context instead
 			).apply { prevState = emptyId }
 		}
 
@@ -104,7 +104,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 	}
 
 	override fun toString(): String {
-		return "$actionType:$targetWidget: ${prevState.dumpString()}->${resState.dumpString()}"
+		return "$actionType:${targetWidget?.let { it.dataString("\t") }}: ${prevState.dumpString()}->${resState.dumpString()}"
 	}
 }
 
@@ -121,9 +121,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 
 	/** this property is set in the end of the trace update and notifies all watchers for changes */
 	private val initialState: Pair<StateData, Widget?> = Pair(StateData.emptyState, null)
-	private var newState by Delegates.observable(initialState) { _, old, new ->
-		notifyObserver(old.first, new.first, new.second)
-		internalUpdate(new.second, old.first)
+	private var newState by Delegates.observable(initialState) { _, (srcState,_), (dstState,target) ->
+		notifyObserver(srcState, dstState, target)
+		internalUpdate(srcState = srcState, target = target)
 	}
 
 	/** observable delegates do not support coroutines within the lambda function therefore this method*/
@@ -135,43 +135,52 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	}
 
 	/** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
-	private fun internalUpdate(target: Widget?, state: StateData) {
+	private fun internalUpdate(srcState: StateData, target: Widget?) {
 		targets.add(target)
 		target?.run {
-			if (isEdit) editFields.compute(state.iEditId, { _, stateMap ->
-				(stateMap ?: LinkedList()).apply { add(Pair(state, target)) }
+			if (isEdit) editFields.compute(srcState.iEditId, { _, stateMap ->
+				(stateMap ?: LinkedList()).apply { add(Pair(srcState, target)) }
 			})
 		}
 	}
 
-	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { action, oldState, newState ->
+	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { action, oldState, dstState ->
 		{
-			debugT("create actionData", { ActionData(res = action, prevStateId = oldState.stateId, resStateId = newState.stateId, sep =config[sep]) })
+			if(action.action.widget != null ) assert(oldState.widgets.contains(action.action.widget!!),{"ERROR on Trace generation, tried to add action for widget which does not exist in the source state $oldState"})
+			debugT("create actionData", { ActionData(res = action, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep =config[sep]) })
 					.also {
+						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId, {"ERROR ActionData was created wrong $it for $action in $oldState"})
+						assert(it.targetWidget == action.action.widget, {"ERROR in ActionData instanciation wrong targetWidget ${it.targetWidget} instead of ${action.action.widget}"})
 						debugT("add action", { P_addAction(it) })
+						println("DEBUG: $it")
 					}
 		}
 	}
 
 	/*************** public interface ******************/
 
-	fun update(action: ActionResult, newState: StateData) {
+	fun update(action: ActionResult, dstState: StateData) {
 		size += 1
 		lastActionType = action.action::class.simpleName ?: "ERROR"
-		launch(context, block = actionProcessor(action, this.newState.first, newState)) // we did not update this.newState yet, therefore it contains the now 'old' state
+		// we did not update this.dstState yet, therefore it contains the now 'old' state
 
-		debugT("set newState", { this.newState = Pair(newState, action.action.widget) })
+		this.newState.first.let{ oldState ->
+			if(action.action.widget != null ) assert(oldState.widgets.contains(action.action.widget!!),{"ERROR on Trace generation, tried to add action for widget ${action.action.widget!!.id} which does not exist in the source state $oldState"})
+			launch(context, block = actionProcessor(action, oldState, dstState))
+		}
+
+		debugT("set dstState", { this.newState = Pair(dstState, action.action.widget) })
 	}
 
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
 	 * this function is purposely not called for the whole ActionData set, such that we can issue all watcher updates
 	 * if no watchers are registered use [updateAll] instead
 	 * ASSUMPTION only one coroutine is simultaneously working on this Trace object*/
-	internal suspend fun update(action: ActionData, newState: StateData) {
+	internal suspend fun update(action: ActionData, dstState: StateData) {
 		size += 1
 		lastActionType = action.actionType
 		trace.send(Add(action))
-		this.newState = Pair(newState, action.targetWidget)
+		this.newState = Pair(dstState, action.targetWidget)
 	}
 
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data

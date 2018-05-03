@@ -381,16 +381,16 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Use the received exploration context (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different context is created for each exploration if none it provider
-		val output = ExplorationContext(app, timeProvider.getNow(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(app, timeProvider.getNow(), _model = modelProvider(app.packageName))
 
-		log.debug("Exploration start time: " + output.explorationStartTime)
+		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
 		// Construct initial action and run it on the device to obtain initial result.
 		var action: IRunnableExplorationAction? = null
 		var result: ActionResult = EmptyActionResult
 
 		var isFirst = true
-		val strategy: IExplorationStrategy = strategyProvider.invoke(output)
+		val strategy: IExplorationStrategy = strategyProvider.invoke(explorationContext)
 
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
@@ -400,9 +400,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			measureTimeMillis { result = action.run(app, device) }.let {
 				actionT += it
 				nActions += 1
-				println("$it millis elapsed until result was available on average ${actionT / nActions}")
+				log.debug("$it millis elapsed until result was available on average ${actionT / nActions}")
 			}
-			output.add(action, result)
+			explorationContext.add(action, result)
 			// update strategy
 			strategy.update(result)
 
@@ -414,13 +414,16 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		assert(!result.successful || action is RunnableTerminateExplorationAction)
 
+		strategy.close()
+		explorationContext.dump()
+
 		// Propagate exception if there was any
 		if (!result.successful)
-			output.exception = result.exception
+			explorationContext.exception = result.exception
 
-		output.explorationEndTime = timeProvider.getNow()
+		explorationContext.explorationEndTime = timeProvider.getNow()
 
-		return output
+		return explorationContext
 	}
 
 	@Throws(DeviceException::class)

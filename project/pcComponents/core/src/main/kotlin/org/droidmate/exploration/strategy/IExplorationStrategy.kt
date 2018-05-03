@@ -33,5 +33,6 @@ interface IExplorationStrategy {
 	fun decide(result: ActionResult): ExplorationAction
 
 	fun update(record: ActionResult)
+	fun close()
 }
 

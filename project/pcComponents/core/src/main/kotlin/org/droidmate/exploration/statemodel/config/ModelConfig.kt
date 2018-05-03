@@ -4,6 +4,7 @@ import com.natpryce.konfig.*
 import org.droidmate.exploration.statemodel.config.dump.stateFileExtension
 import org.droidmate.exploration.statemodel.config.dump.traceFilePrefix
 import org.droidmate.exploration.statemodel.config.path.cleanDirs
+import org.droidmate.exploration.statemodel.config.path.defaultBaseDir
 import org.droidmate.exploration.statemodel.config.path.statesSubDir
 import org.droidmate.exploration.statemodel.config.path.widgetsSubDir
 import org.droidmate.misc.deleteDir
@@ -16,9 +17,10 @@ import java.util.*
 class ModelConfig private constructor(path: String, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration by config{
 	/** @path path-string locationg the base directory where all model data is supposed to be dumped */
 	constructor(path: String, appName: String, isLoadC: Boolean = false): this(path, appName, resourceConfig, isLoadC)
-	constructor(appName: String, isLoadC: Boolean = false) : this("out${File.separator}model", appName, isLoadC)
+	constructor(appName: String, isLoadC: Boolean = false) : this("", appName, isLoadC)
 
-	val baseDir = "$path${File.separator}$appName${File.separator}"  // directory path where the model file(s) should be stored
+	val baseDir = if(path == "") config[defaultBaseDir].path+"${File.separator}$appName${File.separator}"
+			else "$path${File.separator}$appName${File.separator}"  // directory path where the model file(s) should be stored
 	val stateDst = "$baseDir${config[statesSubDir].path}${File.separator}"       // each state gets an own file named according to UUID in this directory
 	private val widgetImgDst = "$baseDir${config[widgetsSubDir]}${File.separator}"  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
 
@@ -59,6 +61,9 @@ class ModelConfig private constructor(path: String, appName: String,private val 
 				else resourceConfig
 			}
 			return ModelConfig(path, appName, config, isLoadC)
+		}
+		@JvmStatic fun withConfig(path:String, appName: String, config: Configuration, isLoadC: Boolean = false):ModelConfig{
+			return ModelConfig(path, appName, config overriding resourceConfig, isLoadC)
 		}
 
 	} /** end COMPANION **/

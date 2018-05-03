@@ -215,6 +215,10 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		this.allWidgetsBlackListed = false
 	}
 
+	override fun close(){
+		selectorThreadPool.close()
+	}
+
 	fun <R> getFirstInstanceOf(klass: Class<R>): R?{
 		return strategies
 				.filterIsInstance(klass)

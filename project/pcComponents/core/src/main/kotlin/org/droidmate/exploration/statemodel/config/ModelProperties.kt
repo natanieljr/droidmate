@@ -20,6 +20,7 @@ private const val datePattern = "ddMM-HHmmss"
 internal fun timestamp(): String = DateTimeFormatter.ofPattern(datePattern).format(LocalDateTime.now())
 
 object path: PropertyGroup(){
+	val defaultBaseDir by uriType
 	val statesSubDir by uriType
 	val widgetsSubDir by uriType
 	val cleanDirs by booleanType

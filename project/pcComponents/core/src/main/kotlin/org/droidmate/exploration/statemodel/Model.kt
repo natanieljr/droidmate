@@ -99,7 +99,7 @@ class Model private constructor(val config: ModelConfig) {
 			var s: StateData? = null
 			measureTimeMillis {
 				s = computeNewState(action, trace.interactedEditFields)
-			}.let { println("state computation takes $it millis for ${s!!.widgets.size}") }
+			}//.let { println("state computation takes $it millis for ${s!!.widgets.size}") }
 			s?.also { newState ->
 				launch { newState.widgets } // initialize the widgets in parallel
 				trace.update(action, newState)
@@ -125,9 +125,9 @@ class Model private constructor(val config: ModelConfig) {
 				debugT("state adding", { addState(newState) }, inMillis = true)
 			}
 		}.let {
-			println("model update took $it millis")
+//			println("model update took $it millis")
 			uTime += it
-			println("---------- average model update time ${uTime / trace.size} ms overall ${uTime / 1000.0} seconds --------------")
+//			println("---------- average model update time ${uTime / trace.size} ms overall ${uTime / 1000.0} seconds --------------")
 		}
 	}
 
