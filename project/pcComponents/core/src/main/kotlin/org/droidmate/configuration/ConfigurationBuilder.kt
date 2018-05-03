@@ -236,7 +236,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 						"randomSeed >= null: ${cfg[randomSeed] >= 0}\n" +
 						"widgetIndexes.isNotEmpty(): ${cfg[widgetIndexes].isNotEmpty()}")*/
 
-			if (cfg[randomSeed] == -1) {
+			if (cfg[randomSeed] == -1L) {
 				log.info("Generated random seed: ${cfg.randomSeed}")
 			}
 		}

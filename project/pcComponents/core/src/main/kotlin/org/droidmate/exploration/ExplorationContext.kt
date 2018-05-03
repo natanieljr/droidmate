@@ -36,7 +36,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
                                                    override var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    override var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    override val watcher: LinkedList<ModelFeature> = LinkedList(),
-                                                   override val _model: Model = Model.emptyModel(ModelConfig(apk.packageName)),
+                                                   override val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
                                                    override val actionTrace: Trace = _model.initNewTrace(watcher)
 ) : AbstractContext() {
 

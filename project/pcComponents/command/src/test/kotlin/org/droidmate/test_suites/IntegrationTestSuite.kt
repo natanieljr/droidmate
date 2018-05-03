@@ -24,11 +24,16 @@
 // web: www.droidmate.org
 package org.droidmate.test_suites
 
+import org.droidmate.exploration.statemodel.ModelLoadTester
+import org.droidmate.exploration.statemodel.ModelTester
 import org.droidmate.frontend.DroidmateFrontendTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
 @RunWith(Suite::class)
 @Suite.SuiteClasses(
-		DroidmateFrontendTest::class)
+		DroidmateFrontendTest::class
+		, ModelTester::class
+		, ModelLoadTester::class
+)
 class IntegrationTestSuite

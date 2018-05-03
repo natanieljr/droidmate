@@ -48,7 +48,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 
 	protected open fun traceProducer() = produce<Path>(context, parent = job, capacity = 5){
 		log("TRACE PRODUCER CALL")
-		Files.list(Paths.get(config.baseDir)).filter { it.fileName.toString().startsWith(config[dump.traceFilePrefix]) }
+		Files.list(Paths.get(config.baseDir.toUri())).filter { it.fileName.toString().startsWith(config[dump.traceFilePrefix]) }
 				.also{
 			for( p in it){	send(p)	}
 		}
@@ -62,10 +62,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 					if (watcher.isEmpty()){
 						val resState = actionPairs.last().await().second
 						log(" wait for completion of actions")
-						val buggy = actionPairs.map { it.await().first }
-						val actions = actionPairs.map { it.await() }
-//						log("PARSED-ACTIONS\n"+actions.joinToString(separator = "\n"){it.first.actionString()})
-						trace.updateAll(actions.map { it.first }, resState)
+						trace.updateAll(actionPairs.map { it.await().first }, resState)
 					}  // update trace actions
 					else {
 						log(" wait for completion of EACH action")
@@ -126,7 +123,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 		Pair(ActionData.createFromString(entries, targetWidget, config[dump.sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}}
 	protected open fun getStateFile(stateId: ConcreteId): Triple<Path,Boolean,String>{
-		val contentPath = Files.list(Paths.get(config.stateDst)).toList().first {
+		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).toList().first {
 			it.fileName.toString().startsWith( stateId.dumpString()+ defaultWidgetSuffix ) }
 		return contentPath.fileName.toString().let {
 			Triple(contentPath, it.contains("HS"), it.substring(it.indexOf("_PN-")+4,it.indexOf(config[dump.stateFileExtension])))
@@ -184,7 +181,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 			val id1 by stringType
 			val id2 by stringType
 
-			val config = ModelConfig.withConfig("","debug_diffs",parseArgs(args,	CommandLineOption(statesSubDir), CommandLineOption(id1), CommandLineOption(id2)).first, true)
+			val config = ModelConfig("debug_diffs", true, cfg = parseArgs(args,	CommandLineOption(statesSubDir), CommandLineOption(id1),CommandLineOption(id2)).first)
 			val loader = ModelLoader(config)
 
 			runBlocking {

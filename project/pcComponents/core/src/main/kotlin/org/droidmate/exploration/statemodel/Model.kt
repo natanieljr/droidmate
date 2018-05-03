@@ -6,6 +6,7 @@ import org.droidmate.debug.debugT
 import org.droidmate.exploration.statemodel.config.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.*
 import kotlin.collections.HashSet
@@ -210,11 +211,11 @@ class Model private constructor(val config: ModelConfig) {
 		 */
 		@Suppress("unused")
 		@JvmStatic fun loadAppModel(appName: String, watcher: LinkedList<ModelFeature> = LinkedList())
-				= ModelLoader.loadModel(ModelConfig(appName, isLoadC = true), watcher)
+				= ModelLoader.loadModel(ModelConfig(appName = appName, isLoadC = true), watcher)
 
 		@JvmStatic
 		fun main(args: Array<String>) {
-			val test = ModelLoader.loadModel(ModelConfig(path="../out/playback", appName = "testModel", isLoadC=true))//loadAppModel("loadTest")
+			val test = ModelLoader.loadModel(ModelConfig(path = Paths.get("..","out","playback"), appName = "testModel", isLoadC =true))//loadAppModel("loadTest")
 			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
 			test.getPaths().first().getActions().forEach { a ->
 				println("ACTION: " + a.actionString())

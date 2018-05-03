@@ -32,9 +32,10 @@ import org.droidmate.exploration.statemodel.config.ModelConfig
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
 import org.droidmate.exploration.strategy.widget.Explore
+import java.nio.file.Path
 
 @Suppress("unused")
-open class Playback constructor(private val modelDir: String) : Explore() {
+open class Playback constructor(private val modelDir: Path) : Explore() {
 
 	private var traceIdx = 0
 	private var actionIdx = 0

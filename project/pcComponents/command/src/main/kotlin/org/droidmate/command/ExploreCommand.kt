@@ -108,7 +108,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			// Action based terminate
 			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
 				val actionLimit = if (cfg[widgetIndexes].first() >= 0)
-					cfg[widgetIndexes].size
+					cfg[widgetIndexes].size // TODO what is this widgetIndexes for?
 				else
 					cfg[actionLimit]
 
@@ -130,7 +130,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			// Random back
 			if (cfg[pressBackProbability] > 0.0)
-				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed.toLong())))
+				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed)))
 
 			// Exploration exhausted
 			if (cfg[stopOnExhaustion])
@@ -161,7 +161,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			strategies.add(Terminate())
 
 			if (cfg[playback])
-				strategies.add(Playback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath().toString()))
+				strategies.add(Playback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath()))
 
 			if (cfg[explore])
 				strategies.add(RandomWidget(cfg))
@@ -182,12 +182,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		@JvmOverloads
 		fun build(cfg: ConfigurationWrapper,
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
-				  timeProvider: ITimeProvider = TimeProvider(),
+				  timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
 				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
 				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) },
+				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the context instead of the model?
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName))}): ExploreCommand {
+				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,

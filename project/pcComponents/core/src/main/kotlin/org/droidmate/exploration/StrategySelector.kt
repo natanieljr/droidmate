@@ -80,17 +80,19 @@ class StrategySelector constructor(val priority: Int,
         /**
          * Terminate the exploration after a predefined elapsed time
          */
-		@JvmStatic
+        @JvmStatic
         val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
-            val timeLimit = bundle!![0].toString().toInt()
-			val diff = context.getExplorationTimeInMs()
+	        val timeLimit = bundle!![0].toString().toInt()
+	        if(timeLimit<=0) null
+	        else {
+		        val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because context start time is not yet initialized
 
-            if (diff >= timeLimit) {
-                logger.debug("Exploration time exhausted. Returning 'Terminate'")
-                pool.getFirstInstanceOf(Terminate::class.java)
-            }
-            else
-                null
+		        if (diff >= timeLimit) {
+			        logger.debug("Exploration time exhausted. Returning 'Terminate'")
+			        pool.getFirstInstanceOf(Terminate::class.java)
+		        } else
+			        null
+	        }
         }
 
         /**

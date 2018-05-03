@@ -48,6 +48,8 @@ def configureTestTask = { Test task ->
 	task.workingDir rootDir
 
 	task.include("**/DroidmateFrontendTest.class")
+	task.include("**/ModelTester.class")
+	task.include("**/ModelLoadTester.class")
 }
 
 task testDevice_api23(type: Test, dependsOn: testClasses) { Test task ->

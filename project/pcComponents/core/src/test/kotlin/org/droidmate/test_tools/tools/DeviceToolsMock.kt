@@ -34,6 +34,6 @@ class DeviceToolsMock constructor(cfg: ConfigurationWrapper,
                                   simulator: AndroidDeviceSimulator,
                                   private val deviceTools: IDeviceTools = DeviceToolsTestHelper.buildForTesting(cfg, aaptWrapper, simulator)) : IDeviceTools by deviceTools {
 	init {
-		assert(cfg.randomSeed == 0)
+		assert(cfg.randomSeed == 0L)
 	}
 }

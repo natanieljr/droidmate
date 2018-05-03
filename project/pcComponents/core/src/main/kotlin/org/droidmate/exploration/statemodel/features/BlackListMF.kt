@@ -53,7 +53,7 @@ class BlackListMF: ModelFeature() {
 
 	override suspend fun dump(context: ExplorationContext) {
 		job.joinChildren()  // wait until all other coroutines of this feature are completed
-		File(context.getModel().config.baseDir + "lastBlacklist.txt").bufferedWriter().use { out ->
+		File(context.getModel().config.baseDir.toString() + "${File.separator}lastBlacklist.txt").bufferedWriter().use { out ->
 			out.write(header)
 			wCnt.forEach { wMap ->	wMap.value.entries.forEach { (sId, cnt) ->
 					out.newLine()

@@ -1,6 +1,7 @@
 package org.droidmate.exploration.statemodel.config
 
 import com.natpryce.konfig.*
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.exploration.statemodel.config.dump.stateFileExtension
 import org.droidmate.exploration.statemodel.config.dump.traceFilePrefix
 import org.droidmate.exploration.statemodel.config.path.cleanDirs
@@ -9,32 +10,31 @@ import org.droidmate.exploration.statemodel.config.path.statesSubDir
 import org.droidmate.exploration.statemodel.config.path.widgetsSubDir
 import org.droidmate.misc.deleteDir
 import java.io.File
-import java.net.URI
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
-class ModelConfig private constructor(path: String, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration by config{
+class ModelConfig private constructor(path: Path, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration by config{
 	/** @path path-string locationg the base directory where all model data is supposed to be dumped */
-	constructor(path: String, appName: String, isLoadC: Boolean = false): this(path, appName, resourceConfig, isLoadC)
-	constructor(appName: String, isLoadC: Boolean = false) : this("", appName, isLoadC)
 
-	val baseDir = if(path == "") config[defaultBaseDir].path+"${File.separator}$appName${File.separator}"
-			else "$path${File.separator}$appName${File.separator}"  // directory path where the model file(s) should be stored
-	val stateDst = "$baseDir${config[statesSubDir].path}${File.separator}"       // each state gets an own file named according to UUID in this directory
-	private val widgetImgDst = "$baseDir${config[widgetsSubDir]}${File.separator}"  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
+	constructor(path: Path, appName: String, isLoadC: Boolean = false): this(path.toAbsolutePath(), appName, resourceConfig, isLoadC)
+
+	val baseDir = path.resolve(appName)  // directory path where the model file(s) should be stored
+	val stateDst = baseDir.resolve(config[statesSubDir].path)       // each state gets an own file named according to UUID in this directory
+	private val widgetImgDst = baseDir.resolve(config[widgetsSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
 
 	init {  // initialize directories (clear them if cleanDirs is enabled)
 		if(!isLoadC){
-			if (config[cleanDirs]) Paths.get(baseDir).deleteDir()
-			Files.createDirectories(Paths.get(baseDir))
-			Files.createDirectories(Paths.get(stateDst))
-			Files.createDirectories(Paths.get(widgetImgDst))
-			Files.createDirectories(Paths.get("${widgetImgDst}nonInteractive${File.separator}"))
+			if (config[cleanDirs]) (baseDir).deleteDir()
+			Files.createDirectories((baseDir))
+			Files.createDirectories((stateDst))
+			Files.createDirectories((widgetImgDst))
+			Files.createDirectories((widgetImgDst.resolve(nonInteractiveDir)))
 		}
 	}
 
-	private val idPath: (String, String, String, String) -> String = { baseDir, id, postfix, fileExtension -> "$baseDir$id$postfix$fileExtension" }
+	private val idPath: (Path, String, String, String) -> String = { baseDir, id, postfix, fileExtension -> baseDir.toString() + "${File.separator}$id$postfix$fileExtension" }
 
 	val widgetFile: (ConcreteId,Boolean,String) -> String = { id,isHomeScreen,topPackageName ->
 		statePath(id, postfix = defaultWidgetSuffix+(if(isHomeScreen) "_HS" else "") + "_PN-$topPackageName") }
@@ -43,27 +43,25 @@ class ModelConfig private constructor(path: String, appName: String,private val 
 	}
 
 	fun widgetImgPath(id: UUID, postfix: String = "", fileExtension: String = ".png", interactive: Boolean): String {
-		val baseDir = widgetImgDst + if (interactive) "" else "nonInteractive${File.separator}"
+		val baseDir = if (interactive) widgetImgDst else widgetImgDst.resolve(nonInteractiveDir)
 		return idPath(baseDir, id.toString(), postfix, fileExtension)
 	}
 
-	val traceFile = { date: String -> "$baseDir${config[traceFilePrefix]}$date${config[dump.traceFileExtension]}" }
+	val traceFile = { date: String -> "${baseDir.toString()}${File.separator}${config[traceFilePrefix]}$date${config[dump.traceFileExtension]}" }
 
 	companion object {
 		const val defaultWidgetSuffix = "_AllWidgets"
+		private const val nonInteractiveDir = "nonInteractive"
+
 		private val resourceConfig by lazy {
-			ConfigurationProperties.fromResource("runtime/defaultModelConfig.properties")  //FIXME use this in final version when modelConfig build parameter is available, until then use this as IntelliJ resource reload workaround
-			//ConfigurationProperties.fromFile(File("project/pcComponents/core/src/main/resources/runtime/defaultModelConfig.properties").apply { println(absolutePath) })
+			ConfigurationProperties.fromResource("runtime/defaultModelConfig.properties")
 		}
-		operator fun invoke(path: String, appName: String, customFilePath: URI, isLoadC: Boolean = false):ModelConfig{
-			val config = File(customFilePath.path).let{customConfigFile ->
-				if (customConfigFile.exists()) ConfigurationProperties.fromFile(customConfigFile) overriding resourceConfig
-				else resourceConfig
-			}
-			return ModelConfig(path, appName, config, isLoadC)
-		}
-		@JvmStatic fun withConfig(path:String, appName: String, config: Configuration, isLoadC: Boolean = false):ModelConfig{
-			return ModelConfig(path, appName, config overriding resourceConfig, isLoadC)
+
+		@JvmOverloads operator fun invoke(appName: String, isLoadC: Boolean = false, cfg: Configuration? = null): ModelConfig{
+			val (config, path) = if (cfg != null) Pair(cfg overriding resourceConfig, cfg[ConfigProperties.Output.droidmateOutputDirPath].resolve("model"))
+				else Pair(resourceConfig, resourceConfig[defaultBaseDir])
+
+			return ModelConfig(Paths.get(path.path).toAbsolutePath(), appName, config, isLoadC)
 		}
 
 	} /** end COMPANION **/

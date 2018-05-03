@@ -34,8 +34,8 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 													 private val fileSystem: FileSystem = FileSystems.getDefault()) : Configuration by cfg {
 	var indexFromSN : Int = 0
 
-	val randomSeed = if (cfg[ConfigProperties.Selectors.randomSeed] == -1)
-				Random().nextLong().toInt()
+	val randomSeed = if (cfg[ConfigProperties.Selectors.randomSeed] == -1L)
+				Random().nextLong()
 			else
 				cfg[ConfigProperties.Selectors.randomSeed]
 
@@ -205,7 +205,7 @@ abstract class ConfigProperties {
 		val resetEvery by intType
 		val actionLimit by intType
 		val timeLimit by intType
-		val randomSeed by intType
+		val randomSeed by longType
 		val stopOnExhaustion by booleanType
 	}
 
