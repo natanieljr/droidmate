@@ -79,7 +79,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 
 	//TODO it may be more performent to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
 	override suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keybord/icon widgets available
-		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.canBeActedUpon() }).isEmpty()
+		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.canBeActedUpon }).isEmpty()
 	}
 
 	override fun assertLastGuiSnapshotIsHomeOrResultIsFailure() { runBlocking {

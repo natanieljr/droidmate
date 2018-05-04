@@ -153,7 +153,7 @@ open class RandomWidget constructor(randomSeed: Long,
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
 
-		while (!chosenWidget.canBeActedUpon()) {
+		while (!chosenWidget.canBeActedUpon) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 

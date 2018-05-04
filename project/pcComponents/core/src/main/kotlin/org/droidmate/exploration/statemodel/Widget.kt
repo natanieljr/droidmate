@@ -32,7 +32,7 @@ import javax.imageio.ImageIO
  * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a coroutine running to compute the Widget.uid
  */
 @Suppress("MemberVisibilityCanBePrivate")
-class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
+class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	constructor(properties: WidgetData = WidgetData.empty()) : this(properties, lazy({ computeId(properties) }))
 
@@ -101,7 +101,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 			when (p) {
 				P.UID -> uid.toString()
 				P.Type -> className
-				P.Interactive -> canBeActedUpon().toString()
+				P.Interactive -> canBeActedUpon.toString()
 				P.Text -> text
 				P.Desc -> contentDesc
 				P.Clickable -> clickable.toString()
@@ -129,7 +129,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 	fun center(): Point = Point(bounds.centerX.toInt(), bounds.centerY.toInt())
-	fun getStrippedResourceId(): String = properties.resourceId.removePrefix("$packageName:")
+	fun getStrippedResourceId(): String = resourceId.removePrefix("$packageName:")
 	fun toShortString(): String {
 		return "Wdgt:$simpleClassName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
 	}
@@ -147,7 +147,7 @@ class Widget(private val properties: WidgetData, var _uid: Lazy<UUID>) {
 		return "${clsPart}resourceId: $pResId / text: $pText / contDesc: $pContDesc / click xy: [$px,$py]"
 	}
 
-	fun canBeActedUpon(): Boolean = properties.canBeActedUpon()
+	val canBeActedUpon by lazy { enabled && visible && (clickable || checked ?: false || longClickable || scrollable) }
 
 	@Deprecated(" no longer used? ")
 	fun getClickPoint(deviceDisplayBounds: Rectangle?): Point {
