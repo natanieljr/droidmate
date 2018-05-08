@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
@@ -46,7 +45,7 @@ open class RandomWidget constructor(randomSeed: Long,
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
-	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed.toLong())
+	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed)
 
 	protected val random = Random(randomSeed)
 	private val counter: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>()	}
@@ -92,12 +91,12 @@ open class RandomWidget constructor(randomSeed: Long,
 
 	/** use this function to filter potential candidates against previously blacklisted widgets
 	 * @param block your function determining the ExplorationAction based on the filtered candidates
-	 * @param t1 the threshold to consider the widget blacklisted within the current state context
-	 * @param t2 the threshold to consider the widget blacklisted over all states
+	 * @param tInState the threshold to consider the widget blacklisted within the current state context
+	 * @param tOverall the threshold to consider the widget blacklisted over all states
 	 */
-	protected open fun excludeBlacklisted(candidates: List<Widget>, t1:Int=1, t2:Int=2, block:( listedInsState:List<Widget>, blacklisted: List<Widget>)->List<Widget>): List<Widget> =
-			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, t1) }.let{ noBlacklistedInState ->
-				noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, t2) }.let{ noBlacklisted ->
+	protected open suspend fun excludeBlacklisted(candidates: List<Widget>, tInState:Int=1, tOverall:Int=2, block:(listedInsState:List<Widget>, blacklisted: List<Widget>)->List<Widget>): List<Widget> =
+			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, tInState) }.let{ noBlacklistedInState ->
+				noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, tOverall) }.let{ noBlacklisted ->
 					block(noBlacklistedInState, noBlacklisted)
 				}
 			}
@@ -111,10 +110,9 @@ open class RandomWidget constructor(randomSeed: Long,
 		return chooseActionForWidget(context.lastTarget!!)
 	}
 
-	private fun chooseBiased(): ExplorationAction{
-		runBlocking { counter.job.joinChildren() }  // this waits for both children counter and blacklist
+	private fun chooseBiased(): ExplorationAction = runBlocking{
 		val candidates = debugT("blacklist computation", {
-			excludeBlacklisted(currentState.actionableWidgets){ noBlacklistedInState, noBlacklisted ->
+			excludeBlacklisted(super.context.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
 				when {
 					noBlacklisted.isNotEmpty() -> noBlacklisted
 					noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
@@ -134,7 +132,7 @@ open class RandomWidget constructor(randomSeed: Long,
 			}
 					?: emptyList()
 		}
-		return if(candidates.isEmpty()){
+		if(candidates.isEmpty()){
 			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
 			PressBackExplorationAction()} else candidates.chooseRandomly()
 	}

@@ -27,6 +27,7 @@ import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.WidgetExplorationAction
+import org.droidmate.exploration.statemodel.features.CrashListMF
 import java.awt.Rectangle
 import java.time.LocalDateTime
 import java.util.*
@@ -40,6 +41,7 @@ class ExplorationContext @JvmOverloads constructor(override val apk: IApk,
 ) : AbstractContext() {
 
 	override var deviceDisplayBounds: Rectangle? = null
+	override val crashlist: CrashListMF = getOrCreateWatcher()
 
 	init {
 		if (explorationEndTime > LocalDateTime.MIN)

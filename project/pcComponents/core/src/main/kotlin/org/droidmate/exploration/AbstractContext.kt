@@ -37,6 +37,7 @@ import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.actions.TerminateExplorationAction
 import org.droidmate.exploration.statemodel.ConcreteId
+import org.droidmate.exploration.statemodel.features.CrashListMF
 import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.playback.PlaybackResetAction
 import java.awt.Rectangle
@@ -54,6 +55,8 @@ import java.util.*
 abstract class AbstractContext : Serializable {
 	protected abstract val _model: Model
 	abstract val watcher: LinkedList<ModelFeature>
+
+	abstract val crashlist:CrashListMF
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
 		= (watcher.find { it is T } ?: T::class.java.newInstance().also { watcher.add(it) }) as T
@@ -87,6 +90,9 @@ abstract class AbstractContext : Serializable {
 	abstract val apk: IApk
 
 	abstract val actionTrace: Trace
+
+	/** filters out all crashing marked widgets from the actionable widgets of the current state **/
+	suspend fun nonCrashingWidgets() = getCurrentState().let{ s-> s.actionableWidgets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
 
 	fun explorationCanMoveOn() = isEmpty() || // we are starting the app -> no terminate yet
 			(!getCurrentState().isHomeScreen && getCurrentState().topNodePackageName == apk.packageName && getCurrentState().actionableWidgets.isNotEmpty()) ||
