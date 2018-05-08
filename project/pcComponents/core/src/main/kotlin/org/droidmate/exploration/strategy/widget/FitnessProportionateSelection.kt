@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.ExplorationAction
@@ -40,7 +41,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 
 	@JvmOverloads
 	constructor(cfg: ConfigurationWrapper, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
-		: this(cfg.randomSeed.toLong(), modelName, arffName)
+		: this(cfg.randomSeed, modelName, arffName)
 
 	private val eventWatcher: EventProbabilityMF by lazy {
 		(context.watcher.find { it is EventProbabilityMF }
@@ -82,7 +83,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	protected open fun getCandidatesProbabilities(): Map<Widget,Double> {
 		return eventWatcher.getProbabilities(currentState)
 				.map { it.key to
-						(if (countWatcher.widgetCnt(it.key.uid) == 0)
+						(if (runBlocking { countWatcher.widgetCnt(it.key.uid) } == 0)
 							it.value * 2
 						else
 							it.value)
