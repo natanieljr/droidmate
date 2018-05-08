@@ -25,89 +25,21 @@
 
 package org.droidmate.configuration
 
-import com.konradjamrozik.OS
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryDelay
-import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
-import org.droidmate.configuration.ConfigProperties.Exploration.apksDir
-import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
-import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
-import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
 import org.droidmate.test_tools.DroidmateTestCase
+import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.net.URI
+import org.junit.runners.MethodSorters
 
 import java.nio.file.FileSystems
 
-/**
- * Be aware that ConfigurationBuilder reads from buildConstants.properties file.
- */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
 class ConfigurationBuilderTest : DroidmateTestCase() {
-
-	private val exeExt = if (OS.isWindows) ".exe" else ""
-
 	@Test
-	fun `Pass empty args and build configuration`() {
-		val config = ConfigurationBuilder().build(emptyArray(), FileSystems.getDefault())
-
-		// Default values from Configuration
-		expect(30, config[actionLimit])
-		expect(23, config[apiVersion])
-		expect(1000, config[clearPackageRetryDelay])
-		expect(100, config[resetEvery])
-		expect(URI("./apks"), config[apksDir])
-		expect(URI("./out"), config[droidmateOutputDirPath])
-
-
-		// Values read from buildConstants.properties file
-		expect("api_policies.txt", config.apiPoliciesFile.fileName.toString())
-		expect(config.portFile.fileName.toString(),"port.tmp") { fileName, ref -> fileName.startsWith(ref) }
-		expect(URI(config.aaptCommand).toString(), URI("build-tools/26.0.2/aapt$exeExt").toString())
-			{ cmd, expectedVal -> cmd.endsWith(expectedVal) }
-		expect(URI(config.adbCommand).toString(), URI("platform-tools/adb$exeExt").toString())
-			{ cmd, expectedVal -> cmd.endsWith(expectedVal) }
+	fun `Builds configuration`() {
+		// Act
+		ConfigurationBuilder().build(emptyArray(), FileSystems.getDefault())
 	}
-
-	@Test
-	fun `Pass args and build configuration`() {
-
-		val config = ConfigurationBuilder().build(
-				arrayOf("--Exploration-apksDir=apks",
-						"--Selectors-randomSeed=0",
-						"--Selectors-resetEvery=30",
-						"--Selectors-actionLimit=50"),
-				FileSystems.getDefault())
-
-		// Default values from Configuration
-		expect(50, config[actionLimit])
-		expect(23, config[apiVersion])
-		expect(1000, config[clearPackageRetryDelay])
-		expect(0, config.randomSeed)
-		expect(30, config[resetEvery])
-		expect(URI("apks"), config[apksDir])
-		expect(URI("./out"), config[droidmateOutputDirPath])
-
-		// Values read from buildConstants.properties file
-		expect("api_policies.txt", config.apiPoliciesFile.fileName.toString())
-		expect(config.portFile.fileName.toString(),"port.tmp") { fileName, ref -> fileName.startsWith(ref) }
-		expect(URI(config.aaptCommand).toString(), URI("build-tools/26.0.2/aapt$exeExt").toString())
-			{ cmd, expectedVal -> cmd.endsWith(expectedVal) }
-		expect(URI(config.adbCommand).toString(), URI("platform-tools/adb$exeExt").toString())
-			{ cmd, expectedVal -> cmd.endsWith(expectedVal) }
-	}
-
-	@Test
-	fun `Unrecognized configuration`() {
-		try {
-			ConfigurationBuilder().build(
-					arrayOf("-apksDir=apks", "-randomSeed=0", "-resetEvery=30", "-actionsLimit=50"),
-					FileSystems.getDefault())
-		} catch (e: com.natpryce.konfig.Misconfiguration) {
-			return
-		}
-		fail("Expected com.natpryce.konfig.Misconfiguration exception")
-	}
-
 }

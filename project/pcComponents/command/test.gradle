@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 import org.droidmate.buildsrc.BuildKt
 
-// TODO Timo: I think the setup is way too complex and not really useful
 configureTest(project, ['**/FastRegressionTestSuite.class'])
 
 evaluationDependsOn(":project:pcComponents:core")
@@ -51,7 +50,6 @@ def configureTestTask = { Test task ->
 	task.include("**/DroidmateFrontendTest.class")
 	task.include("**/ModelTester.class")
 	task.include("**/ModelLoadTester.class")
-	task.include("**/InlineTest.class")
 }
 
 task testDevice_api23(type: Test, dependsOn: testClasses) { Test task ->
