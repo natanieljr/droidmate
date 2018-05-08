@@ -47,7 +47,6 @@ import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
 /**
  * <p>
  * Entry class of DroidMate. This class should be supplied to the JVM on the command line as the entry class

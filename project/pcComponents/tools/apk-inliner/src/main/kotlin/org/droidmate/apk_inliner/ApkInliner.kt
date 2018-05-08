@@ -103,7 +103,7 @@ class ApkInliner constructor(private val sysCmdExecutor: ISysCmdExecutor,
 
 	private fun executeInlineApk(targetApk: Path): Path {
 		val inlinedApkPath = targetApk.resolveSibling(targetApk.fileName.toString().replace(".apk", "-inlined.apk"))
-		assert(Files.notExists(inlinedApkPath))
+		assert(Files.notExists(inlinedApkPath)) { "A file $inlinedApkPath already exists." }
 
 		sysCmdExecutor.execute(
 				"Inlining ${targetApk.toRealPath().toString()}",
