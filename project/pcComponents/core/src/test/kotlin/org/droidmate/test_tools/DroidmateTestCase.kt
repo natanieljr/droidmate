@@ -30,16 +30,18 @@ import junit.framework.TestCase
 import org.droidmate.logging.LogbackAppenders
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.misc.BuildConstants
-import org.junit.Assert
 import org.junit.Before
 import java.util.*
 
 open class DroidmateTestCase : TestCase() {
 
-	protected inline fun<reified T> expect(res:T, ref: T){
-		assertTrue("expected \n${ref.toString()} \nbut result was \n${res.toString()}",res == ref)
+	protected inline fun<reified T> expect(res: T, ref: T) {
+		assertTrue("expected\n>${ref.toString()}<\nbut result was\n>${res.toString()}<",res == ref)
 	}
 
+	protected inline fun<reified T> expect(p1: T, p2: T, predicate: (p1: T, p2: T) -> Boolean) {
+		assertTrue("assert failed for test parameters:\n>$p1<\nand\n>$p2<", predicate(p1, p2))
+	}
 
 	/*
 		Used for profiling the JUnit test runs with VisualVM. Uncomment, run the tests with -Xverify:none JVM option and make sure

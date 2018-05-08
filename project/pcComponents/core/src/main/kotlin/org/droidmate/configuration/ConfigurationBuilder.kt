@@ -115,7 +115,6 @@ import java.nio.file.Path
 /**
  * @see IConfigurationBuilder#build(java.lang.String [ ], java.nio.file.FileSystem)
  */
-
 class ConfigurationBuilder : IConfigurationBuilder {
 	@Throws(ConfigurationException::class)
 	override fun build(args: Array<String>): ConfigurationWrapper = build(args, FileSystems.getDefault())
