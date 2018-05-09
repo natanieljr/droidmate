@@ -40,6 +40,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 	private var traceIdx = 0
 	private var actionIdx = 0
 	private lateinit var model : Model
+	private var lastSkipped: ActionData = ActionData.empty
 
 	private val watcher: ActionPlaybackFeature by lazy {
 		(context.watcher.find { it is ActionPlaybackFeature }
@@ -58,42 +59,54 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 	}
 
 	private fun getNextTraceAction(peek: Boolean = false): ActionData {
-		model.let{
-			it.getPaths()[traceIdx].let{ currentTrace ->
-				if(currentTrace.size-1 == actionIdx){ // check if all actions of this trace were handled
-					return it.getPaths()[traceIdx + 1].first().also {
-						if(!peek) {
-							traceIdx += 1
-							actionIdx = 0
+		try {
+			model.let {
+				it.getPaths()[traceIdx].let { currentTrace ->
+					if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
+						if(it.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
+						return it.getPaths()[traceIdx + 1].first().also {
+							if (!peek) {
+								traceIdx += 1
+								actionIdx = 0
+							}
 						}
 					}
-				}
-				return currentTrace.getActions()[actionIdx].also {
-					if(!peek)
-						actionIdx += 1
+					return currentTrace.getActions()[actionIdx].also {
+						if (!peek)
+							actionIdx += 1
+					}
 				}
 			}
+		} catch(e:Throwable){
+			e.printStackTrace()
+			throw e
 		}
 	}
 
+
+	/** determine if the state is similar enough to execute a back action by computing how many relevant widgets are similar */
 	private fun StateData.similarity(other: StateData): Double {
 		val otherWidgets = other.widgets
-		val mappedWidgets = this.widgets.map { w ->
-			if (otherWidgets.any { it.uid == w.uid })
+		val candidates = this.widgets.filter{this.isRelevantForId(it)}
+		val mappedWidgets = candidates.map { w ->
+			if (otherWidgets.any { it.uid == w.uid || it.propertyConfigId == w.propertyConfigId })
 				1
 			else
 				0
 		}
-		return mappedWidgets.sum() / this.widgets.size.toDouble()
+		return mappedWidgets.sum() / candidates.size.toDouble()
 	}
 
-	private fun Widget?.canExecute(context: StateData, ignoreLocation: Boolean = false): Boolean {
-		if( this == null ) return false
-		return if (ignoreLocation)
-			(!(this.text.isEmpty() && (this.resourceId.isEmpty()))) &&
-					(context.widgets.any { it.uid == this.uid })
-		else
-			(context.widgets.any { it.uid == this.uid })
+	/** checking if we can actually trigger the widget of our recorded trace */
+	private fun Widget?.canExecute(context: StateData): Pair<Double,Widget?> {
+		return when{
+			this == null -> Pair(0.0, null) // no match possible
+			context.widgets.any { it.id == this.id } -> Pair(1.0, this) // we have a perfect match
+			else -> // possibly it is a match but we can't be 100% sure
+				context.widgets.find { it.canBeActedUpon && it.uid == this.uid }	?.let { Pair(0.6, it) } // prefer uid match over property equivalence
+						?: context.widgets.find { it.canBeActedUpon && it.propertyConfigId == this.propertyConfigId }?.let{ Pair(0.5, it) }
+						?:	Pair(0.0, null) // no match found
+		}
 	}
 
 	private fun getNextAction(): ExplorationAction {
@@ -104,30 +117,33 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 
 		val currTraceData = getNextTraceAction()
 		val action = currTraceData.actionType
-		when (action) {
+		return when (action) {
 			WidgetExplorationAction::class.simpleName -> {
-				return when {
-					currTraceData.targetWidget.canExecute(context.getCurrentState()) -> {
-						PlaybackExplorationAction(currTraceData.targetWidget!!)
-						// not found, try ignoring the location if it has text and or resourceID
-					}
-					currTraceData.targetWidget.canExecute(context.getCurrentState(), true) -> {
-						logger.warn("Same widget not found. Located similar (text and resourceID) widget in different position. Selecting it.")
-						PlaybackExplorationAction(currTraceData.targetWidget!!)
-					}
+				val verifyExecutability = currTraceData.targetWidget.canExecute(context.getCurrentState())
+				if(verifyExecutability.first>0.0) {
+					PlaybackExplorationAction(verifyExecutability.second!!)
+				}
 
-				// not found, go to the next
-					else -> {
-						watcher.addNonReplayableActions(traceIdx, actionIdx)
+				// not found, go to the next or try to repeat previous action depending on what is matching better
+				else {
+					watcher.addNonReplayableActions(traceIdx, actionIdx)
+					val prevEquiv = lastSkipped.targetWidget.canExecute(context.getCurrentState())  // check if the last skipped action may be appyable now
+					val nextEquiv = getNextTraceAction(peek = true).targetWidget.canExecute(context.getCurrentState())
+					if(prevEquiv.first>nextEquiv.first) { // try to execute the last previously skipped action
+						lastSkipped = ActionData.empty  // we execute it now so do not try to do so again
+						PlaybackExplorationAction(prevEquiv.second!!, "[previously skipped]")
+					}else{
+						lastSkipped = currTraceData
+						println("[skip action] $lastSkipped")
 						getNextAction()
 					}
 				}
 			}
 			TerminateExplorationAction::class.simpleName -> {
-				return PlaybackTerminateAction()
+				PlaybackTerminateAction()
 			}
 			ResetAppExplorationAction::class.simpleName -> {
-				return PlaybackResetAction()
+				PlaybackResetAction()
 			}
 			PressBackExplorationAction::class.simpleName -> {
 				// If already in home screen, ignore
@@ -145,14 +161,14 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 				// 3 - Not same screen and can't execute next widget action, press back
 				// Known issues: multiple press back / reset in a row
 
-				return if (similarity == 1.0) {
+				if (similarity >= 0.95) {
 					PlaybackPressBackAction()
 				} else {
 					val nextTraceData = getNextTraceAction(peek = true)
 
 						val nextWidget = nextTraceData.targetWidget
 
-						if (nextWidget.canExecute(context.getCurrentState(), true)) {
+						if (nextWidget.canExecute(context.getCurrentState()).first>0.0) {
 							watcher.addNonReplayableActions(traceIdx, actionIdx)
 							getNextAction()
 						}
@@ -161,7 +177,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 				}
 			}
 			else -> {
-				return WidgetExplorationAction(currTraceData.targetWidget!!, useCoordinates = true)
+				WidgetExplorationAction(currTraceData.targetWidget!!, useCoordinates = true)
 			}
 		}
 	}
@@ -176,7 +192,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 	}*/
 
 	override fun internalDecide(): ExplorationAction {
-		val allWidgetsBlackListed = this.updateState()
+		val allWidgetsBlackListed = this.updateState()  //FIXME this function does not work anymore use the Blacklist or Crashlist Model Features instead
 		if (allWidgetsBlackListed)
 			this.notifyAllWidgetsBlacklisted()
 
