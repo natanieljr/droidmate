@@ -140,7 +140,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 		return when (action) {
 			is WaitAction -> wait(action)
-			is LaunchApp -> throw DeviceException("call .launchMainActivity() directly instead")
+			is LaunchApp -> execute(action)
 			is ClickAction -> execute(action)
 			is CoordinateClickAction -> execute(action)
 			is LongClickAction -> execute(action)
@@ -322,11 +322,9 @@ class AndroidDevice constructor(private val serialNumber: String,
 		adbWrapper.uninstallApk(serialNumber, apkPackageName, ignoreFailure)
 	}
 
-	override fun launchMainActivity(launchableActivityComponentName: String) {
-		log.debug("launchMainActivity($launchableActivityComponentName)")
-		adbWrapper.launchMainActivity(serialNumber, launchableActivityComponentName)
-		log.info("Sleeping after launching $launchableActivityComponentName for ${cfg[launchActivityDelay]} ms")
-		sleep(cfg[launchActivityDelay].toLong())
+	override fun launchApp(packageName: String): DeviceResponse {
+		log.debug("perform(newLaunchAppDeviceAction($packageName))")
+		return this.perform(LaunchApp(packageName))
 	}
 
 	override fun closeMonitorServers() {
@@ -351,14 +349,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	override fun appIsRunning(appPackageName: String): Boolean =
 			this.appProcessIsRunning(appPackageName) && this.anyMonitorIsReachable()
-
-	override fun clickAppIcon(iconLabel: String) {
-
-		log.debug("perform(newLaunchAppDeviceAction(iconLabel:$iconLabel))")
-		this.perform(LaunchApp(iconLabel))
-		log.info("Sleeping after clicking app icon labeled '$iconLabel' for ${cfg[launchActivityDelay]} ms")
-		sleep(cfg[launchActivityDelay].toLong())
-	}
 
 	override fun reinstallUiautomatorDaemon() {
 		if (cfg[apiVersion] == ConfigurationWrapper.api23) {

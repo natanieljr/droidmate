@@ -182,15 +182,11 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun launchMainActivity(launchableActivityComponentName: String) {
+	override fun launchApp(packageName: String): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
 	override fun appIsRunning(appPackageName: String): Boolean {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	override fun clickAppIcon(iconLabel: String) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -277,7 +273,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 			findMatchingExceptionSpecAndThrowIfApplies("perform", this.getCurrentlyDeployedPackageName())
 
 			when (action) {
-					is LaunchApp -> assert(false, { "call .launchMainActivity() directly instead" })
+					is LaunchApp -> assert(false, { "call .launchApp() directly instead" })
 					is ClickAction -> updateSimulatorState(action)
 					is CoordinateClickAction -> updateSimulatorState(action)
 					is LongClickAction -> updateSimulatorState(action)
@@ -324,7 +320,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 
 	override fun anyMonitorIsReachable(): Boolean = this.currentSimulation!!.getAppIsRunning()
 
-	override fun launchMainActivity(launchableActivityComponentName: String) {
+	override fun launchApp(launchableActivityComponentName: String) {
 			updateSimulatorState(LaunchApp(launchableActivityComponentName))
 	}
 

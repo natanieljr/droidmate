@@ -2,6 +2,7 @@ package org.droidmate.uiautomator2daemon
 
 import android.app.UiAutomation
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.wifi.WifiManager
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
+
 
 /**
  * Created by J.H. on 05.02.2018.
@@ -210,91 +212,22 @@ private class DeviceEnableWifi : DeviceAction() {
 	}
 }
 
-private data class DeviceLaunchApp(val appLaunchIconName: String) : DeviceAction() {
-	private val appListResId = "com.google.android.googlequicksearchbox:id/apps_list_view"
+private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() {
 	override fun execute(device: UiDevice, context: Context) {
-		Log.d(uiaDaemon_logcatTag, "Launching app by navigating to and clicking icon with text $appLaunchIconName")
+		// Launch the app
+		val intent = context.packageManager
+				.getLaunchIntentForPackage(appPackageName)
+		// Clear out any previous instances
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
 
-		val clickResult: Boolean
-		try {
-			val app = navigateToAppLaunchIcon(appLaunchIconName, device)
-			Log.v(uiaDaemon_logcatTag, "Pressing the $appLaunchIconName app icon to launch it.")
-			clickResult = app.click()
-		} catch (e: UiObjectNotFoundException) {
-			Log.w(uiaDaemon_logcatTag,
-					String.format("Attempt to navigate to and click on the icon labeled '%s' to launch the app threw an exception: %s: %s",
-							appLaunchIconName, e.javaClass.simpleName, e.localizedMessage))
-			Log.d(uiaDaemon_logcatTag, "Pressing 'home' button after failed app launch.")
-			waitForChanges(device, device.pressHome())
-			return
-		}
+		measureTimeMillis {
+			context.startActivity(intent)
 
-		if (clickResult) {
-//            waitForChanges(device,clickResult)
-			device.waitForIdle(defaultTimeout)
-			measureTimeMillis {
-				device.wait(hasInteractive, 10000)
-			}.let { Log.d(uiaDaemon_logcatTag, "load-time $it millis") }
-		} else
-			Log.w(uiaDaemon_logcatTag, "A click on the icon labeled '$appLaunchIconName' to launch the app returned false")
-	}
-
-	private fun navigateToAppLaunchIcon(appLaunchIconName: String, device: UiDevice): UiObject {
-		// Simulate a short press on the HOME button.
-		device.pressHome()
-
-		// We’re now in the home screen. Next, we want to simulate
-		// a user bringing up the All Apps screen.
-		// If you use the uiautomatorviewer tool to capture a snapshot
-		// of the Home screen, notice that the All Apps button’s
-		// content-description property has the value "Apps".  We can
-		// use this property to create a UiSelector to find the button.
-		val allAppsButton = device.findObject(UiSelector().description("Apps"))
-
-		// Simulate a click to bring up the All Apps screen.
-		allAppsButton.clickAndWaitForNewWindow()
-
-
-		// In the All Apps screen, the app launch icon is located in
-		// the Apps tab. To simulate the user bringing up the Apps tab,
-		// we create a UiSelector to find a tab with the text
-		// label "Apps".
-		val appsTab = device.findObject(UiSelector().text("Apps"))
-		if (!appsTab.exists()) Log.w(uiaDaemon_logcatTag, "This device does not have an 'Apps' and a 'Widgets' tab, skipping.")
-		// Simulate a click to enter the Apps tab.
-		else appsTab.click()
-
-
-		// Next, in the apps tabs, we can simulate a user swiping until
-		// they come to the app launch icon. Since the container view
-		// is scrollable, we can use a UiScrollable object.
-		var appViews: UiScrollable
-
-		try {
-			Log.i(uiaDaemon_logcatTag, "Attempting to locate app list by resourceId.")
-			appViews = UiScrollable(UiSelector().resourceId(appListResId))
-
-			// Set the swiping mode to horizontal (the default is vertical)
-			appViews.setAsHorizontalList()
-
-			// Create a UiSelector to find the app launch icon and simulate
-			// a user click to launch the app.
-			return appViews.getChildByText(
-					UiSelector().className(android.widget.TextView::class.java.name),
-					appLaunchIconName)
-		} catch (e: UiObjectNotFoundException) {
-			Log.i(uiaDaemon_logcatTag, "It was not possible to locate app list by resourceId, using heuristic.")
-			appViews = UiScrollable(UiSelector().scrollable(true))
-		}
-
-		// Set the swiping mode to horizontal (the default is vertical)
-		appViews.setAsHorizontalList()
-
-		// Create a UiSelector to find the app launch icon and simulate
-		// a user click to launch the app.
-		return appViews.getChildByText(
-				UiSelector().className(android.widget.TextView::class.java.name),
-				appLaunchIconName)
+			// Wait for the app to appear
+			device.wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
+					10000)
+			device.wait(hasInteractive, 10000)
+		}.let { Log.d(uiaDaemon_logcatTag, "load-time $it millis") }
 	}
 }
 
@@ -427,6 +360,7 @@ private data class DeviceTextAction(override val xPath: String, override val res
 
 private class DeviceFetchGUIAction(): DeviceAction() {
 	override fun execute(device: UiDevice, context: Context) {
+		waitForChanges(device)
 		// do nothing
 	}
 }

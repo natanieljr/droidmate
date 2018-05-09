@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.device.deviceInterface
 
-import org.droidmate.device.android_sdk.AdbWrapperException
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
@@ -285,35 +284,36 @@ class RobustDevice : IRobustDevice {
 	@Throws(DeviceException::class)
 	private fun getAppIsRunningRebootingIfNecessary(packageName: String): Boolean = rebootIfNecessary("device.appIsRunning(packageName:$packageName)", true) { this.device.appIsRunning(packageName) }
 
-	override fun launchApp(apk: IApk): DeviceResponse {
-		log.debug("launchApp(${apk.packageName})")
+	override fun launchApp(packageName: String): DeviceResponse {
+		log.debug("launchApp($packageName)")
+		return rebootIfNecessary("device.launchApp(packageName:$packageName)", true) { this.device.launchApp(packageName) }
+	}
 
-		if (apk.launchableActivityName.isNotEmpty())
-			this.launchMainActivity(apk.launchableActivityComponentName)
+	override fun launchApp(apk: IApk): DeviceResponse {
+		return this.launchApp(apk.packageName)
+
+		/*if (apk.launchableActivityName.isNotEmpty())
+			this.launchApp(apk.launchableActivityComponentName)
 		else {
 			assert(apk.applicationLabel.isNotEmpty())
 			this.clickAppIcon(apk.applicationLabel)
-		}
+		}*/
 
-		return this.perform(FetchGUI())
+		//return this.perform(FetchGUI())
 	}
 
-	override fun clickAppIcon(iconLabel: String) {
-		rebootIfNecessary("device.clickAppIcon(iconLabel:$iconLabel)", true) { this.device.clickAppIcon(iconLabel) }
-	}
-
-	override fun launchMainActivity(launchableActivityComponentName: String) {
+	/*override fun launchApp(packageName: String) {
 		// KJA recognition if launch succeeded and checking if ANR is displayed should be also implemented for
 		// this.clickAppIcon(), which is called by caller of this method.
 
 		var launchSucceeded = false
 		try {
 			// WISH when ANR immediately appears, waiting for full SysCmdExecutor.sysCmdExecuteTimeout to pass here is wasteful.
-			this.device.launchMainActivity(launchableActivityComponentName)
+			this.device.launchApp(packageName)
 			launchSucceeded = true
 
 		} catch (e: AdbWrapperException) {
-			log.warn(Markers.appHealth, "! device.launchMainActivity($launchableActivityComponentName) threw $e " +
+			log.warn(Markers.appHealth, "! device.launchApp($packageName) threw $e " +
 					"Discarding the exception, rebooting and continuing.")
 
 			this.rebootAndRestoreConnection()
@@ -330,8 +330,8 @@ class RobustDevice : IRobustDevice {
 		// do not try to relaunch here; instead do it in exploration strategy. This way API logs from the failed launch will be
 		// separated.
 		if (launchSucceeded && guiSnapshot.isAppHasStoppedDialogBox)
-			log.debug(Markers.appHealth, "device.launchMainActivity($launchableActivityComponentName) succeeded, but ANR is displayed.")
-	}
+			log.debug(Markers.appHealth, "device.launchApp($packageName) succeeded, but ANR is displayed.")
+	}*/
 
 	@Throws(DeviceException::class)
 	private fun getExplorableGuiSnapshot(): DeviceResponse {

@@ -472,7 +472,7 @@ Logcat reference:
 			if (stdout.contains(launchMainActivityFailureString)) {
 				val failureLine = stdout.reader().readLines().filter { line -> line.contains(launchMainActivityFailureString) }
 
-				throw AdbWrapperException("AdbWrapper.launchMainActivity successfully executed the underlying adb shell command, " +
+				throw AdbWrapperException("AdbWrapper.launchApp successfully executed the underlying adb shell command, " +
 						"but its stdout contains the failure string of: '$launchMainActivityFailureString'. Full line from the command " +
 						"stdout with the failure string:\n" +
 						"$failureLine")

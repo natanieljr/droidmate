@@ -61,12 +61,9 @@ interface IExplorableAndroidDevice {
 	fun anyMonitorIsReachable(): Boolean
 
 	@Throws(DeviceException::class)
-	fun launchMainActivity(launchableActivityComponentName: String)
+	fun launchApp(packageName: String): DeviceResponse
 
 	@Throws(DeviceException::class)
 	fun appIsRunning(appPackageName: String): Boolean
-
-	@Throws(DeviceException::class)
-	fun clickAppIcon(iconLabel: String)
 }
 

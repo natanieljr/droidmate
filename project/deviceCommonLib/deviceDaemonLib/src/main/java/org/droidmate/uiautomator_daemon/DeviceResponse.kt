@@ -77,6 +77,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			deviceModel.startsWith("Google-Android SDK built for x86/26") -> "com.google.android.apps.nexuslauncher"
 			deviceModel.startsWith("Google-Android SDK built for x86/25") -> "com.google.android.apps.nexuslauncher"
 			deviceModel.startsWith("Google-Android SDK built for x86") -> "com.android.launcher"
+			deviceModel.startsWith("Google-AOSP on dragon/24") -> "com.android.launcher"
 			deviceModel.startsWith("unknown-Android SDK built for x86") -> "com.android.launcher3"
 			deviceModel.startsWith("samsung-GT-I9300") -> "com.android.launcher"
 			deviceModel.startsWith("LGE-Nexus 5X") -> "com.google.android.googlequicksearchbox"

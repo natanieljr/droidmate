@@ -136,7 +136,7 @@ fun `Print widgets of current GUI screen`() {
 fun `Launches app, then checks, clicks, stops and checks it again`() {
 		withApkDeployedOnDevice { device, deployedApk ->
 
-				device.launchMainActivity(deployedApk.launchableActivityComponentName)
+				device.launchApp(deployedApk.launchableActivityComponentName)
 				assert(device.getGuiSnapshot().guiState.belongsToApp(deployedApk.packageName))
 
 				// Act 1

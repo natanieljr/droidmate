@@ -100,7 +100,7 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 
 	@Throws(UiAutomatorDaemonException::class)
 	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse {
-		Log.v(uiaDaemon_logcatTag, "Performing GUI action")
+		Log.v(uiaDaemon_logcatTag, "Performing GUI action ${deviceCommand.guiAction}")
 
 		val action = DeviceAction.fromAction(deviceCommand.guiAction)
 
