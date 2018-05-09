@@ -59,27 +59,22 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 	}
 
 	private fun getNextTraceAction(peek: Boolean = false): ActionData {
-		try {
-			model.let {
-				it.getPaths()[traceIdx].let { currentTrace ->
-					if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
-						if(it.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
-						return it.getPaths()[traceIdx + 1].first().also {
-							if (!peek) {
-								traceIdx += 1
-								actionIdx = 0
-							}
+		model.let {
+			it.getPaths()[traceIdx].let { currentTrace ->
+				if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
+					if(it.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
+					return it.getPaths()[traceIdx + 1].first().also {
+						if (!peek) {
+							traceIdx += 1
+							actionIdx = 0
 						}
 					}
-					return currentTrace.getActions()[actionIdx].also {
-						if (!peek)
-							actionIdx += 1
-					}
+				}
+				return currentTrace.getActions()[actionIdx].also {
+					if (!peek)
+						actionIdx += 1
 				}
 			}
-		} catch(e:Throwable){
-			e.printStackTrace()
-			throw e
 		}
 	}
 
@@ -121,20 +116,24 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 			WidgetExplorationAction::class.simpleName -> {
 				val verifyExecutability = currTraceData.targetWidget.canExecute(context.getCurrentState())
 				if(verifyExecutability.first>0.0) {
-					PlaybackExplorationAction(verifyExecutability.second!!)
+					PlaybackExplorationAction(verifyExecutability.second!!, "[${verifyExecutability.first}]")
 				}
 
 				// not found, go to the next or try to repeat previous action depending on what is matching better
 				else {
 					watcher.addNonReplayableActions(traceIdx, actionIdx)
 					val prevEquiv = lastSkipped.targetWidget.canExecute(context.getCurrentState())  // check if the last skipped action may be appyable now
-					val nextEquiv = getNextTraceAction(peek = true).targetWidget.canExecute(context.getCurrentState())
-					if(prevEquiv.first>nextEquiv.first) { // try to execute the last previously skipped action
+					val peekAction = getNextTraceAction(peek = true)
+					val nextEquiv = peekAction.targetWidget.canExecute(context.getCurrentState())
+					if(prevEquiv.first>nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
+							&& runBlocking { model.getState(lastSkipped.resState)?.run{
+								actionableWidgets.any { peekAction.targetWidget == null || it.uid == peekAction.targetWidget.uid
+										|| it.propertyConfigId == peekAction.targetWidget.uid } }} == true) {
 						lastSkipped = ActionData.empty  // we execute it now so do not try to do so again
 						PlaybackExplorationAction(prevEquiv.second!!, "[previously skipped]")
 					}else{
 						lastSkipped = currTraceData
-						println("[skip action] $lastSkipped")
+						println("[skip action ($traceIdx,$actionIdx)] $lastSkipped")
 						getNextAction()
 					}
 				}
