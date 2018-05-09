@@ -27,6 +27,29 @@ dependencies {
 
 	compile 'com.natpryce:konfig:1.6.6.0'
 }
+
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'  // requires jcenter
+	}
+}
+
+apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
+shadowJar {
+	baseName = 'shadow'
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
+	}
+}
+// make this jar to the
+jar.baseName = rootProject.name
+
 kotlin {
 	experimental {
 		coroutines "enable"
