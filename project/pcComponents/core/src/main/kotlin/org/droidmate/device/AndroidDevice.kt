@@ -34,7 +34,6 @@ import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
-import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
@@ -50,7 +49,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_pa
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_testPackageName
 import org.droidmate.uiautomator_daemon.guimodel.*
 import org.slf4j.LoggerFactory
-import java.lang.Thread.sleep
+import java.io.File
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -93,6 +92,15 @@ class AndroidDevice constructor(private val serialNumber: String,
 		if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isNotEmpty()){
 			cfg.indexFromSN = adbWrapper.getAndroidDevicesDescriptors().indexOfFirst { it.deviceSerialNumber == this.serialNumber }
 		}
+
+		// Port file can only be generated here because it depends on the device index
+		val portFile = File.createTempFile(BuildConstants.port_file_name, ".tmp")
+		portFile.writeText(Integer.toString(cfg.monitorPort))
+		portFile.deleteOnExit()
+		cfg.portFile = portFile.toPath().toAbsolutePath()
+		log.info("Using ${BuildConstants.port_file_name} located at ${cfg.portFile}")
+
+
 	}
 
 	private val tcpClients: ITcpClients = TcpClients(

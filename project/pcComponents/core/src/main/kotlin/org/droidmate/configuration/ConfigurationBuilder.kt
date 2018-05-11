@@ -293,12 +293,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			cfg.coverageMonitorScriptPath = getResourcePath(cfg, BuildConstants.coverage_monitor_script).toAbsolutePath()
 			log.info("Using ${BuildConstants.coverage_monitor_script} located at ${cfg.coverageMonitorScriptPath}")
 
-			val portFile = File.createTempFile(BuildConstants.port_file_name, ".tmp")
-			portFile.writeText(Integer.toString(cfg.monitorPort))
-			portFile.deleteOnExit()
-			cfg.portFile = portFile.toPath().toAbsolutePath()
-			log.info("Using ${BuildConstants.port_file_name} located at ${cfg.portFile}")
-
 			cfg.apksDirPath = if (cfg[useApkFixturesDir])
 				ResourcePath(BuildConstants.apk_fixtures).path.toAbsolutePath()
 			else

@@ -32,24 +32,34 @@ import java.util.*
 
 class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configuration,
 													 private val fileSystem: FileSystem = FileSystems.getDefault()) : Configuration by cfg {
-	var indexFromSN : Int = 0
+	var indexFromSN: Int = 0
 
-	val randomSeed = if (cfg[ConfigProperties.Selectors.randomSeed] == -1L)
-				Random().nextLong()
-			else
-				cfg[ConfigProperties.Selectors.randomSeed]
+	val randomSeed by lazy {
+		if (cfg[ConfigProperties.Selectors.randomSeed] == -1L)
+			Random().nextLong()
+		else
+			cfg[ConfigProperties.Selectors.randomSeed]
+	}
 
-	val monitorPort = cfg[ConfigProperties.ApiMonitorServer.basePort] +
-			if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isEmpty())
-				cfg[ConfigProperties.Exploration.deviceIndex]
-			else
-				indexFromSN
+	val monitorPort by lazy {
+		cfg[ConfigProperties.ApiMonitorServer.basePort] +
+				if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isEmpty())
+					cfg[ConfigProperties.Exploration.deviceIndex]
+				else
+					indexFromSN
+	}
 
-	val uiAutomatorPort = cfg[ConfigProperties.UiAutomatorServer.basePort] +
-			if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isEmpty())
-				cfg[ConfigProperties.Exploration.deviceIndex]
-			else
-				indexFromSN
+	val uiAutomatorPort by lazy {
+		cfg[ConfigProperties.UiAutomatorServer.basePort] +
+				if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isEmpty())
+					cfg[ConfigProperties.Exploration.deviceIndex]
+				else
+					indexFromSN
+	}
+
+	init {
+		///
+	}
 
 	//region Values set by ConfigurationBuilder
 	lateinit var droidmateOutputDirPath: Path
@@ -119,14 +129,15 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 }
 
 abstract class ConfigProperties {
-	object ModelProperties: PropertyGroup(){
-		object path: PropertyGroup(){
+	object ModelProperties : PropertyGroup() {
+		object path : PropertyGroup() {
 			val defaultBaseDir by uriType
 			val statesSubDir by uriType
 			val widgetsSubDir by uriType
 			val cleanDirs by booleanType
 		}
-		object dump: PropertyGroup(){
+
+		object dump : PropertyGroup() {
 			val sep by stringType
 			val onEachAction by booleanType
 
@@ -135,11 +146,12 @@ abstract class ConfigProperties {
 			val traceFileExtension by stringType
 			val traceFilePrefix by stringType
 		}
-		object imgDump: PropertyGroup(){
+
+		object imgDump : PropertyGroup() {
 			val states by booleanType
 			val widgets by booleanType
 
-			object widget: PropertyGroup(){
+			object widget : PropertyGroup() {
 				val nonInteractable by booleanType
 				val interactable by booleanType
 				val onlyWhenNoText by booleanType
