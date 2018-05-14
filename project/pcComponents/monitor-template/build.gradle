@@ -58,4 +58,3 @@ dependencies {
 
 configureTest(project, ['**/MonitorJavaTemplateTest.class'])
 
-apply from: project(":project:pcComponents").file("maven.gradle")

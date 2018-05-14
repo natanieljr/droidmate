@@ -64,4 +64,3 @@ clean.configure {
 
 configureTest(project, [''])//['**/ApkInlinerFrontendTest.class'])
 
-apply from: project(":project:pcComponents").file("maven.gradle")

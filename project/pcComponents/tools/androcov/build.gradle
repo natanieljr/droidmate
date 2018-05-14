@@ -24,11 +24,6 @@
 // web: www.droidmate.org
 
 
-apply plugin: 'kotlin'
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
 dependencies {
 	compile "ca.mcgill.sable:soot:3.1.0-SNAPSHOT"
 
@@ -43,4 +38,3 @@ dependencies {
 
 }
 
-apply from: project(":project:pcComponents").file("maven.gradle")

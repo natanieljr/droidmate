@@ -48,7 +48,7 @@ jar {
 	}
 }
 // make this jar to the
-jar.baseName = rootProject.name
+//jar.baseName = rootProject.name
 
 kotlin {
 	experimental {

@@ -67,12 +67,9 @@ repositories {
 /**
  * This build.script is executed twice, once from normal build and once from uiautomator2-daemon build. The applied script
  * allows to install to local maven repo and so can be applied only once. ":project:pcComponents" doesn't exist when calling this script
- * from uiautomator2-daemon, so the maven.gradle is applied only once, as it should. 
- *
  * For more details why such strange setup, see settings.gradle in uiautoamtor2-daemon.
  */
-if (findProject(":project:pcComponents"))
-	apply from: project(":project:pcComponents").file("maven.gradle")
+//if (findProject(":project:pcComponents"))
 
 dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
