@@ -30,8 +30,6 @@ import com.google.common.collect.Iterables
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityTimeout
-import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForGuiToStabilize
-import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForWindowUpdateTimeout
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.misc.BuildConstants
@@ -519,10 +517,7 @@ Logcat reference:
 	private fun startUiautomatorDaemonApi23(deviceSerialNumber: String, port: Int) {
 		val commandDescription = "Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
 
-		val uiaDaemonCmdLine = String.format("-e %s %s -e %s %s -e %s %s",
-				UiautomatorDaemonConstants.uiaDaemonParam_waitForGuiToStabilize, cfg[waitForGuiToStabilize],
-				UiautomatorDaemonConstants.uiaDaemonParam_waitForWindowUpdateTimeout, cfg[waitForWindowUpdateTimeout],
-				UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
+		val uiaDaemonCmdLine = String.format("-e %s %s", UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
 
 		val testRunner = UiautomatorDaemonConstants.uia2Daemon_testPackageName + "/" + UiautomatorDaemonConstants.uia2Daemon_testRunner
 		val failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "

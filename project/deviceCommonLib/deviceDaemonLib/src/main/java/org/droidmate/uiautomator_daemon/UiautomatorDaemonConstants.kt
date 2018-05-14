@@ -57,8 +57,6 @@ object UiautomatorDaemonConstants {
 	val uia2Daemon_testPackageName = "$uia2Daemon_packageName.test"
 	val uia2Daemon_testRunner = "android.support.test.runner.AndroidJUnitRunner"
 
-	val uiaDaemonParam_waitForGuiToStabilize = "wait_for_gui_to_stabilize"
-	val uiaDaemonParam_waitForWindowUpdateTimeout = "wait_for_window_update_timeout"
 	val uiaDaemonParam_tcpPort = "uiadaemon_server_tcp_port"
 
 	val deviceLogcatLogDir_api23 = "/data/user/0/$uia2Daemon_packageName/files/"

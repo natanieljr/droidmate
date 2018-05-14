@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.configuration
 
 import com.natpryce.konfig.CommandLineOption
@@ -37,7 +38,6 @@ import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPat
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.randomSeed
-import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForWindowUpdateTimeout
 import org.droidmate.misc.BuildConstants
 
 import java.nio.file.FileSystem
@@ -51,7 +51,6 @@ class ConfigurationForTests() {
 	companion object {
 		private val zeroedTestConfig = arrayListOf(
 				randomSeed.name, "0",
-				waitForWindowUpdateTimeout.name, "0",
 				launchActivityDelay.name, "0",
 				checkAppIsRunningRetryDelay.name, "0",
 				// Commented out, as there are no tests simulating rebooting. However, sometimes I am manually testing real-world rebooting.
