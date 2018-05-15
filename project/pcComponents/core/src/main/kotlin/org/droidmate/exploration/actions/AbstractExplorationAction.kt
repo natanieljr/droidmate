@@ -33,7 +33,6 @@ import org.droidmate.device.deviceInterface.MissingDeviceLogs
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.logging.Markers
 import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -42,6 +41,8 @@ abstract class AbstractExplorationAction(open val timestamp: LocalDateTime) : Se
 
 	constructor(): this (timestamp = LocalDateTime.now())
 	internal val log = LoggerFactory.getLogger(javaClass)
+	/** name to be used to identify and compare the action-type */
+	val actionName: String = javaClass.simpleName
 
 	var runtimePermission: Boolean = false
 
@@ -54,13 +55,6 @@ abstract class AbstractExplorationAction(open val timestamp: LocalDateTime) : Se
 	abstract fun toShortString(): String
 
 	open fun toTabulatedString(): String = toShortString()
-
-	override fun equals(other: Any?): Boolean = javaClass.toString() == other?.toString() ?: ""
-
-	@Deprecated("this should not be necessary")
-	override fun hashCode(): Int {
-		return this.runtimePermission.hashCode()
-	}
 
 	protected lateinit var snapshot: DeviceResponse
 	protected lateinit var logs: IDeviceLogs

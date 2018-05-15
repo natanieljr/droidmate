@@ -27,7 +27,6 @@ package org.droidmate.exploration.strategy
 import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.exploration.strategy.widget.RandomWidget
 
 /**
@@ -43,7 +42,7 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
 	/**
 	 * Target which was acquired and acted upon (used to monitor DroidMate's callback)
 	 */
-	private var acquiredTarget: ITargetWidget = DummyTarget()
+	private var acquiredTarget: ITargetWidget = DummyTarget
 
 	/**
 	 * Return the widgets which can be interacted with. In this strategy only the target widget or one of its
@@ -92,7 +91,7 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
 			this.acquiredTarget.satisfy()
 			this.notifyTargetFound(this.acquiredTarget, record)
 
-			this.acquiredTarget = DummyTarget()
+			this.acquiredTarget = DummyTarget
 		}
 	}
 

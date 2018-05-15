@@ -37,7 +37,7 @@ class ExplorationOutput2(private val list: MutableList<ExplorationContext> = Arr
 		@JvmStatic
 		fun from(storage: IStorage2): List<ExplorationContext> {
 			return storage.getSerializedRuns2().map {
-				val apkout2 = storage.deserialize(it) as ExplorationContext
+				val apkout2 = storage.deserialize(it)
 				log.info("Deserialized exploration output of $apkout2.packageName from $it")
 				apkout2.verify()
 				apkout2

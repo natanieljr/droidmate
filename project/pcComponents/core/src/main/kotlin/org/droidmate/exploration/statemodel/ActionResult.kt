@@ -75,10 +75,6 @@ open class ActionResult(val action: AbstractExplorationAction,
 		// TODO Add check on exploration state as well
 	}
 
-	override fun hashCode(): Int {
-		return this.action.hashCode()
-	}
-
 	override fun toString(): String {
 		return MoreObjects.toStringHelper(this)
 				.add("action", action)
