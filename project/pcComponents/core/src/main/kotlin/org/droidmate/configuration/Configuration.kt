@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.configuration
 
 import com.natpryce.konfig.*
@@ -258,8 +259,6 @@ abstract class ConfigProperties {
 		val startTimeout by intType
 		val startQueryDelay by intType
 		val socketTimeout by intType
-		val waitForGuiToStabilize by booleanType
-		val waitForWindowUpdateTimeout by intType
 		val basePort by intType
 	}
 }
