@@ -25,9 +25,9 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.actions.ExplorationAction
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
+import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import java.io.ByteArrayInputStream
 import java.io.Serializable
@@ -49,7 +49,7 @@ import javax.imageio.ImageIO
  *
  * @author Nataniel P. Borges Jr.
  */
-open class ActionResult(val action: ExplorationAction,
+open class ActionResult(val action: AbstractExplorationAction,
                         val startTimestamp: LocalDateTime,
                         val endTimestamp: LocalDateTime,
                         val deviceLogs: IDeviceLogs = MissingDeviceLogs,

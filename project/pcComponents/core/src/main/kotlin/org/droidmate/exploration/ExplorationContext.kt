@@ -82,7 +82,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 		return state.topNodePackageName == apk.packageName
 	}
 
-	fun add(action: IRunnableExplorationAction, result: ActionResult) {
+	fun add(action: AbstractExplorationAction, result: ActionResult) {
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 

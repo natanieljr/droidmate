@@ -104,7 +104,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 		}
 	}
 
-	private fun getNextAction(): ExplorationAction {
+	private fun getNextAction(): AbstractExplorationAction {
 
 		// All traces completed. Finish
 		if (isComplete())
@@ -190,7 +190,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 //				.sum()
 	}*/
 
-	override fun internalDecide(): ExplorationAction {
+	override fun internalDecide(): AbstractExplorationAction {
 		val allWidgetsBlackListed = this.updateState()  //FIXME this function does not work anymore use the Blacklist or Crashlist Model Features instead
 		if (allWidgetsBlackListed)
 			this.notifyAllWidgetsBlacklisted()
@@ -198,7 +198,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 		return chooseAction()
 	}
 
-	override fun chooseAction(): ExplorationAction {
+	override fun chooseAction(): AbstractExplorationAction {
 		return getNextAction().also{ println("PLAYBACK: $it")}
 	}
 }

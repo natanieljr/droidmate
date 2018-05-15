@@ -54,9 +54,8 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.actions.IRunnableExplorationAction
-import org.droidmate.exploration.actions.RunnableExplorationAction
-import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
+import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.exploration.actions.TerminateExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
@@ -387,16 +386,16 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
 		// Construct initial action and run it on the device to obtain initial result.
-		var action: IRunnableExplorationAction? = null
+		var action: AbstractExplorationAction? = null
 		var result: ActionResult = EmptyActionResult
 
 		var isFirst = true
 		val strategy: IExplorationStrategy = strategyProvider.invoke(explorationContext)
 
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
-		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
+		while (isFirst || (result.successful && action !is TerminateExplorationAction)) {
 			// decide for an action
-			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow()) }, inMillis = true)
+			action = debugT("strategy decision time", { strategy.decide(result) }, inMillis = true) // check if we need to initialize timeProvider.getNow() here
 			// execute action
 			measureTimeMillis { result = action.run(app, device) }.let {
 				actionT += it
@@ -408,12 +407,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			strategy.update(result)
 
 			if (isFirst) {
-				log.info("Initial action: ${action.base}")
+				log.info("Initial action: ${action}")
 				isFirst = false
 			}
 		}
 
-		assert(!result.successful || action is RunnableTerminateExplorationAction)
+		assert(!result.successful || action is TerminateExplorationAction)
 
 		strategy.close()
 		explorationContext.dump()

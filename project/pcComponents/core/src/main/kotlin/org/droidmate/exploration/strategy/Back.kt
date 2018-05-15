@@ -24,17 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.ExplorationAction.Companion.newPressBackExplorationAction
-import org.droidmate.exploration.strategy.AbstractStrategy
+import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.exploration.actions.PressBackExplorationAction
 
 /**
  * Exploration strategy that presses the back button on the device.
  *
  * Usually has a small probability of being triggered. When triggered has a high priority.
- *
- * @constructor Creates a new class instance with [probability of triggering the event][probability]
- * and with a random seed to allow test reproducibility.
  *
  * @author Nataniel P. Borges Jr.
  */
@@ -43,7 +39,7 @@ class Back : AbstractStrategy() {
 		return false
 	}
 
-	override fun internalDecide(): ExplorationAction {
-		return newPressBackExplorationAction()
+	override fun internalDecide(): AbstractExplorationAction {
+		return PressBackExplorationAction()
 	}
 }

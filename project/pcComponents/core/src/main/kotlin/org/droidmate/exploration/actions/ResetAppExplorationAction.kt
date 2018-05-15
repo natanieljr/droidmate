@@ -25,10 +25,47 @@
 
 package org.droidmate.exploration.actions
 
-open class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Boolean = false) : ExplorationAction() {
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
+import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
+
+open class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Boolean = false) : AbstractExplorationAction() {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 
 	override fun toShortString(): String = "Reset app"
+
+	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+		log.debug("1. Clear package ${app.packageName}.")
+
+		device.clearPackage(app.packageName)
+
+		log.debug("2. Clear logcat.")
+		// This is made to clean up the logcat if previous app exploration failed. If the clean would not be made, it might be
+		// possible some API logs will be read from it, wreaking all kinds of havoc, e.g. having timestamp < than the current
+		// exploration start time.
+		device.clearLogcat()
+
+		log.debug("3. Ensure home screen is displayed.")
+		device.ensureHomeScreenIsDisplayed()
+
+		log.debug("4. Turn wifi on.")
+		device.perform(EnableWifi())
+
+		log.debug("5. Ensure app is not running.")
+		if (device.appIsRunning(app.packageName)) {
+			log.trace("App is still running. Clearing package again.")
+			device.clearPackage(app.packageName)
+		}
+
+		log.debug("6. Launch app $app.packageName.")
+		this.snapshot = device.launchApp(app)
+
+		log.debug("7. Try to read API logs.")
+		val logsHandler = DeviceLogsHandler(device)
+		logsHandler.readAndClearApiLogs()
+		this.logs = logsHandler.getLogs()
+	}
 }

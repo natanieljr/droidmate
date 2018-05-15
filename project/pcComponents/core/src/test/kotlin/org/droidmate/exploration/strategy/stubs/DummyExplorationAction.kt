@@ -25,12 +25,17 @@
 
 package org.droidmate.exploration.strategy.stubs
 
-import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.exploration.actions.AbstractExplorationAction
 
 /**
  * Stuff for exploration action
  */
-class DummyExplorationAction : ExplorationAction() {
+class DummyExplorationAction : AbstractExplorationAction() {
+	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+		TODO("should never be executed")
+	}
 
 	override fun toShortString(): String {
 		return "STUB!"

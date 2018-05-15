@@ -25,12 +25,39 @@
 
 package org.droidmate.exploration.actions
 
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
+import org.droidmate.device.deviceInterface.IRobustDevice
 
-open class TerminateExplorationAction : ExplorationAction() {
+
+open class TerminateExplorationAction : AbstractExplorationAction() {
 
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 
 	override fun toShortString(): String = "Terminate exploration"
+
+	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+		log.debug("1. Read background API logs, if any.")
+		val logsHandler = DeviceLogsHandler(device)
+		logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
+		this.logs = logsHandler.getLogs()
+
+		/*log.debug("2. Take a screenshot.")
+		val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS")
+		this.screenshot = device.takeScreenshot(app, timestamp.format(formatter)).toUri()*/
+
+		log.debug("3. Close monitor servers, if any.")
+		device.closeMonitorServers()
+
+		log.debug("4. Clear package ${app.packageName}}.")
+		device.clearPackage(app.packageName)
+
+		log.debug("5. Assert app is not running.")
+		assertAppIsNotRunning(device, app)
+
+		log.debug("6. Ensure home screen is displayed.")
+		this.snapshot = device.ensureHomeScreenIsDisplayed()
+	}
 }

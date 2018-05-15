@@ -26,42 +26,48 @@ package org.droidmate.exploration.actions
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
+import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.logging.Markers
 import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
+import java.io.Serializable
 import java.time.LocalDateTime
 
-@Deprecated("this class will be deleted in the next version",replaceWith = ReplaceWith("AbstractExplorationAction"))
-abstract class RunnableExplorationAction( val base: AbstractExplorationAction,
-                                         override val timestamp: LocalDateTime) : AbstractExplorationAction() {
+abstract class AbstractExplorationAction(open val timestamp: LocalDateTime) : Serializable {
 
-	companion object {
-		private const val serialVersionUID: Long = 1
-		internal val log = LoggerFactory.getLogger(RunnableExplorationAction::class.java)
+	constructor(): this (timestamp = LocalDateTime.now())
+	internal val log = LoggerFactory.getLogger(javaClass)
 
-		@JvmStatic
-		@Deprecated(" directly instantiate the exploration action instead")
-		fun from(action: AbstractExplorationAction, timestamp: LocalDateTime): RunnableExplorationAction =//    log.trace("Building exploration action ${action.class} with timestamp: $timestamp")
+	var runtimePermission: Boolean = false
 
-				when (action) {
-					is ResetAppExplorationAction -> RunnableResetAppExplorationAction(action, timestamp)
-					is WidgetExplorationAction -> RunnableWidgetExplorationAction(action, timestamp)
-					is TerminateExplorationAction -> RunnableTerminateExplorationAction(action, timestamp)
-					is EnterTextExplorationAction -> RunnableEnterTextExplorationAction(action, timestamp)
-					is PressBackExplorationAction -> RunnablePressBackExplorationAction(action, timestamp)
-					is WaitExplorationAction -> RunnableWaitForWidget(action, timestamp)
+	open val widget: Widget? = null
 
-					else -> throw UnexpectedIfElseFallthroughError("Unhandled ExplorationAction class. The class: ${action.javaClass}")
-				}
+	override fun toString(): String = "<ExplAct ${toShortString()}>"
+
+	open fun isEndorseRuntimePermission(): Boolean = runtimePermission
+
+	abstract fun toShortString(): String
+
+	open fun toTabulatedString(): String = toShortString()
+
+	override fun equals(other: Any?): Boolean = javaClass.toString() == other?.toString() ?: ""
+
+	@Deprecated("this should not be necessary")
+	override fun hashCode(): Int {
+		return this.runtimePermission.hashCode()
 	}
-	override fun toShortString(): String =	javaClass.simpleName
 
-	override fun run(app: IApk, device: IRobustDevice): ActionResult {
+	protected lateinit var snapshot: DeviceResponse
+	protected lateinit var logs: IDeviceLogs
+	protected lateinit var exception: DeviceException
+
+	@Throws(DeviceException::class)
+	open fun run(app: IApk, device: IRobustDevice): ActionResult {
 		// @formatter:off
 		this.logs = MissingDeviceLogs
 		this.snapshot = DeviceResponse.empty
@@ -75,8 +81,8 @@ abstract class RunnableExplorationAction( val base: AbstractExplorationAction,
 			log.trace("${this.javaClass.simpleName}.performDeviceActions(app=${app.fileName}, device) - DONE")
 		} catch (e: DeviceException) {
 			this.exception = e
-			log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device actionTrace of ${this.javaClass.simpleName}. " +
-					"Returning failed ${this.javaClass.simpleName} with the exception assigned to a field.")
+			log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device actionTrace of ${javaClass.simpleName}. " +
+					"Returning failed ${javaClass.simpleName} with the exception assigned to a field.")
 		}
 		val endTime = LocalDateTime.now()
 
@@ -84,5 +90,12 @@ abstract class RunnableExplorationAction( val base: AbstractExplorationAction,
 		return ActionResult(this, startTime, endTime, this.logs, this.snapshot, exception = this.exception, screenshot = this.snapshot.screenshot)
 	}
 
-	override fun toString(): String = "Runnable " + base.toString()
+	@Throws(DeviceException::class)
+	protected abstract fun performDeviceActions(app: IApk, device: IRobustDevice)
+
+	@Throws(DeviceException::class)
+	protected fun assertAppIsNotRunning(device: IRobustDevice, apk: IApk) {
+		assert(device.appIsNotRunning(apk))
+	}
+
 }

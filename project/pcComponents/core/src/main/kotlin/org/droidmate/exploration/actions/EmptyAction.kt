@@ -24,7 +24,14 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions
 
-class EmptyAction : ExplorationAction() {
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.IRobustDevice
+
+object EmptyAction : AbstractExplorationAction() {
+	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+		//NoOp
+	}
+
 	override fun toShortString(): String {
 		return "Empty"
 	}

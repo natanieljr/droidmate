@@ -26,16 +26,36 @@ package org.droidmate.exploration.actions
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
-import java.io.Serializable
-import java.time.LocalDateTime
+import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.uiautomator_daemon.guimodel.WaitAction
+import org.droidmate.uiautomator_daemon.guimodel.WidgetSelector
+import org.slf4j.LoggerFactory
 
-interface IRunnableExplorationAction : Serializable {
+class WaitExplorationAction constructor(private val selector: WidgetSelector,
+                                        private val criteria: String) : AbstractExplorationAction() {
+
+	val action: Action = WaitAction(this.criteria, this.selector)
+
+	override fun toShortString(): String {
+		return "WaitForWidgetAction(selector: ${this.selector.name},criteria:' ${this.criteria}')"
+	}
+
 	@Throws(DeviceException::class)
-	fun run(app: IApk, device: IRobustDevice): ActionResult
+	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+		val log = LoggerFactory.getLogger(this.javaClass)
+		val logsHandler = DeviceLogsHandler(device)
 
-	val base: ExplorationAction
+		log.debug("1. Wait for the widget (until load-screen is finished)")
+		this.snapshot = device.perform(this.action)
 
-	val timestamp: LocalDateTime
+		log.debug("2. Read and clear API logs if any, then seal logs reading.")
+		logsHandler.readAndClearApiLogs()
+		this.logs = logsHandler.getLogs()
+	}
+
+	companion object {
+		private const val serialVersionUID = 4343512671602419674L
+	}
 }

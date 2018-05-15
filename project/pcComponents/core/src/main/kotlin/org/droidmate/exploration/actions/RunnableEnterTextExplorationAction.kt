@@ -27,10 +27,10 @@ package org.droidmate.exploration.actions
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.TextAction
 import java.time.LocalDateTime
 
+@Deprecated("will be deleted in the next version", replaceWith = ReplaceWith("EnterTextExplorationAction","org.droidmate.exploration.actions.EnterTextExplorationAction"))
 class RunnableEnterTextExplorationAction constructor(action: EnterTextExplorationAction, timestamp: LocalDateTime)
 	: RunnableExplorationAction(action, timestamp) {
 

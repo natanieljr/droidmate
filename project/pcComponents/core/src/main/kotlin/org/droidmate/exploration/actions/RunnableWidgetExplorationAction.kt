@@ -41,6 +41,7 @@ import java.time.LocalDateTime
 private var performT: Long = 0
 private var performN: Int = 1
 
+@Deprecated("will be deleted in the next version", replaceWith = ReplaceWith("WidgetExplorationAction","org.droidmate.exploration.actions.WidgetExplorationAction"))
 class RunnableWidgetExplorationAction constructor(action: WidgetExplorationAction,
                                                   timestamp: LocalDateTime) : RunnableExplorationAction(action, timestamp) {
 

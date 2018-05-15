@@ -26,8 +26,9 @@ package org.droidmate.exploration.strategy.login
 
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.ExplorationAction.Companion.newWidgetExplorationAction
+import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.exploration.actions.EnterTextExplorationAction
+import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
 import org.droidmate.exploration.strategy.widget.Explore
@@ -96,12 +97,12 @@ class LoginWithFacebook : Explore() {
 				this.getSignInButton(widgets) != null
 	}
 
-	private fun clickSignIn(widgets: List<Widget>): ExplorationAction {
+	private fun clickSignIn(widgets: List<Widget>): AbstractExplorationAction {
 		val button = getSignInButton(widgets)
 
 		if (button != null) {
 			signInClicked = true
-			return ExplorationAction.newWidgetExplorationAction(button)
+			return WidgetExplorationAction(button)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -112,13 +113,13 @@ class LoginWithFacebook : Explore() {
 				widgets.any { it.resourceId == RES_ID_EMAIL }
 	}
 
-	private fun insertEmail(widgets: List<Widget>): ExplorationAction {
+	private fun insertEmail(widgets: List<Widget>): AbstractExplorationAction {
 		val button = widgets.firstOrNull { it.resourceId == RES_ID_EMAIL }
 
 		if (button != null) {
 			signInClicked = true
 			emailInserted = true
-			return ExplorationAction.newEnterTextExplorationAction(emailValue, button)
+			return EnterTextExplorationAction(emailValue, button)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -129,12 +130,12 @@ class LoginWithFacebook : Explore() {
 				widgets.any { it.resourceId == RES_ID_PASSWORD }
 	}
 
-	private fun insertPassword(widgets: List<Widget>): ExplorationAction {
+	private fun insertPassword(widgets: List<Widget>): AbstractExplorationAction {
 		val button = widgets.firstOrNull { it.resourceId == RES_ID_PASSWORD }
 
 		if (button != null) {
 			passwordInserted = true
-			return ExplorationAction.newEnterTextExplorationAction(passwordValue, button)
+			return EnterTextExplorationAction(passwordValue, button)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -145,13 +146,13 @@ class LoginWithFacebook : Explore() {
 				widgets.any { w -> CONTENT_DESC_LOGIN.any { c -> c.trim() == w.contentDesc.trim() } }
 	}
 
-	private fun clickLogIn(widgets: List<Widget>): ExplorationAction {
+	private fun clickLogIn(widgets: List<Widget>): AbstractExplorationAction {
 		val button = widgets.firstOrNull { w -> CONTENT_DESC_LOGIN.any { c -> c.trim() == w.contentDesc.trim() } }
 
 		if (button != null) {
 			loginClicked = true
 			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
-			return ExplorationAction.newWidgetExplorationAction(button, DEFAULT_ACTION_DELAY)
+			return WidgetExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -162,13 +163,13 @@ class LoginWithFacebook : Explore() {
 				widgets.any { it.contentDesc.trim() == CONTENT_DESC_CONTINUE }
 	}
 
-	private fun clickContinue(widgets: List<Widget>): ExplorationAction {
+	private fun clickContinue(widgets: List<Widget>): AbstractExplorationAction {
 		val button = widgets.firstOrNull { it.contentDesc.trim() == CONTENT_DESC_CONTINUE }
 
 		if (button != null) {
 			continueClicked = true
 			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
-			return ExplorationAction.newWidgetExplorationAction(button, DEFAULT_ACTION_DELAY)
+			return WidgetExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -199,7 +200,7 @@ class LoginWithFacebook : Explore() {
 		return StrategyPriority.NONE
 	}*/
 
-	private fun getWidgetAction(widgets: List<Widget>): ExplorationAction {
+	private fun getWidgetAction(widgets: List<Widget>): AbstractExplorationAction {
 		// Can click on login
 		return when {
 			canClickSignIn(widgets) -> clickSignIn(widgets)
@@ -211,13 +212,13 @@ class LoginWithFacebook : Explore() {
 		}
 	}
 
-	override fun chooseAction(): ExplorationAction {
+	override fun chooseAction(): AbstractExplorationAction {
 		return if (context.getCurrentState().isRequestRuntimePermissionDialogBox) {
 			val widget = context.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 						?: widgets.first { it.text.toUpperCase() == "ALLOW" }
 			}
-			newWidgetExplorationAction(widget)
+			WidgetExplorationAction(widget)
 		} else {
 			val widgets = context.getCurrentState().actionableWidgets
 			getWidgetAction(widgets)

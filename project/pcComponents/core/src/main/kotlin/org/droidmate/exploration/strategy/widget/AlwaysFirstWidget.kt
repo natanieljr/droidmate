@@ -24,7 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.exploration.actions.WidgetExplorationAction
 
 /**
  * Exploration strategy that always selects the first widget on the screen.
@@ -34,7 +35,7 @@ import org.droidmate.exploration.actions.ExplorationAction
  * @author Nataniel P. Borges Jr.
  */
 class AlwaysFirstWidget() : Explore() {
-	override fun chooseAction(): ExplorationAction {
-		return ExplorationAction.newWidgetExplorationAction(context.getCurrentState().widgets.first())
+	override fun chooseAction(): AbstractExplorationAction {
+		return WidgetExplorationAction(context.getCurrentState().widgets.first())
 	}
 }

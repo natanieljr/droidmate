@@ -31,6 +31,7 @@ import org.droidmate.uiautomator_daemon.guimodel.PressBack
 
 import java.time.LocalDateTime
 
+@Deprecated("will be deleted in the next version", replaceWith = ReplaceWith("PressBackExplorationAction","org.droidmate.exploration.actions.PressBackExplorationAction"))
 class RunnablePressBackExplorationAction constructor(action: PressBackExplorationAction, timestamp: LocalDateTime)
 	: RunnableExplorationAction(action, timestamp) {
 	companion object {

@@ -30,6 +30,7 @@ import org.droidmate.device.deviceInterface.IRobustDevice
 
 import java.time.LocalDateTime
 
+@Deprecated("will be deleted in the next version", replaceWith = ReplaceWith("TerminateExplorationAction","org.droidmate.exploration.actions.TerminateExplorationAction"))
 class RunnableTerminateExplorationAction(action: TerminateExplorationAction, timestamp: LocalDateTime)
 	: RunnableExplorationAction(action, timestamp) {
 

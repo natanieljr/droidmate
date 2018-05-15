@@ -25,7 +25,7 @@
 
 package org.droidmate.exploration.strategy.stubs
 
-import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
 
 /**
@@ -38,7 +38,7 @@ class TripleActionExploration : AbstractStrategy() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun internalDecide(): ExplorationAction {
+	override fun internalDecide(): AbstractExplorationAction {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 }

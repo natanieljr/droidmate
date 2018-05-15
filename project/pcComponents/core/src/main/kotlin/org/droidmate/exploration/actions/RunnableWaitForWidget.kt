@@ -32,7 +32,8 @@ import org.slf4j.LoggerFactory
 
 import java.time.LocalDateTime
 
-class RunnableWaitForWidget(private val action: WaitA, timestamp: LocalDateTime)
+@Deprecated("will be deleted in the next version", replaceWith = ReplaceWith("WaitExplorationAction","org.droidmate.exploration.actions.WaitExplorationAction"))
+class RunnableWaitForWidget(private val action: WaitExplorationAction, timestamp: LocalDateTime)
 	: RunnableExplorationAction(action, timestamp) {
 
 	@Throws(DeviceException::class)

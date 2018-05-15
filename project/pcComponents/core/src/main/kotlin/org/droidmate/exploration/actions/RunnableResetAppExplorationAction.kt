@@ -30,6 +30,7 @@ import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
 import java.time.LocalDateTime
 
+@Deprecated("will be deleted in the next version", replaceWith = ReplaceWith("ResetAppExplorationAction","org.droidmate.exploration.actions.ResetAppExplorationAction"))
 class RunnableResetAppExplorationAction(action: ResetAppExplorationAction, timestamp: LocalDateTime)
 	: RunnableExplorationAction(action, timestamp) {
 	companion object {

@@ -29,7 +29,7 @@ import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.uiautomator_daemon.WidgetData
 import java.io.Serializable
 
-//TODO("this should be refactored into IRunnableAction")
+@Deprecated("this class will be removed in the next version, implement `AbstractExplorationAction` and direct accesses to the implementing classes instead")
 abstract class ExplorationAction : Serializable {
 	open val widget: Widget? = null
 
@@ -38,43 +38,52 @@ abstract class ExplorationAction : Serializable {
 
 		@JvmStatic
 		@JvmOverloads
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("ResetAppExplorationAction()","org.droidmate.exploration.actions.ResetExplorationAction"))
 		fun newResetAppExplorationAction(isFirst: Boolean = false): ResetAppExplorationAction = ResetAppExplorationAction(isFirst)
 
 		@JvmStatic
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("TerminateExplorationAction()","org.droidmate.exploration.actions.TerminateExplorationAction"))
 		fun newTerminateExplorationAction(): TerminateExplorationAction = TerminateExplorationAction()
 
 		@JvmStatic
 		@JvmOverloads
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("WidgetExplorationAction(widget, delay = delay)","org.droidmate.exploration.actions.WidgetExplorationAction"))
 		fun newWidgetExplorationAction(widget: Widget, delay: Int, useCoordinates: Boolean = true): WidgetExplorationAction = WidgetExplorationAction(widget, false, useCoordinates, delay).apply { runtimePermission = false }
 
 		@JvmStatic
 		@JvmOverloads
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("WidgetExplorationAction(widget)","org.droidmate.exploration.actions.WidgetExplorationAction"))
 		fun newWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, longClick, useCoordinates)
 
 		@JvmStatic
 		@JvmOverloads
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("WidgetExplorationAction(widget).apply { runtimePermission = true }","org.droidmate.exploration.actions.WidgetExplorationAction"))
 		fun newIgnoreActionForTerminationWidgetExplorationAction(widget: Widget, useCoordinates: Boolean = true, longClick: Boolean = false): WidgetExplorationAction = WidgetExplorationAction(widget, useCoordinates, longClick).apply { runtimePermission = true }
 
 		@JvmStatic
 		@JvmOverloads
 		@Suppress("unused")
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("EnterTextExplorationAction(textToEnter,resId)","org.droidmate.exploration.actions.EnterTextExplorationAction"))
 		fun newEnterTextExplorationAction(textToEnter: String, resId: String, xPath: String = ""): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, Widget(WidgetData(resId = resId, xPath = xPath)))
 
 		@JvmStatic
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("EnterTextExplorationAction(textToEnter,widget)","org.droidmate.exploration.actions.EnterTextExplorationAction"))
 		fun newEnterTextExplorationAction(textToEnter: String, widget: Widget): EnterTextExplorationAction = EnterTextExplorationAction(textToEnter, widget)
 
 		@JvmStatic
+		@Deprecated("unecessary delegation",replaceWith = ReplaceWith("PressBackExplorationAction()","org.droidmate.exploration.actions.PressBackExplorationAction"))
 		fun newPressBackExplorationAction(): PressBackExplorationAction = PressBackExplorationAction()
 
 		@JvmStatic
 		@JvmOverloads
 		@Suppress("unused")
+		@Deprecated("unecessary delegation will be removed in next version",replaceWith = ReplaceWith("WidgetExplorationAction(widget, direction)","org.droidmate.exploration.actions.WidgetExplorationAction"))
 		fun newWidgetSwipeExplorationAction(widget: Widget, useCoordinates: Boolean = true, direction: Direction): WidgetExplorationAction {
 			return WidgetExplorationAction(widget, false, useCoordinates, 0, true, direction)
 		}
 	}
 
-	protected var runtimePermission: Boolean = false
+	var runtimePermission: Boolean = false
 
 	override fun toString(): String = "<ExplAct ${toShortString()}>"
 
