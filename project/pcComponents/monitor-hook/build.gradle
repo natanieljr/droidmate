@@ -69,4 +69,3 @@ task makeMonitorHookFromTemplateIfNotPresent {
 
 compileJava.dependsOn tasks.makeMonitorHookFromTemplateIfNotPresent
 
-apply from: project(":project:pcComponents").file("maven.gradle")

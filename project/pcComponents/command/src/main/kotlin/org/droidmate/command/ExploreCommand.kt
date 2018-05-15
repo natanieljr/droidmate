@@ -216,8 +216,10 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		if (!validateApks(apks, cfg[runOnNotInlined])) return
 
 		val explorationExceptions = execute(cfg, apks)
-		if (!explorationExceptions.isEmpty())
+		if (!explorationExceptions.isEmpty()) {
+			explorationExceptions.forEach { log.error(it.message); it.printStackTrace() }
 			throw ThrowablesCollection(explorationExceptions)
+		}
 	}
 
 	private fun writeReports(reportDir: Path, rawData: List<AbstractContext>) {

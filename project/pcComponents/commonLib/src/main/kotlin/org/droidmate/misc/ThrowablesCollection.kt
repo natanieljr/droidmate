@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
+//FIXME remove it just hides usefull exception messages/stacktraces
 class ThrowablesCollection constructor(val throwables: List<Throwable>)
 	: DroidmateException("An aggregating exception holding a collection of ${Throwable::class.java.simpleName}s.") {
 	companion object {

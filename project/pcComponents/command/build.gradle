@@ -23,13 +23,9 @@
 //
 // web: www.droidmate.org
 
-apply plugin: 'kotlin'
 apply plugin: 'project-report' // http://www.gradle.org/docs/current/userguide/project_reports_plugin.html
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-apply plugin: 'java'
+apply plugin: 'java'  //TODO check if that is really necessary
 
 jar {
 	manifest {
@@ -66,7 +62,6 @@ dependencies {
 
 apply from: file("test.gradle")
 
-apply from: project(":project:pcComponents").file("maven.gradle")
 // So the published jar to local maven repo with task "install" won't be called command.jar but droidmate.jar
 //jar.baseName = rootProject.name
 
