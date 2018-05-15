@@ -57,7 +57,7 @@ class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: Playback,
 
 		playbackFeature.storedModel.let {model ->
 			model.getPaths().forEachIndexed { traceIdx, trace ->
-				trace.getActions().forEachIndexed { actionIdx, action ->
+				trace.getActions().forEachIndexed { actionIdx, _ ->
 					actionNr++
 
 					if (!skippedActions.contains(Pair(traceIdx, actionIdx)))

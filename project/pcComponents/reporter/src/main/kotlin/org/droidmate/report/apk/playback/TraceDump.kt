@@ -49,7 +49,7 @@ class TraceDump @JvmOverloads constructor(playbackStrategy: Playback,
 //			}
 //		}
 
-		val reportFile = reportSubDir.resolve(fileName)
-		Files.write(reportFile, sb.toString().toByteArray())
+//		val reportFile = reportSubDir.resolve(fileName)
+//		Files.write(reportFile, sb.toString().toByteArray())
 	}
 }

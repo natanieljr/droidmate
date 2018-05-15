@@ -23,7 +23,6 @@ import org.droidmate.configuration.ConfigurationException;
 import org.droidmate.device.datatypes.IDeviceGuiSnapshot;
 import org.droidmate.device.datatypes.IWidget;
 import org.droidmate.exploration.actions.ExplorationAction;
-import org.droidmate.exploration.actions.ExplorationRecord;
 import org.droidmate.exploration.actions.WidgetExplorationAction;
 import org.droidmate.exploration.data_aggregators.IExplorationLog;
 import org.droidmate.exploration.strategy.IMemoryRecord;

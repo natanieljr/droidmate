@@ -103,6 +103,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 	}
 
 	override fun toString(): String {
+		@Suppress("ReplaceSingleLineLet")
 		return "$actionType:${targetWidget?.let { it.dataString("\t") }}: ${prevState.dumpString()}->${resState.dumpString()}"
 	}
 }
@@ -204,6 +205,8 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 			it?.run { w.uid == uid } ?: false
 		}
 	}
+
+	fun getExploredWidgets(): List<Widget> = targets.filterNotNull()
 
 	/** this directly accesses the [trace] and therefore uses synchronization.
 	 * It could be probably optimized with and channel/actor approach instead, if necessary.

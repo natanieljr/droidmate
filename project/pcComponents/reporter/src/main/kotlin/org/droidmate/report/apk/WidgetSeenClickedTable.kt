@@ -27,8 +27,6 @@ package org.droidmate.report.apk
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
-import org.droidmate.report.misc.actionableWidgets
-import org.droidmate.report.misc.clickedWidget
 
 class WidgetSeenClickedTable(data: ExplorationContext) : CountsPartitionedByTimeTable(
 		data.getExplorationTimeInMs(),
@@ -52,13 +50,13 @@ class WidgetSeenClickedTable(data: ExplorationContext) : CountsPartitionedByTime
 		private val ExplorationContext.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
 			get() {
 				return this.uniqueViewCountByPartitionedTime(
-						extractItems = { it.actionableWidgets }
+						extractItems = { this.getCurrentState().actionableWidgets.filter{ it.packageName == this.apk.packageName} }
 				)
 			}
 
 		private val ExplorationContext.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
 			get() {
-				return this.uniqueViewCountByPartitionedTime(extractItems = { it.clickedWidget })
+				return this.uniqueViewCountByPartitionedTime(extractItems = { this.actionTrace.getExploredWidgets() })
 			}
 
 		private fun ExplorationContext.uniqueViewCountByPartitionedTime(
