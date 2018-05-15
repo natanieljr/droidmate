@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.ExplorationAction.Companion.newTerminateExplorationAction
+import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.exploration.actions.TerminateExplorationAction
 
 /**
  * Determines if exploration shall be terminated based on the terminate criteria
@@ -37,7 +37,7 @@ class Terminate : AbstractStrategy() {
 		return false
 	}
 
-	override fun internalDecide(): ExplorationAction {
-		return newTerminateExplorationAction()
+	override fun internalDecide(): AbstractExplorationAction {
+		return TerminateExplorationAction()
 	}
 }

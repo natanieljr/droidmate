@@ -30,8 +30,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-typealias SelectorFunction = suspend (context: AbstractContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
-typealias OnSelected = (context: AbstractContext) -> Unit
+typealias SelectorFunction = suspend (context: ExplorationContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
+typealias OnSelected = (context: ExplorationContext) -> Unit
 
 class StrategySelector constructor(val priority: Int,
 									private val description: String,
@@ -56,7 +56,7 @@ class StrategySelector constructor(val priority: Int,
 		 *
 		 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
 		 */
-		private suspend fun AbstractContext.getSecondLastAction(): ActionData {
+		private suspend fun ExplorationContext.getSecondLastAction(): ActionData {
 			if (this.getSize() < 2)
 				return ActionData.empty
 
@@ -264,7 +264,7 @@ class StrategySelector constructor(val priority: Int,
 		}
 
 		@JvmStatic
-		val playback: SelectorFunction = { context, pool, _ ->
+		val playback: SelectorFunction = { _, pool, _ ->
 			logger.debug("Playback. Returning 'MemoryPlayback'")
 			pool.getFirstInstanceOf(Playback::class.java)
 		}

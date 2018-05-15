@@ -78,7 +78,7 @@ class ExplorationTest : DroidmateTestCase() {
 
 			val exploration = Exploration.build(cfg)
 
-			val outData: MutableList<AbstractContext?> = ArrayList()
+			val outData: MutableList<ExplorationContext?> = ArrayList()
 
 			deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
 					deviceTools.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
@@ -122,7 +122,7 @@ class ExplorationTest : DroidmateTestCase() {
 
 	private fun runOnSimulator(simulatorSpec: String,
 														 exceptionSpecs: List<IExceptionSpec> = ArrayList(),
-														 cfg: Configuration = ConfigurationForTests().get()): Failable<AbstractContext, DeviceException> {
+														 cfg: Configuration = ConfigurationForTests().get()): Failable<ExplorationContext, DeviceException> {
 			val timeGenerator = TimeGenerator()
 
 			val apk = ApkTestHelper.build("mock_app1")

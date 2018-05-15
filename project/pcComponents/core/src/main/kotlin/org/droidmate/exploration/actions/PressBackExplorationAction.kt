@@ -24,11 +24,30 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.actions;
 
-open class PressBackExplorationAction constructor() : ExplorationAction() {
+import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.deviceInterface.DeviceLogsHandler
+import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.uiautomator_daemon.guimodel.PressBack
+
+open class PressBackExplorationAction : AbstractExplorationAction() {
 
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 
-	override fun toShortString(): String = "Press back"
+	override fun toShortString(): String = "Press BACK"
+
+	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
+		log.debug("1. Assert only background API logs are present, if any.")
+		val logsHandler = DeviceLogsHandler(device)
+		logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
+
+		log.debug("2. Press back.")
+		this.snapshot = device.perform(PressBack())
+
+		log.debug("3. Read and clear API logs if any, then seal logs reading.")
+		logsHandler.readAndClearApiLogs()
+		this.logs = logsHandler.getLogs()
+	}
+
 }

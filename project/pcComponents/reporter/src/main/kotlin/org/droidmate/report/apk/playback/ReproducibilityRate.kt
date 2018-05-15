@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk.playback
 
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.report.misc.plot
@@ -41,7 +41,7 @@ import java.nio.file.Path
 class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: Playback,
 													private val includePlots: Boolean = true,
 													fileName: String = "reproducibilityRate.txt") : PlaybackReport(playbackStrategy, fileName) {
-	override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
 		val reportSubDir = getPlaybackReportDir(apkReportDir)
 
 		val sb = StringBuilder()
@@ -57,7 +57,7 @@ class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: Playback,
 
 		playbackFeature.storedModel.let {model ->
 			model.getPaths().forEachIndexed { traceIdx, trace ->
-				trace.getActions().forEachIndexed { actionIdx, action ->
+				trace.getActions().forEachIndexed { actionIdx, _ ->
 					actionNr++
 
 					if (!skippedActions.contains(Pair(traceIdx, actionIdx)))

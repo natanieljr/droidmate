@@ -28,26 +28,26 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.emptyUUID
 import java.util.*
 
-val AbstractContext.uniqueActionableWidgets: Set<Widget>
+val ExplorationContext.uniqueActionableWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {	runBlocking {
 		getModel().getWidgets().filter { it.canBeActedUpon }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
 				.forEach { add(it.value.first()) }
 	} }
 
-val AbstractContext.uniqueClickedWidgets: Set<Widget>
+val ExplorationContext.uniqueClickedWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {
 		actionTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
 	}
 
 //TODO not sure about the original intention of this function
-val AbstractContext.uniqueApis: Set<IApiLogcatMessage>
+val ExplorationContext.uniqueApis: Set<IApiLogcatMessage>
 	get() = uniqueEventApiPairs.map { (_, api) -> api }.toSet()
 
-val AbstractContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
+val ExplorationContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
 	get() = mutableSetOf<Pair<UUID, IApiLogcatMessage>>().apply {
 		actionTrace.getActions().forEach { action ->
 			action.deviceLogs.apiLogs.forEach{ api ->
@@ -56,8 +56,8 @@ val AbstractContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
 		}
 	}
 
-val AbstractContext.resetActionsCount: Int
+val ExplorationContext.resetActionsCount: Int
 	get() = actionTrace.getActions().count { it.actionType == ResetAppExplorationAction::class.simpleName }
 
-val AbstractContext.apkFileNameWithUnderscoresForDots: String
+val ExplorationContext.apkFileNameWithUnderscoresForDots: String
 	get() = apk.fileName.replace(".", "_")

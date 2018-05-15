@@ -20,7 +20,7 @@ task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild
 
 allprojects {
 	group = "org.droidmate"
-	version = "3.3.0-SNAPSHOT"
+	version = "3.3.1-SNAPSHOT"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
@@ -101,11 +101,11 @@ jar{
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish'
 configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
-	println resolvedArtifact
 
 	if (resolvedArtifact.name != "all")
 		project.publishing {
 			publications {
+				println ".m2 publish: $resolvedArtifact"
 				"mavenArtifact${resolvedArtifact.name}${n}"(MavenPublication) {
 					artifact(resolvedArtifact.file) {
 						groupId = resolvedArtifact.moduleVersion.id.group

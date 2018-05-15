@@ -24,14 +24,14 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.TableDataFile
 import java.nio.file.Path
 
 class ClickFrequency @JvmOverloads constructor(private val includePlots: Boolean,
                                                private val fileName: String = "clickFrequency.txt") : ApkReport() {
 
-	override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
 		val dataTable = ClickFrequencyTable(data)
 		val reportPath = apkReportDir.resolve(fileName)
 		val report = TableDataFile(dataTable, reportPath)

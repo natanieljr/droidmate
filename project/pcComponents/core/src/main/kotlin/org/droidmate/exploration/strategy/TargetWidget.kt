@@ -94,7 +94,7 @@ class TargetWidget(override val widget: Widget, vararg dependencies: ITargetWidg
 			if (foundTargets.isNotEmpty())
 				return foundTargets.first()
 
-			return DummyTarget()
+			return DummyTarget
 		}
 	}
 

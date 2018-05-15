@@ -31,7 +31,7 @@ import org.droidmate.exploration.statemodel.Widget
  *
  * @author Nataniel P. Borges Jr.
  */
-class DummyTarget : ITargetWidget {
+object DummyTarget : ITargetWidget {
 	override val widget: Widget
 		get() = Widget()
 

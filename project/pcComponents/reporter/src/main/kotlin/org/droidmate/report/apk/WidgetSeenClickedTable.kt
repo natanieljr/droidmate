@@ -25,13 +25,10 @@
 package org.droidmate.report.apk
 
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.actions.ExplorationRecord
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
-import org.droidmate.report.misc.actionableWidgets
-import org.droidmate.report.misc.clickedWidget
 
-class WidgetSeenClickedTable(data: AbstractContext) : CountsPartitionedByTimeTable(
+class WidgetSeenClickedTable(data: ExplorationContext) : CountsPartitionedByTimeTable(
 		data.getExplorationTimeInMs(),
 		listOf(
 				headerTime,
@@ -50,20 +47,20 @@ class WidgetSeenClickedTable(data: AbstractContext) : CountsPartitionedByTimeTab
 		const val headerViewsSeen = "Actionable_unique_views_seen"
 		const val headerViewsClicked = "Actionable_unique_views_clicked"
 
-		private val AbstractContext.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
 			get() {
 				return this.uniqueViewCountByPartitionedTime(
-						extractItems = { it.actionableWidgets }
+						extractItems = { this.getCurrentState().actionableWidgets.filter{ it.packageName == this.apk.packageName} }
 				)
 			}
 
-		private val AbstractContext.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
 			get() {
-				return this.uniqueViewCountByPartitionedTime(extractItems = { it.clickedWidget })
+				return this.uniqueViewCountByPartitionedTime(extractItems = { this.actionTrace.getExploredWidgets() })
 			}
 
-		private fun AbstractContext.uniqueViewCountByPartitionedTime(
-				extractItems: (ExplorationRecord) -> Iterable<Widget>): Map<Long, Iterable<String>> {
+		private fun ExplorationContext.uniqueViewCountByPartitionedTime(
+				extractItems: (Any) -> Iterable<Widget>): Map<Long, Iterable<String>> {
 			TODO("what do we intent to compute here?")
 //            return this.logRecords.itemsAtTime(
 //                    startTime = this.explorationStartTime,

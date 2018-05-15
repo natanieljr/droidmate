@@ -25,7 +25,7 @@ import org.droidmate.debug.debugT
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
-import org.droidmate.exploration.actions.ExplorationAction
+import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.time.LocalDateTime
@@ -40,7 +40,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
                                             val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
                                             private val sep:String) {
 
-	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
+	constructor(action: AbstractExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId, sep:String)
 			: this(action::class.simpleName ?: "Unknown", action.widget,
 			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep)
@@ -103,6 +103,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 	}
 
 	override fun toString(): String {
+		@Suppress("ReplaceSingleLineLet")
 		return "$actionType:${targetWidget?.let { it.dataString("\t") }}: ${prevState.dumpString()}->${resState.dumpString()}"
 	}
 }
@@ -204,6 +205,8 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 			it?.run { w.uid == uid } ?: false
 		}
 	}
+
+	fun getExploredWidgets(): List<Widget> = targets.filterNotNull()
 
 	/** this directly accesses the [trace] and therefore uses synchronization.
 	 * It could be probably optimized with and channel/actor approach instead, if necessary.

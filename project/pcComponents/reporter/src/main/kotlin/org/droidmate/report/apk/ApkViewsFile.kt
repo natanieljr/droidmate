@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.uniqueActionableWidgets
 import org.droidmate.report.misc.uniqueClickedWidgets
 import java.nio.file.Files
@@ -32,13 +32,13 @@ import java.nio.file.Path
 
 class ApkViewsFile @JvmOverloads constructor(private val fileName: String = "views.txt") : ApkReport() {
 
-	override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
 		val reportData = getReportData(data)
 		val reportFile = apkReportDir.resolve(fileName)
 		Files.write(reportFile, reportData.toByteArray())
 	}
 
-	private fun getReportData(data: AbstractContext): String {
+	private fun getReportData(data: ExplorationContext): String {
 		val sb = StringBuilder()
 		sb.append("Unique actionable widget\n")
 				.append(data.uniqueActionableWidgets.joinToString(separator = System.lineSeparator()) { it.uid.toString() })

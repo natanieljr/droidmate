@@ -26,14 +26,14 @@ package org.droidmate.report.apk
 
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import java.time.Duration
 import java.util.*
 
 class ApiCountTable : CountsPartitionedByTimeTable {
 
-	constructor(data: AbstractContext) : super(
+	constructor(data: ExplorationContext) : super(
 			data.getExplorationTimeInMs(),
 			listOf(
 					headerTime,
@@ -54,7 +54,7 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 
 		/** the collection of Apis triggered , grouped based on the apis timestamp
 		 * Map<time, List<(action,api)>> is for each timestamp the list of the triggered action with the observed api*/
-		private val AbstractContext.apisByTime
+		private val ExplorationContext.apisByTime
 			get() =
 				LinkedList<Pair<ActionData, IApiLogcatMessage>>().apply {
 					// create a list of (widget.id,IApiLogcatMessage)
@@ -65,12 +65,12 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 				}.groupBy { (_, api) -> Duration.between(explorationStartTime, api.time).toMillis() } // group them by their start time (i.e. how may milli seconds elapsed since exploration start)
 
 		/** map of seconds elapsed during app exploration until the api was called To the set of api calls (their unique string) **/
-		private val AbstractContext.uniqueApisCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext.uniqueApisCountByTime: Map<Long, Iterable<String>>
 			get() = apisByTime.mapValues { it.value.map { (_, api) -> api.uniqueString } }   // instead of the whole IApiLogcatMessage only keep the unique string for the Api
 
 
 		/** map of seconds elapsed during app exploration until the api was triggered To  **/
-		private val AbstractContext.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
 			get() = apisByTime.mapValues { it.value.map { (action, api) -> "${action.actionString()}_${api.uniqueString}" } }
 	}
 }

@@ -261,7 +261,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 							outputDir.createDirIfNotExists()
 
 							// Get data
-							val obj = storage2.deserialize(file) as AbstractContext
+							val obj = storage2.deserialize(file) as ExplorationContext
 							//val packageName = obj.apk.packageName
 
 							// Create output dir

@@ -24,15 +24,15 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.storage.Storage2
 import java.nio.file.Path
 
 class OutputDir(val dir: Path) {
 
-	val explorationOutput2: List<AbstractContext> by lazy {
-		ExplorationOutput2.from(Storage2(dir))  // FIXME this should definitely go away instead create AbstractContext and issue Model loading
+	val explorationOutput2: List<ExplorationContext> by lazy {
+		ExplorationOutput2.from(Storage2(dir))  // FIXME this should definitely go away instead create ExplorationContext and issue Model loading
 	}
 
 

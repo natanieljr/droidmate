@@ -190,7 +190,8 @@ class Model private constructor(val config: ModelConfig) {
 							// determine which candidate matches the current [state] and replace the respective widget.uid`s
 							if (state.idWhenIgnoring(widgets) == iUid &&
 									widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
-								state.widgets.map { w -> w.apply { uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
+								state.widgets.map { w -> w.apply {
+									uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
 							else res // contain different elements => wrong state candidate
 						})
 					})

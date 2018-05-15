@@ -29,7 +29,7 @@ package org.droidmate.exploration.strategy.back
  */
 // TODO
 /*class GUIFullyExploredBack(private val minNumberOfActionsPreWidget: Int) : Back() {
-    private fun AbstractContext.allWidgetsActedUpon(): Boolean {
+    private fun ExplorationContext.allWidgetsActedUpon(): Boolean {
         return (this.widgetsInfo.all { it.actedUponCount > minNumberOfActionsPreWidget })
     }
 

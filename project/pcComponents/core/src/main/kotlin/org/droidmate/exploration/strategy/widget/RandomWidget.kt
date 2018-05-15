@@ -27,9 +27,7 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
-import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
+import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.emptyId
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
@@ -75,7 +73,7 @@ open class RandomWidget constructor(randomSeed: Long,
 	 * will appear, but the functionality may not be triggered yet.
 	 * Now we do not want to penalize this target just because it required a permission and the functionality was not yet triggered
 	 */
-	private fun repeatLastAction(): ExplorationAction {
+	private fun repeatLastAction(): AbstractExplorationAction {
 //		val lastActionBeforePermission = currentState.let {
 //			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
 //		}
@@ -102,7 +100,7 @@ open class RandomWidget constructor(randomSeed: Long,
 			}
 
 
-	private fun List<Widget>.chooseRandomly():ExplorationAction{
+	private fun List<Widget>.chooseRandomly():AbstractExplorationAction{
 		if(this.isEmpty())
 			return ResetAppExplorationAction()
 
@@ -110,7 +108,7 @@ open class RandomWidget constructor(randomSeed: Long,
 		return chooseActionForWidget(context.lastTarget!!)
 	}
 
-	private fun chooseBiased(): ExplorationAction = runBlocking{
+	private fun chooseBiased(): AbstractExplorationAction = runBlocking{
 		val candidates = debugT("blacklist computation", {
 			excludeBlacklisted(super.context.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
 				when {
@@ -137,38 +135,38 @@ open class RandomWidget constructor(randomSeed: Long,
 			PressBackExplorationAction()} else candidates.chooseRandomly()
 	}
 
-	private fun chooseRandomly(): ExplorationAction{
+	private fun chooseRandomly(): AbstractExplorationAction{
 		return currentState.actionableWidgets.chooseRandomly()
 	}
 
-	protected open fun chooseRandomWidget(): ExplorationAction {
+	protected open fun chooseRandomWidget(): AbstractExplorationAction {
 		return if (biased)
 			chooseBiased()
 		else
 			chooseRandomly()
 	}
 
-	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
+	protected open fun chooseActionForWidget(chosenWidget: Widget): AbstractExplorationAction {
 		var widget = chosenWidget
 
 		while (!chosenWidget.canBeActedUpon) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		val actionList: MutableList<ExplorationAction> = mutableListOf()
+		val actionList: MutableList<AbstractExplorationAction> = mutableListOf()
 
 		if (widget.longClickable)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(widget, longClick = true))
+			actionList.add(WidgetExplorationAction(widget, longClick = true))
 
 		if (widget.clickable)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(widget))
+			actionList.add(WidgetExplorationAction(widget))
 
 		if (widget.checked != null)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(widget))
+			actionList.add(WidgetExplorationAction(widget))
 
 		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
 		if (widget.scrollable)
-			actionList.add(ExplorationAction.newWidgetExplorationAction(widget))
+			actionList.add(WidgetExplorationAction(widget))
 
 		/*if (chosenWidget.scrollable) {
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))
@@ -185,7 +183,7 @@ open class RandomWidget constructor(randomSeed: Long,
 		return actionList[randomIdx]
 	}
 
-	override fun chooseAction(): ExplorationAction {
+	override fun chooseAction(): AbstractExplorationAction {
 		// Repeat previous action is last action was to click on a runtime permission dialog
 		if (mustRepeatLastAction())
 			return repeatLastAction()

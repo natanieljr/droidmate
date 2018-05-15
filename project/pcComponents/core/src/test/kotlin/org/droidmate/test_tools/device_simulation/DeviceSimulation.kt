@@ -68,7 +68,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 	constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
 					this(GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
 
-	constructor(out: AbstractContext) :
+	constructor(out: ExplorationContext) :
 					this(GuiScreensBuilderFromApkExplorationOutput2(out), out.packageName)
 
 	init {

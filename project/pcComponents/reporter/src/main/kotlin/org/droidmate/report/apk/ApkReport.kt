@@ -24,14 +24,14 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.Reporter
 import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
 import java.nio.file.Files
 import java.nio.file.Path
 
 abstract class ApkReport : Reporter() {
-	override fun safeWrite(reportDir: Path, rawData: List<AbstractContext>) {
+	override fun safeWrite(reportDir: Path, rawData: List<ExplorationContext>) {
 		rawData.forEach { data ->
 			val apkReportDir = reportDir.resolve(data.apkFileNameWithUnderscoresForDots)
 
@@ -42,5 +42,5 @@ abstract class ApkReport : Reporter() {
 		}
 	}
 
-	protected abstract fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path)
+	protected abstract fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path)
 }

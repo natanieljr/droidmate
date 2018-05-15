@@ -37,7 +37,7 @@ class ExplorationOutput2ReportTest {
 			assert(true)
 	}
 
-	private fun getTestData(fileSystem: FileSystem, cfg: Configuration): List<AbstractContext> {
+	private fun getTestData(fileSystem: FileSystem, cfg: Configuration): List<ExplorationContext> {
 			val serExplOutput: Path = fixture_monitoredSer2
 			val mockFsDirWithOutput: Path = fileSystem.dir(cfg.droidmateOutputDir).withFiles(serExplOutput)
 
@@ -61,7 +61,7 @@ class ExplorationOutput2ReportTest {
 
 	private fun assertOnAggregateStatsDataStructure(report: AggregateStats,
 																									reportDir: Path,
-																									rawData: List<AbstractContext>) {
+																									rawData: List<ExplorationContext>) {
 
 			val table = report.getTableData(rawData, report.getFilePath(reportDir)).table
 			assertThat(table.rowKeySet().size, greaterThan(0))

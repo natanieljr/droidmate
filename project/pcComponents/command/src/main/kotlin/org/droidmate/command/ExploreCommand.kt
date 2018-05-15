@@ -50,14 +50,12 @@ import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.actions.IRunnableExplorationAction
-import org.droidmate.exploration.actions.RunnableExplorationAction
-import org.droidmate.exploration.actions.RunnableTerminateExplorationAction
+import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.exploration.actions.TerminateExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
@@ -85,9 +83,9 @@ import kotlin.system.measureTimeMillis
 open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
-									  private val timeProvider: ITimeProvider,
-									  private val strategyProvider: (AbstractContext) -> IExplorationStrategy,
-									  private var modelProvider: (String) -> Model) : DroidmateCommand() {
+                                      private val timeProvider: ITimeProvider,
+                                      private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
+                                      private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
@@ -182,12 +180,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		@JvmOverloads
 		fun build(cfg: ConfigurationWrapper,
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
-				  timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
-				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
-				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the context instead of the model?
+		          timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
+		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
+		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
+		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the context instead of the model?
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
+		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
@@ -222,7 +220,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		}
 	}
 
-	private fun writeReports(reportDir: Path, rawData: List<AbstractContext>) {
+	private fun writeReports(reportDir: Path, rawData: List<ExplorationContext>) {
 		if (!Files.exists(reportDir))
 			Files.createDirectories(reportDir)
 
@@ -354,7 +352,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			throw fallibleApkOut2.exception!!
 	}
 
-	private fun run(app: IApk, device: IRobustDevice): Failable<AbstractContext, DeviceException> {
+	private fun run(app: IApk, device: IRobustDevice): Failable<ExplorationContext, DeviceException> {
 		log.info("run(${app.packageName}, device)")
 
 		device.resetTimeSync()
@@ -363,7 +361,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			tryDeviceHasPackageInstalled(device, app.packageName)
 			tryWarnDeviceDisplaysHomeScreen(device, app.fileName)
 		} catch (e: DeviceException) {
-			return Failable<AbstractContext, DeviceException>(null, e)
+			return Failable<ExplorationContext, DeviceException>(null, e)
 		}
 
 		val output = explorationLoop(app, device)
@@ -377,7 +375,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
 	}
 
-	private fun explorationLoop(app: IApk, device: IRobustDevice): AbstractContext {
+	private fun explorationLoop(app: IApk, device: IRobustDevice): ExplorationContext {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
 		// Use the received exploration context (if any) otherwise construct the object that
@@ -388,16 +386,16 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
 		// Construct initial action and run it on the device to obtain initial result.
-		var action: IRunnableExplorationAction? = null
+		var action: AbstractExplorationAction? = null
 		var result: ActionResult = EmptyActionResult
 
 		var isFirst = true
 		val strategy: IExplorationStrategy = strategyProvider.invoke(explorationContext)
 
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
-		while (isFirst || (result.successful && action !is RunnableTerminateExplorationAction)) {
+		while (isFirst || (result.successful && action !is TerminateExplorationAction)) {
 			// decide for an action
-			action = debugT("strategy decision time", { RunnableExplorationAction.from(strategy.decide(result), timeProvider.getNow()) }, inMillis = true)
+			action = debugT("strategy decision time", { strategy.decide(result) }, inMillis = true) // check if we need to initialize timeProvider.getNow() here
 			// execute action
 			measureTimeMillis { result = action.run(app, device) }.let {
 				actionT += it
@@ -409,12 +407,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			strategy.update(result)
 
 			if (isFirst) {
-				log.info("Initial action: ${action.base}")
+				log.info("Initial action: ${action}")
 				isFirst = false
 			}
 		}
 
-		assert(!result.successful || action is RunnableTerminateExplorationAction)
+		assert(!result.successful || action is TerminateExplorationAction)
 
 		strategy.close()
 		explorationContext.dump()

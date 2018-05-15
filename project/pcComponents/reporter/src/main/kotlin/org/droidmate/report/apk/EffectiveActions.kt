@@ -26,7 +26,7 @@ package org.droidmate.report.apk
 
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.actions.WidgetExplorationAction
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.plot
 import org.droidmate.misc.withExtension
 import java.awt.Point
@@ -53,7 +53,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 		private const val nexus5XPixelDensity: Int = (24 * 2.6).toInt()
 	}
 
-	override fun safeWriteApkReport(data: AbstractContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
 		val sb = StringBuilder()
 		val header = "Time_Seconds\tTotal_Actions\tTotal_Effective\n"
 		sb.append(header)
