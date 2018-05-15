@@ -30,7 +30,7 @@ import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.actions.DeviceExceptionMissing
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable
@@ -41,7 +41,7 @@ class ApkSummary {
 
 	companion object {
 
-		fun build(data: AbstractContext): String {
+		fun build(data: ExplorationContext): String {
 			return build(Payload(data))
 		}
 
@@ -94,14 +94,14 @@ class ApkSummary {
 			val apiEventEntries: List<ApiEventEntry>
 	) {
 
-		constructor(data: AbstractContext) : this(
+		constructor(data: ExplorationContext) : this(
 				data,
 				data.uniqueApiLogsWithFirstTriggeringActionIndex,
 				data.uniqueEventApiPairsWithFirstTriggeringActionIndex
 		)
 
 		private constructor(
-				data: AbstractContext,
+				data: ExplorationContext,
 				uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
 				uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData, IApiLogcatMessage>, Int>
 		) : this(
@@ -137,7 +137,7 @@ class ApkSummary {
 		)
 
 		companion object {
-			val AbstractContext.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
+			val ExplorationContext.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
 				get() {
 					return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
 							extractItems = { it.deviceLogs.apiLogs },
@@ -145,7 +145,7 @@ class ApkSummary {
 					)
 				}
 
-			val AbstractContext.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData, IApiLogcatMessage>, Int>
+			val ExplorationContext.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData, IApiLogcatMessage>, Int>
 				get() {
 
 					return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(

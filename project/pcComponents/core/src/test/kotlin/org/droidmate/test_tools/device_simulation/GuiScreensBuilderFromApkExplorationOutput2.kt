@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 
-class GuiScreensBuilderFromApkExplorationOutput2(private val output: AbstractContext) : IGuiScreensBuilder {
+class GuiScreensBuilderFromApkExplorationOutput2(private val output: ExplorationContext) : IGuiScreensBuilder {
 	override fun build(): List<IGuiScreen> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
@@ -35,7 +35,7 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output: AbstractCon
 			return buildGuiScreens(output)
 	}
 
-	private fun buildGuiScreens(output: AbstractContext): List<IGuiScreen> {
+	private fun buildGuiScreens(output: ExplorationContext): List<IGuiScreen> {
 			output.verify()
 
 			var guiScreens = output.guiSnapshots.map {

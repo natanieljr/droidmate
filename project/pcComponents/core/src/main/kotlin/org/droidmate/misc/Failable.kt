@@ -26,7 +26,7 @@ package org.droidmate.misc
 
 import java.io.Serializable
 
-class Failable<out TResult : Serializable, out TException : Exception> constructor(val result: TResult?, val exception: TException?) : Serializable {
+class Failable<out TResult , out TException : Exception> constructor(val result: TResult?, val exception: TException?) : Serializable {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}

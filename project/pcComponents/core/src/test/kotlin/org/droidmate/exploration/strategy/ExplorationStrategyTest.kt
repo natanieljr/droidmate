@@ -47,7 +47,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 	}
 	/*companion object {
 
-			private fun getStrategy(explorationLog: AbstractContext,
+			private fun getStrategy(explorationLog: ExplorationContext,
 															actionsLimit: Int = Configuration.defaultActionsLimit,
 															resetEveryNthExplorationForward: Int = Configuration.defaultResetEveryNthExplorationForward): IExplorationStrategy = ExplorationStrategyTestHelper.buildStrategy(explorationLog, actionsLimit, resetEveryNthExplorationForward)
 
@@ -55,7 +55,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 			 * "after the first decision, in the main decision loop" mode.
 			 * */
 			@JvmStatic
-			private fun makeIntoNormalExplorationMode(strategy: IExplorationStrategy, explorationLog: AbstractContext): ActionResult {
+			private fun makeIntoNormalExplorationMode(strategy: IExplorationStrategy, explorationLog: ExplorationContext): ActionResult {
 					val guiState = newGuiStateWithWidgets(1)
 					val action = strategy.decide(newResultFromGuiState(guiState))
 					assert(action is ResetAppExplorationAction)
@@ -87,7 +87,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 			}
 
 			@JvmStatic
-			private fun verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy: IExplorationStrategy, explorationLog: AbstractContext, gs: IGuiStatus, w: Widget? = null) {
+			private fun verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy: IExplorationStrategy, explorationLog: ExplorationContext, gs: IGuiStatus, w: Widget? = null) {
 					val action = strategy.decide(newResultFromGuiState(newGuiStateWithWidgets(1)))
 					val record = memoryRecordFromAction(action, gs)
 					assert(action is WidgetExplorationAction)
@@ -103,7 +103,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 			}
 
 			@JvmStatic
-			private fun verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy: IExplorationStrategy, explorationLog: AbstractContext, gs: IGuiStatus) {
+			private fun verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy: IExplorationStrategy, explorationLog: ExplorationContext, gs: IGuiStatus) {
 					val action = strategy.decide(newResultFromGuiState(gs))
 					val record = memoryRecordFromAction(action, gs)
 					assert(action is TerminateExplorationAction)
@@ -115,7 +115,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 			}
 
 			@JvmStatic
-			private fun verifyProcessOnGuiStateReturnsResetExplorationAction(strategy: IExplorationStrategy, explorationLog: AbstractContext, gs: IGuiStatus) {
+			private fun verifyProcessOnGuiStateReturnsResetExplorationAction(strategy: IExplorationStrategy, explorationLog: ExplorationContext, gs: IGuiStatus) {
 					val guiStateResult = newResultFromGuiState(gs)
 					val action = strategy.decide(guiStateResult)
 					assert(action is ResetAppExplorationAction)
@@ -128,7 +128,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 			}
 
 			@JvmStatic
-			private fun verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy: IExplorationStrategy, explorationLog: AbstractContext, gs: IGuiStatus) {
+			private fun verifyProcessOnGuiStateReturnsPressBackExplorationAction(strategy: IExplorationStrategy, explorationLog: ExplorationContext, gs: IGuiStatus) {
 					val action = strategy.decide(newResultFromGuiState(gs))
 					assert(action is PressBackExplorationAction)
 

@@ -30,7 +30,7 @@ import org.droidmate.debug.nullableDebugT
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
 import org.slf4j.LoggerFactory
 import java.lang.Math.max
@@ -43,7 +43,7 @@ import java.lang.Math.max
  */
 class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStrategy>,
                               private val selectors: List<StrategySelector>,
-                              private val memory: AbstractContext) : IExplorationStrategy, IControlObserver {
+                              private val memory: ExplorationContext) : IExplorationStrategy, IControlObserver {
 
 	companion object {
 		@JvmStatic

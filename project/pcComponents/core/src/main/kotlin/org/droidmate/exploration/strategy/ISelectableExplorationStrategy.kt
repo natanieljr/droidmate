@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 
 /**
  * Base class for exploration strategies that can be selected from within an IStrategyPool
@@ -34,7 +34,7 @@ import org.droidmate.exploration.AbstractContext
  * @author Nataniel P. Borges Jr.
  */
 interface ISelectableExplorationStrategy {
-	fun initialize(memory: AbstractContext)
+	fun initialize(memory: ExplorationContext)
 
 	/**
 	 * Add a new [listener] to receive execution flow back, as well as to receive notification about

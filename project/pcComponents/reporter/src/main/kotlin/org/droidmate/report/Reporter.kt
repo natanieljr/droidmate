@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report
 
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -33,7 +33,7 @@ import java.nio.file.Path
 abstract class Reporter {
 	protected val log: Logger = LoggerFactory.getLogger(Reporter::class.java)
 
-	fun write(reportDir: Path, rawData: List<AbstractContext>) {
+	fun write(reportDir: Path, rawData: List<ExplorationContext>) {
 		Files.createDirectories(reportDir)
 		log.info("Writing out report ${this.javaClass.simpleName} to $reportDir")
 		try {
@@ -45,5 +45,5 @@ abstract class Reporter {
 		}
 	}
 
-	protected abstract fun safeWrite(reportDir: Path, rawData: List<AbstractContext>)
+	protected abstract fun safeWrite(reportDir: Path, rawData: List<ExplorationContext>)
 }

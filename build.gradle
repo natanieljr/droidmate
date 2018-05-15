@@ -101,11 +101,11 @@ jar{
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish'
 configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
-	println resolvedArtifact
 
 	if (resolvedArtifact.name != "all")
 		project.publishing {
 			publications {
+				println ".m2 publish: $resolvedArtifact"
 				"mavenArtifact${resolvedArtifact.name}${n}"(MavenPublication) {
 					artifact(resolvedArtifact.file) {
 						groupId = resolvedArtifact.moduleVersion.id.group

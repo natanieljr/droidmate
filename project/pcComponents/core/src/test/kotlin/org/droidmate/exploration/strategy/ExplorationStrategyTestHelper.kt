@@ -25,14 +25,13 @@
 
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.AbstractContext
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.android_sdk.ApkTestHelper
 
 class ExplorationStrategyTestHelper {
 	companion object {
 		/*@JvmStatic
-		fun buildStrategy(explorationLog: AbstractContext, actionsLimit: Int, resetEveryNthExplorationForward: Int): IExplorationStrategy {
+		fun buildStrategy(explorationLog: ExplorationContext, actionsLimit: Int, resetEveryNthExplorationForward: Int): IExplorationStrategy {
 			val cfg = ConfigurationForTests().apply {
 				setArg(arrayListOf(Configuration.pn_actionsLimit, "$actionsLimit"))
 				setArg(arrayListOf(Configuration.pn_resetEveryNthExplorationForward, "$resetEveryNthExplorationForward"))
@@ -42,7 +41,7 @@ class ExplorationStrategyTestHelper {
 		}*/
 
 		@JvmStatic
-		fun getTestExplorationLog(packageName: String): AbstractContext {
+		fun getTestExplorationLog(packageName: String): ExplorationContext {
 			val testApk = ApkTestHelper.build(packageName, ".", "", "")
 			return ExplorationContext(testApk)
 		}

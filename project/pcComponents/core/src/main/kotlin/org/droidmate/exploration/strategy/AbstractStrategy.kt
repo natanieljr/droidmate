@@ -28,7 +28,7 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.actions.ExplorationAction
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.strategy.widget.Explore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -50,7 +50,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	/**
 	 * Internal context of the strategy. Syncronized with exploration context upon initialization.
 	 */
-	protected lateinit var context: AbstractContext
+	protected lateinit var context: ExplorationContext
 		private set
 
 	protected val currentState: StateData get() = context.getCurrentState()
@@ -118,7 +118,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		this.actionNr = actionNr
 	}
 
-	override fun initialize(memory: AbstractContext) {
+	override fun initialize(memory: ExplorationContext) {
 		this.context = memory
 	}
 

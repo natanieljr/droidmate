@@ -25,7 +25,7 @@
 package org.droidmate.exploration.strategy.playback
 
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.ModelConfig
@@ -48,7 +48,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 						.also { context.watcher.add(it) }) as ActionPlaybackFeature
 	}
 
-	override fun initialize(memory: AbstractContext) {
+	override fun initialize(memory: ExplorationContext) {
 		super.initialize(memory)
 
 		model = ModelLoader.loadModel(ModelConfig(modelDir, context.apk.packageName, true))

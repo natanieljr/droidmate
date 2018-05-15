@@ -50,10 +50,9 @@ import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.exploration.AbstractContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.IRunnableExplorationAction
 import org.droidmate.exploration.actions.RunnableExplorationAction
@@ -85,9 +84,9 @@ import kotlin.system.measureTimeMillis
 open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
-									  private val timeProvider: ITimeProvider,
-									  private val strategyProvider: (AbstractContext) -> IExplorationStrategy,
-									  private var modelProvider: (String) -> Model) : DroidmateCommand() {
+                                      private val timeProvider: ITimeProvider,
+                                      private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
+                                      private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
@@ -182,12 +181,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		@JvmOverloads
 		fun build(cfg: ConfigurationWrapper,
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
-				  timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
-				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
-				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-				  strategyProvider: (AbstractContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the context instead of the model?
+		          timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
+		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
+		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
+		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the context instead of the model?
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
+		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
@@ -222,7 +221,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		}
 	}
 
-	private fun writeReports(reportDir: Path, rawData: List<AbstractContext>) {
+	private fun writeReports(reportDir: Path, rawData: List<ExplorationContext>) {
 		if (!Files.exists(reportDir))
 			Files.createDirectories(reportDir)
 
@@ -354,7 +353,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			throw fallibleApkOut2.exception!!
 	}
 
-	private fun run(app: IApk, device: IRobustDevice): Failable<AbstractContext, DeviceException> {
+	private fun run(app: IApk, device: IRobustDevice): Failable<ExplorationContext, DeviceException> {
 		log.info("run(${app.packageName}, device)")
 
 		device.resetTimeSync()
@@ -363,7 +362,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			tryDeviceHasPackageInstalled(device, app.packageName)
 			tryWarnDeviceDisplaysHomeScreen(device, app.fileName)
 		} catch (e: DeviceException) {
-			return Failable<AbstractContext, DeviceException>(null, e)
+			return Failable<ExplorationContext, DeviceException>(null, e)
 		}
 
 		val output = explorationLoop(app, device)
@@ -377,7 +376,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
 	}
 
-	private fun explorationLoop(app: IApk, device: IRobustDevice): AbstractContext {
+	private fun explorationLoop(app: IApk, device: IRobustDevice): ExplorationContext {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
 		// Use the received exploration context (if any) otherwise construct the object that
