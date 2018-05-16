@@ -76,12 +76,9 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 			if (unusedDescriptors.size < deviceIndex + 1)
 				throw DroidmateException("Requested device with device no. ${deviceIndex + 1} but the no. of available devices is ${unusedDescriptors.size}.")
 
-			val serialNumbers = unusedDescriptors.filter { add -> !add.isEmulator }.toList()
+			val serialNumbers = unusedDescriptors.toList()
 
-			return if (serialNumbers.size > deviceIndex)
-				serialNumbers[deviceIndex].deviceSerialNumber
-			else
-				unusedDescriptors.filter { add -> add.isEmulator }[deviceIndex].deviceSerialNumber
+			return serialNumbers[deviceIndex].deviceSerialNumber
 		}
 	}
 
