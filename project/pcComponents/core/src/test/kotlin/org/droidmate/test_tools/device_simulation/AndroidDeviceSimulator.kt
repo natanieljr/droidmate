@@ -290,8 +290,8 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	}
 
 	private fun updateSimulatorState(action: Action) {
-			//if (action is WidgetExplorationAction)
-			//  println("action widget uid: ${(action as WidgetExplorationAction).widget.uid}")
+			//if (action is ClickExplorationAction)
+			//  println("action widget uid: ${(action as ClickExplorationAction).widget.uid}")
 
 			this.currentSimulation!!.updateState(action)
 			this.logcatMessagesToBeReadNext.addAll(currentSimulation!!.getCurrentLogs())

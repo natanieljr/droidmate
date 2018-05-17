@@ -34,6 +34,8 @@ import org.droidmate.exploration.actions.AbstractExplorationAction
  * @author Nataniel P. Borges Jr.
  */
 interface ISelectableExplorationStrategy {
+	val uniqueStrategyName: String
+
 	fun initialize(memory: ExplorationContext)
 
 	/**
@@ -48,7 +50,7 @@ interface ISelectableExplorationStrategy {
 	fun updateState(actionNr: Int, record: ActionResult)
 
 	/**
-	 * Selects an exploration action based on the [current GUI][currentState].
+	 * Selects an exploration action based on the [current GUI](currentState).
 	 *
 	 * When using an exploration pool, this method is only invoked if the current strategy
 	 * had the highest fitness

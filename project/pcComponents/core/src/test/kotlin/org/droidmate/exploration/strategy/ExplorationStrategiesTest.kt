@@ -78,14 +78,14 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
 
 			// Expected order of actionTrace:
 			assertTrue(actions[0] is ResetAppExplorationAction)
-			assertTrue(actions[1] is WidgetExplorationAction)
-			assertTrue(actions[2] is WidgetExplorationAction)
+			assertTrue(actions[1] is ClickExplorationAction)
+			assertTrue(actions[2] is ClickExplorationAction)
 			assertTrue(actions[3] is DummyExplorationAction)
 			assertTrue(actions[4] is DummyExplorationAction)
 			assertTrue(actions[5] is DummyExplorationAction)
 			assertTrue(actions[6] is ResetAppExplorationAction)
-			assertTrue(actions[7] is WidgetExplorationAction)
-			assertTrue(actions[8] is WidgetExplorationAction)
+			assertTrue(actions[7] is ClickExplorationAction)
+			assertTrue(actions[8] is ClickExplorationAction)
 			assertTrue(actions[9] is ResetAppExplorationAction)
 			assertTrue(actions[10] is TerminateExplorationAction)
 	}

@@ -196,8 +196,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			return command
 		}
 
+		@Suppress("MemberVisibilityCanBePrivate")
 		@JvmStatic
-		protected fun defaultReportWatcher(cfg: ConfigurationWrapper): List<Reporter> =
+		fun defaultReportWatcher(cfg: ConfigurationWrapper): List<Reporter> =
 				listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg[includePlots]), ClickFrequency(cfg[includePlots]),
 						//TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
 						ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())

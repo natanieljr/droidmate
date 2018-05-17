@@ -90,9 +90,9 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 			private fun verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy: IExplorationStrategy, explorationLog: ExplorationContext, gs: IGuiStatus, w: Widget? = null) {
 					val action = strategy.decide(newResultFromGuiState(newGuiStateWithWidgets(1)))
 					val record = memoryRecordFromAction(action, gs)
-					assert(action is WidgetExplorationAction)
+					assert(action is ClickExplorationAction)
 
-					val runnable = RunnableWidgetExplorationAction(action as WidgetExplorationAction, LocalDateTime.now(), false)
+					val runnable = RunnableWidgetExplorationAction(action as ClickExplorationAction, LocalDateTime.now(), false)
 					explorationLog.add(runnable, record)
 					strategy.update(record)
 

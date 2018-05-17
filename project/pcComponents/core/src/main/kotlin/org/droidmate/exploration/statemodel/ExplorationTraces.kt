@@ -42,7 +42,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 
 	constructor(action: AbstractExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId, sep:String)
-			: this(action::class.simpleName ?: "Unknown", action.widget,
+			: this(action.actionName, action.widget,
 			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep)
 
 	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
@@ -152,7 +152,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId, {"ERROR ActionData was created wrong $it for $action in $oldState"})
 						assert(it.targetWidget == action.action.widget, {"ERROR in ActionData instanciation wrong targetWidget ${it.targetWidget} instead of ${action.action.widget}"})
 						debugT("add action", { P_addAction(it) })
-						println("DEBUG: $it")
+//						println("DEBUG: $it")
 					}
 		}
 	}

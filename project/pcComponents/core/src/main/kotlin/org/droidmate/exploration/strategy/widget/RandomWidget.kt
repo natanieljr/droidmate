@@ -156,17 +156,17 @@ open class RandomWidget constructor(randomSeed: Long,
 		val actionList: MutableList<AbstractExplorationAction> = mutableListOf()
 
 		if (widget.longClickable)
-			actionList.add(WidgetExplorationAction(widget, longClick = true))
+			actionList.add(LongClickExplorationAction(widget))
 
 		if (widget.clickable)
-			actionList.add(WidgetExplorationAction(widget))
+			actionList.add(ClickExplorationAction(widget))
 
 		if (widget.checked != null)
-			actionList.add(WidgetExplorationAction(widget))
+			actionList.add(ClickExplorationAction(widget))
 
 		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
 		if (widget.scrollable)
-			actionList.add(WidgetExplorationAction(widget))
+			actionList.add(ClickExplorationAction(widget))
 
 		/*if (chosenWidget.scrollable) {
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))

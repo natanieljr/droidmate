@@ -25,7 +25,7 @@
 package org.droidmate.report.apk
 
 import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.actions.WidgetExplorationAction
+import org.droidmate.exploration.actions.ClickExplorationAction
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.plot
 import org.droidmate.misc.withExtension
@@ -101,8 +101,8 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
 	private fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
 
-		return if ((prevAction.actionType != WidgetExplorationAction::class.java.simpleName) ||
-				(currAction.actionType != WidgetExplorationAction::class.java.simpleName))
+		return if ((prevAction.actionType != ClickExplorationAction::class.java.simpleName) ||
+				(currAction.actionType != ClickExplorationAction::class.java.simpleName))
 			true
 		else {
 			currAction.prevState != currAction.resState
