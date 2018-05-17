@@ -85,6 +85,7 @@ import org.droidmate.configuration.ConfigProperties.Selectors.playbackModelDir
 import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbability
 import org.droidmate.configuration.ConfigProperties.Selectors.randomSeed
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
+import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
@@ -99,8 +100,6 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
-import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForGuiToStabilize
-import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForWindowUpdateTimeout
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.BuildConstants
 import org.slf4j.Logger
@@ -122,32 +121,85 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 	@Throws(ConfigurationException::class)
 	override fun build(args: Array<String>, fs: FileSystem): ConfigurationWrapper = build(parseArgs(args,
-			CommandLineOption(logLevel), CommandLineOption(configPath, short = "config"),
-			CommandLineOption(monitorSocketTimeout), CommandLineOption(monitorUseLogcat),
-			CommandLineOption(monitorUseLegacyStream), CommandLineOption(ConfigProperties.ApiMonitorServer.basePort),
-			CommandLineOption(inline), CommandLineOption(report), CommandLineOption(explore), CommandLineOption(coverage),
-			CommandLineOption(installApk), CommandLineOption(installAux), CommandLineOption(uninstallApk),
-			CommandLineOption(uninstallAux), CommandLineOption(replaceResources), CommandLineOption(shuffleApks), 
-			CommandLineOption(useApkFixturesDir), CommandLineOption(deployRawApks), 
-			CommandLineOption(checkAppIsRunningRetryAttempts), CommandLineOption(checkAppIsRunningRetryDelay),
-			CommandLineOption(checkDeviceAvailableAfterRebootAttempts), CommandLineOption(checkDeviceAvailableAfterRebootFirstDelay),
-			CommandLineOption(checkDeviceAvailableAfterRebootLaterDelays), CommandLineOption(clearPackageRetryAttempts),
-			CommandLineOption(clearPackageRetryDelay), CommandLineOption(closeANRAttempts), CommandLineOption(closeANRDelay),
-			CommandLineOption(getValidGuiSnapshotRetryAttempts), CommandLineOption(getValidGuiSnapshotRetryDelay),
-			CommandLineOption(stopAppRetryAttempts), CommandLineOption(stopAppSuccessCheckDelay),
-			CommandLineOption(waitForCanRebootDelay), CommandLineOption(waitForDevice), CommandLineOption(apksDir),
-			CommandLineOption(apksLimit), CommandLineOption(apkNames), CommandLineOption(deviceIndex),
-			CommandLineOption(deviceSerialNumber), CommandLineOption(runOnNotInlined), CommandLineOption(launchActivityDelay),
-			CommandLineOption(launchActivityTimeout), CommandLineOption(apiVersion), CommandLineOption(droidmateOutputDirPath),
-			CommandLineOption(coverageDir), CommandLineOption(screenshotDir), CommandLineOption(reportDir),
-			CommandLineOption(reset), CommandLineOption(ConfigProperties.Strategies.explore), CommandLineOption(terminate),
-			CommandLineOption(back), CommandLineOption(modelBased), CommandLineOption(fitnessProportionate),
-			CommandLineOption(allowRuntimeDialog), CommandLineOption(denyRuntimeDialog), CommandLineOption(playback),
-			CommandLineOption(pressBackProbability), CommandLineOption(widgetIndexes), CommandLineOption(playbackModelDir),
-			CommandLineOption(resetEvery), CommandLineOption(actionLimit), CommandLineOption(timeLimit),
-			CommandLineOption(randomSeed), CommandLineOption(inputDir), CommandLineOption(includePlots),
-			CommandLineOption(startTimeout), CommandLineOption(startQueryDelay), CommandLineOption(socketTimeout),
-			CommandLineOption(waitForGuiToStabilize), CommandLineOption(waitForWindowUpdateTimeout), CommandLineOption(basePort)
+			// Core
+			CommandLineOption(logLevel, description = "Logging level of the entirety of application. Possible values, comma separated: info, debug, trace, warn, error."),
+			CommandLineOption(configPath, description = "Path to a custom configuration file, which replaces the default configuration.", short = "config"),
+			// ApiMonitorServer
+			CommandLineOption(monitorSocketTimeout, description = "Socket timeout to communicate with the API monitor service."),
+			CommandLineOption(monitorUseLogcat, description = "Use logical for API logging instead of TCPServer (deprecated)."),
+			CommandLineOption(monitorUseLegacyStream, description = "Use legacy Java serialization API for device communication (not recommended)."),
+			CommandLineOption(ConfigProperties.ApiMonitorServer.basePort, description = "The base port for the communication with the the API monitor service. DroidMate communicates over this base port + device index."),
+			// ExecutionMode
+			CommandLineOption(inline, description = "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks. This flag is not combinable with another execution mode."),
+			CommandLineOption(report, description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data. This flag is not combinable with another execution mode."),
+			CommandLineOption(explore, description = "Run DroidMate in exploration mode."),
+			CommandLineOption(coverage, description = "If present, instead of normal run, DroidMate will run in 'instrument APK for coverage' mode. This flag is not combinable with another execution mode."),
+			// Deploy
+			CommandLineOption(installApk, description = "Reinstall the app to the device. If the app is not previously installed the exploration will fail"),
+			CommandLineOption(installAux, description = "Reinstall the auxiliary files (UIAutomator and Monitor) to the device. If the auxiliary files are not previously installed the exploration will fail."),
+			CommandLineOption(uninstallApk, description = "Uninstall the APK after the exploration."),
+			CommandLineOption(uninstallAux, description = "Uninstall auxiliary files (UIAutomator and Monitor) after the exploration."),
+			CommandLineOption(replaceResources, description = "Replace the resources from the extracted resources folder upon execution."),
+			CommandLineOption(shuffleApks, description = "Explore the apks in the input directory in a random order."),
+			CommandLineOption(deployRawApks, description = "Deploys apks to device in 'raw' form, that is, without instrumenting them. Will deploy them raw even if instrumented version is available from last run."),
+			// DeviceCommunication
+			CommandLineOption(checkAppIsRunningRetryAttempts, description = "Number of attempts to check if an app is running on the device."),
+			CommandLineOption(checkAppIsRunningRetryDelay, description = "Timeout for each attempt to check if an app is running on the device in milliseconds."),
+			CommandLineOption(checkDeviceAvailableAfterRebootAttempts, description = "Determines how often DroidMate checks if a device is available after a reboot."),
+			CommandLineOption(checkDeviceAvailableAfterRebootFirstDelay, description = "The first delay after a device rebooted, before its availability will be checked."),
+			CommandLineOption(checkDeviceAvailableAfterRebootLaterDelays, description = "The non-first delay after a device rebooted, before its availability will be checked."),
+			CommandLineOption(clearPackageRetryAttempts, description = "Number of attempts to close a running app."),
+			CommandLineOption(clearPackageRetryDelay, description = "Delay after each failed attempt to close a running app."),
+			CommandLineOption(closeANRAttempts, description = "Delay after each failed attempt close an 'application not responding' dialog."),
+			CommandLineOption(closeANRDelay, description = "Delay after each failed attempt close an 'application not responding' dialog."),
+			CommandLineOption(getValidGuiSnapshotRetryAttempts, description = "Number of attempts to get a valid GUI snapshot from the device. If not snapshot is acquired the exploration stops"),
+			CommandLineOption(getValidGuiSnapshotRetryDelay, description = "Timeout for each attempt to get a valid GUI snapshot from the device in milliseconds"),
+			CommandLineOption(stopAppRetryAttempts, description = "Number of attempts to close an 'application has stopped' dialog."),
+			CommandLineOption(stopAppSuccessCheckDelay, description = "Delay after each failed attempt close an 'application has stopped' dialog"),
+			CommandLineOption(waitForCanRebootDelay, description = "Delay (in milliseconds) after an attempt was made to reboot a device, before."),
+			CommandLineOption(waitForDevice, description = "Wait for a device to be connected to the PC instead of cancelling the exploration."),
+			// Exploration
+			CommandLineOption(apksDir, description = "Directory containing the apks to be processed by DroidMate."),
+			CommandLineOption(apksLimit, description = "Limits the number of apks on which DroidMate will run. 0 means no limit."),
+			CommandLineOption(apkNames, description = "Filters apps on which DroidMate will be run. Supply full file names, separated by commas, surrounded by square brackets. If the list is empty, it will run on all the apps in the apks dir. Example value: [app1.apk, app2.apk]"),
+			CommandLineOption(deviceIndex, description = "Index of the device to be used (from adb devices). Zero based."),
+			CommandLineOption(deviceSerialNumber, description = "Serial number of the device to be used. Mutually exclusive to index."),
+			CommandLineOption(runOnNotInlined, description = "Allow DroidMate to run on non-inlined apks."),
+			CommandLineOption(launchActivityDelay, description = "Delay (in milliseconds) to wait for the app to load before continuing the exploration after a reset (or exploration start)."),
+			CommandLineOption(launchActivityTimeout, description = "Maximum amount of time to be waited for an app to start after a reset in milliseconds."),
+			CommandLineOption(apiVersion, description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api23"),
+			// Output
+			CommandLineOption(droidmateOutputDirPath, description = "Path to the directory that will contain DroidMate exploration output."),
+			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data."),
+			CommandLineOption(screenshotDir, description = "Path to the directory that will contain the screenshots from an exploration."),
+			CommandLineOption(reportDir, description = "Path to the directory that will contain the report files."),
+			// Strategies
+			CommandLineOption(reset, description = "Enables use of the reset strategy during an exploration."),
+			CommandLineOption(ConfigProperties.Strategies.explore, description = "Enables use of biased random exploration strategy."),
+			CommandLineOption(terminate, description = "Enables use of default terminate strategy."),
+			CommandLineOption(back, description = "Enables use of 'press back button' strategy"),
+			CommandLineOption(modelBased, description = "Enables use of random exploration strategy using static model."),
+			CommandLineOption(fitnessProportionate, description = "Enables use of random exploration strategy using static model and fitness proportionate selection."),
+			CommandLineOption(allowRuntimeDialog, description = "Enables use of strategy to always click 'Allow' on permission dialogs."),
+			CommandLineOption(denyRuntimeDialog, description = "Enables use of strategy to always click 'Deny' on permission dialogs."),
+			CommandLineOption(playback, description = "Enables use of playback strategy (if a playback model is provided)."),
+			// Selectors
+			CommandLineOption(pressBackProbability, description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy."),
+			CommandLineOption(widgetIndexes, description = "Makes the exploration strategy to choose widgets to click that have the indexes as provided by this parameter, in sequence. The format is: [<first widget index>,<second widget index>,...<nth widget index>], starting indexing at 0. Example: [0,7,3]"),
+			CommandLineOption(playbackModelDir, description = "Directory of a previous exploration model. Required for playback."),
+			CommandLineOption(resetEvery, description = "Number of actions to automatically reset the exploration from its initial activity. Set to 0 to disable."),
+			CommandLineOption(actionLimit, description = "How many actions the GUI exploration strategy can conduct before terminating."),
+			CommandLineOption(timeLimit, description = "How long the exploration of any given apk should take, in seconds. If set to 0, instead actionsLimit will be used."),
+			CommandLineOption(randomSeed, description = "The seed for a random generator used by a random-clicking GUI exploration strategy. If null, a seed will be randomized."),
+			CommandLineOption(stopOnExhaustion, description = "Terminate exploration when all widgets have been explored at least 1x."),
+			// Report
+			CommandLineOption(inputDir, description = "Path to the directory containing report input. The input is to be DroidMate exploration output."),
+			CommandLineOption(includePlots, description = "Include plots on reports (requires gnu plot)."),
+			// UiAutomatorServer
+			CommandLineOption(startTimeout, description = "How long DroidMate should wait, in milliseconds, for message on logcat confirming that UiAutomatorDaemonServer has started on android (virtual) device."),
+			CommandLineOption(startQueryDelay, description = "How often DroidMate should query, in milliseconds, for message on logcat confirming that UiDaemonServer has started on android (virtual) device."),
+			CommandLineOption(socketTimeout, description = "Socket timeout to communicate with the UiDaemonServer."),
+			CommandLineOption(basePort, description = "The base port for the communication with the devices. DroidMate communicates over this base port + device index.")
 			).first, fs)
 
 	@Throws(ConfigurationException::class)
