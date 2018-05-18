@@ -104,7 +104,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 
 	override fun toString(): String {
 		@Suppress("ReplaceSingleLineLet")
-		return "$actionType:${targetWidget?.let { it.dataString("\t") }}: ${prevState.dumpString()}->${resState.dumpString()}"
+		return "$actionType: widget[${targetWidget?.let { it.dataString("\t") }}]:\n${prevState.dumpString()}->${resState.dumpString()}"
 	}
 }
 

@@ -396,13 +396,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 		while (isFirst || (result.successful && action !is TerminateExplorationAction)) {
 			// decide for an action
-			action = debugT("strategy decision time", { strategy.decide(result) }, inMillis = true) // check if we need to initialize timeProvider.getNow() here
+			action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
 			// execute action
-			measureTimeMillis { result = action.run(app, device) }.let {
-				actionT += it
-				nActions += 1
-				log.debug("$it millis elapsed until result was available on average ${actionT / nActions}")
-			}
+			result = action.run(app, device)
 			explorationContext.add(action, result)
 			// update strategy
 			strategy.update(result)

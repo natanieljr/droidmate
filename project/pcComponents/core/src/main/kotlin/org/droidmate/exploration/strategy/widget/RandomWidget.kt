@@ -24,7 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
+import groovy.util.MapEntry
 import kotlinx.coroutines.experimental.runBlocking
+import org.codehaus.groovy.runtime.DefaultGroovyMethods.groupBy
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.actions.*
@@ -119,8 +121,16 @@ open class RandomWidget constructor(randomSeed: Long,
 			}
 		}, inMillis = true).let { filteredCandidates ->
 			// for each widget in this state the number of interactions
-			counter.numExplored(currentState, filteredCandidates).entries.groupBy { it.value }.let {
-				it.listOfSmallest()?.map { it.key }?.let { leastInState: List<Widget> ->
+			counter.numExplored(currentState, filteredCandidates).entries
+					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
+						if(pkgName != super.context.apk.packageName) {
+							val pkgActions = counter.pkgCount(pkgName)
+							countEntry.map { Pair(it.key, pkgActions) }
+						} else
+							countEntry.map { Pair(it.key, it.value) }
+					}// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
+				.groupBy { (_,countVal) -> countVal }.let {
+				it.listOfSmallest()?.map { (w,_) -> w }?.let { leastInState: List<Widget> ->
 					// determine the subset of widgets which were least interacted with
 					// if multiple widgets clicked with same frequency, choose the one least clicked over all states
 					if (leastInState.size > 1) {

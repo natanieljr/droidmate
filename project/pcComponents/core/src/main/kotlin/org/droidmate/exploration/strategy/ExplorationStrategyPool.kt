@@ -113,17 +113,16 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		ExplorationStrategyPool.logger.debug("Selecting best strategy.")
 		val mem = this.memory
 		val pool = this
-		var cnt:Long = 0
-		val bestStrategy = debugT("strategy selection time",	{
+		val bestStrategy =
 			//runBlocking(newSingleThreadContext("SelectorsThread")) { // to make it single threaded
 			runBlocking(selectorThreadPool){
 				selectors
 						.sortedBy { it.priority }
-						.map { Pair(it, async(coroutineContext) { nullableDebugT("decision time $it ", { it.selector(mem, pool, it.bundle) }
-								, timer = {cnt+=it} ) }) }
+						.map { Pair(it, async(coroutineContext) { it.selector(mem, pool, it.bundle)
+							 }) }
 						.first{ it.second.await() != null }
 			}
-		}, timer = { println("SELECTORS: ${it/1000000} vs ${cnt/1000000}")}, inMillis = true )
+
 
 		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy (${bestStrategy.second.getCompleted()})")
 
