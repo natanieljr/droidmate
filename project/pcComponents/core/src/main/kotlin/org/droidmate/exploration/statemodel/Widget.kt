@@ -38,10 +38,10 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	var uid: UUID
 		set(value) {
-			_uid = lazyOf(value)
+			_uid = synchronized(this){ lazyOf(value) }
 		}
 		get() {
-			return /*debugT("get UID",{ */      _uid.value
+			return /*debugT("get UID",{ */ synchronized(this){ _uid.value }
 //			})
 		}
 
