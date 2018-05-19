@@ -28,7 +28,7 @@ import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.actions.EnterTextExplorationAction
-import org.droidmate.exploration.actions.WidgetExplorationAction
+import org.droidmate.exploration.actions.ClickExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
 import org.droidmate.exploration.strategy.widget.Explore
@@ -102,7 +102,7 @@ class LoginWithFacebook : Explore() {
 
 		if (button != null) {
 			signInClicked = true
-			return WidgetExplorationAction(button)
+			return ClickExplorationAction(button)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -152,7 +152,7 @@ class LoginWithFacebook : Explore() {
 		if (button != null) {
 			loginClicked = true
 			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
-			return WidgetExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
+			return ClickExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -169,7 +169,7 @@ class LoginWithFacebook : Explore() {
 		if (button != null) {
 			continueClicked = true
 			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
-			return WidgetExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
+			return ClickExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -218,7 +218,7 @@ class LoginWithFacebook : Explore() {
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 						?: widgets.first { it.text.toUpperCase() == "ALLOW" }
 			}
-			WidgetExplorationAction(widget)
+			ClickExplorationAction(widget)
 		} else {
 			val widgets = context.getCurrentState().actionableWidgets
 			getWidgetAction(widgets)

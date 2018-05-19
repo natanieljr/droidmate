@@ -27,11 +27,13 @@ package org.droidmate.exploration.strategy.playback
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
+import org.droidmate.exploration.actions.AbstractExplorationAction.Companion.getActionIdentifier
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
 import org.droidmate.exploration.strategy.widget.Explore
+import java.lang.Integer.max
 import java.nio.file.Path
 
 @Suppress("unused")
@@ -56,6 +58,11 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 
 	private fun isComplete(): Boolean {
 		return model.getPaths().let { traceIdx+1 == it.size && actionIdx+1 == it[traceIdx].size }
+	}
+
+	private fun supposedToBeCrash():Boolean{
+		val lastAction = model.getPaths()[traceIdx].getActions()[max(0,actionIdx)]
+		return runBlocking { model.getState(lastAction.resState)!!.isAppHasStoppedDialogBox }
 	}
 
 	private fun getNextTraceAction(peek: Boolean = false): ActionData {
@@ -113,7 +120,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 		val currTraceData = getNextTraceAction()
 		val action = currTraceData.actionType
 		return when (action) {
-			WidgetExplorationAction::class.simpleName -> {
+			getActionIdentifier<ClickExplorationAction>() -> {
 				val verifyExecutability = currTraceData.targetWidget.canExecute(context.getCurrentState())
 				if(verifyExecutability.first>0.0) {
 					PlaybackExplorationAction(verifyExecutability.second!!, "[${verifyExecutability.first}]")
@@ -125,26 +132,32 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 					val prevEquiv = lastSkipped.targetWidget.canExecute(context.getCurrentState())  // check if the last skipped action may be appyable now
 					val peekAction = getNextTraceAction(peek = true)
 					val nextEquiv = peekAction.targetWidget.canExecute(context.getCurrentState())
-					if(prevEquiv.first>nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
-							&& runBlocking { model.getState(lastSkipped.resState)?.run{
-								actionableWidgets.any { peekAction.targetWidget == null || it.uid == peekAction.targetWidget.uid
-										|| it.propertyConfigId == peekAction.targetWidget.uid } }} == true) {
+					val abstractExplorationAction = if (prevEquiv.first > nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
+							&& runBlocking {
+								model.getState(lastSkipped.resState)?.run {
+									actionableWidgets.any {
+										peekAction.targetWidget == null || it.uid == peekAction.targetWidget.uid
+												|| it.propertyConfigId == peekAction.targetWidget.uid
+									}
+								}
+							} == true) {
 						lastSkipped = ActionData.empty  // we execute it now so do not try to do so again
 						PlaybackExplorationAction(prevEquiv.second!!, "[previously skipped]")
-					}else{
+					} else {
 						lastSkipped = currTraceData
 						println("[skip action ($traceIdx,$actionIdx)] $lastSkipped")
 						getNextAction()
 					}
+					abstractExplorationAction
 				}
 			}
-			TerminateExplorationAction::class.simpleName -> {
+			getActionIdentifier<TerminateExplorationAction>() -> {
 				PlaybackTerminateAction()
 			}
-			ResetAppExplorationAction::class.simpleName -> {
+			getActionIdentifier<ResetAppExplorationAction>() -> {
 				PlaybackResetAction()
 			}
-			PressBackExplorationAction::class.simpleName -> {
+			getActionIdentifier<PressBackExplorationAction>() -> {
 				// If already in home screen, ignore
 				if (context.getCurrentState().isHomeScreen) {
 					watcher.addNonReplayableActions(traceIdx, actionIdx)
@@ -176,7 +189,7 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 				}
 			}
 			else -> {
-				WidgetExplorationAction(currTraceData.targetWidget!!, useCoordinates = true)
+				ClickExplorationAction(currTraceData.targetWidget!!, useCoordinates = true)
 			}
 		}
 	}
@@ -198,7 +211,24 @@ open class Playback constructor(private val modelDir: Path) : Explore() {
 		return chooseAction()
 	}
 
+	/** reset the []actionIdx] to the position of the last reset or 0 if none exists
+	 * (action 0 should always be a reset to start the app) */
+	private fun handleReplayCrash(){
+		logger.info("handle app crash on replay")
+		model.getPaths()[traceIdx].let { trace ->
+			var isReset = false
+			var i = actionIdx
+			while (!isReset && i >= 0) {
+				i -= 1
+				isReset = trace.getActions()[i].actionType != getActionIdentifier<ResetAppExplorationAction>()
+			}
+		}
+	}
+
 	override fun chooseAction(): AbstractExplorationAction {
+		if( !context.isEmpty() && context.getCurrentState().isAppHasStoppedDialogBox && ! supposedToBeCrash()
+			&& getNextTraceAction(peek = true).actionType != getActionIdentifier<ResetAppExplorationAction>())	handleReplayCrash()
+
 		return getNextAction().also{ println("PLAYBACK: $it")}
 	}
 }

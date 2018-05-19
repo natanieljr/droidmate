@@ -43,6 +43,11 @@ abstract class AbstractExplorationAction(open val timestamp: LocalDateTime) : Se
 	internal val log = LoggerFactory.getLogger(javaClass)
 	/** name to be used to identify and compare the action-type */
 	val actionName: String = javaClass.simpleName
+	companion object {
+		/** static function to determine the action type (actionName) of any ExplorationAction instance */
+		@JvmStatic inline fun<reified T: AbstractExplorationAction> getActionIdentifier(): String
+				=  T::class.java.simpleName ?:"Unknow Action"
+	}
 
 	var runtimePermission: Boolean = false
 

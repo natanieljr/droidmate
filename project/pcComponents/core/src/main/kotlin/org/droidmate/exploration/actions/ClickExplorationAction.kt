@@ -36,25 +36,20 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateClickAction
-import org.droidmate.uiautomator_daemon.guimodel.CoordinateLongClickAction
-import org.droidmate.uiautomator_daemon.guimodel.LongClickAction
 
 private var performT: Long = 0
 private var performN: Int = 1
 
-open class WidgetExplorationAction @JvmOverloads constructor(override val widget: Widget,
-                                                             val longClick: Boolean = false,
-                                                             val useCoordinates: Boolean = true,
-                                                             val delay: Int = 100,
-                                                             val swipe: Boolean = false,
-                                                             val direction: Direction = Direction.UP) : AbstractExplorationAction() {
+open class ClickExplorationAction @JvmOverloads constructor(override val widget: Widget,
+                                                            val useCoordinates: Boolean = true,
+                                                            val delay: Int = 100) : AbstractExplorationAction() {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 
-	override fun toShortString(): String = "SW? ${if (swipe) 1 else 0} LC? ${if (longClick) 1 else 0} " + widget.toShortString()
+	override fun toShortString(): String = "Cl ${widget.toShortString()}"// "SW? ${if (swipe) 1 else 0} LC? ${if (longClick) 1 else 0} " + widget.toShortString()
 
-	override fun toTabulatedString(): String = "SW? ${if (swipe) 1 else 0} LC? ${if (longClick) 1 else 0} " + widget.toTabulatedString()
+	override fun toTabulatedString(): String = toShortString()//"SW? ${if (swipe) 1 else 0} LC? ${if (longClick) 1 else 0} " + widget.toTabulatedString()
 
 	override fun performDeviceActions(app: IApk, device: IRobustDevice) = runBlocking {
 		log.debug("1. Assert only background API logs are present, if any.")
@@ -70,10 +65,8 @@ open class WidgetExplorationAction @JvmOverloads constructor(override val widget
 				launch {
 					// do the perform as launch to inject a suspension point, as perform is currently no suspend function
 					snapshot = when {
-						useCoordinates && !longClick -> device.perform(CoordinateClickAction(x, y))
-						useCoordinates && longClick -> device.perform(CoordinateLongClickAction(x, y))
-						!useCoordinates && !longClick -> device.perform(ClickAction(widget.xpath, widget.resourceId))
-						!useCoordinates && longClick -> device.perform(LongClickAction(widget.xpath, widget.resourceId))
+						useCoordinates  -> device.perform(CoordinateClickAction(x, y))
+						!useCoordinates -> device.perform(ClickAction(widget.xpath, widget.resourceId))
 						else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
 					}
 				}.join()
@@ -85,11 +78,7 @@ open class WidgetExplorationAction @JvmOverloads constructor(override val widget
 			if (!useCoordinates) {
 				log.warn("2.1. Failed to click using XPath and resourceID, attempting restart UIAutomatorDaemon and to click coordinates: $javaClass.")
 				device.restartUiaDaemon(false)
-				snapshot = when {
-					!longClick -> device.perform(CoordinateClickAction(x, y))
-					longClick -> device.perform(CoordinateLongClickAction(x, y))
-					else -> throw UnexpectedIfElseFallthroughError("Action type not yet supported in ${this.javaClass.simpleName}")
-				}
+				snapshot =  device.perform(CoordinateClickAction(x, y))
 			}
 		}
 

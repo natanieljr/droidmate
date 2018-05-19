@@ -20,8 +20,10 @@ import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.newCoroutineContext
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
+import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.experimental.CoroutineContext
@@ -37,6 +39,7 @@ class ActionCounterMF : ModelFeature() {
 
 	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData): Unit =
 			prevState.uid.let { sId ->
+				targetWidget?.let { w -> pCnt.compute(w.packageName, {_,c -> c?.inc() ?: 1}) }
 				sCnt.incCnt(sId)   // the state the very last action acted on
 				// record the respective widget the exploration interacted
 				targetWidget?.let { wCnt.compute(it.uid, { _, m -> m?.incCnt(sId) ?: mutableMapOf(sId to 1) }) }
@@ -46,6 +49,9 @@ class ActionCounterMF : ModelFeature() {
 	private val sCnt = ConcurrentHashMap<UUID, Int>() // counts how often any state was explored
 	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt = ConcurrentHashMap<UUID, MutableMap<UUID, Int>>()
+
+	// to prioritize app widgets over reappearing external/keyboard elements we sum non-app interactions by their package name
+	private val pCnt = ConcurrentHashMap<String, Int>()
 
 	@Suppress("unused")
 	suspend fun unexplored(s: StateData): Set<Widget> {
@@ -89,6 +95,8 @@ class ActionCounterMF : ModelFeature() {
 		job.joinChildren()
 		return wCnt.sumCounter(wId)
 	}
+
+	fun pkgCount(pkgName: String): Int = pCnt[pkgName]?:0
 
 }
 

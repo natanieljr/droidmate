@@ -86,7 +86,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
-		if(action is WidgetExplorationAction) assert(result.action.widget == action.widget,{ "ERROR on ACTION-RESULT construction the wrong action was instanciated widget was ${result.action.widget} instead of ${action.widget}"})
+		if(action is ClickExplorationAction) assert(result.action.widget == action.widget,{ "ERROR on ACTION-RESULT construction the wrong action was instanciated widget was ${result.action.widget} instead of ${action.widget}"})
 		_model.S_updateModel(result, actionTrace)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}

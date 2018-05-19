@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory
  * @author Nataniel P. Borges Jr.
  */
 abstract class AbstractStrategy : ISelectableExplorationStrategy {
+	override val uniqueStrategyName: String = javaClass.simpleName
 	/**
 	 * List of observers to be notified when widgets get blacklisted or
 	 * when a target is found

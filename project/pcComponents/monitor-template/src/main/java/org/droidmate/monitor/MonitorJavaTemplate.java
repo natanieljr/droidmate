@@ -586,6 +586,7 @@ public class MonitorJavaTemplate
 
 			MonitorServerRunnable monitorServerRunnable = new MonitorServerRunnable();
 			Thread serverThread = new Thread(monitorServerRunnable);
+			serverThread.setDaemon(true); // ensure termination if the main thread dies
 			// For explanation why this synchronization is necessary, see MonitorServerRunnable.run() method synchronized {} block.
 			synchronized (monitorServerRunnable) {
 				if (!(serverSocket == null && serverSocketException == null)) throw new AssertionError();

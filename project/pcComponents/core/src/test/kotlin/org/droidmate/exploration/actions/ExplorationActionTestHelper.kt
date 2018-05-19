@@ -29,7 +29,7 @@ class ExplorationActionTestHelper {
 	// TODO Fix tests
 	/*companion object {
 			@JvmStatic
-			fun newWidgetClickExplorationAction(args: Map<String, Any> = hashMapOf()): WidgetExplorationAction
+			fun newWidgetClickExplorationAction(args: Map<String, Any> = hashMapOf()): ClickExplorationAction
 							= ExplorationAction.newWidgetExplorationAction(WidgetTestHelper.newClickableButton(args.toMutableMap()), true)
 	}*/
 }

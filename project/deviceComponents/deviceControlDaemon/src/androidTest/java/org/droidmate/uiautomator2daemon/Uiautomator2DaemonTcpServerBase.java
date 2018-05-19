@@ -55,6 +55,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 		this.port = port;
 		ServerRunnable serverRunnable = new ServerRunnable();
 		Thread serverThread = new Thread(serverRunnable);
+		serverThread.setDaemon(true); // ensure termination if the main thread dies
 
 		//noinspection SynchronizationOnLocalVariableOrMethodParameter
 		synchronized (serverRunnable) {

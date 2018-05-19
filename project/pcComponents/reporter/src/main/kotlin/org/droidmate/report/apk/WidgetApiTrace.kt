@@ -28,7 +28,7 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.actions.WidgetExplorationAction
+import org.droidmate.exploration.actions.ClickExplorationAction
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import java.nio.file.Path
@@ -40,7 +40,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 		sb.append(header)
 
 		data.actionTrace.getActions().forEachIndexed { actionNr, record ->
-			if (record.actionType == WidgetExplorationAction::class.simpleName) {
+			if (record.actionType == ClickExplorationAction::class.simpleName) {
 				val text = runBlocking { data.getState(record.resState)?.let { getActionWidget(record, it) } }
 				val logs = record.deviceLogs.apiLogs
 				val widget = record.targetWidget
@@ -56,7 +56,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 	}
 
 	private fun getActionWidget(actionResult: ActionData, state: StateData): Widget? {
-		return if (actionResult.actionType == WidgetExplorationAction::class.simpleName) {
+		return if (actionResult.actionType == ClickExplorationAction::class.simpleName) {
 
 			getWidgetWithTextFromAction(actionResult.targetWidget!!, state)
 		} else

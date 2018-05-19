@@ -97,15 +97,18 @@ internal sealed class DeviceAction {
 //						getWindowHierarchyDump(device)
 //					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
 
-					// exclude android internal elements
-					device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)  // this only checks for clickable but is much more reliable than a custom Search-Condition
-					// so if we need more we would have to implement something similar to `Until`
+					// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interactable app elements
+					if(device.findObject(By.res("com.android.packageinstaller:id/permission_allow_button")) == null) {
+						// exclude android internal elements
+						device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)  // this only checks for clickable but is much more reliable than a custom Search-Condition
+						// so if we need more we would have to implement something similar to `Until`
 // DEBUG_CODE:
 //					val c = device.findObjects(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))).size
 //					val cc = device.findObjects(By.clickable(true)).size
 //					Log.e(uiaDaemon_logcatTag," found $c non-systemui clickable elements out of $cc")
 
-					device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
+						device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
+					}
 				},timer = {
 					time += it/1000000
 					cnt += 1
