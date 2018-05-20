@@ -163,8 +163,10 @@ class Model private constructor(val config: ModelConfig) {
 		//		async {
 		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
 		debugT("candidate computation", {
-			interactedEF.groupBy { it.first }.map { (s, pairs) ->
-				pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets }
+			synchronized(interactedEF) {
+				interactedEF.groupBy { it.first }.map { (s, pairs) ->
+					pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets }
+				}
 			}
 		})
 				.let { candidates ->
