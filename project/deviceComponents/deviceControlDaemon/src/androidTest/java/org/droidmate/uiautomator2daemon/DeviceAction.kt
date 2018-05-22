@@ -8,6 +8,9 @@ import android.graphics.Color
 import android.net.wifi.WifiManager
 import android.support.test.uiautomator.*
 import android.util.Log
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
@@ -80,8 +83,8 @@ internal sealed class DeviceAction {
 				}
 			}
 		}
-		const val defaultTimeout: Long = 2000
-		private const val waitTimeout: Long = 5000
+		const val defaultTimeout: Long = 100
+		private const val waitTimeout: Long = 1000
 		@JvmStatic private var time: Long = 0
 		@JvmStatic private var cnt = 1
 		@JvmStatic private var lastDump:String = "ERROR"
@@ -90,6 +93,7 @@ internal sealed class DeviceAction {
 			if (actionSuccessful) {
 				debugT("UI-stab avg = ${time / cnt} ms", {
 					//            device.waitForWindowUpdate(null,defaultTimeout)
+					runBlocking { delay(10) } // avoid idle 0 which get the wait stuck for multiple seconds
 					measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 //					do {
 //						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is instable?
@@ -100,14 +104,15 @@ internal sealed class DeviceAction {
 					// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interactable app elements
 					if(device.findObject(By.res("com.android.packageinstaller:id/permission_allow_button")) == null) {
 						// exclude android internal elements
-						device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)  // this only checks for clickable but is much more reliable than a custom Search-Condition
+						debugT("wait for interactable", {device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)}  // this only checks for clickable but is much more reliable than a custom Search-Condition
+								,inMillis = true)
 						// so if we need more we would have to implement something similar to `Until`
 // DEBUG_CODE:
 //					val c = device.findObjects(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))).size
 //					val cc = device.findObjects(By.clickable(true)).size
 //					Log.e(uiaDaemon_logcatTag," found $c non-systemui clickable elements out of $cc")
 
-						device.waitForIdle(defaultTimeout)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
+						debugT("idle", {device.waitForIdle(defaultTimeout)}, inMillis = true)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
 					}
 				},timer = {
 					time += it/1000000
@@ -179,8 +184,8 @@ internal sealed class DeviceAction {
 
 		@JvmStatic
 		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String, simplify: Boolean = true): DeviceResponse {
-			val dump = DeviceAction.getWindowHierarchyDump(device)
-			val imgBytes = DeviceAction.getScreenShot(automation, simplify)
+			val imgBytes = async { DeviceAction.getScreenShot(automation, simplify) }
+			val dump = async{ DeviceAction.getWindowHierarchyDump(device) }
 
 			return debugT("compute UI-dump", {
 				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes)
@@ -229,7 +234,7 @@ private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() 
 			// Wait for the app to appear
 			device.wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 					10000)
-			device.wait(hasInteractive, 10000)
+			device.wait(hasInteractive, 100)
 		}.let { Log.d(uiaDaemon_logcatTag, "load-time $it millis") }
 	}
 }

@@ -165,8 +165,11 @@ open class RandomWidget constructor(randomSeed: Long,
 
 		val actionList: MutableList<AbstractExplorationAction> = mutableListOf()
 
-		if (widget.longClickable)
-			actionList.add(LongClickExplorationAction(widget))
+		if (widget.longClickable){    // lower probability of longClick if click is possible as it is more probable progressing the exploration
+			if(widget.clickable) {
+				if (random.nextInt(100) > 55) actionList.add(LongClickExplorationAction(widget))
+			}else 	actionList.add(LongClickExplorationAction(widget))
+		}
 
 		if (widget.clickable)
 			actionList.add(ClickExplorationAction(widget))
