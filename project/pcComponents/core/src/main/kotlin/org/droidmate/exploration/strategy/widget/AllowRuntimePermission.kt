@@ -33,15 +33,15 @@ import org.droidmate.exploration.actions.ClickExplorationAction
  * It has maximum priority (0.99) when it identifies a runtime permission dialog,
  * otherwise its priority is 0.
  */
-class AllowRuntimePermission : Explore() {
+class AllowRuntimePermission : ExplorationStrategy() {
 	override fun chooseAction(): AbstractExplorationAction {
-		val allowButton = context.getCurrentState().widgets.let { widgets ->
+		val allowButton = eContext.getCurrentState().widgets.let { widgets ->
 			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 					?: widgets.first { it.text.toUpperCase() == "ALLOW" }
 		}
 
 		// Remove blacklist restriction from previous action since it will need to be executed again
-//        this.context.lastTarget.blackListed = false    //TODO
+//        this.eContext.lastTarget.blackListed = false    //TODO
 
 		return ClickExplorationAction(allowButton).apply { runtimePermission = true }
 	}

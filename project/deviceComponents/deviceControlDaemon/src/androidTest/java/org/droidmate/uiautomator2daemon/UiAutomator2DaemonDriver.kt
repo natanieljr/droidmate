@@ -39,6 +39,8 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 	private val device: UiDevice
 	private val context: Context
 	private val automation: UiAutomation
+	private var nActions = 1
+	private var time = 0L
 
 	private val deviceModel: String
 		get() {
@@ -106,6 +108,6 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 
 		action?.execute(device, context)
 
-		return fetchDeviceData(device, automation, deviceModel)
+		return debugT("DUMP avg= ${time/(nActions*1000000)}",{fetchDeviceData(device, automation, deviceModel)},inMillis = true,timer = {time += it; nActions+=1})
 	}
 }

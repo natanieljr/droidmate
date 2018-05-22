@@ -15,9 +15,9 @@ import org.droidmate.uiautomator_daemon.guimodel.LongClickAction
 private var performT: Long = 0
 private var performN: Int = 1
 
-class LongClickExplorationAction(override val widget: Widget,
-                                 private val useCoordinates: Boolean = true,
-                                 private val delay: Int = 100): AbstractExplorationAction(){
+open class LongClickExplorationAction(override val widget: Widget,
+                                      private val useCoordinates: Boolean = true,
+                                      private val delay: Int = 100): AbstractExplorationAction(){
 	override fun toShortString(): String = "L-Cl"
 
 

@@ -47,7 +47,7 @@ class ActionCounterMF : ModelFeature() {
 
 
 	private val sCnt = ConcurrentHashMap<UUID, Int>() // counts how often any state was explored
-	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
+	// records how often a specific widget was selected and from which state-eContext (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt = ConcurrentHashMap<UUID, MutableMap<UUID, Int>>()
 
 	// to prioritize app widgets over reappearing external/keyboard elements we sum non-app interactions by their package name
@@ -61,9 +61,9 @@ class ActionCounterMF : ModelFeature() {
 
 	@Suppress("MemberVisibilityCanBePrivate")
 			/**
-	 * determine how often any widget was explored in the context of the given state [s]
+	 * determine how often any widget was explored in the eContext of the given state [s]
 	 *
-	 * @return map of the widget.uid to the number of interactions from state-context [s]
+	 * @return map of the widget.uid to the number of interactions from state-eContext [s]
 	 */
 	suspend fun numExplored(s: StateData): Map<Widget, Int> {
 		job.joinChildren()
@@ -72,8 +72,8 @@ class ActionCounterMF : ModelFeature() {
 		}.toMap()
 	}
 
-	/** determine how often any widget was explored in the context of the given state [s] for the given subset of widgets [selection]
-	 * @return map of the widget.uid to the number of interactions from state-context [s]
+	/** determine how often any widget was explored in the eContext of the given state [s] for the given subset of widgets [selection]
+	 * @return map of the widget.uid to the number of interactions from state-eContext [s]
 	 */
 	suspend fun numExplored(s: StateData, selection: Collection<Widget>): Map<Widget, Int> {
 		job.joinChildren()
@@ -83,7 +83,7 @@ class ActionCounterMF : ModelFeature() {
 	}
 
 	private fun UUID.cntForState(sId: UUID): Int = wCnt.getCounter(this, sId)
-	/** @return how often widget.uid was triggered in the given state-context **/
+	/** @return how often widget.uid was triggered in the given state-eContext **/
 	@Suppress("unused")
 	suspend fun widgetCntForState(wId: UUID, sId: UUID): Int {
 		job.joinChildren()

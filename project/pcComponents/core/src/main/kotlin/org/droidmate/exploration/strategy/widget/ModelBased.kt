@@ -44,9 +44,9 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 
 
 	private val watcher: EventProbabilityMF by lazy {
-		(context.watcher.find { it is EventProbabilityMF }
+		(eContext.watcher.find { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
-						.also { context.watcher.add(it) }) as EventProbabilityMF
+						.also { eContext.watcher.add(it) }) as EventProbabilityMF
 	}
 
 	/**
@@ -69,7 +69,7 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 	override fun getAvailableWidgets(): List<Widget> {
 		var candidates = internalGetWidgets()
 
-		this.context.lastTarget?.let { candidates = candidates.filterNot { p -> p.uid == it.uid } }
+		this.eContext.lastTarget?.let { candidates = candidates.filterNot { p -> p.uid == it.uid } }
 
 		return candidates
 	}

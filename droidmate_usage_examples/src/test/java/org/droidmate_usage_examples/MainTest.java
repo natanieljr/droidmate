@@ -104,7 +104,7 @@ public class MainTest {
 	/**
 	 * <p>
 	 * This test shows how to access various part of the data structure serialized by DroidMate to file system, containing all the
-	 * results from the exploration. Note that the methods used are not exhaustive. Explore the sources
+	 * results from the exploration. Note that the methods used are not exhaustive. ExplorationStrategy the sources
 	 * of the used types to find out more.
 	 *
 	 * </p><p>

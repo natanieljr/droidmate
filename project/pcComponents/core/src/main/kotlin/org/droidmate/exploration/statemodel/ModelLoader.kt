@@ -174,7 +174,7 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 		}
 	}
 
-	companion object {  // FIXME watcher state restoration requires context.onUpdate function & model.onUpdate currently only onActionUpdate is supported
+	companion object {  // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
 		@JvmStatic fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList()): Model{
 			return debugT("model loading", { ModelLoader(config).execute(watcher) }, inMillis = true)
 		}

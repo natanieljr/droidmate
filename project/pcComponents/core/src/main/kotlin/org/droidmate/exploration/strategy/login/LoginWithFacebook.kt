@@ -31,12 +31,12 @@ import org.droidmate.exploration.actions.EnterTextExplorationAction
 import org.droidmate.exploration.actions.ClickExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
-import org.droidmate.exploration.strategy.widget.Explore
+import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.droidmate.misc.DroidmateException
 import java.io.IOException
 
 @Suppress("unused")
-class LoginWithFacebook : Explore() {
+class LoginWithFacebook : ExplorationStrategy() {
 	private val DEFAULT_ACTION_DELAY = 5000
 	private val emailValue: String
 	private val passwordValue: String
@@ -187,7 +187,7 @@ class LoginWithFacebook : Explore() {
 		if (continueClicked)
 			return StrategyPriority.NONE
 
-		val widgets = context.getCurrentState().actionableWidgets
+		val widgets = eContext.getCurrentState().actionableWidgets
 
 		// Can click on login
 		if (canClickSignIn(widgets) ||
@@ -213,14 +213,14 @@ class LoginWithFacebook : Explore() {
 	}
 
 	override fun chooseAction(): AbstractExplorationAction {
-		return if (context.getCurrentState().isRequestRuntimePermissionDialogBox) {
-			val widget = context.getCurrentState().widgets.let { widgets ->
+		return if (eContext.getCurrentState().isRequestRuntimePermissionDialogBox) {
+			val widget = eContext.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 						?: widgets.first { it.text.toUpperCase() == "ALLOW" }
 			}
 			ClickExplorationAction(widget)
 		} else {
-			val widgets = context.getCurrentState().actionableWidgets
+			val widgets = eContext.getCurrentState().actionableWidgets
 			getWidgetAction(widgets)
 		}
 	}

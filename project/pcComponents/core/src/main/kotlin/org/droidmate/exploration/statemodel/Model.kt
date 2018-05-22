@@ -16,7 +16,7 @@ internal operator fun UUID.plus(uuid: UUID): UUID {
 	return UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
 }
 
-/** s_* should be only used in sequential context as it currently does not handle parallelism*/
+/** s_* should be only used in sequential eContext as it currently does not handle parallelism*/
 @Suppress("MemberVisibilityCanBePrivate")
 class Model private constructor(val config: ModelConfig) {
 	private val paths = LinkedList<Trace>()

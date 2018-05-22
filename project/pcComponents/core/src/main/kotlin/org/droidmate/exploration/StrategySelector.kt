@@ -85,7 +85,7 @@ class StrategySelector constructor(val priority: Int,
 	        val timeLimit = bundle!![0].toString().toInt()
 	        if(timeLimit<=0) null
 	        else {
-		        val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because context start time is not yet initialized
+		        val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because eContext start time is not yet initialized
 
 		        if (diff >= timeLimit) {
 			        logger.debug("Exploration time exhausted. Returning 'Terminate'")

@@ -76,8 +76,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
 //	var uid: UUID = (text + contentDesc).let{debugT("gen UID ${text + contentDesc}",{ if(hasContent()) it.toUUID() else  imgId }) }
 	// special care for EditText elements, as the input text will change the [text] property
-	// we keep track of the field via state-context + xpath once we interacted with it
-	// however that means uid would have to become a var and we rewrite it after the state is parsed (ignoring EditField.text) and lookup the initial uid for this widget in the initial state-context
+	// we keep track of the field via state-eContext + xpath once we interacted with it
+	// however that means uid would have to become a var and we rewrite it after the state is parsed (ignoring EditField.text) and lookup the initial uid for this widget in the initial state-eContext
 	// need model access => do this after widget generation before StateData instantiation => state.uid compute state candidates by ignoring all EditFields => determine exact one by computing ref.uid when ignoring EditFields whose xPath is a target widget within the trace + proper constructor
 	// and compute the state.uid with the original editText contents
 	// => model keep track of interacted EditField xPaths

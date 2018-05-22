@@ -96,7 +96,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 
 	fun dump() {
 		_model.P_dumpModel(_model.config)
-		this.also { context -> watcher.forEach { launch(CoroutineName("context-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
 
 		// wait until all dump's completed
 		runBlocking {
@@ -115,7 +115,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 	/**
 	 * Checks if any action has been performed
 	 *
-	 * @return If the context is empty
+	 * @return If the eContext is empty
 	 */
 	fun isEmpty(): Boolean = actionTrace.size == 0
 	fun explorationCanMoveOn() = isEmpty() || // we are starting the app -> no terminate yet

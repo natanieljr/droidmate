@@ -183,7 +183,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		          timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
 		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
 		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the context instead of the model?
+		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the eContext instead of the model?
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
 		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
@@ -379,9 +379,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 	private fun explorationLoop(app: IApk, device: IRobustDevice): ExplorationContext {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
-		// Use the received exploration context (if any) otherwise construct the object that
+		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
-		// Note that a different context is created for each exploration if none it provider
+		// Note that a different eContext is created for each exploration if none it provider
 		val explorationContext = ExplorationContext(app, timeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
