@@ -40,6 +40,7 @@ class ImgTraceMF(val cfg: ModelConfig): ModelFeature() {
 		val screenFile = java.io.File(cfg.statePath(prevState.stateId, fileExtension = ".png"))
 
 		while(isActive && !screenFile.exists()) delay(100)
+		while(isActive && !screenFile.canRead()) delay(100)
 		if(!screenFile.exists()) return // thread was canceled but no file to process is ready yet
 
 		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step.png")
