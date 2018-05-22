@@ -23,6 +23,7 @@ import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.apis.ApiLogcatMessageListExtensions
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.errors.DroidmateError
@@ -30,6 +31,7 @@ import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.statemodel.features.CrashListMF
+import org.droidmate.exploration.statemodel.features.ImgTraceMF
 import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.playback.PlaybackResetAction
 import org.droidmate.misc.TimeDiffWithTolerance
@@ -70,6 +72,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 	init {
 		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
+		if(_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
 	}
 
 	fun getCurrentState(): StateData = actionTrace.currentState
