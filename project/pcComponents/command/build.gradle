@@ -57,7 +57,7 @@ dependencies {
 	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
 	compile project(":project:pcComponents:tools:apk-inliner")
-	compile project(":project:pcComponents:tools:androcov")
+//	compile project(":project:pcComponents:tools:androcov")
 }
 
 apply from: file("test.gradle")
