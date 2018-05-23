@@ -4,6 +4,7 @@ import android.app.UiAutomation
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.wifi.WifiManager
 import android.support.test.uiautomator.*
@@ -92,12 +93,12 @@ internal sealed class DeviceAction {
 					//            device.waitForWindowUpdate(null,defaultTimeout)
 					measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 //					do {
-//						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is instable?
+//						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is unstable?
 //						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
 //						getWindowHierarchyDump(device)
 //					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
 
-					// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interactable app elements
+					// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interact-able app elements
 					if(device.findObject(By.res("com.android.packageinstaller:id/permission_allow_button")) == null) {
 						// exclude android internal elements
 						device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)  // this only checks for clickable but is much more reliable than a custom Search-Condition
@@ -115,6 +116,7 @@ internal sealed class DeviceAction {
 				},inMillis = true)
 			}
 		}
+
 		@JvmStatic
 		private fun getWindowHierarchyDump(device: UiDevice):String{
 			return debugT(" fetching gui Dump ", {
@@ -166,8 +168,8 @@ internal sealed class DeviceAction {
 					screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
 					stream.flush()
 
-
 					bytes = stream.toByteArray()
+
 					stream.close()
 				} catch (e: IOException) {
 					stream.close()
@@ -180,13 +182,22 @@ internal sealed class DeviceAction {
 		@JvmStatic
 		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String, simplify: Boolean = true): DeviceResponse {
 			val dump = DeviceAction.getWindowHierarchyDump(device)
-			val imgBytes = DeviceAction.getScreenShot(automation, simplify)
+			val imgBytes = fetchScreenshotOnError(device, automation, DeviceAction.getScreenShot(automation, simplify), simplify)
 
 			return debugT("compute UI-dump", {
 				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes)
 			}, inMillis = true)
 		}
 
+		@JvmStatic
+		private fun fetchScreenshotOnError(device: UiDevice, automation: UiAutomation, bitmapBytes : ByteArray, simplify: Boolean = true) : ByteArray{
+			val bitmap = BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.size)
+
+			return if (device.displayWidth < bitmap.width)
+				DeviceAction.getScreenShot(automation, simplify)
+			else
+				bitmapBytes
+		}
 	}
 }
 
