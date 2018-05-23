@@ -165,7 +165,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 * This test runs DroidMate against a {@code AndroidDeviceSimulator}.
 	 * Because a device simulator is used, this test doesn't require a device (real or emulated) to be available.
 	 * Because no device is used, also no {@code Apk} is necessary.
-	 * Thus, an in-context mock {@code FileSystem} is used.
+	 * Thus, an in-eContext mock {@code FileSystem} is used.
 	 * The file system contains one apk stub to be used as input for the test.
 	 * An {@code AaptWrapper} stub is used to provide the apk stub metadata.
 	 * </p>

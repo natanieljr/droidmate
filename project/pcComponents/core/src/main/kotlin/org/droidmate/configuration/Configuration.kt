@@ -163,6 +163,7 @@ abstract class ConfigProperties {
 	object Core : PropertyGroup() {
 		val logLevel by stringType  // TODO we could use a nice enumType instead
 		val configPath by uriType
+		val debugMode by booleanType
 	}
 
 	object ApiMonitorServer : PropertyGroup() {

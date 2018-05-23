@@ -7,7 +7,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class WidgetCountingMF:  ModelFeature(){
-	// records how often a specific widget was selected and from which state-context (widget.uid -> Map<state.uid -> numActions>)
+	// records how often a specific widget was selected and from which state-eContext (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt: ConcurrentHashMap<UUID, MutableMap<UUID, Int>> = ConcurrentHashMap()
 
 	init{
@@ -15,7 +15,7 @@ abstract class WidgetCountingMF:  ModelFeature(){
 	}
 
 	/**
-	 * this function is used to increase the counter of a specific widget with [wId] in the context of [stateId]
+	 * this function is used to increase the counter of a specific widget with [wId] in the eContext of [stateId]
 	 * if there is no entry yet for the given widget id, the counter value is initialized to 1
 	 * @param wId the unique id of the target widget for the (new) action
 	 * @param stateId the unique id of the state (the prevState) from which the widget was triggered
@@ -25,7 +25,7 @@ abstract class WidgetCountingMF:  ModelFeature(){
 				{ _, m -> m?.incCnt(stateId) ?: mutableMapOf(stateId to 1) })
 	}
 
-	/** decrease the counter for a given widget id [wId] and state context [stateId].
+	/** decrease the counter for a given widget id [wId] and state eContext [stateId].
 	 * The minimal possible value is 0 for any counter value.
 	 */
 	fun decCnt(wId: UUID, stateId: UUID){

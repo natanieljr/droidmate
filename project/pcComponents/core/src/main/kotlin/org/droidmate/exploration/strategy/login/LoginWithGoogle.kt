@@ -29,11 +29,11 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.actions.ClickExplorationAction
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.widget.Explore
+import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.droidmate.misc.DroidmateException
 
 @Suppress("unused")
-class LoginWithGoogle : Explore() {
+class LoginWithGoogle : ExplorationStrategy() {
 	private val DEFAULT_ACTION_DELAY = 1000
 	private val RES_ID_PACKAGE = "com.google.android.gms"
 	private val RES_ID_ACCOUNT = "$RES_ID_PACKAGE:uid/account_display_name"
@@ -88,7 +88,7 @@ class LoginWithGoogle : Explore() {
 	}
 
 	override fun mustPerformMoreActions(): Boolean {
-		return !context.getCurrentState().widgets
+		return !eContext.getCurrentState().widgets
 				.any {
 					it.visible &&
 							it.resourceId == RES_ID_ACCOUNT
@@ -101,7 +101,7 @@ class LoginWithGoogle : Explore() {
 		if (this.state == LoginState.Done)
 			return StrategyPriority.NONE
 
-		val widgets = context.getCurrentState().actionableWidgets
+		val widgets = eContext.getCurrentState().actionableWidgets
 
 		if (canClickGoogle(widgets) ||
 				canClickAccount(widgets) ||
@@ -122,14 +122,14 @@ class LoginWithGoogle : Explore() {
 	}
 
 	override fun chooseAction(): AbstractExplorationAction {
-		return if (context.getCurrentState().isRequestRuntimePermissionDialogBox) {
-			val widget = context.getCurrentState().widgets.let { widgets ->
+		return if (eContext.getCurrentState().isRequestRuntimePermissionDialogBox) {
+			val widget = eContext.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 						?: widgets.first { it.text.toUpperCase() == "ALLOW" }
 			}
 			ClickExplorationAction(widget)
 		} else {
-			val widgets = context.getCurrentState().widgets
+			val widgets = eContext.getCurrentState().widgets
 			getWidgetAction(widgets)
 		}
 	}

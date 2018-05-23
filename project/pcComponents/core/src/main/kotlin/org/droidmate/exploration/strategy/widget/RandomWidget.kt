@@ -24,9 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import groovy.util.MapEntry
 import kotlinx.coroutines.experimental.runBlocking
-import org.codehaus.groovy.runtime.DefaultGroovyMethods.groupBy
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.actions.*
@@ -41,31 +39,31 @@ import java.util.*
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
 open class RandomWidget constructor(randomSeed: Long,
-									private val biased: Boolean = true) : Explore() {
+									private val biased: Boolean = true) : ExplorationStrategy() {
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
 	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed)
 
 	protected val random = Random(randomSeed)
-	private val counter: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>()	}
-	private val blackList: BlackListMF by lazy {	context.getOrCreateWatcher<BlackListMF>() }
+	private val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>()	}
+	private val blackList: BlackListMF by lazy {	eContext.getOrCreateWatcher<BlackListMF>() }
 
 	private fun mustRepeatLastAction(): Boolean {
-		if (!this.context.isEmpty()) {
+		if (!this.eContext.isEmpty()) {
 
 			// Last state was runtime permission
 			return (currentState.isRequestRuntimePermissionDialogBox) &&
 					// Has last action
-					this.context.lastTarget != null &&
+					this.eContext.lastTarget != null &&
 					// Has a state that is not a runtime permission
-					context.getModel().let{runBlocking { it.getStates() }}
+					eContext.getModel().let{runBlocking { it.getStates() }}
 							.filterNot { it.stateId == emptyId }
 							.filterNot { it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&
 					// Can re-execute the same action
 					currentState.actionableWidgets
-							.any { p -> context.lastTarget?.let { p.id == it.id } ?: false }
+							.any { p -> eContext.lastTarget?.let { p.id == it.id } ?: false }
 		}
 
 		return false
@@ -91,7 +89,7 @@ open class RandomWidget constructor(randomSeed: Long,
 
 	/** use this function to filter potential candidates against previously blacklisted widgets
 	 * @param block your function determining the ExplorationAction based on the filtered candidates
-	 * @param tInState the threshold to consider the widget blacklisted within the current state context
+	 * @param tInState the threshold to consider the widget blacklisted within the current state eContext
 	 * @param tOverall the threshold to consider the widget blacklisted over all states
 	 */
 	protected open suspend fun excludeBlacklisted(candidates: List<Widget>, tInState:Int=1, tOverall:Int=2, block:(listedInsState:List<Widget>, blacklisted: List<Widget>)->List<Widget>): List<Widget> =
@@ -106,13 +104,13 @@ open class RandomWidget constructor(randomSeed: Long,
 		if(this.isEmpty())
 			return ResetAppExplorationAction()
 
-		context.lastTarget = this[random.nextInt(this.size)]
-		return chooseActionForWidget(context.lastTarget!!)
+		eContext.lastTarget = this[random.nextInt(this.size)]
+		return chooseActionForWidget(eContext.lastTarget!!)
 	}
 
 	private fun chooseBiased(): AbstractExplorationAction = runBlocking{
 		val candidates = debugT("blacklist computation", {
-			excludeBlacklisted(super.context.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
+			excludeBlacklisted(super.eContext.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
 				when {
 					noBlacklisted.isNotEmpty() -> noBlacklisted
 					noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
@@ -123,7 +121,7 @@ open class RandomWidget constructor(randomSeed: Long,
 			// for each widget in this state the number of interactions
 			counter.numExplored(currentState, filteredCandidates).entries
 					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
-						if(pkgName != super.context.apk.packageName) {
+						if(pkgName != super.eContext.apk.packageName) {
 							val pkgActions = counter.pkgCount(pkgName)
 							countEntry.map { Pair(it.key, pkgActions) }
 						} else
@@ -165,8 +163,11 @@ open class RandomWidget constructor(randomSeed: Long,
 
 		val actionList: MutableList<AbstractExplorationAction> = mutableListOf()
 
-		if (widget.longClickable)
-			actionList.add(LongClickExplorationAction(widget))
+		if (widget.longClickable){    // lower probability of longClick if click is possible as it is more probable progressing the exploration
+			if(widget.clickable) {
+				if (random.nextInt(100) > 55) actionList.add(LongClickExplorationAction(widget))
+			}else 	actionList.add(LongClickExplorationAction(widget))
+		}
 
 		if (widget.clickable)
 			actionList.add(ClickExplorationAction(widget))

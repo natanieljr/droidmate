@@ -34,7 +34,7 @@ abstract class ModelFeature {
 	companion object {
 		@JvmStatic
 		val log: Logger = LoggerFactory.getLogger(ModelFeature::class.java)
-		/** dump is waiting for other job's completion, therefore it needs its own independent job, the context.dump waits for the children of this job */
+		/** dump is waiting for other job's completion, therefore it needs its own independent job, the eContext.dump waits for the children of this job */
 		@JvmStatic val dumpJob = Job()
 	}
 
@@ -42,7 +42,7 @@ abstract class ModelFeature {
 	 * calling job.joinChildren() will wait for all currently running [onNewAction] and update instances to complete*/
 	var job = Job()
 
-	/** the context in which the update tasks of the class are going to be started,
+	/** the eContext in which the update tasks of the class are going to be started,
 	 * for performance reasons they should run within the same pool for each feature
 	 * e.g. you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
 	abstract val context: CoroutineContext

@@ -44,15 +44,15 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 		: this(cfg.randomSeed, modelName, arffName)
 
 	private val eventWatcher: EventProbabilityMF by lazy {
-		(context.watcher.find { it is EventProbabilityMF }
+		(eContext.watcher.find { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
-						.also { context.watcher.add(it) }) as EventProbabilityMF
+						.also { eContext.watcher.add(it) }) as EventProbabilityMF
 	}
 
-	private val countWatcher: ActionCounterMF by lazy { context.getOrCreateWatcher<ActionCounterMF>() }
+	private val countWatcher: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>() }
 
 	/**
-     * Get all widgets which from a [widget context][currentState].
+     * Get all widgets which from a [widget eContext][currentState].
      * For each widget, stores the estimated probability to have an event (according to the model)
      *
      * @return List of widgets with their probability to have an event
@@ -73,7 +73,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 		val selectedIdx = stochasticSelect(probabilities.values, 10)
 		val chosenWidgetInfo = candidates[selectedIdx]
 
-		this.context.lastTarget = chosenWidgetInfo
+		this.eContext.lastTarget = chosenWidgetInfo
 		return chooseActionForWidget(chosenWidgetInfo)
 	}
 

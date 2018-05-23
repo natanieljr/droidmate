@@ -140,7 +140,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(uninstallApk, description = "Uninstall the APK after the exploration."),
 			CommandLineOption(uninstallAux, description = "Uninstall auxiliary files (UIAutomator and Monitor) after the exploration."),
 			CommandLineOption(replaceResources, description = "Replace the resources from the extracted resources folder upon execution."),
-			CommandLineOption(shuffleApks, description = "Explore the apks in the input directory in a random order."),
+			CommandLineOption(shuffleApks, description = "ExplorationStrategy the apks in the input directory in a random order."),
 			CommandLineOption(deployRawApks, description = "Deploys apks to device in 'raw' form, that is, without instrumenting them. Will deploy them raw even if instrumented version is available from last run."),
 			// DeviceCommunication
 			CommandLineOption(checkAppIsRunningRetryAttempts, description = "Number of attempts to check if an app is running on the device."),

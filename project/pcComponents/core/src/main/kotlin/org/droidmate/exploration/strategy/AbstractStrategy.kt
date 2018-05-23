@@ -29,7 +29,7 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.exploration.strategy.widget.Explore
+import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -51,10 +51,10 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	/**
 	 * Internal context of the strategy. Syncronized with exploration context upon initialization.
 	 */
-	protected lateinit var context: ExplorationContext
+	protected lateinit var eContext: ExplorationContext
 		private set
 
-	protected val currentState: StateData get() = context.getCurrentState()
+	protected val currentState: StateData get() = eContext.getCurrentState()
 
 	/**
 	 * Number of the current action being performed
@@ -71,19 +71,19 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	}
 
 	/**
-	 * Check if this is the first time an action will be performed ([context] is empty)
+	 * Check if this is the first time an action will be performed ([eContext] is empty)
 	 * @return If this is the first exploration action or not
 	 */
 	internal fun firstDecisionIsBeingMade(): Boolean {
-		return context.isEmpty()
+		return eContext.isEmpty()
 	}
 
 	/**
-	 * Check if last performed action in the [context] was to reset the app
+	 * Check if last performed action in the [eContext] was to reset the app
 	 * @return If the last action was a reset
 	 */
 	internal fun lastAction(): ActionData {
-		return this.context.getLastAction()
+		return this.eContext.getLastAction()
 	}
 
 	/**
@@ -109,10 +109,10 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
 	 */
 	fun getSecondLastAction(): ActionData {
-		if (this.context.getSize() < 2)
+		if (this.eContext.getSize() < 2)
 			return ActionData.empty
 
-		return this.context.actionTrace.getActions().dropLast(1).last()
+		return this.eContext.actionTrace.getActions().dropLast(1).last()
 	}
 
 	override fun updateState(actionNr: Int, record: ActionResult) {
@@ -120,7 +120,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	}
 
 	override fun initialize(memory: ExplorationContext) {
-		this.context = memory
+		this.eContext = memory
 	}
 
 	override fun registerListener(listener: IControlObserver) {
@@ -167,7 +167,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	abstract fun internalDecide(): AbstractExplorationAction
 
 	companion object {
-		val logger: Logger = LoggerFactory.getLogger(Explore::class.java)
+		val logger: Logger = LoggerFactory.getLogger(ExplorationStrategy::class.java)
 
 		val VALID_WIDGETS = ResourceManager.getResourceAsStringList("validWidgets.txt")
 	}
