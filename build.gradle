@@ -19,8 +19,8 @@ task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild
 }
 
 allprojects {
-	group = "org.droidmate"
-	version = "3.3.1-SNAPSHOT"
+	group = "uni-sb.dm-2"
+	version = "1.0"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
