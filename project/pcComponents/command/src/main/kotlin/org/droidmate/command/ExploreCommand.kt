@@ -439,7 +439,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		log.trace("tryDeviceHasPackageInstalled(device, $packageName)")
 
 		if (!device.hasPackageInstalled(packageName))
-			throw DeviceException()
+			throw DeviceException("Package $packageName not installed.")
 	}
 
 	@Throws(DeviceException::class)
