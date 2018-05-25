@@ -35,7 +35,7 @@ import java.time.LocalDateTime
 import javax.imageio.ImageIO
 
 /**
- * Interface for a context record which stores the performed action, alongside the GUI state before the action
+ * Interface for a eContext record which stores the performed action, alongside the GUI state before the action
  *
  * this should be only used for state model instantiation and not for exploration strategies
  *

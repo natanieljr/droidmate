@@ -16,7 +16,7 @@ internal operator fun UUID.plus(uuid: UUID): UUID {
 	return UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
 }
 
-/** s_* should be only used in sequential context as it currently does not handle parallelism*/
+/** s_* should be only used in sequential eContext as it currently does not handle parallelism*/
 @Suppress("MemberVisibilityCanBePrivate")
 class Model private constructor(val config: ModelConfig) {
 	private val paths = LinkedList<Trace>()
@@ -163,8 +163,10 @@ class Model private constructor(val config: ModelConfig) {
 		//		async {
 		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
 		debugT("candidate computation", {
-			interactedEF.groupBy { it.first }.map { (s, pairs) ->
-				pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets }
+			synchronized(interactedEF) {
+				interactedEF.groupBy { it.first }.map { (s, pairs) ->
+					pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets }
+				}
 			}
 		})
 				.let { candidates ->

@@ -119,8 +119,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 			}
 		}
 
-		if (deviceDescriptors.isEmpty())
-			throw NoAndroidDevicesAvailableException()
+		if (deviceDescriptors.isEmpty()) throw NoAndroidDevicesAvailableException()
 
 		assert(deviceDescriptors.isNotEmpty())
 		return (deviceDescriptors)

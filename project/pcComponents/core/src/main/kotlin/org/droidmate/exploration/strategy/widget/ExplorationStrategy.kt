@@ -32,7 +32,7 @@ import org.droidmate.exploration.strategy.AbstractStrategy
  *
  * @author Nataniel P. Borges Jr.
  */
-abstract class Explore : AbstractStrategy() {
+abstract class ExplorationStrategy : AbstractStrategy() {
 
 	// region overrides
 
@@ -42,9 +42,9 @@ abstract class Explore : AbstractStrategy() {
 	}
 
 	override fun internalDecide(): AbstractExplorationAction {
-		assert(context.explorationCanMoveOn(), {"Selected and explore action, but exploration cannot proceed."})
+		assert(eContext.explorationCanMoveOn(), {"Selected and explore action, but exploration cannot proceed."})
 
-		val allWidgetsBlackListed = context.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
+		val allWidgetsBlackListed = eContext.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
 		if (allWidgetsBlackListed)
 			this.notifyAllWidgetsBlacklisted()
 
@@ -52,10 +52,10 @@ abstract class Explore : AbstractStrategy() {
 	}
 
 	protected fun updateState(): Boolean {
-		if (!context.belongsToApp(context.getCurrentState())) {
-			if (!context.isEmpty()) {
-//                this.context.lastTarget.blackListed = true //TODO blacklist missing in current model
-				logger.debug("Blacklisted ${this.context.lastTarget}")
+		if (!eContext.belongsToApp(eContext.getCurrentState())) {
+			if (!eContext.isEmpty()) {
+//                this.eContext.lastTarget.blackListed = true //TODO blacklist missing in current model
+				logger.debug("Blacklisted ${this.eContext.lastTarget}")
 			}
 		}
 

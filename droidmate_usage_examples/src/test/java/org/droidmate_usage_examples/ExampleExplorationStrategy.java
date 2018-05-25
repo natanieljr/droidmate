@@ -13,7 +13,7 @@ package org.droidmate_usage_examples;
 
 import org.droidmate.exploration.actions.ExplorationAction;
 import org.droidmate.exploration.strategy.*;
-import org.droidmate.exploration.strategy.widget.Explore;
+import org.droidmate.exploration.strategy.widget.ExplorationStrategy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

@@ -23,6 +23,7 @@ import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.apis.ApiLogcatMessageListExtensions
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.errors.DroidmateError
@@ -30,6 +31,7 @@ import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.statemodel.features.CrashListMF
+import org.droidmate.exploration.statemodel.features.ImgTraceMF
 import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.playback.PlaybackResetAction
 import org.droidmate.misc.TimeDiffWithTolerance
@@ -70,6 +72,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 	init {
 		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
+		if(_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
 	}
 
 	fun getCurrentState(): StateData = actionTrace.currentState
@@ -93,7 +96,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 
 	fun dump() {
 		_model.P_dumpModel(_model.config)
-		this.also { context -> watcher.forEach { launch(CoroutineName("context-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
 
 		// wait until all dump's completed
 		runBlocking {
@@ -112,7 +115,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 	/**
 	 * Checks if any action has been performed
 	 *
-	 * @return If the context is empty
+	 * @return If the eContext is empty
 	 */
 	fun isEmpty(): Boolean = actionTrace.size == 0
 	fun explorationCanMoveOn() = isEmpty() || // we are starting the app -> no terminate yet

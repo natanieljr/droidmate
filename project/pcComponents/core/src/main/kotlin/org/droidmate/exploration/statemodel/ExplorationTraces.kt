@@ -84,7 +84,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 
 		@JvmStatic
 		val empty: ActionData by lazy {
-			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId, sep = ";"  //FIXME sep should be read from context instead
+			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
 			).apply { prevState = emptyId }
 		}
 

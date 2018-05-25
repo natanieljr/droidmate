@@ -139,7 +139,7 @@ open class EventProbabilityMF(modelName: String,
 	}
 
 	/**
-	 * Converts a widget info given a context where the widget is inserted (used to locate parents
+	 * Converts a widget info given a eContext where the widget is inserted (used to locate parents
 	 * and children) and a [Weka model][model]
 	 *
 	 * @receiver [Widget]

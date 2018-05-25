@@ -25,6 +25,8 @@
 
 package org.droidmate.uiautomator_daemon
 
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.runBlocking
 import org.slf4j.LoggerFactory
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
@@ -161,12 +163,12 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 		}
 
 		@JvmStatic
-		fun fromUIDump(windowHierarchyDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int,
-					   screenshot: ByteArray, screenshotWidth: Int, screenshotHeight: Int): DeviceResponse {
+		fun fromUIDump(windowHierarchyDump: Deferred<String>, deviceModel: String, displayWidth: Int, displayHeight: Int,
+					   screenshot: Deferred<ByteArray>, screenshotWidth: Int, screenshotHeight: Int): DeviceResponse {
 			val androidLauncherPackageName = androidLauncher(deviceModel)
 			val dbf = DocumentBuilderFactory.newInstance()
 			val db = dbf.newDocumentBuilder()
-			val inputStream = ByteArrayInputStream(windowHierarchyDump.toByteArray())
+			val inputStream = runBlocking { ByteArrayInputStream(windowHierarchyDump.await().toByteArray()) }
 			val hierarchy = db.parse(inputStream)
 					.apply { documentElement.normalize() }
 					.childNodes.item(0)
@@ -196,8 +198,8 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 				addWidget(widgets, null, it)
 			}
 
-			return DeviceResponse(windowHierarchyDump, topNodePackage, widgets, androidLauncherPackageName,
-					displayWidth, displayHeight, screenshot, screenshotWidth, screenshotHeight)
+			return DeviceResponse(windowHierarchyDump.getCompleted(), topNodePackage, widgets, androidLauncherPackageName,
+					displayWidth, displayHeight, runBlocking { screenshot.await() }, screenshotWidth, screenshotHeight)
 		}
 	}
 

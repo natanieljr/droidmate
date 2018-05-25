@@ -77,6 +77,7 @@ dependencies {
 	// Fast serialization library
 	compile 'de.ruedigermoeller:fst:2.56'
 	compile 'org.slf4j:slf4j-api:1.7.25'
+	compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5'
 }
 
 compileKotlin {
@@ -87,5 +88,10 @@ compileKotlin {
 compileTestKotlin {
 	kotlinOptions {
 		jvmTarget = project.ext.javaVersion
+	}
+}
+kotlin {
+	experimental {
+		coroutines "enable"
 	}
 }

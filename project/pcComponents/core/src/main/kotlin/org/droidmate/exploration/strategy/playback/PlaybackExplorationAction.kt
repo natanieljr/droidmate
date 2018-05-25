@@ -25,9 +25,20 @@
 package org.droidmate.exploration.strategy.playback
 
 import org.droidmate.exploration.actions.ClickExplorationAction
+import org.droidmate.exploration.actions.LongClickExplorationAction
 import org.droidmate.exploration.statemodel.Widget
 
-class PlaybackExplorationAction(widget: Widget, private val metaText: String = "") : ClickExplorationAction(widget,	useCoordinates = true) { // FIXME some meta-data missing like longClick or swipe
+class PlaybackClickExplorationAction(widget: Widget, private val metaText: String = "") : ClickExplorationAction(widget,	useCoordinates = true) { // FIXME some meta-data missing like longClick or swipe
+	override fun toShortString(): String {
+		return "(Playback) $metaText ${super.toShortString()}"
+	}
+
+	override fun toTabulatedString(): String {
+		return "(Playback) $metaText ${super.toTabulatedString()}"
+	}
+}
+
+class PlaybackLClickExplorationAction(widget: Widget, private val metaText: String = "") : LongClickExplorationAction(widget,	useCoordinates = true) { // FIXME some meta-data missing like longClick or swipe
 	override fun toShortString(): String {
 		return "(Playback) $metaText ${super.toShortString()}"
 	}

@@ -19,7 +19,7 @@ internal inline fun <reified K> MutableMap<K, Int>.decCnt(id: K): MutableMap<K, 
  * e.g. numExplored(state).entries.groupBy { it.value }.listOfSmallest */
 inline fun <reified K> Map<Int, List<K>>.listOfSmallest(): List<K>? = this[this.keys.fold(Int.MAX_VALUE, { res, c -> if (c < res) c else res })]
 
-/** @return the sum of all counter over all context values [T] **/
+/** @return the sum of all counter over all eContext values [T] **/
 inline fun <reified K, reified T> Map<K, Map<T, Int>>.sumCounter(id: K): Int = get(id)?.values?.sum() ?: 0
-/** @return a specific counter value for context [T] */
+/** @return a specific counter value for eContext [T] */
 inline fun <reified K, reified T> Map<K, Map<T, Int>>.getCounter(kId: K, vId: T): Int = get(kId)?.get(vId) ?: 0
