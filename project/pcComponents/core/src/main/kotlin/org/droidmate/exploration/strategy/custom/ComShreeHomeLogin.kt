@@ -3,9 +3,9 @@ package org.droidmate.exploration.strategy.custom
 import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.actions.ClickExplorationAction
 import org.droidmate.exploration.actions.EnterTextExplorationAction
-import org.droidmate.exploration.strategy.widget.Explore
+import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 
-class ComShreeHomeLogin : Explore(){
+class ComShreeHomeLogin : ExplorationStrategy(){
 	override fun chooseAction(): AbstractExplorationAction {
 		val hasUserNameField = this.currentState.widgets.any{ it.resourceId == "com.shree.home:id/useremail" }
 		if (hasUserNameField){

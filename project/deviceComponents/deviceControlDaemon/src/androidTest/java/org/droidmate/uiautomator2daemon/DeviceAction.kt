@@ -196,8 +196,10 @@ internal sealed class DeviceAction {
 
 		@JvmStatic
 		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String, simplify: Boolean = true): DeviceResponse {
-			val img = async { DeviceAction.getScreenShot(automation, simplify) }
+			val img = DeviceAction.getScreenShot(automation, simplify)
+			val imgBytes = async { DeviceAction.compressScreenshot(img) }
 			val dump = async{ DeviceAction.getWindowHierarchyDump(device) }
+
 
 			return debugT("compute UI-dump", {
 				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes,
