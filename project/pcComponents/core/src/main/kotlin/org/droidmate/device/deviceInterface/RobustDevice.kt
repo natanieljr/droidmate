@@ -270,11 +270,10 @@ class RobustDevice : IRobustDevice {
 	private fun DeviceResponse.isValid(): Boolean {
 		return if (this.screenshot.isNotEmpty()) {
 			try {
-				val image = ImageIO.read(ByteArrayInputStream(this.screenshot))
 				val maxWidth = this.widgets.map { it.boundsX + it.boundsWidth }.max() ?: 0
 				val maxHeight = this.widgets.map { it.boundsY + it.boundsHeight }.max() ?: 0
 
-				(maxWidth < image.width) || (image.height < maxHeight)
+				(maxWidth == 0 && maxHeight == 0) || ((maxWidth <= screenshotWidth) && (maxHeight <= screenshotHeight))
 			} catch (e: Exception) {
 				log.error("Invalid screenshot ${e.message}. Stacktrace: ${e.stackTrace}")
 				false

@@ -33,12 +33,14 @@ import java.io.Serializable
 import javax.xml.parsers.DocumentBuilderFactory
 
 open class DeviceResponse private constructor(val windowHierarchyDump: String,
-						  val topNodePackageName: String,
-						  val widgets: List<WidgetData>,
-						  val androidLauncherPackageName: String,
-						  val deviceDisplayWidth: Int,
-						  val deviceDisplayHeight: Int,
-						  val screenshot: ByteArray) : Serializable {
+											  val topNodePackageName: String,
+											  val widgets: List<WidgetData>,
+											  val androidLauncherPackageName: String,
+											  val deviceDisplayWidth: Int,
+											  val deviceDisplayHeight: Int,
+											  val screenshot: ByteArray,
+											  val screenshotWidth: Int,
+											  val screenshotHeight: Int) : Serializable {
 
 	var throwable: Throwable? = null
 	private val androidPackageName = "android"
@@ -59,7 +61,9 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 					"",
 					0,
 					0,
-					ByteArray(0))
+					ByteArray(0),
+					0,
+					0)
 		}
 
 		/**
@@ -157,7 +161,8 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 		}
 
 		@JvmStatic
-		fun fromUIDump(windowHierarchyDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray): DeviceResponse {
+		fun fromUIDump(windowHierarchyDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int,
+					   screenshot: ByteArray, screenshotWidth: Int, screenshotHeight: Int): DeviceResponse {
 			val androidLauncherPackageName = androidLauncher(deviceModel)
 			val dbf = DocumentBuilderFactory.newInstance()
 			val db = dbf.newDocumentBuilder()
@@ -191,7 +196,8 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 				addWidget(widgets, null, it)
 			}
 
-			return DeviceResponse(windowHierarchyDump, topNodePackage, widgets, androidLauncherPackageName, displayWidth, displayHeight, screenshot)
+			return DeviceResponse(windowHierarchyDump, topNodePackage, widgets, androidLauncherPackageName,
+					displayWidth, displayHeight, screenshot, screenshotWidth, screenshotHeight)
 		}
 	}
 

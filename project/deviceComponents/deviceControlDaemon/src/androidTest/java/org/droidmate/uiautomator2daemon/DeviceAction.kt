@@ -134,7 +134,9 @@ internal sealed class DeviceAction {
 				lastDump
 			}, inMillis = true)
 		}
-		private fun Int.binaryColor():Int = if(this>127) 1 else 0
+
+		private fun Int.binaryColor():Int = if (this > 127) 1 else 0
+
 		private fun Bitmap.simplifyImg(): Bitmap =	Bitmap.createBitmap(width,height, config).let{ newImg ->
 			for(y in 0 until height)
 			for(x in 0 until width){
@@ -158,40 +160,46 @@ internal sealed class DeviceAction {
 		}
 
 		@JvmStatic
-		private fun getScreenShot(device: UiDevice, automation: UiAutomation, simplify: Boolean =false): ByteArray {
+		private fun getScreenShot(automation: UiAutomation, simplify: Boolean =false): Bitmap {
 			return debugT(" fetching screen-shot ", {
-				var bytes = ByteArray(0)
-				val stream = ByteArrayOutputStream()
-				try {
-					var screenshot = automation.takeScreenshot()
+				var screenshot = automation.takeScreenshot()
 //					if(simplify) debugT("img modification", {screenshot = screenshot.simplifyImg()},inMillis = true)
 
-					if (screenshot != null) {
-						if ((device.displayWidth < screenshot.width) || (screenshot.height < device.displayHeight))
-							screenshot = automation.takeScreenshot()
+				if (screenshot != null)
+					screenshot = automation.takeScreenshot()
 
-						screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
-					}
-					stream.flush()
+				screenshot
 
-					bytes = stream.toByteArray()
+			}, inMillis = true)
+		}
 
-					stream.close()
-				} catch (e: IOException) {
-					stream.close()
-					e.printStackTrace()
-				}
-				bytes
-				}, inMillis = true)
+		private fun compressScreenshot(screenshot: Bitmap?): ByteArray {
+			var bytes = ByteArray(0)
+			val stream = ByteArrayOutputStream()
+			try {
+				screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+				stream.flush()
+
+				bytes = stream.toByteArray()
+
+				stream.close()
+
+			} catch (e: Exception) {
+				Log.e(uiaDaemon_logcatTag, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
+			}
+
+			return bytes
 		}
 
 		@JvmStatic
 		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String, simplify: Boolean = true): DeviceResponse {
 			val dump = DeviceAction.getWindowHierarchyDump(device)
-			val imgBytes = DeviceAction.getScreenShot(device, automation, simplify)
+			val img = DeviceAction.getScreenShot(automation, simplify)
+			val imgBytes = DeviceAction.compressScreenshot(img)
 
 			return debugT("compute UI-dump", {
-				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes)
+				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes,
+						img.width, img.height)
 			}, inMillis = true)
 		}
 	}
