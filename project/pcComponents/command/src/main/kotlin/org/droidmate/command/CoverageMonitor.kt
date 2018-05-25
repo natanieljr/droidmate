@@ -46,7 +46,7 @@ class CoverageMonitor(private val apkName: String,
 		try {
 			val script = cfg.coverageMonitorScriptPath
 
-			val outputDir = cfg.coverageReportDirPath
+			val outputDir = cfg.coverageReportDirPath.resolve(apkName)
 			Files.createDirectories(outputDir)
 			val pb = ProcessBuilder("python", script.toString(), outputDir.toString(), apkName, cfg[deviceIndex].toString())
 
