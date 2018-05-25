@@ -94,7 +94,7 @@ dependencies{
 
 jar{
 	manifest {
-		attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
+		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
 	}
 }
 
