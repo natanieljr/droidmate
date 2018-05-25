@@ -38,6 +38,7 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTime
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.device.android_sdk.ApkExplorationException
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
@@ -270,16 +271,24 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun readAndClearMonitorTcpMessages(): List<List<String>> {
 		log.debug("readAndClearMonitorTcpMessages()")
 
-		val messages = this.tcpClients.getLogs()
+		try {
+			val messages = this.tcpClients.getLogs()
 
-		messages.forEach { msg ->
-			assert(msg.size == 3)
-			assert(msg[0].isNotEmpty())
-			assert(msg[1].isNotEmpty())
-			assert(msg[2].isNotEmpty())
+			messages.forEach { msg ->
+				assert(msg.size == 3)
+				assert(msg[0].isNotEmpty())
+				assert(msg[1].isNotEmpty())
+				assert(msg[2].isNotEmpty())
+			}
+
+			return messages
 		}
+		catch(e: ApkExplorationException){
+			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}")
+			log.error("Trace: ${e.stackTrace}")
 
-		return messages
+			return emptyList()
+		}
 	}
 
 	override fun getCurrentTime(): LocalDateTime {
