@@ -42,10 +42,13 @@ import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.droidmate.uiautomator_daemon.guimodel.PressHome
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.time.LocalDateTime
+import javax.imageio.ImageIO
 
+// TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
 	companion object {
 		private val log = LoggerFactory.getLogger(RobustDevice::class.java)
@@ -221,7 +224,7 @@ class RobustDevice : IRobustDevice {
 					guiSnapshot.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
 					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
-						device.perform(PressHome())
+						perform(PressHome())
 					}
 				}
 			}
@@ -242,12 +245,12 @@ class RobustDevice : IRobustDevice {
 
 	private fun closeSelectAHomeAppDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val launcherWidget = snapshot.widgets.single { it.text == "Launcher" }
-		device.perform(ClickAction(launcherWidget.xpath, launcherWidget.resourceId))
+		perform(ClickAction(launcherWidget.xpath, launcherWidget.resourceId))
 
 		var guiSnapshot = this.getExplorableGuiSnapshot()
 		if (guiSnapshot.isSelectAHomeAppDialogBox) {
 			val justOnceWidget = guiSnapshot.widgets.single { it.text == "Just once" }
-			device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
+			perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
 			guiSnapshot = this.getExplorableGuiSnapshot()
 		}
 		assert(!guiSnapshot.isSelectAHomeAppDialogBox)
@@ -257,22 +260,44 @@ class RobustDevice : IRobustDevice {
 
 	private fun closeUseLauncherAsHomeDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val justOnceWidget = snapshot.widgets.single { it.text == "Just once" }
-		device.perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
+		perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
 
 		val guiSnapshot = this.getExplorableGuiSnapshot()
 		assert(!guiSnapshot.isUseLauncherAsHomeDialogBox)
 		return guiSnapshot
 	}
 
+	private fun DeviceResponse.isValid(): Boolean {
+		return if (this.screenshot.isNotEmpty()) {
+			try {
+				val image = ImageIO.read(ByteArrayInputStream(this.screenshot))
+				val maxWidth = this.widgets.map { it.boundsX + it.boundsWidth }.max() ?: 0
+				val maxHeight = this.widgets.map { it.boundsY + it.boundsHeight }.max() ?: 0
+
+				(maxWidth < image.width) || (image.height < maxHeight)
+			} catch (e: Exception) {
+				log.error("Invalid screenshot ${e.message}. Stacktrace: ${e.stackTrace}")
+				false
+			}
+		}
+		else
+			false
+	}
+
 	override fun perform(action: Action): DeviceResponse {
-		return Utils.retryOnException(
-				{ this.device.perform(action) },
-				{ this.restartUiaDaemon(false) },
-				DeviceException::class,
+		return Utils.retryOnFalse({
+					Utils.retryOnException(
+							{ this.device.perform(action) },
+							{ this.restartUiaDaemon(false) },
+							DeviceException::class,
+							getValidGuiSnapshotRetryAttempts,
+							0,
+							"device.perform(action:$action)"
+					)
+				},
+				{ it.isValid() },
 				getValidGuiSnapshotRetryAttempts,
-				0,
-				"device.perform(action:$action)"
-		)
+				getValidGuiSnapshotRetryDelay)
 	}
 
 	override fun appIsNotRunning(apk: IApk): Boolean {
@@ -341,9 +366,6 @@ class RobustDevice : IRobustDevice {
 	}
 
 	@Throws(DeviceException::class)
-	private fun getExplorableGuiSnapshotWithoutClosingANR(): DeviceResponse = this.getRetryValidGuiSnapshotRebootingIfNecessary()
-
-	@Throws(DeviceException::class)
 	private fun closeANRIfNecessary(guiSnapshot: DeviceResponse): DeviceResponse {
 		if (!guiSnapshot.isAppHasStoppedDialogBox)
 			return guiSnapshot
@@ -397,7 +419,7 @@ class RobustDevice : IRobustDevice {
 	private fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
 		return rebootIfNecessary("device.getGuiSnapshot()", true) {
-			this.device.perform(FetchGUI())
+			perform(FetchGUI())
 		}
 	}
 

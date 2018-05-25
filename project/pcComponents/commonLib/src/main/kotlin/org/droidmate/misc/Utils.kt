@@ -102,6 +102,26 @@ class Utils {
 		}
 
 		@JvmStatic
+		@Throws(Throwable::class)
+		fun <T> retryOnFalse(target: () -> T, validator: (T) -> Boolean, attempts: Int, delay: Int): T {
+			assert(attempts > 0)
+			var attemptsLeft = attempts
+
+			var value = target.invoke()
+			var succeeded = validator.invoke(value)
+			attemptsLeft--
+			while (!succeeded && attemptsLeft > 0) {
+				Thread.sleep(delay.toLong())
+				value = target.invoke()
+				succeeded = validator.invoke(value)
+				attemptsLeft--
+			}
+
+			assert((attemptsLeft <= 0) || succeeded)
+			return value
+		}
+
+		@JvmStatic
 		fun quoteIfIsPathToExecutable(path: String): String {
 			if (SystemUtils.IS_OS_WINDOWS) {
 				if (Files.isExecutable(Paths.get(path)))
