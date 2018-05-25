@@ -15,6 +15,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_log
 import org.droidmate.uiautomator_daemon.guimodel.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.lang.Thread.sleep
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import kotlin.system.measureNanoTime
@@ -165,10 +166,12 @@ internal sealed class DeviceAction {
 					var screenshot = automation.takeScreenshot()
 //					if(simplify) debugT("img modification", {screenshot = screenshot.simplifyImg()},inMillis = true)
 
-					if ((device.displayWidth < screenshot.width) || (screenshot.height < device.displayHeight))
-						screenshot = automation.takeScreenshot()
+					if (screenshot != null) {
+						if ((device.displayWidth < screenshot.width) || (screenshot.height < device.displayHeight))
+							screenshot = automation.takeScreenshot()
 
-					screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
+						screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
+					}
 					stream.flush()
 
 					bytes = stream.toByteArray()
