@@ -19,7 +19,7 @@ task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild
 }
 
 allprojects {
-	group = "org.droidmate-2"
+	group = "org.droidmate"
 	version = "1.0-RC1"
 
 	/* Merge all the build directories into one. */
@@ -92,12 +92,11 @@ dependencies{
 	compile project(":project:pcComponents:API")
 }
 
-jar{
+jar {
 	manifest {
-		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
+		attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
 	}
 }
-
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish'
 configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
