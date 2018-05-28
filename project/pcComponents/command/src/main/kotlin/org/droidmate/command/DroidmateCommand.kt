@@ -51,7 +51,7 @@ abstract class DroidmateCommand {
 			return when {
 				cfg[report] -> ReportCommand()
 				cfg[inline] -> InlineCommand(cfg)
-				cfg[coverage] -> CoverageCommand(cfg)
+//				cfg[coverage] -> CoverageCommand(cfg)
 				else -> ExploreCommand.build(cfg)
 			}
 		}
