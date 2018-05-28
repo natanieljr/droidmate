@@ -19,7 +19,7 @@ task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild
 }
 
 allprojects {
-	group = "org.droidmate-2"
+	group = "org.droidmate"
 	version = "1.0-RC1"
 
 	/* Merge all the build directories into one. */

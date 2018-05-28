@@ -1,4 +1,4 @@
-rootProject.name = 'droidmate'
+rootProject.name = 'droidmate-2'
 
 includeBuild 'project/deviceComponents/deviceControlDaemon/'
 
