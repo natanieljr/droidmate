@@ -3,6 +3,7 @@ package cispa.saarland.coveragecalc
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+import java.lang.Math.max
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -14,11 +15,15 @@ import kotlin.collections.HashMap
 
 class NewCoverageCalculator {
 
+	// Jie
 	//private val instrumentationDir = Paths.get("/Users/nataniel/Desktop/jie/data/instrumentation-statements/")
 	//private val resultsDir = Paths.get("/Users/nataniel/Desktop/jie/data/results/")
 
 	private val instrumentationDir = Paths.get("/Users/nataniel/Documents/saarland/2018-SS/paper-droidmate-tool/data/instrumentation-statements/")
+	// DroidMate
 	private val resultsDir = Paths.get("/Users/nataniel/Documents/saarland/2018-SS/paper-droidmate-tool/data/results/")
+	// DroidBot
+	//private val resultsDir = Paths.get("/Users/nataniel/Documents/saarland/2018-SS/paper-droidmate-tool/data/droidbot-results/")
 
 	private val outputDir = Paths.get("./out/reports")
 
@@ -79,10 +84,10 @@ class NewCoverageCalculator {
 				.filter { !it.fileName.toString().startsWith("old.") }
 				.sorted()
 				.forEach { dir ->
-			if (Files.isDirectory(dir) && dir.fileName.toString().endsWith(".apk")){
-				overallRunsCoverage.addAll(processApk(dir))
-			}
-		}
+					if (Files.isDirectory(dir) && dir.fileName.toString().endsWith(".apk")){
+						overallRunsCoverage.addAll(processApk(dir))
+					}
+				}
 
 		val inflatedData = inflateOverMax(overallRunsCoverage)
 		reportAverageTime("overall", inflatedData)
@@ -104,20 +109,20 @@ class NewCoverageCalculator {
 				.filter { !it.fileName.toString().startsWith("old.") }
 				.sorted()
 				.forEach { dir ->
-			if (Files.isDirectory(dir)) {
-				val runData = processRun(dir, apkDir.fileName.toString(), instrumentation)
+					if (Files.isDirectory(dir)) {
+						val runData = processRun(dir, apkDir.fileName.toString(), instrumentation)
 
-				if (dir.fileName.toString().startsWith("run"))
-					originalRuns.add(runData)
-				else if (!dir.fileName.toString().startsWith("old."))
-					updatedRuns.add(runData)
+						if (dir.fileName.toString().startsWith("run"))
+							originalRuns.add(runData)
+						else if (!dir.fileName.toString().startsWith("old."))
+							updatedRuns.add(runData)
 
-				printRun(apkName, dir, runData, instrumentation)
-				val statementsSeconds = generateStatementsTimeData(apkName, dir, runData, instrumentation)
+						printRun(apkName, dir, runData, instrumentation)
+						val statementsSeconds = generateStatementsTimeData(apkName, dir, runData, instrumentation)
 
-				runsCoverage.add(statementsSeconds)
-			}
-		}
+						runsCoverage.add(statementsSeconds)
+					}
+				}
 
 		val originalRunsIntersection = calculateIntersectionMap(originalRuns)
 		val updatedRunsIntersection = calculateIntersectionMap(updatedRuns)
@@ -175,10 +180,16 @@ class NewCoverageCalculator {
 	private fun processRun(runDir: Path, apkName: String, instrumentation: Map<String, String>): Map<String, Date> {
 
 		val executedStatements: MutableMap<String, Date> = HashMap()
-		Files.list(runDir.resolve("droidMate").resolve("coverage"))
+
+		val coverageDir = if (Files.exists(runDir.resolve("droidMate").resolve("coverage")))
+			runDir.resolve("droidMate").resolve("coverage")
+		else
+			runDir
+
+		Files.list(coverageDir)
 				.sorted()
 				.filter { !Files.isDirectory(it) }
-				.filter { it.fileName.toString().toString().replace("mypix-", "mypix_") .startsWith(apkName) }
+				.filter { it.fileName.toString().replace("mypix-", "mypix_") .startsWith(apkName.split(".").first()) }
 				.forEach { logFile ->
 					//println("Reading log file $logFile")
 
@@ -250,7 +261,7 @@ class NewCoverageCalculator {
 	}
 
 	private fun inflateMap(mappedData: MutableMap<Long, List<Pair<Long,String>>>,
-						   maxTime : Long = mappedData.keys.sorted().lastOrNull() ?: 0L): Map<Long, List<Pair<Long,String>>>{
+						   maxTime : Long = max(mappedData.keys.sorted().lastOrNull() ?: 0L, 3600)): Map<Long, List<Pair<Long,String>>>{
 		(0..maxTime step 5).forEach{ i ->
 			if (!mappedData.containsKey(i))
 				mappedData[i] = emptyList()
