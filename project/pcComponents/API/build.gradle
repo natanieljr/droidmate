@@ -40,13 +40,11 @@ buildscript {
 apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
 shadowJar {
 	baseName = 'shadow'
-}
-
-jar {
 	manifest {
 		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
 	}
 }
+
 // make this jar to the
 //jar.baseName = rootProject.name
 
