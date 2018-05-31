@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report.misc
 
 import com.google.common.collect.ImmutableTable
@@ -29,18 +30,25 @@ import com.google.common.collect.Table
 import com.konradjamrozik.Resource
 import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
-import org.droidmate.misc.extractedPathString
 import org.droidmate.misc.SysCmdExecutor
+import java.nio.file.Path
 import java.nio.file.Paths
 
-fun plot(dataFilePath: String, outputFilePath: String) {
+fun plot(dataFilePath: String, outputFilePath: String, resourceDir: Path) {
 
 	require(Paths.get(dataFilePath).isRegularFile, { "Paths.get(dataFilePath='$dataFilePath').isRegularFile" })
 	require(Paths.get(outputFilePath).parent.isDirectory, { "Paths.get(outputFilePath='$outputFilePath').parent.isDirectory" })
+	require(resourceDir.isDirectory, { "resourceDir(=$resourceDir).isDirectory" })
 
-	val plotTemplatePathString = Resource("plot_template.plt").extractedPathString
+	val plotTemplatePathString = Resource("plot_template.plt").extractTo(resourceDir).toString()
 
-	SysCmdExecutor().execute("Generating plot with GNUPlot", "gnuplot", "-c", plotTemplatePathString, "0", dataFilePath, outputFilePath)
+	SysCmdExecutor().execute("Generating plot with GNUPlot",
+                "gnuplot",
+                                "-c",
+                                plotTemplatePathString,
+                                "0",
+                                dataFilePath,
+                                outputFilePath)
 }
 
 fun <V> buildTable(headers: Iterable<String>, rowCount: Int, computeRow: (Int) -> Iterable<V>): Table<Int, String, V> {

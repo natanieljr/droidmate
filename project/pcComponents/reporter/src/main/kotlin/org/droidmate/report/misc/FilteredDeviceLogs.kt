@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
 class FilteredDeviceLogs {
 
 	companion object {
-		private val log: Logger = LoggerFactory.getLogger(FilteredDeviceLogs::class.java)
+		private val log: Logger by lazy { LoggerFactory.getLogger(FilteredDeviceLogs::class.java) }
 	}
 
 	fun List<IApiLogcatMessage>.filteredApiLogs(): List<IApiLogcatMessage> {

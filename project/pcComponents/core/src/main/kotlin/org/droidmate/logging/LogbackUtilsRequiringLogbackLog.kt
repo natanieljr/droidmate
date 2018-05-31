@@ -36,7 +36,7 @@ import java.nio.file.Paths
 
 class LogbackUtilsRequiringLogbackLog {
 	companion object {
-		private val log = LoggerFactory.getLogger(LogbackUtilsRequiringLogbackLog::class.java)
+		private val log by lazy { LoggerFactory.getLogger(LogbackUtilsRequiringLogbackLog::class.java) }
 
 
 		@JvmStatic
@@ -52,7 +52,6 @@ class LogbackUtilsRequiringLogbackLog {
 					.filter { it.isRegularFile }
 					.forEach { logFile ->
 						if (logFile.fileName.toString() !in invalidNames) {
-
 							if (!Files.deleteIfExists(logFile)) {
 								msgNotDeletedLogFileNames += " $logFile.name,"
 								logFile.writeText("")

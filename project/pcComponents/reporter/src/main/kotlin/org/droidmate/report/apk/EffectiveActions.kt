@@ -53,7 +53,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 		private const val nexus5XPixelDensity: Int = (24 * 2.6).toInt()
 	}
 
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val sb = StringBuilder()
 		val header = "Time_Seconds\tTotal_Actions\tTotal_Effective\n"
 		sb.append(header)
@@ -95,7 +95,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
 		if (includePlots) {
 			log.info("Writing out plot $")
-			this.writeOutPlot(reportFile)
+			this.writeOutPlot(reportFile, resourceDir)
 		}
 	}
 
@@ -109,13 +109,11 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 		}
 	}
 
-	private fun writeOutPlot(dataFile: Path) {
+	private fun writeOutPlot(dataFile: Path, resourceDir: Path) {
 		val fileName = dataFile.fileName.withExtension("pdf")
 		val outFile = dataFile.resolveSibling(fileName)
 
-		plot(
-				dataFilePath = dataFile.toAbsolutePath().toString(),
-				outputFilePath = outFile.toAbsolutePath().toString())
+		plot(dataFile.toAbsolutePath().toString(), outFile.toAbsolutePath().toString(), resourceDir)
 	}
 
 	/**

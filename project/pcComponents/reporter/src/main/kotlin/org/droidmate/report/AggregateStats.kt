@@ -31,7 +31,7 @@ import java.nio.file.Path
 
 class AggregateStats @JvmOverloads constructor(private val fileName: String = "aggregate_stats.txt") : Reporter() {
 	companion object {
-		private val log: Logger = LoggerFactory.getLogger(AggregateStats::class.java)
+		private val log: Logger by lazy { LoggerFactory.getLogger(AggregateStats::class.java) }
 	}
 
 	fun getTableData(rawData: List<ExplorationContext>, path: Path): TableDataFile<Int, String, String> {
@@ -42,7 +42,7 @@ class AggregateStats @JvmOverloads constructor(private val fileName: String = "a
 		return reportDir.resolve(fileName)
 	}
 
-	override fun safeWrite(reportDir: Path, rawData: List<ExplorationContext>) {
+	override fun safeWrite(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
 		val path = getFilePath(reportDir)
 		val report = getTableData(rawData, path)
 		log.info("Writing out report $report")

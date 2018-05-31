@@ -36,7 +36,7 @@ class MonitorsClient(socketTimeout: Int,
 					 useLegacyStream: Boolean) : IMonitorsClient {
 
 	companion object {
-		private val log = LoggerFactory.getLogger(MonitorsClient::class.java)
+		private val log by lazy { LoggerFactory.getLogger(MonitorsClient::class.java) }
 	}
 
 	// remove this.getPorts from all methods

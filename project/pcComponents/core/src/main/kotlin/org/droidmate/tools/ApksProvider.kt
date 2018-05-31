@@ -36,7 +36,7 @@ import kotlin.streams.toList
 
 class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
 	companion object {
-		private val log = LoggerFactory.getLogger(ApksProvider::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ApksProvider::class.java) }
 	}
 
 	override fun getApks(apksDir: Path, apksLimit: Int, apksNames: List<String>, shuffle: Boolean): List<Apk> {

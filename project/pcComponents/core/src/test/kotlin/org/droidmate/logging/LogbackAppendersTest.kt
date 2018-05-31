@@ -34,16 +34,27 @@ import ch.qos.logback.core.Appender
 import ch.qos.logback.core.spi.FilterReply
 import org.droidmate.logging.LogbackAppenders.Companion.changeThresholdLevelOfFirstFilter
 import org.droidmate.logging.LogbackAppenders.Companion.getStdStreamsAppenders
+import org.junit.BeforeClass
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 import org.slf4j.Marker
+import java.io.File
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
 class LogbackAppendersTest {
+
+	companion object {
+		@BeforeClass
+		@JvmStatic
+		fun setUpClass() {
+			System.setProperty("logsDir", ".${File.separator}out${File.separator}logs")
+		}
+	}
+
 	@Test
 	fun `Changes threshold level of first filter`() {
 		val appenders = getStdStreamsAppenders()

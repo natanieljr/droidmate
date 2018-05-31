@@ -33,7 +33,7 @@ import kotlin.streams.toList
  * Class responsible for managing access to resource files
  */
 object ResourceManager {
-	internal val logger = LoggerFactory.getLogger(ResourceManager::class.java)
+	internal val logger by lazy { LoggerFactory.getLogger(ResourceManager::class.java) }
 
 	/**
 	 * Returns the path of a resource.

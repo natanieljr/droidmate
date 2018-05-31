@@ -79,7 +79,7 @@ class WidgetData @JvmOverloads constructor(map: MutableMap<String, Any?>, val in
 
 	companion object {
 		@JvmStatic
-		private val log = LoggerFactory.getLogger(DeviceResponse::class.java)
+		private val log by lazy { LoggerFactory.getLogger(DeviceResponse::class.java) }
 
 		@JvmStatic
 		private fun sanitize(value: String): String{

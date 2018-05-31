@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 @Deprecated("this should go away! simply store a list for all exploration contexts")
 class ExplorationOutput2(private val list: MutableList<ExplorationContext> = ArrayList()) : MutableList<ExplorationContext> by list {
 	companion object {
-		private val log = LoggerFactory.getLogger(ExplorationOutput2::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ExplorationOutput2::class.java) }
 		private const val serialVersionUID: Long = 1
 
 		@JvmStatic

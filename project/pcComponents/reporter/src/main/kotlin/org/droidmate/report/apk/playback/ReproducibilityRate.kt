@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report.apk.playback
 
 import org.droidmate.exploration.ExplorationContext
@@ -41,7 +42,7 @@ import java.nio.file.Path
 class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: Playback,
 													private val includePlots: Boolean = true,
 													fileName: String = "reproducibilityRate.txt") : PlaybackReport(playbackStrategy, fileName) {
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val reportSubDir = getPlaybackReportDir(apkReportDir)
 
 		val sb = StringBuilder()
@@ -87,16 +88,14 @@ class ReproducibilityRate @JvmOverloads constructor(playbackStrategy: Playback,
 
 		if (includePlots) {
 			log.info("Writing out plot $")
-			this.writeOutPlot(reportFile)
+			this.writeOutPlot(reportFile, resourceDir)
 		}
 	}
 
-	private fun writeOutPlot(dataFile: Path) {
+	private fun writeOutPlot(dataFile: Path, resourceDir: Path) {
 		val fileName = dataFile.fileName.withExtension("pdf")
 		val outFile = dataFile.resolveSibling(fileName)
 
-		plot(
-				dataFilePath = dataFile.toAbsolutePath().toString(),
-				outputFilePath = outFile.toAbsolutePath().toString())
+		plot(dataFile.toAbsolutePath().toString(), outFile.toAbsolutePath().toString(), resourceDir)
 	}
 }

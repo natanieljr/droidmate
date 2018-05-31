@@ -32,7 +32,7 @@ class ApkExplorationException @JvmOverloads constructor(val apk: IApk,
                                                         private val stopFurtherApkExplorations: Boolean = false) : ExplorationException(cause) {
 	companion object {
 		private const val serialVersionUID: Long = 1
-		private val log = LoggerFactory.getLogger(ApkExplorationException::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ApkExplorationException::class.java) }
 	}
 
 	fun shouldStopFurtherApkExplorations(): kotlin.Boolean {

@@ -34,7 +34,7 @@ import kotlin.reflect.KClass
 
 class Utils {
 	companion object {
-		private val log = LoggerFactory.getLogger(Utils::class.java)
+		private val log by lazy { LoggerFactory.getLogger(Utils::class.java) }
 
 		@JvmStatic
 		@Throws(Throwable::class)

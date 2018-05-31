@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.command
 
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
@@ -36,17 +37,18 @@ class ReportCommand : DroidmateCommand() {
 		val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
 		val data = out
 		val includePlots = cfg[includePlots]
+		val resourceDir = cfg.resourceDir
 
-		AggregateStats().write(cfg.droidmateOutputReportDirPath, data)
-		Summary().write(cfg.droidmateOutputReportDirPath, data)
-		ApkViewsFile().write(cfg.droidmateOutputReportDirPath, data)
-		ApiCount(includePlots).write(cfg.droidmateOutputReportDirPath, data)
-		ClickFrequency(includePlots).write(cfg.droidmateOutputReportDirPath, data)
-		WidgetSeenClickedCount(includePlots).write(cfg.droidmateOutputReportDirPath, data)
-		ApiActionTrace().write(cfg.droidmateOutputReportDirPath, data)
-		ActivitySeenSummary().write(cfg.droidmateOutputReportDirPath, data)
-		ActionTrace().write(cfg.droidmateOutputReportDirPath, data)
-		WidgetApiTrace().write(cfg.droidmateOutputReportDirPath, data)
-		EffectiveActions().write(cfg.droidmateOutputReportDirPath, data)
+		AggregateStats().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		Summary().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		ApkViewsFile().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		ApiCount(includePlots).write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		ClickFrequency(includePlots).write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		WidgetSeenClickedCount(includePlots).write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		ApiActionTrace().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		ActivitySeenSummary().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		ActionTrace().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		WidgetApiTrace().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		EffectiveActions().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
 	}
 }

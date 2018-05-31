@@ -119,7 +119,7 @@ class ApkInliner constructor(private val sysCmdExecutor: ISysCmdExecutor,
 	}
 
 	companion object {
-		private val log = LoggerFactory.getLogger(ApkInliner::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ApkInliner::class.java) }
 
 		@JvmStatic
 		fun build(cfg: ConfigurationWrapper): ApkInliner {

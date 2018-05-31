@@ -39,7 +39,7 @@ class ExceptionHandler : IExceptionHandler {
 	}
 
 	companion object {
-		private val log = LoggerFactory.getLogger(ExceptionHandler::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ExceptionHandler::class.java) }
 
 		@JvmStatic
 		private fun internalHandle(e: Throwable): Int {

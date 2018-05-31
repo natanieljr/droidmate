@@ -33,7 +33,7 @@ import kotlin.coroutines.experimental.CoroutineContext
 abstract class ModelFeature {
 	companion object {
 		@JvmStatic
-		val log: Logger = LoggerFactory.getLogger(ModelFeature::class.java)
+		val log: Logger by lazy { LoggerFactory.getLogger(ModelFeature::class.java) }
 		/** dump is waiting for other job's completion, therefore it needs its own independent job, the eContext.dump waits for the children of this job */
 		@JvmStatic val dumpJob = Job()
 	}

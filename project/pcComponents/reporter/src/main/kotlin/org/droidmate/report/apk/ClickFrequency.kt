@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report.apk
 
 import org.droidmate.exploration.ExplorationContext
@@ -31,7 +32,7 @@ import java.nio.file.Path
 class ClickFrequency @JvmOverloads constructor(private val includePlots: Boolean,
                                                private val fileName: String = "clickFrequency.txt") : ApkReport() {
 
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val dataTable = ClickFrequencyTable(data)
 		val reportPath = apkReportDir.resolve(fileName)
 		val report = TableDataFile(dataTable, reportPath)
@@ -39,7 +40,7 @@ class ClickFrequency @JvmOverloads constructor(private val includePlots: Boolean
 		report.write()
 		if (includePlots) {
 			log.info("Writing out plot $report")
-			report.writeOutPlot()
+			report.writeOutPlot(resourceDir)
 		}
 	}
 }

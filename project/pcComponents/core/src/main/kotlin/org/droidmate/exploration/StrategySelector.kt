@@ -49,7 +49,7 @@ class StrategySelector constructor(val priority: Int,
 	}
 
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(StrategySelector::class.java)
+        val logger: Logger by lazy { LoggerFactory.getLogger(StrategySelector::class.java) }
 
 		/**
 		 * Get action before the last one.

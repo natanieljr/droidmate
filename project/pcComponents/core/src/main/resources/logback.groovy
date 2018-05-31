@@ -66,10 +66,10 @@ appender(LogbackAppenders.appender_stderr, ConsoleAppender) {
 //endregion Console appenders
 
 //region File appenders, specialized
-appender(appender_name_stdStreams, LazyFileAppender) {
+appender(appender_name_stdStreams, FileAppender) {
 	file = getLogFilePath(appender_name_stdStreams)
 	append = false
-	lazy = true
+//	lazy = true
 
 	filter(ThresholdFilter) { level = STDOUT_LOG_LEVEL }
 	filter(MarkerFilter) { marker = Markers.appHealth; onMismatch = NEUTRAL; onMatch = ACCEPT }

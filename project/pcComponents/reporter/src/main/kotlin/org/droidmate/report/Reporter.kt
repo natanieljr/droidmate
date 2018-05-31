@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report
 
 import org.droidmate.exploration.ExplorationContext
@@ -31,13 +32,13 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 abstract class Reporter {
-	protected val log: Logger = LoggerFactory.getLogger(Reporter::class.java)
+	protected val log: Logger by lazy { LoggerFactory.getLogger(Reporter::class.java) }
 
-	fun write(reportDir: Path, rawData: List<ExplorationContext>) {
+	fun write(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
 		Files.createDirectories(reportDir)
 		log.info("Writing out report ${this.javaClass.simpleName} to $reportDir")
 		try {
-			safeWrite(reportDir, rawData)
+			safeWrite(reportDir, resourceDir, rawData)
 		} catch (e: Exception) {
 			log.error("Unable to write the report ${this.javaClass.simpleName} to $reportDir. Exception: $e. Generating remaining reports.")
 			log.error("Error stack trace:")
@@ -45,5 +46,5 @@ abstract class Reporter {
 		}
 	}
 
-	protected abstract fun safeWrite(reportDir: Path, rawData: List<ExplorationContext>)
+	protected abstract fun safeWrite(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>)
 }

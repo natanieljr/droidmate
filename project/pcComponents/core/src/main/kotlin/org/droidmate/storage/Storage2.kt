@@ -45,7 +45,7 @@ import java.util.*
  */
 class Storage2 constructor(private val droidmateOutputDirPath: Path) : IStorage2 {
 	companion object {
-		private val log = LoggerFactory.getLogger(Storage2::class.java)
+		private val log by lazy { LoggerFactory.getLogger(Storage2::class.java) }
 
 		val serializationConfig: FSTConfiguration
 			get() {

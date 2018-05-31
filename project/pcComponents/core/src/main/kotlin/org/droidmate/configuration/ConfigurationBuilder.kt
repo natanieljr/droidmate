@@ -100,16 +100,14 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
+import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.BuildConstants
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.management.ManagementFactory
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.*
 
 /**
  * @see IConfigurationBuilder#build(java.lang.String [ ], java.nio.file.FileSystem)
@@ -223,11 +221,16 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				// overrides default config file
 				defaultConfig
 
+		// Set the logging directory for the logback logger
+		val outputPath = Paths.get(config[droidmateOutputDirPath].toString()).resolve(ConfigurationWrapper.log_dir_name)
+		System.setProperty("logsDir", outputPath.toString())
+		assert(System.getProperty("logsDir") == outputPath.toString())
+
 		return ConfigurationBuilder.memoizedBuildConfiguration(config, fs)
 	}
 
 	companion object {
-		private val log = LoggerFactory.getLogger(ConfigurationBuilder::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ConfigurationBuilder::class.java) }
 
 		@JvmStatic
 		private fun memoizedBuildConfiguration(cfg: Configuration, fs: FileSystem): ConfigurationWrapper {
@@ -369,9 +372,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				rootLogger.level = Level.toLevel(config[logLevel])
 				explorationLogger.level = Level.toLevel(config[logLevel])
 			} else
-				throw ConfigurationException(String.format(
-						"Unrecognized logging level. Given level: %s. Expected one of levels: info debug trace",
-						config[logLevel]))
+				throw ConfigurationException("Unrecognized logging level. Given level: ${config[logLevel]}. Expected one of levels: info debug trace")
 		}
 
 		/*

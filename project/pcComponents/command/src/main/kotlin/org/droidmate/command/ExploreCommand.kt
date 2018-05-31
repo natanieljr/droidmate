@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
+import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
@@ -65,6 +66,7 @@ import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
+import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.Markers
 import org.droidmate.misc.*
 import org.droidmate.report.AggregateStats
@@ -88,7 +90,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
                                       private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
-		protected val log: Logger = LoggerFactory.getLogger(ExploreCommand::class.java)
+		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
 
 		@Suppress("MemberVisibilityCanBePrivate")
 		@JvmStatic
@@ -221,14 +223,14 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		}
 	}
 
-	private fun writeReports(reportDir: Path, rawData: List<ExplorationContext>) {
+	private fun writeReports(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
 		if (!Files.exists(reportDir))
 			Files.createDirectories(reportDir)
 
 		assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
 
 		log.info("Writing reports")
-		reporters.forEach { it.write(reportDir.toAbsolutePath(), rawData) }
+		reporters.forEach { it.write(reportDir.toAbsolutePath(), resourceDir.toAbsolutePath(), rawData) }
 	}
 
 	fun registerReporter(report: Reporter) {
@@ -271,6 +273,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		Files.walk(outputDir)
 				.filter { it.parent.fileName.toString() != BuildConstants.dir_name_temp_extracted_resources }
 				.filter { it.isRegularFile }
+				.filter { it.isDirectory && it.fileName.toString().equals(ConfigurationWrapper.log_dir_name) }
 				.forEach { Files.delete(it) }
 
 		Files.walk(outputDir)
@@ -294,7 +297,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			throw deployExploreSerializeThrowable
 		}
 
-		writeReports(cfg.droidmateOutputReportDirPath, out)
+		writeReports(cfg.droidmateOutputReportDirPath, cfg.resourceDir, out)
 
 		return explorationExceptions
 	}

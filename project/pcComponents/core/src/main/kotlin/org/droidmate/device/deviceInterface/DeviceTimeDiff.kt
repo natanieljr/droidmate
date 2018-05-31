@@ -50,7 +50,7 @@ import java.time.format.DateTimeFormatter
  */
 class DeviceTimeDiff(private val device: IExplorableAndroidDevice) : IDeviceTimeDiff {
 	companion object {
-		private val log = LoggerFactory.getLogger(DeviceTimeDiff::class.java)
+		private val log by lazy { LoggerFactory.getLogger(DeviceTimeDiff::class.java) }
 	}
 
 	private var diff: Duration? = null

@@ -41,7 +41,7 @@ class Apk constructor(internalPath: Path,
 
 	companion object {
 		private const val serialVersionUID: Long = 1
-		private val log = LoggerFactory.getLogger(Apk::class.java)
+		private val log by lazy { LoggerFactory.getLogger(Apk::class.java) }
 
 		private const val dummyVal = "DUMMY"
 		private val dummyApk = Apk(Paths.get("./dummy.apk"), dummyVal, dummyVal, dummyVal, dummyVal)

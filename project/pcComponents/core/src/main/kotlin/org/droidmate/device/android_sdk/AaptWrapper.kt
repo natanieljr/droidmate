@@ -41,7 +41,7 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
                               private val sysCmdExecutor: ISysCmdExecutor) : IAaptWrapper {
 
 	companion object {
-		private val log = LoggerFactory.getLogger(AaptWrapper::class.java)
+		private val log by lazy { LoggerFactory.getLogger(AaptWrapper::class.java) }
 
 		@JvmStatic
 		@Throws(DroidmateException::class)

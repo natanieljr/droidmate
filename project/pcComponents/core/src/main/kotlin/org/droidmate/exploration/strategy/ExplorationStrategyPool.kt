@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.exploration.strategy
 
 import kotlinx.coroutines.experimental.*
@@ -47,7 +48,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 
 	companion object {
 		@JvmStatic
-		private val logger = LoggerFactory.getLogger(ExplorationStrategyPool::class.java)
+		private val logger by lazy { LoggerFactory.getLogger(ExplorationStrategyPool::class.java) }
 	}
 
 	// region properties

@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report.apk
 
 import org.droidmate.exploration.ExplorationContext
@@ -31,16 +32,16 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 abstract class ApkReport : Reporter() {
-	override fun safeWrite(reportDir: Path, rawData: List<ExplorationContext>) {
+	override fun safeWrite(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
 		rawData.forEach { data ->
 			val apkReportDir = reportDir.resolve(data.apkFileNameWithUnderscoresForDots)
 
 			Files.createDirectories(apkReportDir)
 
 			log.info("Writing out report ${this.javaClass.simpleName} to $apkReportDir")
-			safeWriteApkReport(data, apkReportDir)
+			safeWriteApkReport(data, apkReportDir, resourceDir)
 		}
 	}
 
-	protected abstract fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path)
+	protected abstract fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path)
 }
