@@ -60,7 +60,6 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
@@ -123,14 +122,6 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
 
-			res.add(StrategySelector(++priority, "ComShreeHomeLogin", {context, pool, _ ->
-				if (context.apk.packageName == "com.shree.home" && context.getCurrentState().widgets.any { it.resourceId == "com.shree.home:id/useremail" })
-					pool.getFirstInstanceOf(ComShreeHomeLogin::class.java)
-				else
-					null
-			},
-					cfg[resetEvery]))
-
 			// Interval reset
 			if (cfg[resetEvery] > 0)
 				res.add(StrategySelector(++priority, "intervalReset", StrategySelector.intervalReset, cfg[resetEvery]))
@@ -181,8 +172,6 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
-
-			strategies.add(ComShreeHomeLogin())
 
 			return strategies
 		}
