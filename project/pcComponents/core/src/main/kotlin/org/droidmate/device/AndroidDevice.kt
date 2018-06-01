@@ -199,7 +199,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			this.tcpClients.waitForUiaDaemonToClose()
 
 		assert(Utils.retryOnFalse({ !this.uiaDaemonIsRunning() }, 5, 1000))
-		assert(!this.uiaDaemonIsRunning())
+		assert(!this.uiaDaemonIsRunning(), { "UIaDeamon is still running." })
 		log.trace("DONE stopUiaDaemon()")
 	}
 
@@ -233,7 +233,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun startUiaDaemon() {
-		assert(!this.uiaDaemonIsRunning())
+		assert(!this.uiaDaemonIsRunning(), { "UIaDeamon is not running." })
 		this.clearLogcat()
 		this.tcpClients.startUiaDaemon()
 	}
