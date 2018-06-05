@@ -272,12 +272,13 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		Files.walk(outputDir)
 				.filter { it.parent.fileName.toString() != BuildConstants.dir_name_temp_extracted_resources }
+				.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
 				.filter { it.isRegularFile }
-				.filter { it.isDirectory && it.fileName.toString().equals(ConfigurationWrapper.log_dir_name) }
 				.forEach { Files.delete(it) }
 
 		Files.walk(outputDir)
 				.filter { it.parent.fileName.toString() != BuildConstants.dir_name_temp_extracted_resources }
+				.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
 				.forEach { assert(Files.isDirectory(it), {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"}) }
 	}
 
