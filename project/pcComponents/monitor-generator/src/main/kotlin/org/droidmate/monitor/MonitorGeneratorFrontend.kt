@@ -33,7 +33,7 @@ import java.nio.file.Files
 
 class MonitorGeneratorFrontend {
 	companion object {
-		private val log = LoggerFactory.getLogger(MonitorGeneratorFrontend::class.java)
+		private val log by lazy { LoggerFactory.getLogger(MonitorGeneratorFrontend::class.java) }
 
 		@JvmStatic
 		fun main(args: Array<String>) {

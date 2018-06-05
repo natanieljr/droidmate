@@ -58,7 +58,7 @@ import java.util.regex.Pattern
 class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
                              private val sysCmdExecutor: ISysCmdExecutor) : IAdbWrapper {
 	companion object {
-		private val log = LoggerFactory.getLogger(AdbWrapper::class.java)
+		private val log by lazy { LoggerFactory.getLogger(AdbWrapper::class.java) }
 
 		@JvmStatic
 		fun removeAdbStartedMsgIfPresent(stdStreams: Array<String>) {

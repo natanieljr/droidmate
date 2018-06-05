@@ -40,7 +40,7 @@ import java.time.LocalDateTime
 abstract class AbstractExplorationAction(open val timestamp: LocalDateTime) : Serializable {
 
 	constructor(): this (timestamp = LocalDateTime.now())
-	internal val log = LoggerFactory.getLogger(javaClass)
+	internal val log by lazy { LoggerFactory.getLogger(javaClass) }
 	/** name to be used to identify and compare the action-type */
 	val actionName: String = javaClass.simpleName
 	companion object {

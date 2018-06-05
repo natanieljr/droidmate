@@ -22,23 +22,24 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report
 
 import com.konradjamrozik.Resource
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.misc.extractedText
+import org.droidmate.misc.getTextFromExtractedResource
 import java.nio.file.Files
 import java.nio.file.Path
 
 class Summary @JvmOverloads constructor(val fileName: String = "summary.txt") : Reporter() {
 
-	override fun safeWrite(reportDir: Path, rawData: List<ExplorationContext>) {
+	override fun safeWrite(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
 		val file = reportDir.resolve(this.fileName)
 
 		val reportData = if (rawData.isEmpty())
 			"Exploration output was empty (no apks), so this summary is empty."
 		else
-			Resource("apk_exploration_summary_header.txt").extractedText +
+			Resource("apk_exploration_summary_header.txt").getTextFromExtractedResource(resourceDir) +
 					rawData.joinToString(separator = System.lineSeparator()) { it ->
 						ApkSummary.build(it)
 					}

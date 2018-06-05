@@ -22,24 +22,25 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.misc
 
 import com.konradjamrozik.Resource
 import java.nio.file.Path
 import java.nio.file.Paths
 
-val Resource.extractedPath: Path
-	get() {
-		val resDir = Paths.get("out", BuildConstants.dir_name_temp_extracted_resources)
-		return this.extractTo(resDir).toAbsolutePath()
-	}
-
-val Resource.extractedPathString: String
-	get() {
-		return this.extractedPath.toString()
-	}
-
+/**
+ * Extracts a file in 'out/BuildConstants.dir_name_temp_extracted_resources'.
+ *
+ * This should only be used for tests.
+ */
 val Resource.extractedText: String
 	get() {
-		return extractedPath.text
+		val resDir = Paths.get("out", BuildConstants.dir_name_temp_extracted_resources)
+		val extractedFile = this.extractTo(resDir).toAbsolutePath()
+		return extractedFile.text
 	}
+
+fun Resource.getTextFromExtractedResource(resourceDir: Path): String {
+	return this.extractTo(resourceDir).text
+}

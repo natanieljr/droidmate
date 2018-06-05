@@ -73,7 +73,7 @@ class AndroidDevice constructor(private val serialNumber: String,
                                 private val cfg: ConfigurationWrapper,
                                 private val adbWrapper: IAdbWrapper) : IAndroidDevice {
 	companion object {
-		private val log = LoggerFactory.getLogger(AndroidDevice::class.java)
+		private val log by lazy { LoggerFactory.getLogger(AndroidDevice::class.java) }
 
 		@JvmStatic
 		@Throws(DeviceException::class)

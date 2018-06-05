@@ -42,7 +42,7 @@ abstract class DroidmateCommand {
 
 	companion object {
 		@JvmStatic
-		protected val log: Logger = LoggerFactory.getLogger(DroidmateCommand::class.java)
+		protected val log: Logger by lazy { LoggerFactory.getLogger(DroidmateCommand::class.java) }
 
 		@JvmStatic
 		fun build(cfg: ConfigurationWrapper): DroidmateCommand {

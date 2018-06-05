@@ -56,7 +56,12 @@ import java.util.concurrent.TimeUnit
  */
 class DroidmateFrontend {
 	companion object {
-		private val log = LoggerFactory.getLogger(DroidmateFrontend::class.java)
+		/**
+		 * Load the loggers lazily so the initialization of logback is postponed.
+		 * If the appropriate arguments are passed, the logger directory can be set
+		 * beforehand and logback puts the logs into the desired directory.
+		 */
+		private val log by lazy { LoggerFactory.getLogger(DroidmateFrontend::class.java) }
 
 		/**
 		 * @see DroidmateFrontend
@@ -158,13 +163,13 @@ class DroidmateFrontend {
 			else
 				log.info("DroidMate run finished successfully.")
 
-			log.info("Run finish timestamp: ${runEnd.toString().format(timestampFormat)}. DroidMate ran for $runDuration.")
+			log.info("Run finish timestamp: ${runEnd.toString().format(timestampFormat)}. DroidMate ran for $runDuration sec.")
 			log.info("The results from the run can be found in ${cfg.droidmateOutputDirPath} directory.")
 			log.info("By default, for detailed diagnostics logs from the run, see ${LogbackConstants.LOGS_DIR_PATH} directory.")
 
 			log.info(runData, "Run start  timestamp: ${runStart.toString().format(timestampFormat)}")
 			log.info(runData, "Run finish timestamp: ${runEnd.toString().format(timestampFormat)}")
-			log.info(runData, "DroidMate ran for: $runDuration")
+			log.info(runData, "DroidMate ran for: $runDuration sec")
 		}
 	}
 }

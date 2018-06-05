@@ -53,7 +53,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 	}
 
 	companion object {
-		private val log = LoggerFactory.getLogger(DeviceResponse::class.java)
+		private val log by lazy { LoggerFactory.getLogger(DeviceResponse::class.java) }
 
 		@JvmStatic
 		val empty: DeviceResponse by lazy {

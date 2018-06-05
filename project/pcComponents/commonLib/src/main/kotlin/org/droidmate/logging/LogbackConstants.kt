@@ -26,6 +26,7 @@
 package org.droidmate.logging
 
 import java.io.File
+import java.nio.file.Paths
 
 
 class LogbackConstants {
@@ -38,12 +39,10 @@ class LogbackConstants {
 		private fun getLogsDirPath(): String {
 			// WISH note: logsDir has to be set on VM arg instead of normal arg. Maybe making it normal arg and then resetting
 			// the config as described here [1] would help. [1]: http://logback.qos.ch/manual/configuration.html#joranDirectly
+			requireNotNull(System.getProperty("logsDir"), { "System.getProperty(\"logsDir\")='${System.getProperty("logsDir")}')" })
+
 			val logsDir = System.getProperty("logsDir")
-			return if (logsDir == null)
-			// !!! DUPLICATION WARNING !!! org.droidmate.configuration.Configuration.defaultDroidmateOutputDir
-				"." + File.separator + "out" + File.separator + "logs"
-			else
-				"." + File.separator + logsDir
+			return Paths.get(logsDir).toString()
 		}
 
 		@JvmStatic

@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report.apk
 
 import org.droidmate.exploration.ExplorationContext
@@ -31,7 +32,7 @@ import java.nio.file.Path
 class WidgetSeenClickedCount @JvmOverloads constructor(private val includePlots: Boolean,
                                                        private val fileName: String = "viewCount.txt") : ApkReport() {
 
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val dataTable = WidgetSeenClickedTable(data)
 
 		val reportPath = apkReportDir.resolve(fileName)
@@ -40,7 +41,7 @@ class WidgetSeenClickedCount @JvmOverloads constructor(private val includePlots:
 		report.write()
 		if (includePlots) {
 			log.info("Writing out plot $report")
-			report.writeOutPlot()
+			report.writeOutPlot(resourceDir)
 		}
 	}
 }

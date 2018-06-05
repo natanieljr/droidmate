@@ -46,7 +46,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
                                         private val deviceFactory: IAndroidDeviceFactory) : IAndroidDeviceDeployer {
 
 	companion object {
-		private val log = LoggerFactory.getLogger(AndroidDeviceDeployer::class.java)
+		private val log by lazy { LoggerFactory.getLogger(AndroidDeviceDeployer::class.java) }
 
 		@Throws(DeviceException::class)
 		@JvmStatic

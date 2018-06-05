@@ -45,7 +45,7 @@ import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
 object ExplorationAPI {
-	private val log = LoggerFactory.getLogger(ExplorationAPI::class.java)
+	private val log by lazy { LoggerFactory.getLogger(ExplorationAPI::class.java) }
 
 	/**
 	 * entry-point to explore an application with a (subset) of default exploration strategies as specified in the property `explorationStrategies`

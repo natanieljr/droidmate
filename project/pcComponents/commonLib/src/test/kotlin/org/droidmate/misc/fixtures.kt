@@ -30,7 +30,7 @@ import java.nio.file.Path
 /**
  * The metadata to the run used for this fixture is located in directory located in the same dir as this fixture.
  */
-val fixture_monitoredSer2: Path by lazy { Resource("fixtures/stored.ser2").extractedPath }
+//val fixture_monitoredSer2: Path by lazy { Resource("fixtures/stored.ser2").extractedPath }
 val fixture_aaptBadgingDump: String by lazy { Resource("fixtures/f_aaptBadgingDump.txt").extractedText }
 
 // tsa == TestSubjectApp

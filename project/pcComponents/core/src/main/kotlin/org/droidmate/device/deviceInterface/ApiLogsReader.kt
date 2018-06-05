@@ -40,7 +40,7 @@ import java.time.format.DateTimeFormatter
 
 class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : IApiLogsReader {
 	companion object {
-		private val log = LoggerFactory.getLogger(ApiLogsReader::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ApiLogsReader::class.java) }
 	}
 
 	/**
@@ -51,7 +51,7 @@ class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : 
 	 *
 	 * </p>
 	 */
-	private val monitorLogger = LoggerFactory.getLogger(LogbackConstants.logger_name_monitor)
+	private val monitorLogger by lazy { LoggerFactory.getLogger(LogbackConstants.logger_name_monitor) }
 
 	@Suppress("OverridingDeprecatedMember")
 	override fun getCurrentApiLogsFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {

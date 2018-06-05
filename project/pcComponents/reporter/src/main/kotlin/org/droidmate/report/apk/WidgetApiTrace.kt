@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report.apk
 
 import kotlinx.coroutines.experimental.runBlocking
@@ -34,7 +35,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : ApkReport() {
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val sb = StringBuilder()
 		val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
 		sb.append(header)

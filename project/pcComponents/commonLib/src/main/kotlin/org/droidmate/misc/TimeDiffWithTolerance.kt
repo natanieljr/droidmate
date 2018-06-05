@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 
 class TimeDiffWithTolerance(private val tolerance: Duration) {
 
-	private val log: Logger = LoggerFactory.getLogger(TimeDiffWithTolerance::class.java)
+	private val log: Logger by lazy { LoggerFactory.getLogger(TimeDiffWithTolerance::class.java) }
 
 	fun warnIfBeyond(start: LocalDateTime, end: LocalDateTime, startName: String, endName: String, apkFileName: String): Boolean {
 		val startAfterEnd = Duration.between(end, start)

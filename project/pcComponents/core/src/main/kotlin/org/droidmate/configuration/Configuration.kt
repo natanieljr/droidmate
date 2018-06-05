@@ -126,6 +126,14 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 
 		const val api23 = 23
 		const val defaultApksDir = "apks"
+
+		/**
+		 * Name of the logging directory, containing all the logs.
+		 * Unfortunately this cannot be in the LogbackConstants class, because
+		 * it would result in accessing this static variable and loading another
+		 * static variable 'LOGS_DIR_PATH', which wouldn't be ready yet.
+		 */
+		const val log_dir_name = "logs"
 	}
 }
 

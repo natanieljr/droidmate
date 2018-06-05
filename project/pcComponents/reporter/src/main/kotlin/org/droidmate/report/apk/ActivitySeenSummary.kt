@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report.apk
 
 import org.droidmate.exploration.actions.PressBackExplorationAction
@@ -32,7 +33,7 @@ import java.nio.file.Path
 
 class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String = "activitiesSeen.txt") : ApkReport() {
 
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val sb = StringBuilder()
 		val header = "activity\tcount\n"
 		sb.append(header)

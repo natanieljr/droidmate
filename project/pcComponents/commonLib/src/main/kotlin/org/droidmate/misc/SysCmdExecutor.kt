@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
 
 class SysCmdExecutor : ISysCmdExecutor {
 	companion object {
-		private val log = LoggerFactory.getLogger(SysCmdExecutor::class.java)
+		private val log by lazy { LoggerFactory.getLogger(SysCmdExecutor::class.java) }
 		private val TIMEOUT_REACHED_ZONE = 100
 
 		@JvmStatic

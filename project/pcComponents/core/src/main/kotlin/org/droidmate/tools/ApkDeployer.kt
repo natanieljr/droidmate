@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory
  */
 class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeployer {
 	companion object {
-		private val log = LoggerFactory.getLogger(ApkDeployer::class.java)
+		private val log by lazy { LoggerFactory.getLogger(ApkDeployer::class.java) }
 	}
 
 	override fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: (IApk) -> Any): List<ApkExplorationException> {

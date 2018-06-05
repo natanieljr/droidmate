@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.report
 
 import com.google.common.collect.Table
@@ -36,10 +37,8 @@ class TableDataFile<R, C, V>(val table: Table<R, C, V>,
 		Files.write(file, tableString.toByteArray())
 	}
 
-	fun writeOutPlot() {
-		plot(
-				dataFilePath = file.toAbsolutePath().toString(),
-				outputFilePath = plotFile.toAbsolutePath().toString())
+	fun writeOutPlot(resourceDir: Path) {
+		plot(file.toAbsolutePath().toString(), plotFile.toAbsolutePath().toString(), resourceDir)
 	}
 
 	private val tableString: String by lazy {

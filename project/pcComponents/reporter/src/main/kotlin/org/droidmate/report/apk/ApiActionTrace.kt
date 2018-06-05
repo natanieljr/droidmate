@@ -32,7 +32,7 @@ import java.nio.file.Path
 
 class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "apiActionTrace.txt") : ApkReport() {
 
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path) {
+	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val sb = StringBuilder()
 		val header = "actionNr\tactivity\taction\tapi\tuniqueStr\n"
 		sb.append(header)

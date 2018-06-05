@@ -167,7 +167,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	abstract fun internalDecide(): AbstractExplorationAction
 
 	companion object {
-		val logger: Logger = LoggerFactory.getLogger(ExplorationStrategy::class.java)
+		val logger: Logger by lazy { LoggerFactory.getLogger(ExplorationStrategy::class.java) }
 
 		val VALID_WIDGETS = ResourceManager.getResourceAsStringList("validWidgets.txt")
 	}

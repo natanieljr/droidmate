@@ -173,6 +173,6 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 	}
 
 	companion object {
-		private val log = LoggerFactory.getLogger(StatementInstrumenter::class.java)
+		private val log by lazy { LoggerFactory.getLogger(StatementInstrumenter::class.java) }
 	}
 }

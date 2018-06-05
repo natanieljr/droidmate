@@ -51,7 +51,7 @@ import javax.imageio.ImageIO
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
 	companion object {
-		private val log = LoggerFactory.getLogger(RobustDevice::class.java)
+		private val log by lazy { LoggerFactory.getLogger(RobustDevice::class.java) }
 	}
 
 	private val ensureHomeScreenIsDisplayedAttempts = 3

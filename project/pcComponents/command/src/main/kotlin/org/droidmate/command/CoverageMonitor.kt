@@ -36,12 +36,12 @@ import java.nio.file.Files
  */
 class CoverageMonitor(private val apkName: String,
                       private val cfg: ConfigurationWrapper) : Runnable {
-	private val log: Logger = LoggerFactory.getLogger(CoverageMonitor::class.java)
+	private val log: Logger by lazy { LoggerFactory.getLogger(CoverageMonitor::class.java) }
 	private var p: Process? = null
 
 	override fun run() {
 		val rootReportDir = cfg.coverageReportDirPath.toAbsolutePath()
-		log.info(Markers.appHealth, "Starting coverage monitor for $apkName. Output to $$")
+		log.info(Markers.appHealth, "Starting coverage monitor for $apkName. Output to $rootReportDir")
 
 		try {
 			val script = cfg.coverageMonitorScriptPath

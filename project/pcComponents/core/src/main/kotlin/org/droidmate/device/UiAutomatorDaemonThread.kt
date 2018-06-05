@@ -32,7 +32,7 @@ class UiAutomatorDaemonThread constructor(private val adbWrapper: IAdbWrapper,
                                           private val port: Int) : Runnable {
 
 	companion object {
-		private val log = LoggerFactory.getLogger(UiAutomatorDaemonThread::class.java)
+		private val log by lazy { LoggerFactory.getLogger(UiAutomatorDaemonThread::class.java) }
 	}
 
 	override fun run() {
