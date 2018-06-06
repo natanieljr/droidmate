@@ -38,8 +38,8 @@ import java.util.*
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class RandomWidget constructor(randomSeed: Long,
-									private val biased: Boolean = true) : ExplorationStrategy() {
+open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
+												  private val biased: Boolean = true) : ExplorationStrategy() {
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
