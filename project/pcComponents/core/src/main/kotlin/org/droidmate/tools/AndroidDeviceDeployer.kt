@@ -25,9 +25,11 @@
 
 package org.droidmate.tools
 
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.installAux
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallAux
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
+import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IAndroidDevice
@@ -152,21 +154,31 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	override fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> List<ApkExplorationException>): List<ExplorationException> {
-		if (deviceSerialNumber.isNotEmpty())
-			log.info("Setup device with deviceSerialNumber of $deviceSerialNumber")
-		else
-			log.info("Setup device with deviceIndex of $deviceIndex")
+		// Set the deviceSerialNumber in the configuration. Calculate the deviceSerialNumber, if not not provided by
+		// the given deviceIndex. It can't be done in the configuration because it needs access to the AdbWrapper.
+
+		var serialNumber = deviceSerialNumber
+
+		// If deviceIndex is given and serialNumber is empty
+		if (serialNumber.isEmpty()) {
+			serialNumber = AndroidDeviceDeployer.tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
+			cfg.deviceSerialNumber = serialNumber
+		} else {
+			assert(cfg[ConfigProperties.Exploration.deviceSerialNumber].isNotEmpty(), {"Expected deviceSerialNumber to be not empty."})
+			cfg.deviceSerialNumber = serialNumber
+		}
+		assert(cfg.deviceSerialNumber.isNotEmpty(), {"Expected deviceSerialNumber to be initialized."})
+		log.info("Setup device with deviceSerialNumber of ${cfg.deviceSerialNumber}")
 
 		val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
 
-		val data = setupDevice(deviceSerialNumber, deviceIndex)
-		val throwable = data[2] as Throwable?
+		val data = setupDevice()
+		val throwable = data[1] as Throwable?
 		if (throwable != null) {
 			explorationExceptions.add(ExplorationException(throwable))
 			return explorationExceptions
 		}
 		val device = data[0] as IRobustDevice
-		val serialNumber = data[1] as String
 
 		assert(explorationExceptions.isEmpty())
 		try {
@@ -201,27 +213,23 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 		return explorationExceptions
 	}
 
-	private fun setupDevice(deviceSerialNumber: String, deviceIndex: Int): List<Any?> {
+	private fun setupDevice(): List<Any?> {
 		try {
-			var serialNumber = deviceSerialNumber
-			if (serialNumber.isEmpty())
-				serialNumber = AndroidDeviceDeployer.tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
+			this.usedSerialNumbers.add(cfg.deviceSerialNumber)
 
-			this.usedSerialNumbers.add(serialNumber)
-
-			val device = robustWithReadableLogs(this.deviceFactory.create(serialNumber))
+			val device = robustWithReadableLogs(this.deviceFactory.create(cfg.deviceSerialNumber))
 
 			trySetUp(device)
 
-			return arrayListOf(device, serialNumber, null)
+			return arrayListOf(device, null)
 
 		} catch (setupDeviceThrowable: Throwable) {
 			log.warn(Markers.appHealth,
-					"! Caught ${setupDeviceThrowable.javaClass.simpleName} in setupDevice(deviceIndex: $deviceIndex). " +
+					"! Caught ${setupDeviceThrowable.javaClass.simpleName} in setupDevice(). " +
 							"Adding as a cause to an ${ExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
 			log.error(Markers.appHealth, setupDeviceThrowable.message, setupDeviceThrowable)
 
-			return arrayListOf(null, null, setupDeviceThrowable)
+			return arrayListOf(null, setupDeviceThrowable)
 		}
 	}
 

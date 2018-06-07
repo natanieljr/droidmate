@@ -67,8 +67,6 @@ class BuildConstants {
 		@JvmStatic
 		val dir_name_temp_extracted_resources = safeGetProperty(properties, "dir_name_temp_extracted_resources")
 		@JvmStatic
-		val coverage_monitor_script = safeGetProperty(properties, "coverage_monitor_script")
-		@JvmStatic
 		val monitor_generator_res_name_monitor_template = safeGetProperty(properties, "monitor_generator_res_name_monitor_template")
 		@JvmStatic
 		val monitor_generator_output_relative_path_api23 = safeGetProperty(properties, "monitor_generator_output_relative_path_api23")

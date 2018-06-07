@@ -112,7 +112,6 @@ import java.nio.file.*
 /**
  * @see IConfigurationBuilder#build(java.lang.String [ ], java.nio.file.FileSystem)
  */
-
 class ConfigurationBuilder : IConfigurationBuilder {
 	@Throws(ConfigurationException::class)
 	override fun build(args: Array<String>): ConfigurationWrapper = build(args, FileSystems.getDefault())
@@ -301,7 +300,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				arrayListOf(cfg.alwaysClickFirstWidget, cfg.widgetIndexes.isNotEmpty()).map { if (it) 1 else 0 }.sum()*/
 
 		@JvmStatic
-		private fun getDeviceDir(cfg: Configuration): String{
+		private fun getDeviceDir(cfg: Configuration): String {
 			// If not using main device, export again
 			return when {
 				cfg[deviceSerialNumber].isNotEmpty() -> "device" + cfg[deviceSerialNumber].replace(":", "-")
@@ -344,9 +343,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 			cfg.apiPoliciesFile = getResourcePath(cfg, BuildConstants.api_policies_file_name).toAbsolutePath()
 			log.info("Using ${BuildConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
-
-			cfg.coverageMonitorScriptPath = getResourcePath(cfg, BuildConstants.coverage_monitor_script).toAbsolutePath()
-			log.info("Using ${BuildConstants.coverage_monitor_script} located at ${cfg.coverageMonitorScriptPath}")
 
 			cfg.apksDirPath = if (cfg[useApkFixturesDir])
 				ResourcePath(BuildConstants.apk_fixtures).path.toAbsolutePath()

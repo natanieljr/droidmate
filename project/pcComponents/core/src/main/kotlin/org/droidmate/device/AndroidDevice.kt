@@ -88,20 +88,12 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	init {
-		// If the device serial number is not empty, update the device index from the serial number
-		// it can't be done in the configuration because it needs access to the AdbWrapper
-		if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isNotEmpty()){
-			cfg.indexFromSN = adbWrapper.getAndroidDevicesDescriptors().indexOfFirst { it.deviceSerialNumber == this.serialNumber }
-		}
-
 		// Port file can only be generated here because it depends on the device index
 		val portFile = File.createTempFile(BuildConstants.port_file_name, ".tmp")
 		portFile.writeText(Integer.toString(cfg.monitorPort))
 		portFile.deleteOnExit()
 		cfg.portFile = portFile.toPath().toAbsolutePath()
 		log.info("Using ${BuildConstants.port_file_name} located at ${cfg.portFile}")
-
-
 	}
 
 	private val tcpClients: ITcpClients = TcpClients(

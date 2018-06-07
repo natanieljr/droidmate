@@ -591,6 +591,10 @@ Logcat reference:
 	}
 
 	override fun executeCommand(deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String {
+		return executeCommand(this.sysCmdExecutor, deviceSerialNumber, successfulOutput, commandDescription, *cmdLineParams)
+	}
+
+	override fun executeCommand(sysCmdExecutor: ISysCmdExecutor, deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String {
 		val allCmdLineParams = arrayListOf(cfg.adbCommand, "-s", deviceSerialNumber)
 		try {
 			allCmdLineParams.addAll(cmdLineParams)

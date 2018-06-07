@@ -34,21 +34,19 @@ import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
-class SysCmdExecutor : ISysCmdExecutor {
+class SysCmdInterruptableExecutor : ISysCmdExecutor {
 	companion object {
-		private val log by lazy { LoggerFactory.getLogger(SysCmdExecutor::class.java) }
+		private val log = LoggerFactory.getLogger(SysCmdInterruptableExecutor::class.java)
 	}
 
-	/** Timeout for executing system commands, in milliseconds. Zero or negative value means no timeout. */
-	// App that often requires more than one minute for "adb start": net.zedge.android_v4.10.2-inlined.apk
-	val sysCmdExecuteTimeout = 1000 * 60 * 2
+	// We set the default timeout to -1 so that later the actual timeout is set to ExecuteWatchdog.INFINITE_TIMEOUT
+	// if no positive timeout is provided
+	val sysCmdExecuteTimeout = -1
+	var currentWatchdog: ExecuteWatchdog? = null
 
-	/*
- * References:
- * http://commons.apache.org/exec/apidocs/index.html
- * http://commons.apache.org/exec/tutorial.html
- * http://blog.sanaulla.info/2010/09/07/execute-external-process-from-within-jvm-using-apache-commons-exec-library/
- */
+	fun stopCurrentExecutionIfExisting() {
+		currentWatchdog?.destroyProcess()
+	}
 
 	override fun execute(commandDescription: String, vararg cmdLineParams: String): Array<String> {
 		return executeWithTimeout(commandDescription, sysCmdExecuteTimeout, *cmdLineParams)
@@ -86,10 +84,15 @@ class SysCmdExecutor : ISysCmdExecutor {
 
 		executor.streamHandler = pumpStreamHandler
 
+		// Attach the process timeout.
 		if (timeout > 0) {
-			// Attach the process timeout.
 			val watchdog = ExecuteWatchdog(timeout.toLong())
 			executor.watchdog = watchdog
+			currentWatchdog = watchdog
+		} else if (timeout < 0) {
+			val watchdog = ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT)
+			executor.watchdog = watchdog
+			currentWatchdog = watchdog
 		}
 
 		// Only exit value of 0 is allowed for the call to return successfully.
@@ -103,24 +106,27 @@ class SysCmdExecutor : ISysCmdExecutor {
 
 		val executionTimeStopwatch = Stopwatch.createStarted()
 
-		val exitValue: Int
+		var exitValue: Int
 		try {
 			exitValue = executor.execute(command)
-
 		} catch (e: ExecuteException) {
-			throw SysCmdExecutorException(String.format("Failed to execute a system command.\n"
-					+ "Command: %s\n"
-					+ "Captured exit value: %d\n"
-					+ "Execution time: %s\n"
-					+ "Captured stdout: %s\n"
-					+ "Captured stderr: %s",
-					command.toString(),
-					e.exitValue,
-					getExecutionTimeMsg(executionTimeStopwatch, timeout, e.getExitValue(), commandDescription),
-					if (processStdoutStream.toString().isEmpty()) processStdoutStream.toString() else "<stdout is empty>",
-					if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
-					e)
-
+			exitValue = e.getExitValue()
+			// If exitValue==143 or 1 on Windows, then the SIGTERM signal was sent and this process was forced to finish, so don't
+			// throw an exception.
+			if (exitValue != 143 && exitValue != 1) {
+				throw SysCmdExecutorException(String.format("Failed to execute a system command.\n"
+						+ "Command: %s\n"
+						+ "Captured exit value: %d\n"
+						+ "Execution time: %s\n"
+						+ "Captured stdout: %s\n"
+						+ "Captured stderr: %s",
+						command.toString(),
+						e.exitValue,
+						getExecutionTimeMsg(executionTimeStopwatch, timeout, e.getExitValue(), commandDescription),
+						if (processStdoutStream.toString().isEmpty()) processStdoutStream.toString() else "<stdout is empty>",
+						if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
+						e)
+			}
 		} catch (e: IOException) {
 			throw SysCmdExecutorException(String.format("Failed to execute a system command.\n"
 					+ "Command: %s\n"
@@ -131,6 +137,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 					if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
 					e)
 		} finally {
+			currentWatchdog = null
 			log.trace("Captured stdout:")
 			log.trace(processStdoutStream.toString())
 
