@@ -17,9 +17,10 @@ import java.io.InputStream
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
+@Suppress("MemberVisibilityCanBePrivate")
 open class EventProbabilityMF(modelName: String,
 							  arffName: String,
-							  private val useClassMembershipProbability: Boolean) : ModelFeature() {
+							  protected val useClassMembershipProbability: Boolean) : ModelFeature() {
 	init{
 		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 	}
@@ -29,7 +30,7 @@ open class EventProbabilityMF(modelName: String,
 	/**
 	 * Weka classifier with pre-trained model
 	 */
-	private val classifier: RandomForest by lazy {
+	protected val classifier: RandomForest by lazy {
 		val model: InputStream = ResourceManager.getResource(modelName)
 		log.debug("Loading model file")
 		weka.core.SerializationHelper.read(model) as RandomForest
@@ -37,7 +38,7 @@ open class EventProbabilityMF(modelName: String,
 	/**
 	 * Instances originally used to train the model.
 	 */
-	private val wekaInstances: Instances by lazy {
+	protected val wekaInstances: Instances by lazy {
 		log.debug("Loading ARFF header")
 		val modelData: InputStream = ResourceManager.getResource(arffName)
 		initializeInstances(modelData)
@@ -52,7 +53,7 @@ open class EventProbabilityMF(modelName: String,
 	 *
 	 * @return Empty Weka instance set (with loaded nominal attributes)
 	 */
-	private fun initializeInstances(modelData: InputStream): Instances {
+	protected fun initializeInstances(modelData: InputStream): Instances {
 		val source = ConverterUtils.DataSource(modelData)
 		val model = source.dataSet
 
@@ -98,7 +99,7 @@ open class EventProbabilityMF(modelName: String,
 		}
 	}
 
-	private fun Widget.getRefinedType(): String {
+	protected fun Widget.getRefinedType(): String {
 		return if (AbstractStrategy.VALID_WIDGETS.contains(this.className.toLowerCase()))
 			className.toLowerCase()
 		else {
@@ -111,7 +112,7 @@ open class EventProbabilityMF(modelName: String,
 		}
 	}
 
-	private fun findClosestView(target: String): String {
+	protected fun findClosestView(target: String): String {
 		var distance = Integer.MAX_VALUE
 		var closest = ""
 
@@ -130,7 +131,7 @@ open class EventProbabilityMF(modelName: String,
 	 *
 	 * @return Index of the String in the attribute list or -1 if not found
 	 */
-	private fun Instances.getNominalIndex(attributeNumber: Int, value: String): Double {
+	protected fun Instances.getNominalIndex(attributeNumber: Int, value: String): Double {
 		return this.attribute(attributeNumber)
 				.enumerateValues()
 				.toList()
@@ -144,7 +145,7 @@ open class EventProbabilityMF(modelName: String,
 	 *
 	 * @receiver [Widget]
 	 */
-	private fun Widget.toWekaInstance(state: StateData, model: Instances): Instance {
+	protected fun Widget.toWekaInstance(state: StateData, model: Instances): Instance {
 		val attributeValues = DoubleArray(5)
 
 		attributeValues[0] = model.getNominalIndex(0, this.getRefinedType())
