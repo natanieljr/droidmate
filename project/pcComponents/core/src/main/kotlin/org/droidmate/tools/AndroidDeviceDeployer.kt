@@ -152,28 +152,34 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	override fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> List<ApkExplorationException>): List<ExplorationException> {
-		if (deviceSerialNumber.isNotEmpty())
-			log.info("Setup device with deviceSerialNumber of $deviceSerialNumber")
-		else
-			log.info("Setup device with deviceIndex of $deviceIndex")
+		// Set the deviceSerialNumber in the configuration. Calculate the deviceSerialNumber, if not not provided by
+		// the given deviceIndex. It can't be done in the configuration because it needs access to the AdbWrapper.
+
+		// If deviceIndex is given and serialNumber is empty
+		cfg.deviceSerialNumber = if (deviceSerialNumber.isEmpty()) {
+			AndroidDeviceDeployer.tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
+		} else
+			deviceSerialNumber
+
+		assert(cfg.deviceSerialNumber.isNotEmpty(), {"Expected deviceSerialNumber to be initialized."})
+		log.info("Setup device with deviceSerialNumber of ${cfg.deviceSerialNumber}")
 
 		val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
 
-		val data = setupDevice(deviceSerialNumber, deviceIndex)
-		val throwable = data[2] as Throwable?
+		val data = setupDevice()
+		val throwable = data[1] as Throwable?
 		if (throwable != null) {
 			explorationExceptions.add(ExplorationException(throwable))
 			return explorationExceptions
 		}
 		val device = data[0] as IRobustDevice
-		val serialNumber = data[1] as String
 
 		assert(explorationExceptions.isEmpty())
 		try {
 			val apkExplorationExceptions = computation(device)
 			explorationExceptions.addAll(apkExplorationExceptions)
 		} catch (computationThrowable: Throwable) {
-			log.error("!!! Caught ${computationThrowable.javaClass.simpleName} in withSetupDevice($deviceIndex)->computation($device). " +
+			log.error("!!! Caught ${computationThrowable.javaClass.simpleName} in withSetupDevice(${cfg.deviceSerialNumber})->computation($device). " +
 					"This means ${ApkExplorationException::class.java.simpleName}s have been lost, if any! " +
 					"Adding the exception as a cause to an ${ExplorationException::class.java.simpleName}. " +
 					"Then adding to the collected exceptions list.\n" +
@@ -181,14 +187,14 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 			explorationExceptions.add(ExplorationException(computationThrowable))
 		} finally {
-			log.debug("Finalizing: withSetupDevice($deviceIndex)->finally{} for computation($device)")
+			log.debug("Finalizing: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 			try {
 				tryTearDown(device)
-				usedSerialNumbers -= serialNumber
+				usedSerialNumbers -= cfg.deviceSerialNumber
 
 			} catch (tearDownThrowable: Throwable) {
 				log.warn(Markers.appHealth,
-						"! Caught ${tearDownThrowable.javaClass.simpleName} in withSetupDevice($deviceIndex)->tryTearDown($device). " +
+						"! Caught ${tearDownThrowable.javaClass.simpleName} in withSetupDevice(${cfg.deviceSerialNumber})->tryTearDown($device). " +
 								"Adding as a cause to an ${ExplorationException::class.java.simpleName}. " +
 								"Then adding to the collected exceptions list.\n" +
 								"The ${tearDownThrowable::class.java.simpleName}: $tearDownThrowable")
@@ -196,32 +202,28 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 				explorationExceptions.add(ExplorationException(tearDownThrowable))
 			}
-			log.debug("Finalizing DONE: withSetupDevice($deviceIndex)->finally{} for computation($device)")
+			log.debug("Finalizing DONE: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 		}
 		return explorationExceptions
 	}
 
-	private fun setupDevice(deviceSerialNumber: String, deviceIndex: Int): List<Any?> {
+	private fun setupDevice(): List<Any?> {
 		try {
-			var serialNumber = deviceSerialNumber
-			if (serialNumber.isEmpty())
-				serialNumber = AndroidDeviceDeployer.tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
+			this.usedSerialNumbers.add(cfg.deviceSerialNumber)
 
-			this.usedSerialNumbers.add(serialNumber)
-
-			val device = robustWithReadableLogs(this.deviceFactory.create(serialNumber))
+			val device = robustWithReadableLogs(this.deviceFactory.create(cfg.deviceSerialNumber))
 
 			trySetUp(device)
 
-			return arrayListOf(device, serialNumber, null)
+			return arrayListOf(device, null)
 
 		} catch (setupDeviceThrowable: Throwable) {
 			log.warn(Markers.appHealth,
-					"! Caught ${setupDeviceThrowable.javaClass.simpleName} in setupDevice(deviceIndex: $deviceIndex). " +
+					"! Caught ${setupDeviceThrowable.javaClass.simpleName} in setupDevice(). " +
 							"Adding as a cause to an ${ExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
 			log.error(Markers.appHealth, setupDeviceThrowable.message, setupDeviceThrowable)
 
-			return arrayListOf(null, null, setupDeviceThrowable)
+			return arrayListOf(null, setupDeviceThrowable)
 		}
 	}
 

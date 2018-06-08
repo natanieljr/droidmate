@@ -28,6 +28,7 @@ package org.droidmate.android_sdk
 import org.droidmate.device.android_sdk.AndroidDeviceDescriptor
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
+import org.droidmate.misc.ISysCmdExecutor
 
 import java.nio.file.Path
 
@@ -140,6 +141,11 @@ class AdbWrapperStub : IAdbWrapper {
 
 	override fun executeCommand(deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String {
 
+		return ""
+	}
+
+	override fun executeCommand(sysCmdExecutor: ISysCmdExecutor, deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String {
+		assert(false, { "Not yet implemented!" })
 		return ""
 	}
 

@@ -49,7 +49,6 @@ import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.debug.debugT
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.data_aggregators.ExplorationOutput2
@@ -80,9 +79,9 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
-import kotlin.system.measureTimeMillis
 
 open class ExploreCommand constructor(private val apksProvider: IApksProvider,
+									  private val adbWrapper: IAdbWrapper,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
                                       private val timeProvider: ITimeProvider,
@@ -190,8 +189,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
-			val command = ExploreCommand(apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-					timeProvider, strategyProvider, modelProvider)
+			val command = ExploreCommand(apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+										 timeProvider, strategyProvider, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -315,7 +314,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			apks.forEachIndexed { i, apk ->
 				if (!encounteredApkExplorationsStoppingException) {
 					// Start measuring Method Coverage
-					val covMonitor = CoverageMonitor(apk.fileName, cfg)
+					val covMonitor = CoverageMonitor(apk.fileName, adbWrapper, cfg)
 					val covMonitorThread = Thread(covMonitor, "Logcat thread")
 					covMonitorThread.start()
 

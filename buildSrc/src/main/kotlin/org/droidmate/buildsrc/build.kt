@@ -77,8 +77,6 @@ val apk_inliner_param_input = "-input"
 val apk_inliner_param_output_dir = "-outputDir"
 val AVD_dir_for_temp_files = "/data/local/tmp/"
 
-val coverage_monitor_script = "adb_logcat_monitor.py"
-
 val uia2_daemon_project_name = "deviceControlDaemon"
 val uia2_daemon_relative_project_dir = File("project${File.separator}deviceComponents", uia2_daemon_project_name)
 

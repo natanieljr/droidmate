@@ -33,7 +33,6 @@ import java.util.*
 
 class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configuration,
 													 private val fileSystem: FileSystem = FileSystems.getDefault()) : Configuration by cfg {
-	var indexFromSN: Int = 0
 
 	val randomSeed by lazy {
 		if (cfg[ConfigProperties.Selectors.randomSeed] == -1L)
@@ -43,24 +42,23 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	}
 
 	val monitorPort by lazy {
-		cfg[ConfigProperties.ApiMonitorServer.basePort] +
-				if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isEmpty())
-					cfg[ConfigProperties.Exploration.deviceIndex]
-				else
-					indexFromSN
+		assert(deviceSerialNumber.isNotEmpty(), {"deviceSerialNumber should not be empty."})
+		cfg[ConfigProperties.ApiMonitorServer.basePort] + deviceSerialNumber.hashCode() % 999
 	}
 
 	val uiAutomatorPort by lazy {
-		cfg[ConfigProperties.UiAutomatorServer.basePort] +
-				if (cfg[ConfigProperties.Exploration.deviceSerialNumber].isEmpty())
-					cfg[ConfigProperties.Exploration.deviceIndex]
-				else
-					indexFromSN
+		assert(deviceSerialNumber.isNotEmpty(), {"deviceSerialNumber should not be empty."})
+		cfg[ConfigProperties.UiAutomatorServer.basePort] + deviceSerialNumber.hashCode() % 999
 	}
 
 	init {
 		///
 	}
+
+	// Running DroidMate only requires Exploration.deviceIndex or Exploration.deviceSerialNumber to be set.
+	// During execution deviceSerialNumber is needed, therefore the deviceSerialNumber is calculated and
+	// set by AndroidDeviceDeployer.
+	lateinit var deviceSerialNumber: String
 
 	//region Values set by ConfigurationBuilder
 	lateinit var droidmateOutputDirPath: Path
@@ -68,8 +66,6 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	lateinit var droidmateOutputReportDirPath: Path
 
 	lateinit var reportInputDirPath: Path
-
-	lateinit var coverageMonitorScriptPath: Path
 
 	lateinit var coverageReportDirPath: Path
 

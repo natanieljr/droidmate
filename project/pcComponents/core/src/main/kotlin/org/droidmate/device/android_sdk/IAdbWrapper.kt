@@ -25,6 +25,7 @@
 
 package org.droidmate.device.android_sdk
 
+import org.droidmate.misc.ISysCmdExecutor
 import java.nio.file.Path
 
 interface IAdbWrapper {
@@ -106,6 +107,9 @@ interface IAdbWrapper {
 
 	@Throws(AdbWrapperException::class)
 	fun executeCommand(deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String
+
+	@Throws(AdbWrapperException::class)
+	fun executeCommand(sysCmdExecutor: ISysCmdExecutor, deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String
 
 	@Throws(AdbWrapperException::class)
 	fun reconnect(deviceSerialNumber: String)
