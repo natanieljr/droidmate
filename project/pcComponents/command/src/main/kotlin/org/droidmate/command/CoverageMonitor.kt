@@ -66,7 +66,7 @@ class CoverageMonitor(private val apkName: String,
 		}
 	}
 
-	fun startLogcatIfNecessary(counter: Int): Int {
+	private fun startLogcatIfNecessary(counter: Int): Int {
 
 		val file = getLogFilename(counter)
 		val output = adbWrapper.executeCommand(sysCmdExecutor, cfg[deviceSerialNumber], "", "Logcat coverage monitor",
@@ -77,13 +77,13 @@ class CoverageMonitor(private val apkName: String,
 		return counter + 1
 	}
 
-	fun getLogFilename(counter: Int): Path {
+	private fun getLogFilename(counter: Int): Path {
 		return Paths.get(
-                "${outputDir}${File.separator}${apkName}-logcat_${cfg[deviceSerialNumber].toString().replace(":", "-")}_%03d"
+                "$outputDir${File.separator}$apkName-logcat_${cfg[deviceSerialNumber].toString().replace(":", "-")}_%03d"
 				.format(counter))
 	}
 
-	fun write(file: Path, content: String) {
+	private fun write(file: Path, content: String) {
 		Files.write(file, content.toByteArray())
 	}
 

@@ -25,11 +25,9 @@
 
 package org.droidmate.tools
 
-import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.installAux
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallAux
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
-import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IAndroidDevice
@@ -157,16 +155,12 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 		// Set the deviceSerialNumber in the configuration. Calculate the deviceSerialNumber, if not not provided by
 		// the given deviceIndex. It can't be done in the configuration because it needs access to the AdbWrapper.
 
-		var serialNumber = deviceSerialNumber
-
 		// If deviceIndex is given and serialNumber is empty
-		if (serialNumber.isEmpty()) {
-			serialNumber = AndroidDeviceDeployer.tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
-			cfg.deviceSerialNumber = serialNumber
-		} else {
-			assert(cfg[ConfigProperties.Exploration.deviceSerialNumber].isNotEmpty(), {"Expected deviceSerialNumber to be not empty."})
-			cfg.deviceSerialNumber = serialNumber
-		}
+		cfg.deviceSerialNumber = if (deviceSerialNumber.isEmpty()) {
+			AndroidDeviceDeployer.tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
+		} else
+			deviceSerialNumber
+
 		assert(cfg.deviceSerialNumber.isNotEmpty(), {"Expected deviceSerialNumber to be initialized."})
 		log.info("Setup device with deviceSerialNumber of ${cfg.deviceSerialNumber}")
 
@@ -185,7 +179,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 			val apkExplorationExceptions = computation(device)
 			explorationExceptions.addAll(apkExplorationExceptions)
 		} catch (computationThrowable: Throwable) {
-			log.error("!!! Caught ${computationThrowable.javaClass.simpleName} in withSetupDevice($deviceIndex)->computation($device). " +
+			log.error("!!! Caught ${computationThrowable.javaClass.simpleName} in withSetupDevice(${cfg.deviceSerialNumber})->computation($device). " +
 					"This means ${ApkExplorationException::class.java.simpleName}s have been lost, if any! " +
 					"Adding the exception as a cause to an ${ExplorationException::class.java.simpleName}. " +
 					"Then adding to the collected exceptions list.\n" +
@@ -193,14 +187,14 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 			explorationExceptions.add(ExplorationException(computationThrowable))
 		} finally {
-			log.debug("Finalizing: withSetupDevice($deviceIndex)->finally{} for computation($device)")
+			log.debug("Finalizing: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 			try {
 				tryTearDown(device)
-				usedSerialNumbers -= serialNumber
+				usedSerialNumbers -= cfg.deviceSerialNumber
 
 			} catch (tearDownThrowable: Throwable) {
 				log.warn(Markers.appHealth,
-						"! Caught ${tearDownThrowable.javaClass.simpleName} in withSetupDevice($deviceIndex)->tryTearDown($device). " +
+						"! Caught ${tearDownThrowable.javaClass.simpleName} in withSetupDevice(${cfg.deviceSerialNumber})->tryTearDown($device). " +
 								"Adding as a cause to an ${ExplorationException::class.java.simpleName}. " +
 								"Then adding to the collected exceptions list.\n" +
 								"The ${tearDownThrowable::class.java.simpleName}: $tearDownThrowable")
@@ -208,7 +202,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 				explorationExceptions.add(ExplorationException(tearDownThrowable))
 			}
-			log.debug("Finalizing DONE: withSetupDevice($deviceIndex)->finally{} for computation($device)")
+			log.debug("Finalizing DONE: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 		}
 		return explorationExceptions
 	}

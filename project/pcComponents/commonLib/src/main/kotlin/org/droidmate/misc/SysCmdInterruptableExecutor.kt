@@ -41,8 +41,8 @@ class SysCmdInterruptableExecutor : ISysCmdExecutor {
 
 	// We set the default timeout to -1 so that later the actual timeout is set to ExecuteWatchdog.INFINITE_TIMEOUT
 	// if no positive timeout is provided
-	val sysCmdExecuteTimeout = -1
-	var currentWatchdog: ExecuteWatchdog? = null
+	private val sysCmdExecuteTimeout = -1
+	private var currentWatchdog: ExecuteWatchdog? = null
 
 	fun stopCurrentExecutionIfExisting() {
 		currentWatchdog?.destroyProcess()
