@@ -34,10 +34,10 @@ typealias SelectorFunction = suspend (context: ExplorationContext, explorationPo
 typealias OnSelected = (context: ExplorationContext) -> Unit
 
 class StrategySelector constructor(val priority: Int,
-									private val description: String,
-									val selector: SelectorFunction,
-									val onSelected: OnSelected? = null,
-									vararg val bundle: Any){
+								   val description: String,
+								   val selector: SelectorFunction,
+								   val onSelected: OnSelected? = null,
+								   vararg val bundle: Any){
 	constructor(priority: Int,
 				description: String,
 				selector: SelectorFunction,
