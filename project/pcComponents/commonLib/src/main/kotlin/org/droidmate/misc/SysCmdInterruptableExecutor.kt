@@ -27,6 +27,7 @@ package org.droidmate.misc
 
 import com.google.common.base.Joiner
 import com.google.common.base.Stopwatch
+import com.konradjamrozik.OS
 import org.apache.commons.exec.*
 import org.droidmate.logging.Markers
 import org.droidmate.misc.ISysCmdExecutor.Companion.getExecutionTimeMsg
@@ -111,9 +112,9 @@ class SysCmdInterruptableExecutor : ISysCmdExecutor {
 			exitValue = executor.execute(command)
 		} catch (e: ExecuteException) {
 			exitValue = e.getExitValue()
-			// If exitValue==143 or 1 on Windows, then the SIGTERM signal was sent and this process was forced to finish, so don't
+			// If exitValue==143 on Unix or 1 on Windows, then the SIGTERM signal was sent and this process was forced to finish, so don't
 			// throw an exception.
-			if (exitValue != 143 && exitValue != 1) {
+			if ((exitValue != 143 && !OS.isWindows) || (exitValue != 1 && OS.isWindows)) {
 				throw SysCmdExecutorException(String.format("Failed to execute a system command.\n"
 						+ "Command: %s\n"
 						+ "Captured exit value: %d\n"
