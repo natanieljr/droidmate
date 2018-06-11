@@ -1,0 +1,117 @@
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018. Saarland University
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
+// web: www.droidmate.org
+
+apply from: project(":project:pcComponents").file("debug.gradle")
+
+
+dependOnJunit(project)
+evaluationDependsOn(':project:pcComponents:commonLib')
+compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:commonLib:testClasses')
+dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
+
+kotlin {
+	experimental {
+		coroutines 'enable'
+	}
+}
+repositories {
+	jcenter() // required for coroutines
+}
+
+dependencies {
+	// jdk dependency necessary for kotlin/stream library used by ResourceManager
+	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
+
+	testCompile 'org.hamcrest:hamcrest-core:1.3'
+
+	compile project(":deviceDaemonLib")
+
+	compile 'com.beust:jcommander:1.72'
+	compile 'com.google.guava:guava:23.0'
+	compile 'org.apache.commons:commons-lang3:3.4'
+	compile 'commons-io:commons-io:2.6'
+	compile 'org.apache.commons:commons-exec:1.2'
+	compile 'org.slf4j:slf4j-api:1.7.25'
+	compile 'ch.qos.logback:logback-classic:1.2.3'
+	compile 'ch.qos.logback:logback-core:1.2.3'
+	compile 'net.sf.opencsv:opencsv:2.3'
+
+	// Fast serialization library
+	compile 'de.ruedigermoeller:fst:2.56'
+
+	// For visualizing device GUI model graphs
+	compile 'org.graphstream:gs-core:1.3'
+
+	// Filesystem stubbing
+	compile 'com.google.jimfs:jimfs:1.1'
+
+	compile 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
+
+	compile 'com.natpryce:konfig:1.6.6.0'  // configuration library
+
+	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
+
+	// Only for org.droidmate.tests_misc.JavaReprosTest.BBoxError
+	testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
+
+	testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
+}
+
+apply from: file("resources.gradle")
+
+configureTest([project, ['**/LibKotlinTestSuite.class']])
+/*test.configure {
+	inputs.dir apkFixturesDir.absolutePath
+}*/
+
+/* WISH right now logback.groovy is in the built jar, thus making it hard to replace:
+ http://stackoverflow.com/a/18275945/986533
+ http://stackoverflow.com/a/26452714/986533
+
+ More precisely, because it is in resources dir of main sourceSet, it gets deployed to the jar with :jar task. Ideally it
+ should not be in the jar at all, nor in the distribution ('application' plugin / 'installDist' task). See the links above
+ on the better setup.
+*/
+
+sourceSets {
+	integrationTest {
+		kotlin {
+			resources {
+				srcDir 'src/main/resources'
+			}
+//      compileClasspath += sourceSets.main.runtimeClasspath
+		}
+		test {
+			resources {
+				srcDir 'src/test/resources'
+			}
+//      compileClasspath += sourceSets.test.runtimeClasspath
+			//     runtimeClasspath += sourceSets.test.runtimeClasspath // ***)
+		}
+	}
+}
+

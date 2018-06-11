@@ -1,0 +1,97 @@
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018. Saarland University
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
+// web: www.droidmate.org
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'project-report'
+
+buildscript {
+	ext.kotlin_version = "1.2.31"
+
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.android.tools.build:gradle:2.3.3'
+
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+		classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
+	}
+}
+
+android {
+	compileSdkVersion 26
+	buildToolsVersion "26.0.2"
+	defaultConfig {
+		applicationId "org.droidmate.monitor"
+		minSdkVersion 23
+		targetSdkVersion 26
+		versionCode 1
+		versionName "1.0"
+
+		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+		lintOptions {
+			abortOnError false
+		}
+	}
+	buildTypes {
+		release {
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+	}
+
+	// Based on: https://developer.android.com/studio/build/build-variants.html#product-flavors
+	productFlavors {
+		api23 {}
+	}
+}
+
+// Based on: http://stackoverflow.com/a/34337260/986533
+android.variantFilter { variant ->
+	if (variant.buildType.name.equals('debug')) {
+		variant.setIgnore(true)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Fast serialization library
+	compile('de.ruedigermoeller:fst:2.56') {
+		exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+	}
+	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+	compile fileTree(dir: 'libs_built', include: ['*.jar'])
+	compile fileTree(dir: 'libs_common', include: ['*.jar'])
+	// Based on: https://developer.android.com/studio/build/build-variants.html#sourcesets
+	api23Compile fileTree(dir: 'libs_api23', include: ['*.jar'])
+}
+ 
