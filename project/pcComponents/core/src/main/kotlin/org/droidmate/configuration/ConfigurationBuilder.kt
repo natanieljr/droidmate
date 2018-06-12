@@ -220,8 +220,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				// overrides default config file
 				defaultConfig
 
-		// Set the logging directory for the logback logger
-		val outputPath = Paths.get(config[droidmateOutputDirPath].toString()).resolve(ConfigurationWrapper.log_dir_name)
+		// Set the logging directory for the logback logger as early as possible
+		val outputPath = Paths.get(config[droidmateOutputDirPath].toString())
+								.resolve(getDeviceDir(config))
+								.resolve(ConfigurationWrapper.log_dir_name)
+
 		System.setProperty("logsDir", outputPath.toString())
 		assert(System.getProperty("logsDir") == outputPath.toString())
 
