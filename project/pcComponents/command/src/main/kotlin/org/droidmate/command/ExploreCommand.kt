@@ -60,6 +60,8 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
+import org.droidmate.exploration.strategy.custom.DeAwintaSanimedius
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
@@ -82,11 +84,11 @@ import java.util.*
 
 open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 									  private val adbWrapper: IAdbWrapper,
-                                      private val deviceDeployer: IAndroidDeviceDeployer,
-                                      private val apkDeployer: IApkDeployer,
-                                      private val timeProvider: ITimeProvider,
-                                      private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
-                                      private var modelProvider: (String) -> Model) : DroidmateCommand() {
+									  private val deviceDeployer: IAndroidDeviceDeployer,
+									  private val apkDeployer: IApkDeployer,
+									  private val timeProvider: ITimeProvider,
+									  private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
+									  private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
@@ -122,6 +124,22 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
 
 			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
+
+			res.add(StrategySelector(++priority, "ComShreeHomeLogin", {context, pool, _ ->
+				if (context.apk.packageName == "com.shree.home" && context.getCurrentState().widgets.any { it.resourceId == "com.shree.home:id/useremail" })
+					pool.getFirstInstanceOf(ComShreeHomeLogin::class.java)
+				else
+					null
+			}))
+
+			res.add(StrategySelector(++priority, "DeAwintaSanimedius", {context, pool, _ ->
+				if (context.apk.packageName == "de.awinta.sanimedius" &&
+						context.getCurrentState().widgets.any { it.contentDesc == "Forgotten your password?" } &&
+						context.getCurrentState().widgets.any { it.contentDesc == "Register" })
+					pool.getFirstInstanceOf(DeAwintaSanimedius::class.java)
+				else
+					null
+			}))
 
 			// Interval reset
 			if (cfg[resetEvery] > 0)
@@ -174,23 +192,26 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
 
+			strategies.add(ComShreeHomeLogin())
+			strategies.add(DeAwintaSanimedius())
+
 			return strategies
 		}
 
 		@JvmStatic
 		@JvmOverloads
 		fun build(cfg: ConfigurationWrapper,
-		          deviceTools: IDeviceTools = DeviceTools(cfg),
-		          timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
-		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
-		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the eContext instead of the model?
-		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
+				  deviceTools: IDeviceTools = DeviceTools(cfg),
+				  timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
+				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
+				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
+				  strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the eContext instead of the model?
+				  reportCreators: List<Reporter> = defaultReportWatcher(cfg),
+				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-										 timeProvider, strategyProvider, modelProvider)
+					timeProvider, strategyProvider, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -303,8 +324,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 	}
 
 	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
-	                                   apks: List<Apk>,
-	                                   out: ExplorationOutput2): List<ExplorationException> {
+									   apks: List<Apk>,
+									   out: ExplorationOutput2): List<ExplorationException> {
 		return this.deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
 
 			val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()

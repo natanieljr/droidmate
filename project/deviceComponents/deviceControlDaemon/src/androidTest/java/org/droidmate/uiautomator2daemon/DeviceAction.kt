@@ -17,6 +17,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_log
 import org.droidmate.uiautomator_daemon.guimodel.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.lang.Thread.sleep
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import kotlin.system.measureNanoTime
@@ -83,8 +84,8 @@ internal sealed class DeviceAction {
 				}
 			}
 		}
-		const val defaultTimeout: Long = 100
-		private const val waitTimeout: Long = 1000
+		const val defaultTimeout: Long = 2000
+		private const val waitTimeout: Long = 5000
 		@JvmStatic private var time: Long = 0
 		@JvmStatic private var cnt = 1
 		@JvmStatic private var lastDump:String = "ERROR"
@@ -93,7 +94,7 @@ internal sealed class DeviceAction {
 			if (actionSuccessful) {
 				debugT("UI-stab avg = ${time / cnt} ms", {
 					//            device.waitForWindowUpdate(null,defaultTimeout)
-					runBlocking { delay(10) } // avoid idle 0 which get the wait stuck for multiple seconds
+					runBlocking { delay(5) } // avoid idle 0 which get the wait stuck for multiple seconds
 					measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 //					do {
 //						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is unstable?
@@ -142,24 +143,24 @@ internal sealed class DeviceAction {
 
 		private fun Bitmap.simplifyImg(): Bitmap =	Bitmap.createBitmap(width,height, config).let{ newImg ->
 			for(y in 0 until height)
-			for(x in 0 until width){
-				getPixel(x,y).let { c ->
-//					Log.d(uiaDaemon_logcatTag,"pixel $x,$y = $c DEBUG")
-					val binColor = Color.red(c).binaryColor()+Color.green(c).binaryColor()+Color.blue(c).binaryColor() + Color.alpha(c).binaryColor()
+				for(x in 0 until width){
+					getPixel(x,y).let { c ->
+						//					Log.d(uiaDaemon_logcatTag,"pixel $x,$y = $c DEBUG")
+						val binColor = Color.red(c).binaryColor()+Color.green(c).binaryColor()+Color.blue(c).binaryColor() + Color.alpha(c).binaryColor()
 //					Log.d(uiaDaemon_logcatTag,"binColorSum $binColor")
-					if(binColor>1) Color.WHITE
-					else Color.BLACK
-				}.let{ newColor ->
-//					Log.d(uiaDaemon_logcatTag,"newColor = $newColor")
-					try {
-						newImg.setPixel(x, y, newColor)
-					}catch (e:Throwable){
-						Log.e(uiaDaemon_logcatTag,e.message,e)
-						throw e
+						if(binColor>1) Color.WHITE
+						else Color.BLACK
+					}.let{ newColor ->
+						//					Log.d(uiaDaemon_logcatTag,"newColor = $newColor")
+						try {
+							newImg.setPixel(x, y, newColor)
+						}catch (e:Throwable){
+							Log.e(uiaDaemon_logcatTag,e.message,e)
+							throw e
+						}
 					}
 				}
-			}
-				newImg
+			newImg
 		}
 
 		@JvmStatic
@@ -249,7 +250,12 @@ private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() 
 			// Wait for the app to appear
 			device.wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 					10000)
-			device.wait(hasInteractive, 100)
+			device.wait(hasInteractive, 10000)
+			try{
+				sleep(5000)
+			}catch(e: Exception){
+				e.printStackTrace()
+			}
 		}.let { Log.d(uiaDaemon_logcatTag, "load-time $it millis") }
 	}
 }
