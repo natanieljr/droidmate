@@ -18,6 +18,14 @@ task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild
 	group = "build"
 }
 
+task droidmatePublish(type: GradleBuild) {
+  group = "build"
+
+  buildFile = file "dev/droidmate/build.gradle"
+  tasks = ["clean", "build", "uploadArchives"]
+}
+
+
 allprojects {
 	group = "org.droidmate"
 	version = "1.0-RC1"
