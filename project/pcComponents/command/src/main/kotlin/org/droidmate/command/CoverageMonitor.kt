@@ -71,7 +71,7 @@ class CoverageMonitor(private val apkName: String,
 		val file = getLogFilename(counter)
 		val output = adbWrapper.executeCommand(sysCmdExecutor, cfg[deviceSerialNumber], "", "Logcat coverage monitor",
 								"logcat", "-v", "threadtime", "-s", "System.out")
-		log.info("Writing logcat output into $file")
+		//log.info("Writing logcat output into $file")
 		write(file, output)
 
 		return counter + 1
