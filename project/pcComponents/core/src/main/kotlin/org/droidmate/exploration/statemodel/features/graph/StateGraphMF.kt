@@ -7,10 +7,11 @@ import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import kotlin.coroutines.experimental.CoroutineContext
 
-class StateGraphMF(val stateGraph: Graph) : ModelFeature(){
+class StateGraphMF @JvmOverloads constructor(private val stateGraph: Graph = Graph()) : ModelFeature(), IGraph<StateData, ActionData> by stateGraph{
+
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StateGraphMF"), parent = job)
 
 	override suspend fun onNewAction(lazyAction: Lazy<ActionData>, prevState: StateData, newState: StateData) {
-		stateGraph.add(prevState, newState, lazyAction.value)
+		this.add(prevState, newState, lazyAction.value)
 	}
 }
