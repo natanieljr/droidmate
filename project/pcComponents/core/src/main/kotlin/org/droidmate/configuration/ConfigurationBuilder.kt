@@ -180,6 +180,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(allowRuntimeDialog, description = "Enables use of strategy to always click 'Allow' on permission dialogs."),
 			CommandLineOption(denyRuntimeDialog, description = "Enables use of strategy to always click 'Deny' on permission dialogs."),
 			CommandLineOption(playback, description = "Enables use of playback strategy (if a playback model is provided)."),
+			CommandLineOption(ConfigProperties.Strategies.dfs, description = "Enables use of Depth-First-Search strategy."),
 			// Selectors
 			CommandLineOption(pressBackProbability, description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy."),
 			CommandLineOption(widgetIndexes, description = "Makes the exploration strategy to choose widgets to click that have the indexes as provided by this parameter, in sequence. The format is: [<first widget index>,<second widget index>,...<nth widget index>], starting indexing at 0. Example: [0,7,3]"),
@@ -189,6 +190,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(timeLimit, description = "How long the exploration of any given apk should take, in seconds. If set to 0, instead actionsLimit will be used."),
 			CommandLineOption(randomSeed, description = "The seed for a random generator used by a random-clicking GUI exploration strategy. If null, a seed will be randomized."),
 			CommandLineOption(stopOnExhaustion, description = "Terminate exploration when all widgets have been explored at least 1x."),
+			CommandLineOption(ConfigProperties.Selectors.dfs, description = "Use Depth-First-Search strategy, if the strategy is registered."),
 			// Report
 			CommandLineOption(inputDir, description = "Path to the directory containing report input. The input is to be DroidMate exploration output."),
 			CommandLineOption(includePlots, description = "Include plots on reports (requires gnu plot)."),

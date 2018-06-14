@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
@@ -36,6 +35,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
+import org.droidmate.configuration.ConfigProperties.Selectors
 import org.droidmate.configuration.ConfigProperties.Selectors.playbackModelDir
 import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbability
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
@@ -43,6 +43,7 @@ import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
+import org.droidmate.configuration.ConfigProperties.Strategies
 import org.droidmate.configuration.ConfigProperties.Strategies.explore
 import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
 import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
@@ -61,11 +62,7 @@ import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
-import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
-import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
-import org.droidmate.exploration.strategy.widget.ModelBased
-import org.droidmate.exploration.strategy.widget.RandomWidget
-import org.droidmate.logging.LogbackConstants
+import org.droidmate.exploration.strategy.widget.*
 import org.droidmate.logging.Markers
 import org.droidmate.misc.*
 import org.droidmate.report.AggregateStats
@@ -131,6 +128,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			if (cfg[pressBackProbability] > 0.0)
 				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed)))
 
+			if (cfg[Selectors.dfs])
+				res.add(StrategySelector(++priority, "dfs", StrategySelector.dfs))
+
 			// Exploration exhausted
 			if (cfg[stopOnExhaustion])
 				res.add(StrategySelector(++priority, "explorationExhausted", StrategySelector.explorationExhausted))
@@ -173,6 +173,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
+
+			if (cfg[Strategies.dfs])
+				strategies.add(DFS())
 
 			return strategies
 		}

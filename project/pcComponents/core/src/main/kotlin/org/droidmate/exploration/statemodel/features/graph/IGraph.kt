@@ -1,24 +1,23 @@
 package org.droidmate.exploration.statemodel.features.graph
 
-import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.statemodel.StateData
+interface IGraph<S, L>{
+	val root: Vertex<S>
 
-interface IGraph<S, T>{
-	fun root(): Vertex<S, T>?
+	fun add(source: S, destination: S?, label: L, updateIfExists: Boolean = true, weight: Double = 1.0): Edge<S, L>
 
-	fun add(source: StateData, destination: StateData, label: ActionData, weight: Double = 0.0): Edge<S, T>
+	fun update(source: S, prevDestination: S?, newDestination: S, prevLabel: L, newLabel: L): Edge<S, L>?
 
-	fun vertex(stateData: StateData): Vertex<S, T>?
+	fun edge(order: Int): Edge<S, L>?
 
-	fun edges(source: StateData, destination: StateData): List<Edge<S, T>>
+	fun edge(source: S, destination: S?, label: L): Edge<S, L>?
 
-	fun edges(vertex: Vertex<S, T>): List<Edge<S, T>>
+	fun edges(source: Vertex<S>): List<Edge<S, L>>
 
-	fun edges(source: S): List<Edge<S, T>>
+	fun edges(source: S, destination: S?): List<Edge<S, L>>
 
-	fun edge(source: S, destination: S, transition: T): Edge<S, T>?
+	fun edges(source: S): List<Edge<S, L>>
 
-	fun edge(order: Int): Edge<S, T>?
+	fun ancestors(destination: S): List<Vertex<S>>
 
 	fun isEmpty(): Boolean
 }

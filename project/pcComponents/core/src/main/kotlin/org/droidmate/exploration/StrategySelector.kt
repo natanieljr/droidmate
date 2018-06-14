@@ -24,6 +24,7 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
+import org.droidmate.exploration.strategy.widget.DFS
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.Logger
@@ -267,6 +268,14 @@ class StrategySelector constructor(val priority: Int,
 		val playback: SelectorFunction = { _, pool, _ ->
 			logger.debug("Playback. Returning 'MemoryPlayback'")
 			pool.getFirstInstanceOf(Playback::class.java)
+		}
+
+		/**
+		 * Uses the Depth-First-Search strategy, if available
+		 */
+		@JvmStatic
+		val dfs: SelectorFunction = {_, pool, _ ->
+			pool.getFirstInstanceOf(DFS::class.java)
 		}
     }
 }

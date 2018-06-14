@@ -1,17 +1,27 @@
 package org.droidmate.exploration.statemodel.features.graph
 
-data class Edge<S, T>(val source: Vertex<S, T>,
-				val destination: Vertex<S, T>,
-				val order: MutableList<Int>,
-				val transition: T,
-				var count: Int,
-				val weight: Double){
+data class Edge<S, L>(val source: Vertex<S>,
+					  var destination: Vertex<S>?,
+					  val order: MutableList<Int>,
+					  var label: L,
+					  private val labelComparison : (L, L) -> Boolean = { a, b -> a == b },
+					  var count: Int,
+					  val weight: Double){
 
 	@JvmOverloads
-	constructor(source: Vertex<S, T>,
-				destination: Vertex<S, T>,
+	constructor(source: Vertex<S>,
+				destination: Vertex<S>?,
 				order: Int,
-				transition: T,
+				label: L,
+				labelComparison : (L, L) -> Boolean,
 				count: Int = 1,
-				weight: Double = 0.0): this(source, destination, mutableListOf(order), transition, count, weight)
+				weight: Double = 1.0): this(source, destination, mutableListOf(order), label, labelComparison, count, weight)
+
+	@Suppress("UNCHECKED_CAST")
+	override fun equals(other: Any?): Boolean {
+		if (other == null || !this.javaClass.isInstance(other))
+			return false
+
+		return labelComparison((other as Edge<S, L>).label, this.label)
+	}
 }

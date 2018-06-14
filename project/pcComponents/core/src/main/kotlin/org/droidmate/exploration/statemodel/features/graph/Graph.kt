@@ -1,79 +1,89 @@
 package org.droidmate.exploration.statemodel.features.graph
 
-import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.statemodel.StateData
+class Graph<S, L>(root: S,
+				  private val stateComparison : (S, S) -> Boolean = { a, b -> a == b },
+				  private val labelComparison : (L, L) -> Boolean = { a, b -> a == b }): IGraph<S, L>{
+	private val adjacencyMap: MutableMap<Vertex<S>, MutableList<Edge<S, L>>> = mutableMapOf()
 
-class Graph: IGraph<StateData, ActionData>{
-	var adjacencyMap: MutableSet<Vertex<StateData, ActionData>> = mutableSetOf()
-
-	private var root: Vertex<StateData, ActionData>? = null
-
-	override fun root(): Vertex<StateData, ActionData>? {
-		return root
-	}
+	override val root: Vertex<S> = createVertex(root)
 
 	var numEdges: Int = 0
 		private set
 
-	private fun MutableSet<Vertex<StateData, ActionData>>.get(stateData: StateData): Vertex<StateData, ActionData>? {
-		return this.firstOrNull { it.data.uid == stateData.uid }
-	}
+	private fun createVertex(data: S): Vertex<S> {
+		val vertex = Vertex(data, stateComparison)
 
-	override fun vertex(stateData: StateData): Vertex<StateData, ActionData>? {
-		return adjacencyMap.get(stateData)
-	}
+		adjacencyMap[vertex] ?: run {
+			adjacencyMap[vertex] = mutableListOf()
+		}
 
-	private fun addVertex(stateData: StateData): Vertex<StateData, ActionData>{
-		val vertex = Vertex<StateData, ActionData>(stateData)
-		if (root == null)
-			root = vertex
-		adjacencyMap.add(vertex)
 		return vertex
 	}
 
-	private fun addDirectedEdge(source: StateData, destination: StateData, transition: ActionData, weight: Double): Edge<StateData, ActionData> {
-		val sourceVertex = this.vertex(source) ?: addVertex(source)
-		val destinationVertex = this.vertex(destination) ?: addVertex(destination)
+	private fun addDirectedEdge(source: S, destination: S?, label: L, weight: Double): Edge<S, L> {
+		val sourceVertex = createVertex(source)
+		val destinationVertex = destination?.run { createVertex(destination) }
 
-		val edge = Edge(sourceVertex, destinationVertex, numEdges++, transition, 1, weight)
+		val edge = Edge(sourceVertex, destinationVertex, numEdges++, label, labelComparison, 0, weight)
 
-		sourceVertex.add(edge)
+		adjacencyMap[sourceVertex]?.add(edge)
 
 		return edge
 	}
 
-	override fun add(source: StateData, destination: StateData, label: ActionData, weight: Double): Edge<StateData, ActionData> {
-		val edge = edge(source, destination, label)
-		if (edge != null) {
-			edge.count++
-			edge.order.add(numEdges++)
-			return edge
-		}
-
-		return addDirectedEdge(source, destination, label, weight)
+	private fun updateDirectedEdge(edge: Edge<S, L>): Edge<S, L>{
+		edge.count++
+		edge.order.add(numEdges++)
+		return edge
 	}
 
-	override fun edge(order: Int): Edge<StateData, ActionData>?{
+	override fun add(source: S, destination: S?, label: L, updateIfExists: Boolean, weight: Double): Edge<S, L> {
+		val edge = edge(source, destination, label)
+
+		return if (edge != null)
+			if (updateIfExists)
+				updateDirectedEdge(edge)
+			else
+				edge
+		else
+			addDirectedEdge(source, destination, label, weight)
+	}
+
+	override fun update(source: S, prevDestination: S?, newDestination: S, prevLabel: L, newLabel: L): Edge<S, L>?{
+		return edge(source, prevDestination, prevLabel)?.apply {
+			destination = createVertex(newDestination)
+			label = newLabel
+		}
+	}
+
+	override fun edge(order: Int): Edge<S, L>?{
 		return adjacencyMap
 				.map {
-					it.edges.firstOrNull { it.order.contains(order) }
+					it.value.firstOrNull { it.order.contains(order) }
 				}
 				.filterNotNull()
 				.firstOrNull()
 	}
 
-	override fun edge(source: StateData, destination: StateData, transition: ActionData): Edge<StateData, ActionData>? = edges(source)
-			.firstOrNull{ it.destination.data.uid == destination.uid && it.transition.actionString() == transition.actionString() }
+	override fun edges(source: Vertex<S>): List<Edge<S, L>> = adjacencyMap[source] ?: emptyList()
 
-	override fun edges(vertex: Vertex<StateData, ActionData>): List<Edge<StateData, ActionData>> = edges(vertex.data)
+	override fun edges(source: S): List<Edge<S, L>> = edges(createVertex(source))
 
-	override fun edges(source: StateData, destination: StateData): List<Edge<StateData, ActionData>> = edges(source)
-			.filter { it.destination.data.uid == destination.uid }
+	override fun edges(source: S, destination: S?): List<Edge<S, L>> = edges(source)
+			.filter { it.destination == destination }
 
-	override fun edges(source: StateData): List<Edge<StateData, ActionData>> = adjacencyMap.get(source)?.edges ?: emptyList()
+	override fun edge(source: S, destination: S?, label: L): Edge<S, L>? = edges(source, destination)
+			.firstOrNull{ it.label == label }
 
 	override fun isEmpty(): Boolean {
-		return this.root != null
+		return adjacencyMap[root]?.isEmpty() ?: true
+	}
+
+	override fun ancestors(destination: S): List<Vertex<S>> {
+		val targetVertex = createVertex(destination)
+		return adjacencyMap
+				.filter { p -> p.value.any { it.destination ==  targetVertex} }
+				.map { it.key }
 	}
 
 	override fun toString(): String {
@@ -91,5 +101,4 @@ class Graph: IGraph<StateData, ActionData>{
 		}
 		return result
 	}
-
 }

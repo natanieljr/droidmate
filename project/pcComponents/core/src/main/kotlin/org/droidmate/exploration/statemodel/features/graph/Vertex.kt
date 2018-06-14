@@ -1,14 +1,15 @@
 package org.droidmate.exploration.statemodel.features.graph
 
-data class Vertex<S, T> @JvmOverloads constructor(val data: S, val edges: MutableList<Edge<S, T>> = mutableListOf()){
-
-	fun add(edge: Edge<S, T>){
-		if (!edges.contains(edge))
-			edges.add(edge)
+data class Vertex<S>(val data: S,
+					 private val stateComparison: (S, S) -> Boolean /*= { a, b -> a == b}*/ ) {
+	override fun toString(): String {
+		return "$data"
 	}
 
+	@Suppress("UNCHECKED_CAST")
 	override fun equals(other: Any?): Boolean {
 		return other != null &&
-				data == other
+				this.javaClass.isInstance(other) &&
+				stateComparison((other as Vertex<S>).data, this.data)
 	}
 }

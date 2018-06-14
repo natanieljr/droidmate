@@ -58,16 +58,17 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 	 */
 	val decisionTime: Long by lazy { ChronoUnit.MILLIS.between(startTimestamp, endTimestamp) }
 
-	fun actionString(): String = P.values().joinToString(separator = sep) {
+	@JvmOverloads
+	fun actionString(chosenFields: Array<ActionDataFields> = ActionDataFields.values()): String = chosenFields.joinToString(separator = sep) {
 		when (it) {
-			P.Action -> actionType
-			P.StartTime -> startTimestamp.toString()
-			P.EndTime -> endTimestamp.toString()
-			P.Exception -> exception
-			P.SuccessFul -> successful.toString()
-			P.PrevId -> prevState.dumpString()
-			P.DstId -> resState.dumpString()
-			P.WId -> targetWidget?.run { id.dumpString() } ?: "null"
+			ActionDataFields.Action -> actionType
+			ActionDataFields.StartTime -> startTimestamp.toString()
+			ActionDataFields.EndTime -> endTimestamp.toString()
+			ActionDataFields.Exception -> exception
+			ActionDataFields.SuccessFul -> successful.toString()
+			ActionDataFields.PrevId -> prevState.dumpString()
+			ActionDataFields.DstId -> resState.dumpString()
+			ActionDataFields.WId -> targetWidget?.run { id.dumpString() } ?: "null"
 		}
 	}
 
@@ -77,23 +78,29 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 
 		@JvmStatic
 		fun createFromString(e: List<String>, target: Widget?, contentSeparator: String): ActionData = ActionData(
-				actionType = e[P.Action.ordinal], targetWidget = target, startTimestamp = LocalDateTime.parse(e[P.StartTime.ordinal]),
-				endTimestamp = LocalDateTime.parse(e[P.EndTime.ordinal]), successful = e[P.SuccessFul.ordinal].toBoolean(),
-				exception = e[P.Exception.ordinal], resState = idFromString(e[P.DstId.ordinal]), sep = contentSeparator
-		).apply { prevState = idFromString(e[P.PrevId.ordinal]) }
+				actionType = e[ActionDataFields.Action.ordinal], targetWidget = target, startTimestamp = LocalDateTime.parse(e[ActionDataFields.StartTime.ordinal]),
+				endTimestamp = LocalDateTime.parse(e[ActionDataFields.EndTime.ordinal]), successful = e[ActionDataFields.SuccessFul.ordinal].toBoolean(),
+				exception = e[ActionDataFields.Exception.ordinal], resState = idFromString(e[ActionDataFields.DstId.ordinal]), sep = contentSeparator
+		).apply { prevState = idFromString(e[ActionDataFields.PrevId.ordinal]) }
 
 		@JvmStatic
 		val empty: ActionData by lazy {
-			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "empty action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
+			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
 			).apply { prevState = emptyId }
 		}
 
-		@JvmStatic val header:(String)-> String = { sep -> P.values().joinToString(separator = sep) { it.header } }
-		@JvmStatic val widgetIdx = P.WId.ordinal
-		@JvmStatic val resStateIdx = P.DstId.ordinal
-		@JvmStatic val srcStateIdx = P.PrevId.ordinal
+		@JvmStatic
+		fun emptyWithWidget(widget: Widget?): ActionData =
+			ActionData("EMPTY", widget, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
+			).apply { prevState = emptyId }
 
-		private enum class P(var header: String = "") { PrevId("Source State"), Action, WId("Interacted Widget"),
+
+		@JvmStatic val header:(String)-> String = { sep -> ActionDataFields.values().joinToString(separator = sep) { it.header } }
+		@JvmStatic val widgetIdx = ActionDataFields.WId.ordinal
+		@JvmStatic val resStateIdx = ActionDataFields.DstId.ordinal
+		@JvmStatic val srcStateIdx = ActionDataFields.PrevId.ordinal
+
+		enum class ActionDataFields(var header: String = "") { PrevId("Source State"), Action, WId("Interacted Widget"),
 			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception;
 
 			init {
