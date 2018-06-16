@@ -41,6 +41,7 @@ dependencies {
 	testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 
 	compile 'com.google.jimfs:jimfs:1.1'
+	compile 'com.google.code.gson:gson:2.8.5'
 }
 
 configureTest([project, ['**/ReporterTestSuite.class']])

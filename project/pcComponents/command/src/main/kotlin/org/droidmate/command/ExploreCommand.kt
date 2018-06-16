@@ -202,7 +202,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		fun defaultReportWatcher(cfg: ConfigurationWrapper): List<Reporter> =
 				listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg[includePlots]), ClickFrequency(cfg[includePlots]),
 						//TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
-						ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())
+						ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace(), VisualizationGraph())
 	}
 
 	private val reporters: MutableList<Reporter> = mutableListOf()
