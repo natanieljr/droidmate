@@ -50,5 +50,6 @@ class ReportCommand : DroidmateCommand() {
 		ActionTrace().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
 		WidgetApiTrace().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
 		EffectiveActions().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		VisualizationGraph().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
 	}
 }
