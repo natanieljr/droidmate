@@ -30,7 +30,6 @@ import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
-import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
@@ -78,12 +77,16 @@ class AndroidDevice constructor(private val serialNumber: String,
 		@JvmStatic
 		@Throws(DeviceException::class)
 		private fun throwDeviceResponseThrowableIfAny(deviceResponse: DeviceResponse) {
-			if (deviceResponse.throwable != null)
-				throw DeviceException(String.format(
-						"Device returned DeviceResponse with non-null throwable, indicating something went horribly wrong on the A(V)D. " +
+			val response = deviceResponse.throwable
+			if (response != null)
+				throw DeviceException(
+						"Device returned DeviceResponse with non-null throwable, indicating something went horribly wrong on the A(V)D.\n" +
+								"Exception: $response \n" +
+								"Cause: ${response.cause ?: ""}" +
+								"Trace: ${response.stackTrace.joinToString("\n")} \n" +
 								"The exception is given as a cause of this one. If it doesn't have enough information, " +
-								"try inspecting the logcat output of the A(V)D.",
-						deviceResponse.throwable))
+								"try inspecting the logcat output of the A(V)D. ",
+						response)
 		}
 	}
 
@@ -137,7 +140,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 				PressHome::class,
 				EnableWifi::class,
 				LaunchApp::class,
-				SimulationAdbClearPackage::class),{"tried to perform unknown action ${action::class.simpleName}"})
+				SimulationAdbClearPackage::class)) {"tried to perform unknown action ${action::class.simpleName}"}
 
 		return when (action) {
 			is WaitAction -> wait(action)
@@ -191,7 +194,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			this.tcpClients.waitForUiaDaemonToClose()
 
 		assert(Utils.retryOnFalse({ !this.uiaDaemonIsRunning() }, 5, 1000))
-		assert(!this.uiaDaemonIsRunning(), { "UIaDeamon is still running." })
+		assert(!this.uiaDaemonIsRunning()) { "UIAutomatorDaemon is still running." }
 		log.trace("DONE stopUiaDaemon()")
 	}
 
@@ -225,7 +228,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun startUiaDaemon() {
-		assert(!this.uiaDaemonIsRunning(), { "UIaDeamon is not running." })
+		assert(!this.uiaDaemonIsRunning()) { "UIAutomatorDaemon is not running." }
 		this.clearLogcat()
 		this.tcpClients.startUiaDaemon()
 	}
