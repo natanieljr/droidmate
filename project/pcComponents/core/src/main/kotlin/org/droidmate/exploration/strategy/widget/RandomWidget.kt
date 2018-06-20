@@ -46,7 +46,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed)
 
 	protected val random = Random(randomSeed)
-	private val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>()	}
+	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>()	}
 	private val blackList: BlackListMF by lazy {	eContext.getOrCreateWatcher<BlackListMF>() }
 
 	private fun mustRepeatLastAction(): Boolean {
