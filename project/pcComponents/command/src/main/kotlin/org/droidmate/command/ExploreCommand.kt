@@ -47,6 +47,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
 import org.droidmate.configuration.ConfigProperties.Strategies.explore
 import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
+import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
 import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
@@ -63,6 +64,7 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
@@ -182,6 +184,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			if (cfg[rotateUI])
 				strategies.add(RotateUI(cfg[uiRotation]))
+
+			if (cfg[minimizeMaximize])
+				strategies.add(MinimizeMaximize())
 
 			return strategies
 		}

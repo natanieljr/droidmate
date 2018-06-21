@@ -103,6 +103,7 @@ internal sealed class DeviceAction {
 				is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
 				is FetchGUI -> DeviceFetchGUIAction()
 				is RotateUI -> DeviceRotateUIAction(rotation)
+				is MinimizeMaximize -> DeviceMinimizeMaximizeAction()
 				is SimulationAdbClearPackage -> {
 					null /* There's no equivalent device action */
 				}
@@ -437,4 +438,20 @@ private class DeviceRotateUIAction(val rotation: Int): DeviceAction() {
 
 		waitForChanges(device)
 	}
+}
+
+private class DeviceMinimizeMaximizeAction(): DeviceAction(){
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
+		val currentPackage = device.currentPackageName
+
+		device.pressRecentApps()
+
+		for(i in (0 until 10)){
+			device.pressRecentApps()
+
+			if (device.currentPackageName == currentPackage)
+				break
+		}
+	}
+
 }

@@ -244,6 +244,7 @@ abstract class ConfigProperties {
 		val playback by booleanType
 		val dfs by booleanType
 		val rotateUI by booleanType
+		val minimizeMaximize by booleanType
 
 		object Parameters : PropertyGroup() {
 			val uiRotation by intType

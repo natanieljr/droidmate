@@ -93,6 +93,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialo
 import org.droidmate.configuration.ConfigProperties.Strategies.back
 import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
+import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
 import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.reset
@@ -184,6 +185,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(playback, description = "Enables use of playback strategy (if a playback model is provided)."),
 			CommandLineOption(ConfigProperties.Strategies.dfs, description = "Enables use of Depth-First-Search strategy."),
 			CommandLineOption(rotateUI, description = "Enables use of Rotate UI strategy."),
+			CommandLineOption(minimizeMaximize, description = "Enables use of Minimize-Maximize strategy to attempt to close the app and reopen it on the same screen."),
 			// Strategies parameters
 			CommandLineOption(uiRotation, description = "Value of the UI rotation for Rotate UI strategy. Valid values are: 0, 90, 180, 270. Other values will be rounded to one of these."),
 

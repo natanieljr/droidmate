@@ -141,6 +141,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 				EnableWifi::class,
 				LaunchApp::class,
 				RotateUI::class,
+				MinimizeMaximize::class,
 				SimulationAdbClearPackage::class)) {"tried to perform unknown action ${action::class.simpleName}"}
 
 		return when (action) {
@@ -156,6 +157,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			is PressHome -> execute(action)
 			is EnableWifi -> execute(action)
 			is RotateUI -> execute(action)
+			is MinimizeMaximize -> execute(action)
 			is FetchGUI -> execute(action)
 			is SimulationAdbClearPackage -> throw DeviceException("call .clearPackage() directly instead")
 		}
