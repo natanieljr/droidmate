@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 package org.droidmate.uiautomator2daemon
 
@@ -70,13 +76,14 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 
 		this.device = UiDevice.getInstance(instr)
 		if (device == null) throw AssertionError()
+
+		// Orientation is set initially to natural, however can be changed by action
 		try {
 			device.setOrientationNatural()
 			device.freezeRotation()
 		} catch (e: RemoteException) {
 			e.printStackTrace()
 		}
-
 	}
 
 	@Throws(UiAutomatorDaemonException::class)
@@ -106,7 +113,7 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 
 		val action = DeviceAction.fromAction(deviceCommand.guiAction)
 
-		action?.execute(device, context)
+		action?.execute(device, context, automation)
 
 		return debugT("DUMP avg= ${time/(nActions*1000000)}",{fetchDeviceData(device, automation, deviceModel)},inMillis = true,timer = {time += it; nActions+=1})
 	}

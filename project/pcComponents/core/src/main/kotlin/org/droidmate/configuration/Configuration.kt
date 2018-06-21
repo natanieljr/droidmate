@@ -243,6 +243,11 @@ abstract class ConfigProperties {
 		val denyRuntimeDialog by booleanType
 		val playback by booleanType
 		val dfs by booleanType
+		val rotateUI by booleanType
+
+		object Parameters : PropertyGroup() {
+			val uiRotation by intType
+		}
 	}
 
 	object Selectors : PropertyGroup() {

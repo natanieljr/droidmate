@@ -44,10 +44,12 @@ import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies
+import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
 import org.droidmate.configuration.ConfigProperties.Strategies.explore
 import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
 import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
+import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
@@ -61,6 +63,7 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
 import org.droidmate.logging.Markers
@@ -177,6 +180,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			if (cfg[Strategies.dfs])
 				strategies.add(DFS())
 
+			if (cfg[rotateUI])
+				strategies.add(RotateUI(cfg[uiRotation]))
+
 			return strategies
 		}
 
@@ -187,7 +193,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		          timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
 		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
 		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the eContext instead of the model?
+		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
 		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
 		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
@@ -209,8 +215,6 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 	}
 
 	private val reporters: MutableList<Reporter> = mutableListOf()
-	private var actionT: Long = 0
-	private var nActions = 0
 
 	override fun execute(cfg: ConfigurationWrapper) {
 		cleanOutputDir(cfg)
@@ -229,7 +233,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		if (!Files.exists(reportDir))
 			Files.createDirectories(reportDir)
 
-		assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
+		assert(Files.exists(reportDir)) { "Unable to create report directory ($reportDir)" }
 
 		log.info("Writing reports")
 		reporters.forEach { it.write(reportDir.toAbsolutePath(), resourceDir.toAbsolutePath(), rawData) }
@@ -281,7 +285,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		Files.walk(outputDir)
 				.filter { it.parent.fileName.toString() != BuildConstants.dir_name_temp_extracted_resources }
 				.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
-				.forEach { assert(Files.isDirectory(it), {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"}) }
+				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
 	}
 
 	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): List<ExplorationException> {
@@ -410,7 +414,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			strategy.update(result)
 
 			if (isFirst) {
-				log.info("Initial action: ${action}")
+				log.info("Initial action: $action")
 				isFirst = false
 			}
 		}

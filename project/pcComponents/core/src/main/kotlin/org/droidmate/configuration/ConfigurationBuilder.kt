@@ -88,6 +88,7 @@ import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
 import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
+import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.back
 import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
@@ -95,6 +96,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportion
 import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.reset
+import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.configuration.ConfigProperties.Strategies.terminate
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
@@ -181,6 +183,10 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(denyRuntimeDialog, description = "Enables use of strategy to always click 'Deny' on permission dialogs."),
 			CommandLineOption(playback, description = "Enables use of playback strategy (if a playback model is provided)."),
 			CommandLineOption(ConfigProperties.Strategies.dfs, description = "Enables use of Depth-First-Search strategy."),
+			CommandLineOption(rotateUI, description = "Enables use of Rotate UI strategy."),
+			// Strategies parameters
+			CommandLineOption(uiRotation, description = "Value of the UI rotation for Rotate UI strategy. Valid values are: 0, 90, 180, 270. Other values will be rounded to one of these."),
+
 			// Selectors
 			CommandLineOption(pressBackProbability, description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy."),
 			CommandLineOption(widgetIndexes, description = "Makes the exploration strategy to choose widgets to click that have the indexes as provided by this parameter, in sequence. The format is: [<first widget index>,<second widget index>,...<nth widget index>], starting indexing at 0. Example: [0,7,3]"),

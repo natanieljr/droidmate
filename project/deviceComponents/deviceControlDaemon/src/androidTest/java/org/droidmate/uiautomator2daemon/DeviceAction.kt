@@ -1,3 +1,27 @@
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018. Saarland University
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
+// web: www.droidmate.org
 package org.droidmate.uiautomator2daemon
 
 import android.app.UiAutomation
@@ -57,7 +81,7 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 internal sealed class DeviceAction {
 
 	@Throws(UiAutomatorDaemonException::class)
-	abstract fun execute(device: UiDevice, context: Context)
+	abstract fun execute(device: UiDevice, context: Context, automation: UiAutomation)
 
 	companion object {
 
@@ -78,6 +102,7 @@ internal sealed class DeviceAction {
 				is EnableWifi -> DeviceEnableWifi()
 				is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
 				is FetchGUI -> DeviceFetchGUIAction()
+				is RotateUI -> DeviceRotateUIAction(rotation)
 				is SimulationAdbClearPackage -> {
 					null /* There's no equivalent device action */
 				}
@@ -211,13 +236,13 @@ internal sealed class DeviceAction {
 }
 
 private class DevicePressBack : DeviceAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		waitForChanges(device, device.pressBack())
 	}
 }
 
 private class DevicePressHome : DeviceAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		waitForChanges(device, device.pressHome())
 	}
 }
@@ -226,7 +251,7 @@ private class DeviceEnableWifi : DeviceAction() {
 	/**
 	 * Based on: http://stackoverflow.com/a/12420590/986533
 	 */
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		Log.d(uiaDaemon_logcatTag, "Ensuring WiFi is turned on.")
 		val wfm = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
 		val wifiEnabled = wfm.setWifiEnabled(true)
@@ -236,7 +261,7 @@ private class DeviceEnableWifi : DeviceAction() {
 }
 
 private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		// Launch the app
 		val intent = context.packageManager
 				.getLaunchIntentForPackage(appPackageName)
@@ -254,17 +279,20 @@ private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() 
 	}
 }
 
-private data class DeviceSwipeAction(val start: Pair<Int, Int>, val dst: Pair<Int, Int>, val xPath: String = "", val direction: String = "") : DeviceAction() {
+private data class DeviceSwipeAction(val start: Pair<Int, Int>,
+									 val dst: Pair<Int, Int>,
+									 val xPath: String = "",
+									 val direction: String = "") : DeviceAction() {
 	private val x0: Int inline get() = start.first
 	private val y0: Int inline get() = start.second
 	private val x1: Int inline get() = dst.first
 	private val y1: Int inline get() = dst.second
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		Log.d(uiaDaemon_logcatTag, "Swiping from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
-		assert(x0 >= 0 && x0 < device.displayWidth, { "Error on swipe invalid x0:$x0" })
-		assert(y0 >= 0 && y0 < device.displayHeight, { "Error on swipe invalid y0:$y0" })
-		assert(x1 >= 0 && x1 < device.displayWidth, { "Error on swipe invalid x1:$x1" })
-		assert(y1 >= 0 && y1 < device.displayHeight, { "Error on swipe invalid y1:$y1" })
+		assert(x0 >= 0 && x0 < device.displayWidth) { "Error on swipe invalid x0:$x0" }
+		assert(y0 >= 0 && y0 < device.displayHeight) { "Error on swipe invalid y0:$y0" }
+		assert(x1 >= 0 && x1 < device.displayWidth) { "Error on swipe invalid x1:$x1" }
+		assert(y1 >= 0 && y1 < device.displayHeight) { "Error on swipe invalid y1:$y1" }
 
 		val success = device.swipe(x0, y0, x1, y1, 35)
 		if (!success) Log.e(uiaDaemon_logcatTag, "Swipe failed: from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
@@ -273,7 +301,7 @@ private data class DeviceSwipeAction(val start: Pair<Int, Int>, val dst: Pair<In
 }
 
 private data class DeviceWaitAction(private val id: String, private val criteria: WidgetSelector) : DeviceAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		Log.d(uiaDaemon_logcatTag, "Wait for element to exist" + this.toString())
 		when (criteria) {
 			WidgetSelector.ResourceId -> findByResId(id)
@@ -322,7 +350,7 @@ private sealed class DeviceObjectAction : DeviceAction() {
 }
 
 private data class DeviceClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		executeAction(device,
 				{ o -> o.click() },
 				{ o -> o.click() })
@@ -331,7 +359,7 @@ private data class DeviceClickAction(override val xPath: String, override val re
 }
 
 private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
 
 			Log.d(uiaDaemon_logcatTag, "Clicking coordinates ($x,$y)")
@@ -348,14 +376,14 @@ private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceA
 }
 
 private data class DeviceLongClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		executeAction(device, { o -> o.longClick() }, { o -> o.longClick() })
 		waitForChanges(device)
 	}
 }
 
 private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : DeviceAction() {
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		debugT("executeAction ${this.javaClass.simpleName}", {
 			Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
 
@@ -369,9 +397,11 @@ private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : Dev
 	}
 }
 
-private data class DeviceTextAction(override val xPath: String, override val resId: String, val text: String) : DeviceObjectAction() {
+private data class DeviceTextAction(override val xPath: String,
+									override val resId: String,
+									val text: String) : DeviceObjectAction() {
 	val selector by lazy { if (xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
-	override fun execute(device: UiDevice, context: Context) {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		executeAction(device, { o -> o.setText(text) },
 				{ o ->
 					@Suppress("UsePropertyAccessSyntax")
@@ -381,9 +411,30 @@ private data class DeviceTextAction(override val xPath: String, override val res
 	}
 }
 
-private class DeviceFetchGUIAction(): DeviceAction() {
-	override fun execute(device: UiDevice, context: Context) {
+private class DeviceFetchGUIAction: DeviceAction() {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		waitForChanges(device)
 		// do nothing
+	}
+}
+
+private class DeviceRotateUIAction(val rotation: Int): DeviceAction() {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
+		val currRotation = (device.displayRotation * 90)
+
+		// Android supports the following rotations:
+		// ROTATION_0 = 0;
+		// ROTATION_90 = 1;
+		// ROTATION_180 = 2;
+		// ROTATION_270 = 3;
+		// Thus, instead of 0-360 we have 0-3
+		// The rotation calculations is: [(current rotation in degrees + rotation) / 90] % 4
+		// Ex: curr = 90, rotation = 180 => [(90 + 360) / 90] % 4 => 1
+		val newRotation = ((currRotation + rotation) / 90) % 4
+		device.unfreezeRotation()
+		automation.setRotation(newRotation)
+		device.freezeRotation()
+
+		waitForChanges(device)
 	}
 }

@@ -68,6 +68,8 @@ class EnableWifi : Action()
 
 class FetchGUI: Action()
 
+data class RotateUI(val rotation: Int): Action()
+
 data class LaunchApp(val appLaunchIconName: String) : Action()
 
 data class SimulationAdbClearPackage(val packageName: String) : Action()
