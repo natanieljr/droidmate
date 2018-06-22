@@ -130,10 +130,10 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(monitorUseLegacyStream, description = "Use legacy Java serialization API for device communication (not recommended)."),
 			CommandLineOption(ConfigProperties.ApiMonitorServer.basePort, description = "The base port for the communication with the the API monitor service. DroidMate communicates over this base port + device index."),
 			// ExecutionMode
-			CommandLineOption(inline, description = "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks. This flag is not combinable with another execution mode."),
-			CommandLineOption(report, description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data. This flag is not combinable with another execution mode."),
+			CommandLineOption(inline, description = "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks. This flag cannot be combined with another execution mode."),
+			CommandLineOption(report, description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data. This flag cannot be combined with another execution mode."),
 			CommandLineOption(explore, description = "Run DroidMate in exploration mode."),
-			CommandLineOption(coverage, description = "If present, instead of normal run, DroidMate will run in 'instrument APK for coverage' mode. This flag is not combinable with another execution mode."),
+			CommandLineOption(coverage, description = "If present, instead of normal run, DroidMate will run in 'instrument APK for coverage' mode. This flag cannot be combined with another execution mode."),
 			// Deploy
 			CommandLineOption(installApk, description = "Reinstall the app to the device. If the app is not previously installed the exploration will fail"),
 			CommandLineOption(installAux, description = "Reinstall the auxiliary files (UIAutomator and Monitor) to the device. If the auxiliary files are not previously installed the exploration will fail."),

@@ -422,6 +422,7 @@ private class DeviceFetchGUIAction: DeviceAction() {
 private class DeviceRotateUIAction(val rotation: Int): DeviceAction() {
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		val currRotation = (device.displayRotation * 90)
+		Log.d(uiaDaemon_logcatTag, "Current rotation $currRotation")
 
 		// Android supports the following rotations:
 		// ROTATION_0 = 0;
@@ -432,9 +433,9 @@ private class DeviceRotateUIAction(val rotation: Int): DeviceAction() {
 		// The rotation calculations is: [(current rotation in degrees + rotation) / 90] % 4
 		// Ex: curr = 90, rotation = 180 => [(90 + 360) / 90] % 4 => 1
 		val newRotation = ((currRotation + rotation) / 90) % 4
+		Log.d(uiaDaemon_logcatTag, "New rotation $newRotation")
 		device.unfreezeRotation()
 		automation.setRotation(newRotation)
-		device.freezeRotation()
 
 		waitForChanges(device)
 	}
