@@ -96,9 +96,9 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 			try {
 				val labelMatch = FirstMatchFirstGroup(
 						aaptBadgingDump,
-						" application -label - en(?:.*):'(.*)'",
-						"application - label - de(?:.*):'(.*)'",
-						"application - label(?:.*):'(.*)'",
+						" application-label-en(?:.*):'(.*)'",
+						"application-label-de(?:.*):'(.*)'",
+						"application-label(?:.*):'(.*)'",
 						".*launchable-activity: name = '(?:.*)'  label = '(.*)' .*"
 				)
 				return labelMatch.value
@@ -166,7 +166,10 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 			else
 				""
 		}
-		return arrayListOf(getPackageName(apk), activity[0], activity[1], applicationLabel)
+		return arrayListOf(getPackageName(apk),
+				activity.firstOrNull() ?: "No launchable activity",
+				activity.lastOrNull() ?: "No launchable activity",
+				applicationLabel)
 	}
 
 	var aaptDumpBadgingInstr: (Path) -> String = { instrumentedApk ->
