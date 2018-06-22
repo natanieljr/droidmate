@@ -207,11 +207,11 @@ class StrategySelector constructor(val priority: Int,
 						when {
 							context.getCurrentState().isAppHasStoppedDialogBox -> {
 								logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
-								pool.getFirstInstanceOf(Terminate::class.java)
+								pool.getFirstInstanceOf(Back::class.java)
 							}
 							context.getSecondLastAction().actionType == PressBackExplorationAction::class.java.simpleName -> {
 								logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
-								pool.getFirstInstanceOf(Terminate::class.java)
+								pool.getFirstInstanceOf(Reset::class.java)
 							}
 
 						// otherwise, press back
