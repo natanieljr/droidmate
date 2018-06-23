@@ -208,8 +208,8 @@ function showAbout() {
 function getAboutInfo() {
 	var aboutInfo = "<hr />";
 	aboutInfo += "<h2>About</h2>\n";
-	aboutInfo += "<p>This report is generated using <a href=\"https://github.com/honeynet/droidbot\">DroidBot</a>.</p>\n";
-	aboutInfo += "<p>Please find copyright information in the project page.</p>";
+	aboutInfo += "<p>This report is generated using <a href=\"https://github.com/uds-se/droidmate\">DroidBot</a>.</p>\n";
+	aboutInfo += "<p>Please find copyright information on the project page.</p>";
 	return aboutInfo;
 }
 
