@@ -36,9 +36,7 @@ import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.dumpString
 import java.io.File
 import java.lang.reflect.Type
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.*
 
 /**
  * This reporter creates a report in form of a web page, displaying the model, its states and its
@@ -55,7 +53,7 @@ class VisualizationGraph : ApkReport() {
     /**
      * The directory which will contain all images for the states.
      */
-    private lateinit var targetImgDir: File
+    private lateinit var targetImgDir: Path
 
     /**
      * Edge encapsulates an ActionData object, because the frontend cannot have multiple
@@ -225,10 +223,10 @@ class VisualizationGraph : ApkReport() {
      * image.
      */
     private fun getImgPath(stateId: String): String {
-        return if (targetImgDir.listFiles().any { it.name.startsWith(stateId) }) {
-            Paths.get("./img/$stateId.png").toString()
+        return if (Files.list(targetImgDir).anyMatch { it.fileName.toString().startsWith(stateId) }) {
+            Paths.get(".").resolve("img").resolve("$stateId.png").toString()
         } else
-            Paths.get("./img/Default.png").toString()
+            Paths.get(".").resolve("img").resolve("Default.png").toString()
     }
 
     /**
@@ -259,10 +257,15 @@ class VisualizationGraph : ApkReport() {
         val targetVisFolder = File(path.toString())
         Resource("vis").file.copyRecursively(targetVisFolder)
         // Copy the state images
-        targetImgDir = File(path.resolve("img").toString())
-        model.config.stateDst.toFile()
-                .listFiles { _, filename -> filename.endsWith(".png") }
-                .forEach { it.copyTo(targetImgDir.resolve(it.name)) }
+        targetImgDir = path.resolve("img")
+
+        Files.list(model.config.stateDst)
+                .filter { filename -> filename.toString().endsWith(".png") }
+                .forEach {
+                    println("Source: $it")
+                    println("Destination: $targetImgDir")
+                    Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
+                }
 
         val jsonFile = path.resolve("data.js")
         val gson = getCustomGsonBuilder()
