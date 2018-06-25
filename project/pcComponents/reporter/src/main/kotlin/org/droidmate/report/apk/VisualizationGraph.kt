@@ -36,8 +36,7 @@ import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.dumpString
 import java.io.File
 import java.lang.reflect.Type
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.*
 
 /**
  * This reporter creates a report in form of a web page, displaying the model, its states and its
@@ -50,6 +49,11 @@ class VisualizationGraph : ApkReport() {
      * All files are generated into this folder.
      */
     private val topLevelDirName: String = "vis"
+
+    /**
+     * The directory which will contain all images for the states.
+     */
+    private lateinit var targetImgDir: Path
 
     /**
      * Edge encapsulates an ActionData object, because the frontend cannot have multiple
@@ -122,7 +126,7 @@ class VisualizationGraph : ApkReport() {
             obj.addProperty("stateId", stateId)
             obj.addProperty("topNodePackageName", src.topNodePackageName)
             obj.addProperty("shape", "image")
-            obj.addProperty("image", ".${File.separator}img${File.separator}$stateId.png")
+            obj.addProperty("image", getImgPath(stateId))
             obj.addProperty("uid", src.uid.toString())
             obj.addProperty("configId", src.configId.toString())
             obj.addProperty("iEditId", src.iEditId.toString())
@@ -213,6 +217,19 @@ class VisualizationGraph : ApkReport() {
     }
 
     /**
+     * Returns the path of the image, which should be used for the according state. Use
+     * the Default.png if no such file with the according stateId exists. This is the case
+     * e.g. for the initial state or for states for which DroidMate could not acquire an
+     * image.
+     */
+    private fun getImgPath(stateId: String): String {
+        return if (Files.list(targetImgDir).anyMatch { it.fileName.toString().startsWith(stateId) }) {
+            Paths.get(".").resolve("img").resolve("$stateId.png").toString()
+        } else
+            Paths.get(".").resolve("img").resolve("Default.png").toString()
+    }
+
+    /**
      * Returns the custom Json builder, which controls what properties are serialized
      * and how they are named.
      */
@@ -240,10 +257,15 @@ class VisualizationGraph : ApkReport() {
         val targetVisFolder = File(path.toString())
         Resource("vis").file.copyRecursively(targetVisFolder)
         // Copy the state images
-        val targetImgFolder = File(path.resolve("img").toString())
-        model.config.stateDst.toFile()
-                .listFiles { _, filename -> filename.endsWith(".png") }
-                .forEach { it.copyTo(targetImgFolder.resolve(it.name)) }
+        targetImgDir = path.resolve("img")
+
+        Files.list(model.config.stateDst)
+                .filter { filename -> filename.toString().endsWith(".png") }
+                .forEach {
+                    println("Source: $it")
+                    println("Destination: $targetImgDir")
+                    Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
+                }
 
         val jsonFile = path.resolve("data.js")
         val gson = getCustomGsonBuilder()
