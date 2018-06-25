@@ -11,5 +11,5 @@ project.ext {
 	androidCompileSdkVersion = 26
 
 	// for some strange konrad.utilities used within misc for configuration??
-	utilities_version = 'v0.2'
+	utilities_version = 'v0.2.1'
 }

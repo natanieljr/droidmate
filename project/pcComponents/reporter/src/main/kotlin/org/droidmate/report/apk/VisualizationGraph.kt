@@ -250,14 +250,14 @@ class VisualizationGraph : ApkReport() {
 
     override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 
-        val path = apkReportDir.resolve(topLevelDirName)
+        val targetVisFolder = apkReportDir.resolve(topLevelDirName)
         val model = data.getModel()
+        val source = Resource("vis").file
 
         // Copy the folder with the required resources
-        val targetVisFolder = File(path.toString())
-        Resource("vis").file.copyRecursively(targetVisFolder)
+        Files.copy(source, targetVisFolder, StandardCopyOption.REPLACE_EXISTING)
         // Copy the state images
-        targetImgDir = path.resolve("img")
+        targetImgDir = targetVisFolder.resolve("img")
 
         Files.list(model.config.stateDst)
                 .filter { filename -> filename.toString().endsWith(".png") }
@@ -267,7 +267,7 @@ class VisualizationGraph : ApkReport() {
                     Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
                 }
 
-        val jsonFile = path.resolve("data.js")
+        val jsonFile = targetVisFolder.resolve("data.js")
         val gson = getCustomGsonBuilder()
 
         runBlocking {
