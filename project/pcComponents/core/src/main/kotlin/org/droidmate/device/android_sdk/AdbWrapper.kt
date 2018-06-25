@@ -516,7 +516,7 @@ Logcat reference:
 	private fun startUiautomatorDaemonApi23(deviceSerialNumber: String, port: Int) {
 		val commandDescription = "Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
 
-		val uiaDaemonCmdLine = String.format("-e %s %s", UiautomatorDaemonConstants.uiaDaemonParam_tcpPort, port)
+		val uiaDaemonCmdLine = "-e ${UiautomatorDaemonConstants.uiaDaemonParam_tcpPort} $port"
 
 		val testRunner = UiautomatorDaemonConstants.uia2Daemon_testPackageName + "/" + UiautomatorDaemonConstants.uia2Daemon_testRunner
 		val failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
