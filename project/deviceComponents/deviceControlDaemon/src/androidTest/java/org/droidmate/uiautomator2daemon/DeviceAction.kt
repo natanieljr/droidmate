@@ -444,12 +444,22 @@ private class DeviceRotateUIAction(val rotation: Int): DeviceAction() {
 private class DeviceMinimizeMaximizeAction(): DeviceAction(){
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		val currentPackage = device.currentPackageName
+		Log.d(uiaDaemon_logcatTag, "Original package name $currentPackage")
 
 		device.pressRecentApps()
+		// Cannot use wait for changes because it crashes UIAutomator
+		runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
+		measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 
 		for(i in (0 until 10)){
 			device.pressRecentApps()
+			//waitForChanges(device)
 
+			// Cannot use wait for changes because it waits some interact-able element
+			runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
+			measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
+
+			Log.d(uiaDaemon_logcatTag, "Current package name ${device.currentPackageName}")
 			if (device.currentPackageName == currentPackage)
 				break
 		}
