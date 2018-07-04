@@ -210,6 +210,8 @@ abstract class ConfigProperties {
 		val stopAppRetryAttempts by intType
 		val stopAppSuccessCheckDelay by intType
 		val waitForCanRebootDelay by intType
+        val deviceOperationAttempts by intType
+        val deviceOperationDelay by intType
 		val waitForDevice by booleanType
 	}
 

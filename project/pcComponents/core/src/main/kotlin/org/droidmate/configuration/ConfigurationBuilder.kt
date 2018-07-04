@@ -60,6 +60,8 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValid
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppRetryAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForCanRebootDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationAttempts
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.explore
@@ -157,6 +159,8 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(stopAppRetryAttempts, description = "Number of attempts to close an 'application has stopped' dialog."),
 			CommandLineOption(stopAppSuccessCheckDelay, description = "Delay after each failed attempt close an 'application has stopped' dialog"),
 			CommandLineOption(waitForCanRebootDelay, description = "Delay (in milliseconds) after an attempt was made to reboot a device, before."),
+			CommandLineOption(deviceOperationAttempts, description = "Number of attempts to retry other failed device operations."),
+			CommandLineOption(deviceOperationDelay, description = "Delay (in milliseconds) after an attempt was made to perform a device operation, before retrying again."),
 			CommandLineOption(waitForDevice, description = "Wait for a device to be connected to the PC instead of cancelling the exploration."),
 			// Exploration
 			CommandLineOption(apksDir, description = "Directory containing the apks to be processed by DroidMate."),
