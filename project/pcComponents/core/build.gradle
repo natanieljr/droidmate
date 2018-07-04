@@ -46,6 +46,9 @@ dependencies {
 
 	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
 
+	// Needed to allow logback to read the logback.groovy class
+	compile 'org.codehaus.groovy:groovy-all:2.4.12'
+
 	testCompile 'org.hamcrest:hamcrest-core:1.3'
 
 	compile project(":deviceDaemonLib")
