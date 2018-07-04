@@ -53,7 +53,7 @@ import kotlin.system.measureTimeMillis
 const val measurePerformance = true
 
 @Suppress("ConstantConditionIf")
-inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
+inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T? {
 	var res: T? = null
 	if (measurePerformance) {
 		measureNanoTime {
@@ -63,7 +63,11 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 			Log.d(uiaDaemon_logcatTag,"TIME: ${if (inMillis) "${(it / 1000000.0).toInt()} ms" else "${it / 1000.0} ns/1000"} \t $msg")
 		}
 	} else res = block.invoke()
-	return res!!
+	return res
+}
+
+inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
+	return nullableDebugT(msg, block, timer, inMillis)!!
 }
 
 /**
@@ -130,7 +134,7 @@ internal sealed class DeviceAction {
 					// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interact-able app elements
 					if(device.findObject(By.res("com.android.packageinstaller:id/permission_allow_button")) == null) {
 						// exclude android internal elements
-						debugT("wait for interactable", {device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)}  // this only checks for clickable but is much more reliable than a custom Search-Condition
+						nullableDebugT("wait for interactable", {device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)}  // this only checks for clickable but is much more reliable than a custom Search-Condition
 								,inMillis = true)
 						// so if we need more we would have to implement something similar to `Until`
 // DEBUG_CODE:
