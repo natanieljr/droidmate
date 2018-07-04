@@ -1,15 +1,21 @@
 image: timoguehring/droidmateenv:latest
 
-before_script:
-  - chmod +x ./gradlew
-
 stages:
   - test
 
-unitTests:
+unitTestsUnix:
   stage: test
   tags:
         - droidmate
   script:
-    - echo "Running unit tests"
+    - chmod +x ./gradlew
+    - echo "Running unit tests on Unix"
     - ./gradlew test
+
+unitTestsWindows:
+  stage: test
+  tags:
+        - droidmatewin
+  script:
+    - echo "Running unit tests on Windows"
+    - .\gradlew test

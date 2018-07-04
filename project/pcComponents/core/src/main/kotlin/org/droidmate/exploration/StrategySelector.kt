@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
+
 package org.droidmate.exploration
 
 import org.droidmate.exploration.actions.PressBackExplorationAction
@@ -24,6 +31,7 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
+import org.droidmate.exploration.strategy.widget.DFS
 import org.droidmate.exploration.strategy.widget.ModelBased
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.slf4j.Logger
@@ -267,6 +275,14 @@ class StrategySelector constructor(val priority: Int,
 		val playback: SelectorFunction = { _, pool, _ ->
 			logger.debug("Playback. Returning 'MemoryPlayback'")
 			pool.getFirstInstanceOf(Playback::class.java)
+		}
+
+		/**
+		 * Uses the Depth-First-Search strategy, if available
+		 */
+		@JvmStatic
+		val dfs: SelectorFunction = {_, pool, _ ->
+			pool.getFirstInstanceOf(DFS::class.java)
 		}
     }
 }

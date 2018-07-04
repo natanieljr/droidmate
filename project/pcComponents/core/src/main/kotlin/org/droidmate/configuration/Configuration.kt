@@ -242,6 +242,13 @@ abstract class ConfigProperties {
 		val allowRuntimeDialog by booleanType
 		val denyRuntimeDialog by booleanType
 		val playback by booleanType
+		val dfs by booleanType
+		val rotateUI by booleanType
+		val minimizeMaximize by booleanType
+
+		object Parameters : PropertyGroup() {
+			val uiRotation by intType
+		}
 	}
 
 	object Selectors : PropertyGroup() {
@@ -253,6 +260,7 @@ abstract class ConfigProperties {
 		val timeLimit by intType
 		val randomSeed by longType
 		val stopOnExhaustion by booleanType
+		val dfs by booleanType
 	}
 
 	object Report : PropertyGroup() {

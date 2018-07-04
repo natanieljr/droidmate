@@ -65,8 +65,10 @@ class SwipeAction private constructor(val start: Pair<Int, Int>? = null, val dst
 class PressBack : Action()
 class PressHome : Action()
 class EnableWifi : Action()
-
+class MinimizeMaximize : Action()
 class FetchGUI: Action()
+
+data class RotateUI(val rotation: Int): Action()
 
 data class LaunchApp(val appLaunchIconName: String) : Action()
 

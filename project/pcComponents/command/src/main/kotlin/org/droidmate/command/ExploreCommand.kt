@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
@@ -36,6 +35,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
+import org.droidmate.configuration.ConfigProperties.Selectors
 import org.droidmate.configuration.ConfigProperties.Selectors.playbackModelDir
 import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbability
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
@@ -43,10 +43,14 @@ import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
+import org.droidmate.configuration.ConfigProperties.Strategies
+import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
 import org.droidmate.configuration.ConfigProperties.Strategies.explore
 import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
+import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
 import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
+import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
@@ -62,12 +66,10 @@ import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
 import org.droidmate.exploration.strategy.custom.DeAwintaSanimedius
+import org.droidmate.exploration.strategy.others.MinimizeMaximize
+import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
-import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
-import org.droidmate.exploration.strategy.widget.FitnessProportionateSelection
-import org.droidmate.exploration.strategy.widget.ModelBased
-import org.droidmate.exploration.strategy.widget.RandomWidget
-import org.droidmate.logging.LogbackConstants
+import org.droidmate.exploration.strategy.widget.*
 import org.droidmate.logging.Markers
 import org.droidmate.misc.*
 import org.droidmate.report.AggregateStats
@@ -149,6 +151,9 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			if (cfg[pressBackProbability] > 0.0)
 				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed)))
 
+			if (cfg[Selectors.dfs])
+				res.add(StrategySelector(++priority, "dfs", StrategySelector.dfs))
+
 			// Exploration exhausted
 			if (cfg[stopOnExhaustion])
 				res.add(StrategySelector(++priority, "explorationExhausted", StrategySelector.explorationExhausted))
@@ -192,6 +197,15 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
 
+			if (cfg[Strategies.dfs])
+				strategies.add(DFS())
+
+			if (cfg[rotateUI])
+				strategies.add(RotateUI(cfg[uiRotation]))
+
+			if (cfg[minimizeMaximize])
+				strategies.add(MinimizeMaximize())
+
 			strategies.add(ComShreeHomeLogin())
 			strategies.add(DeAwintaSanimedius())
 
@@ -205,7 +219,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				  timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
 				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
 				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-				  strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still usefull to overwrite the eContext instead of the model?
+				  strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
 				  reportCreators: List<Reporter> = defaultReportWatcher(cfg),
 				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
@@ -223,12 +237,10 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		fun defaultReportWatcher(cfg: ConfigurationWrapper): List<Reporter> =
 				listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg[includePlots]), ClickFrequency(cfg[includePlots]),
 						//TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
-						ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace())
+						ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace(), VisualizationGraph())
 	}
 
 	private val reporters: MutableList<Reporter> = mutableListOf()
-	private var actionT: Long = 0
-	private var nActions = 0
 
 	override fun execute(cfg: ConfigurationWrapper) {
 		cleanOutputDir(cfg)
@@ -247,7 +259,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		if (!Files.exists(reportDir))
 			Files.createDirectories(reportDir)
 
-		assert(Files.exists(reportDir), { "Unable to create report directory ($reportDir)" })
+		assert(Files.exists(reportDir)) { "Unable to create report directory ($reportDir)" }
 
 		log.info("Writing reports")
 		reporters.forEach { it.write(reportDir.toAbsolutePath(), resourceDir.toAbsolutePath(), rawData) }
@@ -299,7 +311,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		Files.walk(outputDir)
 				.filter { it.parent.fileName.toString() != BuildConstants.dir_name_temp_extracted_resources }
 				.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
-				.forEach { assert(Files.isDirectory(it), {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"}) }
+				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
 	}
 
 	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): List<ExplorationException> {
@@ -428,7 +440,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 			strategy.update(result)
 
 			if (isFirst) {
-				log.info("Initial action: ${action}")
+				log.info("Initial action: $action")
 				isFirst = false
 			}
 		}
