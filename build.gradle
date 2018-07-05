@@ -28,7 +28,7 @@ task droidmatePublish(type: GradleBuild) {
 
 allprojects {
 	group = "org.droidmate"
-	version = "1.0-RC1"
+	version = "1.0-RC2"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
