@@ -1,4 +1,4 @@
-package org.droidmate.command
+/*package org.droidmate.command
 
 import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.androcov.StatementInstrumenter
@@ -33,4 +33,4 @@ class CoverageCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 
 		return emptyList()
 	}
-}
+}*/
