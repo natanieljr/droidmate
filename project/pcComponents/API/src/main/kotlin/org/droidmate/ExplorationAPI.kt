@@ -31,6 +31,7 @@ import org.droidmate.command.ExploreCommand
 import org.droidmate.command.InlineCommand
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
@@ -55,6 +56,7 @@ object ExplorationAPI {
 		explore(args)
 	}
 
+	@JvmStatic
 	val config: (args: Array<String>) -> ConfigurationWrapper = { args -> ConfigurationBuilder().build(args, FileSystems.getDefault()) }
 
 	/****************************** Apk-Inline API methods *****************************/
@@ -75,22 +77,23 @@ object ExplorationAPI {
 	@JvmOverloads
 	fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
 	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = emptyList(),
-	            modelProvider: ((String) -> Model)? = null) {
-		explore(setup(args), strategies, selectors, reportCreators, modelProvider)
+	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
+		return explore(setup(args), strategies, selectors, reportCreators, modelProvider)
 	}
 
 	@JvmStatic
 	@JvmOverloads
 	fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
 	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = emptyList(),
-	            modelProvider: ((String) -> Model)? = null) {
+	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
 		val runStart = Date()
 		val exploration = ExploreCommand.build(cfg, reportCreators = reportCreators, strategies = strategies
 				?: ExploreCommand.getDefaultStrategies(cfg), selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg)
 				, modelProvider = modelProvider ?: { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} )
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
-		tryExecute(exploration, cfg)
+
+		return tryExecute(exploration, cfg)
 	}
 
 	/**
@@ -100,23 +103,24 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	                     selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = emptyList()) {
-
+	                     selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = emptyList()): List<ExplorationContext> {
 		val cfg = setup(args)
 		inline(cfg)
-		explore(cfg, strategies, selectors, reportCreators)
+
+		return explore(cfg, strategies, selectors, reportCreators)
 	}
 
-	private fun tryExecute(command: DroidmateCommand, cfg: ConfigurationWrapper) {
-		var exitStatus = 0
+	private fun tryExecute(command: DroidmateCommand, cfg: ConfigurationWrapper): List<ExplorationContext> {
+		val exitStatus: Int
 
 		try {
-			command.execute(cfg)
+			return command.execute(cfg)
 		} catch (e: Throwable) {
 			e.printStackTrace()
 			exitStatus = ExceptionHandler().handle(e)
 		}
 		System.exit(exitStatus)
+		return emptyList()
 	}
 
 	private fun setup(args: Array<String>): ConfigurationWrapper {
