@@ -25,16 +25,13 @@
 
 package org.droidmate.command
 
-import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.report.AggregateStats
-import org.droidmate.report.OutputDir
-import org.droidmate.report.Summary
-import org.droidmate.report.apk.*
+import org.droidmate.exploration.ExplorationContext
 
 class ReportCommand : DroidmateCommand() {
-	override fun execute(cfg: ConfigurationWrapper) {
-		val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
+	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
+		return emptyList()
+		/*val out = OutputDir(cfg.reportInputDirPath).explorationOutput2
 		val data = out
 		val includePlots = cfg[includePlots]
 		val resourceDir = cfg.resourceDir
@@ -50,6 +47,6 @@ class ReportCommand : DroidmateCommand() {
 		ActionTrace().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
 		WidgetApiTrace().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
 		EffectiveActions().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
-		VisualizationGraph().write(cfg.droidmateOutputReportDirPath, resourceDir, data)
+		VisualizationGraph().write(cfg.droidmateOutputReportDirPath, resourceDir, data)*/
 	}
 }

@@ -4,18 +4,19 @@ import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.androcov.StatementInstrumenter
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.AaptWrapper
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 
 class CoverageCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 												private val instrumenter: StatementInstrumenter = StatementInstrumenter(cfg)) : DroidmateCommand() {
-	override fun execute(cfg: ConfigurationWrapper) {
+	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
 		if (apks.all { it.instrumented }) {
 			log.warn("No non-instrumented apks found. Aborting.")
-			return
+			return emptyList()
 		}
 
 		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
@@ -29,5 +30,7 @@ class CoverageCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		instrumenter.instrument(apk, apk.path.parent)
 		log.info("Instrumented ${apk.fileName}")
 		moveOriginal(apk, originalsDir)
+
+		return emptyList()
 	}
 }

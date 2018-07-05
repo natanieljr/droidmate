@@ -55,7 +55,6 @@ import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.AbstractExplorationAction
@@ -221,17 +220,21 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 	private val reporters: MutableList<Reporter> = mutableListOf()
 
-	override fun execute(cfg: ConfigurationWrapper) {
+	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
 		cleanOutputDir(cfg)
 
 		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
-		if (!validateApks(apks, cfg[runOnNotInlined])) return
+		if (!validateApks(apks, cfg[runOnNotInlined]))
+			return emptyList()
 
-		val explorationExceptions = execute(cfg, apks)
+		val explorationData = execute(cfg, apks)
+		val explorationExceptions = explorationData.second
 		if (!explorationExceptions.isEmpty()) {
 			explorationExceptions.forEach { log.error(it.message); it.printStackTrace() }
 			throw ThrowablesCollection(explorationExceptions)
 		}
+
+		return explorationData.first
 	}
 
 	private fun writeReports(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
@@ -293,8 +296,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
 	}
 
-	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): List<ExplorationException> {
-		val out = ExplorationOutput2()
+	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, List<ExplorationException>> {
+		val out : MutableList<ExplorationContext> = mutableListOf()
 
 
 		val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
@@ -311,12 +314,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		writeReports(cfg.droidmateOutputReportDirPath, cfg.resourceDir, out)
 
-		return explorationExceptions
+		return Pair(out, explorationExceptions)
 	}
 
 	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
 	                                   apks: List<Apk>,
-	                                   out: ExplorationOutput2): List<ExplorationException> {
+	                                   out: MutableList<ExplorationContext>): List<ExplorationException> {
 		return this.deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
 
 			val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
@@ -356,7 +359,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 	@Throws(DeviceException::class)
 	private fun tryExploreOnDeviceAndSerialize(
-			deployedApk: IApk, device: IRobustDevice, out: ExplorationOutput2) {
+			deployedApk: IApk, device: IRobustDevice, out: MutableList<ExplorationContext>) {
 		val fallibleApkOut2 = this.run(deployedApk, device)
 
 		if (fallibleApkOut2.result != null) {
