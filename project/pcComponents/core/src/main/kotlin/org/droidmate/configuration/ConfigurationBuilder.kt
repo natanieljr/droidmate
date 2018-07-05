@@ -51,12 +51,6 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkApp
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootFirstDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootLaterDelays
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppRetryAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForCanRebootDelay
@@ -150,12 +144,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(checkDeviceAvailableAfterRebootAttempts, description = "Determines how often DroidMate checks if a device is available after a reboot."),
 			CommandLineOption(checkDeviceAvailableAfterRebootFirstDelay, description = "The first delay after a device rebooted, before its availability will be checked."),
 			CommandLineOption(checkDeviceAvailableAfterRebootLaterDelays, description = "The non-first delay after a device rebooted, before its availability will be checked."),
-			CommandLineOption(clearPackageRetryAttempts, description = "Number of attempts to close a running app."),
-			CommandLineOption(clearPackageRetryDelay, description = "Delay after each failed attempt to close a running app."),
-			CommandLineOption(closeANRAttempts, description = "Delay after each failed attempt close an 'application not responding' dialog."),
-			CommandLineOption(closeANRDelay, description = "Delay after each failed attempt close an 'application not responding' dialog."),
-			CommandLineOption(getValidGuiSnapshotRetryAttempts, description = "Number of attempts to get a valid GUI snapshot from the device. If not snapshot is acquired the exploration stops"),
-			CommandLineOption(getValidGuiSnapshotRetryDelay, description = "Timeout for each attempt to get a valid GUI snapshot from the device in milliseconds"),
 			CommandLineOption(stopAppRetryAttempts, description = "Number of attempts to close an 'application has stopped' dialog."),
 			CommandLineOption(stopAppSuccessCheckDelay, description = "Delay after each failed attempt close an 'application has stopped' dialog"),
 			CommandLineOption(waitForCanRebootDelay, description = "Delay (in milliseconds) after an attempt was made to reboot a device, before."),

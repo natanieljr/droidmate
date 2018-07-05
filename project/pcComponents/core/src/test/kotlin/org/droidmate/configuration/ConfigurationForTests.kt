@@ -28,9 +28,7 @@ package org.droidmate.configuration
 import com.natpryce.konfig.CommandLineOption
 import org.droidmate.configuration.ConfigProperties.Deploy.useApkFixturesDir
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkAppIsRunningRetryDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
@@ -58,10 +56,8 @@ class ConfigurationForTests() {
 //    Configuration.pn_checkDeviceAvailableAfterRebootFirstDelay, "0",
 //    Configuration.pn_checkDeviceAvailableAfterRebootLaterDelays, "0",
 //    Configuration.pn_waitForCanRebootDelay, "0",
-				clearPackageRetryDelay.name, "0",
-				getValidGuiSnapshotRetryDelay.name, "0",
 				stopAppSuccessCheckDelay.name, "0",
-				closeANRDelay.name, "0"
+				deviceOperationDelay.name, "0"
 		)
 	}
 

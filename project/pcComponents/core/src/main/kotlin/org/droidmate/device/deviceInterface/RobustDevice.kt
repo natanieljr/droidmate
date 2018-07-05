@@ -61,20 +61,11 @@ class RobustDevice : IRobustDevice {
 
 	private val messagesReader: IDeviceMessagesReader
 
-	private val clearPackageRetryAttempts: Int
-	private val clearPackageRetryDelay: Int
-
-	private val getValidGuiSnapshotRetryAttempts: Int
-	private val getValidGuiSnapshotRetryDelay: Int
-
 	private val checkAppIsRunningRetryAttempts: Int
 	private val checkAppIsRunningRetryDelay: Int
 
 	private val stopAppRetryAttempts: Int
 	private val stopAppSuccessCheckDelay: Int
-
-	private val closeANRAttempts: Int
-	private val closeANRDelay: Int
 
 	private val checkDeviceAvailableAfterRebootAttempts: Int
 	private val checkDeviceAvailableAfterRebootFirstDelay: Int
@@ -87,16 +78,10 @@ class RobustDevice : IRobustDevice {
 
 	constructor(device: IAndroidDevice, cfg: ConfigurationWrapper) : this(device,
 			cfg,
-			cfg[ConfigProperties.DeviceCommunication.clearPackageRetryAttempts],
-			cfg[ConfigProperties.DeviceCommunication.clearPackageRetryDelay],
-			cfg[ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryAttempts],
-			cfg[ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryDelay],
 			cfg[ConfigProperties.DeviceCommunication.checkAppIsRunningRetryAttempts],
 			cfg[ConfigProperties.DeviceCommunication.checkAppIsRunningRetryDelay],
 			cfg[ConfigProperties.DeviceCommunication.stopAppRetryAttempts],
 			cfg[ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay],
-			cfg[ConfigProperties.DeviceCommunication.closeANRAttempts],
-			cfg[ConfigProperties.DeviceCommunication.closeANRDelay],
 			cfg[ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts],
 			cfg[ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootFirstDelay],
 			cfg[ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootLaterDelays],
@@ -107,16 +92,10 @@ class RobustDevice : IRobustDevice {
 
 	constructor(device: IAndroidDevice,
 	            cfg: ConfigurationWrapper,
-	            clearPackageRetryAttempts: Int,
-	            clearPackageRetryDelay: Int,
-	            getValidGuiSnapshotRetryAttempts: Int,
-	            getValidGuiSnapshotRetryDelay: Int,
 	            checkAppIsRunningRetryAttempts: Int,
 	            checkAppIsRunningRetryDelay: Int,
 	            stopAppRetryAttempts: Int,
 	            stopAppSuccessCheckDelay: Int,
-	            closeANRAttempts: Int,
-	            closeANRDelay: Int,
 	            checkDeviceAvailableAfterRebootAttempts: Int,
 	            checkDeviceAvailableAfterRebootFirstDelay: Int,
 	            checkDeviceAvailableAfterRebootLaterDelays: Int,
@@ -127,44 +106,28 @@ class RobustDevice : IRobustDevice {
 		this.device = device
 		this.cfg = cfg
 		this.messagesReader = DeviceMessagesReader(device, monitorUseLogcat)
-
-		this.clearPackageRetryAttempts = clearPackageRetryAttempts
-		this.clearPackageRetryDelay = clearPackageRetryDelay
-
-		this.getValidGuiSnapshotRetryAttempts = getValidGuiSnapshotRetryAttempts
-		this.getValidGuiSnapshotRetryDelay = getValidGuiSnapshotRetryDelay
-
 		this.checkAppIsRunningRetryAttempts = checkAppIsRunningRetryAttempts
 		this.checkAppIsRunningRetryDelay = checkAppIsRunningRetryDelay
-
 		this.stopAppRetryAttempts = stopAppRetryAttempts
 		this.stopAppSuccessCheckDelay = stopAppSuccessCheckDelay
-
-		this.closeANRAttempts = closeANRAttempts
-		this.closeANRDelay = closeANRDelay
-
 		this.checkDeviceAvailableAfterRebootAttempts = checkDeviceAvailableAfterRebootAttempts
 		this.checkDeviceAvailableAfterRebootFirstDelay = checkDeviceAvailableAfterRebootFirstDelay
 		this.checkDeviceAvailableAfterRebootLaterDelays = checkDeviceAvailableAfterRebootLaterDelays
-
 		this.waitForCanRebootDelay = waitForCanRebootDelay
+        this.deviceOperationAttempts = deviceOperationAttempts
+        this.deviceOperationDelay = deviceOperationDelay
 
-        this.deviceOperationAttempts = 1 // TODO: remove
-        this.deviceOperationDelay = 1 // TODO: remove
-
-		assert(clearPackageRetryAttempts >= 1)
 		assert(checkAppIsRunningRetryAttempts >= 1)
 		assert(stopAppRetryAttempts >= 1)
-		assert(closeANRAttempts >= 1)
 		assert(checkDeviceAvailableAfterRebootAttempts >= 1)
+		assert(deviceOperationAttempts >= 1)
 
-		assert(clearPackageRetryDelay >= 0)
 		assert(checkAppIsRunningRetryDelay >= 0)
 		assert(stopAppSuccessCheckDelay >= 0)
-		assert(closeANRDelay >= 0)
 		assert(checkDeviceAvailableAfterRebootFirstDelay >= 0)
 		assert(checkDeviceAvailableAfterRebootLaterDelays >= 0)
 		assert(waitForCanRebootDelay >= 0)
+		assert(deviceOperationDelay >= 0)
 	}
 
 	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
@@ -207,8 +170,8 @@ class RobustDevice : IRobustDevice {
 			Utils.retryOnException({ device.clearPackage(apkPackageName) },
 					{},
 					DeviceException::class,
-					this.clearPackageRetryAttempts,
-					this.clearPackageRetryDelay,
+					deviceOperationAttempts,
+					deviceOperationDelay,
 					"clearPackage")
 
 			// Sleep here to give the device some time to stop all the processes belonging to the cleared package before checking
@@ -299,14 +262,14 @@ class RobustDevice : IRobustDevice {
 							{ this.device.perform(action) },
 							{ this.restartUiaDaemon(false) },
 							DeviceException::class,
-							getValidGuiSnapshotRetryAttempts,
+							deviceOperationAttempts,
 							0,
 							"device.perform(action:$action)"
 					)
 				},
 				{ it.isValid() },
-				getValidGuiSnapshotRetryAttempts,
-				getValidGuiSnapshotRetryDelay)
+				deviceOperationAttempts,
+				deviceOperationDelay)
 	}
 
 	override fun appIsNotRunning(apk: IApk): Boolean {
@@ -400,8 +363,8 @@ class RobustDevice : IRobustDevice {
 			} else
 				true
 		},
-				this.closeANRAttempts,
-				this.closeANRDelay)
+				deviceOperationAttempts,
+				deviceOperationDelay)
 
 		return out!!
 	}
@@ -416,8 +379,8 @@ class RobustDevice : IRobustDevice {
 					{ getValidGuiSnapshot() },
 					{ restartUiaDaemon(false) },
 					DeviceException::class,
-					getValidGuiSnapshotRetryAttempts,
-					getValidGuiSnapshotRetryDelay,
+					deviceOperationAttempts,
+					deviceOperationDelay,
 					"getValidGuiSnapshot")
 		} catch (e: DeviceException) {
 			throw AllDeviceAttemptsExhaustedException("All attempts at getting valid GUI snapshot failed", e)
