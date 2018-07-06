@@ -31,6 +31,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.debug.debugT
+import org.droidmate.debug.measurePerformance
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
@@ -110,9 +111,9 @@ open class ActionResult(val action: AbstractExplorationAction,
 								it.map { async(Unconfined) { Widget.fromWidgetData(it, img, config) } } // iterates over each WidgetData and creates Widget object collect all these elements as set
 										.map { runBlocking { it.await() } }
 							}, { timeP += it })
-
 									.also {
-										println("===> sumS=${timeS / 1000000.0} \t sumP=${timeP / 1000000.0}")
+										if (measurePerformance)
+											println("===> sumS=${timeS / 1000000.0} \t sumP=${timeP / 1000000.0}")
 									}
 
 							// funny sequential seams faster than parallel approach
