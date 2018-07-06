@@ -25,9 +25,10 @@
 
 
 dependencies {
-	compile "ca.mcgill.sable:soot:3.1.0-SNAPSHOT"
+	//compile "ca.mcgill.sable:soot:3.1.0-SNAPSHOT"
+	compile "ca.mcgill.sable:soot:3.1.0-20180703.124340-44"
 
-	compile 'org.json:json:20140107'
+	compile 'org.json:json:20160212'
 	//compile 'commons-cli:commons-cli:1.4'
 	//compile 'commons-io:commons-io:2.6'
 
