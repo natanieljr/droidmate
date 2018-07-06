@@ -366,7 +366,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun appIsRunning(appPackageName: String): Boolean =
 			this.appProcessIsRunning(appPackageName) && this.anyMonitorIsReachable()
 
-	override fun reinstallUiautomatorDaemon() {
+	override fun reinstallUiAutomatorDaemon() {
 		if (cfg[apiVersion] == ConfigurationWrapper.api23) {
 			this.uninstallApk(uia2Daemon_testPackageName, true)
 			this.uninstallApk(uia2Daemon_packageName, true)

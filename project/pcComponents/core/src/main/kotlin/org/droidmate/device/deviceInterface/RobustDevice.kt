@@ -42,11 +42,9 @@ import org.droidmate.uiautomator_daemon.guimodel.ClickAction
 import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
 import org.droidmate.uiautomator_daemon.guimodel.PressHome
 import org.slf4j.LoggerFactory
-import java.io.ByteArrayInputStream
 import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.time.LocalDateTime
-import javax.imageio.ImageIO
 
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
@@ -441,7 +439,7 @@ class RobustDevice : IRobustDevice {
 			// to the device is lost and it's assigned a new, random port, which doesn't allow automatic reconnection.
 			//this.reconnectAdbDiscardingException("Call to reconnectAdb() just before call to rebootAndRestoreConnection() " +
 			//        "failed with: %s. Discarding the exception and continuing wih rebooting.")
-			//this.reinstallUiautomatorDaemon()
+			//this.reinstallUiAutomatorDaemon()
 			this.rebootAndRestoreConnection()
 
 			if (makeSecondAttempt) {
@@ -589,8 +587,8 @@ class RobustDevice : IRobustDevice {
 		this.device.pullLogcatLogFile()
 	}
 
-	override fun reinstallUiautomatorDaemon() {
-		this.device.reinstallUiautomatorDaemon()
+	override fun reinstallUiAutomatorDaemon() {
+		this.device.reinstallUiAutomatorDaemon()
 	}
 
 	override fun pushMonitorJar() {

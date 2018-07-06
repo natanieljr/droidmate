@@ -81,8 +81,8 @@ fun `Restarts uiautomatorDaemon2 and communicates with it via TCP`()
 		println("uia-daemon2 is installed.")
 	else
 	{
-		println("uia-daemon2 is not installed: reinstallUiautomatorDaemon")
-		device.reinstallUiautomatorDaemon()
+		println("uia-daemon2 is not installed: reinstallUiAutomatorDaemon")
+		device.reinstallUiAutomatorDaemon()
 	}
 
 	println("setupConnection")
