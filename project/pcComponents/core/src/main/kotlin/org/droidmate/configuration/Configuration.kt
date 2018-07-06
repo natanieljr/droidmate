@@ -222,7 +222,7 @@ abstract class ConfigProperties {
 	}
 
 	object Output : PropertyGroup() {
-		val droidmateOutputDirPath by uriType
+		val outputDir by uriType
 		val coverageDir by stringType
 		val screenshotDir by stringType
 		val reportDir by stringType

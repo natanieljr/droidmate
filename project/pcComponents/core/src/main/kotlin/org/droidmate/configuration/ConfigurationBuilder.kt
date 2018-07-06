@@ -71,7 +71,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDe
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
 import org.droidmate.configuration.ConfigProperties.Output.coverageDir
-import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
+import org.droidmate.configuration.ConfigProperties.Output.outputDir
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Output.screenshotDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
@@ -99,7 +99,6 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
-import org.droidmate.logging.LogbackConstants
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.BuildConstants
 import org.slf4j.Logger
@@ -161,7 +160,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(launchActivityTimeout, description = "Maximum amount of time to be waited for an app to start after a reset in milliseconds."),
 			CommandLineOption(apiVersion, description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api23"),
 			// Output
-			CommandLineOption(droidmateOutputDirPath, description = "Path to the directory that will contain DroidMate exploration output."),
+			CommandLineOption(outputDir, description = "Path to the directory that will contain DroidMate exploration output."),
 			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data."),
 			CommandLineOption(screenshotDir, description = "Path to the directory that will contain the screenshots from an exploration."),
 			CommandLineOption(reportDir, description = "Path to the directory that will contain the report files."),
@@ -223,7 +222,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				defaultConfig
 
 		// Set the logging directory for the logback logger as early as possible
-		val outputPath = Paths.get(config[droidmateOutputDirPath].toString())
+		val outputPath = Paths.get(config[outputDir].toString())
 								.resolve(getDeviceDir(config))
 								.resolve(ConfigurationWrapper.log_dir_name)
 
@@ -327,7 +326,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		@JvmStatic
 		@Throws(ConfigurationException::class)
 		private fun setupResourcesAndPaths(cfg: ConfigurationWrapper) {
-			cfg.droidmateOutputDirPath = cfg.getPath(cfg[droidmateOutputDirPath])
+			cfg.droidmateOutputDirPath = cfg.getPath(cfg[outputDir])
 					.resolve(getDeviceDir(cfg)).toAbsolutePath()
 			cfg.resourceDir = cfg.droidmateOutputDirPath
 					.resolve(BuildConstants.dir_name_temp_extracted_resources)

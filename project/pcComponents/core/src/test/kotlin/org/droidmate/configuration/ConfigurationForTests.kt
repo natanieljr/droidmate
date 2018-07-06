@@ -25,14 +25,13 @@
 
 package org.droidmate.configuration
 
-import com.natpryce.konfig.CommandLineOption
 import org.droidmate.configuration.ConfigProperties.Deploy.useApkFixturesDir
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkAppIsRunningRetryDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
-import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
+import org.droidmate.configuration.ConfigProperties.Output.outputDir
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.randomSeed
@@ -109,7 +108,7 @@ class ConfigurationForTests() {
 
 	init {
 		val newData = mutableListOf(
-				droidmateOutputDirPath.name, Paths.get(BuildConstants.test_temp_dir_name).toAbsolutePath().toString(),
+				outputDir.name, Paths.get(BuildConstants.test_temp_dir_name).toAbsolutePath().toString(),
 				reportDir.name, Paths.get(BuildConstants.test_temp_dir_name).toAbsolutePath().toString(),
 				runOnNotInlined.name, "true")
 		newData.addAll(zeroedTestConfig)

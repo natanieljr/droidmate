@@ -26,7 +26,6 @@
 package org.droidmate.exploration.statemodel
 
 import com.natpryce.konfig.*
-import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFileExtension
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFileExtension
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
@@ -34,7 +33,7 @@ import org.droidmate.configuration.ConfigProperties.ModelProperties.path.cleanDi
 import org.droidmate.configuration.ConfigProperties.ModelProperties.path.defaultBaseDir
 import org.droidmate.configuration.ConfigProperties.ModelProperties.path.statesSubDir
 import org.droidmate.configuration.ConfigProperties.ModelProperties.path.widgetsSubDir
-import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
+import org.droidmate.configuration.ConfigProperties.Output.outputDir
 import org.droidmate.misc.deleteDir
 import java.io.File
 import java.nio.file.Files
@@ -88,7 +87,7 @@ class ModelConfig private constructor(path: Path, appName: String,private val co
 
 		@JvmOverloads operator fun invoke(appName: String, isLoadC: Boolean = false, cfg: Configuration? = null): ModelConfig {
 			val (config, path) = if (cfg != null)
-				Pair(cfg overriding resourceConfig, Paths.get(cfg[droidmateOutputDirPath].toString()).resolve("model"))
+				Pair(cfg overriding resourceConfig, Paths.get(cfg[outputDir].toString()).resolve("model"))
 			else
 				Pair(resourceConfig, Paths.get(resourceConfig[defaultBaseDir].toString()))
 
