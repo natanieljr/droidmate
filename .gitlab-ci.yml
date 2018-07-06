@@ -1,4 +1,4 @@
-image: timoguehring/droidmateenv:latest
+image: timoguehring/droidmatedockerenv:latest
 
 stages:
   - test
