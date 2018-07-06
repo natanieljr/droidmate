@@ -5,7 +5,6 @@ project.ext {
 
 	kotlin_version = '1.2.50'
 	androidBuildToolsVersion = "27.0.3"
-	// minimal version 24 due to WidgetData call 'replace' on mutable map which is only available from version 24 or higher
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25
 	androidCompileSdkVersion = 27
