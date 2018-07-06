@@ -51,15 +51,11 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkApp
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootFirstDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootLaterDelays
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppRetryAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForCanRebootDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationAttempts
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.explore
@@ -148,15 +144,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(checkDeviceAvailableAfterRebootAttempts, description = "Determines how often DroidMate checks if a device is available after a reboot."),
 			CommandLineOption(checkDeviceAvailableAfterRebootFirstDelay, description = "The first delay after a device rebooted, before its availability will be checked."),
 			CommandLineOption(checkDeviceAvailableAfterRebootLaterDelays, description = "The non-first delay after a device rebooted, before its availability will be checked."),
-			CommandLineOption(clearPackageRetryAttempts, description = "Number of attempts to close a running app."),
-			CommandLineOption(clearPackageRetryDelay, description = "Delay after each failed attempt to close a running app."),
-			CommandLineOption(closeANRAttempts, description = "Delay after each failed attempt close an 'application not responding' dialog."),
-			CommandLineOption(closeANRDelay, description = "Delay after each failed attempt close an 'application not responding' dialog."),
-			CommandLineOption(getValidGuiSnapshotRetryAttempts, description = "Number of attempts to get a valid GUI snapshot from the device. If not snapshot is acquired the exploration stops"),
-			CommandLineOption(getValidGuiSnapshotRetryDelay, description = "Timeout for each attempt to get a valid GUI snapshot from the device in milliseconds"),
 			CommandLineOption(stopAppRetryAttempts, description = "Number of attempts to close an 'application has stopped' dialog."),
 			CommandLineOption(stopAppSuccessCheckDelay, description = "Delay after each failed attempt close an 'application has stopped' dialog"),
 			CommandLineOption(waitForCanRebootDelay, description = "Delay (in milliseconds) after an attempt was made to reboot a device, before."),
+			CommandLineOption(deviceOperationAttempts, description = "Number of attempts to retry other failed device operations."),
+			CommandLineOption(deviceOperationDelay, description = "Delay (in milliseconds) after an attempt was made to perform a device operation, before retrying again."),
 			CommandLineOption(waitForDevice, description = "Wait for a device to be connected to the PC instead of cancelling the exploration."),
 			// Exploration
 			CommandLineOption(apksDir, description = "Directory containing the apks to be processed by DroidMate."),

@@ -201,17 +201,13 @@ abstract class ConfigProperties {
 		val checkDeviceAvailableAfterRebootAttempts by intType
 		val checkDeviceAvailableAfterRebootFirstDelay by intType
 		val checkDeviceAvailableAfterRebootLaterDelays by intType
-		val clearPackageRetryAttempts by intType
-		val clearPackageRetryDelay by intType
-		val closeANRAttempts by intType
-		val closeANRDelay by intType
-		val getValidGuiSnapshotRetryAttempts by intType
-		val getValidGuiSnapshotRetryDelay by intType
 		val stopAppRetryAttempts by intType
 		val stopAppSuccessCheckDelay by intType
+		val deviceOperationAttempts by intType
+        val deviceOperationDelay by intType
 		val waitForCanRebootDelay by intType
 		val waitForDevice by booleanType
-	}
+    }
 
 	object Exploration : PropertyGroup() {
 		val apksDir by uriType
