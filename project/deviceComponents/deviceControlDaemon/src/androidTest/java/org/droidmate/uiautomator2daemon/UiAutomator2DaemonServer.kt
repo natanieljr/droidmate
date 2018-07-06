@@ -29,7 +29,8 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.UIADAEMON_SER
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 
-class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver: IUiAutomator2DaemonDriver) : Uiautomator2DaemonTcpServerBase<DeviceCommand, DeviceResponse>(UIADAEMON_SERVER_START_TAG, UIADAEMON_SERVER_START_MSG) {
+class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver: IUiAutomator2DaemonDriver)
+	: Uiautomator2DaemonTcpServerBase<DeviceCommand, DeviceResponse>(UIADAEMON_SERVER_START_TAG, UIADAEMON_SERVER_START_MSG) {
 
 	override fun onServerRequest(deviceCommand: DeviceCommand, deviceCommandReadEx: Exception?): DeviceResponse {
 
@@ -40,13 +41,12 @@ class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver:
 			return uiaDaemonDriver.executeCommand(deviceCommand)
 
 		} catch (e: UiAutomatorDaemonException) {
-			Log.e(uiaDaemon_logcatTag, String.format("Server: Failed to execute command %s and thus, obtain appropriate GuiState. " + "Returning exception-DeviceResponse.", deviceCommand), e)
+			Log.e(uiaDaemon_logcatTag,"Server: Failed to execute command $deviceCommand and thus, obtain appropriate GuiState. Returning exception-DeviceResponse.", e)
 
 			return DeviceResponse.empty.apply { throwable = e }
 		} catch (t: Throwable) {
-			Log.wtf(uiaDaemon_logcatTag, String.format(
-					"Server: Failed, with a non-" + UiAutomatorDaemonException::class.java.simpleName + " (!), to execute command %s and thus, " +
-							"obtain appropriate GuiState. Returning throwable-DeviceResponse.", deviceCommand), t)
+			Log.wtf(uiaDaemon_logcatTag, "Server: Failed, with a non-${UiAutomatorDaemonException::class.java.simpleName} (!)," +
+					"to execute command $deviceCommand and thus, obtain appropriate GuiState. Returning throwable-DeviceResponse.", t)
 
 			return DeviceResponse.empty.apply { throwable = t }
 		}

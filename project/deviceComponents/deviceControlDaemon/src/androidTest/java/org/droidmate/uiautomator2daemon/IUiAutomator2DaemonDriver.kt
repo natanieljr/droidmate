@@ -16,6 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
+
 package org.droidmate.uiautomator2daemon
 
 import org.droidmate.uiautomator_daemon.DeviceCommand
@@ -25,5 +26,4 @@ import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 interface IUiAutomator2DaemonDriver {
 	@Throws(UiAutomatorDaemonException::class)
 	fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse
-
 }

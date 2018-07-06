@@ -68,7 +68,6 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 		Log.i(serverStartMessageTag, serverStartMessage);
 
 		return serverThread;
-
 	}
 
 	@TargetApi(Build.VERSION_CODES.FROYO)

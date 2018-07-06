@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.uiautomator2daemon
 
 import android.app.UiAutomation
@@ -45,7 +46,6 @@ import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
-
 
 /**
  * Created by J.H. on 05.02.2018.
@@ -84,12 +84,15 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
  */
 internal sealed class DeviceAction {
 
+    var waitForIdleTimeout: Long = 100
+    var waitForInteractableTimeout: Long = 1000
+
 	@Throws(UiAutomatorDaemonException::class)
 	abstract fun execute(device: UiDevice, context: Context, automation: UiAutomation)
 
 	companion object {
 
-		@JvmStatic fun fromAction(a: Action): DeviceAction? = with(a) {
+		@JvmStatic fun fromAction(a: Action, _waitForIdleTimeout: Long, _waitForInteractableTimeout: Long): DeviceAction? = with(a) {
 			return when (this) {
 				is WaitAction -> DeviceWaitAction(target, criteria)
 				is LongClickAction -> DeviceLongClickAction(xPath, resId)
@@ -111,45 +114,15 @@ internal sealed class DeviceAction {
 				is SimulationAdbClearPackage -> {
 					null /* There's no equivalent device action */
 				}
+			}?.apply {
+				waitForIdleTimeout = _waitForIdleTimeout
+				waitForInteractableTimeout = _waitForInteractableTimeout
 			}
 		}
-		const val defaultTimeout: Long = 100
-		private const val waitTimeout: Long = 1000
+
 		@JvmStatic private var time: Long = 0
 		@JvmStatic private var cnt = 1
 		@JvmStatic private var lastDump:String = "ERROR"
-
-		@JvmStatic protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
-			if (actionSuccessful) {
-				debugT("UI-stab avg = ${time / cnt} ms", {
-					//            device.waitForWindowUpdate(null,defaultTimeout)
-					runBlocking { delay(10) } // avoid idle 0 which get the wait stuck for multiple seconds
-					measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
-//					do {
-//						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is unstable?
-//						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
-//						getWindowHierarchyDump(device)
-//					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
-
-					// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interact-able app elements
-					if(device.findObject(By.res("com.android.packageinstaller:id/permission_allow_button")) == null) {
-						// exclude android internal elements
-						nullableDebugT("wait for interactable", {device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitTimeout)}  // this only checks for clickable but is much more reliable than a custom Search-Condition
-								,inMillis = true)
-						// so if we need more we would have to implement something similar to `Until`
-// DEBUG_CODE:
-//					val c = device.findObjects(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))).size
-//					val cc = device.findObjects(By.clickable(true)).size
-//					Log.e(uiaDaemon_logcatTag," found $c non-systemui clickable elements out of $cc")
-
-						debugT("idle", {device.waitForIdle(defaultTimeout)}, inMillis = true)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
-					}
-				},timer = {
-					time += it/1000000
-					cnt += 1
-				},inMillis = true)
-			}
-		}
 
 		@JvmStatic
 		private fun getWindowHierarchyDump(device: UiDevice):String{
@@ -238,21 +211,58 @@ internal sealed class DeviceAction {
 		}
 
 	}
+
+	protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
+		if (actionSuccessful) {
+			debugT("UI-stab avg = ${time / cnt} ms", {
+				//            device.waitForWindowUpdate(null,defaultTimeout)
+				runBlocking { delay(10) } // avoid idle 0 which get the wait stuck for multiple seconds
+				measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
+//					do {
+//						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is unstable?
+//						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
+//						getWindowHierarchyDump(device)
+//					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
+
+				// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interact-able app elements
+				if(device.findObject(By.res("com.android.packageinstaller:id/permission_allow_button")) == null) {
+					// exclude android internal elements
+					nullableDebugT("wait for interactable",
+						// this only checks for clickable but is much more reliable than a custom Search-Condition
+						{device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitForInteractableTimeout)},
+						inMillis = true)
+					// so if we need more we would have to implement something similar to `Until`
+// DEBUG_CODE:
+//					val c = device.findObjects(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))).size
+//					val cc = device.findObjects(By.clickable(true)).size
+//					Log.e(uiaDaemon_logcatTag," found $c non-systemui clickable elements out of $cc")
+
+					debugT("idle", {device.waitForIdle(waitForIdleTimeout)}, inMillis = true)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
+				}
+			}, timer = {
+				time += it/1000000
+				cnt += 1
+			}, inMillis = true)
+		}
+	}
 }
 
 private class DevicePressBack : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		waitForChanges(device, device.pressBack())
 	}
 }
 
 private class DevicePressHome : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		waitForChanges(device, device.pressHome())
 	}
 }
 
 private class DeviceEnableWifi : DeviceAction() {
+
 	/**
 	 * Based on: http://stackoverflow.com/a/12420590/986533
 	 */
@@ -266,6 +276,7 @@ private class DeviceEnableWifi : DeviceAction() {
 }
 
 private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		// Launch the app
 		val intent = context.packageManager
@@ -285,9 +296,10 @@ private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() 
 }
 
 private data class DeviceSwipeAction(val start: Pair<Int, Int>,
-									 val dst: Pair<Int, Int>,
-									 val xPath: String = "",
-									 val direction: String = "") : DeviceAction() {
+                                     val dst: Pair<Int, Int>,
+                                     val xPath: String = "",
+                                     val direction: String = "") : DeviceAction() {
+
 	private val x0: Int inline get() = start.first
 	private val y0: Int inline get() = start.second
 	private val x1: Int inline get() = dst.first
@@ -306,6 +318,7 @@ private data class DeviceSwipeAction(val start: Pair<Int, Int>,
 }
 
 private data class DeviceWaitAction(private val id: String, private val criteria: WidgetSelector) : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		Log.d(uiaDaemon_logcatTag, "Wait for element to exist" + this.toString())
 		when (criteria) {
@@ -332,6 +345,7 @@ private data class DeviceWaitAction(private val id: String, private val criteria
 private var eTime: Long =0
 private var eCnt: Int =1
 private sealed class DeviceObjectAction : DeviceAction() {
+
 	abstract val xPath: String
 	abstract val resId: String
 
@@ -347,14 +361,15 @@ private sealed class DeviceObjectAction : DeviceAction() {
 				Log.w(uiaDaemon_logcatTag, "action on UiObject failed, try to perform on UiObject2 By.resourceId")
 				executeAction2(device, action2, resId)
 			}
-		},timer = {
+		}, timer = {
 			eTime += it/1000000
 			eCnt += 1
-		},inMillis = true)
+		}, inMillis = true)
 	}
 }
 
 private data class DeviceClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		executeAction(device,
 				{ o -> o.click() },
@@ -364,6 +379,7 @@ private data class DeviceClickAction(override val xPath: String, override val re
 }
 
 private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
 
@@ -381,6 +397,7 @@ private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceA
 }
 
 private data class DeviceLongClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		executeAction(device, { o -> o.longClick() }, { o -> o.longClick() })
 		waitForChanges(device)
@@ -388,6 +405,7 @@ private data class DeviceLongClickAction(override val xPath: String, override va
 }
 
 private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		debugT("executeAction ${this.javaClass.simpleName}", {
 			Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
@@ -403,8 +421,9 @@ private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : Dev
 }
 
 private data class DeviceTextAction(override val xPath: String,
-									override val resId: String,
-									val text: String) : DeviceObjectAction() {
+                                    override val resId: String,
+                                    val text: String) : DeviceObjectAction() {
+
 	val selector by lazy { if (xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		executeAction(device, { o -> o.setText(text) },
@@ -412,18 +431,20 @@ private data class DeviceTextAction(override val xPath: String,
 					@Suppress("UsePropertyAccessSyntax")
 					o.setText(text)
 				})
-		device.findObject(selector.text(text)).waitForExists(defaultTimeout)  // wait until the text is set
+		device.findObject(selector.text(text)).waitForExists(waitForIdleTimeout)  // wait until the text is set
 	}
 }
 
-private class DeviceFetchGUIAction: DeviceAction() {
+private class DeviceFetchGUIAction : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		waitForChanges(device)
 		// do nothing
 	}
 }
 
-private class DeviceRotateUIAction(val rotation: Int): DeviceAction() {
+private class DeviceRotateUIAction(val rotation: Int) : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		val currRotation = (device.displayRotation * 90)
 		Log.d(uiaDaemon_logcatTag, "Current rotation $currRotation")
@@ -445,7 +466,8 @@ private class DeviceRotateUIAction(val rotation: Int): DeviceAction() {
 	}
 }
 
-private class DeviceMinimizeMaximizeAction(): DeviceAction(){
+private class DeviceMinimizeMaximizeAction : DeviceAction() {
+
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		val currentPackage = device.currentPackageName
 		Log.d(uiaDaemon_logcatTag, "Original package name $currentPackage")
@@ -453,15 +475,15 @@ private class DeviceMinimizeMaximizeAction(): DeviceAction(){
 		device.pressRecentApps()
 		// Cannot use wait for changes because it crashes UIAutomator
 		runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
-		measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
+		measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 
-		for(i in (0 until 10)){
+		for (i in (0 until 10)) {
 			device.pressRecentApps()
 			//waitForChanges(device)
 
 			// Cannot use wait for changes because it waits some interact-able element
 			runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
-			measureTimeMillis { device.waitForIdle(defaultTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
+			measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 
 			Log.d(uiaDaemon_logcatTag, "Current package name ${device.currentPackageName}")
 			if (device.currentPackageName == currentPackage)

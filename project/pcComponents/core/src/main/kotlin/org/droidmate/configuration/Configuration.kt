@@ -265,8 +265,9 @@ abstract class ConfigProperties {
 	}
 
 	object UiAutomatorServer : PropertyGroup() {
+		val waitForIdleTimeout by intType
+		val waitForInteractableTimeout by intType
 		val startTimeout by intType
-		val startQueryDelay by intType
 		val socketTimeout by intType
 		val basePort by intType
 	}
