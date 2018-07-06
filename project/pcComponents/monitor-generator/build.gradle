@@ -117,8 +117,6 @@ def monitorApk = { int apiLevel -> new File(buildDir, "monitor_api${apiLevel}.ap
 File libsBuilt = new File(monitorApkScaffoldingDir, "libs_built")
 
 def buildMonitorApk = { GradleBuild task, int apiLevel ->
-	println "XXX Here"
-
 	task.dependsOn([libCommonJarTask, monitorHookJarTask, tasks.getByName("generateMonitor_api$apiLevel")])
 
 	task.group = "build"
