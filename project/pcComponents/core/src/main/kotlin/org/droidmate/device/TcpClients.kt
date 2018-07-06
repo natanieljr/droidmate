@@ -34,8 +34,8 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
                              monitorSocketTimeout: Int,
                              uiautomatorDaemonSocketTimeout: Int,
                              uiautomatorDaemonTcpPort: Int,
-                             uiautomatorDaemonServerStartTimeout: Int,
-                             uiautomatorDaemonServerStartQueryDelay: Int,
+                             uiautomatorDaemonServerServerStartTimeout: Int,
+                             uiautomatorDaemonServerWaitForInteractableTimeout: Int,
                              portOffset: Int,
                              useLegacyStreamMonitor: Boolean) : ITcpClients {
     private val monitorsClient: IMonitorsClient = MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, portOffset, useLegacyStreamMonitor)
@@ -44,8 +44,8 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
             deviceSerialNumber,
             uiautomatorDaemonTcpPort,
             uiautomatorDaemonSocketTimeout,
-            uiautomatorDaemonServerStartTimeout,
-            uiautomatorDaemonServerStartQueryDelay)
+            uiautomatorDaemonServerServerStartTimeout,
+            uiautomatorDaemonServerWaitForInteractableTimeout)
 
 	override fun anyMonitorIsReachable(): Boolean = monitorsClient.anyMonitorIsReachable()
 
