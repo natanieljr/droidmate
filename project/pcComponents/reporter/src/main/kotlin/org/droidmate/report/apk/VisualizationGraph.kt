@@ -262,8 +262,6 @@ class VisualizationGraph : ApkReport() {
         Files.list(model.config.stateDst)
                 .filter { filename -> filename.toString().endsWith(".png") }
                 .forEach {
-                    println("Source: $it")
-                    println("Destination: $targetImgDir")
                     Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
                 }
 

@@ -26,7 +26,6 @@
 package org.droidmate.exploration.statemodel
 
 import com.natpryce.konfig.*
-import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFileExtension
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFileExtension
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
@@ -44,7 +43,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-class ModelConfig private constructor(path: Path, appName: String,private val config:Configuration, isLoadC: Boolean = false): Configuration by config{
+class ModelConfig private constructor(path: Path,
+                                      val appName: String,
+                                      private val config: Configuration,
+                                      isLoadC: Boolean = false) : Configuration by config {
 	/** @path path-string locationg the base directory where all model data is supposed to be dumped */
 
 	constructor(path: Path, appName: String, isLoadC: Boolean = false): this(path.toAbsolutePath(), appName, resourceConfig, isLoadC)
@@ -54,7 +56,7 @@ class ModelConfig private constructor(path: Path, appName: String,private val co
 	private val widgetImgDst = baseDir.resolve(config[widgetsSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
 
 	init {  // initialize directories (clear them if cleanDirs is enabled)
-		if(!isLoadC){
+		if (!isLoadC){
 			if (config[cleanDirs]) (baseDir).deleteDir()
 			Files.createDirectories((baseDir))
 			Files.createDirectories((stateDst))

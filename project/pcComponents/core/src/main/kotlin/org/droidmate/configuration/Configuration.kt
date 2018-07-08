@@ -162,6 +162,12 @@ abstract class ConfigProperties {
 				val onlyWhenNoText by booleanType
 			}
 		}
+
+		object Features : PropertyGroup() {
+			val statementCoverage by booleanType
+			val statementCoverageDir by uriType
+		}
+
 	}
 
 	object Core : PropertyGroup() {
