@@ -34,9 +34,9 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.dumpString
-import java.io.File
 import java.lang.reflect.Type
 import java.nio.file.*
+import java.nio.file.attribute.*
 
 /**
  * This reporter creates a report in form of a web page, displaying the model, its states and its
@@ -217,6 +217,27 @@ class VisualizationGraph : ApkReport() {
     }
 
     /**
+     * Simple file visitor to copy directories with subdirectories.
+     */
+    inner class CopyFileVisitor(private val sourceDir: Path, private val targetDir: Path) : SimpleFileVisitor<Path>() {
+
+        override fun visitFile(file: Path, attributes: BasicFileAttributes): FileVisitResult {
+            val targetFile = targetDir.resolve(sourceDir.relativize(file))
+            Files.copy(file, targetFile)
+
+            return FileVisitResult.CONTINUE
+        }
+
+        override fun preVisitDirectory(dir: Path, attributes: BasicFileAttributes): FileVisitResult {
+            val newDir = targetDir.resolve(sourceDir.relativize(dir))
+            Files.createDirectory(newDir)
+
+            return FileVisitResult.CONTINUE
+        }
+
+    }
+
+    /**
      * Returns the path of the image, which should be used for the according state. Use
      * the Default.png if no such file with the according stateId exists. This is the case
      * e.g. for the initial state or for states for which DroidMate could not acquire an
@@ -255,15 +276,13 @@ class VisualizationGraph : ApkReport() {
         val source = Resource("vis").file
 
         // Copy the folder with the required resources
-        Files.copy(source, targetVisFolder, StandardCopyOption.REPLACE_EXISTING)
+        Files.walkFileTree(source, CopyFileVisitor(source, targetVisFolder))
+
         // Copy the state images
         targetImgDir = targetVisFolder.resolve("img")
-
         Files.list(model.config.stateDst)
                 .filter { filename -> filename.toString().endsWith(".png") }
                 .forEach {
-                    println("Source: $it")
-                    println("Destination: $targetImgDir")
                     Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
                 }
 
