@@ -110,6 +110,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 			println("dump models and watcher") //TODO Logger.info
 			ModelFeature.dumpJob.joinChildren()
 			_model.modelDumpJob.joinChildren()
+			println("DONE - dump models and watcher")
 		}
 	}
 
