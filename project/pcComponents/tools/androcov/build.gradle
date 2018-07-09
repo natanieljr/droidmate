@@ -23,14 +23,10 @@
 //
 // web: www.droidmate.org
 
-repositories {
-	maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"}
-	maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"}
-}
-
 dependencies {
-	compile "ca.mcgill.sable:soot:3.1.0-SNAPTSHOT"
-
+	// This includes the jar ca.mcgill.sable:soot:3.1.0
+	// so we don't rely on changes of the development branch
+	compile fileTree(dir: 'libs', include: ['*.jar'])
 	compile 'org.json:json:20160212'
 
 	compile project(":project:pcComponents:core")
