@@ -39,6 +39,7 @@ import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.frontend.ExceptionHandler
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.report.Reporter
+import org.droidmate.report.apk.VisualizationGraph
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystems
 import java.time.LocalDate
@@ -47,11 +48,12 @@ import java.util.*
 @Suppress("MemberVisibilityCanBePrivate")
 object ExplorationAPI {
 	private val log by lazy { LoggerFactory.getLogger(ExplorationAPI::class.java) }
+	val defaultReporter = listOf(VisualizationGraph())
 
 	/**
 	 * entry-point to explore an application with a (subset) of default exploration strategies as specified in the property `explorationStrategies`
 	 */
-	@JvmStatic  // -config project/pcComponents/API/src/main/resources/customConfig.properties
+	@JvmStatic  // -config ../customConfig.properties
 	fun main(args: Array<String>) { // e.g.`-config filePath` or `--configPath=filePath`
 		explore(args)
 	}
@@ -76,7 +78,7 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = emptyList(),
+	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = defaultReporter,
 	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
 		return explore(setup(args), strategies, selectors, reportCreators, modelProvider)
 	}
@@ -84,7 +86,7 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
-	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = emptyList(),
+	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = defaultReporter,
 	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
 		val runStart = Date()
 		val exploration = ExploreCommand.build(cfg, reportCreators = reportCreators, strategies = strategies
@@ -103,7 +105,7 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	                     selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = emptyList()): List<ExplorationContext> {
+	                     selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = defaultReporter): List<ExplorationContext> {
 		val cfg = setup(args)
 		inline(cfg)
 

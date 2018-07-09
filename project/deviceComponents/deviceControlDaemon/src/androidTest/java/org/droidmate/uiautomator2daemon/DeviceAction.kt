@@ -129,7 +129,8 @@ internal sealed class DeviceAction {
 			return debugT(" fetching gui Dump ", {
 				val os = ByteArrayOutputStream()
 				try {
-					device.dumpWindowHierarchy(os)
+//					device.dumpWindowHierarchy(os)
+					UiHierarchy.dump(device,os) // fixed version including invisible nodes in the dump
 					os.flush()
 					lastDump = os.toString(StandardCharsets.UTF_8.name())
 					os.close()

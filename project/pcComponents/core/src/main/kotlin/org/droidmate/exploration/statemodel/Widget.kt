@@ -192,7 +192,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 		@JvmStatic
 		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
-			screenImg?.getSubImage(w.boundsRect).let { wImg ->
+			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null
+			widgetImg.let { wImg ->
 				lazy {
 					computeId(w, wImg, true)
 				}

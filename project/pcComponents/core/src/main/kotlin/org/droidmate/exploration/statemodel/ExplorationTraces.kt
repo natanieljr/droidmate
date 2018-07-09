@@ -146,7 +146,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun notifyObserver(old: StateData, new: StateData, target: Widget?) {
 		watcher.forEach {
 			launch(it.context, parent = it.job) { it.onNewInteracted(target, old, new) }
-			launch(it.context, parent = it.job) { it.onNewAction(lazy { runBlocking(it.context){ getAt(size)!! } }, old, new) }
+			launch(it.context, parent = it.job) { it.onNewAction(lazy { runBlocking(it.context){ getAt(size-1)!! } }, old, new) }
 		}
 	}
 
