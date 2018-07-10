@@ -19,10 +19,10 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.uiautomator_daemon
 
 import java.io.*
-
 
 object SerializationHelper {
 	private val serializationConfig by lazy { org.nustaq.serialization.FSTConfiguration.createDefaultConfiguration() }
