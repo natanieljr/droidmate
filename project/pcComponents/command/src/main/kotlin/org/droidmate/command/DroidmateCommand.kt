@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.command
 
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
@@ -52,7 +53,7 @@ abstract class DroidmateCommand {
 			return when {
 				cfg[report] -> ReportCommand()
 				cfg[inline] -> InlineCommand(cfg)
-//				cfg[coverage] -> CoverageCommand(cfg)
+				cfg[coverage] -> CoverageCommand(cfg)
 				else -> ExploreCommand.build(cfg)
 			}
 		}

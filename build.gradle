@@ -39,8 +39,6 @@ allprojects {
 		jcenter()
 
 		maven { url = 'https://jitpack.io' }
-		maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"}
-		maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"}
 	}
 
 	apply plugin: 'java'
