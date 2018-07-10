@@ -216,39 +216,39 @@ class VisualizationGraph : ApkReport() {
 		}
 	}
 
-    /**
-     * Simple file visitor to copy directories with subdirectories.
-     */
-    inner class CopyFileVisitor(private val sourceDir: Path, private val targetDir: Path) : SimpleFileVisitor<Path>() {
+	/**
+	 * Simple file visitor to copy directories with subdirectories.
+	 */
+	inner class CopyFileVisitor(private val sourceDir: Path, private val targetDir: Path) : SimpleFileVisitor<Path>() {
 
-        override fun visitFile(file: Path, attributes: BasicFileAttributes): FileVisitResult {
-            val targetFile = targetDir.resolve(sourceDir.relativize(file))
-            Files.copy(file, targetFile)
+		override fun visitFile(file: Path, attributes: BasicFileAttributes): FileVisitResult {
+			val targetFile = targetDir.resolve(sourceDir.relativize(file))
+			Files.copy(file, targetFile)
 
-            return FileVisitResult.CONTINUE
-        }
+			return FileVisitResult.CONTINUE
+		}
 
-        override fun preVisitDirectory(dir: Path, attributes: BasicFileAttributes): FileVisitResult {
-            val newDir = targetDir.resolve(sourceDir.relativize(dir))
-            Files.createDirectory(newDir)
+		override fun preVisitDirectory(dir: Path, attributes: BasicFileAttributes): FileVisitResult {
+			val newDir = targetDir.resolve(sourceDir.relativize(dir))
+			Files.createDirectory(newDir)
 
-            return FileVisitResult.CONTINUE
-        }
+			return FileVisitResult.CONTINUE
+		}
 
-    }
+	}
 
-    /**
-     * Returns the path of the image, which should be used for the according state. Use
-     * the Default.png if no such file with the according stateId exists. This is the case
-     * e.g. for the initial state or for states for which DroidMate could not acquire an
-     * image.
-     */
-    private fun getImgPath(stateId: String): String {
-        return if (Files.list(targetImgDir).anyMatch { it.fileName.toString().startsWith(stateId) }) {
-            Paths.get(".").resolve("img").resolve("$stateId.png").toString()
-        } else
-            Paths.get(".").resolve("img").resolve("Default.png").toString()
-    }
+	/**
+	 * Returns the path of the image, which should be used for the according state. Use
+	 * the Default.png if no such file with the according stateId exists. This is the case
+	 * e.g. for the initial state or for states for which DroidMate could not acquire an
+	 * image.
+	 */
+	private fun getImgPath(stateId: String): String {
+		return if (Files.list(targetImgDir).anyMatch { it.fileName.toString().startsWith(stateId) }) {
+			Paths.get(".").resolve("img").resolve("$stateId.png").toString()
+		} else
+			Paths.get(".").resolve("img").resolve("Default.png").toString()
+	}
 
 	/**
 	 * Returns the custom Json builder, which controls what properties are serialized
@@ -275,16 +275,16 @@ class VisualizationGraph : ApkReport() {
 		val model = data.getModel()
 		val source = Resource("vis").path
 
-        // Copy the folder with the required resources
-        Files.walkFileTree(source, CopyFileVisitor(source, targetVisFolder))
+		// Copy the folder with the required resources
+		Files.walkFileTree(source, CopyFileVisitor(source, targetVisFolder))
 
-        // Copy the state images
-        targetImgDir = targetVisFolder.resolve("img")
-        Files.list(model.config.stateDst)
-                .filter { filename -> filename.toString().endsWith(".png") }
-                .forEach {
-                    Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
-                }
+		// Copy the state images
+		targetImgDir = targetVisFolder.resolve("img")
+		Files.list(model.config.stateDst)
+				.filter { filename -> filename.toString().endsWith(".png") }
+				.forEach {
+					Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
+				}
 
 		val jsonFile = targetVisFolder.resolve("data.js")
 		val gson = getCustomGsonBuilder()
