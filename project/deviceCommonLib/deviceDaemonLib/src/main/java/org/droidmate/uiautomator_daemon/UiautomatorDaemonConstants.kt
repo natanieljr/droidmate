@@ -58,6 +58,9 @@ object UiautomatorDaemonConstants {
 	val uia2Daemon_testRunner = "android.support.test.runner.AndroidJUnitRunner"
 
 	val uiaDaemonParam_tcpPort = "uiadaemon_server_tcp_port"
+	val uiaDaemonParam_waitForIdleTimeout = "uiadaemon_wait_for_idle_timeout"
+	val uiaDaemonParam_waitForInteractableTimeout = "uiadaemon_wait_for_interactable_timeout"
+	val uiaDaemonParam_socketTimeout = "uiadaemon_server_socket_timeout"
 
 	val deviceLogcatLogDir_api23 = "/data/user/0/$uia2Daemon_packageName/files/"
 

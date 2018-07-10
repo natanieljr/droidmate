@@ -162,6 +162,12 @@ abstract class ConfigProperties {
 				val onlyWhenNoText by booleanType
 			}
 		}
+
+		object Features : PropertyGroup() {
+			val statementCoverage by booleanType
+			val statementCoverageDir by uriType
+		}
+
 	}
 
 	object Core : PropertyGroup() {
@@ -265,8 +271,9 @@ abstract class ConfigProperties {
 	}
 
 	object UiAutomatorServer : PropertyGroup() {
+		val waitForIdleTimeout by intType
+		val waitForInteractableTimeout by intType
 		val startTimeout by intType
-		val startQueryDelay by intType
 		val socketTimeout by intType
 		val basePort by intType
 	}

@@ -46,11 +46,11 @@ import javax.imageio.ImageIO
 import kotlin.coroutines.experimental.CoroutineContext
 
 /** use this function to create a sequence of screen images in which the interacted target is highlighted by a red boarder */
-class ImgTraceMF(val cfg: ModelConfig): ModelFeature() {
+class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ImgTraceMF"), parent = job)
 
 	private val targetDir = (cfg.baseDir.resolve("imgTrace"))
-	init{
+	init {
 		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 		targetDir.deleteDir()
 		Files.createDirectories(targetDir)

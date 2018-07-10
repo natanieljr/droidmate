@@ -62,6 +62,7 @@ dependencies {
 	compile 'ch.qos.logback:logback-classic:1.2.3'
 	compile 'ch.qos.logback:logback-core:1.2.3'
 	compile 'net.sf.opencsv:opencsv:2.3'
+	compile 'org.json:json:20140107'
 
 	// Fast serialization library
 	compile 'de.ruedigermoeller:fst:2.56'
