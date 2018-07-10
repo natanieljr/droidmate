@@ -40,10 +40,10 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 	@JvmOverloads
 	constructor(cfg: ConfigurationWrapper,
 				modelName: String = "HasModel.model",
-				arffName: String = "baseModelFile.arff") : this(cfg.randomSeed.toLong(), modelName, arffName)
+				arffName: String = "baseModelFile.arff") : this(cfg.randomSeed, modelName, arffName)
 
 
-	private val watcher: EventProbabilityMF by lazy {
+	protected val watcher: EventProbabilityMF by lazy {
 		(eContext.watcher.find { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
 						.also { eContext.watcher.add(it) }) as EventProbabilityMF
