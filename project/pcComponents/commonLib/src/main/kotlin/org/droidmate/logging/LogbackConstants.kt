@@ -39,10 +39,10 @@ class LogbackConstants {
 		private fun getLogsDirPath(): String {
 			// WISH note: logsDir has to be set on VM arg instead of normal arg. Maybe making it normal arg and then resetting
 			// the config as described here [1] would help. [1]: http://logback.qos.ch/manual/configuration.html#joranDirectly
-			requireNotNull(System.getProperty("logsDir"), { "System.getProperty(\"logsDir\")='${System.getProperty("logsDir")}')" })
-
-			val logsDir = System.getProperty("logsDir")
-			return Paths.get(logsDir).toString()
+//			requireNotNull(System.getProperty("logsDir"), { "System.getProperty(\"logsDir\")='${System.getProperty("logsDir")}')" })
+			val logsDir = System.getProperty("logsDir")?.let{ Paths.get(it)}
+				?: Paths.get("out","logs")
+			return logsDir.toString()
 		}
 
 		@JvmStatic

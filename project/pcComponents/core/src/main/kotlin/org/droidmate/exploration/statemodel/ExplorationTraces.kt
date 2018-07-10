@@ -146,7 +146,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun notifyObserver(old: StateData, new: StateData, target: Widget?) {
 		watcher.forEach {
 			launch(it.context, parent = it.job) { it.onNewInteracted(target, old, new) }
-			launch(it.context, parent = it.job) { it.onNewAction(lazy { runBlocking{ last()!! } }, old, new) }
+			launch(it.context, parent = it.job) { it.onNewAction(lazy { runBlocking(it.context){ getAt(size-1)!! } }, old, new) }
 		}
 	}
 
@@ -236,6 +236,14 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	suspend fun P_getActions(): List<ActionData>   = trace.getAll()
 
 	suspend fun last(): ActionData? = trace.getOrNull { it.lastOrNull() }
+
+	/** get the element at index [i] if it exists and null otherwise */
+	suspend fun getAt(i:Int): ActionData? = trace.getOrNull { (it as LinkedList<ActionData>).let{ list ->
+		if(list.indices.contains(i))
+			list[i]
+		else null
+	} }
+
 	/** this has to acsess a couroutine actor prefer using [size] if synchronization is not critical */
 	suspend fun isEmpty(): Boolean = trace.get { it.isEmpty() }
 	/** this has to acsess a couroutine actor prefer using [size] if synchronization is not critical */
