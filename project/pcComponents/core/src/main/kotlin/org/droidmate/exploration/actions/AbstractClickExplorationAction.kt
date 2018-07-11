@@ -59,8 +59,8 @@ abstract class AbstractClickExplorationAction @JvmOverloads constructor(override
 
 		log.debug("2. Perform widget $description: $javaClass.")
 
-		val x = widget.bounds.centerX.toInt()
-		val y = widget.bounds.centerY.toInt()
+		val (x,y) = widget.uncoveredCoord?.let { Pair(it.first, it.second) } ?: Pair(widget.bounds.centerX.toInt(), widget.bounds.centerY.toInt())
+
 		try {
 			debugT("perform action on average ${performT / performN} ms", {
 				launch {

@@ -74,6 +74,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	}
 
 	val actionableWidgets by lazy { widgets.filter { it.canBeActedUpon } }
+	val distinctTargets by lazy { actionableWidgets.filter { it.isLeaf || it.uncoveredCoord!=null }}
 	val hasEdit: Boolean by lazy { widgets.any { it.isEdit } }
 
 	// for elements without text content only the image is available which may introduce variance just due to sligh color differences, therefore

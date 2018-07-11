@@ -189,7 +189,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 					else screenImg?.let {
 						if (isCut) idOfImgCut(screenImg)
 						else idOfImgCut(it.getSubImage(w.boundsRect))
-					} ?: emptyUUID // no text content => compute id from img
+					} ?: w.xpathHash.toUUID() // no text content => compute id from img or if no screenshot is taken use xpath
 				}
 
 

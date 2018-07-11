@@ -31,6 +31,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.wifi.WifiManager
+import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.*
 import android.util.Log
 import kotlinx.coroutines.experimental.async
@@ -124,6 +125,7 @@ internal sealed class DeviceAction {
 		@JvmStatic private var cnt = 1
 		@JvmStatic private var lastDump:String = "ERROR"
 
+		@Suppress("unused")
 		@JvmStatic
 		private fun getWindowHierarchyDump(device: UiDevice):String{
 			return debugT(" fetching gui Dump ", {
@@ -167,16 +169,17 @@ internal sealed class DeviceAction {
 		}
 
 		@JvmStatic
-		private suspend fun getScreenShot(automation: UiAutomation, simplify: Boolean =false): Bitmap {
-			delay(10)
-			var screenshot = automation.takeScreenshot()
+		private suspend fun getScreenShot(simplify: Boolean = false): Bitmap {
+			var screenshot = Screenshot.capture().bitmap
+			//automation.takeScreenshot()
 //					if(simplify) debugT("img modification", {screenshot = screenshot.simplifyImg()},inMillis = true)
 
 			if (screenshot != null){
 				Log.d(uiaDaemon_logcatTag,"screenshot failed")
 				delay(100)
-				screenshot = automation.takeScreenshot()}
-
+//				screenshot = automation.takeScreenshot()
+				screenshot = Screenshot.capture().bitmap
+			}
 			return screenshot
 		}
 
@@ -199,20 +202,19 @@ internal sealed class DeviceAction {
 		}
 
 		@JvmStatic
-		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String, simplify: Boolean = true): DeviceResponse {
+		fun fetchDeviceData(device: UiDevice, deviceModel: String, simplify: Boolean = true): DeviceResponse {
 			val image = async {
-				val img = debugT("img capture time", {DeviceAction.getScreenShot(automation, simplify)},inMillis = true)
+				val img = debugT("img capture time", { DeviceAction.getScreenShot(simplify)	},inMillis = true)
 				Pair(img,DeviceAction.compressScreenshot(img))
 			}
-//			val dump = async{ DeviceAction.getWindowHierarchyDump(device) }
-			val widgets = debugT(" compute UiNodes", {async{UiHierarchy.fetch(device)}})
+			val widgets = debugT(" compute UiNodes", {async{UiHierarchy.fetch(device)}}, inMillis = true)
 
 			return debugT("compute UI-dump", {
-				val (img,imgBytes) = debugT("wait for screen",{ runBlocking { image.await()}},inMillis = true)
-//				DeviceResponse.fromUIDump(dump,
-
-					DeviceResponse.create(widgets,deviceModel, device.displayWidth, device.displayHeight, imgBytes,
-						img.width, img.height)
+				debugT("wait for screen",{ runBlocking { image.await()}}, inMillis = true)
+						.let { (img, imgBytes) ->
+							DeviceResponse.create(widgets, deviceModel, device.displayWidth, device.displayHeight, imgBytes,
+									img.width, img.height)
+						}
 			}, inMillis = true)
 		}
 

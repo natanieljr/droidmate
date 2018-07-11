@@ -1,6 +1,7 @@
 package android.support.test.uiautomator
 
 import android.graphics.Rect
+import android.opengl.ETC1.getWidth
 import android.support.test.uiautomator.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen
 import android.util.Log
 import android.util.Xml
@@ -42,6 +43,7 @@ object UiHierarchy{
 				}.flatten()
 		
 	}
+
 
 	private fun AccessibilityNodeInfo.processNode( index: Int = 0, width: Int, height: Int, parentXpath: String, rootIdx: Int, parentH: Int = 0):Pair<WidgetData,Collection<WidgetData>> {
 		val xPath = parentXpath +"$className[${index + 1}]"
@@ -99,6 +101,8 @@ object UiHierarchy{
 		return Pair(node,nodes)
 	}
 
+
+	private fun center(c:Int, d:Int):Int = (c+(c + d)/2)
 	/**
 	 * we aim to prevent multiple clicks to the same uncoveredCoord area issued due to actable layout elements,
 	 * for that we identify the area where no actable child nodes are (if it exists)
@@ -108,16 +112,31 @@ object UiHierarchy{
 	 * - a child has an actable area >0 but is itself not actable upon
 	 */
 	private fun WidgetData.computeUncoveredCoordinate(children: Collection<WidgetData>) {
-		children.find { !it.actable && it.uncoveredCoord!=null }?.let { this.uncoveredCoord = it.uncoveredCoord }
+//		Log.d(LOGTAG, "---- overlay computation for $xpath")
+		when{
+			children.isEmpty() && actable -> return// leafs cannot have uncovered children
+			children.isEmpty() -> {// the parent layer may have the actable flag for this child => propagate the uncovered
+				this.uncoveredCoord = Pair(center(boundsX, boundsWidth), center(boundsY, boundsHeight))
+				return
+			}
+		}
+		children.find { !it.actable && it.uncoveredCoord!=null }?.let {
+//			Log.d(LOGTAG, "non-actable child ${it.xpath} with uncovered coord ${it.uncoveredCoord}")
+			this.uncoveredCoord = it.uncoveredCoord
+		}
 		?: if(boundsHeight*boundsWidth > children.sumBy { it.boundsHeight*it.boundsWidth }){
 			val uncoveredX = LinkedList<Int>().also { it.addAll(boundsX..(boundsX+boundsWidth)) }
 			val uncoveredY = LinkedList<Int>().also { it.addAll(boundsY..(boundsX+boundsHeight)) }
 			for(child in children){
-				uncoveredX.minus(child.boundsX..(child.boundsX+child.boundsWidth))
-				uncoveredY.minus(child.boundsY..(child.boundsY+child.boundsHeight))
+//				Log.d(LOGTAG,"intersect child $child")
+				uncoveredX.removeAll(child.boundsX..(child.boundsX+child.boundsWidth))
+				uncoveredY.removeAll(child.boundsY..(child.boundsY+child.boundsHeight))
+//				Log.d(LOGTAG,"${uncoveredX} childList ${child.boundsX..(child.boundsX+child.boundsWidth)}")
 			}
-			if(uncoveredX.isNotEmpty() && uncoveredY.isNotEmpty())
+			if(uncoveredX.isNotEmpty() && uncoveredY.isNotEmpty()){
+//				Log.d(LOGTAG, "uncovered area \n---X ${uncoveredX} \n---Y ${uncoveredY} \n for $this")
 				this.uncoveredCoord = Pair(uncoveredX.first,uncoveredY.first)
+			}
 		}
 	}
 

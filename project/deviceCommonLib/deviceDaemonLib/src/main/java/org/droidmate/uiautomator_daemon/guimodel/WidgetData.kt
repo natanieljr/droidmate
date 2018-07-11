@@ -5,6 +5,7 @@ import java.nio.charset.Charset
 import java.util.*
 
 fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.forName("UTF-8")))
+fun Int.toUUID(): UUID = UUID.nameUUIDFromBytes(toString().toByteArray(Charset.forName("UTF-8")))
 
 data class WidgetData(
 		val text: String,
