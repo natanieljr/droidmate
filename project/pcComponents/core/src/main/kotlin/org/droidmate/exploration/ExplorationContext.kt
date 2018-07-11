@@ -72,7 +72,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 	 */
 	var deviceDisplayBounds: Rectangle? = null
 	/** for debugging purpose only contains the last UiAutomator dump */
-	private var lastDump: String = ""
+	var lastDump: String = ""
 
 
 

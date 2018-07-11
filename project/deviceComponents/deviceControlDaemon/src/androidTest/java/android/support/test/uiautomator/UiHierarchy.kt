@@ -1,14 +1,22 @@
 package android.support.test.uiautomator
 
+import android.graphics.Rect
+import android.support.test.uiautomator.AccessibilityNodeInfoHelper.getVisibleBoundsInScreen
 import android.util.Log
 import android.util.Xml
 import android.view.accessibility.AccessibilityNodeInfo
+import org.droidmate.uiautomator2daemon.debugT
 import org.xmlpull.v1.XmlSerializer
 import java.io.OutputStream
+import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import java.util.*
+import kotlin.collections.HashSet
 
 object UiHierarchy{
 	private const val LOGTAG = "droidmate/UiHierarchy"
 	private val NAF_EXCLUDED_CLASSES = arrayOf(android.widget.GridView::class.java.name, android.widget.GridLayout::class.java.name, android.widget.ListView::class.java.name, android.widget.TableLayout::class.java.name)
+
+	private const val osPkg = "com.android.systemui"
 
 	/**
 	 * The list of classes to exclude my not be complete. We're attempting to
@@ -27,7 +35,93 @@ object UiHierarchy{
 		return false
 	}
 
+	fun fetch(device: UiDevice): List<WidgetData> = with(device.windowRoots){
+		filterNot { it.packageName == android.support.test.uiautomator.UiHierarchy.osPkg }
+				.mapIndexed { index: Int, root: AccessibilityNodeInfo ->
+					root.processNode(width = device.displayWidth, height = device.displayHeight, parentXpath = "//", rootIdx = index).second
+				}.flatten()
+		
+	}
 
+	private fun AccessibilityNodeInfo.processNode( index: Int = 0, width: Int, height: Int, parentXpath: String, rootIdx: Int, parentH: Int = 0):Pair<WidgetData,Collection<WidgetData>> {
+		val xPath = parentXpath +"$className[${index + 1}]"
+		val nodes: MutableSet<WidgetData> = HashSet()
+
+		val children: MutableSet<WidgetData> = HashSet()
+		val count = childCount
+		for (i in 0 until count) {
+			val child = getChild(i)
+			if (child != null) {
+				val (childNode,descendents) =
+						child.processNode(i, width, height, "$xPath/",rootIdx, xPath.hashCode()+rootIdx)
+				child.recycle()
+				nodes.addAll(descendents) // REMARK: the childNode is already included in the descendents
+				children.add(childNode)
+			}
+		}
+
+		val nodeRect: Rect =
+			if(isVisibleToUser)  AccessibilityNodeInfoHelper.getVisibleBoundsInScreen(
+				this, width, height)
+			else Rect().apply { getBoundsInScreen(this)}
+
+		val node = WidgetData(
+				text = safeCharSeqToString(text),
+				contentDesc = safeCharSeqToString(contentDescription),
+				resourceId = safeCharSeqToString(viewIdResourceName),
+				className = safeCharSeqToString(className),
+				packageName = safeCharSeqToString(packageName),
+				enabled = isEnabled,
+				editable = isEditable, // could be usefull for custom widget classes to identify input fields				java.lang.Boolean.toString(isCheckable),
+				isPassword = isPassword,
+				clickable = isClickable,
+				longClickable = isLongClickable,
+				checked = if(isCheckable) isChecked else null,
+				focused = if(isFocusable)	isFocused else null,
+				scrollable = isScrollable,
+				selected = isSelected,
+				visible = isVisibleToUser,
+				boundsX = nodeRect.left,
+				boundsY = nodeRect.top,
+				boundsHeight = nodeRect.height(),
+				boundsWidth = nodeRect.width()
+		).apply {
+			xpath = xPath
+			xpathHash = xPath.hashCode()+rootIdx
+			parentHash = parentH
+			isLeaf = childCount <= 0
+			childrenXpathHashes = children.map { it.xpathHash }
+		}
+//		Log.d(LOGTAG,"parsed node $node")
+		node.computeUncoveredCoordinate(children)
+
+		nodes.add(node)
+		return Pair(node,nodes)
+	}
+
+	/**
+	 * we aim to prevent multiple clicks to the same uncoveredCoord area issued due to actable layout elements,
+	 * for that we identify the area where no actable child nodes are (if it exists)
+	 *
+	 * there are two potential cases for this scenario:
+	 * - the parent element is bigger covers more space than is occupied by its children
+	 * - a child has an actable area >0 but is itself not actable upon
+	 */
+	private fun WidgetData.computeUncoveredCoordinate(children: Collection<WidgetData>) {
+		children.find { !it.actable && it.uncoveredCoord!=null }?.let { this.uncoveredCoord = it.uncoveredCoord }
+		?: if(boundsHeight*boundsWidth > children.sumBy { it.boundsHeight*it.boundsWidth }){
+			val uncoveredX = LinkedList<Int>().also { it.addAll(boundsX..(boundsX+boundsWidth)) }
+			val uncoveredY = LinkedList<Int>().also { it.addAll(boundsY..(boundsX+boundsHeight)) }
+			for(child in children){
+				uncoveredX.minus(child.boundsX..(child.boundsX+child.boundsWidth))
+				uncoveredY.minus(child.boundsY..(child.boundsY+child.boundsHeight))
+			}
+			if(uncoveredX.isNotEmpty() && uncoveredY.isNotEmpty())
+				this.uncoveredCoord = Pair(uncoveredX.first,uncoveredY.first)
+		}
+	}
+
+//	private fun MutableSet<IntRange>.addNotNull(range:IntRange){ if(!range.isEmpty()) add(range) }
 
 	fun dump(device: UiDevice,out:OutputStream){
 
@@ -73,11 +167,11 @@ object UiHierarchy{
 		/** custom attributes, usually not visible in the device-UiDump */
 		serializer.attribute("", "editable", java.lang.Boolean.toString(node.isEditable)) // could be usefull for custom widget classes to identify input fields
 		// experimental
-		serializer.attribute("", "canOpenPopup", java.lang.Boolean.toString(node.canOpenPopup()))
-		serializer.attribute("", "isDismissable", java.lang.Boolean.toString(node.isDismissable))
-		serializer.attribute("", "isImportantForAccessibility", java.lang.Boolean.toString(node.isImportantForAccessibility))
-		serializer.attribute("", "inputType", Integer.toString(node.inputType))
-		serializer.attribute("", "describeContents", Integer.toString(node.describeContents())) // -> seams always 0
+//		serializer.attribute("", "canOpenPopup", java.lang.Boolean.toString(node.canOpenPopup()))
+//		serializer.attribute("", "isDismissable", java.lang.Boolean.toString(node.isDismissable))
+////		serializer.attribute("", "isImportantForAccessibility", java.lang.Boolean.toString(node.isImportantForAccessibility)) // not working for android 6
+//		serializer.attribute("", "inputType", Integer.toString(node.inputType))
+//		serializer.attribute("", "describeContents", Integer.toString(node.describeContents())) // -> seams always 0
 
 
 		val count = node.childCount
@@ -103,9 +197,10 @@ object UiHierarchy{
 		return if (cs == null)
 			""
 		else {
-			stripInvalidXMLChars(cs)
+			stripInvalidXMLChars(cs).replace(";", "<semicolon>").replace("\n", "<newline>")
 		}
 	}
+
 
 	private fun stripInvalidXMLChars(cs: CharSequence): String {
 		val ret = StringBuffer()

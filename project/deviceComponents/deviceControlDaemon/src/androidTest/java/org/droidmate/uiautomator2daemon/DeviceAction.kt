@@ -130,7 +130,7 @@ internal sealed class DeviceAction {
 				val os = ByteArrayOutputStream()
 				try {
 //					device.dumpWindowHierarchy(os)
-					UiHierarchy.dump(device,os) // fixed version including invisible nodes in the dump
+					android.support.test.uiautomator.UiHierarchy.dump(device,os) // fixed version including invisible nodes in the dump
 					os.flush()
 					lastDump = os.toString(StandardCharsets.UTF_8.name())
 					os.close()
@@ -167,24 +167,24 @@ internal sealed class DeviceAction {
 		}
 
 		@JvmStatic
-		private fun getScreenShot(automation: UiAutomation, simplify: Boolean =false): Bitmap {
-			return debugT(" fetching screen-shot ", {
-				var screenshot = automation.takeScreenshot()
+		private suspend fun getScreenShot(automation: UiAutomation, simplify: Boolean =false): Bitmap {
+			delay(10)
+			var screenshot = automation.takeScreenshot()
 //					if(simplify) debugT("img modification", {screenshot = screenshot.simplifyImg()},inMillis = true)
 
-				if (screenshot != null)
-					screenshot = automation.takeScreenshot()
+			if (screenshot != null){
+				Log.d(uiaDaemon_logcatTag,"screenshot failed")
+				delay(100)
+				screenshot = automation.takeScreenshot()}
 
-				screenshot
-
-			}, inMillis = true)
+			return screenshot
 		}
 
 		private fun compressScreenshot(screenshot: Bitmap?): ByteArray {
 			var bytes = ByteArray(0)
 			val stream = ByteArrayOutputStream()
 			try {
-				screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+				debugT("compress time", {screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)},inMillis = true)
 				stream.flush()
 
 				bytes = stream.toByteArray()
@@ -200,13 +200,18 @@ internal sealed class DeviceAction {
 
 		@JvmStatic
 		fun fetchDeviceData(device: UiDevice, automation: UiAutomation, deviceModel:String, simplify: Boolean = true): DeviceResponse {
-			val img = DeviceAction.getScreenShot(automation, simplify)
-			val imgBytes = async { DeviceAction.compressScreenshot(img) }
-			val dump = async{ DeviceAction.getWindowHierarchyDump(device) }
-
+			val image = async {
+				val img = debugT("img capture time", {DeviceAction.getScreenShot(automation, simplify)},inMillis = true)
+				Pair(img,DeviceAction.compressScreenshot(img))
+			}
+//			val dump = async{ DeviceAction.getWindowHierarchyDump(device) }
+			val widgets = debugT(" compute UiNodes", {async{UiHierarchy.fetch(device)}})
 
 			return debugT("compute UI-dump", {
-				DeviceResponse.fromUIDump(dump, deviceModel, device.displayWidth, device.displayHeight, imgBytes,
+				val (img,imgBytes) = debugT("wait for screen",{ runBlocking { image.await()}},inMillis = true)
+//				DeviceResponse.fromUIDump(dump,
+
+					DeviceResponse.create(widgets,deviceModel, device.displayWidth, device.displayHeight, imgBytes,
 						img.width, img.height)
 			}, inMillis = true)
 		}
@@ -385,8 +390,8 @@ private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceA
 		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
 
 			Log.d(uiaDaemon_logcatTag, "Clicking coordinates ($x,$y)")
-			assert(x >= 0 && x < device.displayWidth, { "Error on coordinate click invalid x:$x" })
-			assert(y >= 0 && y < device.displayHeight, { "Error on coordinate click invalid y:$y" })
+			assert(x >= 0 && x < device.displayWidth, { "Error on uncoveredCoord click invalid x:$x" })
+			assert(y >= 0 && y < device.displayHeight, { "Error on uncoveredCoord click invalid y:$y" })
 			device.click(x, y)
 			Log.d(uiaDaemon_logcatTag, "Clicked coordinates $x, $y")
 		},timer = {
@@ -411,8 +416,8 @@ private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : Dev
 		debugT("executeAction ${this.javaClass.simpleName}", {
 			Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
 
-			assert(x >= 0 && x < device.displayWidth, { "Error on coordinate long click invalid x:$x" })
-			assert(y >= 0 && y < device.displayHeight, { "Error on coordinate long click invalid y:$y" })
+			assert(x >= 0 && x < device.displayWidth, { "Error on uncoveredCoord long click invalid x:$x" })
+			assert(y >= 0 && y < device.displayHeight, { "Error on uncoveredCoord long click invalid y:$y" })
 
 			device.swipe(x, y, x, y, 100) // 100 ~ 2s. Empirical evaluation.
 			Log.d(uiaDaemon_logcatTag, "Long clicked coordinates ($x, $y)")

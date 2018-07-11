@@ -27,15 +27,18 @@ package org.droidmate.exploration.statemodel
 
 import org.droidmate.configuration.ConfigProperties.ModelProperties
 import kotlinx.coroutines.experimental.launch
-import org.droidmate.uiautomator_daemon.P
-import org.droidmate.uiautomator_daemon.WidgetData
-import org.droidmate.uiautomator_daemon.toUUID
+import org.droidmate.uiautomator_daemon.guimodel.P
+//import org.droidmate.uiautomator_daemon.WidgetData
+import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.uiautomator_daemon.guimodel.toUUID
+//import org.droidmate.uiautomator_daemon.toUUID
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
+import kotlin.math.min
 
 /**
  * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a co-routine running to compute the Widget.uid
@@ -44,6 +47,8 @@ import javax.imageio.ImageIO
 class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	constructor(properties: WidgetData = WidgetData.empty()) : this(properties, lazy { computeId(properties) })
+
+//	constructor(properties: WidgetData, _uid: Lazy<UUID>) : this()
 
 	var uid: UUID
 		set(value) {
@@ -80,6 +85,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	val xpath: String = properties.xpath
 	var parentId: Pair<UUID, UUID>? = null
 	val isLeaf: Boolean = properties.isLeaf
+	
+	val uncoveredCoord: Pair<Int, Int>? = properties.uncoveredCoord
 	//TODO we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
 	//TODO check if still buggy in amazon "Sign In" does not always compute to same id
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
@@ -127,6 +134,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.Visible -> visible.toString()
 				P.IsLeaf -> isLeaf.toString()
 				P.PackageName -> packageName
+				P.Coord -> uncoveredCoord?.let { it.first.toString()+","+it.second.toString() } ?: "null"
 			}
 		}
 	}}
@@ -184,14 +192,13 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 					} ?: emptyUUID // no text content => compute id from img
 				}
 
+
 		@JvmStatic
 		private fun idOfImgCut(image: BufferedImage): UUID =
 				(image.raster.getDataElements(0, 0, image.width, image.height, null) as ByteArray)
 						.let { UUID.nameUUIDFromBytes(it) }
 
-
-		@JvmStatic
-		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
+		fun fromUiNode(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
 			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null
 			widgetImg.let { wImg ->
 				lazy {
@@ -202,11 +209,11 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 							// print the screen img if there is one and it is configured to be printed
 							if (wImg != null && config[ModelProperties.imgDump.widgets] && (!config[ModelProperties.imgDump.widget.onlyWhenNoText] ||
 											(config[ModelProperties.imgDump.widget.onlyWhenNoText] && w.content() == "" ) ) &&
-									( config[ModelProperties.imgDump.widget.interactable] && w.canBeActedUpon() ||
-											config[ModelProperties.imgDump.widget.nonInteractable] && !w.canBeActedUpon() ) )
+									( config[ModelProperties.imgDump.widget.interactable] && w.actable ||
+											config[ModelProperties.imgDump.widget.nonInteractable] && !w.actable ) )
 
 								launch {
-									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {
+									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.actable)).let {
 										if (!it.exists()) ImageIO.write(wImg, "png", it)
 									}
 								}
@@ -216,13 +223,40 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 			}
 		}
 
+//		@JvmStatic
+//		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
+//			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null
+//			widgetImg.let { wImg ->
+//				lazy {
+//					computeId(w, wImg, true)
+//				}
+//						.let { widgetId ->
+//							launch { widgetId.value }  // issue initialization in parallel
+//							// print the screen img if there is one and it is configured to be printed
+//							if (wImg != null && config[ModelProperties.imgDump.widgets] && (!config[ModelProperties.imgDump.widget.onlyWhenNoText] ||
+//											(config[ModelProperties.imgDump.widget.onlyWhenNoText] && w.content() == "" ) ) &&
+//									( config[ModelProperties.imgDump.widget.interactable] && w.canBeActedUpon() ||
+//											config[ModelProperties.imgDump.widget.nonInteractable] && !w.canBeActedUpon() ) )
+//
+//								launch {
+//									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {
+//										if (!it.exists()) ImageIO.write(wImg, "png", it)
+//									}
+//								}
+//							return /* debugT("create to Widget ", { */ Widget(w, widgetId)
+////							})
+//						}
+//			}
+//		}
+
 		@JvmStatic
 		val idIdx by lazy { Pair(P.UID.ordinal,P.WdId.ordinal) }
 		@JvmStatic
 		val widgetHeader:(String)->String by lazy {{ sep:String -> P.values().joinToString(separator = sep) { it.header } } }
 
 		@JvmStatic
-		private fun BufferedImage.getSubImage(r: Rectangle) = this.getSubimage(r.x, r.y, r.width, r.height)
+		private fun BufferedImage.getSubImage(r: Rectangle) =
+				this.getSubimage(r.x, r.y, r.width, r.height)
 	}
 
 	/*** overwritten functions ***/

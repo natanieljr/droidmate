@@ -241,8 +241,8 @@ class RobustDevice : IRobustDevice {
 	private fun DeviceResponse.isValid(): Boolean {
 		return if (this.screenshot.isNotEmpty()) {
 			try {
-				val maxWidth = this.widgets.map { it.boundsX + it.boundsWidth }.max() ?: 0
-				val maxHeight = this.widgets.map { it.boundsY + it.boundsHeight }.max() ?: 0
+				val maxWidth = this.widgets.filter { it.visible }.map { it.boundsX + it.boundsWidth }.max() ?: 0
+				val maxHeight = this.widgets.filter { it.visible }.map { it.boundsY + it.boundsHeight }.max() ?: 0
 
 				(maxWidth == 0 && maxHeight == 0) || ((maxWidth <= screenshotWidth) && (maxHeight <= screenshotHeight))
 			} catch (e: Exception) {
