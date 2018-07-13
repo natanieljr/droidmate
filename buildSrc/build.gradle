@@ -37,7 +37,7 @@ buildscript {
 }
 
 plugins {
-	id "org.jetbrains.kotlin.jvm" version '1.2.41'
+	id "org.jetbrains.kotlin.jvm" version '1.2.51'
 }
 
 apply plugin: 'kotlin'

@@ -99,7 +99,9 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 		}
 	}
 
-	private fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
+	// Currently used in child projects
+	@Suppress("MemberVisibilityCanBePrivate")
+	fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
 
 		return if ((prevAction.actionType != ClickExplorationAction::class.java.simpleName) ||
 				(currAction.actionType != ClickExplorationAction::class.java.simpleName))

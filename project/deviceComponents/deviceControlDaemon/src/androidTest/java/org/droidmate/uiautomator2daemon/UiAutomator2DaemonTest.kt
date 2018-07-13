@@ -16,6 +16,7 @@
 //
 // email: jamrozik@st.cs.uni-saarland.de
 // web: www.droidmate.org
+
 package org.droidmate.uiautomator2daemon
 
 import android.support.test.InstrumentationRegistry
@@ -24,6 +25,8 @@ import android.support.test.runner.AndroidJUnit4
 import android.util.Log
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.instrumentation_redirectionTag
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.logcatLogFileName
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemonParam_waitForInteractableTimeout
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemonParam_waitForIdleTimeout
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -36,6 +39,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_log
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = 18)
 class UiAutomator2DaemonTest {
+
 	@Test
 	fun init() {
 		val extras = InstrumentationRegistry.getArguments()
@@ -44,12 +48,20 @@ class UiAutomator2DaemonTest {
 			extras.get(uiaDaemonParam_tcpPort).toString().toInt()
 		else
 			-1
+		val waitForIdleTimeout = if (extras.containsKey(uiaDaemonParam_waitForIdleTimeout))
+			extras.get(uiaDaemonParam_waitForIdleTimeout).toString().toLong()
+		else
+			-1
+		val waitForInteractableTimeout = if (extras.containsKey(uiaDaemonParam_waitForInteractableTimeout))
+			extras.get(uiaDaemonParam_waitForInteractableTimeout).toString().toLong()
+		else
+			-1
 
 		Log.v(uiaDaemon_logcatTag, "$uiaDaemonParam_tcpPort=$tcpPort")
 
 		saveLogcatToFile()
 
-		val uiAutomatorDaemonDriver = UiAutomator2DaemonDriver()
+		val uiAutomatorDaemonDriver = UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout)
 		val uiAutomator2DaemonServer = UiAutomator2DaemonServer(uiAutomatorDaemonDriver)
 
 		Log.d(uiaDaemon_logcatTag, "uiAutomator2DaemonServer.start($tcpPort)")

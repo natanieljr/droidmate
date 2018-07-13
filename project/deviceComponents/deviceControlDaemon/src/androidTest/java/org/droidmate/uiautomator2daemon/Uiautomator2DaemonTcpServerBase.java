@@ -68,7 +68,6 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 		Log.i(serverStartMessageTag, serverStartMessage);
 
 		return serverThread;
-
 	}
 
 	@TargetApi(Build.VERSION_CODES.FROYO)
@@ -106,7 +105,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 					Log.d(tag, "serverSocket.accept(" + port + ")");
 					Socket clientSocket = serverSocket.accept();
 
-					Log.d(tag, "ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());");
+					Log.d(tag, "DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());");
 					DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
 
 					/*
@@ -121,7 +120,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 //          Log.v(tag, "Output.flush()");
 //          output.flush();
 
-					Log.v(tag, "input = new ObjectInputStream(clientSocket.getInputStream());");
+					Log.v(tag, "input = new DataInputStream(clientSocket.getInputStream());");
 					DataInputStream input = new DataInputStream(clientSocket.getInputStream());
 
 					ServerInputT serverInput = null;
@@ -131,10 +130,10 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 					//noinspection TryWithIdenticalCatches
 					try {
 						Log.v(tag, "input.readObject();");
-						@SuppressWarnings("unchecked") // Without this var here, there is no place to put the "unchecked" suppression warning.
-										ServerInputT localVarForSuppressionAnnotation = (ServerInputT) SerializationHelper.Companion.readObjectFromStream(input);
+						// Without this var here, there is no place to put the "unchecked" suppression warning.
+						@SuppressWarnings("unchecked")
+						ServerInputT localVarForSuppressionAnnotation = (ServerInputT) SerializationHelper.readObjectFromStream(input);
 						serverInput = localVarForSuppressionAnnotation;
-
 					} catch (ClassNotFoundException e) {
 						serverInputReadEx = handleInputReadObjectException(input, e);
 					} catch (IOException e) {
@@ -145,7 +144,7 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 					Log.v(tag, "serverOutput = onServerRequest(serverInput, serverInputReadEx);");
 					serverOutput = onServerRequest(serverInput, serverInputReadEx);
 					Log.v(tag, "output.writeObject(serverOutput);");
-					SerializationHelper.Companion.writeObjectToStream(output, serverOutput);
+					SerializationHelper.writeObjectToStream(output, serverOutput);
 					Log.v(tag, "clientSocket.close();");
 					clientSocket.close();
 

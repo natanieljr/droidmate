@@ -28,7 +28,7 @@ task droidmatePublish(type: GradleBuild) {
 
 allprojects {
 	group = "org.droidmate"
-	version = "1.0-RC1"
+	version = "1.0-RC3"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
@@ -39,8 +39,6 @@ allprojects {
 		jcenter()
 
 		maven { url = 'https://jitpack.io' }
-		maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"}
-		maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"}
 	}
 
 	apply plugin: 'java'

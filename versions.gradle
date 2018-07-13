@@ -3,12 +3,11 @@ project.ext {
 
 	javaVersion = JavaVersion.VERSION_1_8
 
-	kotlin_version = '1.2.50'
-	androidBuildToolsVersion = "26.0.2"
-	// minimal version 24 due to WidgetData call 'replace' on mutable map which is only available from version 24 or higher
+	kotlin_version = '1.2.51'
+	androidBuildToolsVersion = "27.0.3"
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25
-	androidCompileSdkVersion = 26
+	androidCompileSdkVersion = 27
 
 	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = 'v0.2.2'

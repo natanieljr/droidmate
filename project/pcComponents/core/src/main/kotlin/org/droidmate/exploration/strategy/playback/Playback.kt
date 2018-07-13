@@ -127,7 +127,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 					if(action == getActionIdentifier<ClickExplorationAction>())
 						PlaybackClickExplorationAction(verifyExecutability.second!!, "[${verifyExecutability.first}]")
 					else
-						PlaybackLClickExplorationAction(verifyExecutability.second!!, "[${verifyExecutability.first}]")
+						PlaybackLongClickExplorationAction(verifyExecutability.second!!, "[${verifyExecutability.first}]")
 				}
 
 				// not found, go to the next or try to repeat previous action depending on what is matching better
@@ -149,7 +149,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 						if(action == getActionIdentifier<ClickExplorationAction>())
 							PlaybackClickExplorationAction(prevEquiv.second!!, "[previously skipped]")
 						else
-							PlaybackLClickExplorationAction(prevEquiv.second!!, "[previously skipped]")
+							PlaybackLongClickExplorationAction(prevEquiv.second!!, "[previously skipped]")
 					} else {
 						lastSkipped = currTraceData
 						println("[skip action ($traceIdx,$actionIdx)] (${currentState.stateId}) $lastSkipped")

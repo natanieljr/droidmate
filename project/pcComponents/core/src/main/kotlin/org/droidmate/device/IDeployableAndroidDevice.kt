@@ -92,7 +92,7 @@ interface IDeployableAndroidDevice {
 	fun pullLogcatLogFile()
 
 	@Throws(DeviceException::class)
-	fun reinstallUiautomatorDaemon()
+	fun reinstallUiAutomatorDaemon()
 
 	@Throws(DeviceException::class)
 	fun pushMonitorJar()

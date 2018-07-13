@@ -28,6 +28,7 @@ task pullMonitorApk_api23(type: Copy, dependsOn: ":project:pcComponents:monitor-
 
 	Project monitorGenerator = findProject(":project:pcComponents:monitor-generator")
 	def monitorApk = file(new File(monitorGenerator.buildDir, BuildKt.monitor_api23_apk_name))
+
 	copy.from(monitorApk).into(coreResDir)
 
 	def resDir = new File(monitorGenerator.projectDir.parent, "resources")

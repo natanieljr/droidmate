@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
@@ -34,8 +35,8 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
                                           private val deviceSerialNumber: String,
                                           private val port: Int,
                                           socketTimeout: Int,
-                                          private val serverStartTimeout: Int,
-                                          private val serverStartQueryDelay: Int) : IUiautomatorDaemonClient {
+                                          private val startTimeout: Int,
+                                          private val waitForInteractableTimeout: Int) : IUiautomatorDaemonClient {
 
 	companion object {
 		@JvmStatic
@@ -64,7 +65,6 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 		validateUiaDaemonServerStartLogcatMessages()
 
 		assert(this.getUiaDaemonThreadIsAlive())
-
 	}
 
 	private fun validateUiaDaemonServerStartLogcatMessages() {
@@ -72,8 +72,8 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 				this.deviceSerialNumber,
 				UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG,
 				1,
-				this.serverStartTimeout,
-				this.serverStartQueryDelay)
+				this.startTimeout,
+				this.waitForInteractableTimeout)
 
 		assert(msgs.isNotEmpty())
 		// On Huawei devices many logs are disabled by default to increase performance,

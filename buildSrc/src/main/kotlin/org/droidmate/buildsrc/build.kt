@@ -51,7 +51,7 @@ val jarsigner_relative_path = "bin/jarsigner$exeExt"
 val jarsigner = java_home.resolveRegularFile(jarsigner_relative_path)
 
 //region Android SDK components
-private val build_tools_version = "26.0.2"
+private val build_tools_version = "27.0.3"
 private val android_platform_version_api23 = "23"
 val aapt_command_relative = "build-tools/$build_tools_version/aapt$exeExt"
 val adb_command_relative = "platform-tools/adb$exeExt"

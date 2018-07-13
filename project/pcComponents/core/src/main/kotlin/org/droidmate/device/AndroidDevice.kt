@@ -34,7 +34,7 @@ import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSock
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
-import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
@@ -106,7 +106,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			cfg[socketTimeout],
 			cfg.uiAutomatorPort,
 			cfg[startTimeout],
-			cfg[startQueryDelay],
+			cfg[waitForInteractableTimeout],
 			cfg.monitorPort,
 			cfg[monitorUseLegacyStream])
 
@@ -366,7 +366,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun appIsRunning(appPackageName: String): Boolean =
 			this.appProcessIsRunning(appPackageName) && this.anyMonitorIsReachable()
 
-	override fun reinstallUiautomatorDaemon() {
+	override fun reinstallUiAutomatorDaemon() {
 		if (cfg[apiVersion] == ConfigurationWrapper.api23) {
 			this.uninstallApk(uia2Daemon_testPackageName, true)
 			this.uninstallApk(uia2Daemon_packageName, true)
@@ -409,7 +409,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 		)
 
 		return processList.contains(packageName)
-
 	}
 
 	override fun isPackageInstalled(packageName: String): Boolean {

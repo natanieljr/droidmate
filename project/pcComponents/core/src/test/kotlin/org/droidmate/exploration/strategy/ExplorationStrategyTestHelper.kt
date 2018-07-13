@@ -40,11 +40,11 @@ class ExplorationStrategyTestHelper {
 			return ExplorationStrategyPool.build(explorationLog, cfg)
 		}*/
 
-		@JvmStatic
-		fun getTestExplorationLog(packageName: String): ExplorationContext {
-			val testApk = ApkTestHelper.build(packageName, ".", "", "")
-			return ExplorationContext(testApk)
-		}
+//		@JvmStatic
+//		fun getTestExplorationLog(packageName: String): ExplorationContext {
+//			val testApk = ApkTestHelper.build(packageName, ".", "", "")
+//			return ExplorationContext(testApk)
+//		}
 
 		/*@JvmStatic
 		fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {

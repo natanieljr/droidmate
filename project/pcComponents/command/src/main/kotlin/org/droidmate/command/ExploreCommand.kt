@@ -55,7 +55,6 @@ import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.data_aggregators.ExplorationOutput2
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.AbstractExplorationAction
@@ -84,13 +83,14 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-open class ExploreCommand constructor(private val apksProvider: IApksProvider,
-									  private val adbWrapper: IAdbWrapper,
-									  private val deviceDeployer: IAndroidDeviceDeployer,
-									  private val apkDeployer: IApkDeployer,
-									  private val timeProvider: ITimeProvider,
-									  private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
-									  private var modelProvider: (String) -> Model) : DroidmateCommand() {
+open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
+                                      private val apksProvider: IApksProvider,
+                                      private val adbWrapper: IAdbWrapper,
+                                      private val deviceDeployer: IAndroidDeviceDeployer,
+                                      private val apkDeployer: IApkDeployer,
+                                      private val timeProvider: ITimeProvider,
+                                      private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
+                                      private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
 		@JvmStatic
 		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
@@ -224,8 +224,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
-			val command = ExploreCommand(apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-					timeProvider, strategyProvider, modelProvider)
+			val command = ExploreCommand(cfg, apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+										 timeProvider, strategyProvider, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -242,17 +242,21 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 	private val reporters: MutableList<Reporter> = mutableListOf()
 
-	override fun execute(cfg: ConfigurationWrapper) {
+	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
 		cleanOutputDir(cfg)
 
 		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
-		if (!validateApks(apks, cfg[runOnNotInlined])) return
+		if (!validateApks(apks, cfg[runOnNotInlined]))
+			return emptyList()
 
-		val explorationExceptions = execute(cfg, apks)
+		val explorationData = execute(cfg, apks)
+		val explorationExceptions = explorationData.second
 		if (!explorationExceptions.isEmpty()) {
 			explorationExceptions.forEach { log.error(it.message); it.printStackTrace() }
 			throw ThrowablesCollection(explorationExceptions)
 		}
+
+		return explorationData.first
 	}
 
 	private fun writeReports(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
@@ -314,8 +318,8 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
 	}
 
-	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): List<ExplorationException> {
-		val out = ExplorationOutput2()
+	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, List<ExplorationException>> {
+		val out : MutableList<ExplorationContext> = mutableListOf()
 
 
 		val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
@@ -332,12 +336,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 		writeReports(cfg.droidmateOutputReportDirPath, cfg.resourceDir, out)
 
-		return explorationExceptions
+		return Pair(out, explorationExceptions)
 	}
 
 	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
-									   apks: List<Apk>,
-									   out: ExplorationOutput2): List<ExplorationException> {
+	                                   apks: List<Apk>,
+	                                   out: MutableList<ExplorationContext>): List<ExplorationException> {
 		return this.deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
 
 			val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
@@ -346,20 +350,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			apks.forEachIndexed { i, apk ->
 				if (!encounteredApkExplorationsStoppingException) {
-					// Start measuring Method Coverage
-					val covMonitor = CoverageMonitor(apk.fileName, adbWrapper, cfg)
-					val covMonitorThread = Thread(covMonitor, "Logcat thread")
-					covMonitorThread.start()
-
 					log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
 
 					allApksExplorationExceptions +=
 							this.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
 								tryExploreOnDeviceAndSerialize(deployedApk, device, out)
 							}
-
-					// Stop monitoring coverage
-					covMonitor.stop()
 
 					if (allApksExplorationExceptions.any { it.shouldStopFurtherApkExplorations() }) {
 						log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
@@ -377,7 +373,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 	@Throws(DeviceException::class)
 	private fun tryExploreOnDeviceAndSerialize(
-			deployedApk: IApk, device: IRobustDevice, out: ExplorationOutput2) {
+			deployedApk: IApk, device: IRobustDevice, out: MutableList<ExplorationContext>) {
 		val fallibleApkOut2 = this.run(deployedApk, device)
 
 		if (fallibleApkOut2.result != null) {
@@ -418,7 +414,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(app, timeProvider.getNow(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, adbWrapper, timeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 

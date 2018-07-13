@@ -51,15 +51,11 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkApp
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootFirstDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootLaterDelays
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.clearPackageRetryDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.closeANRDelay
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryAttempts
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.getValidGuiSnapshotRetryDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppRetryAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForCanRebootDelay
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationAttempts
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.explore
@@ -75,7 +71,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDe
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
 import org.droidmate.configuration.ConfigProperties.Output.coverageDir
-import org.droidmate.configuration.ConfigProperties.Output.droidmateOutputDirPath
+import org.droidmate.configuration.ConfigProperties.Output.outputDir
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Output.screenshotDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
@@ -101,9 +97,9 @@ import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.configuration.ConfigProperties.Strategies.terminate
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
-import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startQueryDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
-import org.droidmate.logging.LogbackConstants
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdleTimeout
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.BuildConstants
 import org.slf4j.Logger
@@ -148,15 +144,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(checkDeviceAvailableAfterRebootAttempts, description = "Determines how often DroidMate checks if a device is available after a reboot."),
 			CommandLineOption(checkDeviceAvailableAfterRebootFirstDelay, description = "The first delay after a device rebooted, before its availability will be checked."),
 			CommandLineOption(checkDeviceAvailableAfterRebootLaterDelays, description = "The non-first delay after a device rebooted, before its availability will be checked."),
-			CommandLineOption(clearPackageRetryAttempts, description = "Number of attempts to close a running app."),
-			CommandLineOption(clearPackageRetryDelay, description = "Delay after each failed attempt to close a running app."),
-			CommandLineOption(closeANRAttempts, description = "Delay after each failed attempt close an 'application not responding' dialog."),
-			CommandLineOption(closeANRDelay, description = "Delay after each failed attempt close an 'application not responding' dialog."),
-			CommandLineOption(getValidGuiSnapshotRetryAttempts, description = "Number of attempts to get a valid GUI snapshot from the device. If not snapshot is acquired the exploration stops"),
-			CommandLineOption(getValidGuiSnapshotRetryDelay, description = "Timeout for each attempt to get a valid GUI snapshot from the device in milliseconds"),
 			CommandLineOption(stopAppRetryAttempts, description = "Number of attempts to close an 'application has stopped' dialog."),
 			CommandLineOption(stopAppSuccessCheckDelay, description = "Delay after each failed attempt close an 'application has stopped' dialog"),
 			CommandLineOption(waitForCanRebootDelay, description = "Delay (in milliseconds) after an attempt was made to reboot a device, before."),
+			CommandLineOption(deviceOperationAttempts, description = "Number of attempts to retry other failed device operations."),
+			CommandLineOption(deviceOperationDelay, description = "Delay (in milliseconds) after an attempt was made to perform a device operation, before retrying again."),
 			CommandLineOption(waitForDevice, description = "Wait for a device to be connected to the PC instead of cancelling the exploration."),
 			// Exploration
 			CommandLineOption(apksDir, description = "Directory containing the apks to be processed by DroidMate."),
@@ -169,7 +161,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(launchActivityTimeout, description = "Maximum amount of time to be waited for an app to start after a reset in milliseconds."),
 			CommandLineOption(apiVersion, description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api23"),
 			// Output
-			CommandLineOption(droidmateOutputDirPath, description = "Path to the directory that will contain DroidMate exploration output."),
+			CommandLineOption(outputDir, description = "Path to the directory that will contain DroidMate exploration output."),
 			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data."),
 			CommandLineOption(screenshotDir, description = "Path to the directory that will contain the screenshots from an exploration."),
 			CommandLineOption(reportDir, description = "Path to the directory that will contain the report files."),
@@ -204,7 +196,8 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(includePlots, description = "Include plots on reports (requires gnu plot)."),
 			// UiAutomatorServer
 			CommandLineOption(startTimeout, description = "How long DroidMate should wait, in milliseconds, for message on logcat confirming that UiAutomatorDaemonServer has started on android (virtual) device."),
-			CommandLineOption(startQueryDelay, description = "How often DroidMate should query, in milliseconds, for message on logcat confirming that UiDaemonServer has started on android (virtual) device."),
+			CommandLineOption(waitForIdleTimeout, description = "Timeout for a device to be idle an operation."),
+			CommandLineOption(waitForInteractableTimeout, description = "Timeout for a widget to be available after an operation."),
 			CommandLineOption(socketTimeout, description = "Socket timeout to communicate with the UiDaemonServer."),
 			CommandLineOption(basePort, description = "The base port for the communication with the devices. DroidMate communicates over this base port + device index.")
 			).first, fs)
@@ -231,7 +224,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				defaultConfig
 
 		// Set the logging directory for the logback logger as early as possible
-		val outputPath = Paths.get(config[droidmateOutputDirPath].toString())
+		val outputPath = Paths.get(config[outputDir].toString())
 								.resolve(getDeviceDir(config))
 								.resolve(ConfigurationWrapper.log_dir_name)
 
@@ -335,7 +328,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		@JvmStatic
 		@Throws(ConfigurationException::class)
 		private fun setupResourcesAndPaths(cfg: ConfigurationWrapper) {
-			cfg.droidmateOutputDirPath = cfg.getPath(cfg[droidmateOutputDirPath])
+			cfg.droidmateOutputDirPath = cfg.getPath(cfg[outputDir])
 					.resolve(getDeviceDir(cfg)).toAbsolutePath()
 			cfg.resourceDir = cfg.droidmateOutputDirPath
 					.resolve(BuildConstants.dir_name_temp_extracted_resources)

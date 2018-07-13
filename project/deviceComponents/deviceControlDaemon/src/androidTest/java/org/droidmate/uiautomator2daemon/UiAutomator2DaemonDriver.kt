@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.uiautomator2daemon
 
 import android.app.UiAutomation
@@ -41,7 +42,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_log
 /**
  * Decides if UiAutomator2DaemonDriver should wait for the window to go to idle state after each click.
  */
-internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
+internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val waitForInteractableTimeout: Long) : IUiAutomator2DaemonDriver {
 	private val device: UiDevice
 	private val context: Context
 	private val automation: UiAutomation
@@ -111,7 +112,7 @@ internal class UiAutomator2DaemonDriver : IUiAutomator2DaemonDriver {
 	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse {
 		Log.v(uiaDaemon_logcatTag, "Performing GUI action ${deviceCommand.guiAction}")
 
-		val action = DeviceAction.fromAction(deviceCommand.guiAction)
+		val action = DeviceAction.fromAction(deviceCommand.guiAction, waitForIdleTimeout, waitForInteractableTimeout)
 
 		action?.execute(device, context, automation)
 

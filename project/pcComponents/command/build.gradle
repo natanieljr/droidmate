@@ -25,17 +25,10 @@
 
 apply plugin: 'project-report' // http://www.gradle.org/docs/current/userguide/project_reports_plugin.html
 
-apply plugin: 'java'  //TODO check if that is really necessary
-
 jar {
 	manifest {
 		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
 	}
-}
-
-repositories {
-	maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"}
-	maven {url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"}
 }
 
 dependOnJunit(project)
@@ -57,7 +50,7 @@ dependencies {
 	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
 	compile project(":project:pcComponents:tools:apk-inliner")
-//	compile project(":project:pcComponents:tools:androcov")
+	compile project(":project:pcComponents:tools:androcov")
 }
 
 apply from: file("test.gradle")

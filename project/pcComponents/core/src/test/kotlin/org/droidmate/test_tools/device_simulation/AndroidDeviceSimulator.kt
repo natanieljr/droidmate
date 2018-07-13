@@ -126,7 +126,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun reinstallUiautomatorDaemon() {
+	override fun reinstallUiAutomatorDaemon() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -400,7 +400,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	override fun pullLogcatLogFile() {
 	}
 
-	override fun reinstallUiautomatorDaemon() {
+	override fun reinstallUiAutomatorDaemon() {
 	}
 
 	override fun pushMonitorJar() {

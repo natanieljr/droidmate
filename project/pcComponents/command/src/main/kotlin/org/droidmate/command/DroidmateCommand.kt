@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.command
 
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
@@ -29,6 +30,7 @@ import org.droidmate.configuration.ConfigProperties.ExecutionMode.inline
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.report
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.misc.ThrowablesCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -38,7 +40,7 @@ import java.nio.file.Path
 abstract class DroidmateCommand {
 
 	@Throws(ThrowablesCollection::class)
-	abstract fun execute(cfg: ConfigurationWrapper)
+	abstract fun execute(cfg: ConfigurationWrapper): List<ExplorationContext>
 
 	companion object {
 		@JvmStatic
@@ -51,7 +53,7 @@ abstract class DroidmateCommand {
 			return when {
 				cfg[report] -> ReportCommand()
 				cfg[inline] -> InlineCommand(cfg)
-//				cfg[coverage] -> CoverageCommand(cfg)
+				cfg[coverage] -> CoverageCommand(cfg)
 				else -> ExploreCommand.build(cfg)
 			}
 		}

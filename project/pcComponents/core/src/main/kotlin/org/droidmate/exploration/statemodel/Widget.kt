@@ -38,12 +38,12 @@ import java.util.*
 import javax.imageio.ImageIO
 
 /**
- * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a coroutine running to compute the Widget.uid
+ * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a co-routine running to compute the Widget.uid
  */
 @Suppress("MemberVisibilityCanBePrivate")
 class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
-	constructor(properties: WidgetData = WidgetData.empty()) : this(properties, lazy({ computeId(properties) }))
+	constructor(properties: WidgetData = WidgetData.empty()) : this(properties, lazy { computeId(properties) })
 
 	var uid: UUID
 		set(value) {
@@ -100,11 +100,6 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	fun hasContent(): Boolean = (text + contentDesc) != ""
 
-	/** helper functions for parsing */
-	fun Rectangle.dataString(): String {
-		return "x=$x, y=$y, width=$width, height=$height"
-	}
-
 	val dataString:(String)->String by lazy {{ sep:String ->
 		P.values().joinToString(separator = sep) { p ->
 			when (p) {
@@ -138,6 +133,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 	fun center(): Point = Point(bounds.centerX.toInt(), bounds.centerY.toInt())
+	@Suppress("unused")
 	fun getStrippedResourceId(): String = resourceId.removePrefix("$packageName:")
 	fun toShortString(): String {
 		return "Wdgt:$simpleClassName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
@@ -158,19 +154,6 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	val canBeActedUpon by lazy { enabled && visible && (clickable || checked ?: false || longClickable || scrollable) }
 
-	@Deprecated(" no longer used? ")
-	fun getClickPoint(deviceDisplayBounds: Rectangle?): Point {
-		if (deviceDisplayBounds == null) {
-			val center = this.center()
-			return Point(center.x, center.y)
-		}
-
-		assert(bounds.intersects(deviceDisplayBounds))
-
-		val clickRectangle = bounds.intersection(deviceDisplayBounds)
-		return Point(clickRectangle.centerX.toInt(), clickRectangle.centerY.toInt())
-	}
-
 	/*************************/
 	companion object {
 		@JvmStatic
@@ -183,8 +166,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		fun fromString(line: List<String>): Widget {
 			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
-				assert(w.uid.toString()==line[P.WdId.ordinal],{
-					"ERROR on widget parsing: property-Id was ${w.uid} but should have been $line"})
+				assert(w.uid.toString()==line[P.WdId.ordinal]) {
+					"ERROR on widget parsing: property-Id was ${w.uid} but should have been $line"}
 				return Widget(w, lazyOf(UUID.fromString(line[P.UID.ordinal])))
 						.apply { parentId = line[P.ParentID.ordinal].let { if (it == "null") null else idFromString(it) } }
 			}
@@ -197,7 +180,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 					if (it != "") it.toUUID()  // compute id from textual content if there is any
 					else screenImg?.let {
 						if (isCut) idOfImgCut(screenImg)
-						else idOfImgCut(it.getSubimage(w.boundsRect))
+						else idOfImgCut(it.getSubImage(w.boundsRect))
 					} ?: emptyUUID // no text content => compute id from img
 				}
 
@@ -209,7 +192,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 		@JvmStatic
 		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
-			screenImg?.getSubimage(w.boundsRect).let { wImg ->
+			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null
+			widgetImg.let { wImg ->
 				lazy {
 					computeId(w, wImg, true)
 				}
@@ -238,7 +222,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		val widgetHeader:(String)->String by lazy {{ sep:String -> P.values().joinToString(separator = sep) { it.header } } }
 
 		@JvmStatic
-		private fun BufferedImage.getSubimage(r: Rectangle) = this.getSubimage(r.x, r.y, r.width, r.height)
+		private fun BufferedImage.getSubImage(r: Rectangle) = this.getSubimage(r.x, r.y, r.width, r.height)
 	}
 
 	/*** overwritten functions ***/

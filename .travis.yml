@@ -25,7 +25,7 @@ android:
     # More info: https://docs.travis-ci.com/user/languages/android/#Overview
     - tools
     - platform-tools
-    - build-tools-26.0.2
+    - build-tools-27.0.3
     # Packages required by UIAutomator2
     - extra-android-support
     - extra-android-m2repository
@@ -34,6 +34,7 @@ android:
     - android-23
     - android-25
     - android-26
+    - android-27
 
 env:
   global:

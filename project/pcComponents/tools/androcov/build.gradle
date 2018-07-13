@@ -23,18 +23,15 @@
 //
 // web: www.droidmate.org
 
-
 dependencies {
-	compile "ca.mcgill.sable:soot:3.1.0-SNAPSHOT"
-
-	compile 'org.json:json:20140107'
-	//compile 'commons-cli:commons-cli:1.4'
-	//compile 'commons-io:commons-io:2.6'
+	// This includes the jar ca.mcgill.sable:soot:3.1.0
+	// so we don't rely on changes of the development branch
+	compile fileTree(dir: 'libs', include: ['*.jar'])
+	compile 'org.json:json:20160212'
 
 	compile project(":project:pcComponents:core")
 	compile project(":project:pcComponents:commonLib")
 
 	testCompile 'junit:junit:4.12'
-
 }
 

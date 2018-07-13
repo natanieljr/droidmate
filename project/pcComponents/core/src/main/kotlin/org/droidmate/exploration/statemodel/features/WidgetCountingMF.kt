@@ -31,11 +31,11 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-abstract class WidgetCountingMF:  ModelFeature(){
+abstract class WidgetCountingMF : ModelFeature() {
 	// records how often a specific widget was selected and from which state-eContext (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt: ConcurrentHashMap<UUID, MutableMap<UUID, Int>> = ConcurrentHashMap()
 
-	init{
+	init {
 		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 	}
 

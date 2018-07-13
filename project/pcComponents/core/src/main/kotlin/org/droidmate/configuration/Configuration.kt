@@ -162,6 +162,12 @@ abstract class ConfigProperties {
 				val onlyWhenNoText by booleanType
 			}
 		}
+
+		object Features : PropertyGroup() {
+			val statementCoverage by booleanType
+			val statementCoverageDir by uriType
+		}
+
 	}
 
 	object Core : PropertyGroup() {
@@ -201,17 +207,13 @@ abstract class ConfigProperties {
 		val checkDeviceAvailableAfterRebootAttempts by intType
 		val checkDeviceAvailableAfterRebootFirstDelay by intType
 		val checkDeviceAvailableAfterRebootLaterDelays by intType
-		val clearPackageRetryAttempts by intType
-		val clearPackageRetryDelay by intType
-		val closeANRAttempts by intType
-		val closeANRDelay by intType
-		val getValidGuiSnapshotRetryAttempts by intType
-		val getValidGuiSnapshotRetryDelay by intType
 		val stopAppRetryAttempts by intType
 		val stopAppSuccessCheckDelay by intType
+		val deviceOperationAttempts by intType
+        val deviceOperationDelay by intType
 		val waitForCanRebootDelay by intType
 		val waitForDevice by booleanType
-	}
+    }
 
 	object Exploration : PropertyGroup() {
 		val apksDir by uriType
@@ -226,7 +228,7 @@ abstract class ConfigProperties {
 	}
 
 	object Output : PropertyGroup() {
-		val droidmateOutputDirPath by uriType
+		val outputDir by uriType
 		val coverageDir by stringType
 		val screenshotDir by stringType
 		val reportDir by stringType
@@ -269,8 +271,9 @@ abstract class ConfigProperties {
 	}
 
 	object UiAutomatorServer : PropertyGroup() {
+		val waitForIdleTimeout by intType
+		val waitForInteractableTimeout by intType
 		val startTimeout by intType
-		val startQueryDelay by intType
 		val socketTimeout by intType
 		val basePort by intType
 	}

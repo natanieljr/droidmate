@@ -115,7 +115,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 		// Nataniel: Had to invert order, otherwise it crashes on the first time it's executed because the UiAutomator2Daemon was never installed on the device
 		if (cfg[installAux]) {
-			device.reinstallUiautomatorDaemon()
+			device.reinstallUiAutomatorDaemon()
 			device.pushMonitorJar()
 		}
 		device.setupConnection()

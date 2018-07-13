@@ -29,6 +29,7 @@ import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.apk_inliner.ApkInliner
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 import org.slf4j.LoggerFactory
@@ -39,13 +40,13 @@ import java.nio.file.Path
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 											  private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
 
-	override fun execute(cfg: ConfigurationWrapper) {
+	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
 		if (apks.all { it.inlined }) {
 			log.warn("No non-inlined apks found. Aborting.")
-			return
+			return emptyList()
 		}
 
 		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
@@ -58,5 +59,7 @@ class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 			log.info("Inlined ${apk.fileName}")
 			moveOriginal(apk, originalsDir)
 		}
+
+		return emptyList()
 	}
 }

@@ -111,13 +111,12 @@ def assembleApk = { GradleBuild gradleBuildTask, int apiLevel ->
 
 def monitorJava = { int apiLevel -> new File(monitorApkScaffoldingDir, "src/api$apiLevel/java/org/droidmate/monitor/Monitor.java") }
 File apkScaffoldingOutput = new File(monitorApkScaffoldingDir, "build")
-def apkScaffoldingOutputApk = { int apiLevel -> new File(apkScaffoldingOutput, "outputs/apk/monitor-apk-scaffolding-api$apiLevel-release-unsigned.apk") }
+def apkScaffoldingOutputApk = { int apiLevel -> new File(apkScaffoldingOutput, "outputs/apk/api$apiLevel/release/monitor-apk-scaffolding-api$apiLevel-release-unsigned.apk") }
 def monitorApk = { int apiLevel -> new File(buildDir, "monitor_api${apiLevel}.apk") }
 
 File libsBuilt = new File(monitorApkScaffoldingDir, "libs_built")
 
 def buildMonitorApk = { GradleBuild task, int apiLevel ->
-
 	task.dependsOn([libCommonJarTask, monitorHookJarTask, tasks.getByName("generateMonitor_api$apiLevel")])
 
 	task.group = "build"
@@ -140,7 +139,12 @@ def buildMonitorApk = { GradleBuild task, int apiLevel ->
 		assert monitorJava(apiLevel).file
 	}
 	assembleApk(task, apiLevel)
-	task.doLast { copyFileWithRename(apkScaffoldingOutputApk(apiLevel), monitorApk(apiLevel)) }
+
+	task.doLast {
+		assert apkScaffoldingOutputApk(apiLevel).exists()
+		copyFileWithRename(apkScaffoldingOutputApk(apiLevel), monitorApk(apiLevel))
+		assert monitorApk(apiLevel).exists()
+	}
 }
 
 task buildMonitorApk_api23(type: GradleBuild) { buildMonitorApk(it as GradleBuild, 23) }
