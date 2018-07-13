@@ -31,7 +31,6 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.configuration.ConfigProperties
-import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverage
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
@@ -103,7 +102,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
-		if(action is ClickExplorationAction) assert(result.action.widget == action.widget,{ "ERROR on ACTION-RESULT construction the wrong action was instanciated widget was ${result.action.widget} instead of ${action.widget}"})
+		if(action is ClickExplorationAction) assert(result.action.widget == action.widget) { "ERROR on ACTION-RESULT construction the wrong action was instantiated widget was ${result.action.widget} instead of ${action.widget}"}
 		_model.S_updateModel(result, actionTrace)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}
@@ -121,9 +120,9 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		}
 	}
 
-	//TODO it may be more performent to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
+	//TODO it may be more performing to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
 	// this could be nicely combined with the highlighting feature of the (numbered) img trace
-	suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keybord/icon widgets available
+	suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keyboard/icon widgets available
 		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.canBeActedUpon }).isEmpty()
 	}
 
@@ -159,7 +158,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	 */
 	fun getLastAction(): ActionData = runBlocking { actionTrace.last() } ?: ActionData.empty
 	/** @returns the name of the last executed action.
-	 * This method should be prefered to [getLastAction] as it does not have to wait for any other coroutines. */
+	 * This method should be preferred to [getLastAction] as it does not have to wait for any other co-routines. */
 	fun getLastActionType(): String = actionTrace.lastActionType
 
 	/**
