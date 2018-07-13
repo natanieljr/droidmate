@@ -42,6 +42,7 @@ import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_log
 import org.droidmate.uiautomator_daemon.guimodel.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.lang.Thread.sleep
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import kotlin.system.measureNanoTime
