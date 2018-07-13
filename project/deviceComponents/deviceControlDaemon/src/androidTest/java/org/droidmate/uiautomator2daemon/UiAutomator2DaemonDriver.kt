@@ -70,7 +70,7 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 
 		this.automation = instr.uiAutomation
 		if (this.automation == null) throw AssertionError()
-		automation.setRunAsMonkey(true) // tell the app that it is run in test-framework TODO check if that helps with adds or hides behavior
+		automation.setRunAsMonkey(true) // tell the app that it is run in test-framework, e.g. to tell the app not to call emergency numbers
 
 		this.context = InstrumentationRegistry.getTargetContext()
 		if (context == null) throw AssertionError()

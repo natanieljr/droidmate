@@ -38,7 +38,6 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
-import kotlin.math.min
 
 /**
  * @param _uid this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a co-routine running to compute the Widget.uid
@@ -47,8 +46,6 @@ import kotlin.math.min
 class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 
 	constructor(properties: WidgetData = WidgetData.empty()) : this(properties, lazy { computeId(properties) })
-
-//	constructor(properties: WidgetData, _uid: Lazy<UUID>) : this()
 
 	var uid: UUID
 		set(value) {
@@ -186,10 +183,11 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
 				w.content().trim().let {
 					if (it != "") it.toUUID()  // compute id from textual content if there is any
-					else screenImg?.let {
-						if (isCut) idOfImgCut(screenImg)
-						else idOfImgCut(it.getSubImage(w.boundsRect))
-					} ?: w.xpathHash.toUUID() // no text content => compute id from img or if no screenshot is taken use xpath
+					else screenImg?.let { when {
+						!w.visible  -> w.idHash.toUUID()
+						isCut       -> idOfImgCut(screenImg)
+						else        -> idOfImgCut(it.getSubImage(w.boundsRect))
+					}} ?: w.idHash.toUUID() // no text content => compute id from img or if no screenshot is taken use xpath
 				}
 
 
@@ -222,32 +220,6 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 						}
 			}
 		}
-
-//		@JvmStatic
-//		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
-//			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null
-//			widgetImg.let { wImg ->
-//				lazy {
-//					computeId(w, wImg, true)
-//				}
-//						.let { widgetId ->
-//							launch { widgetId.value }  // issue initialization in parallel
-//							// print the screen img if there is one and it is configured to be printed
-//							if (wImg != null && config[ModelProperties.imgDump.widgets] && (!config[ModelProperties.imgDump.widget.onlyWhenNoText] ||
-//											(config[ModelProperties.imgDump.widget.onlyWhenNoText] && w.content() == "" ) ) &&
-//									( config[ModelProperties.imgDump.widget.interactable] && w.canBeActedUpon() ||
-//											config[ModelProperties.imgDump.widget.nonInteractable] && !w.canBeActedUpon() ) )
-//
-//								launch {
-//									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {
-//										if (!it.exists()) ImageIO.write(wImg, "png", it)
-//									}
-//								}
-//							return /* debugT("create to Widget ", { */ Widget(w, widgetId)
-////							})
-//						}
-//			}
-//		}
 
 		@JvmStatic
 		val idIdx by lazy { Pair(P.UID.ordinal,P.WdId.ordinal) }

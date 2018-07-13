@@ -33,7 +33,7 @@ data class WidgetData(
 		) : Serializable{
 	val uid: UUID = toString().toUUID()
 	var xpath: String = ""
-	var xpathHash: Int = 0
+	var idHash: Int = 0
 	var isLeaf: Boolean = false
 	/** coordinate where only this element is triggered and no actable child
 	 * even if this element is actable this uncoveredCoord may be null if the children are overlying the whole element bounds
@@ -75,16 +75,27 @@ data class WidgetData(
 	fun content(): String = text + contentDesc
 
 	override fun equals(other: Any?): Boolean {
-		return super.equals(other) && xpathHash == (other as WidgetData).xpathHash
+		return super.equals(other) && idHash == (other as WidgetData).idHash
 	}
 
 	override fun hashCode(): Int {
-		return super.hashCode()+xpathHash
+		return super.hashCode()+idHash
 	}
 
 	companion object {
 		@JvmStatic
 		fun empty() = WidgetData(text = "EMPTY")
+
+		@JvmStatic
+		val defaultProperties by lazy {
+			P.propertyMap(
+					Array(P.values().size, { "false" }).apply{
+						this[P.BoundsX.ordinal] = "0"
+						this[P.BoundsY.ordinal] = "0"
+						this[P.BoundsWidth.ordinal] = "0"
+						this[P.BoundsHeight.ordinal] = "0"
+					}.toList())
+		}
 	}
 }
 

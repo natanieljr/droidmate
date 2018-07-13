@@ -34,19 +34,19 @@ import android.net.wifi.WifiManager
 import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.*
 import android.util.Log
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.*
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.nio.charset.StandardCharsets
+import java.io.DataInputStream
 import java.util.regex.Pattern
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
+
 
 /**
  * Created by J.H. on 05.02.2018.
@@ -75,7 +75,7 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
  * Triggers an action on the device.
  *
  * Known issue: In some cases the setting of text does open the keyboard and is hiding some widgets
- * but these widgets are still in the uiautomator dump. Therefore it may be that DroidMate
+ * but these widgets are still in the uiautomator getXml. Therefore it may be that DroidMate
  * clicks on the keyboard thinking it clicked one of the widgets below it.
  * http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
  * -> It seems there is no reliable way to suppress the keyboard.
@@ -123,26 +123,6 @@ internal sealed class DeviceAction {
 
 		@JvmStatic private var time: Long = 0
 		@JvmStatic private var cnt = 1
-		@JvmStatic private var lastDump:String = "ERROR"
-
-		@Suppress("unused")
-		@JvmStatic
-		private fun getWindowHierarchyDump(device: UiDevice):String{
-			return debugT(" fetching gui Dump ", {
-				val os = ByteArrayOutputStream()
-				try {
-//					device.dumpWindowHierarchy(os)
-					android.support.test.uiautomator.UiHierarchy.dump(device,os) // fixed version including invisible nodes in the dump
-					os.flush()
-					lastDump = os.toString(StandardCharsets.UTF_8.name())
-					os.close()
-				} catch (e: IOException) {
-					os.close()
-					throw UiAutomatorDaemonException(e)
-				}
-				lastDump
-			}, inMillis = true)
-		}
 
 		private fun Int.binaryColor():Int = if (this > 127) 1 else 0
 
@@ -169,15 +149,12 @@ internal sealed class DeviceAction {
 		}
 
 		@JvmStatic
-		private suspend fun getScreenShot(simplify: Boolean = false): Bitmap {
+		private suspend fun getScreenShot(): Bitmap {
 			var screenshot = Screenshot.capture().bitmap
-			//automation.takeScreenshot()
-//					if(simplify) debugT("img modification", {screenshot = screenshot.simplifyImg()},inMillis = true)
 
 			if (screenshot != null){
 				Log.d(uiaDaemon_logcatTag,"screenshot failed")
 				delay(100)
-//				screenshot = automation.takeScreenshot()
 				screenshot = Screenshot.capture().bitmap
 			}
 			return screenshot
@@ -456,7 +433,6 @@ private class DeviceRotateUIAction(val rotation: Int) : DeviceAction() {
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		val currRotation = (device.displayRotation * 90)
 		Log.d(uiaDaemon_logcatTag, "Current rotation $currRotation")
-
 		// Android supports the following rotations:
 		// ROTATION_0 = 0;
 		// ROTATION_90 = 1;

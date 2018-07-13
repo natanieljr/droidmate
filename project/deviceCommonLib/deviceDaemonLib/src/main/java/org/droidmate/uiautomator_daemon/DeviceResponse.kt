@@ -28,8 +28,6 @@ package org.droidmate.uiautomator_daemon
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
 import org.slf4j.LoggerFactory
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
 import java.io.Serializable
 import org.droidmate.uiautomator_daemon.guimodel.WidgetData
 
@@ -77,6 +75,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 		 *
 		 * </p>
 		 */
+		@Suppress("KDocUnresolvedReference")
 		@JvmStatic
 		private val androidLauncher:(deviceModel: String)-> String by lazy {{ deviceModel:String ->
 			when {
