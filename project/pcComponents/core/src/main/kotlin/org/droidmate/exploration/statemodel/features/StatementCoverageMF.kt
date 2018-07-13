@@ -135,7 +135,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 				val parts = method.toString().split("uuid=".toRegex(), 2).toTypedArray()
 				val uuid = parts.last()
 
-				assert(uuid.length == l, { "Invalid UUID $uuid $method" })
+				assert(uuid.length == l) { "Invalid UUID $uuid $method" }
 
 				statements[uuid] = method.toString()
 			}
@@ -186,7 +186,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 		val file = getLogFilename(counter)
 		val output = adbWrapper.executeCommand(sysCmdExecutor, cfg.deviceSerialNumber, "", "Logcat coverage monitor",
 				"logcat", "-v", "threadtime", "-s", "System.out")
-		log.info("Writing logcat output into $file")
+		//log.info("Writing logcat output into $file")
 
 		output.lines().forEach { line ->
 			if (line.contains("[androcov]") && !line.contains("CoverageHelper")) {
