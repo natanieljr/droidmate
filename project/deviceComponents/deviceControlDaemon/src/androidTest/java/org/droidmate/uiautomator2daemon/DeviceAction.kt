@@ -28,25 +28,17 @@ package org.droidmate.uiautomator2daemon
 import android.app.UiAutomation
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Color
 import android.net.wifi.WifiManager
-import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.*
 import android.util.Log
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.uiautomator2daemon.uiautomatorExtensions.SelectorCondition
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy
-import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemonParam_waitForIdleTimeout
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
-import java.io.ByteArrayOutputStream
 import kotlin.math.max
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
@@ -55,7 +47,9 @@ import kotlin.system.measureTimeMillis
 /**
  * Created by J.H. on 05.02.2018.
  */
-const val measurePerformance = true
+const val measurePerformance =
+		true
+//		false
 
 @Suppress("ConstantConditionIf")
 inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T? {
@@ -65,7 +59,7 @@ inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Uni
 			res = block.invoke()
 		}.let {
 			timer(it)
-			Log.d(uiaDaemon_logcatTag,"TIME: ${if (inMillis) "${(it / 1000000.0).toInt()} ms" else "${it / 1000.0} ns/1000"} \t $msg")
+			Log.d(UiautomatorDaemonConstants.deviceLogcatTagPrefix + "performance","TIME: ${if (inMillis) "${(it / 1000000.0).toInt()} ms" else "${it / 1000.0} ns/1000"} \t $msg")
 		}
 	} else res = block.invoke()
 	return res
@@ -83,11 +77,14 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
  * clicks on the keyboard thinking it clicked one of the widgets below it.
  * http://stackoverflow.com/questions/17223305/suppress-keyboard-after-setting-text-with-android-uiautomator
  * -> It seems there is no reliable way to suppress the keyboard.
+ * -> TODO check if this is still an issue, as we re-fetch after each DeviceAction
  *
  * Even when triggering a "widget.click()" action, UIAutomator internally locates the center coordinates
  * of the widget and clicks it.
  */
 internal sealed class DeviceAction {
+	protected val logTag: String
+		get() = "$LOGTAG-${this::class.simpleName}"
 
     var waitForIdleTimeout: Long = 100
     var waitForInteractableTimeout: Long = 1000
@@ -96,6 +93,7 @@ internal sealed class DeviceAction {
 	abstract fun execute(device: UiDevice, context: Context, automation: UiAutomation)
 
 	companion object {
+		const val LOGTAG = UiautomatorDaemonConstants.deviceLogcatTagPrefix + "DeviceAction"
 
 		@JvmStatic fun fromAction(a: Action, _waitForIdleTimeout: Long, _waitForInteractableTimeout: Long): DeviceAction? = with(a) {
 			return when (this) {
@@ -125,11 +123,8 @@ internal sealed class DeviceAction {
 			}
 		}
 
-		@JvmStatic private var time: Long = 0
-		@JvmStatic private var cnt = 0
-
+		/*
 		private fun Int.binaryColor():Int = if (this > 127) 1 else 0
-
 		private fun Bitmap.simplifyImg(): Bitmap =	Bitmap.createBitmap(width,height, config).let{ newImg ->
 			for(y in 0 until height)
 			for(x in 0 until width){
@@ -151,49 +146,25 @@ internal sealed class DeviceAction {
 			}
 				newImg
 		}
+		*/
 
-		@JvmStatic
-		private suspend fun getScreenShot(): Bitmap {
-			var screenshot = Screenshot.capture().bitmap
-
-			if (screenshot != null){
-				Log.d(UiautomatorDaemonConstants.uiaDaemon_logcatTag,"screenshot failed")
-				delay(10)
-				screenshot = Screenshot.capture().bitmap
-			}
-			return screenshot
-		}
-
-		private var t = 0.0
-		private var c = 0
-		@JvmStatic
-		private fun compressScreenshot(screenshot: Bitmap?): ByteArray = debugT("compress image avg = ${t/ max(1,c)}",{
-			var bytes = ByteArray(0)
-			val stream = ByteArrayOutputStream()
-			try {
-			screenshot?.setHasAlpha(false)
-				screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-				stream.flush()
-
-				bytes = stream.toByteArray()
-				stream.close()
-			} catch (e: Exception) {
-				Log.e(uiaDaemon_logcatTag, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
-			}
-
-			bytes
-		}, inMillis = true, timer = { t += it / 1000000.0; c += 1})
-
-		private var wt = 0.0
-		private var wc = 0
+		@JvmStatic private var time: Long = 0
+		@JvmStatic private var cnt = 0
+		@JvmStatic private var wt = 0.0
+		@JvmStatic private var wc = 0
 		fun fetchDeviceData(device: UiDevice, deviceModel: String, timeout: Long =200): DeviceResponse {
+			debugT("wait for IDLE avg = ${time / max(1,cnt)} ms", {device.waitForIdle(timeout)},inMillis = true,
+					timer = {
+				Log.d(LOGTAG,"time=${it/1000000}")
+				time += it/1000000
+				cnt += 1}) // this sometimes really sucks in perfomance but we do not yet have any reliable alternative
 
 			val img = async{ debugT("img capture time", {
-				DeviceAction.getScreenShot() },inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
+				UiHierarchy.getScreenShot() },inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
 			val imgProcess = async { img.await().let{  s ->
 				Triple(
 //						ByteArray(0)
-						DeviceAction.compressScreenshot(s)
+						UiHierarchy.compressScreenshot(s)
 						, s.width, s.height).apply { s.recycle() }
 			}}
 			val uiHierarchy = async{ UiHierarchy.fetch(device)}
@@ -218,84 +189,19 @@ internal sealed class DeviceAction {
 
 	}
 
-	fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
-		if (true) {
-			debugT("UI-stab avg = ${time / max(1,cnt)} ms", {
-
-				// FIXME this should be much more precise when using Espresso for wait (and maybe action ececution)
-				// ensure rendering complete otherwise grayed text instead of white may happen if we are too early
-				debugT("wait for IDLE", {device.waitForIdle(waitForIdleTimeout)},inMillis = true) // this sometimes really sucks in perfomance ( > 1s)
-
-				/*
-				//            device.waitForWindowUpdate(null,defaultTimeout)
-
-//				debugT("wait for UPDATE ", {device.waitForWindowUpdate(device.currentPackageName,waitForInteractableTimeout).let {
-//					Log.d(uiaDaemon_logcatTag, "update = $it ${device.currentPackageName}")
-//				}
-//				},inMillis = true) // this sometimes really sucks in perfomance ( > 1s)
-//				debugT("wait for IDLE", {device.waitForIdle(waitForIdleTimeout)},inMillis = true) // this sometimes really sucks in perfomance ( > 1s)
-
-				val initalDelay = 10
-				runBlocking { delay(initalDelay) } // avoid idle 0 which get the wait stuck for multiple seconds
-				debugT(" new wait condition" ,{
-					val actable: SelectorCondition = {
-						UiSelector.permissionRequest(it) || (UiSelector.ignoreSystemElem(it) && UiSelector.isActable(it)).apply {
-//							Log.d(uiaDaemon_logcatTag, "elem $this ${it.getBounds(device.displayWidth, device.displayHeight)}")
-						}
-					}
-					UiHierarchy.waitFor(device, timeout = waitForIdleTimeout - initalDelay, cond = actable)
-				},inMillis = true)
-
-// */
-				/*
-
-				// -- original
-				val initalDelay = 50
-				runBlocking { delay(initalDelay) } // avoid idle 0 which get the wait stuck for multiple seconds
-				measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
-//					do {
-//						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is unstable?
-//						Log.d(uiaDaemon_logcatTag, "wait-condition: $res")
-//						getWindowHierarchyDump(device)
-//					}while (res==null && lastDump == preDump) // we wait until we found something to interact with or the dump changed
-
-				// if there is a permission dialogue we continue to handle it otherwise we try to wait for some interact-able app elements
-				if(device.findObject(By.res("com.android.packageinstaller:id/permission_allow_button")) == null) {
-					// exclude android internal elements
-					nullableDebugT("wait for interactable",
-						// this only checks for clickable but is much more reliable than a custom Search-Condition
-						{device.wait(Until.findObject(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))), waitForInteractableTimeout)},
-						inMillis = true)
-					// so if we need more we would have to implement something similar to `Until`
-// DEBUG_CODE:
-//					val c = device.findObjects(By.clickable(true).pkg(Pattern.compile("^((?!com.android.systemui).)*$"))).size
-//					val cc = device.findObjects(By.clickable(true)).size
-//					Log.e(uiaDaemon_logcatTag," found $c non-systemui clickable elements out of $cc")
-
-					debugT("idle", {device.waitForIdle(waitForIdleTimeout)}, inMillis = true)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
-				}
-
-				// */
-			}, timer = {
-				Log.d(uiaDaemon_logcatTag,"time=${it/1000000}")
-				time += it/1000000
-				cnt += 1
-			}, inMillis = true)
-		}
-	}
 }
 
 private class DevicePressBack : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		waitForChanges(device, device.pressBack())
+		device.pressBack()
 	}
 }
 
 private class DevicePressHome : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		waitForChanges(device, device.pressHome())
+		device.pressHome()
 	}
 }
 
@@ -305,11 +211,11 @@ private class DeviceEnableWifi : DeviceAction() {
 	 * Based on: http://stackoverflow.com/a/12420590/986533
 	 */
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		Log.d(uiaDaemon_logcatTag, "Ensuring WiFi is turned on.")
+		Log.d(logTag, "Ensuring WiFi is turned on.")
 		val wfm = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
 		val wifiEnabled = wfm.setWifiEnabled(true)
 
-		if (!wifiEnabled) Log.w(uiaDaemon_logcatTag, "Failed to ensure WiFi is enabled!")
+		if (!wifiEnabled) Log.w(logTag, "Failed to ensure WiFi is enabled!")
 	}
 }
 
@@ -329,8 +235,8 @@ internal data class DeviceLaunchApp(val appPackageName: String) : DeviceAction()
 			// Wait for the app to appear
 			device.wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 					10000)
-			device.wait(hasInteractive, 100)
-		}.let { Log.d(uiaDaemon_logcatTag, "load-time $it millis") }
+			device.waitForIdle(100)
+		}.let { Log.d(logTag, "load-time $it millis") }
 	}
 }
 
@@ -344,14 +250,14 @@ private data class DeviceSwipeAction(val start: Pair<Int, Int>,
 	private val x1: Int inline get() = dst.first
 	private val y1: Int inline get() = dst.second
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		Log.d(uiaDaemon_logcatTag, "Swiping from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
+		Log.d(logTag, "Swiping from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
 		assert(x0 >= 0 && x0 < device.displayWidth) { "Error on swipe invalid x0:$x0" }
 		assert(y0 >= 0 && y0 < device.displayHeight) { "Error on swipe invalid y0:$y0" }
 		assert(x1 >= 0 && x1 < device.displayWidth) { "Error on swipe invalid x1:$x1" }
 		assert(y1 >= 0 && y1 < device.displayHeight) { "Error on swipe invalid y1:$y1" }
 
 		val success = device.swipe(x0, y0, x1, y1, 35)
-		if (!success) Log.e(uiaDaemon_logcatTag, "Swipe failed: from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
+		if (!success) Log.e(logTag, "Swipe failed: from (x,y) coordinates ($x0,$y0) to ($x1,$y1)")
 		// we could issue a wait action on failure (e.g. waitExist for widget at position)
 	}
 }
@@ -359,7 +265,7 @@ private data class DeviceSwipeAction(val start: Pair<Int, Int>,
 private data class DeviceWaitAction(private val id: String, private val criteria: WidgetSelector) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		Log.d(uiaDaemon_logcatTag, "Wait for element to exist" + this.toString())
+		Log.d(logTag, "Wait for element to exist" + this.toString())
 		when (criteria) {
 			WidgetSelector.ResourceId -> findByResId(id)
 			WidgetSelector.ClassName -> findByClassName(id)
@@ -368,13 +274,15 @@ private data class DeviceWaitAction(private val id: String, private val criteria
 		}.let {
 			device.findObject(it).let {
 				// REMARK this wait is necessary to avoid StackOverflowError in the QueryController, which would happen depending on when the UI view stabilizes
-				measureTimeMillis { device.wait(hasInteractive, 20000) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for interactive element") }
+				measureTimeMillis { TODO("refactor to use new UiHierarchy")
+					//device.wait(hasInteractive, 20000)
+				}.let { Log.d(logTag, "waited $it millis for interactive element") }
 				var success = false
-				measureTimeMillis { success = it.waitForExists(10000) }.let { Log.d(uiaDaemon_logcatTag, "waited for exists $it millis with result $success") }
+				measureTimeMillis { success = it.waitForExists(10000) }.let { Log.d(logTag, "waited for exists $it millis with result $success") }
 				if (!success) {
-					Log.w(uiaDaemon_logcatTag, "WARN element $id not found")
+					Log.w(logTag, "WARN element $id not found")
 					val clickable = device.findObjects(By.clickable(true)).map { o -> o.resourceName + ": ${o.visibleCenter}" }
-					Log.d(uiaDaemon_logcatTag, "clickable elements: $clickable")
+					Log.d(logTag, "clickable elements: $clickable")
 				}
 			}
 		} // wait up to 10 seconds
@@ -391,13 +299,13 @@ private sealed class DeviceObjectAction : DeviceAction() {
 
 	protected fun executeAction(device: UiDevice, action: (UiObject) -> Boolean, action2: (UiObject2) -> Unit) {
 		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
-			Log.d(uiaDaemon_logcatTag, "execute action on target element with resId=$resId xPath=$xPath")
+			Log.d(logTag, "execute action on target element with resId=$resId xPath=$xPath")
 			val success = if (xPath.isNotEmpty()) executeAction(device, action, xPath) else {
-				Log.d(uiaDaemon_logcatTag, "select element by resourceId")
+				Log.d(logTag, "select element by resourceId")
 				executeAction(device, action, resId, findByResId)
 			}
 			if (!success) {
-				Log.w(uiaDaemon_logcatTag, "action on UiObject failed, try to perform on UiObject2 By.resourceId")
+				Log.w(logTag, "action on UiObject failed, try to perform on UiObject2 By.resourceId")
 				executeAction2(device, action2, resId)
 			}
 		}, timer = {
@@ -413,26 +321,23 @@ private data class DeviceClickAction(override val xPath: String, override val re
 		executeAction(device,
 				{ o -> o.click() },
 				{ o -> o.click() })
-		waitForChanges(device)
 	}
 }
 
 private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		val success =
 		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
 
-			Log.d(uiaDaemon_logcatTag, "Clicking coordinates ($x,$y)")
+			Log.d(logTag, "Clicking coordinates ($x,$y)")
 			assert(x >= 0 && x < device.displayWidth, { "Error on uncoveredCoord click invalid x:$x" })
 			assert(y >= 0 && y < device.displayHeight, { "Error on uncoveredCoord click invalid y:$y" })
-			Log.d(uiaDaemon_logcatTag, "Clicked coordinates $x, $y")
+			Log.d(logTag, "Clicked coordinates $x, $y")
 			device.click(x, y,waitForInteractableTimeout)
 		},timer = {
 			eTime += it/1000000
 			eCnt += 1
 		},inMillis = true)
-		waitForChanges(device,success)
 	}
 }
 
@@ -440,25 +345,22 @@ private data class DeviceLongClickAction(override val xPath: String, override va
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		executeAction(device, { o -> o.longClick() }, { o -> o.longClick() })
-		waitForChanges(device)
 	}
 }
 
 private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		val success =
 		debugT("executeAction ${this.javaClass.simpleName}", {
-			Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
+			Log.d(logTag, "Long clicking coordinates ($x,$y)")
 
-			assert(x >= 0 && x < device.displayWidth, { "Error on uncoveredCoord long click invalid x:$x" })
-			assert(y >= 0 && y < device.displayHeight, { "Error on uncoveredCoord long click invalid y:$y" })
+			assert(x >= 0 && x < device.displayWidth) { "Error on uncoveredCoord long click invalid x:$x" }
+			assert(y >= 0 && y < device.displayHeight) { "Error on uncoveredCoord long click invalid y:$y" }
 
-			Log.d(uiaDaemon_logcatTag, "Long clicked coordinates ($x, $y)")
+			Log.d(logTag, "Long clicked coordinates ($x, $y)")
 			device.longClick(x,y,waitForInteractableTimeout)
 
 		},inMillis = true)
-		waitForChanges(device,success)
 	}
 }
 
@@ -480,7 +382,6 @@ private data class DeviceTextAction(override val xPath: String,
 private class DeviceFetchGUIAction : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-//		waitForChanges(device)
 		// do nothing`
 	}
 }
@@ -489,7 +390,7 @@ private class DeviceRotateUIAction(val rotation: Int) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		val currRotation = (device.displayRotation * 90)
-		Log.d(uiaDaemon_logcatTag, "Current rotation $currRotation")
+		Log.d(logTag, "Current rotation $currRotation")
 		// Android supports the following rotations:
 		// ROTATION_0 = 0;
 		// ROTATION_90 = 1;
@@ -499,11 +400,9 @@ private class DeviceRotateUIAction(val rotation: Int) : DeviceAction() {
 		// The rotation calculations is: [(current rotation in degrees + rotation) / 90] % 4
 		// Ex: curr = 90, rotation = 180 => [(90 + 360) / 90] % 4 => 1
 		val newRotation = ((currRotation + rotation) / 90) % 4
-		Log.d(uiaDaemon_logcatTag, "New rotation $newRotation")
+		Log.d(logTag, "New rotation $newRotation")
 		device.unfreezeRotation()
 		automation.setRotation(newRotation)
-
-		waitForChanges(device)
 	}
 }
 
@@ -511,22 +410,21 @@ private class DeviceMinimizeMaximizeAction : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		val currentPackage = device.currentPackageName
-		Log.d(uiaDaemon_logcatTag, "Original package name $currentPackage")
+		Log.d(logTag, "Original package name $currentPackage")
 
 		device.pressRecentApps()
 		// Cannot use wait for changes because it crashes UIAutomator
 		runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
-		measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
+		measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(logTag, "waited $it millis for IDLE") }
 
 		for (i in (0 until 10)) {
 			device.pressRecentApps()
-			//waitForChanges(device)
 
 			// Cannot use wait for changes because it waits some interact-able element
 			runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
-			measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
+			measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(logTag, "waited $it millis for IDLE") }
 
-			Log.d(uiaDaemon_logcatTag, "Current package name ${device.currentPackageName}")
+			Log.d(logTag, "Current package name ${device.currentPackageName}")
 			if (device.currentPackageName == currentPackage)
 				break
 		}

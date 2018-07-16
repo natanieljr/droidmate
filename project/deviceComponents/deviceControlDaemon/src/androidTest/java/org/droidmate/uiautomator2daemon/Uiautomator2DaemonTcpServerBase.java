@@ -34,7 +34,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Serializable, ServerOutputT extends Serializable> {
-	static final String tag = UiautomatorDaemonConstants.INSTANCE.getUiaDaemon_logcatTag() + "/server";
+	static final String tag = UiautomatorDaemonConstants.uiaDaemon_logcatTag + "/server";
 	private int port;
 	private ServerSocket serverSocket;
 	private String serverStartMessageTag;

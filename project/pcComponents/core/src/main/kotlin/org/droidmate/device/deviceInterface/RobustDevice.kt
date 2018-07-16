@@ -195,7 +195,7 @@ class RobustDevice : IRobustDevice {
 					guiSnapshot.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
 					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
-						perform(PressHome())
+						perform(PressHome)
 					}
 				}
 			}
@@ -389,7 +389,7 @@ class RobustDevice : IRobustDevice {
 	private fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
 		return rebootIfNecessary("device.getGuiSnapshot()", true) {
-			perform(FetchGUI())
+			perform(FetchGUI)
 		}
 	}
 

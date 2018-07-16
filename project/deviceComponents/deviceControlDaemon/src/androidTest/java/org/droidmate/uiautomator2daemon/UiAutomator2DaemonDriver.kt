@@ -108,15 +108,21 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 		}
 	}
 
+	private var nActions = 0
+	private var tFetch = 0L
+	private var tExec = 0L
+	private var et = 0.0
 	@Throws(UiAutomatorDaemonException::class)
 	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse {
 		Log.v(uiaDaemon_logcatTag, "Performing GUI action ${deviceCommand.guiAction}")
 
 		val action = DeviceAction.fromAction(deviceCommand.guiAction, waitForIdleTimeout, waitForInteractableTimeout)
 
-				debugT("execute action", {
+				debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
 					action?.execute(device, context, automation)
-				}, inMillis = true)
+				}, inMillis = true, timer = {
+					tExec += it
+				})
 
 		return debugT("DUMP avg= ${time/(nActions*1000000)}",{fetchDeviceData(device, deviceModel)},inMillis = true,timer = {time += it; nActions+=1})
 	}

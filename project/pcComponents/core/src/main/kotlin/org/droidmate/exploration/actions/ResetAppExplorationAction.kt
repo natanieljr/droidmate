@@ -52,7 +52,7 @@ open class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Bool
 		device.ensureHomeScreenIsDisplayed()
 
 		log.debug("4. Turn wifi on.")
-		device.perform(EnableWifi())
+		device.perform(EnableWifi)
 
 		log.debug("5. Ensure app is not running.")
 		if (device.appIsRunning(app.packageName)) {

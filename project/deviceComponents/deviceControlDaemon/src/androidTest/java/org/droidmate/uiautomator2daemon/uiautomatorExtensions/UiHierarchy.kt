@@ -2,6 +2,8 @@
 
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
+import android.graphics.Bitmap
+import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.UiDevice
 import android.support.test.uiautomator.apply
 import android.support.test.uiautomator.getRootNodes
@@ -12,9 +14,9 @@ import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import kotlinx.coroutines.experimental.selects.select
 import org.droidmate.uiautomator2daemon.debugT
 import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.util.*
 import kotlin.math.max
@@ -89,16 +91,6 @@ object UiHierarchy : UiParser() {
 						found = await()
 					else cancel()
 				}
-
-				// in theory this should be more efficient, but the calls where find = true are much slower for whatever reason
-//				val process = async { any(device, cond) }
-//				val timer = async { delay(50)  }
-//				select<Unit>{
-//					process.onAwait{ value -> found = value}
-//						timer.onAwait{ process.cancel() }
-//				}
-//				if(!found) delay(pollTime)
-
 			}.run{ time += this
 				device.runWatchers() // to update the ui view?
 				if(!found && this<pollTime) delay(pollTime-this)
@@ -141,6 +133,41 @@ object UiHierarchy : UiParser() {
 		return found
 	}
 	 */
+
+	suspend fun getScreenShot(): Bitmap {
+		var screenshot =
+				debugT("first screen-fetch attemp ", {Screenshot.capture().bitmap},inMillis = true)
+
+		if (screenshot == null){
+			Log.d(LOGTAG,"screenshot failed")
+			delay(10)
+			screenshot = Screenshot.capture().bitmap
+		}
+		return screenshot.apply {
+			if (screenshot == null)
+				Log.w(LOGTAG,"no screenshot available")
+			}
+	}
+
+	@JvmStatic private var t = 0.0
+	@JvmStatic private var c = 0
+	@JvmStatic
+	fun compressScreenshot(screenshot: Bitmap?): ByteArray = debugT("compress image avg = ${t/ max(1,c)}",{
+		var bytes = ByteArray(0)
+		val stream = ByteArrayOutputStream()
+		try {
+			screenshot?.setHasAlpha(false)
+			screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+			stream.flush()
+
+			bytes = stream.toByteArray()
+			stream.close()
+		} catch (e: Exception) {
+			Log.e(LOGTAG, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
+		}
+
+		bytes
+	}, inMillis = true, timer = { t += it / 1000000.0; c += 1})
 
 }
 

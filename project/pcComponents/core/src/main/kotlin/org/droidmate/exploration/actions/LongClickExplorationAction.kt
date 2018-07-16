@@ -5,6 +5,7 @@ import org.droidmate.uiautomator_daemon.guimodel.Action
 import org.droidmate.uiautomator_daemon.guimodel.CoordinateLongClickAction
 import org.droidmate.uiautomator_daemon.guimodel.LongClickAction
 
+@Deprecated("click actions are always going to use coordinates in the future, and delay is already ignored right now",ReplaceWith("LongClickExplorationAction(widget)"))
 open class LongClickExplorationAction(widget: Widget,
                                       useCoordinates: Boolean = true,
                                       delay: Int = 100): AbstractClickExplorationAction(widget, useCoordinates, delay){
