@@ -127,6 +127,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig, modelJob: Job) {
 	private val date by lazy { "${timestamp()}_${hashCode()}" }
 
+	private val processorJob = Job(parent = modelJob)
 	private val actionProcessorJob = Job(parent = modelJob)
 	private val trace = CollectionActor(LinkedList<ActionData>(),"TraceActor").create(actionProcessorJob)
 	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionProcessor"), parent = actionProcessorJob)
@@ -142,11 +143,18 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		internalUpdate(srcState = srcState, target = target)
 	}
 
-	/** observable delegates do not support coroutines within the lambda function therefore this method*/
+	/** observable delegates do not support co-routines within the lambda function therefore this method*/
 	private fun notifyObserver(old: StateData, new: StateData, target: Widget?) {
 		watcher.forEach {
 			launch(it.context, parent = it.job) { it.onNewInteracted(target, old, new) }
-			launch(it.context, parent = it.job) { it.onNewAction(lazy { runBlocking(it.context){ getAt(size-1)!! } }, old, new) }
+			launch(it.context, parent = it.job) {
+				val action = async(it.context){
+					processorJob.joinChildren()
+					getAt(size-1)!!
+				}
+
+				it.onNewAction(action, old, new)
+			}
 		}
 	}
 
@@ -154,19 +162,21 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun internalUpdate(srcState: StateData, target: Widget?) {
 		targets.add(target)
 		target?.run {
-			if (isEdit) editFields.compute(srcState.iEditId, { _, stateMap ->
+			if (isEdit) editFields.compute(srcState.iEditId) { _, stateMap ->
 				(stateMap ?: LinkedList()).apply { add(Pair(srcState, target)) }
-			})
+			}
 		}
 	}
 
 	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { action, oldState, dstState ->
 		{
-			if(action.action.widget != null ) assert(oldState.widgets.contains(action.action.widget!!),{"ERROR on Trace generation, tried to add action for widget which does not exist in the source state $oldState"})
+			if(action.action.widget != null )
+				assert(oldState.widgets.contains(action.action.widget!!)) {"ERROR on Trace generation, tried to add action for widget which does not exist in the source state $oldState"}
+
 			debugT("create actionData", { ActionData(res = action, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep =config[sep]) })
 					.also {
-						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId, {"ERROR ActionData was created wrong $it for $action in $oldState"})
-						assert(it.targetWidget == action.action.widget, {"ERROR in ActionData instanciation wrong targetWidget ${it.targetWidget} instead of ${action.action.widget}"})
+						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId) {"ERROR ActionData was created wrong $it for $action in $oldState"}
+						assert(it.targetWidget == action.action.widget) {"ERROR in ActionData instantiation wrong targetWidget ${it.targetWidget} instead of ${action.action.widget}"}
 						debugT("add action", { P_addAction(it) })
 //						println("DEBUG: $it")
 					}
@@ -181,8 +191,10 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		// we did not update this.dstState yet, therefore it contains the now 'old' state
 
 		this.newState.first.let{ oldState ->
-			if(action.action.widget != null ) assert(oldState.widgets.contains(action.action.widget!!),{"ERROR on Trace generation, tried to add action for widget ${action.action.widget!!.id} which does not exist in the source state $oldState"})
-			launch(context, block = actionProcessor(action, oldState, dstState))
+			if(action.action.widget != null )
+				assert(oldState.widgets.contains(action.action.widget!!)) {"ERROR on Trace generation, tried to add action for widget ${action.action.widget!!.id} which does not exist in the source state $oldState"}
+
+			launch(context, block = actionProcessor(action, oldState, dstState), parent = processorJob)
 		}
 
 		debugT("set dstState", { this.newState = Pair(dstState, action.action.widget) })
@@ -191,7 +203,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
 	 * this function is purposely not called for the whole ActionData set, such that we can issue all watcher updates
 	 * if no watchers are registered use [updateAll] instead
-	 * ASSUMPTION only one coroutine is simultaneously working on this Trace object*/
+	 * ASSUMPTION only one co-routine is simultaneously working on this Trace object*/
 	internal suspend fun update(action: ActionData, dstState: StateData) {
 		size += 1
 		lastActionType = action.actionType
@@ -232,7 +244,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
 	fun getActions(): List<ActionData> = trace.S_getAll()
 	@Suppress("MemberVisibilityCanBePrivate")
-	/** use this method within coroutines to make complete use of suspendable feature */
+	/** use this method within co-routines to make complete use of suspendable feature */
 	suspend fun P_getActions(): List<ActionData>   = trace.getAll()
 
 	suspend fun last(): ActionData? = trace.getOrNull { it.lastOrNull() }
@@ -241,12 +253,16 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	suspend fun getAt(i:Int): ActionData? = trace.getOrNull { (it as LinkedList<ActionData>).let{ list ->
 		if(list.indices.contains(i))
 			list[i]
-		else null
+		else {
+			println("Index: $i \t Size: ${list.size}")
+			throw RuntimeException("Here!!!")
+			// null
+		}
 	} }
 
-	/** this has to acsess a couroutine actor prefer using [size] if synchronization is not critical */
+	/** this has to access a co-routine actor prefer using [size] if synchronization is not critical */
 	suspend fun isEmpty(): Boolean = trace.get { it.isEmpty() }
-	/** this has to acsess a couroutine actor prefer using [size] if synchronization is not critical */
+	/** this has to access a co-routine actor prefer using [size] if synchronization is not critical */
 	suspend fun isNotEmpty(): Boolean = trace.get { it.isNotEmpty() }
 	fun first(): ActionData = runBlocking { trace.getOrNull { it.first() } ?: ActionData.empty }
 
@@ -271,7 +287,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	override fun equals(other: Any?): Boolean {
 		return(other as? Trace)?.let {
 			val t = other.getActions()
-			getActions().foldIndexed(true, { i, res, a -> res && a == t[i] })
+			getActions().foldIndexed(true) { i, res, a -> res && a == t[i] }
 		} ?: false
 	}
 

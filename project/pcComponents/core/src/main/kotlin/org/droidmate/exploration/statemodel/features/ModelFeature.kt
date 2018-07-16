@@ -25,6 +25,7 @@
 
 package org.droidmate.exploration.statemodel.features
 
+import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
@@ -71,7 +72,7 @@ abstract class ModelFeature {
 	 * this function may be used instead of update for simpler access to the action and result state.
 	 *
 	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional delay to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
-	open suspend fun onNewAction(lazyAction: Lazy<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
 
 	/** this method is called on each call to [ExplorationContext].dump() */

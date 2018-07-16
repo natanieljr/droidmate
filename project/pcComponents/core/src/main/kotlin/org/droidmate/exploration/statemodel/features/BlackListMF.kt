@@ -26,6 +26,7 @@
 package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.CoroutineName
+import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.PressBackExplorationAction
@@ -41,8 +42,8 @@ class BlackListMF: WidgetCountingMF() {
 	private var lastActionableState: StateData = StateData.emptyState
 
 	/** used to keep track of the last state before we got stuck */
-	override suspend fun onNewAction(lazyAction: Lazy<ActionData>, prevState: StateData, newState: StateData) {
-		if(prevState.isHomeScreen || !isStuck(lazyAction.value.actionType)) this.lastActionableState = prevState
+	override suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
+		if(prevState.isHomeScreen || !isStuck(deferredAction.await().actionType)) this.lastActionableState = prevState
 	}
 
 	private fun isStuck(actionType: String): Boolean =	when(actionType){  // ignore initial reset
