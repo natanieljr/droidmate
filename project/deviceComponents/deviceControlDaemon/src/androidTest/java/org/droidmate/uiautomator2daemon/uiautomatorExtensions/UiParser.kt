@@ -16,7 +16,7 @@ abstract class UiParser {
 	protected var rootIdx: Int = 0
 	protected suspend fun createBottomUp(node: AccessibilityNodeInfo, index: Int = 0, parentXpath: String, nodes: MutableList<WidgetData>, parentH: Int = 0): WidgetData{
 		if(!isActive) return WidgetData("Error Fetch was canceled")
-		val xPath = parentXpath +"$node.className[${index + 1}]"
+		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
 		val nChildren = node.childCount
 		// bottom-up strategy, process children first if they exist
@@ -64,7 +64,7 @@ abstract class UiParser {
 		return node
 	}
 
-	private fun center(c:Int, d:Int):Int = (c+(c + d)/2)
+	private fun center(c:Int, d:Int):Int = c+(d/2)
 
 	/**
 	 * we aim to prevent multiple clicks to the same uncoveredCoord area issued due to actable layout elements,
@@ -138,11 +138,9 @@ abstract class UiParser {
 			}
 
 	private fun safeCharSeqToString(cs: CharSequence?): String {
-		return if (cs == null)
-			""
-		else {
+		return if (cs == null)	""
+		else
 			stripInvalidXMLChars(cs).replace(";", "<semicolon>").replace("\n", "<newline>")
-		}
 	}
 
 	private fun stripInvalidXMLChars(cs: CharSequence): String {

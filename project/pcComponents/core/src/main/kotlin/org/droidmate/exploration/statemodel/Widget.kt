@@ -142,7 +142,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	@Suppress("unused")
 	fun getStrippedResourceId(): String = resourceId.removePrefix("$packageName:")
 	fun toShortString(): String {
-		return "Wdgt:$simpleClassName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
+		return "Wdgt:$simpleClassName/\"$text\"/\"$uid\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
 	}
 
 	fun toTabulatedString(includeClassName: Boolean = true): String {

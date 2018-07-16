@@ -59,10 +59,11 @@ abstract class AbstractClickExplorationAction @JvmOverloads constructor(override
 
 		log.debug("2. Perform widget $description: $javaClass.")
 
-		val (x,y) = widget.uncoveredCoord?.let { Pair(it.first, it.second) } ?: Pair(widget.bounds.centerX.toInt(), widget.bounds.centerY.toInt())
+		val (x,y) = widget.uncoveredCoord?.let {
+			Pair(it.first, it.second) } ?: Pair(widget.bounds.centerX.toInt(), widget.bounds.centerY.toInt())
 
 		try {
-			debugT("perform action on average ${performT / performN} ms", {
+			debugT("perform click-action [$x,$y] on average ${performT / performN} ms", {
 				launch {
 					// do the perform as launch to inject a suspension point, as perform is currently no suspend function
 					snapshot = when {
