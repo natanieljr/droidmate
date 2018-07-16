@@ -38,6 +38,7 @@ import android.util.Log
 import org.droidmate.uiautomator2daemon.DeviceAction.Companion.fetchDeviceData
 import org.droidmate.uiautomator_daemon.*
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import kotlin.math.max
 
 /**
  * Decides if UiAutomator2DaemonDriver should wait for the window to go to idle state after each click.
@@ -46,8 +47,6 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 	private val device: UiDevice
 	private val context: Context
 	private val automation: UiAutomation
-	private var nActions = 1
-	private var time = 0L
 
 	private val deviceModel: String
 		get() {
@@ -87,14 +86,16 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 		}
 	}
 
+	private var nActions = 0
 	@Throws(UiAutomatorDaemonException::class)
 	override fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse {
-		Log.v(uiaDaemon_logcatTag, "Executing device command: $deviceCommand")
+		Log.v(uiaDaemon_logcatTag, "Executing device command: (${nActions-3}) $deviceCommand")
 
 		return try {
 
 			when (deviceCommand) {
-				is ExecuteCommand -> performAction(deviceCommand)
+				is ExecuteCommand ->
+					performAction(deviceCommand)
 			// The server will be closed after this response is sent, because the given deviceCommand
 			// will be interpreted in the caller, i.e. Uiautomator2DaemonTcpServerBase.
 				is StopDaemonCommand -> DeviceResponse.empty
@@ -108,15 +109,15 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 		}
 	}
 
-	private var nActions = 0
 	private var tFetch = 0L
 	private var tExec = 0L
 	private var et = 0.0
 	@Throws(UiAutomatorDaemonException::class)
-	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse {
-		Log.v(uiaDaemon_logcatTag, "Performing GUI action ${deviceCommand.guiAction}")
+	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse =
+		DeviceAction.fromAction(deviceCommand.guiAction, waitForIdleTimeout, waitForInteractableTimeout).let { action ->
+			debugT(" EXECUTE-TIME avg = ${et / max(1, nActions)}", {
 
-		val action = DeviceAction.fromAction(deviceCommand.guiAction, waitForIdleTimeout, waitForInteractableTimeout)
+				Log.v(uiaDaemon_logcatTag, "Performing GUI action ${deviceCommand.guiAction}")
 
 				debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
 					action?.execute(device, context, automation)

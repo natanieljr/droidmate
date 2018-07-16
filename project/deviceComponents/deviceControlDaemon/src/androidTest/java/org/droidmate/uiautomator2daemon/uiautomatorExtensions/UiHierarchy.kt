@@ -28,12 +28,22 @@ import kotlin.system.measureTimeMillis
 object UiHierarchy : UiParser() {
 	private const val LOGTAG = "droidmate/UiHierarchy"
 
-	private var nActions = 1
-	private var time = 0L
-	fun fetch(device: UiDevice): List<WidgetData> = debugT(" compute UiNodes avg= ${time/(nActions*1000000)}", {LinkedList<WidgetData>().apply {
-		device.waitForIdle()
-		device.apply(widgetCreator(this,device.displayWidth, device.displayHeight))
-	}.apply { Log.d(LOGTAG,"#elems = ${this.size}")} }, inMillis = true, timer = {time += it; nActions+=1})
+	private var nActions = 0
+	private var ut = 0L
+	suspend fun fetch(device: UiDevice): List<WidgetData> = debugT(" compute UiNodes avg= ${ut/(max(nActions,1)*1000000)}", {
+		deviceW = device.displayWidth
+		deviceH = device.displayHeight
+		val nodes = LinkedList<WidgetData>()
+
+		device.getNonSystemRootNodes().let{
+			it.forEachIndexed { index: Int, root: AccessibilityNodeInfo ->
+				rootIdx = index
+				createBottomUp(root,parentXpath = "//", nodes = nodes)
+			}
+		}
+		nodes.also { Log.d(LOGTAG,"#elems = ${it.size}")}
+	}, inMillis = true, timer = {ut += it; nActions+=1})
+
 
 	fun getXml(device: UiDevice):String = 	debugT(" fetching gui Dump ", {StringWriter().use { out ->
 		device.waitForIdle()
