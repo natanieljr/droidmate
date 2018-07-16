@@ -43,7 +43,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	constructor(cfg: ConfigurationWrapper, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
 		: this(cfg.randomSeed, modelName, arffName)
 
-	private val eventWatcher: EventProbabilityMF by lazy {
+	protected open val eventWatcher: EventProbabilityMF by lazy {
 		(eContext.watcher.find { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
 						.also { eContext.watcher.add(it) }) as EventProbabilityMF
