@@ -177,7 +177,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
 				w.content().trim().let {
-					if (it != "") it.toUUID()  // compute id from textual content if there is any
+					if (it.isNotEmpty()) it.toUUID()  // compute id from textual content if there is any
 					else screenImg?.let {
 						if (isCut) idOfImgCut(screenImg)
 						else idOfImgCut(it.getSubImage(w.boundsRect))
