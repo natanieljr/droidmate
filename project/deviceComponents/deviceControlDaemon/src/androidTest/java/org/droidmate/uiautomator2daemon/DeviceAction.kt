@@ -186,13 +186,32 @@ internal sealed class DeviceAction {
 			}
 			val widgets = debugT(" compute UiNodes", {async{UiHierarchy.fetch(device)}}, inMillis = true)
 
+			val img = async{ debugT("img capture time", {
+				DeviceAction.getScreenShot() },inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
+			val imgProcess = async { img.await().let{  s ->
+				Triple(
+//						ByteArray(0)
+						DeviceAction.compressScreenshot(s)
+						, s.width, s.height).apply { s.recycle() }
+			}}
+			val uiHierarchy = async{ UiHierarchy.fetch(device)}
+//			val xmlDump = runBlocking { UiHierarchy.getXml(device) }
+
+			val (imgPixels,w,h) = debugT("wait for screen avg = ${wt/ max(1,wc)}",{ runBlocking {
+				imgProcess.await()}
+			}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1} )
 			return debugT("compute UI-dump", {
-				debugT("wait for screen",{ runBlocking { image.await()}}, inMillis = true)
-						.let { (img, imgBytes) ->
-							DeviceResponse.create(widgets, deviceModel, device.displayWidth, device.displayHeight, imgBytes,
-									img.width, img.height)
-						}
-			}, inMillis = true)
+
+				DeviceResponse.create(uiHierarchy = uiHierarchy,
+						uiDump =
+						"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
+								", because (currently) we would have to traverse the tree a second time"
+//									xmlDump
+						, deviceModel = deviceModel,
+						displayWidth = device.displayWidth, displayHeight = device.displayHeight,
+						screenshot = imgPixels,
+						width = w, height = h)
+			},inMillis = true)
 		}
 
 	}
