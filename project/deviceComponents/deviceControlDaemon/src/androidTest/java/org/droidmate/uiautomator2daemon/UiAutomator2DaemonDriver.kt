@@ -124,6 +124,16 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 					tExec += it
 				})
 
-		return debugT("DUMP avg= ${time/(nActions*1000000)}",{fetchDeviceData(device, deviceModel)},inMillis = true,timer = {time += it; nActions+=1})
-	}
+				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, deviceModel, waitForIdleTimeout) }, inMillis = true, timer = {
+//					if (action !is DeviceLaunchApp) {
+						tFetch += it
+//					}
+					})
+			}, inMillis = true, timer = {
+//				if (action !is DeviceLaunchApp) {
+					et += it / 1000000.0
+					nActions += 1
+//				}
+			})
+		}
 }
