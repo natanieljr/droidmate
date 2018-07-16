@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.statemodel.ActionData
@@ -49,7 +50,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	private val listeners = ArrayList<IControlObserver>()
 
 	/**
-	 * Internal context of the strategy. Syncronized with exploration context upon initialization.
+	 * Internal context of the strategy. Synchronized with exploration context upon initialization.
 	 */
 	protected lateinit var eContext: ExplorationContext
 		private set

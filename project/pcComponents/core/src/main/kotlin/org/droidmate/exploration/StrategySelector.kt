@@ -273,7 +273,7 @@ class StrategySelector constructor(val priority: Int,
 
 		@JvmStatic
 		val playback: SelectorFunction = { _, pool, _ ->
-			logger.debug("Playback. Returning 'MemoryPlayback'")
+			logger.debug("Playback. Returning 'Playback'")
 			pool.getFirstInstanceOf(Playback::class.java)
 		}
 

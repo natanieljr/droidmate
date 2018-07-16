@@ -162,6 +162,12 @@ abstract class ConfigProperties {
 				val onlyWhenNoText by booleanType
 			}
 		}
+
+		object Features : PropertyGroup() {
+			val statementCoverage by booleanType
+			val statementCoverageDir by uriType
+		}
+
 	}
 
 	object Core : PropertyGroup() {
@@ -222,7 +228,7 @@ abstract class ConfigProperties {
 	}
 
 	object Output : PropertyGroup() {
-		val droidmateOutputDirPath by uriType
+		val outputDir by uriType
 		val coverageDir by stringType
 		val screenshotDir by stringType
 		val reportDir by stringType

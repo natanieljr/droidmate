@@ -155,7 +155,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			assert(spy.getThrowables().size == exceptionSpecs.size)
 			assert(spy.getThrowables().map { (Throwables.getRootCause(it) as ITestException).exceptionSpec } == exceptionSpecs)
 
-			val outputDir = OutputDir(cfg.droidmateOutputDirPath).dir
+			val outputDir = OutputDir(cfg.outputDir).dir
 
 			assertSer2FilesInDirAre(outputDir, expectedApkPackageNamesOfSer2FilesInOutputDir)
 	}
@@ -193,7 +193,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			assert(exitStatus == 0)
 
 			val expectedDeviceSimulation = simulator.currentSimulation
-			val actualDeviceSimulation = getDeviceSimulation(cfg.droidmateOutputDirPath)
+			val actualDeviceSimulation = getDeviceSimulation(cfg.outputDir)
 			actualDeviceSimulation.assertEqual(expectedDeviceSimulation!!)
 	}*/
 
@@ -249,11 +249,11 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			outputDir.createDirIfNotExists()
 
 			// Initialize storage
-			val droidmateOutputDirPath = fileSystem.getPath(dirStr)
-			val storage2 = Storage2(droidmateOutputDirPath)
+			val outputDir = fileSystem.getPath(dirStr)
+			val storage2 = Storage2(outputDir)
 
 			// Process files
-			Files.walk(droidmateOutputDirPath).forEach { file ->
+			Files.walk(outputDir).forEach { file ->
 					System.out.println(file + "")
 					//if (((String)(file + "")).contains('de.wortundbildverlag.mobil.apotheke.ser2'))
 					if (file.toString().contains(".ser2")) {
@@ -306,7 +306,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 * </p>
 	 */
 	private fun exploreOnRealDevice(args: List<String>, api: String) {
-			val outputDir = OutputDir(ConfigurationBuilder().build(args.toTypedArray()).droidmateOutputDirPath)
+			val outputDir = OutputDir(ConfigurationBuilder().build(args.toTypedArray()).outputDir)
 			outputDir.clearContents()
 
 			// Act

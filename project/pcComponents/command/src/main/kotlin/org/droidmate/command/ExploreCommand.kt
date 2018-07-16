@@ -81,8 +81,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-open class ExploreCommand constructor(private val apksProvider: IApksProvider,
-									  private val adbWrapper: IAdbWrapper,
+open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
+                                      private val apksProvider: IApksProvider,
+                                      private val adbWrapper: IAdbWrapper,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
                                       private val timeProvider: ITimeProvider,
@@ -202,7 +203,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
-			val command = ExploreCommand(apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+			val command = ExploreCommand(cfg, apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
 										 timeProvider, strategyProvider, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
@@ -328,20 +329,12 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 
 			apks.forEachIndexed { i, apk ->
 				if (!encounteredApkExplorationsStoppingException) {
-					// Start measuring Method Coverage
-					val covMonitor = CoverageMonitor(apk.fileName, adbWrapper, cfg)
-					val covMonitorThread = Thread(covMonitor, "Logcat thread")
-					covMonitorThread.start()
-
 					log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
 
 					allApksExplorationExceptions +=
 							this.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
 								tryExploreOnDeviceAndSerialize(deployedApk, device, out)
 							}
-
-					// Stop monitoring coverage
-					covMonitor.stop()
 
 					if (allApksExplorationExceptions.any { it.shouldStopFurtherApkExplorations() }) {
 						log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
@@ -400,7 +393,7 @@ open class ExploreCommand constructor(private val apksProvider: IApksProvider,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(app, timeProvider.getNow(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, adbWrapper, timeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 

@@ -31,11 +31,14 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.configuration.ConfigProperties
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
+import org.droidmate.exploration.statemodel.features.StatementCoverageMF
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.statemodel.features.CrashListMF
 import org.droidmate.exploration.statemodel.features.ImgTraceMF
@@ -47,12 +50,14 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
-class ExplorationContext @JvmOverloads constructor( val apk: IApk,
-                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
-                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                    val watcher: LinkedList<ModelFeature> = LinkedList(),
-                                                    val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
-                                                    val actionTrace: Trace = _model.initNewTrace(watcher) ){
+class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
+                                                   val apk: IApk,
+                                                   adbWrapper: IAdbWrapper,
+                                                   var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
+                                                   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
+                                                   val watcher: LinkedList<ModelFeature> = LinkedList(),
+                                                   val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
+                                                   val actionTrace: Trace = _model.initNewTrace(watcher)) {
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
 			= (watcher.find { it is T } ?: T::class.java.newInstance().also { watcher.add(it) }) as T
@@ -79,7 +84,8 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 	init {
 		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
-		if(_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
+		if (_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
+		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config, adbWrapper))
 	}
 
 	fun getCurrentState(): StateData = actionTrace.currentState
@@ -96,7 +102,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
-		if(action is ClickExplorationAction) assert(result.action.widget == action.widget) { "ERROR on ACTION-RESULT construction the wrong action was instanciated widget was ${result.action.widget} instead of ${action.widget}"}
+		if(action is ClickExplorationAction) assert(result.action.widget == action.widget) { "ERROR on ACTION-RESULT construction the wrong action was instantiated widget was ${result.action.widget} instead of ${action.widget}"}
 		_model.S_updateModel(result, actionTrace)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}
@@ -114,9 +120,9 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 		}
 	}
 
-	//TODO it may be more performent to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
+	//TODO it may be more performing to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
 	// this could be nicely combined with the highlighting feature of the (numbered) img trace
-	suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keybord/icon widgets available
+	suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keyboard/icon widgets available
 		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.canBeActedUpon }).isEmpty()
 	}
 
@@ -152,7 +158,7 @@ class ExplorationContext @JvmOverloads constructor( val apk: IApk,
 	 */
 	fun getLastAction(): ActionData = runBlocking { actionTrace.last() } ?: ActionData.empty
 	/** @returns the name of the last executed action.
-	 * This method should be prefered to [getLastAction] as it does not have to wait for any other coroutines. */
+	 * This method should be preferred to [getLastAction] as it does not have to wait for any other co-routines. */
 	fun getLastActionType(): String = actionTrace.lastActionType
 
 	/**

@@ -82,7 +82,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	val xpath: String = properties.xpath
 	var parentId: Pair<UUID, UUID>? = null
 	val isLeaf: Boolean = properties.isLeaf
-	
+
 	val uncoveredCoord: Pair<Int, Int>? = properties.uncoveredCoord
 	val hasActableDescendant: Boolean = properties.hasActableDescendant
 	//TODO we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
@@ -183,9 +183,9 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
 				w.content().trim().let {
-					if (it != ""){ // compute id from textual content if there is any
+					if (it.isNotEmpty()){ // compute id from textual content if there is any
 						val ignoreNumpers = it.replace("[0-9]", "")
-						if(ignoreNumpers != "") ignoreNumpers.toUUID()
+						if(ignoreNumpers.isNotEmpty()) ignoreNumpers.toUUID()
 						else it.toUUID()
 					}
 					else screenImg?.let { when {

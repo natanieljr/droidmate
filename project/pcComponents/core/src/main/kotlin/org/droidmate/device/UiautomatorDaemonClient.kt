@@ -65,7 +65,6 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 		validateUiaDaemonServerStartLogcatMessages()
 
 		assert(this.getUiaDaemonThreadIsAlive())
-
 	}
 
 	private fun validateUiaDaemonServerStartLogcatMessages() {
