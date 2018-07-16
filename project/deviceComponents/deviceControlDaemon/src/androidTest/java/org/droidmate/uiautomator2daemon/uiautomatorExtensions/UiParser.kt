@@ -6,7 +6,6 @@ import android.support.test.uiautomator.getBounds
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
-import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.uiautomator_daemon.guimodel.WidgetData
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
@@ -14,34 +13,27 @@ import java.util.*
 abstract class UiParser {
 	private val logTag = "droidmate/UiParser"
 
-	val widgetCreator: (nodes: MutableList<WidgetData>, width: Int, height: Int)-> NodeProcessor =
-		{ nodes: MutableList<WidgetData>, width: Int, height: Int->
-			{ root: AccessibilityNodeInfo, index: Int ->
-				runBlocking {
-					root.processNode(width = width, height = height, parentXpath = "//", rootIdx = index, nodes = nodes)
-				}
-				root.recycle()
-			}
-		}
-
-	suspend private fun AccessibilityNodeInfo.processNode(index: Int = 0, width: Int, height: Int, parentXpath: String, rootIdx: Int, parentH: Int = 0, nodes: MutableList<WidgetData> ):WidgetData {
+	protected var deviceW: Int = 0
+	protected var deviceH: Int = 0
+	protected var rootIdx: Int = 0
+	protected suspend fun createBottomUp(node: AccessibilityNodeInfo, index: Int = 0, parentXpath: String, nodes: MutableList<WidgetData>, parentH: Int = 0): WidgetData{
 		if(!isActive) return WidgetData("Error Fetch was canceled")
-		val xPath = parentXpath +"$className[${index + 1}]"
+		val xPath = parentXpath +"$node.className[${index + 1}]"
 
-		val children: MutableSet<WidgetData> = HashSet()
-		val count = childCount
-		for (i in 0 until count) {
-			val child = getChild(i)
-			if (child != null) {
-				val childNode
-						= 	child.processNode(i, width, height, "$xPath/",rootIdx, xPath.hashCode()+rootIdx, nodes)
-				child.recycle()
-				// REMARK: the childNode is already included in the [nodes]
-				children.add(childNode)
-			}
+		val nChildren = node.childCount
+		// bottom-up strategy, process children first if they exist
+		val children = (0 until nChildren).map { i ->
+			createBottomUp(node.getChild(i),i, xPath,nodes,xPath.hashCode()+rootIdx)
 		}
 
-		val nodeRect: Rect = this.getBounds(width, height)
+		return node.createWidget(xPath,children,parentH).also {
+			nodes.add(it)
+			node.recycle()
+		}
+	}
+
+	private fun AccessibilityNodeInfo.createWidget(xPath: String, children: List<WidgetData>,parentH: Int): WidgetData{
+		val nodeRect: Rect = this.getBounds(deviceW, deviceH)
 
 		val node = WidgetData(
 				text = safeCharSeqToString(text),
@@ -71,13 +63,11 @@ abstract class UiParser {
 			childrenXpathHashes = children.map { it.idHash }
 		}
 		node.computeOverlays(children)
-
-		nodes.add(node)
 		return node
 	}
 
-
 	private fun center(c:Int, d:Int):Int = (c+(c + d)/2)
+
 	/**
 	 * we aim to prevent multiple clicks to the same uncoveredCoord area issued due to actable layout elements,
 	 * for that we identify the area where no actable child nodes are (if it exists)

@@ -10,6 +10,7 @@ fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
 	else -> Rect().apply { getBoundsInScreen(this)}
 }
 
+/** @return true if children should be recursively traversed */
 typealias NodeProcessor = (rootNode: AccessibilityNodeInfo, index: Int)	-> Unit
 const val osPkg = "com.android.systemui"
 fun UiDevice.apply( processor: NodeProcessor): Unit = with(windowRoots) {
@@ -17,7 +18,8 @@ fun UiDevice.apply( processor: NodeProcessor): Unit = with(windowRoots) {
 			.mapIndexed { index: Int, root: AccessibilityNodeInfo -> processor(root, index) }
 }
 
-fun UiDevice.getRootNodes():Array<AccessibilityNodeInfo> = windowRoots
+@Suppress("UsePropertyAccessSyntax")
+fun UiDevice.getNonSystemRootNodes():List<AccessibilityNodeInfo> = getWindowRoots().filterNot { it.packageName == osPkg }
 
 fun UiDevice.longClick(x: Int, y: Int, timeout: Long)=
 	interactionController.longTapAndSync(x,y,timeout)

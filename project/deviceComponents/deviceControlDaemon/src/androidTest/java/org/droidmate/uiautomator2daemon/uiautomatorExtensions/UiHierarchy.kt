@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.UiDevice
 import android.support.test.uiautomator.apply
-import android.support.test.uiautomator.getRootNodes
+import android.support.test.uiautomator.getNonSystemRootNodes
 import android.util.Log
 import android.util.Xml
 import android.view.accessibility.AccessibilityNodeInfo
@@ -53,7 +53,7 @@ object UiHierarchy : UiParser() {
 		out.toString()
 	}}, inMillis = true)
 
-	suspend fun any(device: UiDevice, cond: SelectorCondition):Boolean = device.getRootNodes().let{ roots ->
+	suspend fun any(device: UiDevice, cond: SelectorCondition):Boolean = device.getNonSystemRootNodes().let{ roots ->
 		var found = false
 		var i = 0
 
@@ -65,7 +65,6 @@ object UiHierarchy : UiParser() {
 		found
 	}
 	/** @paramt timeout amount of mili seconds, maximal spend to wait for condition [cond] to become true (default 10s)
-	 * @param pollTime time intervall (in ms) to recheck the condition [cond]
 	 * @return if the condition was fulfilled within timeout
 	 * */
 	@JvmOverloads
@@ -143,8 +142,8 @@ object UiHierarchy : UiParser() {
 			delay(10)
 			screenshot = Screenshot.capture().bitmap
 		}
-		return screenshot.apply {
-			if (screenshot == null)
+		return screenshot.also {
+			if (it == null)
 				Log.w(LOGTAG,"no screenshot available")
 			}
 	}
