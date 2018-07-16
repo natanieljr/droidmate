@@ -4,6 +4,7 @@ package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.graphics.Bitmap
 import android.support.test.runner.screenshot.Screenshot
+import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.UiDevice
 import android.support.test.uiautomator.apply
 import android.support.test.uiautomator.getNonSystemRootNodes
@@ -45,7 +46,8 @@ object UiHierarchy : UiParser() {
 		serializer.startTag("", "hierarchy")
 		serializer.attribute("", "rotation", Integer.toString(device.displayRotation))
 
-		device.apply(nodeDumper(serializer, device.displayWidth, device.displayHeight))
+		device.apply(nodeDumper(serializer, device.displayWidth, device.displayHeight)
+		) { _-> serializer.endTag("", "node")}
 
 		serializer.endTag("", "hierarchy")
 		serializer.endDocument()
@@ -53,17 +55,21 @@ object UiHierarchy : UiParser() {
 		out.toString()
 	}}, inMillis = true)
 
-	suspend fun any(device: UiDevice, cond: SelectorCondition):Boolean = device.getNonSystemRootNodes().let{ roots ->
+	/** check if this node fullfills the given condition and recursively check descendents if not **/
+	fun any(device: UiDevice, cond: SelectorCondition):Boolean{
 		var found = false
-		var i = 0
 
-		while (isActive && !found && i<roots.size){
-			found = roots[i].checkC(cond)
-			i += 1
+		val processor:NodeProcessor = { node,_ ->
+			if (!isActive || !node.isVisibleToUser || !node.refresh()) false  // do not traverse deeper
+			else {
+				found = cond(node)
+				!found // continue if condition is not fulfilled yet
+			}
 		}
-		roots.forEach{ it.recycle() }
-		found
+		device.apply(processor)
+		return found
 	}
+
 	/** @paramt timeout amount of mili seconds, maximal spend to wait for condition [cond] to become true (default 10s)
 	 * @return if the condition was fulfilled within timeout
 	 * */
@@ -98,40 +104,6 @@ object UiHierarchy : UiParser() {
 		}
 		found
 	}
-
-	/** check if this node fulfills the given condition and recursively check descendents if not **/
-	private suspend fun AccessibilityNodeInfo.checkC(c: SelectorCondition): Boolean {
-		if(!isActive || !isVisibleToUser || !refresh()) return false
-		var found = c(this)
-		var i = 0
-		while (isActive && !found && i < childCount) {
-			val child = getChild(i)
-			if (child != null) {
-				found = child.checkC(c)
-				child.recycle()
-			}
-			i += 1
-		}
-		return found
-	}
-
-	/*
-		/** check if this node fulfills the given condition and recursively check descendents if not **/
-	private fun<T> AccessibilityNodeInfo.computeC(p: T, c: (AccessibilityNodeInfo, T)-> Pair<Boolean,T> ): Boolean {
-		val res = c(this,p)
-		var found = res.first
-		var i = 0
-		while (!found && i < childCount) {
-			val child = getChild(i)
-			if (child != null) {
-				found = child.computeC(res.second,c)
-				child.recycle()
-			}
-			i += 1
-		}
-		return found
-	}
-	 */
 
 	suspend fun getScreenShot(): Bitmap {
 		var screenshot =

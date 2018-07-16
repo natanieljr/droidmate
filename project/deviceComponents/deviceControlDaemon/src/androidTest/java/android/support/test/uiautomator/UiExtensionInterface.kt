@@ -11,11 +11,32 @@ fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
 }
 
 /** @return true if children should be recursively traversed */
-typealias NodeProcessor = (rootNode: AccessibilityNodeInfo, index: Int)	-> Unit
+typealias NodeProcessor = (rootNode: AccessibilityNodeInfo, index: Int)	-> Boolean
+typealias PostProcessor<T> = (rootNode: AccessibilityNodeInfo)	-> T
 const val osPkg = "com.android.systemui"
-fun UiDevice.apply( processor: NodeProcessor): Unit = with(windowRoots) {
-	filterNot { it.packageName == osPkg }
-			.mapIndexed { index: Int, root: AccessibilityNodeInfo -> processor(root, index) }
+inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline postProcessor: PostProcessor<T>): List<T> =
+	getNonSystemRootNodes().map { root: AccessibilityNodeInfo ->
+				processTopDown(root,processor = processor,postProcessor = postProcessor)
+	}
+
+fun UiDevice.apply(processor: NodeProcessor){
+	getNonSystemRootNodes().map { root: AccessibilityNodeInfo ->
+		processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+	}
+}
+
+fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeProcessor, postProcessor: PostProcessor<T>):T{
+	val nChildren = node.childCount
+	val proceed = processor(node,index)
+
+	if(proceed)
+	(0 until nChildren).map { i ->
+		processTopDown(node.getChild(i),i,processor, postProcessor)
+	}
+	val res = postProcessor(node)
+
+	node.recycle()
+	return res
 }
 
 @Suppress("UsePropertyAccessSyntax")

@@ -3,7 +3,6 @@ package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.getBounds
-import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
 import org.droidmate.uiautomator_daemon.guimodel.WidgetData
@@ -11,7 +10,6 @@ import org.xmlpull.v1.XmlSerializer
 import java.util.*
 
 abstract class UiParser {
-	private val logTag = "droidmate/UiParser"
 
 	protected var deviceW: Int = 0
 	protected var deviceH: Int = 0
@@ -103,58 +101,41 @@ abstract class UiParser {
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
 			{ serializer: XmlSerializer, width: Int, height: Int ->
-			{ root: AccessibilityNodeInfo, index: Int->
-			dumpNodeRec(root, serializer, index, width, height)
-				root.recycle()
-	}}
+				{ node: AccessibilityNodeInfo, index: Int->
+					serializer.startTag("", "node")
+					if (!nafExcludedClass(node))
+						serializer.attribute("", "NAF", java.lang.Boolean.toString(true))
+					serializer.attribute("", "index", Integer.toString(index))
+					serializer.attribute("", "text", safeCharSeqToString(node.text))
+					serializer.attribute("", "resource-id", safeCharSeqToString(node.viewIdResourceName))
+					serializer.attribute("", "class", safeCharSeqToString(node.className))
+					serializer.attribute("", "package", safeCharSeqToString(node.packageName))
+					serializer.attribute("", "content-desc", safeCharSeqToString(node.contentDescription))
+					serializer.attribute("", "checkable", java.lang.Boolean.toString(node.isCheckable))
+					serializer.attribute("", "checked", java.lang.Boolean.toString(node.isChecked))
+					serializer.attribute("", "clickable", java.lang.Boolean.toString(node.isClickable))
+					serializer.attribute("", "enabled", java.lang.Boolean.toString(node.isEnabled))
+					serializer.attribute("", "focusable", java.lang.Boolean.toString(node.isFocusable))
+					serializer.attribute("", "focused", java.lang.Boolean.toString(node.isFocused))
+					serializer.attribute("", "scrollable", java.lang.Boolean.toString(node.isScrollable))
+					serializer.attribute("", "long-clickable", java.lang.Boolean.toString(node.isLongClickable))
+					serializer.attribute("", "password", java.lang.Boolean.toString(node.isPassword))
+					serializer.attribute("", "selected", java.lang.Boolean.toString(node.isSelected))
+					serializer.attribute("", "visible-to-user", java.lang.Boolean.toString(node.isVisibleToUser))
+					serializer.attribute("", "bounds", node.getBounds(width, height).toShortString())
 
-	private fun dumpNodeRec(node: AccessibilityNodeInfo, serializer: XmlSerializer, index: Int, width: Int, height: Int) {
-		serializer.startTag("", "node")
-		if (!nafExcludedClass(node))
-			serializer.attribute("", "NAF", java.lang.Boolean.toString(true))
-		serializer.attribute("", "index", Integer.toString(index))
-		serializer.attribute("", "text", safeCharSeqToString(node.text))
-		serializer.attribute("", "resource-id", safeCharSeqToString(node.viewIdResourceName))
-		serializer.attribute("", "class", safeCharSeqToString(node.className))
-		serializer.attribute("", "package", safeCharSeqToString(node.packageName))
-		serializer.attribute("", "content-desc", safeCharSeqToString(node.contentDescription))
-		serializer.attribute("", "checkable", java.lang.Boolean.toString(node.isCheckable))
-		serializer.attribute("", "checked", java.lang.Boolean.toString(node.isChecked))
-		serializer.attribute("", "clickable", java.lang.Boolean.toString(node.isClickable))
-		serializer.attribute("", "enabled", java.lang.Boolean.toString(node.isEnabled))
-		serializer.attribute("", "focusable", java.lang.Boolean.toString(node.isFocusable))
-		serializer.attribute("", "focused", java.lang.Boolean.toString(node.isFocused))
-		serializer.attribute("", "scrollable", java.lang.Boolean.toString(node.isScrollable))
-		serializer.attribute("", "long-clickable", java.lang.Boolean.toString(node.isLongClickable))
-		serializer.attribute("", "password", java.lang.Boolean.toString(node.isPassword))
-		serializer.attribute("", "selected", java.lang.Boolean.toString(node.isSelected))
-		serializer.attribute("", "visible-to-user", java.lang.Boolean.toString(node.isVisibleToUser))
-		serializer.attribute("", "bounds", node.getBounds(width, height).toShortString())
-
-		/** custom attributes, usually not visible in the device-UiDump */
-		serializer.attribute("", "editable", java.lang.Boolean.toString(node.isEditable)) // could be usefull for custom widget classes to identify input fields
-		/** experimental */
+					/** custom attributes, usually not visible in the device-UiDump */
+					serializer.attribute("", "editable", java.lang.Boolean.toString(node.isEditable)) // could be usefull for custom widget classes to identify input fields
+					/** experimental */
 //		serializer.attribute("", "canOpenPopup", java.lang.Boolean.toString(node.canOpenPopup()))
 //		serializer.attribute("", "isDismissable", java.lang.Boolean.toString(node.isDismissable))
 ////		serializer.attribute("", "isImportantForAccessibility", java.lang.Boolean.toString(node.isImportantForAccessibility)) // not working for android 6
 //		serializer.attribute("", "inputType", Integer.toString(node.inputType))
 //		serializer.attribute("", "describeContents", Integer.toString(node.describeContents())) // -> seams always 0
 
-
-		val count = node.childCount
-		for (i in 0 until count) {
-			val child = node.getChild(i)
-			if (child != null) {
-				dumpNodeRec(child, serializer, i, width, height)
-				child.recycle()
-			} else {
-				Log.i(logTag, String.format("Null child %d/%d, parent: %s",
-						i, count, node.toString()))
+					true  // traverse whole hierarchy
+				}
 			}
-		}
-		serializer.endTag("", "node")
-
-	}
 
 	private fun safeCharSeqToString(cs: CharSequence?): String {
 		return if (cs == null)
