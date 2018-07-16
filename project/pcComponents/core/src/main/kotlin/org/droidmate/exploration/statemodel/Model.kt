@@ -141,9 +141,9 @@ class Model private constructor(val config: ModelConfig) {
 							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
 						}
 						//DEBUG
-						java.io.File(config.statePath(newState.stateId, postfix = "$nStates", fileExtension = ".png")).let { file ->
-							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-						}
+//						java.io.File(config.statePath(newState.stateId, postfix = "$nStates", fileExtension = ".png")).let { file ->
+//							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+//						}
 					}
 				}
 

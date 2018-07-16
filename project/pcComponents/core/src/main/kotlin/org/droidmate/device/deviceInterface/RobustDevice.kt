@@ -31,6 +31,7 @@ import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.debug.debugT
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
@@ -45,11 +46,15 @@ import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.time.LocalDateTime
+import kotlin.math.max
 
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(RobustDevice::class.java) }
+
+		private var c = 0
+		private var time = 0.0
 	}
 
 	private val ensureHomeScreenIsDisplayedAttempts = 3
@@ -257,7 +262,8 @@ class RobustDevice : IRobustDevice {
 	override fun perform(action: Action): DeviceResponse {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
-							{ this.device.perform(action) },
+							{ debugT("perform action ${action::class.simpleName} avg = ${time/max(1,c)}", {this.device.perform(action)}
+									,inMillis = true, timer = { time += it / 1000000.0; c += 1}) },
 							{ this.restartUiaDaemon(false) },
 							DeviceException::class,
 							deviceOperationAttempts,
