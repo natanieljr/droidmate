@@ -52,12 +52,12 @@ abstract class UiParser {
 				boundsX = nodeRect.left,
 				boundsY = nodeRect.top,
 				boundsHeight = nodeRect.height(),
-				boundsWidth = nodeRect.width()
+				boundsWidth = nodeRect.width(),
+				isLeaf = childCount <= 0
 		).apply {
 			xpath = xPath
 			idHash = xPath.hashCode()+rootIdx
 			parentHash = parentH
-			isLeaf = childCount <= 0
 			childrenXpathHashes = children.map { it.idHash }
 		}
 		node.computeOverlays(children)

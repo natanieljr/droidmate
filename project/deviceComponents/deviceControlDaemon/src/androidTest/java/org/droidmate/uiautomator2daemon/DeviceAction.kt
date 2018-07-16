@@ -153,7 +153,9 @@ internal sealed class DeviceAction {
 		@JvmStatic private var wt = 0.0
 		@JvmStatic private var wc = 0
 		fun fetchDeviceData(device: UiDevice, deviceModel: String, timeout: Long =200): DeviceResponse {
-			debugT("wait for IDLE avg = ${time / max(1,cnt)} ms", {device.waitForIdle(timeout)},inMillis = true,
+			debugT("wait for IDLE avg = ${time / max(1,cnt)} ms", {
+				device.waitForIdle(timeout)
+			},inMillis = true,
 					timer = {
 				Log.d(LOGTAG,"time=${it/1000000}")
 				time += it/1000000
