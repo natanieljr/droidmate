@@ -59,7 +59,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 						  private val adbWrapper: IAdbWrapper) : ModelFeature() {
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
-	private val dateFormat = SimpleDateFormat("MM-dd HH:mm:ss.SSS")
+	private val dateFormat = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StatementCoverageMF"), parent = job)
 
@@ -90,11 +90,14 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	 * Returns a map which is used for the coverage calculation.
 	 */
 	private fun getInstrumentation(apkName: String): Map<String, String> {
-		if (!Files.exists(instrumentationDir)) {
-			throw ConfigurationException("Provided statementCoverageDir does not exist: $statementCoverageDir")
+		return if (!Files.exists(instrumentationDir)) {
+			log.warn("Provided statementCoverageDir does not exist: $statementCoverageDir. DroidMate will monitor coverage will not be able to calculate coverage.")
+			emptyMap()
 		}
-		val instrumentationFile = getInstrumentationFile(apkName)
-		return readInstrumentationFile(instrumentationFile)
+		else {
+			val instrumentationFile = getInstrumentationFile(apkName)
+			readInstrumentationFile(instrumentationFile)
+		}
 	}
 
 	/**
@@ -206,9 +209,6 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 
 				if (!found && instrumentationMap.containsKey(uuid))
 					executedStatementsMap[uuid] = tms
-				/*else if (!instrumentation.containsKey(uuid)){
-                    println("Not found $uuid")
-                }*/
 			}
 		}
 
