@@ -17,3 +17,14 @@ fun UiDevice.apply( processor: NodeProcessor): Unit = with(windowRoots) {
 			.mapIndexed { index: Int, root: AccessibilityNodeInfo -> processor(root, index) }
 }
 
+fun UiDevice.getRootNodes():Array<AccessibilityNodeInfo> = windowRoots
+
+fun UiDevice.longClick(x: Int, y: Int, timeout: Long)=
+	interactionController.longTapAndSync(x,y,timeout)
+//	interactionController.longTapNoSync(x,y)
+
+fun UiDevice.click(x: Int, y: Int, timeout: Long)=
+	interactionController.clickAndSync(x,y,timeout)
+//	interactionController.clickNoSync(x,y)
+
+

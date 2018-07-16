@@ -31,6 +31,13 @@ data class WidgetData(
 
 		val visible: Boolean = false
 		) : Serializable{
+
+	constructor(resId: String, xPath: String)
+			: this("default",resourceId = resId){
+		this.xpath = xPath
+	}
+
+
 	val uid: UUID = toString().toUUID()
 	var xpath: String = ""
 	var idHash: Int = 0
@@ -42,10 +49,8 @@ data class WidgetData(
 	var parentHash: Int = 0
 	var childrenXpathHashes: List<Int> = emptyList()
 	val actable: Boolean by lazy{ enabled && visible && (clickable || checked ?: false || longClickable || scrollable)}
-	constructor(resId: String, xPath: String)
-			: this("default",resourceId = resId){
-		this.xpath = xPath
-	}
+
+	var hasActableDescendant: Boolean = false
 
 	constructor(properties: MutableMap<P, Any?>) : this(
 			properties[P.Text] as String,

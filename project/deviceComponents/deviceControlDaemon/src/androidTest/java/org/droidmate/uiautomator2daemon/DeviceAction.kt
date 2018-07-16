@@ -34,16 +34,20 @@ import android.net.wifi.WifiManager
 import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.*
 import android.util.Log
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.SelectorCondition
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemonParam_waitForIdleTimeout
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import org.droidmate.uiautomator_daemon.guimodel.*
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.util.regex.Pattern
+import kotlin.math.max
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
@@ -122,7 +126,7 @@ internal sealed class DeviceAction {
 		}
 
 		@JvmStatic private var time: Long = 0
-		@JvmStatic private var cnt = 1
+		@JvmStatic private var cnt = 0
 
 		private fun Int.binaryColor():Int = if (this > 127) 1 else 0
 
@@ -153,38 +157,36 @@ internal sealed class DeviceAction {
 			var screenshot = Screenshot.capture().bitmap
 
 			if (screenshot != null){
-				Log.d(uiaDaemon_logcatTag,"screenshot failed")
-				delay(100)
+				Log.d(UiautomatorDaemonConstants.uiaDaemon_logcatTag,"screenshot failed")
+				delay(10)
 				screenshot = Screenshot.capture().bitmap
 			}
 			return screenshot
 		}
 
-		private fun compressScreenshot(screenshot: Bitmap?): ByteArray {
+		private var t = 0.0
+		private var c = 0
+		@JvmStatic
+		private fun compressScreenshot(screenshot: Bitmap?): ByteArray = debugT("compress image avg = ${t/ max(1,c)}",{
 			var bytes = ByteArray(0)
 			val stream = ByteArrayOutputStream()
 			try {
-				debugT("compress time", {screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)},inMillis = true)
+			screenshot?.setHasAlpha(false)
+				screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)
 				stream.flush()
 
 				bytes = stream.toByteArray()
-
 				stream.close()
-
 			} catch (e: Exception) {
 				Log.e(uiaDaemon_logcatTag, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
 			}
 
-			return bytes
-		}
+			bytes
+		}, inMillis = true, timer = { t += it / 1000000.0; c += 1})
 
-		@JvmStatic
-		fun fetchDeviceData(device: UiDevice, deviceModel: String, simplify: Boolean = true): DeviceResponse {
-			val image = async {
-				val img = debugT("img capture time", { DeviceAction.getScreenShot(simplify)	},inMillis = true)
-				Pair(img,DeviceAction.compressScreenshot(img))
-			}
-			val widgets = debugT(" compute UiNodes", {async{UiHierarchy.fetch(device)}}, inMillis = true)
+		private var wt = 0.0
+		private var wc = 0
+		fun fetchDeviceData(device: UiDevice, deviceModel: String, timeout: Long =200): DeviceResponse {
 
 			val img = async{ debugT("img capture time", {
 				DeviceAction.getScreenShot() },inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
@@ -216,11 +218,40 @@ internal sealed class DeviceAction {
 
 	}
 
-	protected fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
-		if (actionSuccessful) {
-			debugT("UI-stab avg = ${time / cnt} ms", {
+	fun waitForChanges(device: UiDevice, actionSuccessful: Boolean = true) {
+		if (true) {
+			debugT("UI-stab avg = ${time / max(1,cnt)} ms", {
+
+				// FIXME this should be much more precise when using Espresso for wait (and maybe action ececution)
+				// ensure rendering complete otherwise grayed text instead of white may happen if we are too early
+				debugT("wait for IDLE", {device.waitForIdle(waitForIdleTimeout)},inMillis = true) // this sometimes really sucks in perfomance ( > 1s)
+
+				/*
 				//            device.waitForWindowUpdate(null,defaultTimeout)
-				runBlocking { delay(10) } // avoid idle 0 which get the wait stuck for multiple seconds
+
+//				debugT("wait for UPDATE ", {device.waitForWindowUpdate(device.currentPackageName,waitForInteractableTimeout).let {
+//					Log.d(uiaDaemon_logcatTag, "update = $it ${device.currentPackageName}")
+//				}
+//				},inMillis = true) // this sometimes really sucks in perfomance ( > 1s)
+//				debugT("wait for IDLE", {device.waitForIdle(waitForIdleTimeout)},inMillis = true) // this sometimes really sucks in perfomance ( > 1s)
+
+				val initalDelay = 10
+				runBlocking { delay(initalDelay) } // avoid idle 0 which get the wait stuck for multiple seconds
+				debugT(" new wait condition" ,{
+					val actable: SelectorCondition = {
+						UiSelector.permissionRequest(it) || (UiSelector.ignoreSystemElem(it) && UiSelector.isActable(it)).apply {
+//							Log.d(uiaDaemon_logcatTag, "elem $this ${it.getBounds(device.displayWidth, device.displayHeight)}")
+						}
+					}
+					UiHierarchy.waitFor(device, timeout = waitForIdleTimeout - initalDelay, cond = actable)
+				},inMillis = true)
+
+// */
+				/*
+
+				// -- original
+				val initalDelay = 50
+				runBlocking { delay(initalDelay) } // avoid idle 0 which get the wait stuck for multiple seconds
 				measureTimeMillis { device.waitForIdle(waitForIdleTimeout) }.let { Log.d(uiaDaemon_logcatTag, "waited $it millis for IDLE") }
 //					do {
 //						val res = device.wait(hasInteractive, waitTimeout)  // this seams to sometimes take extremely long maybe because the dump is unstable?
@@ -243,7 +274,10 @@ internal sealed class DeviceAction {
 
 					debugT("idle", {device.waitForIdle(waitForIdleTimeout)}, inMillis = true)  // even though one interactive element was found, the device may still be rendering the others -> wait for idle
 				}
+
+				// */
 			}, timer = {
+				Log.d(uiaDaemon_logcatTag,"time=${it/1000000}")
 				time += it/1000000
 				cnt += 1
 			}, inMillis = true)
@@ -279,7 +313,8 @@ private class DeviceEnableWifi : DeviceAction() {
 	}
 }
 
-private data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() {
+
+internal data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		// Launch the app
@@ -385,18 +420,19 @@ private data class DeviceClickAction(override val xPath: String, override val re
 private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
+		val success =
 		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
 
 			Log.d(uiaDaemon_logcatTag, "Clicking coordinates ($x,$y)")
 			assert(x >= 0 && x < device.displayWidth, { "Error on uncoveredCoord click invalid x:$x" })
 			assert(y >= 0 && y < device.displayHeight, { "Error on uncoveredCoord click invalid y:$y" })
-			device.click(x, y)
 			Log.d(uiaDaemon_logcatTag, "Clicked coordinates $x, $y")
+			device.click(x, y,waitForInteractableTimeout)
 		},timer = {
 			eTime += it/1000000
 			eCnt += 1
 		},inMillis = true)
-		waitForChanges(device)
+		waitForChanges(device,success)
 	}
 }
 
@@ -411,16 +447,18 @@ private data class DeviceLongClickAction(override val xPath: String, override va
 private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
+		val success =
 		debugT("executeAction ${this.javaClass.simpleName}", {
 			Log.d(uiaDaemon_logcatTag, "Long clicking coordinates ($x,$y)")
 
 			assert(x >= 0 && x < device.displayWidth, { "Error on uncoveredCoord long click invalid x:$x" })
 			assert(y >= 0 && y < device.displayHeight, { "Error on uncoveredCoord long click invalid y:$y" })
 
-			device.swipe(x, y, x, y, 100) // 100 ~ 2s. Empirical evaluation.
 			Log.d(uiaDaemon_logcatTag, "Long clicked coordinates ($x, $y)")
+			device.longClick(x,y,waitForInteractableTimeout)
+
 		},inMillis = true)
-		waitForChanges(device)
+		waitForChanges(device,success)
 	}
 }
 
@@ -442,8 +480,8 @@ private data class DeviceTextAction(override val xPath: String,
 private class DeviceFetchGUIAction : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		waitForChanges(device)
-		// do nothing
+//		waitForChanges(device)
+		// do nothing`
 	}
 }
 

@@ -84,6 +84,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	val isLeaf: Boolean = properties.isLeaf
 	
 	val uncoveredCoord: Pair<Int, Int>? = properties.uncoveredCoord
+	val hasActableDescendant: Boolean = properties.hasActableDescendant
 	//TODO we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
 	//TODO check if still buggy in amazon "Sign In" does not always compute to same id
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
@@ -182,7 +183,11 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
 				w.content().trim().let {
-					if (it != "") it.toUUID()  // compute id from textual content if there is any
+					if (it != ""){ // compute id from textual content if there is any
+						val ignoreNumpers = it.replace("[0-9]", "")
+						if(ignoreNumpers != "") ignoreNumpers.toUUID()
+						else it.toUUID()
+					}
 					else screenImg?.let { when {
 						!w.visible  -> w.idHash.toUUID()
 						isCut       -> idOfImgCut(screenImg)
@@ -194,7 +199,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		private fun idOfImgCut(image: BufferedImage): UUID =
 				(image.raster.getDataElements(0, 0, image.width, image.height, null) as ByteArray)
-						.let { UUID.nameUUIDFromBytes(it) }
+//						.let { UUID.nameUUIDFromBytes(it) }
+						.contentHashCode().toUUID()
 
 		fun fromUiNode(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
 			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null

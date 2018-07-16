@@ -114,7 +114,9 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 
 		val action = DeviceAction.fromAction(deviceCommand.guiAction, waitForIdleTimeout, waitForInteractableTimeout)
 
-		action?.execute(device, context, automation)
+				debugT("execute action", {
+					action?.execute(device, context, automation)
+				}, inMillis = true)
 
 		return debugT("DUMP avg= ${time/(nActions*1000000)}",{fetchDeviceData(device, deviceModel)},inMillis = true,timer = {time += it; nActions+=1})
 	}

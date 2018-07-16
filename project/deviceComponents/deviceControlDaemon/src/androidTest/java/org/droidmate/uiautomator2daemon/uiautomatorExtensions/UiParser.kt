@@ -5,6 +5,8 @@ import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.getBounds
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
+import kotlinx.coroutines.experimental.NonCancellable.isActive
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.uiautomator_daemon.guimodel.WidgetData
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
@@ -15,11 +17,15 @@ abstract class UiParser {
 	val widgetCreator: (nodes: MutableList<WidgetData>, width: Int, height: Int)-> NodeProcessor =
 		{ nodes: MutableList<WidgetData>, width: Int, height: Int->
 			{ root: AccessibilityNodeInfo, index: Int ->
+				runBlocking {
 					root.processNode(width = width, height = height, parentXpath = "//", rootIdx = index, nodes = nodes)
+				}
+				root.recycle()
 			}
 		}
 
-	private fun AccessibilityNodeInfo.processNode(index: Int = 0, width: Int, height: Int, parentXpath: String, rootIdx: Int, parentH: Int = 0, nodes: MutableList<WidgetData> ):WidgetData {
+	suspend private fun AccessibilityNodeInfo.processNode(index: Int = 0, width: Int, height: Int, parentXpath: String, rootIdx: Int, parentH: Int = 0, nodes: MutableList<WidgetData> ):WidgetData {
+		if(!isActive) return WidgetData("Error Fetch was canceled")
 		val xPath = parentXpath +"$className[${index + 1}]"
 
 		val children: MutableSet<WidgetData> = HashSet()
@@ -88,6 +94,7 @@ abstract class UiParser {
 				return
 			}
 		}
+		hasActableDescendant = children.any { it.actable || it.hasActableDescendant }
 		children.find { !it.actable && it.uncoveredCoord!=null }?.let {
 			this.uncoveredCoord = it.uncoveredCoord
 		}
@@ -108,6 +115,7 @@ abstract class UiParser {
 			{ serializer: XmlSerializer, width: Int, height: Int ->
 			{ root: AccessibilityNodeInfo, index: Int->
 			dumpNodeRec(root, serializer, index, width, height)
+				root.recycle()
 	}}
 
 	private fun dumpNodeRec(node: AccessibilityNodeInfo, serializer: XmlSerializer, index: Int, width: Int, height: Int) {

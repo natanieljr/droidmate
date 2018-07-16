@@ -79,7 +79,8 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	// for elements without text content only the image is available which may introduce variance just due to sligh color differences, therefore
 	// non-text elements are only considered if they can be acted upon and they are leafs
-	fun isRelevantForId(w: Widget): Boolean = !isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon) || w.canBeActedUpon)
+	fun isRelevantForId(w: Widget): Boolean = !isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon) || (w.canBeActedUpon && !w.hasActableDescendant)
+			)
 	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text content or it is a leaf) */
 	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)) id + w.uid else id
 

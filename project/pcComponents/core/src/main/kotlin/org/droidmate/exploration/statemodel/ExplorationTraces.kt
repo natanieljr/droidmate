@@ -146,7 +146,11 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun notifyObserver(old: StateData, new: StateData, target: Widget?) {
 		watcher.forEach {
 			launch(it.context, parent = it.job) { it.onNewInteracted(target, old, new) }
-			size.let{ i -> launch(it.context, parent = it.job) { it.onNewAction(lazy { runBlocking(it.context){ getAt(i-1)!! } }, old, new) } } //FIXME sometimes throwing null pointer ?!
+			size.let{ i -> launch(it.context, parent = it.job) {
+				it.onNewAction(lazy {
+					runBlocking(it.context){
+						getAt(i-1)!! }
+				}, old, new) } } //FIXME sometimes throwing null pointer ?! maybe use defered value instead?
 		}
 	}
 
@@ -154,9 +158,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun internalUpdate(srcState: StateData, target: Widget?) {
 		targets.add(target)
 		target?.run {
-			if (isEdit) editFields.compute(srcState.iEditId, { _, stateMap ->
+			if (isEdit) editFields.compute(srcState.iEditId) { _, stateMap ->
 				(stateMap ?: LinkedList()).apply { add(Pair(srcState, target)) }
-			})
+			}
 		}
 	}
 
