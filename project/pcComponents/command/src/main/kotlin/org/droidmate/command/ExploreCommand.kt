@@ -446,7 +446,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	private fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
 		log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
 
-		val initialGuiSnapshot = device.perform(FetchGUI())
+		val initialGuiSnapshot = device.perform(FetchGUI)
 
 		if (!initialGuiSnapshot.isHomeScreen)
 			log.warn(Markers.appHealth,

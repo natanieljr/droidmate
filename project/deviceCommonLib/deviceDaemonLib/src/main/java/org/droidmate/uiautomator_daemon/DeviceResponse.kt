@@ -28,21 +28,19 @@ package org.droidmate.uiautomator_daemon
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
 import org.slf4j.LoggerFactory
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
-import java.io.ByteArrayInputStream
 import java.io.Serializable
-import javax.xml.parsers.DocumentBuilderFactory
+import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+
 
 open class DeviceResponse private constructor(val windowHierarchyDump: String,
-											  val topNodePackageName: String,
-											  val widgets: List<WidgetData>,
-											  val androidLauncherPackageName: String,
-											  val deviceDisplayWidth: Int,
-											  val deviceDisplayHeight: Int,
-											  val screenshot: ByteArray,
-											  val screenshotWidth: Int,
-											  val screenshotHeight: Int) : Serializable {
+                                              val topNodePackageName: String,
+                                              val widgets: List<WidgetData>,
+                                              val androidLauncherPackageName: String,
+                                              val deviceDisplayWidth: Int,
+                                              val deviceDisplayHeight: Int,
+                                              val screenshot: ByteArray,
+                                              val screenshotWidth: Int,
+                                              val screenshotHeight: Int) : Serializable {
 
 	var throwable: Throwable? = null
 	private val androidPackageName = "android"
@@ -77,129 +75,35 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 		 *
 		 * </p>
 		 */
+		@Suppress("KDocUnresolvedReference")
 		@JvmStatic
-		private fun androidLauncher(deviceModel: String): String = when {
-
-			deviceModel.startsWith("Google-Android SDK built for x86/26") -> "com.google.android.apps.nexuslauncher"
-			deviceModel.startsWith("Google-Android SDK built for x86/25") -> "com.google.android.apps.nexuslauncher"
-			deviceModel.startsWith("Google-Android SDK built for x86") -> "com.android.launcher"
-			deviceModel.startsWith("Google-AOSP on dragon/24") -> "com.android.launcher"
-			deviceModel.startsWith("unknown-Android SDK built for x86") -> "com.android.launcher3"
-			deviceModel.startsWith("samsung-GT-I9300") -> "com.android.launcher"
-			deviceModel.startsWith("LGE-Nexus 5X") -> "com.google.android.googlequicksearchbox"
-			deviceModel.startsWith("motorola-Nexus 6") -> "com.google.android.googlequicksearchbox"
-			deviceModel.startsWith("asus-Nexus 7") -> "com.android.launcher"
-			deviceModel.startsWith("htc-Nexus 9") -> "com.google.android.googlequicksearchbox"
-			deviceModel.startsWith("samsung-Nexus 10") -> "com.android.launcher"
-			deviceModel.startsWith("google-Pixel C") -> "com.android.launcher"
-			deviceModel.startsWith("Google-Pixel C") -> "com.google.android.apps.pixelclauncher"
-			deviceModel.startsWith("HUAWEI-FRD-L09") -> "com.huawei.android.launcher"
-			else -> {
+		private val androidLauncher:(deviceModel: String)-> String by lazy {{ deviceModel:String ->
+			when {
+				deviceModel.startsWith("Google-Android SDK built for x86/26") -> "com.google.android.apps.nexuslauncher"
+				deviceModel.startsWith("Google-Android SDK built for x86/25") -> "com.google.android.apps.nexuslauncher"
+				deviceModel.startsWith("Google-Android SDK built for x86") -> "com.android.launcher"
+				deviceModel.startsWith("Google-AOSP on dragon/24") -> "com.android.launcher"
+				deviceModel.startsWith("unknown-Android SDK built for x86") -> "com.android.launcher3"
+				deviceModel.startsWith("samsung-GT-I9300") -> "com.android.launcher"
+				deviceModel.startsWith("LGE-Nexus 5X") -> "com.google.android.googlequicksearchbox"
+				deviceModel.startsWith("motorola-Nexus 6") -> "com.google.android.googlequicksearchbox"
+				deviceModel.startsWith("asus-Nexus 7") -> "com.android.launcher"
+				deviceModel.startsWith("htc-Nexus 9") -> "com.google.android.googlequicksearchbox"
+				deviceModel.startsWith("samsung-Nexus 10") -> "com.android.launcher"
+				deviceModel.startsWith("google-Pixel C") -> "com.android.launcher"
+				deviceModel.startsWith("Google-Pixel C") -> "com.google.android.apps.pixelclauncher"
+				deviceModel.startsWith("HUAWEI-FRD-L09") -> "com.huawei.android.launcher"
+				else -> {
 				log.warn("Unrecognized device model of $deviceModel. Using the default.")
 				"com.android.launcher"
 			}
-		}
-
-		@JvmStatic
-		private fun createWidget(n: Node, parentWidget: WidgetData?): WidgetData? {
-			/*Example "n": <node index="0" text="LOG IN" resource-uid="com.snapchat.android:uid/landing_page_login_button" class="android.widget.Button" package="com.snapchat.android" content-contentDesc="" check="false" check="false" clickable="true" enabled="true" focusable="true" focus="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,949][800,1077]"/>*/
-			val getBool: (property: String) -> Boolean = { n.attributes.getNamedItem(it)?.nodeValue == "true" }
-			val getStringVal: (property: String) -> String = { n.attributes.getNamedItem(it)?.nodeValue ?: "" }
-			val boundsList = WidgetData.parseBounds(n.attributes.getNamedItem("bounds").nodeValue)
-
-			return WidgetData(mutableMapOf(
-					WidgetData::text.name to getStringVal("text"),
-					WidgetData::resourceId.name to getStringVal("resource-id"),
-					WidgetData::className.name to getStringVal("class"),
-					WidgetData::packageName.name to getStringVal("package"),
-					WidgetData::contentDesc.name to getStringVal("content-contentDesc"),
-					WidgetData::checked.name to (if (getBool("checkable")) getBool("checked") else null),
-					WidgetData::clickable.name to getBool("clickable"),
-					WidgetData::enabled.name to getBool("enabled"),
-					WidgetData::focused.name to (if (getBool("focusable")) getBool("focused") else null),
-					WidgetData::scrollable.name to getBool("scrollable"),
-					WidgetData::longClickable.name to getBool("long-clickable"),
-					WidgetData::visible.name to getBool("visible-to-user"),
-					WidgetData::isPassword.name to getBool("password"),
-					WidgetData::selected.name to getBool("selected"),
-					WidgetData::boundsX.name to boundsList[0],
-					WidgetData::boundsY.name to boundsList[1],
-					WidgetData::boundsWidth.name to boundsList[2],
-					WidgetData::boundsHeight.name to boundsList[3],
-					WidgetData::isLeaf.name to n.childNodes.toList().none { it.nodeName == "node" }
-			), n.attributes.getNamedItem("index")?.nodeValue?.toInt() ?: -1, parentWidget)
-		}
-
-		@JvmStatic
-		private fun addWidget(result: MutableList<WidgetData>, parent: WidgetData?, data: Node) {
-			val w = createWidget(data, parent)
-
-			if (w != null) {
-				if (parent == null)
-					w.xpath = "//"
-				else
-					w.xpath = "${parent.xpath}/"
-
-				w.xpath += "${w.className}[${w.index + 1}]"
-
-				result.add(w)
 			}
+		}}
 
-			data.childNodes.toList().filter { it.nodeName == "node" }.forEach { addWidget(result, w, it) }
-		}
-
-		@JvmStatic
-		private fun NodeList.toList(): List<Node> {
-			return (0 until this.length).map { i ->
-				this.item(i)
-			}
-		}
-
-		@JvmStatic
-		private fun Node.isSystemUINode(): Boolean {
-			val pkg = this.attributes.getNamedItem("package")
-
-			return (pkg != null) && (pkg.nodeValue.contains("com.android.systemui"))
-		}
-
-		@JvmStatic
-		fun fromUIDump(windowHierarchyDump: Deferred<String>, deviceModel: String, displayWidth: Int, displayHeight: Int,
-					   screenshot: Deferred<ByteArray>, screenshotWidth: Int, screenshotHeight: Int): DeviceResponse {
-			val androidLauncherPackageName = androidLauncher(deviceModel)
-			val dbf = DocumentBuilderFactory.newInstance()
-			val db = dbf.newDocumentBuilder()
-			val inputStream = runBlocking { ByteArrayInputStream(windowHierarchyDump.await().toByteArray()) }
-			val hierarchy = db.parse(inputStream)
-					.apply { documentElement.normalize() }
-					.childNodes.item(0)
-
-			assert(hierarchy.nodeName == "hierarchy")
-
-			val childNodes = hierarchy.childNodes
-					.toList()
-					.filter { it.nodeName == "node" }
-					.filterNot { it.isSystemUINode() }
-
-			var topNodePackage = "ERROR"
-			if (childNodes.isNotEmpty()) {
-				topNodePackage = childNodes.first().attributes.getNamedItem("package").nodeValue
-
-				// When the application starts with an active keyboard, look for the proper application instead of the keyboard
-				// This problem was identified on the app "com.hykwok.CurrencyConverter"
-				// https://f-droid.org/repository/browse/?fdfilter=CurrencyConverter&fdid=com.hykwok.CurrencyConverter
-				if (topNodePackage.startsWith("com.google.android.inputmethod.") && (childNodes.size > 1))
-					topNodePackage = childNodes.drop(1).first().attributes.getNamedItem("package").nodeValue
-
-				assert(topNodePackage.isNotEmpty())
-			}
-			val widgets: MutableList<WidgetData> = ArrayList()
-
-			childNodes.forEach {
-				addWidget(widgets, null, it)
-			}
-
-			return DeviceResponse(windowHierarchyDump.getCompleted(), topNodePackage, widgets, androidLauncherPackageName,
-					displayWidth, displayHeight, runBlocking { screenshot.await() }, screenshotWidth, screenshotHeight)
+		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int): DeviceResponse = runBlocking{
+			val widgets = uiHierarchy.await()
+			DeviceResponse(windowHierarchyDump = uiDump, topNodePackageName = widgets.last().packageName, widgets = widgets, androidLauncherPackageName = androidLauncher(deviceModel),
+					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height)
 		}
 	}
 

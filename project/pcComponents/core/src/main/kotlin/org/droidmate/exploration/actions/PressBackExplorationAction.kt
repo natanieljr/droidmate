@@ -43,7 +43,7 @@ open class PressBackExplorationAction : AbstractExplorationAction() {
 		logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
 		log.debug("2. Press back.")
-		this.snapshot = device.perform(PressBack())
+		this.snapshot = device.perform(PressBack)
 
 		log.debug("3. Read and clear API logs if any, then seal logs reading.")
 		logsHandler.readAndClearApiLogs()

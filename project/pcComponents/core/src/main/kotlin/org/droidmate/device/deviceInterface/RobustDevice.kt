@@ -31,6 +31,7 @@ import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.debug.debugT
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
@@ -45,11 +46,15 @@ import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.time.LocalDateTime
+import kotlin.math.max
 
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(RobustDevice::class.java) }
+
+		private var c = 0
+		private var time = 0.0
 	}
 
 	private val ensureHomeScreenIsDisplayedAttempts = 3
@@ -195,7 +200,7 @@ class RobustDevice : IRobustDevice {
 					guiSnapshot.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
 					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
-						perform(PressHome())
+						perform(PressHome)
 					}
 				}
 			}
@@ -241,8 +246,8 @@ class RobustDevice : IRobustDevice {
 	private fun DeviceResponse.isValid(): Boolean {
 		return if (this.screenshot.isNotEmpty()) {
 			try {
-				val maxWidth = this.widgets.map { it.boundsX + it.boundsWidth }.max() ?: 0
-				val maxHeight = this.widgets.map { it.boundsY + it.boundsHeight }.max() ?: 0
+				val maxWidth = this.widgets.filter { it.visible }.map { it.boundsX + it.boundsWidth }.max() ?: 0
+				val maxHeight = this.widgets.filter { it.visible }.map { it.boundsY + it.boundsHeight }.max() ?: 0
 
 				(maxWidth == 0 && maxHeight == 0) || ((maxWidth <= screenshotWidth) && (maxHeight <= screenshotHeight))
 			} catch (e: Exception) {
@@ -257,7 +262,8 @@ class RobustDevice : IRobustDevice {
 	override fun perform(action: Action): DeviceResponse {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
-							{ this.device.perform(action) },
+							{ debugT("perform action ${action::class.simpleName} avg = ${time/max(1,c)}", {this.device.perform(action)}
+									,inMillis = true, timer = { time += it / 1000000.0; c += 1}) },
 							{ this.restartUiaDaemon(false) },
 							DeviceException::class,
 							deviceOperationAttempts,
@@ -389,7 +395,7 @@ class RobustDevice : IRobustDevice {
 	private fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
 		return rebootIfNecessary("device.getGuiSnapshot()", true) {
-			perform(FetchGUI())
+			perform(FetchGUI)
 		}
 	}
 

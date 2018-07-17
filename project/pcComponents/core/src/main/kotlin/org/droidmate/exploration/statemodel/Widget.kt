@@ -27,9 +27,11 @@ package org.droidmate.exploration.statemodel
 
 import org.droidmate.configuration.ConfigProperties.ModelProperties
 import kotlinx.coroutines.experimental.launch
-import org.droidmate.uiautomator_daemon.P
-import org.droidmate.uiautomator_daemon.WidgetData
-import org.droidmate.uiautomator_daemon.toUUID
+import org.droidmate.uiautomator_daemon.guimodel.P
+//import org.droidmate.uiautomator_daemon.WidgetData
+import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.uiautomator_daemon.guimodel.toUUID
+//import org.droidmate.uiautomator_daemon.toUUID
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -80,6 +82,9 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	val xpath: String = properties.xpath
 	var parentId: Pair<UUID, UUID>? = null
 	val isLeaf: Boolean = properties.isLeaf
+
+	val uncoveredCoord: Pair<Int, Int>? = properties.uncoveredCoord
+	val hasActableDescendant: Boolean = properties.hasActableDescendant
 	//TODO we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
 	//TODO check if still buggy in amazon "Sign In" does not always compute to same id
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
@@ -127,6 +132,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.Visible -> visible.toString()
 				P.IsLeaf -> isLeaf.toString()
 				P.PackageName -> packageName
+				P.Coord -> uncoveredCoord?.let { it.first.toString()+","+it.second.toString() } ?: "null"
 			}
 		}
 	}}
@@ -136,7 +142,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	@Suppress("unused")
 	fun getStrippedResourceId(): String = resourceId.removePrefix("$packageName:")
 	fun toShortString(): String {
-		return "Wdgt:$simpleClassName/\"$text\"/\"$resourceId\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
+		return "Wdgt:$simpleClassName/\"$text\"/\"$uid\"/[${bounds.centerX.toInt()},${bounds.centerY.toInt()}]"
 	}
 
 	fun toTabulatedString(includeClassName: Boolean = true): String {
@@ -165,7 +171,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		/** widget creation */
 		@JvmStatic
 		fun fromString(line: List<String>): Widget {
-			WidgetData(P.propertyMap(line)).apply { xpath = line[P.XPath.ordinal] }.let { w ->
+			WidgetData.fromString(line).apply { xpath = line[P.XPath.ordinal] }.let { w ->
 				assert(w.uid.toString()==line[P.WdId.ordinal]) {
 					"ERROR on widget parsing: property-Id was ${w.uid} but should have been $line"}
 				return Widget(w, lazyOf(UUID.fromString(line[P.UID.ordinal])))
@@ -177,21 +183,26 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		@JvmStatic
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
 				w.content().trim().let {
-					if (it.isNotEmpty()) it.toUUID()  // compute id from textual content if there is any
-					else screenImg?.let {
-						if (isCut) idOfImgCut(screenImg)
-						else idOfImgCut(it.getSubImage(w.boundsRect))
-					} ?: emptyUUID // no text content => compute id from img
+					if (it.isNotEmpty()){ // compute id from textual content if there is any
+						val ignoreNumpers = it.replace("[0-9]", "")
+						if(ignoreNumpers.isNotEmpty()) ignoreNumpers.toUUID()
+						else it.toUUID()
+					}
+					else screenImg?.let { when {
+						!w.visible || w.editable  -> w.idHash.toUUID()  // edit-fields would often have a cursor if focused which should only reflect in the propertyId but not in the unique-id
+						isCut       -> idOfImgCut(screenImg)
+						else        -> idOfImgCut(it.getSubImage(w.boundsRect))
+					}} ?: w.idHash.toUUID() // no text content => compute id from img or if no screenshot is taken use xpath
 				}
+
 
 		@JvmStatic
 		private fun idOfImgCut(image: BufferedImage): UUID =
 				(image.raster.getDataElements(0, 0, image.width, image.height, null) as ByteArray)
-						.let { UUID.nameUUIDFromBytes(it) }
+//						.let { UUID.nameUUIDFromBytes(it) }
+						.contentHashCode().toUUID()
 
-
-		@JvmStatic
-		fun fromWidgetData(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
+		fun fromUiNode(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
 			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null
 			widgetImg.let { wImg ->
 				lazy {
@@ -202,11 +213,11 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 							// print the screen img if there is one and it is configured to be printed
 							if (wImg != null && config[ModelProperties.imgDump.widgets] && (!config[ModelProperties.imgDump.widget.onlyWhenNoText] ||
 											(config[ModelProperties.imgDump.widget.onlyWhenNoText] && w.content() == "" ) ) &&
-									( config[ModelProperties.imgDump.widget.interactable] && w.canBeActedUpon() ||
-											config[ModelProperties.imgDump.widget.nonInteractable] && !w.canBeActedUpon() ) )
+									( config[ModelProperties.imgDump.widget.interactable] && w.actable ||
+											config[ModelProperties.imgDump.widget.nonInteractable] && !w.actable ) )
 
 								launch {
-									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.canBeActedUpon())).let {
+									File(config.widgetImgPath(id = widgetId.value, postfix = "_${w.uid}", interactive = w.actable)).let {
 										if (!it.exists()) ImageIO.write(wImg, "png", it)
 									}
 								}
@@ -222,7 +233,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		val widgetHeader:(String)->String by lazy {{ sep:String -> P.values().joinToString(separator = sep) { it.header } } }
 
 		@JvmStatic
-		private fun BufferedImage.getSubImage(r: Rectangle) = this.getSubimage(r.x, r.y, r.width, r.height)
+		private fun BufferedImage.getSubImage(r: Rectangle) =
+				this.getSubimage(r.x, r.y, r.width, r.height)
 	}
 
 	/*** overwritten functions ***/

@@ -41,6 +41,8 @@ enum class WidgetSelector {
 	XPath
 }
 
+@Deprecated("is internally the same as CoordinateClick to the center -> is going to be removed in next version",
+		replaceWith = ReplaceWith("CoordinateClickAction(x,y)"))
 data class ClickAction(val xPath: String,
                        val resId: String = "") : Action()
 
@@ -49,24 +51,32 @@ data class CoordinateClickAction(val x: Int,
 	constructor(point: Point) : this(point.x, point.y)
 }
 
+@Deprecated("is internally the same as CoordinateClick to the center -> is going to be removed in next version",
+		replaceWith = ReplaceWith("CoordinateLongClickAction(x,y)"))
+data class LongClickAction(val xPath: String, val resId: String = "") : Action()
+
 data class CoordinateLongClickAction(val x: Int,
                                      val y: Int) : Action() {
 	constructor(point: Point) : this(point.x, point.y)
 }
 
-data class LongClickAction(val xPath: String, val resId: String = "") : Action()
 data class TextAction(val xPath: String, val resId: String = "", val text: String) : Action()
+
+@Deprecated("this is going to be removed when fetch-synchronization proves stable")
 data class WaitAction(val target: String, val criteria: WidgetSelector) : Action()
-class SwipeAction private constructor(val start: Pair<Int, Int>? = null, val dst: Pair<Int, Int>? = null, val xPath: String = "", val direction: String = "") : Action() {
+
+class SwipeAction private constructor(val start: Pair<Int, Int>? = null,
+                                      val dst: Pair<Int, Int>? = null, val xPath: String = "",
+                                      val direction: String = "") : Action() {
 	constructor(_start: Pair<Int, Int>, _dst: Pair<Int, Int>) : this(start = _start, dst = _dst)
 	constructor(xPath: String, _direction: String) : this(xPath = xPath, direction = _direction)
 }
 
-class PressBack : Action()
-class PressHome : Action()
-class EnableWifi : Action()
-class MinimizeMaximize : Action()
-class FetchGUI: Action()
+object PressBack : Action()
+object PressHome : Action()
+object EnableWifi : Action()
+object MinimizeMaximize : Action()
+object FetchGUI: Action()
 
 data class RotateUI(val rotation: Int): Action()
 

@@ -77,7 +77,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	 */
 	var deviceDisplayBounds: Rectangle? = null
 	/** for debugging purpose only contains the last UiAutomator dump */
-	private var lastDump: String = ""
+	var lastDump: String = ""
 
 
 
@@ -92,7 +92,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	suspend fun getState(sId: ConcreteId) = _model.getState(sId)
 
 	/** filters out all crashing marked widgets from the actionable widgets of the current state **/
-	suspend fun nonCrashingWidgets() = getCurrentState().let{ s-> s.actionableWidgets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
+	suspend fun nonCrashingWidgets() = getCurrentState().let{ s-> s.distinctTargets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
 
 	fun belongsToApp(state: StateData): Boolean {
 		return state.topNodePackageName == apk.packageName
