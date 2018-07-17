@@ -207,7 +207,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 					dateFormat.parse(timestamp)
 				}
 				else{
-					Date.from(Instant.MIN)
+					Date.from(Instant.now())
 				}
 
 				// Add the statement if it wasn't executed before
