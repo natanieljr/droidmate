@@ -47,6 +47,7 @@ import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -196,13 +197,18 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 				val parts = line.split("uuid=".toRegex(), 2).toTypedArray()
 
 				// Get uuid
-				val uuid = parts[1]
+				val uuid = parts.last()
 
-				// Get timestamp
-				val logParts = parts[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-				val timestamp = logParts[0] + " " + logParts[1]
+				val tms = if (parts.size > 1) {
+					// Get timestamp
+					val logParts = parts[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+					val timestamp = logParts[0] + " " + logParts[1]
 
-				val tms = dateFormat.parse(timestamp)
+					dateFormat.parse(timestamp)
+				}
+				else{
+					Date.from(Instant.MIN)
+				}
 
 				// Add the statement if it wasn't executed before
 				val found = executedStatementsMap.containsKey(uuid)
