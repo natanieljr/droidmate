@@ -14,7 +14,7 @@ class MinimizeMaximizeExplorationAction: AbstractExplorationAction(){
 		logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
 		log.debug("2. Minimize and Maximize.")
-		this.snapshot = device.perform(MinimizeMaximize())
+		this.snapshot = device.perform(MinimizeMaximize)
 
 		log.debug("3. Read and clear API logs if any, then seal logs reading.")
 		logsHandler.readAndClearApiLogs()

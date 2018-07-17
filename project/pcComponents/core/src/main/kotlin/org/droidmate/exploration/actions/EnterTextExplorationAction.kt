@@ -29,8 +29,8 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.uiautomator_daemon.WidgetData
 import org.droidmate.uiautomator_daemon.guimodel.TextAction
+import org.droidmate.uiautomator_daemon.guimodel.WidgetData
 
 open class EnterTextExplorationAction constructor(val textToEnter: String,
                                                   override val widget: Widget) : AbstractExplorationAction() {

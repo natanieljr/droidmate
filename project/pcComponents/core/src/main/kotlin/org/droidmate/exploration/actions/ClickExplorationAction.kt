@@ -39,6 +39,7 @@ import org.droidmate.uiautomator_daemon.guimodel.*
 private var performT: Long = 0
 private var performN: Int = 1
 
+@Deprecated("click actions are always going to use coordinates in the future, and delay is already ignored right now",ReplaceWith("ClickExplorationAction(widget)"))
 open class ClickExplorationAction @JvmOverloads constructor(widget: Widget,
 															useCoordinates: Boolean = true,
 															delay: Int = 100): AbstractClickExplorationAction(widget, useCoordinates, delay) {

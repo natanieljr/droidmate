@@ -66,6 +66,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 
 		while(isActive && !screenFile.exists()) delay(100)
 		while(isActive && !screenFile.canRead()) delay(100)
+		if(!isActive) return
 		if(!screenFile.exists()) return // thread was canceled but no file to process is ready yet
 
 		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step.png")
@@ -73,6 +74,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 			screenFile.copyTo(targetFile, overwrite = true)
 			return
 		}
+
 		val stateImg = ImageIO.read(screenFile)
 		stateImg.createGraphics().apply{
 			paint = Color.red

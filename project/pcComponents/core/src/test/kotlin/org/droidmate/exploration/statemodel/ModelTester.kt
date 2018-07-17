@@ -1,8 +1,8 @@
 package org.droidmate.exploration.statemodel
 
 import org.droidmate.test_tools.DroidmateTestCase
-import org.droidmate.uiautomator_daemon.WidgetData
-import org.droidmate.uiautomator_daemon.toUUID
+import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.uiautomator_daemon.guimodel.toUUID
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,12 +26,12 @@ class ModelTester: DroidmateTestCase(), TestModel by DefaultTestModel() {
 	@Test
 	fun widgetUidTest(){
 		val emptyWidget = Widget()
-		expect(parentData.uid, WidgetData.defaultProperties.toSortedMap().values.toString().toUUID())
+		expect(parentData.uid, WidgetData.empty().toString().toUUID())
 		expect(emptyWidget.propertyConfigId, parentData.uid)
 		expect(emptyWidget.uid, parentData.content().toUUID())
-		expect(parentWidget.id.dumpString(),"e6c865df-7848-3219-ad41-1c1466b01686_32c40e3d-0896-365e-9888-5ceb374a9138")
+		expect(parentWidget.id.dumpString(),"ba2b45bd-c11e-3a4a-ae86-aab2ac693cbb_ad50bfd4-2f22-3d8d-b716-fa93641caa1c")
 
-		expect(testWidgetData.uid, UUID.fromString("b207f26f-96a4-31fa-9083-ad677c2b4931"))
+		expect(testWidgetData.uid, UUID.fromString("a24a0a9f-6bdc-3726-81f0-97f4011ee3b1"))
 		expect(testWidget.uid, Widget.computeId(testWidgetData))
 		expect(testWidget.propertyConfigId, testWidgetData.uid)
 		expect(testWidget.id, ConcreteId(Widget.computeId(testWidgetData), testWidgetData.uid))

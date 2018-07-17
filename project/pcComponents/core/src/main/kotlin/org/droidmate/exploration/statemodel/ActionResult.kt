@@ -108,7 +108,7 @@ open class ActionResult(val action: AbstractExplorationAction,
 
 							return debugT("create all widgets unconfined", {
 								// some times much faster then sequential but some timesl a few fousand ns slower but in average seams faster
-								it.map { async(Unconfined) { Widget.fromWidgetData(it, img, config) } } // iterates over each WidgetData and creates Widget object collect all these elements as set
+								it.map { async(Unconfined) { Widget.fromUiNode(it, img, config) } } // iterates over each WidgetData and creates Widget object collect all these elements as set
 										.map { runBlocking { it.await() } }
 							}, { timeP += it })
 									.also {

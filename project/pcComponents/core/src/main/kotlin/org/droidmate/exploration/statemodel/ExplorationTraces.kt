@@ -147,12 +147,12 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private fun notifyObserver(old: StateData, new: StateData, target: Widget?) {
 		watcher.forEach {
 			launch(it.context, parent = it.job) { it.onNewInteracted(target, old, new) }
-			launch(it.context, parent = it.job) {
-				val action = async(it.context){
-					processorJob.joinChildren()
-					getAt(size-1)!!
+			val action = size.let { i ->
+				async(it.context) {
+					getAt(i - 1)!!
 				}
-
+			}
+			launch(it.context, parent = it.job) {
 				it.onNewAction(action, old, new)
 			}
 		}
@@ -245,25 +245,44 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	fun getActions(): List<ActionData> = trace.S_getAll()
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within co-routines to make complete use of suspendable feature */
-	suspend fun P_getActions(): List<ActionData>   = trace.getAll()
+	suspend fun P_getActions(): List<ActionData>{
+		processorJob.joinChildren() // ensure the last action was already added
+		return trace.getAll()
+	}
 
-	suspend fun last(): ActionData? = trace.getOrNull { it.lastOrNull() }
+	suspend fun last(): ActionData? {
+		processorJob.joinChildren() // ensure the last action was already added
+		return trace.getOrNull { it.lastOrNull() }
+	}
 
 	/** get the element at index [i] if it exists and null otherwise */
-	suspend fun getAt(i:Int): ActionData? = trace.getOrNull { (it as LinkedList<ActionData>).let{ list ->
-		if(list.indices.contains(i))
-			list[i]
-		else {
-			println("Index: $i \t Size: ${list.size}")
-			throw RuntimeException("Here!!!")
-			// null
-		}
-	} }
+	suspend fun getAt(i:Int): ActionData?{
+		processorJob.joinChildren() // ensure the last action was already added
+		return trace.getOrNull { (it as LinkedList<ActionData>).let{ list ->
+			if(list.indices.contains(i))
+				list[i]
+			else {
+				println("Index: $i \t Size: ${list.size}")
+				throw RuntimeException("Here!!!")
+				// null
+			}
+		} }
+	}
 
 	/** this has to access a co-routine actor prefer using [size] if synchronization is not critical */
-	suspend fun isEmpty(): Boolean = trace.get { it.isEmpty() }
+	suspend fun isEmpty(): Boolean{
+		processorJob.joinChildren() // ensure the last action was already added
+		return trace.get { it.isEmpty() }
+	}
 	/** this has to access a co-routine actor prefer using [size] if synchronization is not critical */
-	suspend fun isNotEmpty(): Boolean = trace.get { it.isNotEmpty() }
+	suspend fun isNotEmpty(): Boolean{
+		processorJob.joinChildren() // ensure the last action was already added
+		return trace.get { it.isNotEmpty() }
+	}
+
+	/** this process is not waiting for the currently processed action, therefore this method should be only
+	 * used if at least 2 actions were already executed. Otherwise you should prefer 'getAt(0)'
+	 */
 	fun first(): ActionData = runBlocking { trace.getOrNull { it.first() } ?: ActionData.empty }
 
 	//FIXME ensure that the latest dump is not overwritten due to scheduling issues, for example by using a nice buffered channel only keeping the last value offer

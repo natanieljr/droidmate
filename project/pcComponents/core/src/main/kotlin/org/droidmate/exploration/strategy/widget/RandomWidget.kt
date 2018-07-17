@@ -108,16 +108,18 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 		return chooseActionForWidget(eContext.lastTarget!!)
 	}
 
-	private fun chooseBiased(): AbstractExplorationAction = runBlocking{
-		val candidates = debugT("blacklist computation", {
-			excludeBlacklisted(super.eContext.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
-				when {
-					noBlacklisted.isNotEmpty() -> noBlacklisted
-					noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
-					else -> emptyList() // we are stuck, everything is blacklisted
-				}
+	open suspend fun computeCandidates():Collection<Widget> = debugT("blacklist computation", {
+		excludeBlacklisted(super.eContext.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
+			when {
+				noBlacklisted.isNotEmpty() -> noBlacklisted
+				noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
+				else -> emptyList() // we are stuck, everything is blacklisted
 			}
-		}, inMillis = true).let { filteredCandidates ->
+		}
+	}, inMillis = true)
+
+	private fun chooseBiased(): AbstractExplorationAction = runBlocking{
+		val candidates = computeCandidates().let { filteredCandidates ->
 			// for each widget in this state the number of interactions
 			counter.numExplored(currentState, filteredCandidates).entries
 					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->

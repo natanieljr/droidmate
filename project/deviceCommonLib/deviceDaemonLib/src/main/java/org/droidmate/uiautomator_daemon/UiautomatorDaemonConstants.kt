@@ -30,55 +30,55 @@ object UiautomatorDaemonConstants {
 
 	// To understand why this is constant and not a cmd line parameter, see comment in
 	// org.droidmate.configuration.ConfigurationBuilder.bindAndValidate()
-	val UIADAEMON_SERVER_PORT = 59800
+	const val UIADAEMON_SERVER_PORT = 59800
 
-	val logcatLogFileName = "droidmate_logcat.txt"
+	const val logcatLogFileName = "droidmate_logcat.txt"
 
-	val deviceLogcatTagPrefix = "droidmate/"
-	val uiaDaemon_logcatTag = deviceLogcatTagPrefix + "uiad"
+	const val deviceLogcatTagPrefix = "droidmate/"
+	const val uiaDaemon_logcatTag = deviceLogcatTagPrefix + "uiad"
 
 	// End of DUPLICATION WARNING
 
-	val UIADAEMON_SERVER_START_TAG = "$uiaDaemon_logcatTag/notify"
-	val UIADAEMON_SERVER_START_MSG = "uiad server start success"
+	const val UIADAEMON_SERVER_START_TAG = "$uiaDaemon_logcatTag/notify"
+	const val UIADAEMON_SERVER_START_MSG = "uiad server start success"
 
 	//val DEVICE_COMMAND_GET_UIAUTOMATOR_WINDOW_HIERARCHY_DUMP = "get_uiautomator_window_hierarchy_dump"
 	//val DEVICE_COMMAND_PERFORM_ACTION = "perform_action"
 	//val DEVICE_COMMAND_STOP_UIADAEMON = "stop_uiadaemon"
 
-	val uiaDaemon_packageName = "org.droidmate.uiautomator_daemon"
+	const val uiaDaemon_packageName = "org.droidmate.uiautomator_daemon"
 	/**
 	 * Method name to be called when initializing `UiAutomatorDaemon` through adb.<br></br>
 	 * <br></br>
 	 * Name format according to help obtained by issuing `adb shell uiautomator runtest` in terminal.
 	 */
 	val uiaDaemon_initMethodName = "$uiaDaemon_packageName.UiAutomatorDaemon#init"
-	val uia2Daemon_packageName = "org.droidmate.uiautomator2daemon.UiAutomator2Daemon"
-	val uia2Daemon_testPackageName = "$uia2Daemon_packageName.test"
-	val uia2Daemon_testRunner = "android.support.test.runner.AndroidJUnitRunner"
+	const val uia2Daemon_packageName = "org.droidmate.uiautomator2daemon.UiAutomator2Daemon"
+	const val uia2Daemon_testPackageName = "$uia2Daemon_packageName.test"
+	const val uia2Daemon_testRunner = "android.support.test.runner.AndroidJUnitRunner"
 
-	val uiaDaemonParam_tcpPort = "uiadaemon_server_tcp_port"
-	val uiaDaemonParam_waitForIdleTimeout = "uiadaemon_wait_for_idle_timeout"
-	val uiaDaemonParam_waitForInteractableTimeout = "uiadaemon_wait_for_interactable_timeout"
-	val uiaDaemonParam_socketTimeout = "uiadaemon_server_socket_timeout"
+	const val uiaDaemonParam_tcpPort = "uiadaemon_server_tcp_port"
+	const val uiaDaemonParam_waitForIdleTimeout = "uiadaemon_wait_for_idle_timeout"
+	const val uiaDaemonParam_waitForInteractableTimeout = "uiadaemon_wait_for_interactable_timeout"
+	const val uiaDaemonParam_socketTimeout = "uiadaemon_server_socket_timeout"
 
-	val deviceLogcatLogDir_api23 = "/data/user/0/$uia2Daemon_packageName/files/"
+	const val deviceLogcatLogDir_api23 = "/data/user/0/$uia2Daemon_packageName/files/"
 
 	// !!! DUPLICATION WARNING !!!
 	// These values are duplicated in Instrumentation library from Philipp.
 	// Has to be equivalent to:
 	// - de.uds.infsec.instrumentation.Instrumentation#TAG and
 	// - <Instrumentation project dir>/jni/utils/log.h#_LOG_TAG
-	val instrumentation_redirectionTag = "Instrumentation"
+	const val instrumentation_redirectionTag = "Instrumentation"
 	// end of DUPLICATION WARNING
 
 	// !!! DUPLICATION WARNING !!!
 	// org.droidmate.uieventstologcat.UIEventsToLogcatOutputter#tag
-	val uiEventTag = "UIEventsToLogcat"
+	const val uiEventTag = "UIEventsToLogcat"
 	// end of DUPLICATION WARNING
 
 	// !!! DUPLICATION WARNING !!!
 	// org.droidmate.uia_manual_test_cases.TestCases#tag
-	val uiaTestCaseTag = "UiaTestCase"
+	const val uiaTestCaseTag = "UiaTestCase"
 	// end of DUPLICATION WARNING
 }
