@@ -119,7 +119,8 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	}, inMillis = true)
 
 	private fun chooseBiased(): AbstractExplorationAction = runBlocking{
-		val candidates = computeCandidates().let { filteredCandidates ->
+		val candidates = super.eContext.nonCrashingWidgets() //computeCandidates()
+				.let { filteredCandidates ->
 			// for each widget in this state the number of interactions
 			counter.numExplored(currentState, filteredCandidates).entries
 					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->

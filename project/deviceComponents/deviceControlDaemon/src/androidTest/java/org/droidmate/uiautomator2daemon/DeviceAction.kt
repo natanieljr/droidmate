@@ -39,7 +39,6 @@ import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
 import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
 import org.droidmate.uiautomator_daemon.guimodel.*
-import java.lang.Thread.sleep
 import kotlin.math.max
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
@@ -239,11 +238,7 @@ internal data class DeviceLaunchApp(val appPackageName: String) : DeviceAction()
 			device.wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 					10000)
 			device.waitForIdle(100)
-			try{
-				sleep(5000)
-			}catch(e: Exception){
-				e.printStackTrace()
-			}
+			runBlocking { delay(5000) }
 		}.let { Log.d(logTag, "load-time $it millis") }
 	}
 }

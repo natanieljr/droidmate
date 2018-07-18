@@ -374,6 +374,10 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	@Throws(DeviceException::class)
 	private fun tryExploreOnDeviceAndSerialize(
 			deployedApk: IApk, device: IRobustDevice, out: MutableList<ExplorationContext>) {
+
+		// Force the apk to stop before starting the exploration
+		adbWrapper.forceStop(cfg.deviceSerialNumber, deployedApk)
+
 		val fallibleApkOut2 = this.run(deployedApk, device)
 
 		if (fallibleApkOut2.result != null) {
