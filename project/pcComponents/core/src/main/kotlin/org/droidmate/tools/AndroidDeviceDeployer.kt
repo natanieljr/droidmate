@@ -98,6 +98,9 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	// To make DroidMate work with multiple A(V)D, this list will have to be one for all AndroidDeviceDeployer-s, not one per inst.
 	private val usedSerialNumbers: MutableList<String> = mutableListOf()
 
+	// private var logcatMonitor: LogcatMonitor? = null
+	private val logcatMonitor = LogcatMonitor(cfg, adbWrapper)
+
 	/**
 	 * <p>
 	 * Setups android device for DroidMate purposes. Starts adb server if necessary, forwards ports, pushes uiautomator-daemon jar,
@@ -116,7 +119,8 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 		// Nataniel: Had to invert order, otherwise it crashes on the first time it's executed because the UiAutomator2Daemon was never installed on the device
 		if (cfg[installAux]) {
 			device.reinstallUiAutomatorDaemon()
-			device.pushMonitorJar()
+			// device.pushMonitorJar()
+			logcatMonitor.start()
 		}
 		device.setupConnection()
 
@@ -136,7 +140,9 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 		if (device.isAvailable()) {
 			log.trace("Tearing down.")
-			device.pullLogcatLogFile()
+			// device.pullLogcatLogFile()
+			logcatMonitor.dump()
+
 			device.closeConnection()
 
 			if (cfg[uninstallAux]) {

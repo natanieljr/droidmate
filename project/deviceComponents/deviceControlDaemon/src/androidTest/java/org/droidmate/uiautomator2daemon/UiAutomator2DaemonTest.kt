@@ -59,7 +59,7 @@ class UiAutomator2DaemonTest {
 
 		Log.v(uiaDaemon_logcatTag, "$uiaDaemonParam_tcpPort=$tcpPort")
 
-		saveLogcatToFile()
+		// saveLogcatToFile()
 
 		val uiAutomatorDaemonDriver = UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout)
 		val uiAutomator2DaemonServer = UiAutomator2DaemonServer(uiAutomatorDaemonDriver)
@@ -87,7 +87,7 @@ class UiAutomator2DaemonTest {
 		Log.i(uiaDaemon_logcatTag, "init: Shutting down UiAutomatorDaemon.")
 	}
 
-	private fun saveLogcatToFile() {
+	/*private fun saveLogcatToFile() {
 		val fileName = logcatLogFileName
 		val outputFile = File(InstrumentationRegistry.getTargetContext().filesDir, fileName)
 
@@ -108,5 +108,5 @@ class UiAutomator2DaemonTest {
 		} catch (e: IOException) {
 			Log.wtf(uiaDaemon_logcatTag, e)
 		}
-	}
+	}*/
 }
