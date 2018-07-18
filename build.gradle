@@ -9,7 +9,7 @@
 
 allprojects {
 	group = "org.droidmate"
-	version = "1.0-RC3"
+	version = "1.1-SNAPSHOT"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
