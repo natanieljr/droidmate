@@ -191,6 +191,17 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 		}
 	}
 
+	override fun forceStop(deviceSerialNumber: String, apk: IApk){
+		try{
+			val commandDescription = "Executing adb (Android Debug Bridge) to forcefully stop ${apk.packageName} on android device with s/n $deviceSerialNumber."
+
+			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s", deviceSerialNumber, "shell",
+					"am", "force-stop", apk.packageName)
+		} catch (e: SysCmdExecutorException) {
+			throw AdbWrapperException("Executing 'adb shell am force-stop ' failed. Oh my.", e)
+		}
+	}
+
 	override fun forwardPort(deviceSerialNumber: String, port: Int) {
 //    log.trace("forwardPort(deviceSerialNumber:$deviceSerialNumber, port:$port)")
 
