@@ -7,25 +7,6 @@
 //
 // www.droidmate.org
 
-task droidmateUsageExamplesBuild(type: GradleBuild) {
-	group = "build"
-
-	buildFile = file "dev/droidmate_usage_examples/build.gradle"
-	tasks = ["clean", "build"]
-}
-
-task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild"]) {
-	group = "build"
-}
-
-task droidmatePublish(type: GradleBuild) {
-  group = "build"
-
-  buildFile = file "dev/droidmate/build.gradle"
-  tasks = ["clean", "build", "uploadArchives"]
-}
-
-
 allprojects {
 	group = "org.droidmate"
 	version = "1.0-RC3"
@@ -105,20 +86,23 @@ jar {
 }
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish'
-configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
 
-	if (resolvedArtifact.name != "all")
-		project.publishing {
-			publications {
-				println ".m2 publish: $resolvedArtifact"
-				"mavenArtifact${resolvedArtifact.name}${n}"(MavenPublication) {
-					artifact(resolvedArtifact.file) {
-						groupId = resolvedArtifact.moduleVersion.id.group
-						artifactId = resolvedArtifact.moduleVersion.id.name
-						version = resolvedArtifact.moduleVersion.id.version
-						classifier = resolvedArtifact.classifier
+publishToMavenLocal.dependsOn {
+	configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
+
+		if (resolvedArtifact.name != "all")
+			project.publishing {
+				publications {
+					println ".m2 publish: $resolvedArtifact"
+					"mavenArtifact${resolvedArtifact.name}${n}"(MavenPublication) {
+						artifact(resolvedArtifact.file) {
+							groupId = resolvedArtifact.moduleVersion.id.group
+							artifactId = resolvedArtifact.moduleVersion.id.name
+							version = resolvedArtifact.moduleVersion.id.version
+							classifier = resolvedArtifact.classifier
+						}
 					}
 				}
 			}
-		}
+	}
 }
