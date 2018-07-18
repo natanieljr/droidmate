@@ -6,6 +6,7 @@ import android.support.test.uiautomator.getBounds
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
 import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.uiautomator_daemon.guimodel.center
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
 
@@ -63,8 +64,6 @@ abstract class UiParser {
 		node.computeOverlays(children)
 		return node
 	}
-
-	private fun center(c:Int, d:Int):Int = c+(d/2)
 
 	/**
 	 * we aim to prevent multiple clicks to the same uncoveredCoord area issued due to actable layout elements,

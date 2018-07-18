@@ -11,13 +11,13 @@ buildscript {
 
 apply plugin: 'kotlin'
 
-group 'org.droidmate.droidmate-2'
-version '1.0-RC3'
+group = 'org.droidmate.droidmate-2'
+version = '1.0-RC3'
 
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {url "https://jitpack.io"}
+    maven {url = "https://jitpack.io"}
 }
 
 dependencies {

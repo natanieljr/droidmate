@@ -3,9 +3,10 @@ package org.droidmate.exploration.actions
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.uiautomator_daemon.guimodel.MinimizeMaximize
+import org.droidmate.uiautomator_daemon.guimodel.MinimizeMaximizeAction
 
-class MinimizeMaximizeExplorationAction: AbstractExplorationAction(){
+@Deprecated("to be removed",replaceWith = ReplaceWith("eContext.minimizeMaximize()",imports = ["org.droidmate.exploration.actions.*"]))
+object MinimizeMaximizeExplorationAction: AbstractExplorationAction(){
 	override fun toShortString(): String = "Minimize and Maximize"
 
 	override fun performDeviceActions(app: IApk, device: IRobustDevice) {
@@ -14,7 +15,7 @@ class MinimizeMaximizeExplorationAction: AbstractExplorationAction(){
 		logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
 		log.debug("2. Minimize and Maximize.")
-		this.snapshot = device.perform(MinimizeMaximize)
+		this.snapshot = device.perform(MinimizeMaximizeAction)
 
 		log.debug("3. Read and clear API logs if any, then seal logs reading.")
 		logsHandler.readAndClearApiLogs()

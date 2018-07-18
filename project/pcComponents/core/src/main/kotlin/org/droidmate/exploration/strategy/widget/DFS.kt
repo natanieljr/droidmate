@@ -1,9 +1,6 @@
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.exploration.actions.ClickExplorationAction
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.TerminateExplorationAction
+import org.droidmate.exploration.actions.*
 
 class DFS: GraphBasedExploration(){
 	override fun chooseAction(): AbstractExplorationAction {
@@ -17,11 +14,11 @@ class DFS: GraphBasedExploration(){
 			val ancestors = graph.ancestors(currentState)
 
 			return if (ancestors.isNotEmpty())
-				PressBackExplorationAction()
+				eContext.pressBack()
 			else
-				TerminateExplorationAction()
+				terminateApp()
 		}
 		else
-			ClickExplorationAction(nextEdge.label.targetWidget!!)
+			nextEdge.label.targetWidget!!.click()
 	}
 }

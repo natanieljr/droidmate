@@ -30,6 +30,7 @@ import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
 
 
+@Deprecated("to be removed",replaceWith = ReplaceWith("terminateApp()",imports = ["org.droidmate.exploration.actions.pressBack"]))
 open class TerminateExplorationAction : AbstractExplorationAction() {
 
 	companion object {

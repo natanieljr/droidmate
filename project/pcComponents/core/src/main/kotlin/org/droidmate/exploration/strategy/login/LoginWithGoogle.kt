@@ -27,7 +27,7 @@ package org.droidmate.exploration.strategy.login
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.exploration.actions.ClickExplorationAction
+import org.droidmate.exploration.actions.click
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.droidmate.misc.DroidmateException
@@ -51,7 +51,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 
 		if (widget != null) {
 			this.state = LoginState.AccountDisplayed
-			return ClickExplorationAction(widget, delay = DEFAULT_ACTION_DELAY)
+			return widget.click()
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -66,7 +66,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 
 		if (widget != null) {
 			this.state = LoginState.AccountSelected
-			return ClickExplorationAction(widget, delay = DEFAULT_ACTION_DELAY)
+			return widget.click()
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -81,7 +81,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 
 		if (widget != null) {
 			this.state = LoginState.Done
-			return ClickExplorationAction(widget, delay = DEFAULT_ACTION_DELAY)
+			return widget.click()
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -127,7 +127,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 						?: widgets.first { it.text.toUpperCase() == "ALLOW" }
 			}
-			ClickExplorationAction(widget)
+			widget.click()
 		} else {
 			val widgets = eContext.getCurrentState().widgets
 			getWidgetAction(widgets)

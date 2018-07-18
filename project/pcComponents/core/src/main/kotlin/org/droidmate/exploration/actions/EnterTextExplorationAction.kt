@@ -32,8 +32,10 @@ import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.uiautomator_daemon.guimodel.TextAction
 import org.droidmate.uiautomator_daemon.guimodel.WidgetData
 
-open class EnterTextExplorationAction constructor(val textToEnter: String,
+@Deprecated("to be removed",replaceWith = ReplaceWith("widget.setText(textToEnter)"))
+open class EnterTextExplorationAction constructor(private val textToEnter: String,
                                                   override val widget: Widget) : AbstractExplorationAction() {
+	@Deprecated("to be removed", ReplaceWith("EnterTextExplorationAction(textToEnter,widget)"))
 	constructor( textToEnter: String, resId: String, xPath: String = ""): this(textToEnter,Widget(WidgetData(resId = resId, xPath = xPath)))
 
 	companion object {

@@ -273,17 +273,17 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 			findMatchingExceptionSpecAndThrowIfApplies("perform", this.getCurrentlyDeployedPackageName())
 
 			when (action) {
-					is LaunchApp -> assert(false, { "call .launchApp() directly instead" })
+					is LaunchAppAction -> assert(false, { "call .launchApp() directly instead" })
 					is ClickAction -> updateSimulatorState(action)
 					is CoordinateClickAction -> updateSimulatorState(action)
 					is LongClickAction -> updateSimulatorState(action)
 					is CoordinateLongClickAction -> updateSimulatorState(action)
-					is SimulationAdbClearPackage -> assert(false, { "call .clearPackage() directly instead" })
-					is EnableWifi -> { /* do nothing */
+					is SimulationAdbClearPackageAction -> assert(false, { "call .clearPackage() directly instead" })
+					is EnableWifiAction -> { /* do nothing */
 					}
-					is PressHome -> { /* do nothing */
+					is PressHomeAction -> { /* do nothing */
 					}
-					is PressBack -> { /* do nothing */
+					is PressBackAction -> { /* do nothing */
 					}
 					else -> throw UnexpectedIfElseFallthroughError()
 			}
@@ -321,7 +321,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	override fun anyMonitorIsReachable(): Boolean = this.currentSimulation!!.getAppIsRunning()
 
 	override fun launchApp(launchableActivityComponentName: String) {
-			updateSimulatorState(LaunchApp(launchableActivityComponentName))
+			updateSimulatorState(LaunchAppAction(launchableActivityComponentName))
 	}
 
 	override fun appIsRunning(appPackageName: String): Boolean = this.appProcessIsRunning(appPackageName)
@@ -362,7 +362,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	}
 
 	override fun clearPackage(apkPackageName: String) {
-			updateSimulatorState(SimulationAdbClearPackage(apkPackageName))
+			updateSimulatorState(SimulationAdbClearPackageAction(apkPackageName))
 	}
 
 	override fun reboot() {

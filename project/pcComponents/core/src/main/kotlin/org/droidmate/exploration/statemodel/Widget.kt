@@ -189,7 +189,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 						else it.toUUID()
 					}
 					else screenImg?.let { when {
-						!w.visible || w.editable  -> w.idHash.toUUID()  // edit-fields would often have a cursor if focused which should only reflect in the propertyId but not in the unique-id
+						!w.visible || w.editable || w.checked != null -> w.idHash.toUUID()  // edit-fields would often have a cursor if focused which should only reflect in the propertyId but not in the unique-id
 						isCut       -> idOfImgCut(screenImg)
 						else        -> idOfImgCut(it.getSubImage(w.boundsRect))
 					}} ?: w.idHash.toUUID() // no text content => compute id from img or if no screenshot is taken use xpath

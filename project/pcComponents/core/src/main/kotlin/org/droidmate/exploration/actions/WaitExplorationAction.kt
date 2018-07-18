@@ -33,6 +33,7 @@ import org.droidmate.uiautomator_daemon.guimodel.WaitAction
 import org.droidmate.uiautomator_daemon.guimodel.WidgetSelector
 import org.slf4j.LoggerFactory
 
+@Deprecated("no longer supported")
 class WaitExplorationAction constructor(private val selector: WidgetSelector,
                                         private val criteria: String) : AbstractExplorationAction() {
 
