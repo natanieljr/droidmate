@@ -46,6 +46,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed)
 
 	protected val random = Random(randomSeed)
+	@Suppress("MemberVisibilityCanBePrivate")
 	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>()	}
 	private val blackList: BlackListMF by lazy {	eContext.getOrCreateWatcher<BlackListMF>() }
 
@@ -102,7 +103,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 
 	private fun List<Widget>.chooseRandomly():AbstractExplorationAction{
 		if(this.isEmpty())
-			return ResetAppExplorationAction()
+			return eContext.resetApp()
 
 		eContext.lastTarget = this[random.nextInt(this.size)]
 		return chooseActionForWidget(eContext.lastTarget!!)
@@ -140,9 +141,11 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			}
 					?: emptyList()
 		}
-		if(candidates.isEmpty()){
+		// either no candidates, or we already interacted with all of them in this state
+		if(candidates.isEmpty() || counter.widgetCntForState(candidates.first().uid,currentState.uid)>0){
 			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
-			PressBackExplorationAction()} else candidates.chooseRandomly()
+			eContext.pressBack()
+		} else candidates.chooseRandomly()
 	}
 
 	private fun chooseRandomly(): AbstractExplorationAction{
@@ -167,19 +170,19 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 
 		if (widget.longClickable){    // lower probability of longClick if click is possible as it is more probable progressing the exploration
 			if(widget.clickable) {
-				if (random.nextInt(100) > 55) actionList.add(LongClickExplorationAction(widget))
-			}else 	actionList.add(LongClickExplorationAction(widget))
+				if (random.nextInt(100) > 55) actionList.add(widget.longClick())
+			}else 	actionList.add(widget.longClick())
 		}
 
 		if (widget.clickable)
-			actionList.add(ClickExplorationAction(widget))
+			actionList.add(widget.click())
 
 		if (widget.checked != null)
-			actionList.add(ClickExplorationAction(widget))
+			actionList.add(widget.click())
 
 		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
 		if (widget.scrollable)
-			actionList.add(ClickExplorationAction(widget))
+			actionList.add(widget.click())
 
 		/*if (chosenWidget.scrollable) {
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))
