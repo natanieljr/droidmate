@@ -33,6 +33,9 @@ import org.droidmate.misc.ISysCmdExecutor
 import java.nio.file.Path
 
 class AdbWrapperStub : IAdbWrapper {
+	override fun forceStop(deviceSerialNumber: String, apk: IApk) {
+	}
+
 	override fun isApkInstalled(deviceSerialNumber: String, packageName: String): Boolean {
 		return false
 	}

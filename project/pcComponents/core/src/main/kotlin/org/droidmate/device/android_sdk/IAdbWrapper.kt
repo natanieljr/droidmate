@@ -113,4 +113,7 @@ interface IAdbWrapper {
 
 	@Throws(AdbWrapperException::class)
 	fun reconnect(deviceSerialNumber: String)
+
+	@Throws(AdbWrapperException::class)
+	fun forceStop(deviceSerialNumber: String, apk: IApk)
 }
