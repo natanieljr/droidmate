@@ -102,7 +102,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 
 		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
-			DeviceResponse(windowHierarchyDump = uiDump, topNodePackageName = widgets.last().packageName, widgets = widgets, androidLauncherPackageName = androidLauncher(deviceModel),
+			DeviceResponse(windowHierarchyDump = uiDump, topNodePackageName = widgets.lastOrNull()?.packageName ?: "No Widgets", widgets = widgets, androidLauncherPackageName = androidLauncher(deviceModel),
 					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height)
 		}
 	}
