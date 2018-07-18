@@ -200,7 +200,7 @@ open class EventProbabilityMF(modelName: String,
 
 	protected val widgetProbability = mutableMapOf<UUID, Double>() // probability of each widget having an event
 
-	fun getProbabilities(state: StateData): Map<Widget, Double> {
+	open fun getProbabilities(state: StateData): Map<Widget, Double> {
 		return state.actionableWidgets
 				.map { it to (widgetProbability[it.uid] ?: 0.0) }
 				.toMap()

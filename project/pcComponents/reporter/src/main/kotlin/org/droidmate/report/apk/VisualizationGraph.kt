@@ -283,6 +283,7 @@ class VisualizationGraph : ApkReport() {
 		Files.list(model.config.stateDst)
 				.filter { filename -> filename.toString().endsWith(".png") }
 				.forEach {
+					Files.createDirectories(targetImgDir)
 					Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
 				}
 
