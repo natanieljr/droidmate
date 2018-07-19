@@ -48,8 +48,8 @@ import kotlin.system.measureTimeMillis
  * Created by J.H. on 05.02.2018.
  */
 const val measurePerformance =
-		true
-//		false
+//		true
+		false
 
 @Suppress("ConstantConditionIf")
 inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T? {
@@ -107,16 +107,17 @@ internal sealed class DeviceAction {
 				is TextAction -> DeviceTextAction(xPath, resId, text)
 				is ClickAction -> DeviceClickAction(xPath, resId)
 				is CoordinateClickAction -> DeviceCoordinateClickAction(x, y)
-				is PressBack -> DevicePressBack()
-				is PressHome -> DevicePressHome()
-				is EnableWifi -> DeviceEnableWifi()
-				is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
-				is FetchGUI -> DeviceFetchGUIAction()
-				is RotateUI -> DeviceRotateUIAction(rotation)
-				is MinimizeMaximize -> DeviceMinimizeMaximizeAction()
-				is SimulationAdbClearPackage -> {
+				is PressBackAction -> DevicePressBack()
+				is PressHomeAction -> DevicePressHome()
+				is EnableWifiAction -> DeviceEnableWifi()
+				is LaunchAppAction -> DeviceLaunchApp(appLaunchIconName)
+				is FetchGUiAction -> DeviceFetchGUIAction()
+				is RotateUIAction -> DeviceRotateUIAction(rotation)
+				is MinimizeMaximizeAction -> DeviceMinimizeMaximizeAction()
+				is SimulationAdbClearPackageAction -> {
 					null /* There's no equivalent device action */
 				}
+				is MultiAction -> TODO()
 			}?.apply {
 				waitForIdleTimeout = _waitForIdleTimeout
 				waitForInteractableTimeout = _waitForInteractableTimeout

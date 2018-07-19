@@ -81,17 +81,17 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 	}
 
 	override fun getAppIsRunning(): Boolean {
-			return if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackage))
+			return if ((this.lastAction == null) || (this.lastAction is SimulationAdbClearPackageAction))
 					false
 			else if (this.getCurrentGuiSnapshot().guiState.belongsToApp(this.packageName)) {
-					assert(this.lastAction !is SimulationAdbClearPackage)
+					assert(this.lastAction !is SimulationAdbClearPackageAction)
 					true
 			} else
 					false
 	}
 
 	override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot {
-			return if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackage))
+			return if ((this.currentTransitionResult == null) || (this.lastAction is SimulationAdbClearPackageAction))
 					this.initialScreen.getGuiSnapshot()
 			else
 					this.getCurrentScreen().getGuiSnapshot()

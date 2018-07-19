@@ -92,8 +92,8 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
 
 	private fun transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: Action) {
 			when (action) {
-					is LaunchApp -> failWithForbiddenActionOnInvalidGuiSnapshot(action)
-					is SimulationAdbClearPackage -> this.simulation.updateState(action)
+					is LaunchAppAction -> failWithForbiddenActionOnInvalidGuiSnapshot(action)
+					is SimulationAdbClearPackageAction -> this.simulation.updateState(action)
 					is ClickAction -> onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)
 					is CoordinateClickAction -> onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)
 					is LongClickAction -> onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action)

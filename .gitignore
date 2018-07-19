@@ -74,3 +74,4 @@ project/pcComponents/monitor-apk-scaffolding/src/
 
 # other sources
 apks/
+buildConstants.properties

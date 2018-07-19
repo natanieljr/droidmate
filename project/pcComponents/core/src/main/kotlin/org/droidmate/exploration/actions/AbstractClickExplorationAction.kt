@@ -39,9 +39,17 @@ import org.droidmate.uiautomator_daemon.guimodel.Action
 private var performT: Long = 0
 private var performN: Int = 1
 
-abstract class AbstractClickExplorationAction @JvmOverloads constructor(override val widget: Widget,
-																		private val useCoordinates: Boolean = true,
-																		val delay: Int = 100) : AbstractExplorationAction() {
+abstract class AbstractClickExplorationAction constructor(override val widget: Widget) : AbstractExplorationAction() {
+	var useCoordinates = true
+	var delay = 0
+
+	@Deprecated("click actions are always going to use coordinates in the future",ReplaceWith("AbstractClickExplorationAction(widget)"))
+	constructor(widget: Widget, useCoordinates: Boolean = true,
+	                          delay: Int = 0):this(widget){
+		this.useCoordinates = useCoordinates
+		this.delay = delay
+	}
+
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}

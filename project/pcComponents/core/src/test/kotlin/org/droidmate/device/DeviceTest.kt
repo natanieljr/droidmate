@@ -181,7 +181,7 @@ fun `Obtains GUI snapshot for manual inspection`() {
 fun `Sets up API23 compatible device and turns wifi on`() {
 		val deviceTools = DeviceTools(getConfigurationApi23())
 		deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
-				device.perform(EnableWifi())
+				device.perform(EnableWifiAction())
 				ArrayList()
 		}
 }

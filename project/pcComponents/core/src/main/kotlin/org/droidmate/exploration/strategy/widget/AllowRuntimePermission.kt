@@ -25,7 +25,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.exploration.actions.ClickExplorationAction
+import org.droidmate.exploration.actions.click
 
 /**
  * Exploration strategy that always clicks "Allow" on runtime permission dialogs.
@@ -43,6 +43,6 @@ class AllowRuntimePermission : ExplorationStrategy() {
 		// Remove blacklist restriction from previous action since it will need to be executed again
 //        this.eContext.lastTarget.blackListed = false    //TODO
 
-		return ClickExplorationAction(allowButton).apply { runtimePermission = true }
+		return allowButton.click().apply { runtimePermission = true }
 	}
 }

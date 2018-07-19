@@ -6,6 +6,7 @@ import java.util.*
 
 fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.forName("UTF-8")))
 fun Int.toUUID(): UUID = UUID.nameUUIDFromBytes(toString().toByteArray(Charset.forName("UTF-8")))
+fun center(c:Int, d:Int):Int = c+(d/2)
 
 data class WidgetData(
 		val text: String,

@@ -76,7 +76,7 @@ import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.tools.*
-import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
+import org.droidmate.uiautomator_daemon.guimodel.FetchGUiAction
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -471,7 +471,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	private fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
 		log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
 
-		val initialGuiSnapshot = device.perform(FetchGUI)
+		val initialGuiSnapshot = device.perform(FetchGUiAction)
 
 		if (!initialGuiSnapshot.isHomeScreen)
 			log.warn(Markers.appHealth,

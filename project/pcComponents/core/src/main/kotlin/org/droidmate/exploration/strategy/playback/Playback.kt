@@ -115,7 +115,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 
 		// All traces completed. Finish
 		if (isComplete())
-			return TerminateExplorationAction()
+			return terminateApp()
 
 		val currTraceData = getNextTraceAction()
 		val action = currTraceData.actionType
@@ -196,7 +196,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 				}
 			}
 			else -> {
-				ClickExplorationAction(currTraceData.targetWidget!!, useCoordinates = true)
+				currTraceData.targetWidget!!.click()
 			}
 		}
 	}

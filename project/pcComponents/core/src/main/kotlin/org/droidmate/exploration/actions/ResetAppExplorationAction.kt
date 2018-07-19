@@ -28,8 +28,9 @@ package org.droidmate.exploration.actions
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.uiautomator_daemon.guimodel.EnableWifi
+import org.droidmate.uiautomator_daemon.guimodel.EnableWifiAction
 
+@Deprecated("to be removed",replaceWith = ReplaceWith("eContext.resetApp()",imports = ["org.droidmate.exploration.actions.*"]))
 open class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Boolean = false) : AbstractExplorationAction() {
 	companion object {
 		private const val serialVersionUID: Long = 1
@@ -52,7 +53,7 @@ open class ResetAppExplorationAction @JvmOverloads constructor(val isFirst: Bool
 		device.ensureHomeScreenIsDisplayed()
 
 		log.debug("4. Turn wifi on.")
-		device.perform(EnableWifi)
+		device.perform(EnableWifiAction)
 
 		log.debug("5. Ensure app is not running.")
 		if (device.appIsRunning(app.packageName)) {

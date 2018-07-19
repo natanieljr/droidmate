@@ -46,6 +46,7 @@ class BlackListMF: WidgetCountingMF() {
 		if(prevState.isHomeScreen || !isStuck(deferredAction.await().actionType)) this.lastActionableState = prevState
 	}
 
+	@Suppress("DEPRECATION")
 	private fun isStuck(actionType: String): Boolean =	when(actionType){  // ignore initial reset
 		ResetAppExplorationAction::class.simpleName, PressBackExplorationAction::class.simpleName -> true
 		else -> false
