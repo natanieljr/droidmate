@@ -6,8 +6,6 @@ import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.logging.Markers
 import org.droidmate.misc.SysCmdInterruptableExecutor
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.instrumentation_redirectionTag
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import java.nio.file.Files
 import java.nio.file.Path
 import org.slf4j.Logger
@@ -29,13 +27,6 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
 
         init {
             job = Job(parent = (this.job)) // We don't want to wait, therefore create our own (child) job
-            //getLogfilePath().parent.deleteDir()
-            //Files.createDirectories(getLogfilePath().parent)
-
-            // Start monitoring the coverage
-            /*launch {
-                run()
-            }*/
         }
 
         /**
@@ -91,7 +82,7 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
         /**
          * Notifies the logcat monitor and [sysCmdExecutor] to finish.
          */
-        fun dump() {
+        fun terminate() {
             running.set(false)
             sysCmdExecutor.stopCurrentExecutionIfExisting()
             log.info("Logcat monitor thread destroyed")

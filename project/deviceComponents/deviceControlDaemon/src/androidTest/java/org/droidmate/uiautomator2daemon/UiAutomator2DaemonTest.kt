@@ -59,8 +59,6 @@ class UiAutomator2DaemonTest {
 
 		Log.v(uiaDaemon_logcatTag, "$uiaDaemonParam_tcpPort=$tcpPort")
 
-		// saveLogcatToFile()
-
 		val uiAutomatorDaemonDriver = UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout)
 		val uiAutomator2DaemonServer = UiAutomator2DaemonServer(uiAutomatorDaemonDriver)
 
@@ -86,27 +84,4 @@ class UiAutomator2DaemonTest {
 
 		Log.i(uiaDaemon_logcatTag, "init: Shutting down UiAutomatorDaemon.")
 	}
-
-	/*private fun saveLogcatToFile() {
-		val fileName = logcatLogFileName
-		val outputFile = File(InstrumentationRegistry.getTargetContext().filesDir, fileName)
-
-		if (outputFile.exists()) {
-			val logDeletionResult = outputFile.delete()
-			if (!logDeletionResult)
-				Log.wtf(uiaDaemon_logcatTag, "Failed to delete existing file $fileName !")
-		}
-
-		Log.d(uiaDaemon_logcatTag, "Logging logcat to: " + outputFile.absolutePath)
-		try {
-			// - For explanation of the exec string, see org.droidmate.device.android_sdk.AdbWrapper.readMessagesFromLogcat()
-			// - Manual tests with "adb shell ps" show that the executed process will be automatically killed when the uiad process dies.
-			// WISH maybe editing this logcat filter string would make it output more interesting data, like logs from monitors...
-			// ...not sure if can cross process boundary.
-			Runtime.getRuntime().exec(String.format("logcat -v time -f %s *:D %s:W %s:D %s:D dalvikvm:I ActivityManager:V AccessibilityNodeInfoDumper:S View:E ResourceType:E HSAd-HSAdBannerView:I",
-					outputFile.absolutePath, instrumentation_redirectionTag, uiaDaemon_logcatTag, Uiautomator2DaemonTcpServerBase.tag))
-		} catch (e: IOException) {
-			Log.wtf(uiaDaemon_logcatTag, e)
-		}
-	}*/
 }
