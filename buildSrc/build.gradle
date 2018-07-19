@@ -36,17 +36,14 @@ buildscript {
 	}
 }
 
-plugins {
-	id "org.jetbrains.kotlin.jvm" version '1.2.51'
-}
-
+apply from: file("../versions.gradle") // contains kotlin_version
 apply plugin: 'kotlin'
 
 ext.utilities_version = '19115bab35'
 
 repositories {
-	jcenter()
 	mavenCentral()
+	jcenter()
 	mavenLocal()
 	maven { url = "https://jitpack.io" }
 }
@@ -59,7 +56,7 @@ dependencies {
 
 	compile 'org.zeroturnaround:zt-exec:1.9'
 
-	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 	compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 	testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"

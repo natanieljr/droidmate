@@ -49,7 +49,7 @@ task Debug{
 
 buildscript {
 	repositories {
-		jcenter()
+		mavenCentral()
 	}
 	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
 	dependencies {

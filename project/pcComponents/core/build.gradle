@@ -37,6 +37,7 @@ kotlin {
 	}
 }
 repositories {
+	mavenCentral()
 	jcenter() // required for coroutines
 }
 
