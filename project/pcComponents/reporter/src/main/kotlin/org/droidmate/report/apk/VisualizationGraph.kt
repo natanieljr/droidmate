@@ -273,7 +273,7 @@ class VisualizationGraph : ApkReport() {
 
 		val targetVisFolder = apkReportDir.resolve(topLevelDirName)
 		val model = data.getModel()
-		val source = Resource("vis").path
+		val source = Resource("vis").extractTo(resourceDir, true)
 
 		// Copy the folder with the required resources
 		Files.walkFileTree(source, CopyFileVisitor(source, targetVisFolder))
