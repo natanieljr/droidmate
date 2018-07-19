@@ -39,8 +39,6 @@ buildscript {
 apply from: file("../versions.gradle") // contains kotlin_version
 apply plugin: 'kotlin'
 
-ext.utilities_version = '19115bab35'
-
 repositories {
 	mavenCentral()
 	jcenter()
