@@ -347,22 +347,24 @@ class RobustDevice : IRobustDevice {
 			return guiSnapshot
 
 		assert(guiSnapshot.isAppHasStoppedDialogBox)
-		var okWidget = guiSnapshot.widgets.first { it.text == "OK" }
-		assert(okWidget.enabled)
+		var targetWidget = guiSnapshot.widgets.firstOrNull { it.text == "OK" } ?:
+			guiSnapshot.widgets.first { it.resourceId == "android:id/aerr_close" }
+		assert(targetWidget.enabled)
 		log.debug("ANR encountered")
 
-		var out: DeviceResponse? = null
+		var out = guiSnapshot
 
 		Utils.retryOnFalse({
 
-			okWidget = guiSnapshot.widgets.first { it.text == "OK" }
-			device.perform(okWidget.click())
+			assert(targetWidget.enabled)
+			device.perform(targetWidget.click())
 			out = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 
-			if (out!!.isAppHasStoppedDialogBox) {
-				okWidget = out!!.widgets.first { it.text == "OK" }
-				assert(okWidget.enabled)
+			if (out.isAppHasStoppedDialogBox) {
+				targetWidget = guiSnapshot.widgets.firstOrNull { it.text == "OK" } ?:
+						guiSnapshot.widgets.first { it.resourceId == "android:id/aerr_close" }
 				log.debug("ANR encountered - again. Failed to properly close it even though its OK widget was enabled.")
+
 				false
 			} else
 				true
@@ -370,7 +372,7 @@ class RobustDevice : IRobustDevice {
 				deviceOperationAttempts,
 				deviceOperationDelay)
 
-		return out!!
+		return out
 	}
 
 	@Throws(DeviceException::class)
