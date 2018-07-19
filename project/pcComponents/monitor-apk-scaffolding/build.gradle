@@ -90,9 +90,7 @@ repositories {
 
 dependencies {
 	// Fast serialization library
-	implementation('de.ruedigermoeller:fst:2.56') {
-		exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
-	}
+	implementation 'de.ruedigermoeller:fst:2.56'
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
 	implementation fileTree(dir: 'libs_built', include: ['*.jar'])
