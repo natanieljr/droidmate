@@ -72,14 +72,16 @@ class SwipeAction private constructor(val start: Pair<Int, Int>? = null,
 	constructor(xPath: String, _direction: String) : this(xPath = xPath, direction = _direction)
 }
 
-object PressBack : Action()
-object PressHome : Action()
-object EnableWifi : Action()
-object MinimizeMaximize : Action()
-object FetchGUI: Action()
+object PressBackAction : Action()
+object PressHomeAction : Action()
+object EnableWifiAction : Action()
+object MinimizeMaximizeAction : Action()
+object FetchGUiAction: Action()
 
-data class RotateUI(val rotation: Int): Action()
+data class RotateUIAction(val rotation: Int): Action()
 
-data class LaunchApp(val appLaunchIconName: String) : Action()
+data class LaunchAppAction(val appLaunchIconName: String) : Action()
 
-data class SimulationAdbClearPackage(val packageName: String) : Action()
+data class SimulationAdbClearPackageAction(val packageName: String) : Action()
+
+data class MultiAction(val actions: List<Action>): Action()

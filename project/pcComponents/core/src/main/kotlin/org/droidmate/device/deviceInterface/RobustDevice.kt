@@ -35,13 +35,13 @@ import org.droidmate.debug.debugT
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
+import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
 import org.droidmate.uiautomator_daemon.DeviceResponse
 import org.droidmate.uiautomator_daemon.guimodel.Action
-import org.droidmate.uiautomator_daemon.guimodel.ClickAction
-import org.droidmate.uiautomator_daemon.guimodel.FetchGUI
-import org.droidmate.uiautomator_daemon.guimodel.PressHome
+import org.droidmate.uiautomator_daemon.guimodel.FetchGUiAction
+import org.droidmate.uiautomator_daemon.guimodel.PressHomeAction
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
@@ -200,7 +200,7 @@ class RobustDevice : IRobustDevice {
 					guiSnapshot.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
 					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
-						perform(PressHome)
+						perform(PressHomeAction)
 					}
 				}
 			}
@@ -221,12 +221,12 @@ class RobustDevice : IRobustDevice {
 
 	private fun closeSelectAHomeAppDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val launcherWidget = snapshot.widgets.single { it.text == "Launcher" }
-		perform(ClickAction(launcherWidget.xpath, launcherWidget.resourceId))
+		perform(launcherWidget.click())
 
 		var guiSnapshot = this.getExplorableGuiSnapshot()
 		if (guiSnapshot.isSelectAHomeAppDialogBox) {
 			val justOnceWidget = guiSnapshot.widgets.single { it.text == "Just once" }
-			perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
+			perform(justOnceWidget.click())
 			guiSnapshot = this.getExplorableGuiSnapshot()
 		}
 		assert(!guiSnapshot.isSelectAHomeAppDialogBox)
@@ -236,7 +236,7 @@ class RobustDevice : IRobustDevice {
 
 	private fun closeUseLauncherAsHomeDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val justOnceWidget = snapshot.widgets.single { it.text == "Just once" }
-		perform(ClickAction(justOnceWidget.xpath, justOnceWidget.resourceId))
+		perform(justOnceWidget.click())
 
 		val guiSnapshot = this.getExplorableGuiSnapshot()
 		assert(!guiSnapshot.isUseLauncherAsHomeDialogBox)
@@ -300,7 +300,7 @@ class RobustDevice : IRobustDevice {
 			this.clickAppIcon(apk.applicationLabel)
 		}*/
 
-		//return this.perform(FetchGUI())
+		//return this.perform(FetchGUiAction())
 	}
 
 	/*override fun launchApp(packageName: String) {
@@ -356,7 +356,7 @@ class RobustDevice : IRobustDevice {
 		Utils.retryOnFalse({
 
 			okWidget = guiSnapshot.widgets.first { it.text == "OK" }
-			device.perform(ClickAction(okWidget.xpath, okWidget.resourceId))
+			device.perform(okWidget.click())
 			out = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 
 			if (out!!.isAppHasStoppedDialogBox) {
@@ -395,7 +395,7 @@ class RobustDevice : IRobustDevice {
 	private fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
 		return rebootIfNecessary("device.getGuiSnapshot()", true) {
-			perform(FetchGUI)
+			perform(FetchGUiAction)
 		}
 	}
 

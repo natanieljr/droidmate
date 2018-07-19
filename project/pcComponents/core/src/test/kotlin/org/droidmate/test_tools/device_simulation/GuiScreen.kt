@@ -124,8 +124,8 @@ class GuiScreen /*constructor(private val internalId: String,
 			assert(finishedBuilding)
 			return when (action) {
 			// TODO review
-					is SimulationAdbClearPackage -> internalPerform(action)
-					is LaunchApp -> internalPerform(action)
+					is SimulationAdbClearPackageAction -> internalPerform(action)
+					is LaunchAppAction -> internalPerform(action)
 					is ClickAction -> internalPerform(action)
 					is CoordinateClickAction -> internalPerform(action)
 					is LongClickAction -> internalPerform(action)
@@ -137,7 +137,7 @@ class GuiScreen /*constructor(private val internalId: String,
 	//region internalPerform multimethod
 
 	// This method is used: it is a multimethod.
-	private fun internalPerform(clearPackage: SimulationAdbClearPackage): IScreenTransitionResult {
+	private fun internalPerform(clearPackage: SimulationAdbClearPackageAction): IScreenTransitionResult {
 			return if (this.getGuiSnapshot().getPackageName() == clearPackage.packageName)
 					ScreenTransitionResult(home!!, ArrayList())
 			else
@@ -145,17 +145,17 @@ class GuiScreen /*constructor(private val internalId: String,
 	}
 
 	@Suppress("UNUSED_PARAMETER")
-	private fun internalPerform(launch: LaunchApp): IScreenTransitionResult =
+	private fun internalPerform(launch: LaunchAppAction): IScreenTransitionResult =
 					ScreenTransitionResult(main!!, this.buildMonitorMessages())
 
 	private fun internalPerform(action: Action): IScreenTransitionResult {
 			return when (action) {
-					is PressHome -> ScreenTransitionResult(home!!, ArrayList())
-					is EnableWifi -> {
+					is PressHomeAction -> ScreenTransitionResult(home!!, ArrayList())
+					is EnableWifiAction -> {
 							assert(this == home)
 							ScreenTransitionResult(this, ArrayList())
 					}
-					is PressBack -> ScreenTransitionResult(this, ArrayList())
+					is PressBackAction -> ScreenTransitionResult(this, ArrayList())
 					is ClickAction -> {
 							val widget = getSingleMatchingWidget(action, widgetTransitions.keys.toList())
 							ScreenTransitionResult(widgetTransitions[widget]!!, ArrayList())

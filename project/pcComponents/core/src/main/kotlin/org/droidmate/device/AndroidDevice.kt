@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 // DroidMate, an automated execution generator for Android apps.
 // Copyright (C) 2012-2018. Saarland University
 //
@@ -129,37 +130,38 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun perform(action: Action): DeviceResponse {
 		log.debug("perform($action)")
 		assert(action::class in arrayListOf(ClickAction::class,
-				FetchGUI::class,
+				FetchGUiAction::class,
 				CoordinateClickAction::class,
 				CoordinateLongClickAction::class,
 				LongClickAction::class,
 				TextAction::class,
 				WaitAction::class,
 				SwipeAction::class,
-				PressBack::class,
-				PressHome::class,
-				EnableWifi::class,
-				LaunchApp::class,
-				RotateUI::class,
-				MinimizeMaximize::class,
-				SimulationAdbClearPackage::class)) {"tried to perform unknown action ${action::class.simpleName}"}
+				PressBackAction::class,
+				PressHomeAction::class,
+				EnableWifiAction::class,
+				LaunchAppAction::class,
+				RotateUIAction::class,
+				MinimizeMaximizeAction::class,
+				SimulationAdbClearPackageAction::class)) {"tried to perform unknown action ${action::class.simpleName}"}
 
 		return when (action) {
 			is WaitAction -> wait(action)
-			is LaunchApp -> execute(action)
+			is LaunchAppAction -> execute(action)
 			is ClickAction -> execute(action)
 			is CoordinateClickAction -> execute(action)
 			is LongClickAction -> execute(action)
 			is CoordinateLongClickAction -> execute(action)
 			is TextAction -> execute(action)
 			is SwipeAction -> execute(action)
-			is PressBack -> execute(action)
-			is PressHome -> execute(action)
-			is EnableWifi -> execute(action)
-			is RotateUI -> execute(action)
-			is MinimizeMaximize -> execute(action)
-			is FetchGUI -> execute(action)
-			is SimulationAdbClearPackage -> throw DeviceException("call .clearPackage() directly instead")
+			is PressBackAction -> execute(action)
+			is PressHomeAction -> execute(action)
+			is EnableWifiAction -> execute(action)
+			is RotateUIAction -> execute(action)
+			is MinimizeMaximizeAction -> execute(action)
+			is FetchGUiAction -> execute(action)
+			is SimulationAdbClearPackageAction -> throw DeviceException("call .clearPackage() directly instead")
+			is MultiAction -> TODO()
 		}
 	}
 
@@ -340,7 +342,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	override fun launchApp(packageName: String): DeviceResponse {
 		log.debug("perform(newLaunchAppDeviceAction($packageName))")
-		return this.perform(LaunchApp(packageName))
+		return this.perform(LaunchAppAction(packageName))
 	}
 
 	override fun closeMonitorServers() {

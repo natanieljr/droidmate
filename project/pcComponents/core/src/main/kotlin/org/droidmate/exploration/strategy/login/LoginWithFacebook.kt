@@ -26,9 +26,7 @@ package org.droidmate.exploration.strategy.login
 
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.exploration.actions.EnterTextExplorationAction
-import org.droidmate.exploration.actions.ClickExplorationAction
+import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
@@ -102,7 +100,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 
 		if (button != null) {
 			signInClicked = true
-			return ClickExplorationAction(button)
+			return button.click()
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -119,7 +117,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		if (button != null) {
 			signInClicked = true
 			emailInserted = true
-			return EnterTextExplorationAction(emailValue, button)
+			return button.setText(emailValue)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -135,7 +133,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 
 		if (button != null) {
 			passwordInserted = true
-			return EnterTextExplorationAction(passwordValue, button)
+			return button.setText(passwordValue)
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -152,7 +150,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		if (button != null) {
 			loginClicked = true
 			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
-			return ClickExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
+			return button.click()
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -169,7 +167,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		if (button != null) {
 			continueClicked = true
 			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
-			return ClickExplorationAction(button, delay = DEFAULT_ACTION_DELAY)
+			return button.click()
 		}
 
 		throw DroidmateException("The exploration shouldn' have reached this point.")
@@ -218,7 +216,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 						?: widgets.first { it.text.toUpperCase() == "ALLOW" }
 			}
-			ClickExplorationAction(widget)
+			widget.click()
 		} else {
 			val widgets = eContext.getCurrentState().actionableWidgets
 			getWidgetAction(widgets)

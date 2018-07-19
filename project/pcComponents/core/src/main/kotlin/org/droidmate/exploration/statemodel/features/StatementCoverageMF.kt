@@ -239,7 +239,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	override suspend fun dump(context: ExplorationContext) {
 		running.set(false)
 		sysCmdExecutor.stopCurrentExecutionIfExisting()
-		log.info("Logcat monitor thread destroyed")
+		log.info("Coverage monitor thread destroyed")
 	}
 
 }

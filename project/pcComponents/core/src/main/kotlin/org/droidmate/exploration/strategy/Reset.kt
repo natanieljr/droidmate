@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.actions.ResetAppExplorationAction
+import org.droidmate.exploration.actions.resetApp
 
 /**
  * Base for exploration strategies that reset and exploration.
@@ -38,7 +38,7 @@ class Reset : AbstractStrategy() {
 		// There' no previous widget after a reset
 		this.eContext.lastTarget = Widget()
 
-		return ResetAppExplorationAction()
+		return eContext.resetApp()
 	}
 
 	override fun mustPerformMoreActions(): Boolean {

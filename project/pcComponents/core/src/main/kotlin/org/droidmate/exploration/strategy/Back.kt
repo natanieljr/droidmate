@@ -25,7 +25,7 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.exploration.actions.PressBackExplorationAction
+import org.droidmate.exploration.actions.pressBack
 
 /**
  * Exploration strategy that presses the back button on the device.
@@ -40,6 +40,6 @@ class Back : AbstractStrategy() {
 	}
 
 	override fun internalDecide(): AbstractExplorationAction {
-		return PressBackExplorationAction()
+		return eContext.pressBack()
 	}
 }

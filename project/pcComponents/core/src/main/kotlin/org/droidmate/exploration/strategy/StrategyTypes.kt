@@ -32,7 +32,7 @@ package org.droidmate.exploration.strategy
 /*enum class StrategyTypes(val strategyName: String) {
 	// Default
 	RandomWidget("RandomWidget"),
-	PressBack("PressBack"),
+	PressBackAction("PressBackAction"),
 
 	// ExplorationContext based
 	ModelBased("ModelBased"),

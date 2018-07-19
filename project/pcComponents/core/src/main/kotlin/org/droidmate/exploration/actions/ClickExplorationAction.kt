@@ -25,31 +25,22 @@
 
 package org.droidmate.exploration.actions
 
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.debug.debugT
-import org.droidmate.device.android_sdk.IApk
-import org.droidmate.device.deviceInterface.DeviceLogsHandler
-import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.uiautomator_daemon.guimodel.*
+import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.uiautomator_daemon.guimodel.CoordinateClickAction
 
-private var performT: Long = 0
-private var performN: Int = 1
+@Deprecated("to be removed",replaceWith = ReplaceWith("widget.click()"))
+open class ClickExplorationAction
+@Deprecated("click actions are always going to use coordinates in the future",ReplaceWith("widget.click()"))
+@JvmOverloads constructor(widget: Widget, useCoordinates: Boolean = true, delay: Int = 0): AbstractClickExplorationAction(widget, useCoordinates, delay){
 
-@Deprecated("click actions are always going to use coordinates in the future, and delay is already ignored right now",ReplaceWith("ClickExplorationAction(widget)"))
-open class ClickExplorationAction @JvmOverloads constructor(widget: Widget,
-															useCoordinates: Boolean = true,
-															delay: Int = 100): AbstractClickExplorationAction(widget, useCoordinates, delay) {
 	override val description: String
 		get() = "click"
 
 	override fun toShortString(): String = "CL ${widget.toShortString()}"// "SW? ${if (swipe) 1 else 0} LC? ${if (longClick) 1 else 0} " + widget.toShortString()
 
 	override fun getClickAction(widget: Widget): Action {
-		return ClickAction(widget.xpath, widget.resourceId)
+		return widget.getClickAction()
 	}
 
 	override fun getCoordinateClickAction(x: Int, y: Int): Action {

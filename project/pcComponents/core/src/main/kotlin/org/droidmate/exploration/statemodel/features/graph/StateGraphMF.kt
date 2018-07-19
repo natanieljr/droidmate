@@ -30,6 +30,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 		val newState = context.getCurrentState()
 		// After reset, link to root node.
 		// Root node is static (Empty) because the app may present different initial screens after each reset
+		@Suppress("DEPRECATION")
 		val sourceState = if (lastAction.actionType == getActionIdentifier<ResetAppExplorationAction>())
 			root.data
 		else
