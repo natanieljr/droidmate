@@ -84,10 +84,10 @@ jar {
 		attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
 	}
 }
+
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish'
-
-publish.dependsOn {
+task resolveDependencies{ doFirst {
 	configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
 
 		if (resolvedArtifact.name != "all")
@@ -105,4 +105,5 @@ publish.dependsOn {
 				}
 			}
 	}
-}
+}}
+publish.dependsOn(resolveDependencies)
