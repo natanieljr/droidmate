@@ -43,5 +43,6 @@ fun ExplorationContext.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int): 
  */
 @JvmOverloads fun ExplorationContext.queue(actions: List<ExplorationAction>,delay:Long=0) = ActionQueue(actions,delay)
 
+//TODO enableWifi takes ~11s therefore we may consider to only do it once on exploration start instead
 fun ExplorationContext.resetApp(): ExplorationAction = queue(listOf(LaunchApp(apk.packageName),GlobalAction(ActionType.EnableWifi))) // using ActionQue to issue multiple actions
 fun terminateApp(): ExplorationAction = GlobalAction(ActionType.Terminate)

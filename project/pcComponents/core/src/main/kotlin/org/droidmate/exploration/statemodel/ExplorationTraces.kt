@@ -258,7 +258,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	}
 
 	val currentState get() = newState.first
-	var size: Int = 0 // avoid delay from trace access and just count how many actions were created
+	var size: Int = 0 // avoid timeout from trace access and just count how many actions were created
 	var lastActionType: String = ""
 
 	val interactedEditFields: Map<UUID, List<Pair<StateData, Widget>>> get() = editFields

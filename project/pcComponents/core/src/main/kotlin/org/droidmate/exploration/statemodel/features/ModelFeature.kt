@@ -75,7 +75,7 @@ abstract class ModelFeature {
 	/** called whenever a new action was executed on the device resulting in [newState]
 	 * this function may be used instead of update for simpler access to the action and result state.
 	 *
-	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional delay to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
+	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional timeout to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
 	open suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
 

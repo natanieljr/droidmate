@@ -20,10 +20,21 @@ import org.droidmate.exploration.statemodel.Widget
  * (you should use [navigateTo] instead).
  */
 fun Widget.click(): ExplorationAction{
+	if(!visible || !enabled || !clickable)
+		throw RuntimeException("ERROR: tried to click non-actable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let{ (x,y) -> Click(x, y,true) }
 }
+fun Widget.tick(): ExplorationAction{
+	if(!visible || !enabled)
+		throw RuntimeException("ERROR: tried to tick non-actable (checkbox) Widget $this")
+	widgetTargets.add(this)
+	return clickCoordinate().let{ (x,y) -> Click(x, y,true) }
+}
+
 fun Widget.longClick(): ExplorationAction{
+	if(!visible || !enabled || !longClickable)
+		throw RuntimeException("ERROR: tried to long-click non-actable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let{ (x,y) -> LongClick(x, y,true) }
 }

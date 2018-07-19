@@ -100,7 +100,7 @@ abstract class UiParser {
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
 			{ serializer: XmlSerializer, width: Int, height: Int ->
-				{ node: AccessibilityNodeInfo, index: Int->
+				{ node: AccessibilityNodeInfo, index: Int, _ ->
 					serializer.startTag("", "node")
 					if (!nafExcludedClass(node))
 						serializer.attribute("", "NAF", java.lang.Boolean.toString(true))

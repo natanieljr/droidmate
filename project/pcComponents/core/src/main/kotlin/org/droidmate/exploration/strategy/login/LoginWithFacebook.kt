@@ -150,7 +150,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 
 		if (button != null) {
 			loginClicked = true
-			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
+			// Logging in on facebook is sometimes slow. Add a 3 seconds timeout
 			return button.click()
 		}
 
@@ -167,7 +167,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 
 		if (button != null) {
 			continueClicked = true
-			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
+			// Logging in on facebook is sometimes slow. Add a 3 seconds timeout
 			return button.click()
 		}
 

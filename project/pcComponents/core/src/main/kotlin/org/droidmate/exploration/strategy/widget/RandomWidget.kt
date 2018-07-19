@@ -121,7 +121,8 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	}, inMillis = true)
 
 	private fun chooseBiased(): ExplorationAction = runBlocking{
-		val candidates = computeCandidates().let { filteredCandidates ->
+		val candidates = computeCandidates().filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
+				.let { filteredCandidates ->
 			// for each widget in this state the number of interactions
 			counter.numExplored(currentState, filteredCandidates).entries
 					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
@@ -179,11 +180,11 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			actionList.add(widget.click())
 
 		if (widget.checked != null)
-			actionList.add(widget.click())
+			actionList.add(widget.tick())
 
 		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
-		if (widget.scrollable)
-			actionList.add(widget.click())
+//		if (widget.scrollable)
+//			actionList.add(widget.click())
 
 		/*if (chosenWidget.scrollable) {
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))

@@ -11,6 +11,7 @@ sealed class ExplorationAction : Serializable{
 	open val hasWidgetTarget = false
 
 	fun isTerminate() = name == ActionType.Terminate.name
+	fun isFetch() = name == ActionType.FetchGUI.name
 }
 object EmptyAction: ExplorationAction()
 
@@ -36,7 +37,7 @@ fun String.isTerminate():Boolean = this == ActionType.Terminate.name
 fun String.isPressBack():Boolean = this == ActionType.PressBack.name
 
 data class RotateUI(val rotation: Int): ExplorationAction()
-data class LaunchApp(val appLaunchIconName: String, val delay: Long = 10000) : ExplorationAction(){
+data class LaunchApp(val appLaunchIconName: String, val timeout: Long = 10000) : ExplorationAction(){
 	companion object {
 		const val name = "LaunchApp"
 	}

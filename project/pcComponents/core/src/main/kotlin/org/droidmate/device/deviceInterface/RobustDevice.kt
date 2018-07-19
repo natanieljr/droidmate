@@ -183,7 +183,7 @@ class RobustDevice : IRobustDevice {
 
 		},
 				this.stopAppRetryAttempts,
-				/* Retry delay. Zero, because after seeing the app didn't stop, we immediately clear package again. */
+				/* Retry timeout. Zero, because after seeing the app didn't stop, we immediately clear package again. */
 				0)
 	}
 
@@ -205,7 +205,7 @@ class RobustDevice : IRobustDevice {
 
 			guiSnapshot.isHomeScreen
 		},
-				ensureHomeScreenIsDisplayedAttempts, /* delay */ 0)
+				ensureHomeScreenIsDisplayedAttempts, /* timeout */ 0)
 
 		if (!guiSnapshot.isHomeScreen) {
 			throw DeviceException("Failed to ensure home screen is displayed. " +

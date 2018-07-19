@@ -67,17 +67,29 @@ object UiHierarchy : UiParser() {
 
 	/** check if this node fullfills the given condition and recursively check descendents if not **/
 	fun any(device: UiDevice, cond: SelectorCondition):Boolean{
-		var found = false
+		return findAndPerform(device,cond) { _ -> true}
+	}
 
-		val processor:NodeProcessor = { node,_ ->
+	/** looks for a UiElement fulfilling [cond] and executes [action] on it.
+	 * The search condition should be unique to avoid unwanted side-effects on other nodes which fulfill the same condition.
+	 */
+	fun findAndPerform(device: UiDevice, cond: SelectorCondition, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
+		var found = false
+		var successfull = false
+
+		val processor:NodeProcessor = { node,_, xPath ->
 			if (!isActive || !node.isVisibleToUser || !node.refresh()) false  // do not traverse deeper
 			else {
-				found = cond(node)
+				found = cond(node,xPath).also {
+					if(it){
+						successfull = action(node)
+					}
+				}
 				!found // continue if condition is not fulfilled yet
 			}
 		}
 		device.apply(processor)
-		return found
+		return found && successfull
 	}
 
 	/** @paramt timeout amount of mili seconds, maximal spend to wait for condition [cond] to become true (default 10s)
