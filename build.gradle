@@ -30,10 +30,6 @@ allprojects {
 		from sourceSets.main.allSource
 		from sourceSets.test.allSource
 	}
-	apply plugin: 'maven'
-	artifacts {
-		archives sourcesJar
-	}
 }
 
 apply from: file("project/log.gradle")
