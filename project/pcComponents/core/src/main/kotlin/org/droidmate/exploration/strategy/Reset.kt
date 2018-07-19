@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.resetApp
 
@@ -34,7 +34,7 @@ import org.droidmate.exploration.actions.resetApp
  * @author Nataniel P. Borges Jr.
  */
 class Reset : AbstractStrategy() {
-	override fun internalDecide(): AbstractExplorationAction {
+	override fun internalDecide(): ExplorationAction {
 		// There' no previous widget after a reset
 		this.eContext.lastTarget = Widget()
 

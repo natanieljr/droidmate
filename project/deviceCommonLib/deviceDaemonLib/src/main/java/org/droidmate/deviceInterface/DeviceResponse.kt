@@ -23,13 +23,13 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.uiautomator_daemon
+package org.droidmate.deviceInterface
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
 import org.slf4j.LoggerFactory
 import java.io.Serializable
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.WidgetData
 
 
 open class DeviceResponse private constructor(val windowHierarchyDump: String,

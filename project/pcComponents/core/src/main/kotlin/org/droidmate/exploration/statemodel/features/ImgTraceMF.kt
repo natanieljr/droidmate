@@ -57,7 +57,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 
 	var i: AtomicInteger = AtomicInteger(0)
-	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData){
+	override suspend fun onNewInteracted(targetWidgets: List<Widget>, prevState: StateData, newState: StateData){
 		// check if we have any screenshots to process
 		if(!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
 
@@ -70,7 +70,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		if(!screenFile.exists()) return // thread was canceled but no file to process is ready yet
 
 		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step.png")
-		if(targetWidget == null) {		// move file to trace directory
+		if(targetWidgets.isEmpty()) {		// move file to trace directory
 			screenFile.copyTo(targetFile, overwrite = true)
 			return
 		}
@@ -79,7 +79,9 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		stateImg.createGraphics().apply{
 			paint = Color.red
 			stroke = BasicStroke(10F)
-			drawOval(targetWidget.bounds)
+			targetWidgets.forEach {
+				drawOval(it.bounds)
+			}
 		}
 		ImageIO.write(stateImg,"png",targetFile)
 	}

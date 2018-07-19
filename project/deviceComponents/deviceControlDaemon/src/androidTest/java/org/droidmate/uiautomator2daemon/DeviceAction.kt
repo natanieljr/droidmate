@@ -34,11 +34,11 @@ import android.util.Log
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
-import org.droidmate.uiautomator_daemon.guimodel.*
 import kotlin.math.max
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
@@ -95,29 +95,30 @@ internal sealed class DeviceAction {
 	companion object {
 		const val LOGTAG = UiautomatorDaemonConstants.deviceLogcatTagPrefix + "DeviceAction"
 
-		@JvmStatic fun fromAction(a: Action, _waitForIdleTimeout: Long, _waitForInteractableTimeout: Long): DeviceAction? = with(a) {
+		@JvmStatic fun fromAction(a: ExplorationAction, _waitForIdleTimeout: Long, _waitForInteractableTimeout: Long): DeviceAction? = with(a) {
 			return when (this) {
-				is WaitAction -> DeviceWaitAction(target, criteria)
-				is LongClickAction -> DeviceLongClickAction(xPath, resId)
-				is CoordinateLongClickAction -> DeviceCoordinateLongClickAction(x, y)
-				is SwipeAction -> {
-					if (start == null || dst == null) throw NotImplementedError("swipe executions currently only support point to point execution (TODO)")
-					else DeviceSwipeAction(start!!, dst!!)
+				is LongClick -> DeviceCoordinateLongClickAction(x, y)
+				is Swipe -> {
+					if (start == null || end == null) throw NotImplementedError("swipe executions currently only support point to point execution (TODO)")
+					else DeviceSwipeAction(start!!, end!!)
 				}
-				is TextAction -> DeviceTextAction(xPath, resId, text)
-				is ClickAction -> DeviceClickAction(xPath, resId)
-				is CoordinateClickAction -> DeviceCoordinateClickAction(x, y)
-				is PressBackAction -> DevicePressBack()
-				is PressHomeAction -> DevicePressHome()
-				is EnableWifiAction -> DeviceEnableWifi()
-				is LaunchAppAction -> DeviceLaunchApp(appLaunchIconName)
-				is FetchGUiAction -> DeviceFetchGUIAction()
-				is RotateUIAction -> DeviceRotateUIAction(rotation)
-				is MinimizeMaximizeAction -> DeviceMinimizeMaximizeAction()
-				is SimulationAdbClearPackageAction -> {
+				is TextInsert -> DeviceTextAction(idHash, text)
+				is Click -> DeviceCoordinateClickAction(x, y)
+				is GlobalAction ->
+						when(actionType) {
+							ActionType.PressBack -> DevicePressBack()
+							ActionType.PressHome -> DevicePressHome()
+							ActionType.EnableWifi -> DeviceEnableWifi()
+							ActionType.MinimizeMaximize -> DeviceMinimizeMaximizeAction()
+							ActionType.FetchGUI -> DeviceFetchGUIAction()
+							ActionType.Terminate -> null /* should never be transfered to the device */
+						}
+				is LaunchApp -> DeviceLaunchApp(appLaunchIconName)
+				is RotateUI -> DeviceRotateUIAction(rotation)
+				is SimulationAdbClearPackage, EmptyAction -> {
 					null /* There's no equivalent device action */
 				}
-				is MultiAction -> TODO()
+				is ActionQueue -> DeviceActionQueue(actions,delay)
 			}?.apply {
 				waitForIdleTimeout = _waitForIdleTimeout
 				waitForInteractableTimeout = _waitForInteractableTimeout
@@ -194,6 +195,16 @@ internal sealed class DeviceAction {
 
 }
 
+private class DeviceActionQueue(val actions: List<ExplorationAction>, val delay: Long): DeviceAction() {
+	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) = runBlocking {
+		actions.forEach{
+			DeviceAction.fromAction(it,waitForIdleTimeout, waitForInteractableTimeout)!!.execute(device,context,automation)
+			delay(delay)
+		}
+	}
+
+}
+
 private class DevicePressBack : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
@@ -265,32 +276,32 @@ private data class DeviceSwipeAction(val start: Pair<Int, Int>,
 	}
 }
 
-private data class DeviceWaitAction(private val id: String, private val criteria: WidgetSelector) : DeviceAction() {
-
-	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		Log.d(logTag, "Wait for element to exist" + this.toString())
-		when (criteria) {
-			WidgetSelector.ResourceId -> findByResId(id)
-			WidgetSelector.ClassName -> findByClassName(id)
-			WidgetSelector.ContentDesc -> findByDescription(id)
-			WidgetSelector.XPath -> findByXPath(id)
-		}.let {
-			device.findObject(it).let {
-				// REMARK this wait is necessary to avoid StackOverflowError in the QueryController, which would happen depending on when the UI view stabilizes
-				measureTimeMillis { TODO("refactor to use new UiHierarchy")
-					//device.wait(hasInteractive, 20000)
-				}.let { Log.d(logTag, "waited $it millis for interactive element") }
-				var success = false
-				measureTimeMillis { success = it.waitForExists(10000) }.let { Log.d(logTag, "waited for exists $it millis with result $success") }
-				if (!success) {
-					Log.w(logTag, "WARN element $id not found")
-					val clickable = device.findObjects(By.clickable(true)).map { o -> o.resourceName + ": ${o.visibleCenter}" }
-					Log.d(logTag, "clickable elements: $clickable")
-				}
-			}
-		} // wait up to 10 seconds
-	}
-}
+//private data class DeviceWaitAction(private val id: String, private val criteria: WidgetSelector) : DeviceAction() {
+//
+//	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
+//		Log.d(logTag, "Wait for element to exist" + this.toString())
+//		when (criteria) {
+//			WidgetSelector.ResourceId -> findByResId(id)
+//			WidgetSelector.ClassName -> findByClassName(id)
+//			WidgetSelector.ContentDesc -> findByDescription(id)
+//			WidgetSelector.XPath -> findByXPath(id)
+//		}.let {
+//			device.findObject(it).let {
+//				// REMARK this wait is necessary to avoid StackOverflowError in the QueryController, which would happen depending on when the UI view stabilizes
+//				measureTimeMillis { //("refactor to use new UiHierarchy")
+//					//device.wait(hasInteractive, 20000)
+//				}.let { Log.d(logTag, "waited $it millis for interactive element") }
+//				var success = false
+//				measureTimeMillis { success = it.waitForExists(10000) }.let { Log.d(logTag, "waited for exists $it millis with result $success") }
+//				if (!success) {
+//					Log.w(logTag, "WARN element $id not found")
+//					val clickable = device.findObjects(By.clickable(true)).map { o -> o.resourceName + ": ${o.visibleCenter}" }
+//					Log.d(logTag, "clickable elements: $clickable")
+//				}
+//			}
+//		} // wait up to 10 seconds
+//	}
+//}
 
 private var eTime: Long =0
 private var eCnt: Int =1
@@ -333,21 +344,14 @@ private data class DeviceCoordinateClickAction(val x: Int, val y: Int) : DeviceA
 		debugT("executeAction avg = ${eTime / eCnt} ms ${this.javaClass.simpleName}", {
 
 			Log.d(logTag, "Clicking coordinates ($x,$y)")
-			assert(x >= 0 && x < device.displayWidth, { "Error on uncoveredCoord click invalid x:$x" })
-			assert(y >= 0 && y < device.displayHeight, { "Error on uncoveredCoord click invalid y:$y" })
+			assert(x >= 0 && x < device.displayWidth) { "Error on uncoveredCoord click invalid x:$x" }
+			assert(y >= 0 && y < device.displayHeight) { "Error on uncoveredCoord click invalid y:$y" }
 			Log.d(logTag, "Clicked coordinates $x, $y")
 			device.click(x, y,waitForInteractableTimeout)
 		},timer = {
 			eTime += it/1000000
 			eCnt += 1
 		},inMillis = true)
-	}
-}
-
-private data class DeviceLongClickAction(override val xPath: String, override val resId: String) : DeviceObjectAction() {
-
-	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
-		executeAction(device, { o -> o.longClick() }, { o -> o.longClick() })
 	}
 }
 
@@ -370,6 +374,7 @@ private data class DeviceCoordinateLongClickAction(val x: Int, val y: Int) : Dev
 private data class DeviceTextAction(override val xPath: String,
                                     override val resId: String,
                                     val text: String) : DeviceObjectAction() {
+	constructor(idHash: Int, text: String) : this("TODO","TODO",text)
 
 	val selector by lazy { if (xPath.isNotEmpty()) findByXPath(xPath) else findByResId(resId) }
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {

@@ -38,7 +38,7 @@ import org.droidmate.device.deviceInterface.RobustDevice
 import org.droidmate.logging.Markers
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.DroidmateException
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants
 import org.slf4j.LoggerFactory
 
 class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,

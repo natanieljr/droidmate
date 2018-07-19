@@ -38,10 +38,8 @@ import org.droidmate.device.TcpServerUnreachableException
 import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
-import org.droidmate.uiautomator_daemon.guimodel.FetchGUiAction
-import org.droidmate.uiautomator_daemon.guimodel.PressHomeAction
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
@@ -200,7 +198,7 @@ class RobustDevice : IRobustDevice {
 					guiSnapshot.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
 					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
-						perform(PressHomeAction)
+						perform(GlobalAction(ActionType.PressHome))
 					}
 				}
 			}
@@ -259,7 +257,7 @@ class RobustDevice : IRobustDevice {
 			false
 	}
 
-	override fun perform(action: Action): DeviceResponse {
+	override fun perform(action: ExplorationAction): DeviceResponse {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
 							{ debugT("perform action ${action::class.simpleName} avg = ${time/max(1,c)}", {this.device.perform(action)}
@@ -395,7 +393,7 @@ class RobustDevice : IRobustDevice {
 	private fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
 		return rebootIfNecessary("device.getGuiSnapshot()", true) {
-			perform(FetchGUiAction)
+			perform(GlobalAction(ActionType.FetchGUI))
 		}
 	}
 

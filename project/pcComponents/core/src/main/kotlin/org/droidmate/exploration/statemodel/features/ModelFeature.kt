@@ -62,11 +62,15 @@ abstract class ModelFeature {
 	open suspend fun onContextUpdate(context: ExplorationContext) { /* do nothing [to be overwritten] */
 	}
 
-	/** called whenever a new [targetWidget] was executed on the device resulting in [newState]
-	 * this function may be used instead of update for simpler access to the action and result state
+	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
+	 * this function may be used instead of update for simpler access to the action and result state.
+	 * The [targetWidgets] belong to the actions with hasWidgetTarget = true and are in the same order as they appeared
+	 * in the actionqueue.
 	 **/
-	open suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewInteracted(targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
+
+	// TODO check if an additional method with (targets,actions:ExplorationAction) would prove usefull
 
 	/** called whenever a new action was executed on the device resulting in [newState]
 	 * this function may be used instead of update for simpler access to the action and result state.

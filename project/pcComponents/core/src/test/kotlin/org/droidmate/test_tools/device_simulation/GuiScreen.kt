@@ -24,13 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 /**
  * <p>
  * The time generator provides successive timestamps to the logs returned by the simulated device from a call to
- * {@link #perform(org.droidmate.uiautomator_daemon.guimodel.Action)}.
+ * {@link #perform(org.droidmate.uiautomator_daemon.guimodel.ExplorationAction)}.
  *
  * </p><p>
  * If this object s a part of simulation obtained from exploration output the time generator is null, as no time needs to be
@@ -42,7 +42,7 @@ class GuiScreen /*constructor(private val internalId: String,
                             packageName : String = "", 
                             private val timeGenerator : ITimeGenerator? = null)*/ // TODO Fix tests
 	: IGuiScreen {
-	override fun perform(action: Action): IScreenTransitionResult {
+	override fun perform(action: ExplorationAction): IScreenTransitionResult {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -120,7 +120,7 @@ class GuiScreen /*constructor(private val internalId: String,
 			assert((this.internalId in reservedIds) || (this.packageName !in reservedIdsPackageNames.values))
 	}
 
-	override fun perform(action: Action): IScreenTransitionResult {
+	override fun perform(action: ExplorationAction): IScreenTransitionResult {
 			assert(finishedBuilding)
 			return when (action) {
 			// TODO review
@@ -148,7 +148,7 @@ class GuiScreen /*constructor(private val internalId: String,
 	private fun internalPerform(launch: LaunchAppAction): IScreenTransitionResult =
 					ScreenTransitionResult(main!!, this.buildMonitorMessages())
 
-	private fun internalPerform(action: Action): IScreenTransitionResult {
+	private fun internalPerform(action: ExplorationAction): IScreenTransitionResult {
 			return when (action) {
 					is PressHomeAction -> ScreenTransitionResult(home!!, ArrayList())
 					is EnableWifiAction -> {

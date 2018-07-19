@@ -5,8 +5,8 @@ import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.getBounds
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
-import org.droidmate.uiautomator_daemon.guimodel.center
+import org.droidmate.deviceInterface.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.center
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
 
@@ -15,7 +15,7 @@ abstract class UiParser {
 	protected var deviceW: Int = 0
 	protected var deviceH: Int = 0
 	protected var rootIdx: Int = 0
-	protected suspend fun createBottomUp(node: AccessibilityNodeInfo, index: Int = 0, parentXpath: String, nodes: MutableList<WidgetData>, parentH: Int = 0): WidgetData{
+	protected suspend fun createBottomUp(node: AccessibilityNodeInfo, index: Int = 0, parentXpath: String, nodes: MutableList<WidgetData>, parentH: Int = 0): WidgetData {
 		if(!isActive) return WidgetData("Error Fetch was canceled")
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
@@ -31,7 +31,7 @@ abstract class UiParser {
 		}
 	}
 
-	private fun AccessibilityNodeInfo.createWidget(xPath: String, children: List<WidgetData>,parentH: Int): WidgetData{
+	private fun AccessibilityNodeInfo.createWidget(xPath: String, children: List<WidgetData>, parentH: Int): WidgetData {
 		val nodeRect: Rect = this.getBounds(deviceW, deviceH)
 
 		val node = WidgetData(
@@ -45,8 +45,8 @@ abstract class UiParser {
 				isPassword = isPassword,
 				clickable = isClickable,
 				longClickable = isLongClickable,
-				checked = if(isCheckable) isChecked else null,
-				focused = if(isFocusable)	isFocused else null,
+				checked = if (isCheckable) isChecked else null,
+				focused = if (isFocusable) isFocused else null,
 				scrollable = isScrollable,
 				selected = isSelected,
 				visible = isVisibleToUser,

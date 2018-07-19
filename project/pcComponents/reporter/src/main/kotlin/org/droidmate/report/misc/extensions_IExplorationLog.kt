@@ -26,8 +26,8 @@ package org.droidmate.report.misc
 
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.apis.IApiLogcatMessage
+import org.droidmate.deviceInterface.guimodel.isLaunchApp
 import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.emptyUUID
 import java.util.*
@@ -57,7 +57,7 @@ val ExplorationContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
 	}
 
 val ExplorationContext.resetActionsCount: Int
-	get() = actionTrace.getActions().count { it.actionType == ResetAppExplorationAction::class.simpleName }
+	get() = actionTrace.getActions().count { it.actionType.isLaunchApp() }
 
 val ExplorationContext.apkFileNameWithUnderscoresForDots: String
 	get() = apk.fileName.replace(".", "_")

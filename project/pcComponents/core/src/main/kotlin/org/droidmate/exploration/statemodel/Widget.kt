@@ -27,10 +27,10 @@ package org.droidmate.exploration.statemodel
 
 import org.droidmate.configuration.ConfigProperties.ModelProperties
 import kotlinx.coroutines.experimental.launch
-import org.droidmate.uiautomator_daemon.guimodel.P
+import org.droidmate.deviceInterface.guimodel.P
 //import org.droidmate.uiautomator_daemon.WidgetData
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
-import org.droidmate.uiautomator_daemon.guimodel.toUUID
+import org.droidmate.deviceInterface.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.toUUID
 //import org.droidmate.uiautomator_daemon.toUUID
 import java.awt.Point
 import java.awt.Rectangle
@@ -99,6 +99,8 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	// => stateData val idWithoutEditFields
 
 	val id by lazy { Pair(uid, propertyConfigId) }
+	// used internally to re-identify elements between device and pc (computed as hash code of the elements (customized) unique xpath)
+	internal val idHash = properties.idHash
 
 
 	val isEdit: Boolean = className.toLowerCase().contains("edit")
@@ -228,7 +230,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		}
 
 		@JvmStatic
-		val idIdx by lazy { Pair(P.UID.ordinal,P.WdId.ordinal) }
+		val idIdx by lazy { Pair(P.UID.ordinal, P.WdId.ordinal) }
 		@JvmStatic
 		val widgetHeader:(String)->String by lazy {{ sep:String -> P.values().joinToString(separator = sep) { it.header } } }
 

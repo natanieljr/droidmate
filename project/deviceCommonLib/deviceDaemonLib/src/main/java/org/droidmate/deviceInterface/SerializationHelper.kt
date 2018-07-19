@@ -20,7 +20,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.uiautomator_daemon
+package org.droidmate.deviceInterface
 
 import java.io.*
 

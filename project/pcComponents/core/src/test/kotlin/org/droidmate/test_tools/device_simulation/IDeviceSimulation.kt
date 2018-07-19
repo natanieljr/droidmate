@@ -26,11 +26,11 @@ package org.droidmate.test_tools.device_simulation
 
 import com.google.common.annotations.VisibleForTesting
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 interface IDeviceSimulation {
-	fun updateState(deviceAction: Action)
+	fun updateState(deviceAction: ExplorationAction)
 
 	fun getCurrentGuiSnapshot(): DeviceResponse
 

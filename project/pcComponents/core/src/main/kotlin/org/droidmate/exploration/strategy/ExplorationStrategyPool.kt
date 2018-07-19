@@ -26,13 +26,11 @@
 package org.droidmate.exploration.strategy
 
 import kotlinx.coroutines.experimental.*
-import org.droidmate.debug.debugT
-import org.droidmate.debug.nullableDebugT
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.slf4j.LoggerFactory
 import java.lang.Math.max
 
@@ -179,7 +177,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		this.updateStrategiesState(record)
 	}
 
-	override fun decide(result: ActionResult): AbstractExplorationAction {
+	override fun decide(result: ActionResult): ExplorationAction {
 
 		logger.debug("decide($result)")
 

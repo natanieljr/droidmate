@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.actions.click
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
@@ -46,7 +46,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 				widgets.any { it.text.toLowerCase() == "google" }
 	}
 
-	private fun clickGoogle(widgets: List<Widget>): AbstractExplorationAction {
+	private fun clickGoogle(widgets: List<Widget>): ExplorationAction {
 		val widget = widgets.firstOrNull { it.text.toLowerCase() == "google" }
 
 		if (widget != null) {
@@ -61,7 +61,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 		return widgets.any { it.resourceId == RES_ID_ACCOUNT }
 	}
 
-	private fun clickAccount(widgets: List<Widget>): AbstractExplorationAction {
+	private fun clickAccount(widgets: List<Widget>): ExplorationAction {
 		val widget = widgets.firstOrNull { it.resourceId == RES_ID_ACCOUNT }
 
 		if (widget != null) {
@@ -76,7 +76,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 		return widgets.any { it.resourceId == RES_ID_ACCEPT }
 	}
 
-	private fun clickAccept(widgets: List<Widget>): AbstractExplorationAction {
+	private fun clickAccept(widgets: List<Widget>): ExplorationAction {
 		val widget = widgets.firstOrNull { it.resourceId == RES_ID_ACCEPT }
 
 		if (widget != null) {
@@ -111,7 +111,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 		return StrategyPriority.NONE
 	}*/
 
-	private fun getWidgetAction(widgets: List<Widget>): AbstractExplorationAction {
+	private fun getWidgetAction(widgets: List<Widget>): ExplorationAction {
 		// Can click on login
 		return when {
 			canClickGoogle(widgets) -> clickGoogle(widgets)
@@ -121,7 +121,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 		}
 	}
 
-	override fun chooseAction(): AbstractExplorationAction {
+	override fun chooseAction(): ExplorationAction {
 		return if (eContext.getCurrentState().isRequestRuntimePermissionDialogBox) {
 			val widget = eContext.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }

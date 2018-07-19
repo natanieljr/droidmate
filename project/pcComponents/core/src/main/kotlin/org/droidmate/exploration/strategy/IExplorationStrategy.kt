@@ -25,12 +25,12 @@
 
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 interface IExplorationStrategy {
 
-	fun decide(result: ActionResult): AbstractExplorationAction
+	fun decide(result: ActionResult): ExplorationAction
 
 	fun update(record: ActionResult)
 	fun close()

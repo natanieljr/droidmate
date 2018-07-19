@@ -28,9 +28,9 @@ package org.droidmate.exploration.statemodel.features
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.newCoroutineContext
+import org.droidmate.deviceInterface.guimodel.ActionType
+import org.droidmate.deviceInterface.guimodel.LaunchApp
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import java.io.File
@@ -48,7 +48,7 @@ class BlackListMF: WidgetCountingMF() {
 
 	@Suppress("DEPRECATION")
 	private fun isStuck(actionType: String): Boolean =	when(actionType){  // ignore initial reset
-		ResetAppExplorationAction::class.simpleName, PressBackExplorationAction::class.simpleName -> true
+		LaunchApp.name, ActionType.PressBack.name -> true
 		else -> false
 	}
 

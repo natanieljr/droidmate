@@ -25,11 +25,11 @@
 
 package org.droidmate.exploration.strategy
 
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -128,7 +128,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		this.listeners.add(listener)
 	}
 
-	override fun decide(): AbstractExplorationAction {
+	override fun decide(): ExplorationAction {
 		val action = this.internalDecide()
 
 		if (!this.mustPerformMoreActions())
@@ -165,7 +165,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	/**
 	 * Selects an action to be executed based on the [current widget context][currentState]
 	 */
-	abstract fun internalDecide(): AbstractExplorationAction
+	abstract fun internalDecide(): ExplorationAction
 
 	companion object {
 		val logger: Logger by lazy { LoggerFactory.getLogger(ExplorationStrategy::class.java) }

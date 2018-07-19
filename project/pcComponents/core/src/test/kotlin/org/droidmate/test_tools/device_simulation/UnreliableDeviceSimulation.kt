@@ -25,8 +25,8 @@
 package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
                                  packageName: String,
@@ -34,7 +34,7 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
                                  private val simulation: IDeviceSimulation = DeviceSimulation(timeGenerator, packageName, specString))*/ // TODO Fix tests
 	: IDeviceSimulation /*by simulation*/ // TODO Fix tests
 {
-	override fun updateState(deviceAction: Action) {
+	override fun updateState(deviceAction: ExplorationAction) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -65,9 +65,9 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
 			this.unreliableGuiSnapshotProvider = UnreliableDeviceGuiSnapshotProvider(this.simulation.getCurrentGuiSnapshot())
 	}
 
-	override fun updateState(deviceAction: Action) {
+	override fun updateState(deviceAction: ExplorationAction) {
 			// WISH later on support for failing calls to AndroidDevice.clearPackage would be nice. Currently,
-			// org.droidmate.test_tools.device_simulation.UnreliableDeviceSimulation.transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(Action)
+			// org.droidmate.test_tools.device_simulation.UnreliableDeviceSimulation.transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(ExplorationAction)
 			// just updates state of the underlying simulation and that's it.
 
 			if (this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().validationResult.valid
@@ -90,7 +90,7 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
 
 	override fun getCurrentGuiSnapshot(): IDeviceGuiSnapshot = this.unreliableGuiSnapshotProvider.provide()
 
-	private fun transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: Action) {
+	private fun transitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: ExplorationAction) {
 			when (action) {
 					is LaunchAppAction -> failWithForbiddenActionOnInvalidGuiSnapshot(action)
 					is SimulationAdbClearPackageAction -> this.simulation.updateState(action)
@@ -102,7 +102,7 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
 			}
 	}
 
-	private fun failWithForbiddenActionOnInvalidGuiSnapshot(action: Action) {
+	private fun failWithForbiddenActionOnInvalidGuiSnapshot(action: ExplorationAction) {
 			assert(
 							false, {
 					"DroidMate attempted to perform a device action that is forbidden while the device displays " +
@@ -111,7 +111,7 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
 			)
 	}
 
-	private fun onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: Action) {
+	private fun onTransitionClickGuiActionOnInvalidOrAppHasStoppedDialogBoxSnapshot(action: ExplorationAction) {
 			if (this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().guiState.isAppHasStoppedDialogBox) {
 					val appHasStopped = this.unreliableGuiSnapshotProvider.getCurrentWithoutChange().guiState as AppHasStoppedDialogBoxGuiStatus
 					val singleMatchingWiddget = if (action is ClickAction)

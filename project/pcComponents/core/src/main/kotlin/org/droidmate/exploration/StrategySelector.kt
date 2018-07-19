@@ -25,8 +25,8 @@
 
 package org.droidmate.exploration
 
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
+import org.droidmate.deviceInterface.guimodel.ActionType
+import org.droidmate.deviceInterface.guimodel.LaunchApp
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
@@ -139,7 +139,7 @@ class StrategySelector constructor(val priority: Int,
             val interval = bundle!![0].toString().toInt()
 
             val lastReset = context.actionTrace.P_getActions()
-                    .indexOfLast { it -> it.actionType == ResetAppExplorationAction::class.java.simpleName }
+                    .indexOfLast { it -> it.actionType == LaunchApp.name }
 
             val currAction = context.actionTrace.size
             val diff = currAction - lastReset
@@ -190,7 +190,7 @@ class StrategySelector constructor(val priority: Int,
             val random = bundleArray[1] as Random
             val value = random.nextDouble()
 
-            if ((context.getLastActionType() == ResetAppExplorationAction::class.java.simpleName) || (value > probability))
+            if ((context.getLastActionType() == LaunchApp.name) || (value > probability))
                 null
             else {
                 logger.debug("Has triggered back probability and previous action was not to press back. Returning 'Back'")
@@ -205,19 +205,19 @@ class StrategySelector constructor(val priority: Int,
 
 				// last action was reset
 				when (lastActionType){
-					PressBackExplorationAction::class.simpleName -> {
+					ActionType.PressBack.name -> {
 						logger.debug("Cannot explore. Last action was back. Returning 'Reset'")
 						pool.getFirstInstanceOf(Reset::class.java)
 					}
 
-					ResetAppExplorationAction::class.java.simpleName -> {
+					LaunchApp.name -> {
 						// if previous action was back, terminate
 						when {
 							context.getCurrentState().isAppHasStoppedDialogBox -> {
 								logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
-							context.getSecondLastAction().actionType == PressBackExplorationAction::class.java.simpleName -> {
+							context.getSecondLastAction().actionType == ActionType.PressBack.name -> {
 								logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}

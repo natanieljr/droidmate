@@ -16,7 +16,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.uiautomator2daemon.debugT
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.WidgetData
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.util.*

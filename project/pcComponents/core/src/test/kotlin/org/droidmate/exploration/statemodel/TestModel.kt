@@ -1,6 +1,6 @@
 package org.droidmate.exploration.statemodel
 
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.WidgetData
 import java.time.LocalDateTime
 
 interface TestModel{
@@ -21,7 +21,7 @@ interface TestModel{
 class DefaultTestModel: TestModel {
 	override val testWidgetData by lazy{
 		WidgetData(text = "text-mock",
-				contentDesc =  "description-mock",
+				contentDesc = "description-mock",
 				resourceId = "resourceId-mock",
 				className = "class-mock",
 				packageName = "package-mock",

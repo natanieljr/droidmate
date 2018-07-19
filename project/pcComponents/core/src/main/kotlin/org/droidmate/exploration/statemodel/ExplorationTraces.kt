@@ -34,7 +34,9 @@ import org.droidmate.debug.debugT
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ActionQueue
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.exploration.actions.widgetTargets
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.time.LocalDateTime
@@ -49,15 +51,32 @@ open class ActionData protected constructor(val actionType: String, val targetWi
                                             val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
                                             private val sep:String) {
 
-	constructor(action: AbstractExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
+	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId, sep:String)
-			: this(action.actionName, action.widget,
+			: this(action.name, widgetTargets.pollFirst(),
 			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep)
 
 	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
 			: this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId, sep) {
 		prevState = prevStateId
 	}
+
+	/** used for ActionQueue entries */
+	constructor(action: ExplorationAction, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
+			: this(action.name, if(action.hasWidgetTarget) widgetTargets.pollFirst() else null, res.startTimestamp,
+			res.endTimestamp, deviceLogs = res.deviceLogs, exception = res.exception.toString(), successful = res.successful,
+			resState = resStateId, sep = sep) {
+		prevState = prevStateId
+	}
+
+	/** used for ActionQueue sart/end ActionData */
+	constructor(actionName:String,res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
+			: this(actionName, null, res.startTimestamp,
+			res.endTimestamp, deviceLogs = res.deviceLogs, exception = res.exception.toString(), successful = res.successful,
+			resState = resStateId, sep = sep) {
+		prevState = prevStateId
+	}
+
 
 	lateinit var prevState: ConcreteId
 
@@ -137,16 +156,16 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private val editFields: MutableMap<UUID, LinkedList<Pair<StateData, Widget>>> = mutableMapOf()
 
 	/** this property is set in the end of the trace update and notifies all watchers for changes */
-	private val initialState: Pair<StateData, Widget?> = Pair(StateData.emptyState, null)
-	private var newState by Delegates.observable(initialState) { _, (srcState,_), (dstState,target) ->
-		notifyObserver(srcState, dstState, target)
-		internalUpdate(srcState = srcState, target = target)
+	private val initialState: Pair<StateData, List<Widget>> = Pair(StateData.emptyState, emptyList())
+	private var newState by Delegates.observable(initialState) { _, (srcState,_), (dstState,targets) ->
+		notifyObserver(srcState, dstState, targets)
+		internalUpdate(srcState = srcState, targets = targets)
 	}
 
 	/** observable delegates do not support co-routines within the lambda function therefore this method*/
-	private fun notifyObserver(old: StateData, new: StateData, target: Widget?) {
+	private fun notifyObserver(old: StateData, new: StateData, targets: List<Widget>) {
 		watcher.forEach {
-			launch(it.context, parent = it.job) { it.onNewInteracted(target, old, new) }
+			launch(it.context, parent = it.job) { it.onNewInteracted(targets, old, new) }
 			val action = size.let { i ->
 				async(it.context) {
 					getAt(i - 1)!!
@@ -159,27 +178,41 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	}
 
 	/** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
-	private fun internalUpdate(srcState: StateData, target: Widget?) {
-		targets.add(target)
-		target?.run {
-			if (isEdit) editFields.compute(srcState.iEditId) { _, stateMap ->
-				(stateMap ?: LinkedList()).apply { add(Pair(srcState, target)) }
+	private fun internalUpdate(srcState: StateData, targets: List<Widget>) {
+		this.targets.addAll(targets)
+		targets.forEach {
+			if (it.isEdit) editFields.compute(srcState.iEditId) { _, stateMap ->
+				(stateMap ?: LinkedList()).apply { add(Pair(srcState, it)) }
 			}
+			Unit
 		}
 	}
 
-	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { action, oldState, dstState ->
+	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { actionRes, oldState, dstState ->
 		{
-			if(action.action.widget != null )
-				assert(oldState.widgets.contains(action.action.widget!!)) {"ERROR on Trace generation, tried to add action for widget which does not exist in the source state $oldState"}
+			if(widgetTargets.isNotEmpty())
+				assert(oldState.widgets.containsAll(widgetTargets)) {"ERROR on Trace generation, tried to add action for widgets $widgetTargets which do not exist in the source state $oldState"}
 
-			debugT("create actionData", { ActionData(res = action, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep =config[sep]) })
-					.also {
-						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId) {"ERROR ActionData was created wrong $it for $action in $oldState"}
-						assert(it.targetWidget == action.action.widget) {"ERROR in ActionData instantiation wrong targetWidget ${it.targetWidget} instead of ${action.action.widget}"}
-						debugT("add action", { P_addAction(it) })
-//						println("DEBUG: $it")
+			debugT("create actionData", {
+				if(actionRes.action is ActionQueue)
+					actionRes.action.actions.map {
+						ActionData(it,res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep])
+					}.also {
+						P_addAction(ActionData(ActionQueue.startName,res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
+						P_addAll(it)
+						P_addAction(ActionData(ActionQueue.endName,res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
 					}
+				else ActionData(res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep =config[sep]).also {
+					debugT("add action", { P_addAction(it) })
+				}
+				widgetTargets.clear()
+			})
+//					.also {
+//						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId) {"ERROR ActionData was created wrong $it for $actionRes in $oldState"}
+//						assert(it.targetWidget == actionRes.action.widget) {"ERROR in ActionData instantiation wrong targetWidget ${it.targetWidget} instead of ${actionRes.action.widget}"}
+//
+////						println("DEBUG: $it")
+//					}
 		}
 	}
 
@@ -190,14 +223,12 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		lastActionType = action.action::class.simpleName ?: "ERROR"
 		// we did not update this.dstState yet, therefore it contains the now 'old' state
 
+		val actionTargets = widgetTargets.toList()  // we may have an action queue and therefore multiple targets in the same state
 		this.newState.first.let{ oldState ->
-			if(action.action.widget != null )
-				assert(oldState.widgets.contains(action.action.widget!!)) {"ERROR on Trace generation, tried to add action for widget ${action.action.widget!!.id} which does not exist in the source state $oldState"}
-
 			launch(context, block = actionProcessor(action, oldState, dstState), parent = processorJob)
 		}
 
-		debugT("set dstState", { this.newState = Pair(dstState, action.action.widget) })
+		debugT("set dstState", { this.newState = Pair(dstState, actionTargets) })
 	}
 
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
@@ -208,18 +239,22 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		size += 1
 		lastActionType = action.actionType
 		trace.send(Add(action))
-		this.newState = Pair(dstState, action.targetWidget)
+		this.newState = Pair(dstState, widgetTargets)
 	}
 
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
 	 * to update the whole trace at once
 	 * ASSUMPTION no watchers are to be notified
 	 */
-	internal suspend fun updateAll(actions: Collection<ActionData>, latestState: StateData){
+	internal suspend fun updateAll(actions: List<ActionData>, latestState: StateData){
 		size += actions.size
 		lastActionType = actions.last().actionType
 		trace.send(AddAll(actions))
-		this.newState = Pair(latestState, actions.last().targetWidget)
+		if(actions.last().actionType == ActionQueue.name){
+			val queueStart = actions.indexOfLast { it.actionType == ActionQueue.startName }
+			this.newState = Pair(latestState,
+					actions.subList(queueStart,actions.size).mapNotNull { it.targetWidget })
+		}else this.newState = Pair(latestState, listOfNotNull(actions.last().targetWidget))
 	}
 
 	val currentState get() = newState.first
@@ -240,6 +275,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	 * It could be probably optimized with and channel/actor approach instead, if necessary.
 	 */
 	private fun P_addAction(action:ActionData) = trace.sendBlocking(Add(action))  // this does never actually block the sending since the capacity is unlimited
+	private fun P_addAll(actions:List<ActionData>) = trace.sendBlocking(AddAll(actions))  // this does never actually block the sending since the capacity is unlimited
 
 	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
 	fun getActions(): List<ActionData> = trace.S_getAll()

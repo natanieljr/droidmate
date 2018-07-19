@@ -36,7 +36,7 @@ import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
 import org.droidmate.misc.Utils
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants
 import org.slf4j.LoggerFactory
 import java.io.IOException
 

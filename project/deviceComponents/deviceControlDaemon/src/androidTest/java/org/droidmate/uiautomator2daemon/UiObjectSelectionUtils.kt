@@ -2,8 +2,8 @@ package org.droidmate.uiautomator2daemon
 
 import android.support.test.uiautomator.*
 import android.util.Log
-import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 
 /**
  * Created by J.H. on 08.02.2018.

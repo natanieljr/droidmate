@@ -1,8 +1,8 @@
 package org.droidmate.exploration.statemodel
 
 import org.droidmate.test_tools.DroidmateTestCase
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
-import org.droidmate.uiautomator_daemon.guimodel.toUUID
+import org.droidmate.deviceInterface.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.toUUID
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith

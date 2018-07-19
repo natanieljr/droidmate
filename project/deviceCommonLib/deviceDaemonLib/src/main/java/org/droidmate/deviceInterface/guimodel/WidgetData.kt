@@ -1,4 +1,4 @@
-package org.droidmate.uiautomator_daemon.guimodel
+package org.droidmate.deviceInterface.guimodel
 
 import java.io.Serializable
 import java.nio.charset.Charset
@@ -58,14 +58,14 @@ data class WidgetData(
 		fun empty() = WidgetData(text = "EMPTY")
 
 		@JvmStatic
-		fun fromString(line: List<String>):WidgetData =
-				WidgetData( text = line[P.Text.ordinal], clickable = line[P.Clickable.ordinal].toBoolean(), longClickable =
+		fun fromString(line: List<String>): WidgetData =
+				WidgetData(text = line[P.Text.ordinal], clickable = line[P.Clickable.ordinal].toBoolean(), longClickable =
 				line[P.LongClickable.ordinal].toBoolean(), scrollable = line[P.Scrollable.ordinal].toBoolean(),
 						isPassword = line[P.IsPassword.ordinal].toBoolean(), enabled = line[P.Enabled.ordinal].toBoolean(),
-						selected = line[P.Selected.ordinal].toBoolean(), visible = line[P.Visible.ordinal].toBoolean(), 	checked =
-				flag(line[P.Checked.ordinal]),	focused = flag(line[P.Focused.ordinal]), boundsX = line[P.BoundsX.ordinal].toInt(),
+						selected = line[P.Selected.ordinal].toBoolean(), visible = line[P.Visible.ordinal].toBoolean(), checked =
+				flag(line[P.Checked.ordinal]), focused = flag(line[P.Focused.ordinal]), boundsX = line[P.BoundsX.ordinal].toInt(),
 						boundsY = line[P.BoundsY.ordinal].toInt(), boundsWidth = line[P.BoundsWidth.ordinal].toInt(),
-						boundsHeight = line[P.BoundsHeight.ordinal].toInt(),contentDesc = line[P.Desc.ordinal],
+						boundsHeight = line[P.BoundsHeight.ordinal].toInt(), contentDesc = line[P.Desc.ordinal],
 						resourceId = line[P.ResId.ordinal], packageName = line[P.PackageName.ordinal], className = line[P.Type.ordinal],
 						isLeaf = line[P.IsLeaf.ordinal].toBoolean()
 				).apply {

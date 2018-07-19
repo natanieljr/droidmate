@@ -26,8 +26,8 @@ package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.uiautomator_daemon.DeviceCommand
-import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.deviceInterface.DeviceCommand
+import org.droidmate.deviceInterface.DeviceResponse
 
 class TcpClients constructor(adbWrapper: IAdbWrapper,
                              deviceSerialNumber: String,
