@@ -28,18 +28,15 @@ import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.actions.click
 
 /**
- * Exploration strategy that always clicks "Allow" on runtime permission dialogs.
+ * Exploration strategy that always clicks "Deny" on runtime permission dialogs.
  */
-class AllowRuntimePermission : ExplorationStrategy() {
+class DenyRuntimePermission : ExplorationStrategy() {
 	override fun chooseAction(): AbstractExplorationAction {
-		val allowButton = eContext.getCurrentState().widgets.let { widgets ->
-			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
-					?: widgets.first { it.text.toUpperCase() == "ALLOW" }
+		val denyButton = eContext.getCurrentState().widgets.let { widgets ->
+			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_deny_button" }
+					?: widgets.first { it.text.toUpperCase() == "DENY" }
 		}
 
-		// Remove blacklist restriction from previous action since it will need to be executed again
-//        this.eContext.lastTarget.blackListed = false    //TODO
-
-		return allowButton.click().apply { runtimePermission = true }
+		return denyButton.click().apply { runtimePermission = true }
 	}
 }

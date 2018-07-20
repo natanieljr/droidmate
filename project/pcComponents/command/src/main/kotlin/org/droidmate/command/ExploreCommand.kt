@@ -45,6 +45,7 @@ import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
+import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.explore
 import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
 import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
@@ -123,6 +124,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			if (cfg[allowRuntimeDialog])
 				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
 
+			if (cfg[denyRuntimeDialog])
+				res.add(StrategySelector(++priority, "denyPermission", StrategySelector.denyPermission))
+
 			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
 
 			// Interval reset
@@ -178,6 +182,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
+
+			if (cfg[denyRuntimeDialog])
+				strategies.add(DenyRuntimePermission())
 
 			if (cfg[Strategies.dfs])
 				strategies.add(DFS())
