@@ -22,12 +22,19 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.misc
 
+import java.io.BufferedInputStream
+import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.Duration
 import java.util.*
+import java.util.zip.ZipFile
 
 /**
  * Zeroes digits before (i.e. left of) comma. E.g. if [digitsToZero] is 2, then 6789 will become 6700.
@@ -70,4 +77,31 @@ fun <T, TItem> Iterable<T>.setByUniqueString(
 	val uniquesSet = uniques.toSet()
 	check(uniques.size == uniquesSet.size)
 	return uniquesSet
+}
+
+/**
+ * Unzips a zipped archive into [targetDirectory].
+ */
+fun Path.unzip(targetDirectory: Path) {
+	val file = ZipFile(this.toString())
+	val fileSystem = FileSystems.getDefault()
+	val entries = file.entries()
+
+	Files.createDirectory(fileSystem.getPath(targetDirectory.toString()))
+
+	while (entries.hasMoreElements()) {
+		val entry = entries.nextElement()
+		if (entry.isDirectory) {
+			Files.createDirectories(targetDirectory.resolve(entry.name))
+		} else {
+			val bis = BufferedInputStream(file.getInputStream(entry))
+			val fname = targetDirectory.resolve(entry.name).toString()
+			Files.createFile(fileSystem.getPath(fname))
+			val fileOutput = FileOutputStream(fname)
+			while (bis.available() > 0) {
+				fileOutput.write(bis.read())
+			}
+			fileOutput.close()
+		}
+	}
 }
