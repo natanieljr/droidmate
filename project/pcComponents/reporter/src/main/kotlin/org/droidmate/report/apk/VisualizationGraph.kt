@@ -35,11 +35,9 @@ import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.dumpString
 import org.droidmate.misc.unzip
-import java.io.*
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*
-import java.util.zip.ZipFile
 
 /**
  * This reporter creates a report in form of a web page, displaying the model, its states and its
@@ -90,7 +88,7 @@ class VisualizationGraph : ApkReport() {
 	                  val numberOfActions: Int,
 	                  val numberOfStates: Int,
 	                  val apk: IApk) {
-		val edges: MutableList<Edge> = ArrayList()
+		private val edges: MutableList<Edge> = ArrayList()
 
 		// The graph in the frontend is not able to display multiple edges for the same transition,
 		// therefore add here the indices and check if the same transition was taken before, if yes

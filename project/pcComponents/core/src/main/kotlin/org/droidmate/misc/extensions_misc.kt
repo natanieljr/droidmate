@@ -29,7 +29,6 @@ import java.io.BufferedInputStream
 import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
@@ -82,9 +81,9 @@ fun <T, TItem> Iterable<T>.setByUniqueString(
 /**
  * Unzips a zipped archive into [targetDirectory].
  */
-fun Path.unzip(targetDirectory: Path) {
-	val file = ZipFile(this.toString())
-	val fileSystem = FileSystems.getDefault()
+fun Path.unzip(targetDirectory: Path): Path {
+	val file = ZipFile(this.toAbsolutePath().toString())
+	val fileSystem = this.fileSystem
 	val entries = file.entries()
 
 	Files.createDirectory(fileSystem.getPath(targetDirectory.toString()))
@@ -95,13 +94,15 @@ fun Path.unzip(targetDirectory: Path) {
 			Files.createDirectories(targetDirectory.resolve(entry.name))
 		} else {
 			val bis = BufferedInputStream(file.getInputStream(entry))
-			val fname = targetDirectory.resolve(entry.name).toString()
-			Files.createFile(fileSystem.getPath(fname))
-			val fileOutput = FileOutputStream(fname)
+			val fName = targetDirectory.resolve(entry.name).toString()
+			Files.createFile(fileSystem.getPath(fName))
+			val fileOutput = FileOutputStream(fName)
 			while (bis.available() > 0) {
 				fileOutput.write(bis.read())
 			}
 			fileOutput.close()
 		}
 	}
+
+	return targetDirectory
 }
