@@ -68,6 +68,6 @@ class BlackListMF: WidgetCountingMF() {
 	}
 
 	override suspend fun dump(context: ExplorationContext) {
-		dump(File(context.getModel().config.baseDir.toString() + "${File.separator}lastBlacklist.txt"))
+		dump(context.getModel().config.baseDir.resolve("lastBlacklist.txt"))
 	}
 }
