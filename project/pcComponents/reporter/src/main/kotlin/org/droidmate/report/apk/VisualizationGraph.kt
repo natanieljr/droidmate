@@ -34,9 +34,12 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.dumpString
+import org.droidmate.misc.unzip
+import java.io.*
 import java.lang.reflect.Type
 import java.nio.file.*
-import java.nio.file.attribute.*
+import java.util.*
+import java.util.zip.ZipFile
 
 /**
  * This reporter creates a report in form of a web page, displaying the model, its states and its
@@ -217,27 +220,6 @@ class VisualizationGraph : ApkReport() {
 	}
 
 	/**
-	 * Simple file visitor to copy directories with subdirectories.
-	 */
-	inner class CopyFileVisitor(private val sourceDir: Path, private val targetDir: Path) : SimpleFileVisitor<Path>() {
-
-		override fun visitFile(file: Path, attributes: BasicFileAttributes): FileVisitResult {
-			val targetFile = targetDir.resolve(sourceDir.relativize(file))
-			Files.copy(file, targetFile)
-
-			return FileVisitResult.CONTINUE
-		}
-
-		override fun preVisitDirectory(dir: Path, attributes: BasicFileAttributes): FileVisitResult {
-			val newDir = targetDir.resolve(sourceDir.relativize(dir))
-			Files.createDirectory(newDir)
-
-			return FileVisitResult.CONTINUE
-		}
-
-	}
-
-	/**
 	 * Returns the path of the image, which should be used for the according state. Use
 	 * the Default.png if no such file with the according stateId exists. This is the case
 	 * e.g. for the initial state or for states for which DroidMate could not acquire an
@@ -257,26 +239,27 @@ class VisualizationGraph : ApkReport() {
 	private fun getCustomGsonBuilder(): Gson {
 		val gsonBuilder = GsonBuilder().setPrettyPrinting()
 
-		val stateDataSerializer = StateDataAdapter()
-		val edgeSerializer = EdgeAdapter()
-		val apkSerializer = IApkAdapter()
-		val widgetSerializer = WidgetAdapter()
-		gsonBuilder.registerTypeAdapter(StateData::class.java, stateDataSerializer)
-		gsonBuilder.registerTypeAdapter(Edge::class.java, edgeSerializer)
-		gsonBuilder.registerTypeAdapter(IApk::class.java, apkSerializer)
-		gsonBuilder.registerTypeAdapter(HashMap<Int, Widget?>()::class.java, widgetSerializer)
+		gsonBuilder.registerTypeAdapter(StateData::class.java, StateDataAdapter())
+		gsonBuilder.registerTypeAdapter(Edge::class.java, EdgeAdapter())
+		gsonBuilder.registerTypeAdapter(IApk::class.java, IApkAdapter())
+		gsonBuilder.registerTypeAdapter(HashMap<Int, Widget?>()::class.java, WidgetAdapter())
 
 		return gsonBuilder.create()
 	}
 
-	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    /**
+     * The zipped archive 'vis.zip' contains all resources for the graph such as index.html etc.
+     * It is zipped because, keeping it as directory in the resources folder and copying a folder
+     * from a jar (e.g. when DroidMate is imported as an external application) was troublesome.
+     */
+    override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+        	val targetVisFolder = apkReportDir.resolve(topLevelDirName)
+            	// Copy the folder with the required resources
+        	val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)
+        	zippedVisDir.unzip(targetVisFolder)
+        	Files.delete(zippedVisDir)
 
-		val targetVisFolder = apkReportDir.resolve(topLevelDirName)
-		val model = data.getModel()
-		val source = Resource("vis").extractTo(resourceDir, true)
-
-		// Copy the folder with the required resources
-		Files.walkFileTree(source, CopyFileVisitor(source, targetVisFolder))
+        	val model = data.getModel()
 
 		// Copy the state images
 		targetImgDir = targetVisFolder.resolve("img")
