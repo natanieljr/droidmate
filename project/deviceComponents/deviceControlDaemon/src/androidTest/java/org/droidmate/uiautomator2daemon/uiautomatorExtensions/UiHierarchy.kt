@@ -4,10 +4,7 @@ package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.graphics.Bitmap
 import android.support.test.runner.screenshot.Screenshot
-import android.support.test.uiautomator.NodeProcessor
-import android.support.test.uiautomator.UiDevice
-import android.support.test.uiautomator.apply
-import android.support.test.uiautomator.getNonSystemRootNodes
+import android.support.test.uiautomator.*
 import android.util.Log
 import android.util.Xml
 import android.view.accessibility.AccessibilityNodeInfo
@@ -66,29 +63,48 @@ object UiHierarchy : UiParser() {
 	}}, inMillis = true)
 
 	/** check if this node fullfills the given condition and recursively check descendents if not **/
-	fun any(device: UiDevice, cond: SelectorCondition):Boolean{
-		return findAndPerform(device,cond) { _ -> true}
+	fun any(device: UiDevice, retry: Boolean=false, cond: SelectorCondition):Boolean{
+		return findAndPerform(device, cond, retry) { _ -> true}
 	}
 
 	/** looks for a UiElement fulfilling [cond] and executes [action] on it.
 	 * The search condition should be unique to avoid unwanted side-effects on other nodes which fulfill the same condition.
 	 */
-	fun findAndPerform(device: UiDevice, cond: SelectorCondition, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
+	@JvmOverloads fun findAndPerform(device: UiDevice, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
 		var found = false
 		var successfull = false
 
 		val processor:NodeProcessor = { node,_, xPath ->
-			if (!isActive || !node.isVisibleToUser || !node.refresh()) false  // do not traverse deeper
-			else {
+			when{
+				found -> false // we already found our target and performed our action -> stop searching
+				!isActive -> {Log.w(LOGTAG,"process became inactive"); false}
+				!node.isVisibleToUser -> {Log.d(LOGTAG,"node $xPath is invisible"); false}
+				!node.refresh() -> {Log.w(LOGTAG,"refresh on node $xPath failed"); false}
+			// do not traverse deeper
+			else -> {
 				found = cond(node,xPath).also {
 					if(it){
-						successfull = action(node)
+						successfull = action(node).run { if(retry && !this){
+							Log.d(LOGTAG,"action failed on $node\n with id ${xPath.hashCode()+rootIndex}, try a second time")
+							runBlocking { delay(20) }
+							action(node)
+							}else this
+						}.also {
+							Log.d(LOGTAG,"action returned $it")
+						}
 					}
 				}
 				!found // continue if condition is not fulfilled yet
+				}
 			}
 		}
 		device.apply(processor)
+		if(retry && !found) {
+			Log.d(LOGTAG,"didn't find target, try a second time")
+			runBlocking { delay(20) }
+			device.apply(processor)
+		}
+		Log.d(LOGTAG,"found = $found")
 		return found && successfull
 	}
 
@@ -108,7 +124,7 @@ object UiHierarchy : UiParser() {
 
 		while(!found && time<timeout){
 			measureTimeMillis {
-				with(async { any(device, cond) }) {
+				with(async { any(device, retry=false, cond=cond) }) {
 					var i = 0
 					while(!isCompleted && i<scanTimeout){
 						delay(10)

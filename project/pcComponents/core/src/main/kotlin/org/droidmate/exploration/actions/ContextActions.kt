@@ -32,7 +32,7 @@ fun ExplorationContext.rotate(rotation: Int): ExplorationAction = RotateUI(rotat
  *
  * @param steps is the number of move steps sent to the system
  */
-fun ExplorationContext.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int): ExplorationAction = TODO()
+fun ExplorationContext.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int=35): ExplorationAction = Swipe(start,end,steps)
 
 /**
  * Create a list of actions which is sequentially executed on the device without any fetch in-between.
