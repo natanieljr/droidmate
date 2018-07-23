@@ -82,7 +82,12 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 			UiHierarchy.findAndPerform(device,idMatch) { // do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
-				it.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args) }
+				it.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
+					if(it) runBlocking { delay(100) } // wait for display update
+					Log.d(logTag, "perfom successfull=$it")
+				} }.also {
+				Log.d(logTag,"action was sucessfull=$it")
+			}
 		}
 		is RotateUI -> device.rotate(rotation,automation)
 		is LaunchApp -> device.launchApp(appLaunchIconName,context,timeout)
