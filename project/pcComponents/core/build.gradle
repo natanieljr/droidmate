@@ -64,9 +64,6 @@ dependencies {
 	compile 'net.sf.opencsv:opencsv:2.3'
 	compile 'org.json:json:20140107'
 
-	// Fast serialization library
-	compile 'de.ruedigermoeller:fst:2.56'
-
 	// For visualizing device GUI model graphs
 	compile 'org.graphstream:gs-core:1.3'
 
