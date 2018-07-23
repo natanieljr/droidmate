@@ -34,8 +34,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import org.droidmate.misc.MonitorConstants;
-import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -540,27 +538,15 @@ public class MonitorJavaTemplate
 	}
 
 	static class SerializationHelper {
-		private static FSTConfiguration serializationConfig = FSTConfiguration.createDefaultConfiguration();
 
 		static void writeObjectToStream(DataOutputStream outputStream, Object toWrite) throws IOException {
-			// write object
-			FSTObjectOutput objectOutput = serializationConfig.getObjectOutput(); // could also do new with minor perf impact
-			// write object to internal buffer
+			ObjectOutputStream objectOutput = new ObjectOutputStream(outputStream);
 			objectOutput.writeObject(toWrite);
-			// write length
-			outputStream.writeInt(objectOutput.getWritten());
-			// write bytes
-			outputStream.write(objectOutput.getBuffer(), 0, objectOutput.getWritten());
-
-			objectOutput.flush(); // return for reuse to conf
+			objectOutput.flush();
 		}
 
 		static Object readObjectFromStream(DataInputStream inputStream) throws IOException, ClassNotFoundException {
-			int len = inputStream.readInt();
-			byte[] buffer = new byte[len]; // this could be reused !
-			while (len > 0)
-				len -= inputStream.read(buffer, buffer.length - len, len);
-			return serializationConfig.getObjectInput(buffer).readObject();
+			return new ObjectInputStream(inputStream).readObject();
 		}
 	}
 

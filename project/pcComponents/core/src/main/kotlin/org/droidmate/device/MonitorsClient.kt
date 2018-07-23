@@ -32,15 +32,14 @@ import org.slf4j.LoggerFactory
 class MonitorsClient(socketTimeout: Int,
                      private val deviceSerialNumber: String,
                      private val adbWrapper: IAdbWrapper,
-                     private val port: Int,
-					 useLegacyStream: Boolean) : IMonitorsClient {
+                     private val port: Int) : IMonitorsClient {
 
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(MonitorsClient::class.java) }
 	}
 
 	// remove this.getPorts from all methods
-	private val monitorTcpClient: ITcpClientBase<String, ArrayList<ArrayList<String>>> = TcpClientBase(socketTimeout, useLegacyStream)
+	private val monitorTcpClient: ITcpClientBase<String, ArrayList<ArrayList<String>>> = TcpClientBase(socketTimeout)
 
 	override fun anyMonitorIsReachable(): Boolean {
 		val out = this.isServerReachable(this.getPort())
