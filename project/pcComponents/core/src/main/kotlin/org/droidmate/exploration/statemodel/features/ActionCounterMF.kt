@@ -68,6 +68,13 @@ class ActionCounterMF : ModelFeature() {
 		return numExplored(s).filter { it.value == 0 }.keys  // collect all widgets which are not in our action counter => not interacted with
 	}
 
+	/** determine the number of unique states explored so far */
+	@Suppress("unused")
+	suspend fun numStates():Int{
+		job.joinChildren()
+		return sCnt.size
+	}
+
 	@Suppress("MemberVisibilityCanBePrivate")
 			/**
 	 * determine how often any widget was explored in the eContext of the given state [s]

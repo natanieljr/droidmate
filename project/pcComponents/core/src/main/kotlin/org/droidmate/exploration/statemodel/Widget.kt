@@ -205,7 +205,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 						.contentHashCode().toUUID()
 
 		fun fromUiNode(w: WidgetData, screenImg: BufferedImage?, config: ModelConfig): Widget {
-			val widgetImg = if(w.visible) screenImg?.getSubImage(w.boundsRect) else null
+			val widgetImg = if(w.visible && w.boundsWidth>0 && w.boundsHeight>0) screenImg?.getSubImage(w.boundsRect) else null
 			widgetImg.let { wImg ->
 				lazy {
 					computeId(w, wImg, true)
