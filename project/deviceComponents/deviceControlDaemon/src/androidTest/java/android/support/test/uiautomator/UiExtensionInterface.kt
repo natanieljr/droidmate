@@ -35,7 +35,7 @@ fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeP
 
 	if(proceed)
 	(0 until nChildren).map { i ->
-		processTopDown(node.getChild(i),i,processor, postProcessor, xPath)
+		processTopDown(node.getChild(i),i,processor, postProcessor, "$xPath/")
 	}
 	val res = postProcessor(node)
 
