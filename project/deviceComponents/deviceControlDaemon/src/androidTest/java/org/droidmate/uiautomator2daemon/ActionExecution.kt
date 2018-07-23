@@ -120,7 +120,7 @@ fun fetchDeviceData(device: UiDevice, timeout: Long =200): DeviceResponse {
 				cnt += 1}) // this sometimes really sucks in perfomance but we do not yet have any reliable alternative
 
 	val img = async{ debugT("img capture time", {
-		delay(20) // try to ensure rendering really was complete (avoid half-transparent overlays)
+		delay(timeout/2) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
 		UiHierarchy.getScreenShot() },inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
 	val imgProcess = async { img.await().let{  s ->
 		Triple(
