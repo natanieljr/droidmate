@@ -37,9 +37,7 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable>
-	@JvmOverloads constructor(private val socketTimeout: Int,
-				private val useLegacyStream: Boolean = false)
-	: ITcpClientBase<InputToServerT, OutputFromServerT> {
+	@JvmOverloads constructor(private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
 	/*companion object {
 			private val log = LoggerFactory.getLogger(TcpClientBase::class.java)
 	}*/
@@ -70,9 +68,9 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
 			val outputStream = DataOutputStream(socket.outputStream)
 //        log.trace("got outputStream")
 
-			SerializationHelper.writeObjectToStream(outputStream, input, useLegacyStream)
+			SerializationHelper.writeObjectToStream(outputStream, input)
 			outputStream.flush()
-			val output = SerializationHelper.readObjectFromStream(inputStream, useLegacyStream) as OutputFromServerT
+			val output = SerializationHelper.readObjectFromStream(inputStream) as OutputFromServerT
 
 //      log.trace("socket.close()")
 			socket.close()
