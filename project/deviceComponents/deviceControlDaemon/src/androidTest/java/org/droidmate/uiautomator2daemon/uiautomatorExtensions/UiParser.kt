@@ -22,7 +22,7 @@ abstract class UiParser {
 		val nChildren = node.childCount
 		// bottom-up strategy, process children first if they exist
 		val children = (0 until nChildren).map { i ->
-			createBottomUp(node.getChild(i),i, xPath,nodes,xPath.hashCode()+rootIdx)
+			createBottomUp(node.getChild(i),i, "$xPath/",nodes,xPath.hashCode()+rootIdx)
 		}
 
 		return node.createWidget(xPath,children,parentH).also {
