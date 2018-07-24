@@ -108,8 +108,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			cfg.uiAutomatorPort,
 			cfg[startTimeout],
 			cfg[waitForInteractableTimeout],
-			cfg.monitorPort,
-			cfg[monitorUseLegacyStream])
+			cfg.monitorPort)
 
 	@Throws(DeviceException::class)
 	override fun pushFile(jar: Path) {
