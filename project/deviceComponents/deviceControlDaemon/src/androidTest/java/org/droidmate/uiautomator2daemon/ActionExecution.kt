@@ -74,6 +74,7 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 				ActionType.MinimizeMaximize -> device.minimizeMaximize()
 				ActionType.FetchGUI -> fetchDeviceData(device, idleTimeout)
 				ActionType.Terminate -> false /* should never be transfered to the device */
+				ActionType.PressEnter -> device.pressEnter()
 			}
 		is TextInsert -> {
 			val idMatch: SelectorCondition = { node, xPath ->
@@ -99,7 +100,7 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 			device.swipe(x0, y0, x1, y1, 35)
 		}
 		is ActionQueue -> runBlocking {
-			actions.forEach{ it.execute(device,context,automation); delay(delay)	}
+			actions.forEach{ it.execute(device,context,automation); delay(delay)	 }
 		}
 	}
 	Log.d(logTag, "END execution of ${toString()}")

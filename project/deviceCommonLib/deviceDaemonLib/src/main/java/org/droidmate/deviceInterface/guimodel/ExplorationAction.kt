@@ -30,7 +30,7 @@ fun String.isLongClick():Boolean = this == LongClick.name
 data class TextInsert(val idHash: Int, val text:String, override val hasWidgetTarget: Boolean = false): ExplorationAction()
 
 enum class ActionType{
-	PressBack, PressHome, EnableWifi, MinimizeMaximize, FetchGUI, Terminate
+	PressBack, PressHome, PressEnter, EnableWifi, MinimizeMaximize, FetchGUI, Terminate;
 }
 data class GlobalAction(val actionType: ActionType) : ExplorationAction(){ override val name = actionType.name }
 fun String.isTerminate():Boolean = this == ActionType.Terminate.name
