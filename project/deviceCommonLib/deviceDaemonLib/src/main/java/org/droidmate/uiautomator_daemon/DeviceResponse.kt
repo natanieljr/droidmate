@@ -36,6 +36,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val topNodePackageName: String,
                                               val widgets: List<WidgetData>,
                                               val androidLauncherPackageName: String,
+                                              val androidPackageName: String,
                                               val deviceDisplayWidth: Int,
                                               val deviceDisplayHeight: Int,
                                               val screenshot: ByteArray,
@@ -43,7 +44,6 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val screenshotHeight: Int) : Serializable {
 
 	var throwable: Throwable? = null
-	private val androidPackageName = "android"
 	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
 
 	init {
@@ -58,6 +58,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			DeviceResponse("",
 					"empty",
 					emptyList(),
+					"",
 					"",
 					0,
 					0,
@@ -93,17 +94,36 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 				deviceModel.startsWith("google-Pixel C") -> "com.android.launcher"
 				deviceModel.startsWith("Google-Pixel C") -> "com.google.android.apps.pixelclauncher"
 				deviceModel.startsWith("HUAWEI-FRD-L09") -> "com.huawei.android.launcher"
+				deviceModel.startsWith("OnePlus-A0001") -> "com.cyanogenmod.trebuchet"
 				else -> {
-				log.warn("Unrecognized device model of $deviceModel. Using the default.")
+					log.warn("Unrecognized device model of $deviceModel. Using the default.")
 				"com.android.launcher"
+				}
 			}
+		}}
+
+		@JvmStatic
+		private val getAndroidPackageName:(deviceModel: String)-> String by lazy {{ deviceModel:String ->
+			when {
+				deviceModel.startsWith("OnePlus-A0001") -> "com.cyanogenmod.trebuchet"
+				else -> {
+					"android"
+				}
 			}
 		}}
 
 		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
-			DeviceResponse(windowHierarchyDump = uiDump, topNodePackageName = widgets.lastOrNull()?.packageName ?: "No Widgets", widgets = widgets, androidLauncherPackageName = androidLauncher(deviceModel),
-					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height)
+			DeviceResponse(windowHierarchyDump = uiDump,
+                            topNodePackageName = widgets.lastOrNull()?.packageName ?: "No Widgets",
+                            widgets = widgets,
+                            androidLauncherPackageName = androidLauncher(deviceModel),
+                            androidPackageName = getAndroidPackageName(deviceModel),
+                            deviceDisplayWidth = displayWidth,
+                            deviceDisplayHeight = displayHeight,
+                            screenshot = screenshot,
+                            screenshotWidth = width,
+                            screenshotHeight = height)
 		}
 	}
 
