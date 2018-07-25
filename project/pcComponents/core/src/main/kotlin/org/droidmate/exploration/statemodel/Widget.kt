@@ -25,13 +25,11 @@
 
 package org.droidmate.exploration.statemodel
 
-import org.droidmate.configuration.ConfigProperties.ModelProperties
 import kotlinx.coroutines.experimental.launch
+import org.droidmate.configuration.ConfigProperties.ModelProperties
 import org.droidmate.deviceInterface.guimodel.P
-//import org.droidmate.uiautomator_daemon.WidgetData
 import org.droidmate.deviceInterface.guimodel.WidgetData
 import org.droidmate.deviceInterface.guimodel.toUUID
-//import org.droidmate.uiautomator_daemon.toUUID
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -184,17 +182,22 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		/** compute the pair of (widget.uid,widget.imgId), if [isCut] is true we assume the screenImage already matches the widget.bounds */
 		@JvmStatic
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
-				w.content().trim().let {
-					if (it.isNotEmpty()){ // compute id from textual content if there is any
-						val ignoreNumpers = it.replace("[0-9]", "")
-						if(ignoreNumpers.isNotEmpty()) ignoreNumpers.toUUID()
-						else it.toUUID()
+				w.content().trim().let { visibleText ->
+					when {
+						visibleText.isNotBlank() -> { // compute id from textual content if there is any
+							val ignoreNumpers = visibleText.replace("[0-9]", "")
+							if (ignoreNumpers.isNotEmpty()) ignoreNumpers.toUUID()
+							else visibleText.toUUID()
+						}
+						w.resourceId.isNotBlank() -> w.resourceId.toUUID()
+						else -> screenImg?.let {
+							when {
+								!w.visible || w.editable || w.checked != null -> w.idHash.toUUID()  // edit-fields would often have a cursor if focused which should only reflect in the propertyId but not in the unique-id
+								isCut -> idOfImgCut(screenImg)
+								else -> idOfImgCut(it.getSubImage(w.boundsRect))
+							}
+						} ?: w.idHash.toUUID() // no text content => compute id from img or if no screenshot is taken use xpath
 					}
-					else screenImg?.let { when {
-						!w.visible || w.editable || w.checked != null -> w.idHash.toUUID()  // edit-fields would often have a cursor if focused which should only reflect in the propertyId but not in the unique-id
-						isCut       -> idOfImgCut(screenImg)
-						else        -> idOfImgCut(it.getSubImage(w.boundsRect))
-					}} ?: w.idHash.toUUID() // no text content => compute id from img or if no screenshot is taken use xpath
 				}
 
 
