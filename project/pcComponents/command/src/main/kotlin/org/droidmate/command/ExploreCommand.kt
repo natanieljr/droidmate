@@ -32,6 +32,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.apksLimit
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
+import org.droidmate.configuration.ConfigProperties.ModelProperties.path.cleanDirs
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
@@ -225,7 +226,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	private val reporters: MutableList<Reporter> = mutableListOf()
 
 	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
-		cleanOutputDir(cfg)
+		if(cfg[cleanDirs]) cleanOutputDir(cfg)
 
 		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
 		if (!validateApks(apks, cfg[runOnNotInlined]))
