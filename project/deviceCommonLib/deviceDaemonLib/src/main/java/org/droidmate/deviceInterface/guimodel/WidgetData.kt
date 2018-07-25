@@ -67,7 +67,7 @@ data class WidgetData(
 						boundsY = line[P.BoundsY.ordinal].toInt(), boundsWidth = line[P.BoundsWidth.ordinal].toInt(),
 						boundsHeight = line[P.BoundsHeight.ordinal].toInt(), contentDesc = line[P.Desc.ordinal],
 						resourceId = line[P.ResId.ordinal], packageName = line[P.PackageName.ordinal], className = line[P.Type.ordinal],
-						isLeaf = line[P.IsLeaf.ordinal].toBoolean()
+						isLeaf = line[P.IsLeaf.ordinal].toBoolean(), editable = line[P.Editable.ordinal].toBoolean()
 				).apply {
 					uncoveredCoord = line[P.Coord.ordinal].let{ if(it=="null") null else with(it.split(",")){ kotlin.Pair(get(0).toInt(), get(1).toInt()) }}
 				}
@@ -89,6 +89,7 @@ enum class P(var header: String = "") {
 	LongClickable,
 	Scrollable,
 	Checked,
+	Editable,
 	Focused,
 	Selected,
 	IsPassword,

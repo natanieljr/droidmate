@@ -133,6 +133,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 				P.IsLeaf -> isLeaf.toString()
 				P.PackageName -> packageName
 				P.Coord -> uncoveredCoord?.let { it.first.toString()+","+it.second.toString() } ?: "null"
+				P.Editable -> isEdit.toString()
 			}
 		}
 	}}
