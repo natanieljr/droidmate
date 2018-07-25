@@ -56,6 +56,8 @@ class Graph<S, L>(root: S,
 		}
 	}
 
+    override fun getVertices(): Set<Vertex<S>> = adjacencyMap.keys.toSet()
+
 	override fun edge(order: Int): Edge<S, L>?{
 		return adjacencyMap
 				.map {
@@ -64,6 +66,8 @@ class Graph<S, L>(root: S,
 				.filterNotNull()
 				.firstOrNull()
 	}
+
+    override fun edges(): List<Edge<S, L>> = adjacencyMap.values.flatten()
 
 	override fun edges(source: Vertex<S>): List<Edge<S, L>> = adjacencyMap[source] ?: emptyList()
 
