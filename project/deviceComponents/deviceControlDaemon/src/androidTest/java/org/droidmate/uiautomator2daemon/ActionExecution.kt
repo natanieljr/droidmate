@@ -17,7 +17,8 @@ import org.droidmate.deviceInterface.UiautomatorDaemonConstants
 import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.SelectorCondition
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy
-import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector.actableAppElem
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector.isWebView
 import kotlin.math.max
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
@@ -120,6 +121,10 @@ private var wc = 0
 fun fetchDeviceData(device: UiDevice, timeout: Long =200): DeviceResponse {
 	debugT("wait for IDLE avg = ${time / max(1,cnt)} ms", {
 		device.waitForIdle(timeout)
+		if (UiHierarchy.any(device,cond = isWebView)){ // waitForIdle is insufficient for WebView's therefore we need to handle the stabalize separately
+			Log.d(logTag,"WebView detected wait for actable element with different package name")
+			UiHierarchy.waitFor(device, interactableTimeout,actableAppElem)
+		}
 	},inMillis = true,
 			timer = {
 				Log.d(logTag,"time=${it/1000000}")
