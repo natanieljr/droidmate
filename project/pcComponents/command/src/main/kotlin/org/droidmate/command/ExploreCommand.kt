@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
@@ -87,7 +88,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
                                       private val adbWrapper: IAdbWrapper,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
-                                      private val timeProvider: ITimeProvider,
                                       private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
                                       private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
@@ -202,7 +202,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		@JvmOverloads
 		fun build(cfg: ConfigurationWrapper,
 		          deviceTools: IDeviceTools = DeviceTools(cfg),
-		          timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
 		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
 		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
 		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
@@ -211,7 +210,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(cfg, apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-										 timeProvider, strategyProvider, modelProvider)
+										 strategyProvider, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -400,7 +399,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, adbWrapper, timeProvider.getNow(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, adbWrapper, TimeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
@@ -436,7 +435,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		if (!result.successful)
 			explorationContext.exception = result.exception
 
-		explorationContext.explorationEndTime = timeProvider.getNow()
+		explorationContext.explorationEndTime = TimeProvider.getNow()
 
 		return explorationContext
 	}
