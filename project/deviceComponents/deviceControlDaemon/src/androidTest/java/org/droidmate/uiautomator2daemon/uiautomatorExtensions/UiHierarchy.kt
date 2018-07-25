@@ -78,7 +78,9 @@ object UiHierarchy : UiParser() {
 			when{
 				found -> false // we already found our target and performed our action -> stop searching
 				!isActive -> {Log.w(LOGTAG,"process became inactive"); false}
-				!node.isVisibleToUser -> {Log.d(LOGTAG,"node $xPath is invisible"); false}
+				!node.isVisibleToUser -> {
+//					Log.d(LOGTAG,"node $xPath is invisible")
+					false}
 				!node.refresh() -> {Log.w(LOGTAG,"refresh on node $xPath failed"); false}
 			// do not traverse deeper
 			else -> {
@@ -140,7 +142,9 @@ object UiHierarchy : UiParser() {
 				Log.d(LOGTAG,"$found single wait iteration $this")
 			}
 		}
-		found
+		found.also {
+			Log.d(LOGTAG,"wait was successful: $found")
+		}
 	}
 
 	suspend fun getScreenShot(): Bitmap {

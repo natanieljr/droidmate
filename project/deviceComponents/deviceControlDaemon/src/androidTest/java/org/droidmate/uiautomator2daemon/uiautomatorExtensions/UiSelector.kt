@@ -2,9 +2,10 @@ package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.view.accessibility.AccessibilityNodeInfo
 
+@Suppress("MemberVisibilityCanBePrivate")
 object UiSelector {
 	@JvmStatic
-	val isWebView: SelectorCondition = { it,_ -> it.packageName != "android.webkit.WebView" }
+	val isWebView: SelectorCondition = { it,_ -> it.packageName == "android.webkit.WebView" || it.className == "android.webkit.WebView" }
 
 	@JvmStatic
 	val permissionRequest: SelectorCondition = { node,_ -> node.viewIdResourceName == "com.android.packageinstaller:id/permission_allow_button"}

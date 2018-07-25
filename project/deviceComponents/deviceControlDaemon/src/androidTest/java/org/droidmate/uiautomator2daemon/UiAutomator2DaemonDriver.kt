@@ -120,7 +120,7 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 				})
 
 				if( !action.isFetch() ) // only fetch once even if the action was a FetchGUI action
-				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, waitForIdleTimeout) }, inMillis = true, timer = {
+				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, waitForIdleTimeout, afterAction = true) }, inMillis = true, timer = {
 //					if (action !is DeviceLaunchApp) {
 						tFetch += it
 //					}

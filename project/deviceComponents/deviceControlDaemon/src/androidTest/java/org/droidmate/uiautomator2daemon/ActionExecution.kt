@@ -118,10 +118,10 @@ private var time: Long = 0
 private var cnt = 0
 private var wt = 0.0
 private var wc = 0
-fun fetchDeviceData(device: UiDevice, timeout: Long =200): DeviceResponse {
+fun fetchDeviceData(device: UiDevice, timeout: Long =200, afterAction: Boolean = true): DeviceResponse {
 	debugT("wait for IDLE avg = ${time / max(1,cnt)} ms", {
 		device.waitForIdle(timeout)
-		if (UiHierarchy.any(device,cond = isWebView)){ // waitForIdle is insufficient for WebView's therefore we need to handle the stabalize separately
+		if (afterAction && UiHierarchy.any(device,cond = isWebView)){ // waitForIdle is insufficient for WebView's therefore we need to handle the stabalize separately
 			Log.d(logTag,"WebView detected wait for actable element with different package name")
 			UiHierarchy.waitFor(device, interactableTimeout,actableAppElem)
 		}
