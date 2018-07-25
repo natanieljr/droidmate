@@ -30,10 +30,7 @@ import com.konradjamrozik.Resource
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.statemodel.StateData
-import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.statemodel.dumpString
+import org.droidmate.exploration.statemodel.*
 import org.droidmate.misc.unzip
 import java.io.*
 import java.lang.reflect.Type
@@ -86,7 +83,6 @@ class VisualizationGraph : ApkReport() {
 	                  edges: List<ActionData>,
 	                  val explorationStartTime: String,
 	                  val explorationEndTime: String,
-	                  val explorationTimeInMs: Int,
 	                  val numberOfActions: Int,
 	                  val numberOfStates: Int,
 	                  val apk: IApk) {
@@ -115,6 +111,35 @@ class VisualizationGraph : ApkReport() {
 			val graphJson = gson.toJson(this)
 			return "var data = $graphJson;"
 		}
+	}
+
+    /**
+     * This is a dummy apk implementation. It is needed if [createVisualizationGraph] is called
+     * with only the model, because the model has not the apk as reference.
+     */
+    inner class DummyApk : IApk {
+		override val path: Path
+			get() = Paths.get("./")
+		override val packageName: String
+			get() = "DummyPackageName"
+		override val launchableActivityName: String
+			get() = "DummyLaunchableActivityName"
+		override val launchableActivityComponentName: String
+			get() = "DummyLaunchableActivityComponentName"
+		override val applicationLabel: String
+			get() = "DummyApplicationLabel"
+		override val fileName: String
+			get() = "DummyFileName"
+		override val fileNameWithoutExtension: String
+			get() = "DummyFileNameWithoutExtension"
+		override val absolutePath: String
+			get() = "DummyAsolutePath"
+		override val inlined: Boolean
+			get() = false
+		override val instrumented: Boolean
+			get() = false
+		override val isDummy: Boolean
+			get() = true
 	}
 
 	/**
@@ -247,48 +272,56 @@ class VisualizationGraph : ApkReport() {
 		return gsonBuilder.create()
 	}
 
-    /**
-     * The zipped archive 'vis.zip' contains all resources for the graph such as index.html etc.
-     * It is zipped because, keeping it as directory in the resources folder and copying a folder
-     * from a jar (e.g. when DroidMate is imported as an external application) was troublesome.
-     */
     override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
-        	val targetVisFolder = apkReportDir.resolve(topLevelDirName)
-            	// Copy the folder with the required resources
-        	val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)
-        	zippedVisDir.unzip(targetVisFolder)
-        	Files.delete(zippedVisDir)
+		createVisualizationGraph(data.getModel(), data.apk, apkReportDir, resourceDir)
+	}
 
-        	val model = data.getModel()
+	fun createVisualizationGraph(model: Model, apkReportDir: Path, resourceDir: Path) {
+		createVisualizationGraph(model, DummyApk(), apkReportDir, resourceDir)
+	}
+
+	/**
+	 * The zipped archive 'vis.zip' contains all resources for the graph such as index.html etc.
+	 * It is zipped because, keeping it as directory in the resources folder and copying a folder
+	 * from a jar (e.g. when DroidMate is imported as an external application) was troublesome.
+	 */
+	fun createVisualizationGraph(model: Model, apk: IApk, apkReportDir: Path, resourceDir: Path) {
+		val targetVisFolder = apkReportDir.resolve(topLevelDirName)
+		// Copy the folder with the required resources
+		val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)
+		zippedVisDir.unzip(targetVisFolder)
+		Files.delete(zippedVisDir)
 
 		// Copy the state images
 		targetImgDir = targetVisFolder.resolve("img")
-		Files.list(model.config.stateDst)
-				.filter { filename -> filename.toString().endsWith(".png") }
-				.forEach {
-					Files.createDirectories(targetImgDir)
-					Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
-				}
+        	Files.createDirectories(targetImgDir)
+        	Files.list(model.config.stateDst)
+			.filter { filename -> filename.toString().endsWith(".png") }
+			.forEach {
+				Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
+			}
 
 		val jsonFile = targetVisFolder.resolve("data.js")
 		val gson = getCustomGsonBuilder()
 
 		runBlocking {
 
-			val actions = data.actionTrace.getActions()
+            		// TODO Jenny proposed to visualize multiple traces in different colors in the future, as we only
+            		// use the first trace right now
+			val actions = model.getPaths().first().getActions()
 			val states = model.getStates()
 			val graph = Graph(states,
-					actions,
-					data.explorationStartTime.toString(),
-					data.explorationEndTime.toString(),
-					data.getExplorationTimeInMs(),
-					data.getSize(),
-					states.size,
-					data.apk)
+				actions,
+				actions.first().startTimestamp.toString(),
+				actions.last().endTimestamp.toString(),
+				actions.size,
+				states.size,
+				apk)
 			val jsGraph = graph.toJsonVariable(gson)
 
 			Files.write(jsonFile, jsGraph.toByteArray())
 		}
 
 	}
+
 }
