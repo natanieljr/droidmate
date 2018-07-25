@@ -27,7 +27,7 @@ package org.droidmate.misc
 
 import java.time.LocalDateTime
 
-class TimeProvider : ITimeProvider {
+object TimeProvider : ITimeProvider {
 	override fun getNow(): LocalDateTime {
 		return LocalDateTime.now()
 	}

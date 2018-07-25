@@ -45,6 +45,7 @@ import org.droidmate.exploration.statemodel.features.ImgTraceMF
 import org.droidmate.exploration.strategy.EmptyActionResult
 import org.droidmate.exploration.strategy.playback.PlaybackResetAction
 import org.droidmate.misc.TimeDiffWithTolerance
+import org.droidmate.misc.TimeProvider
 import java.awt.Rectangle
 import java.time.Duration
 import java.time.LocalDateTime
@@ -164,12 +165,22 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	/**
 	 * Get the exploration duration in milliseconds
 	 */
-	fun getExplorationTimeInMs(): Int = Duration.between(explorationStartTime, explorationEndTime).toMillis().toInt()
+	fun getExplorationTimeInMs(): Int = getExplorationDuration().toMillis().toInt()
 
 	/**
-	 * Get the exploration duration
+	 * Get the exploration duration.
+     	 *
+     	 * The default value for [explorationEndTime] is LocalDateTime.MIN. So if
+     	 * [explorationEndTime] hasn't been set yet, use the time until now,
+     	 * otherwise use [explorationEndTime].
 	 */
-	fun getExplorationDuration(): Duration = Duration.between(explorationStartTime, explorationEndTime)
+	fun getExplorationDuration(): Duration {
+        	return if (explorationEndTime > LocalDateTime.MIN) {
+            		Duration.between(explorationStartTime, explorationEndTime)
+        	} else {
+            		Duration.between(explorationStartTime, TimeProvider.getNow())
+        	}
+    	}
 
 	/**
 	 * Get the number of actionTrace which exist in the log
