@@ -52,20 +52,22 @@ private const val logTag = UiautomatorDaemonConstants.deviceLogcatTagPrefix + "A
 
 fun ExplorationAction.execute(device: UiDevice, context: Context, automation: UiAutomation): Any{
 	Log.d(logTag, "START execution ${toString()}")
-	val success: Any = when(this){ // REMARK this has to be an assignment for when to check for exhausiveness
+	val result: Any = when(this){ // REMARK this has to be an assignment for when to check for exhausiveness
 		is Click ->{
 			device.verifyCoordinate(x,y)
-			device.click(x, y,interactableTimeout)
-			runBlocking { delay(delay) }
+			device.click(x, y,interactableTimeout).apply {
+				runBlocking { delay(delay) }
+			}
 		}
 		is LongClick ->{
 			device.verifyCoordinate(x,y)
-			device.longClick(x, y,interactableTimeout)
-			runBlocking { delay(delay) }
+			device.longClick(x, y,interactableTimeout).apply {
+				runBlocking { delay(delay) }
+			}
 		}
 		is SimulationAdbClearPackage, EmptyAction -> false /* should not be called on device */
 		is GlobalAction ->
-			when(actionType) {
+			when (actionType) {
 				ActionType.PressBack -> device.pressBack()
 				ActionType.PressHome -> device.pressHome()
 				ActionType.EnableWifi -> {
@@ -74,15 +76,18 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 						if (!it) Log.w(logTag, "Failed to ensure WiFi is enabled!")
 					}
 				}
-				ActionType.MinimizeMaximize -> device.minimizeMaximize()
-				ActionType.FetchGUI -> fetchDeviceData(device, idleTimeout)
+				ActionType.MinimizeMaximize -> {
+					device.minimizeMaximize()
+					true
+				}
+				ActionType.FetchGUI ->	fetchDeviceData(device, idleTimeout, afterAction = false)
 				ActionType.Terminate -> false /* should never be transfered to the device */
 				ActionType.PressEnter -> device.pressEnter()
 				ActionType.CloseKeyboard ->
-					if(UiHierarchy.any(device){node,_ -> node.packageName == "com.google.android.inputmethod.latin"})
+					if (UiHierarchy.any(device) { node, _ -> node.packageName == "com.google.android.inputmethod.latin" })
 						device.pressBack()
 					else false
-			}
+			}.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
 			val idMatch: SelectorCondition = { node, xPath ->
 				idHash == xPath.hashCode()+rootIndex
@@ -91,7 +96,7 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
 				it.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
-					if(it) runBlocking { delay(100) } // wait for display update
+					if(it) runBlocking { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perfom successfull=$it")
 				} }.also {
 				Log.d(logTag,"action was sucessfull=$it")
@@ -107,11 +112,12 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 			device.swipe(x0, y0, x1, y1, 35)
 		}
 		is ActionQueue -> runBlocking {
-			actions.forEach{ it.execute(device,context,automation); delay(delay)	 }
+			actions.fold(true){ success, it -> success &&
+					it.execute(device,context,automation).apply{ delay(delay) } as Boolean }
 		}
 	}
 	Log.d(logTag, "END execution of ${toString()}")
-	return success
+	return result
 }
 
 private var time: Long = 0
@@ -197,7 +203,8 @@ private fun UiDevice.minimizeMaximize(){
 	}
 }
 
-private fun UiDevice.launchApp(appPackageName: String,context: Context,waitTime: Long){
+private fun UiDevice.launchApp(appPackageName: String,context: Context,waitTime: Long):Boolean{
+	var success = false
 	// Launch the app
 	val intent = context.packageManager
 			.getLaunchIntentForPackage(appPackageName)
@@ -210,15 +217,12 @@ private fun UiDevice.launchApp(appPackageName: String,context: Context,waitTime:
 		// Wait for the app to appear
 		wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 				waitTime)
-		val waitCnd = { node:AccessibilityNodeInfo, xpath:String ->
-			UiSelector.ignoreSystemElem(node,xpath) &&
-					(UiSelector.isActable(node,xpath) || UiSelector.permissionRequest(node,xpath))
-		}
-		UiHierarchy.waitFor(this, interactableTimeout,waitCnd)
-	}.let { Log.d(logTag, "load-time $it millis") }
+		success = UiHierarchy.waitFor(this, interactableTimeout,actableAppElem)
+	}.also { Log.d(logTag, "load-time $it millis") }
+	return success
 }
 
-private fun UiDevice.rotate(rotation: Int,automation: UiAutomation){
+private fun UiDevice.rotate(rotation: Int,automation: UiAutomation):Boolean{
 	val currRotation = (displayRotation * 90)
 	Log.d(logTag, "Current rotation $currRotation")
 	// Android supports the following rotations:
@@ -232,5 +236,5 @@ private fun UiDevice.rotate(rotation: Int,automation: UiAutomation){
 	val newRotation = ((currRotation + rotation) / 90) % 4
 	Log.d(logTag, "New rotation $newRotation")
 	unfreezeRotation()
-	automation.setRotation(newRotation)
+	return automation.setRotation(newRotation)
 }
