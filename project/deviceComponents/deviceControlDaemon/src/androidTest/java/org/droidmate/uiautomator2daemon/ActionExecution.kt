@@ -77,6 +77,10 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 				ActionType.FetchGUI -> fetchDeviceData(device, idleTimeout)
 				ActionType.Terminate -> false /* should never be transfered to the device */
 				ActionType.PressEnter -> device.pressEnter()
+				ActionType.CloseKeyboard ->
+					if(UiHierarchy.any(device){node,_ -> node.packageName == "com.google.android.inputmethod.latin"})
+						device.pressBack()
+					else false
 			}
 		is TextInsert -> {
 			val idMatch: SelectorCondition = { node, xPath ->
