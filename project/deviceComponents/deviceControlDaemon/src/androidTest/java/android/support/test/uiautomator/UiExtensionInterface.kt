@@ -1,6 +1,7 @@
 package android.support.test.uiautomator
 
 import android.graphics.Rect
+import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 
 
@@ -22,9 +23,13 @@ inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline
 	}
 
 fun UiDevice.apply(processor: NodeProcessor){
+	try{
 	getNonSystemRootNodes().mapIndexed { index, root: AccessibilityNodeInfo ->
 		rootIndex = index
 		processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+	}
+	}catch(e: IllegalStateException){
+		Log.e("droidmate/UiDevice","error while processing AccessibilityNode tree ${e.localizedMessage}")
 	}
 }
 

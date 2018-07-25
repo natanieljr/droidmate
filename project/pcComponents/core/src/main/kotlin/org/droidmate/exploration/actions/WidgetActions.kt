@@ -19,24 +19,24 @@ import org.droidmate.exploration.statemodel.Widget
  * The whidget has to be clickable and enabled. If it is not visible this method will throw an exception
  * (you should use [navigateTo] instead).
  */
-fun Widget.click(): ExplorationAction{
+fun Widget.click(delay:Long = 0): ExplorationAction{
 	if(!visible || !enabled || !clickable)
 		throw RuntimeException("ERROR: tried to click non-actable Widget $this")
 	widgetTargets.add(this)
-	return clickCoordinate().let{ (x,y) -> Click(x, y,true) }
+	return clickCoordinate().let{ (x,y) -> Click(x, y,true,delay) }
 }
 fun Widget.tick(): ExplorationAction{
 	if(!visible || !enabled)
 		throw RuntimeException("ERROR: tried to tick non-actable (checkbox) Widget $this")
 	widgetTargets.add(this)
-	return clickCoordinate().let{ (x,y) -> Click(x, y,true) }
+	return clickCoordinate().let{ (x,y) -> Click(x, y, true) }
 }
 
-fun Widget.longClick(): ExplorationAction{
+fun Widget.longClick(delay:Long = 0): ExplorationAction{
 	if(!visible || !enabled || !longClickable)
 		throw RuntimeException("ERROR: tried to long-click non-actable Widget $this")
 	widgetTargets.add(this)
-	return clickCoordinate().let{ (x,y) -> LongClick(x, y,true) }
+	return clickCoordinate().let{ (x,y) -> LongClick(x, y,true,delay) }
 }
 fun Widget.setText(newContent: String): ExplorationAction{
 	widgetTargets.add(this)

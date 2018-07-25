@@ -15,13 +15,13 @@ sealed class ExplorationAction : Serializable{
 }
 object EmptyAction: ExplorationAction()
 
-data class Click(val x: Int, val y: Int, override val hasWidgetTarget: Boolean = false): ExplorationAction(){
+data class Click(val x: Int, val y: Int, override val hasWidgetTarget: Boolean = false, val delay: Long=0): ExplorationAction(){
 	companion object {
 		const val name = "Click"
 	}
 }
 fun String.isClick():Boolean = this == Click.name
-data class LongClick(val x: Int, val y: Int, override val hasWidgetTarget: Boolean = false): ExplorationAction(){
+data class LongClick(val x: Int, val y: Int, override val hasWidgetTarget: Boolean = false, val delay: Long=0): ExplorationAction(){
 	companion object {
 		const val name = "LongClick"
 	}

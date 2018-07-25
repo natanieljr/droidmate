@@ -55,10 +55,12 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 		is Click ->{
 			device.verifyCoordinate(x,y)
 			device.click(x, y,interactableTimeout)
+			runBlocking { delay(delay) }
 		}
 		is LongClick ->{
 			device.verifyCoordinate(x,y)
 			device.longClick(x, y,interactableTimeout)
+			runBlocking { delay(delay) }
 		}
 		is SimulationAdbClearPackage, EmptyAction -> false /* should not be called on device */
 		is GlobalAction ->
