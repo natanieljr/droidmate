@@ -91,7 +91,7 @@ class StrategySelector constructor(val priority: Int,
         @JvmStatic
         val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
 	        val timeLimit = bundle!![0].toString().toInt()
-	        if(timeLimit<=0) null
+	        if (timeLimit <= 0) null
 	        else {
 		        val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because eContext start time is not yet initialized
 
