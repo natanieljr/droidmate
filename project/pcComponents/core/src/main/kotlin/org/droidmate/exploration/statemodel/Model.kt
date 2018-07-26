@@ -61,8 +61,9 @@ class Model private constructor(val config: ModelConfig) {
 
 	private val states = CollectionActor(HashSet<StateData>(),"StateActor").create(modelJob)
 	/** @return a view to the data (suspending function) */
-	suspend fun getStates(): Set<StateData> = states.getAll()
-	/** @return a view to the data (blocking function) */
+	suspend fun getStates(): Set<StateData> = states.getAll<StateData,Set<StateData>>()
+	@Suppress("unused")
+			/** @return a view to the data (blocking function) */
 	fun S_getStates(): Set<StateData> = runBlocking{ states.getAll<StateData,Set<StateData>>() }
 
 	suspend fun addState(s: StateData){
@@ -169,14 +170,15 @@ class Model private constructor(val config: ModelConfig) {
 					debugT("compute result State for ${widgets.size}\n", { action.resultState(widgets) }).let { state ->
 						// revise state if it contains previously interacted edit fields
 
-						return debugT("special widget handling", {
-							if (state.hasEdit) interactedEF[state.iEditId]?.let {
-								action.resultState(lazy { handleEditFields(state, it) })
-							} ?: state
-							else state
-						})
+						//FIXME this is currently buggy anyway and issues concurrent modification exception
+//						return debugT("special widget handling", {
+//							if (state.hasEdit) interactedEF[state.iEditId]?.let {
+//								action.resultState(lazy { handleEditFields(state, it) })
+//							} ?: state
+//							else state
+//						})
 //					return s!! //}
-//				return state
+				return state
 					}
 				}
 	}
