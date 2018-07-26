@@ -27,6 +27,7 @@ package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
@@ -49,16 +50,22 @@ abstract class ModelFeature {
 	}
 
 	/** used in the strategy to ensure that the updating coroutine function already finished.
-	 * calling job.joinChildren() will wait for all currently running [onNewAction] and update instances to complete*/
+	 * calling job.joinChildren() will wait for all currently running [onNewAction] and update instances to complete
+	 * independent features should start their own child-job e.g. `init { job = Job(parent = (this.job)) }`
+	 */
 	var job = Job()
 
 	/** the eContext in which the update tasks of the class are going to be started,
 	 * for performance reasons they should run within the same pool for each feature
-	 * e.g. you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
+	 * e.g. `newCoroutineContext(context = CoroutineName("FeatureNameMF"), parent = job)`
+	 * or you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
 	abstract val context: CoroutineContext
 
 	/** this is called after the model was completely updated with the new action and state
-	 * this method gives access to the complete [context] inclusive other ModelFeatures */
+	 * this method gives access to the complete [context] inclusive other ModelFeatures
+	 *
+	 * WARNING: this method is not triggered when loading an already existing model
+	 */
 	open suspend fun onContextUpdate(context: ExplorationContext) { /* do nothing [to be overwritten] */
 	}
 
@@ -69,6 +76,19 @@ abstract class ModelFeature {
 	 **/
 	open suspend fun onNewInteracted(targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
+
+	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
+	 * this function may be used instead of update for simpler access to the action and result state.
+	 * The [targetWidgets] belong to the actions with hasWidgetTarget = true and are in the same order as they appeared
+	 * in the actionqueue.
+	 *
+	 * WARNING: this method only gets `EmptyAction` when loading an already existing model
+	 **/
+	open suspend fun onNewInteracted(actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>,
+	                                 prevState: StateData, newState: StateData) {
+		/* do nothing [to be overwritten] */
+	}
+
 
 	// TODO check if an additional method with (targets,actions:ExplorationAction) would prove usefull
 

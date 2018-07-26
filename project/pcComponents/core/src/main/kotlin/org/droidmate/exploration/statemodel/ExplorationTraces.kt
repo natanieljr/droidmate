@@ -35,6 +35,7 @@ import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
 import org.droidmate.deviceInterface.guimodel.ActionQueue
+import org.droidmate.deviceInterface.guimodel.EmptyAction
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.actions.widgetTargets
 import org.droidmate.exploration.statemodel.features.ModelFeature
@@ -156,21 +157,25 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	private val editFields: MutableMap<UUID, LinkedList<Pair<StateData, Widget>>> = mutableMapOf()
 
 	/** this property is set in the end of the trace update and notifies all watchers for changes */
-	private val initialState: Pair<StateData, List<Widget>> = Pair(StateData.emptyState, emptyList())
-	private var newState by Delegates.observable(initialState) { _, (srcState,_), (dstState,targets) ->
-		notifyObserver(srcState, dstState, targets)
+	private val initialState: Triple<StateData, List<Widget>, ExplorationAction> = Triple(StateData.emptyState, emptyList(), EmptyAction)
+	private var newState by Delegates.observable(initialState) { _, (srcState,_), (dstState,targets, explorationAction) ->
+		notifyObserver(srcState, dstState, targets, explorationAction)
 		internalUpdate(srcState = srcState, targets = targets)
 	}
 
 	/** observable delegates do not support co-routines within the lambda function therefore this method*/
-	private fun notifyObserver(old: StateData, new: StateData, targets: List<Widget>) {
+	private fun notifyObserver(old: StateData, new: StateData, targets: List<Widget>, explorationAction: ExplorationAction) {
 		watcher.forEach {
 			launch(it.context, parent = it.job) { it.onNewInteracted(targets, old, new) }
-			val action = size.let { i ->
-				async(it.context) {
-					getAt(i - 1)!!
-				}
-			}
+			val actionIndex = size - 1
+			assert(actionIndex >= 0){"ERROR the action-trace size was not properly updated"}
+			launch(it.context, parent = it.job) { it.onNewInteracted(actionIndex,explorationAction,targets,old,new)}
+
+			val action =
+					async(it.context) {
+						getAt(actionIndex)!!
+					}
+
 			launch(it.context, parent = it.job) {
 				it.onNewAction(action, old, new)
 			}
@@ -228,7 +233,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 			launch(context, block = actionProcessor(action, oldState, dstState), parent = processorJob)
 		}
 
-		debugT("set dstState", { this.newState = Pair(dstState, actionTargets) })
+		debugT("set dstState", { this.newState = Triple(dstState, actionTargets, action.action) })
 	}
 
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
@@ -239,7 +244,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		size += 1
 		lastActionType = action.actionType
 		trace.send(Add(action))
-		this.newState = Pair(dstState, widgetTargets)
+		this.newState = Triple(dstState, widgetTargets, EmptyAction)
 	}
 
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
@@ -252,9 +257,9 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 		trace.send(AddAll(actions))
 		if(actions.last().actionType == ActionQueue.name){
 			val queueStart = actions.indexOfLast { it.actionType == ActionQueue.startName }
-			this.newState = Pair(latestState,
-					actions.subList(queueStart,actions.size).mapNotNull { it.targetWidget })
-		}else this.newState = Pair(latestState, listOfNotNull(actions.last().targetWidget))
+			this.newState = Triple(latestState,
+					actions.subList(queueStart,actions.size).mapNotNull { it.targetWidget }, EmptyAction)
+		}else this.newState = Triple(latestState, listOfNotNull(actions.last().targetWidget), EmptyAction)
 	}
 
 	val currentState get() = newState.first
