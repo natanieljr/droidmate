@@ -41,6 +41,7 @@ import java.awt.Graphics
 import java.awt.Rectangle
 import java.io.File
 import java.nio.file.Files
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
 import kotlin.coroutines.experimental.CoroutineContext
@@ -57,7 +58,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 
 	var i: AtomicInteger = AtomicInteger(0)
-	override suspend fun onNewInteracted(targetWidgets: List<Widget>, prevState: StateData, newState: StateData){
+	override suspend fun onNewInteracted(tradeId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData){
 		// check if we have any screenshots to process
 		if(!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
 

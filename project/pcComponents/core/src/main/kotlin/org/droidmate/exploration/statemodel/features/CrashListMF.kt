@@ -31,12 +31,13 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import java.io.File
+import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
 class CrashListMF : WidgetCountingMF() {
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("CrashListMF"), parent = job)
 
-	override suspend fun onNewInteracted(targetWidgets: List<Widget>, prevState: StateData, newState: StateData) = targetWidgets.forEach {
+	override suspend fun onNewInteracted(tradeId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) = targetWidgets.forEach {
 		if (newState.isAppHasStoppedDialogBox) incCnt(it.uid,prevState.uid)
 	}
 

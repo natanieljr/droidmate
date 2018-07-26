@@ -34,6 +34,7 @@ import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.ExplorationContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
 /**
@@ -74,7 +75,7 @@ abstract class ModelFeature {
 	 * The [targetWidgets] belong to the actions with hasWidgetTarget = true and are in the same order as they appeared
 	 * in the actionqueue.
 	 **/
-	open suspend fun onNewInteracted(targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewInteracted(tradeId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
 
 	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
@@ -84,8 +85,8 @@ abstract class ModelFeature {
 	 *
 	 * WARNING: this method only gets `EmptyAction` when loading an already existing model
 	 **/
-	open suspend fun onNewInteracted(actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>,
-	                                 prevState: StateData, newState: StateData) {
+	open suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction,
+	                                 targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
 		/* do nothing [to be overwritten] */
 	}
 
@@ -96,10 +97,12 @@ abstract class ModelFeature {
 	 * this function may be used instead of update for simpler access to the action and result state.
 	 *
 	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional timeout to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
-	open suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
 
-	/** this method is called on each call to [ExplorationContext].dump() */
+	/** this method is called on each call to [ExplorationContext].dump()
+	 * this method should call `job.joinChildren()` to wait wait for all updates to be applied before persistating the features state
+	 */
 	open suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */
 	}
 }

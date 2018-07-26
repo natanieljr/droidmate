@@ -166,10 +166,10 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 	/** observable delegates do not support co-routines within the lambda function therefore this method*/
 	private fun notifyObserver(old: StateData, new: StateData, targets: List<Widget>, explorationAction: ExplorationAction) {
 		watcher.forEach {
-			launch(it.context, parent = it.job) { it.onNewInteracted(targets, old, new) }
+			launch(it.context, parent = it.job) { it.onNewInteracted(id, targets, old, new) }
 			val actionIndex = size - 1
 			assert(actionIndex >= 0){"ERROR the action-trace size was not properly updated"}
-			launch(it.context, parent = it.job) { it.onNewInteracted(actionIndex,explorationAction,targets,old,new)}
+			launch(it.context, parent = it.job) { it.onNewInteracted(id, actionIndex, explorationAction, targets, old, new) }
 
 			val action =
 					async(it.context) {
@@ -177,7 +177,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 					}
 
 			launch(it.context, parent = it.job) {
-				it.onNewAction(action, old, new)
+				it.onNewAction(id, action, old, new)
 			}
 		}
 	}
