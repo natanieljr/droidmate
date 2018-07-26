@@ -48,7 +48,7 @@ data class Swipe(val start:Pair<Int,Int>,val end:Pair<Int,Int>,val stepSize:Int,
 	override fun toString(): String = "Swipe[(${start.first},${start.second}) to (${end.first},${end.second})]"
 }
 data class ActionQueue(val actions: List<ExplorationAction>,val delay: Long): ExplorationAction(){
-	override fun toString(): String = "ActionQueue[ ${actions.map { it.toString() }} ]"
+	override fun toString(): String = "ActionQueue[ ${actions.map { it.toString() }} ](delay=$delay)"
 
 	companion object {
 		const val name = "ActionQueue"

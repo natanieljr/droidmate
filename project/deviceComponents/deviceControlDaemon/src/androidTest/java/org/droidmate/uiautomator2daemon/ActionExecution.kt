@@ -112,7 +112,8 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 			device.swipe(x0, y0, x1, y1, 35)
 		}
 		is ActionQueue -> runBlocking {
-			actions.fold(true){ success, it -> success &&
+			var success = true
+			actions.forEach { it -> success = success &&
 					it.execute(device,context,automation).apply{ delay(delay) } as Boolean }
 		}
 	}

@@ -65,14 +65,16 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	}
 
 	val uid: UUID by lazy { lazyIds.value.first }
-	val configId: UUID by lazy { lazyIds.value.second }
-	val stateId by lazy {
-		ConcreteId(uid, configId)
-	}
+	private var _configId: Lazy<UUID> = lazy { lazyIds.value.second }
+	var configId: UUID
+		get() = _configId.value
+		set(value){ _configId = lazyOf(value) }
+
+	val stateId get() = ConcreteId(uid, configId)
 	/** id computed like uid while ignoring all edit fields */
 	val iEditId: UUID by lazy {
 		//lazyIds.value.third
-		widgets.fold(emptyUUID, { iEdit, widget -> addRelevantNonEdit(iEdit, widget) })
+		widgets.fold(emptyUUID) { iEdit, widget -> addRelevantNonEdit(iEdit, widget) }
 	}
 
 	val actionableWidgets by lazy { widgets.filter { it.canBeActedUpon } }
