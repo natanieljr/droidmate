@@ -290,7 +290,11 @@ class VisualizationGraph : ApkReport() {
 		// Copy the folder with the required resources
 		val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)
 		zippedVisDir.unzip(targetVisFolder)
-		Files.delete(zippedVisDir)
+		try {
+			Files.delete(zippedVisDir)
+		}catch(e: FileSystemException){ // temporary work-around for windows file still used issue
+			log.warn("resource zip could not be removed ${e.localizedMessage}")
+		}
 
 		// Copy the state images
 		targetImgDir = targetVisFolder.resolve("img")
