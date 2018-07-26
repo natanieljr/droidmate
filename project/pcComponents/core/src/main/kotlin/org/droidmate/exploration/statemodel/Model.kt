@@ -53,8 +53,8 @@ class Model private constructor(val config: ModelConfig) {
 	val modelDumpJob = Job()
 
 
-	fun initNewTrace(watcher: LinkedList<ModelFeature>): Trace {
-		return Trace(watcher,config, modelJob).also {actionTrace ->
+	fun initNewTrace(watcher: LinkedList<ModelFeature>,id: UUID = UUID.randomUUID()): Trace {
+		return Trace(watcher,config, modelJob,id).also {actionTrace ->
 			addTrace(actionTrace)
 		}
 	}

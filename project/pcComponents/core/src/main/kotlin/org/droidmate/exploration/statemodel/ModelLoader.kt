@@ -38,6 +38,7 @@ import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFi
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
 import org.droidmate.configuration.ConfigProperties.ModelProperties.path.statesSubDir
 import org.droidmate.debug.debugT
+import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.ModelConfig.Companion.defaultWidgetSuffix
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Files
@@ -84,7 +85,8 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(context, parent = job){
 		channel.consumeEach { tracePath ->
 			log("process path $tracePath")
-			synchronized(model) { model.initNewTrace(watcher) }.let { trace ->
+			val traceId = tracePath.fileName.toString().removePrefix(config[traceFilePrefix]).toUUID()
+			synchronized(model) { model.initNewTrace(watcher, traceId) }.let { trace ->
 				P_processLines(tracePath, lineProcessor = _actionParser).let { actionPairs ->  // use maximal parallelism to process the single actions/states
 					if (watcher.isEmpty()){
 						val resState = actionPairs.last().await().second

@@ -78,7 +78,7 @@ class ModelConfig private constructor(path: Path,
 		return idPath(baseDir, id.toString(), postfix, fileExtension)
 	}
 
-	val traceFile = { date: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$date${config[traceFileExtension]}" }
+	val traceFile = { traceId: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$traceId${config[traceFileExtension]}" }
 
 	companion object {
 		const val defaultWidgetSuffix = "_AllWidgets"

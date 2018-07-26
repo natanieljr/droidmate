@@ -144,7 +144,7 @@ open class ActionData protected constructor(val actionType: String, val targetWi
 	}
 }
 
-class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig, modelJob: Job) {
+class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig, modelJob: Job, val id:UUID) {
 	private val date by lazy { "${timestamp()}_${hashCode()}" }
 
 	private val processorJob = Job(parent = modelJob)
@@ -328,7 +328,7 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 
 	//FIXME ensure that the latest dump is not overwritten due to scheduling issues, for example by using a nice buffered channel only keeping the last value offer
 	suspend fun dump(config: ModelConfig = this.config) = dumpMutex.withLock {
-		File(config.traceFile(date)).bufferedWriter().use { out ->
+		File(config.traceFile(id.toString())).bufferedWriter().use { out ->
 			out.write(ActionData.header(config[sep]))
 			out.newLine()
 			// ensure that our trace is complete before dumping it by calling blocking getActions
