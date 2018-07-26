@@ -301,7 +301,9 @@ class VisualizationGraph : ApkReport() {
         	Files.list(model.config.stateDst)
 			.filter { filename -> filename.toString().endsWith(".png") }
 			.forEach {
-				Files.copy(it, targetImgDir.resolve(it.fileName.toString().replaceAfter("_", "$emptyUUID.png")), StandardCopyOption.REPLACE_EXISTING)
+				val fileName = if(ignoreConfig) it.fileName.toString().replaceAfter("_", "$emptyUUID.png")
+				else it.fileName.toString()
+				Files.copy(it, targetImgDir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING)
 			}
 
 		val jsonFile = targetVisFolder.resolve("data.js")
