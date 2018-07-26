@@ -101,7 +101,7 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 	internal val idHash = properties.idHash
 
 
-	val isEdit: Boolean = className.toLowerCase().contains("edit")
+	val isEdit: Boolean = properties.editable
 
 	fun hasContent(): Boolean = (text + contentDesc) != ""
 

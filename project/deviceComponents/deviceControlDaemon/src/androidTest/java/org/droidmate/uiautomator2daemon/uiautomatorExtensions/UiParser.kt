@@ -41,7 +41,7 @@ abstract class UiParser {
 				className = safeCharSeqToString(className),
 				packageName = safeCharSeqToString(packageName),
 				enabled = isEnabled,
-				editable = isEditable, // could be usefull for custom widget classes to identify input fields				java.lang.Boolean.toString(isCheckable),
+				editable = isEditable, // could be usefull for custom widget classes to identify input fields
 				isPassword = isPassword,
 				clickable = isClickable,
 				longClickable = isLongClickable,
