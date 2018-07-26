@@ -185,6 +185,11 @@ class Widget(properties: WidgetData, var _uid: Lazy<UUID>) {
 		fun computeId(w: WidgetData, screenImg: BufferedImage? = null, isCut: Boolean = false): UUID =
 				w.content().trim().let { visibleText ->
 					when {
+						w.editable -> when {
+							w.contentDesc.isNotBlank() -> w.contentDesc.toUUID()
+							w.resourceId.isNotBlank() -> w.resourceId.toUUID()
+							else -> w.idHash.toUUID()
+						}
 						visibleText.isNotBlank() -> { // compute id from textual content if there is any
 							val ignoreNumpers = visibleText.replace("[0-9]", "")
 							if (ignoreNumpers.isNotEmpty()) ignoreNumpers.toUUID()
