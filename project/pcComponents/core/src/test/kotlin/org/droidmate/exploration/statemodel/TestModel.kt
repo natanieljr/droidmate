@@ -3,6 +3,14 @@ package org.droidmate.exploration.statemodel
 import org.droidmate.deviceInterface.guimodel.WidgetData
 import java.time.LocalDateTime
 
+interface TestModel{
+	val parentData: WidgetData get() = WidgetData.empty()
+	val parentWidget: Widget get() = Widget(parentData)
+	val testWidgetData: WidgetData
+	val testWidget: Widget get() = Widget(testWidgetData).apply { parentId = parentWidget.id }
+	val testWidgetDumpString: String
+}
+
 typealias TestAction = ActionData
 @JvmOverloads fun createTestAction(targetWidget:Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"):	TestAction
 		= ActionData(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";").apply {
@@ -33,5 +41,5 @@ class DefaultTestModel: TestModel {
 
 	override val testWidgetDumpString = "5a3d425d-66bc-38d5-a375-07e0b682e0ba;${testWidgetData.uid};class-mock;"+
 			"true;null;text-mock;description-mock;${parentWidget.id.dumpString()};true;true;true;false;false;disabled;"+
-			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock"
+			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock;null"
 }

@@ -101,7 +101,9 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffs
 		targetWidgets.forEach{ it ->
 			drawOval(it.bounds)
 			val text = targetCounter[it.id]!!.joinToString(separator = ", ") { "${it.first}.${it.second}" }
+			if( text.length>20 ) 		font = Font("TimesRoman", Font.PLAIN, 20)
 			drawString(text,it.bounds.x,it.bounds.y)
+			font = Font("TimesRoman", Font.PLAIN, 70) // reset font to bigger font
 		}
 	}
 }

@@ -57,7 +57,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 			lazy {
 				widgets.fold(Pair(emptyUUID, emptyUUID)) { (id, configId), widget ->  // e.g. keyboard elements have a different package-name and are therefore ignored for uid computation
 					// however different selectable auto-completion proposes are only 'rendered' such that we have to include the img id to ensure different state configuration id's if these are different
-					Pair(addRelevantId(id, widget), configId + if(ignoredTarget(widget)) widget.uid + widget.propertyConfigId else widget.propertyConfigId)
+					Pair(addRelevantId(id, widget), configId + if(ignoredTarget(widget)) widget.uid + widget.propertyId else widget.propertyId)
 				}
 			}
 	private val ignoredTarget:(Widget)->Boolean = { w -> (w.packageName != topNodePackageName && w.canBeActedUpon)
@@ -65,12 +65,10 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	}
 
 	val uid: UUID by lazy { lazyIds.value.first }
-	private var _configId: Lazy<UUID> = lazy { lazyIds.value.second }
-	var configId: UUID
-		get() = _configId.value
-		set(value){ _configId = lazyOf(value) }
-
-	val stateId get() = ConcreteId(uid, configId)
+	val configId: UUID by lazy { lazyIds.value.second }
+	val stateId by lazy {
+		ConcreteId(uid, configId)
+	}
 	/** id computed like uid while ignoring all edit fields */
 	val iEditId: UUID by lazy {
 		//lazyIds.value.third
@@ -93,9 +91,9 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	/** determine which UID this state would have, if it ignores [widgets] for the id computation
 	 * this is used to identify consequent states where interacted edit fields are to be ignored
 	 * for UID computation (instead the initial edit field UID will be restored) */
-	fun idWhenIgnoring(widgets: Collection<Widget>): UUID = widgets.fold(emptyUUID, { id, w ->
+	fun idWhenIgnoring(widgets: Collection<Widget>): UUID = widgets.fold(emptyUUID) { id, w ->
 		if (!widgets.contains(w)) addRelevantId(id, w) else id
-	})
+	}
 
 	val hasActionableWidgets by lazy{ actionableWidgets.isNotEmpty() }
 
@@ -131,10 +129,10 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 		 * assume that the given set of ids are all relevant for the uid computation*/
 		@JvmStatic
 		fun computeIds(widgetIds: List<UUID>, editIds: List<UUID>): Pair<UUID, UUID> =
-				widgetIds.fold(Pair(emptyUUID, emptyUUID),
-						{ (id, iEdit): Pair<UUID, UUID>, widget ->
-							Pair(id + widget, if (editIds.contains(id)) iEdit else (iEdit + id))
-						})
+				widgetIds.fold(Pair(emptyUUID, emptyUUID)
+				) { (id, iEdit): Pair<UUID, UUID>, widget ->
+					Pair(id + widget, if (editIds.contains(id)) iEdit else (iEdit + id))
+				}
 
 	}
 

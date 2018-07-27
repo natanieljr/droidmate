@@ -91,7 +91,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		val otherWidgets = other.widgets
 		val candidates = this.widgets.filter{this.isRelevantForId(it)}
 		val mappedWidgets = candidates.map { w ->
-			if (otherWidgets.any { it.uid == w.uid || it.propertyConfigId == w.propertyConfigId })
+			if (otherWidgets.any { it.uid == w.uid || it.propertyId == w.propertyId })
 				1
 			else
 				0
@@ -106,7 +106,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 			state.widgets.any { it.id == this.id } -> Pair(1.0, this) // we have a perfect match
 			else -> // possibly it is a match but we can't be 100% sure
 				state.widgets.find { it.canBeActedUpon && it.uid == this.uid }	?.let { Pair(0.6, it) } // prefer uid match over property equivalence
-						?: state.widgets.find { it.canBeActedUpon && it.propertyConfigId == this.propertyConfigId }?.let{ Pair(0.5, it) }
+						?: state.widgets.find { it.canBeActedUpon && it.propertyId == this.propertyId }?.let{ Pair(0.5, it) }
 						?:	Pair(0.0, null) // no match found
 		}
 	}
@@ -140,7 +140,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 								model.getState(lastSkipped.resState)?.run {
 									actionableWidgets.any {
 										peekAction.targetWidget == null || it.uid == peekAction.targetWidget.uid
-												|| it.propertyConfigId == peekAction.targetWidget.uid
+												|| it.propertyId == peekAction.targetWidget.uid
 									}
 								}
 							} == true) {

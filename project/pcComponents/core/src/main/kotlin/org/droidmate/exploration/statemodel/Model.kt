@@ -37,8 +37,9 @@ import java.util.*
 import kotlin.collections.HashSet
 import kotlin.system.measureTimeMillis
 
-internal operator fun UUID.plus(uuid: UUID): UUID {
-	return UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
+internal operator fun UUID.plus(uuid: UUID?): UUID {
+	return if(uuid == null) this
+	else UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
 }
 
 /** s_* should be only used in sequential eContext as it currently does not handle parallelism*/
@@ -162,7 +163,7 @@ class Model private constructor(val config: ModelConfig) {
 		}
 	}
 
-	private fun computeNewState(action: ActionResult, interactedEF: Map<UUID, List<Pair<StateData, Widget>>>): StateData {
+	private fun computeNewState(action: ActionResult, @Suppress("UNUSED_PARAMETER") interactedEF: Map<UUID, List<Pair<StateData, Widget>>>): StateData {
 		debugT("compute Widget set ", { action.getWidgets(config) })
 				.let { widgets ->
 					// compute all widgets existing in the current state
@@ -190,6 +191,7 @@ class Model private constructor(val config: ModelConfig) {
 //		else null
 //	}
 	/** check for all edit fields of the state if we already interacted with them and thus potentially changed their text property, if so overwrite the uid to the original one (before we interacted with it) */
+	/* TODO instead of modifying, we simply re-create widgets and states
 	private val handleEditFields: (StateData, List<Pair<StateData, Widget>>) -> List<Widget> = { state, interactedEF ->
 		//		async {
 		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
@@ -231,6 +233,7 @@ class Model private constructor(val config: ModelConfig) {
 				}
 //		}
 	}
+	// */
 
 	companion object {
 		@JvmStatic
