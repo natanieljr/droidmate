@@ -3,19 +3,10 @@ package org.droidmate.exploration.statemodel
 import org.droidmate.deviceInterface.guimodel.WidgetData
 import java.time.LocalDateTime
 
-interface TestModel{
-	val parentData: WidgetData get() = WidgetData.empty()
-	val parentWidget: Widget get() = Widget(parentData)
-	val testWidgetData: WidgetData
-	val testWidget: Widget get() = Widget(testWidgetData).apply { parentId = parentWidget.id }
-	val testWidgetDumpString: String
-
-	class TestAction(targetWidget:Widget?=null, prevState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION")
-		:ActionData(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";"){
-		init {
-			super.prevState = prevState
-		}
-	}
+typealias TestAction = ActionData
+@JvmOverloads fun createTestAction(targetWidget:Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"):	TestAction
+		= ActionData(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";").apply {
+	prevState = oldState
 }
 
 class DefaultTestModel: TestModel {

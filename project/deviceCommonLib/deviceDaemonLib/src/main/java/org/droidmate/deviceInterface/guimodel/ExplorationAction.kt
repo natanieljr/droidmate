@@ -47,6 +47,9 @@ fun String.isLaunchApp():Boolean = this == LaunchApp.name
 data class Swipe(val start:Pair<Int,Int>,val end:Pair<Int,Int>,val stepSize:Int, override val hasWidgetTarget: Boolean = false): ExplorationAction() {
 	override fun toString(): String = "Swipe[(${start.first},${start.second}) to (${end.first},${end.second})]"
 }
+
+fun String.isQueueStart() = this == ActionQueue.startName
+fun String.isQueueEnd() = this == ActionQueue.endName
 data class ActionQueue(val actions: List<ExplorationAction>,val delay: Long): ExplorationAction(){
 	override fun toString(): String = "ActionQueue[ ${actions.map { it.toString() }} ](delay=$delay)"
 

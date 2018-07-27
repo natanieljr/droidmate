@@ -46,11 +46,12 @@ import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.properties.Delegates
 
-open class ActionData protected constructor(val actionType: String, val targetWidget: Widget?,
-                                            val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
-                                            val successful: Boolean, val exception: String,
-                                            val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
-                                            private val sep:String) {
+@Suppress("DataClassPrivateConstructor")
+data class ActionData constructor(val actionType: String, val targetWidget: Widget?,
+                                          val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
+                                          val successful: Boolean, val exception: String,
+                                          val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
+                                          private val sep:String) {
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId, sep:String)

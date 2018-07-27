@@ -28,14 +28,17 @@ package org.droidmate.report.apk
 import com.google.gson.*
 import com.konradjamrozik.Resource
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.device.android_sdk.IApk
+import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.*
+import org.droidmate.exploration.statemodel.features.highlightWidget
 import org.droidmate.misc.unzip
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*
+import javax.imageio.ImageIO
+import kotlin.collections.HashMap
 
 /**
  * This reporter creates a report in form of a web page, displaying the model, its states and its
@@ -66,7 +69,7 @@ class VisualizationGraph : ApkReport() {
 		val indices = HashSet<Int>()
 		val id = "${actionData.prevState.dumpString()} -> ${actionData.resState.dumpString()}"
 		val actionIndexWidgetMap = HashMap<Int, Widget?>()
-		fun addIndex(i: Int, w: Widget?) {
+		fun addIndex(i: Int, w: Widget?) {  //FIXME this does not allow for all targets of WidgetQueue
 			indices.add(i)
 			actionIndexWidgetMap[i] = w
 		}
@@ -79,7 +82,7 @@ class VisualizationGraph : ApkReport() {
 	 */
 	@Suppress("unused")
 	inner class Graph(val nodes: Set<StateData>,
-	                  edges: List<ActionData>,
+	                  edges: List<Pair<Int, ActionData>>,
 	                  val explorationStartTime: String,
 	                  val explorationEndTime: String,
 	                  val numberOfActions: Int,
@@ -91,19 +94,20 @@ class VisualizationGraph : ApkReport() {
 		// therefore add here the indices and check if the same transition was taken before, if yes
 		// then just add the index to the already added edge
 		init {
-			val tmpEdges = edges.map { Edge(it) }
+//			val tmpEdges = edges.map { Edge(it) }
 			val edgeMap = HashMap<String, Edge>()
-			for (i in tmpEdges.indices) {
-				val edge = tmpEdges[i]
+			edges.forEach { (idx,a) ->
+				if( !(a.actionType.isQueueStart() || a.actionType.isQueueEnd()) ){ // ignore queue actions
+				val edge = Edge(a)
 				val entry = edgeMap[edge.id]
 				if (entry == null) {
-					edge.addIndex(i, edge.actionData.targetWidget)
+					edge.addIndex(idx, edge.actionData.targetWidget)
 					edgeMap[edge.id] = edge
 					this.edges.add(edge)
 				} else {
-					entry.addIndex(i, edge.actionData.targetWidget)
+					entry.addIndex(idx, edge.actionData.targetWidget)
 				}
-			}
+			}}
 		}
 
 		fun toJsonVariable(gson: Gson): String {
@@ -177,7 +181,7 @@ class VisualizationGraph : ApkReport() {
 			obj.addProperty("to", src.actionData.resState.dumpString())
 			obj.addProperty("actionType", src.actionData.actionType)
 			obj.addProperty("id", src.id)
-			obj.addProperty("propertyConfigId", src.actionData.targetWidget?.propertyConfigId.toString())
+			obj.addProperty("propertyId", src.actionData.targetWidget?.propertyId.toString())
 			obj.addProperty("title", src.id)
 			obj.addProperty("label", "${src.actionData.actionType} ${src.indices.joinToString(",", prefix = "<", postfix = ">")}")
 			obj.add("targetWidgets", context.serialize(src.actionIndexWidgetMap))
@@ -197,7 +201,7 @@ class VisualizationGraph : ApkReport() {
 				obj.addProperty("idxOfAction", idx)
 				obj.addProperty("id", w?.id?.dumpString())
 				obj.addProperty("uid", w?.uid.toString())
-				obj.addProperty("propertyConfigId", w?.propertyConfigId.toString())
+				obj.addProperty("propertyId", w?.propertyId.toString())
 				obj.addProperty("text", w?.text)
 				obj.addProperty("contentDesc", w?.contentDesc)
 				obj.addProperty("resourceId", w?.resourceId)
@@ -288,11 +292,11 @@ class VisualizationGraph : ApkReport() {
 		val targetVisFolder = apkReportDir.resolve(topLevelDirName)
 		// Copy the folder with the required resources
 		val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)
-		zippedVisDir.unzip(targetVisFolder)
 		try {
+			zippedVisDir.unzip(targetVisFolder)
 			Files.delete(zippedVisDir)
-		}catch(e: FileSystemException){ // temporary work-around for windows file still used issue
-			log.warn("resource zip could not be removed ${e.localizedMessage}")
+		}catch(e: FileSystemException){ // FIXME temporary work-around for windows file still used issue
+			log.warn("resource zip could not be unziped/removed ${e.localizedMessage}")
 		}
 
 		// Copy the state images
@@ -301,9 +305,7 @@ class VisualizationGraph : ApkReport() {
         	Files.list(model.config.stateDst)
 			.filter { filename -> filename.toString().endsWith(".png") }
 			.forEach {
-				val fileName = if(ignoreConfig) it.fileName.toString().replaceAfter("_", "$emptyUUID.png")
-				else it.fileName.toString()
-				Files.copy(it, targetImgDir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING)
+				Files.copy(it, targetImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
 			}
 
 		val jsonFile = targetVisFolder.resolve("data.js")
@@ -313,26 +315,12 @@ class VisualizationGraph : ApkReport() {
 
 			// TODO Jenny proposed to visualize multiple traces in different colors in the future, as we only
 			// use the first trace right now
-			val actions = model.getPaths().first().getActions().let{
-				if(ignoreConfig) it.map {
-					it.actionString().split(model.config[sep])
-							.mapIndexed { index, s ->
-								if (index == ActionData.Companion.ActionDataFields.PrevId.ordinal || index == ActionData.Companion.ActionDataFields.DstId.ordinal) {
-									val concreteId = idFromString(s)
-									val joinedId = Pair(concreteId.first, emptyUUID)
-									joinedId.dumpString()
-								} else s
-							}.run { ActionData.createFromString(this, it.targetWidget, model.config[sep]) }
-				}
-				else it
-			}
-			val states = model.getStates().map{
-				it.apply{ if(ignoreConfig) it.configId = emptyUUID }
-			}.toSet()
+			val actions = if(ignoreConfig) markTargets(model,targetImgDir) else	model.getPaths().first().getActions().mapIndexed{ i,a -> Pair(i,a) }
+			val states = model.getStates()
 			val graph = Graph(states,
 					actions,
-					actions.first().startTimestamp.toString(),
-					actions.last().endTimestamp.toString(),
+					actions.first().second.startTimestamp.toString(),
+					actions.last().second.endTimestamp.toString(),
 					actions.size,
 					states.size,
 					apk)
@@ -340,6 +328,44 @@ class VisualizationGraph : ApkReport() {
 
 			Files.write(jsonFile, jsGraph.toByteArray())
 		}
+	}
+
+	// copy highlighed images into the visualization directory and adjust actionData to be unified to same config Id
+	// FIXME it would be better to keep the information of original state configId's for the different actions to display this information
+	// for this we have to add an option for the Edge class to include/ignore configId's and change the visualization script
+	// to display such information properly (if possible with small images of the alternative config states in the selection view of a state)
+	private fun markTargets(model: Model, imgDir: Path):List<Pair<Int,ActionData>>{
+		val uidMap: MutableMap<UUID,ConcreteId> = HashMap()
+		var idx = 0
+		var isAQ = false
+		return model.getPaths().first().getActions()
+				.map { a ->
+					Pair(idx,a).also {   // use same index for all actions within same actionQueue
+						when{
+							a.actionType.isQueueStart() -> isAQ = true
+							a.actionType.isQueueEnd() ->{ isAQ = false; idx +=1 }
+							else -> if(!isAQ) idx +=1
+						}
+					}
+				}
+				.groupBy { (_,it) -> it.prevState.first }.flatMap { (uid , indexedActions) ->
+					var imgFile = imgDir.resolve("${indexedActions.first().second.prevState.dumpString()}.png").toFile()
+					if(!imgFile.exists()){
+						imgFile = Files.list(imgDir).filter{ it.fileName.startsWith(uid.toString()) && it.fileName.endsWith(".png")}.findFirst().orElseGet { Paths.get("Error") }.toFile()
+					}
+					val img = if(imgFile.exists()) ImageIO.read(imgFile) else null
+					if(!imgFile.exists() || img == null) indexedActions// if we cannot find a source img we are not touching the actions
+					else{
+						uidMap[uid] = idFromString(imgFile.name.replace(".png",""))
+						val configId = uidMap[uid]!!.second
+						val targets = indexedActions.filter {  (_,action) -> action.targetWidget != null }
+						highlightWidget(img,targets.map{it.second.targetWidget!!},targets.map{it.first}) // highlight each action in img
+						ImageIO.write(img,"png",imgDir.resolve("${ConcreteId(uid, configId).dumpString()}.png").toFile())
+						// manipulate the action datas to replace config-id's
+						indexedActions.map { (i,action) ->
+							Pair(i,action.copy(resState = uidMap.getOrDefault(action.resState.first,action.resState)).apply { prevState = ConcreteId(uid, configId) }) }
+					}
+				}
 	}
 
 }

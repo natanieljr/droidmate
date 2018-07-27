@@ -31,19 +31,19 @@ import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.configuration.ConfigProperties
+import org.droidmate.exploration.statemodel.ConcreteId
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.misc.deleteDir
-import java.awt.BasicStroke
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Rectangle
+import java.awt.*
+import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
+import kotlin.collections.HashMap
 import kotlin.coroutines.experimental.CoroutineContext
 
 /** use this function to create a sequence of screen images in which the interacted target is highlighted by a red boarder */
@@ -77,17 +77,38 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		}
 
 		val stateImg = ImageIO.read(screenFile)
-		stateImg.createGraphics().apply{
-			paint = Color.red
-			stroke = BasicStroke(10F)
-			targetWidgets.forEach {
-				drawOval(it.bounds)
-			}
-		}
+		highlightWidget(stateImg, targetWidgets, step)
 		ImageIO.write(stateImg,"png",targetFile)
 	}
 
-	private fun Graphics.drawOval(bounds: Rectangle){
-		this.drawOval(bounds.x,bounds.y,bounds.width,bounds.height)
+}
+
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffset: List<Int>){
+	stateImg.createGraphics().apply{
+		paint = Color.red
+		stroke = BasicStroke(10F)
+		font = Font("TimesRoman", Font.PLAIN, 70)
+		val targetsPerAction = targetWidgets.mapIndexed{ i,t -> Pair(idxOffset[i],t)}.groupBy { it.first }
+
+		val targetCounter: MutableMap<ConcreteId,LinkedList<Pair<Int,Int>>> = HashMap() // used to compute offsets in the number string
+		// compute the list of indicies for each widget-target (for labeling)
+		targetsPerAction.forEach{ (idx, targets) ->
+			targets.forEachIndexed{ index, (_,t) ->
+				targetCounter.compute(t.id) { _, indicies -> (indicies ?: LinkedList()).apply { add(Pair(idx,index)) }}
+			}
+		}
+		// highlight all targets and add text labels
+		targetWidgets.forEach{ it ->
+			drawOval(it.bounds)
+			val text = targetCounter[it.id]!!.joinToString(separator = ", ") { "${it.first}.${it.second}" }
+			drawString(text,it.bounds.x,it.bounds.y)
+		}
 	}
+}
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffset: Int = 0)
+	= highlightWidget(stateImg,targetWidgets,(0 until targetWidgets.size).map{ idxOffset })
+
+
+fun Graphics.drawOval(bounds: Rectangle){
+	this.drawOval(bounds.x,bounds.y,bounds.width,bounds.height)
 }
