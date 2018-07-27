@@ -26,7 +26,7 @@
 
 package org.droidmate.uiautomator_daemon.guimodel
 
-import java.awt.Point
+// Do not include anything from java.awt.* because of incompatibility reasons
 import java.io.Serializable
 
 /**
@@ -48,7 +48,6 @@ data class ClickAction(val xPath: String,
 
 data class CoordinateClickAction(val x: Int,
                                  val y: Int) : Action() {
-	constructor(point: Point) : this(point.x, point.y)
 }
 
 @Deprecated("is internally the same as CoordinateClick to the center -> is going to be removed in next version",
@@ -57,7 +56,6 @@ data class LongClickAction(val xPath: String, val resId: String = "") : Action()
 
 data class CoordinateLongClickAction(val x: Int,
                                      val y: Int) : Action() {
-	constructor(point: Point) : this(point.x, point.y)
 }
 
 data class TextAction(val xPath: String, val resId: String = "", val text: String) : Action()
