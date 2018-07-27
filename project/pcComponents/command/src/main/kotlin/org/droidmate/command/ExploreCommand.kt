@@ -105,7 +105,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				res.add(StrategySelector(++priority, "playback", StrategySelector.playback))
 
 			res.add(StrategySelector(++priority, "startExplorationReset", StrategySelector.startExplorationReset))
-			res.add(StrategySelector(++priority, "appCrashedReset", StrategySelector.appCrashedReset))
 
 			// Action based terminate
 			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
@@ -120,6 +119,8 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			// Time based terminate
 			if (cfg[timeLimit] > 0)
 				res.add(StrategySelector(++priority, "timeBasedTerminate", StrategySelector.timeBasedTerminate, cfg[timeLimit]))
+
+			res.add(StrategySelector(++priority, "appCrashedReset", StrategySelector.appCrashedReset))
 
 			if (cfg[allowRuntimeDialog])
 				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
