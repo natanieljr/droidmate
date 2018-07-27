@@ -205,7 +205,8 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	}
 
 	override fun chooseAction(): ExplorationAction {
-		if(eContext.isEmpty()) eContext.resetApp() // very first action -> start the app via reset
+		if(eContext.isEmpty())
+            return eContext.resetApp() // very first action -> start the app via reset
 		// Repeat previous action is last action was to click on a runtime permission dialog
 		if (mustRepeatLastAction())
 			return repeatLastAction()
