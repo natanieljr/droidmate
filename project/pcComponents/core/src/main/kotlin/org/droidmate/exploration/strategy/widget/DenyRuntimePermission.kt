@@ -22,35 +22,21 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.storage
+package org.droidmate.exploration.strategy.widget
 
-import org.nustaq.serialization.FSTBasicObjectSerializer
-import org.nustaq.serialization.FSTClazzInfo
-import org.nustaq.serialization.FSTObjectInput
-import org.nustaq.serialization.FSTObjectOutput
-import java.io.IOException
-import java.net.URI
+import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.exploration.actions.click
 
-class FSTURISerializer : FSTBasicObjectSerializer() {
+/**
+ * Exploration strategy that always clicks "Deny" on runtime permission dialogs.
+ */
+class DenyRuntimePermission : ExplorationStrategy() {
+	override fun chooseAction(): AbstractExplorationAction {
+		val denyButton = eContext.getCurrentState().widgets.let { widgets ->
+			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_deny_button" }
+					?: widgets.first { it.text.toUpperCase() == "DENY" }
+		}
 
-	@Throws(IOException::class)
-	override fun writeObject(out: FSTObjectOutput, toWrite: Any, clzInfo: FSTClazzInfo, referencedBy: FSTClazzInfo.FSTFieldInfo, streamPosition: Int) {
-		out.writeStringUTF(toWrite.toString())
-	}
-
-	@Throws(Exception::class)
-	override fun instantiate(objectClass: Class<*>?, input: FSTObjectInput?, serializationInfo: FSTClazzInfo?, referencee: FSTClazzInfo.FSTFieldInfo?, streamPosition: Int): Any {
-		val s = URI.create(input!!.readStringUTF())
-		input.registerObject(s, streamPosition, serializationInfo, referencee)
-		return s
-	}
-
-	override fun writeTupleEnd(): Boolean {
-		return false
-	}
-
-	companion object {
-
-		var Instance = FSTURISerializer() // used directly
+		return denyButton.click().apply { runtimePermission = true }
 	}
 }

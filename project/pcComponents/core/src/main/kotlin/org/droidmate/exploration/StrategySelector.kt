@@ -30,10 +30,7 @@ import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
-import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
-import org.droidmate.exploration.strategy.widget.DFS
-import org.droidmate.exploration.strategy.widget.ModelBased
-import org.droidmate.exploration.strategy.widget.RandomWidget
+import org.droidmate.exploration.strategy.widget.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -91,7 +88,7 @@ class StrategySelector constructor(val priority: Int,
         @JvmStatic
         val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
 	        val timeLimit = bundle!![0].toString().toInt()
-	        if(timeLimit<=0) null
+	        if (timeLimit <= 0) null
 	        else {
 		        val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because eContext start time is not yet initialized
 
@@ -253,6 +250,22 @@ class StrategySelector constructor(val priority: Int,
 			if (hasAllowButton) {
 				logger.debug("Runtime permission dialog. Returning 'AllowRuntimePermission'")
 				pool.getFirstInstanceOf(AllowRuntimePermission::class.java)
+			}
+			else
+				null
+		}
+
+		@JvmStatic
+		val denyPermission: SelectorFunction = { context, pool, _ ->
+			val widgets = context.getCurrentState().widgets
+			var hasDenyButton = widgets.any { it.resourceId == "com.android.packageinstaller:id/permission_deny_button" }
+
+			if (!hasDenyButton)
+				hasDenyButton = widgets.any { it.text.toUpperCase() == "DENY" }
+
+			if (hasDenyButton) {
+				logger.debug("Runtime permission dialog. Returning 'DenyRuntimePermission'")
+				pool.getFirstInstanceOf(DenyRuntimePermission::class.java)
 			}
 			else
 				null

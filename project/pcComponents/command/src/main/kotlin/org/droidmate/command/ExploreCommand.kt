@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
@@ -45,6 +46,7 @@ import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
+import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.explore
 import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
 import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
@@ -63,6 +65,8 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
+import org.droidmate.exploration.strategy.custom.DeAwintaSanimedius
 import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
 import org.droidmate.exploration.strategy.custom.DeAwintaSanimedius
 import org.droidmate.exploration.strategy.others.MinimizeMaximize
@@ -88,7 +92,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
                                       private val adbWrapper: IAdbWrapper,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
-                                      private val timeProvider: ITimeProvider,
                                       private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
                                       private var modelProvider: (String) -> Model) : DroidmateCommand() {
 	companion object {
@@ -106,7 +109,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				res.add(StrategySelector(++priority, "playback", StrategySelector.playback))
 
 			res.add(StrategySelector(++priority, "startExplorationReset", StrategySelector.startExplorationReset))
-			res.add(StrategySelector(++priority, "appCrashedReset", StrategySelector.appCrashedReset))
 
 			// Action based terminate
 			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
@@ -122,8 +124,13 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			if (cfg[timeLimit] > 0)
 				res.add(StrategySelector(++priority, "timeBasedTerminate", StrategySelector.timeBasedTerminate, cfg[timeLimit]))
 
+			res.add(StrategySelector(++priority, "appCrashedReset", StrategySelector.appCrashedReset))
+
 			if (cfg[allowRuntimeDialog])
 				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
+
+			if (cfg[denyRuntimeDialog])
+				res.add(StrategySelector(++priority, "denyPermission", StrategySelector.denyPermission))
 
 			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
 
@@ -197,6 +204,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
 
+			if (cfg[denyRuntimeDialog])
+				strategies.add(DenyRuntimePermission())
+
 			if (cfg[Strategies.dfs])
 				strategies.add(DFS())
 
@@ -215,17 +225,16 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		@JvmStatic
 		@JvmOverloads
 		fun build(cfg: ConfigurationWrapper,
-				  deviceTools: IDeviceTools = DeviceTools(cfg),
-				  timeProvider: ITimeProvider = TimeProvider(), // FIXME doesn't seam necessary as parameter
-				  strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
-				  selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-				  strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
-				  reportCreators: List<Reporter> = defaultReportWatcher(cfg),
-				  modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
+		          deviceTools: IDeviceTools = DeviceTools(cfg),
+		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
+		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
+		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
+		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
+		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(cfg, apksProvider, deviceTools.adb, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-										 timeProvider, strategyProvider, modelProvider)
+										 strategyProvider, modelProvider)
 
 			reportCreators.forEach { r -> command.registerReporter(r) }
 
@@ -418,7 +427,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, adbWrapper, timeProvider.getNow(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, adbWrapper, TimeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
@@ -454,7 +463,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		if (!result.successful)
 			explorationContext.exception = result.exception
 
-		explorationContext.explorationEndTime = timeProvider.getNow()
+		explorationContext.explorationEndTime = TimeProvider.getNow()
 
 		return explorationContext
 	}

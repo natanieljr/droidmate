@@ -29,9 +29,6 @@ import org.droidmate.exploration.actions.click
 
 /**
  * Exploration strategy that always clicks "Allow" on runtime permission dialogs.
- *
- * It has maximum priority (0.99) when it identifies a runtime permission dialog,
- * otherwise its priority is 0.
  */
 class AllowRuntimePermission : ExplorationStrategy() {
 	override fun chooseAction(): AbstractExplorationAction {

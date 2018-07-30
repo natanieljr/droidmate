@@ -89,8 +89,6 @@ repositories {
 }
 
 dependencies {
-	// Fast serialization library
-	implementation 'de.ruedigermoeller:fst:2.56'
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
 	implementation fileTree(dir: 'libs_built', include: ['*.jar'])

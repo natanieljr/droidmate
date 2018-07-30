@@ -17,6 +17,7 @@ class Example {
 				// Default configuration values can be found in [project/pcComponents/core/src/main/resources/defaultConfig.properties]
 				val customArgsForDroidmate = args.toMutableList()
 						.also {
+							it.add("--Exploration-deviceIndex=2")
 							it.add("--Selectors-actionLimit=100")
 							it.add("--Selectors-resetEvery=50")
 						}
@@ -70,7 +71,7 @@ class Example {
 				selectors.add(StrategySelector(priority = defaultSelectors.size + 1,
 						description = "Example Selector",
 						selector = mySelector,
-						bundle = listOf(someId)))
+						bundle = someId))
 
 				// Run Droidmate
 				val explorationOutput = ExplorationAPI.explore(cfg, strategies, selectors)

@@ -26,21 +26,48 @@
 package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.CoroutineName
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
-import org.droidmate.exploration.statemodel.Widget
-import java.io.File
+import java.nio.file.Files
 import kotlin.coroutines.experimental.CoroutineContext
 
 class CrashListMF : WidgetCountingMF() {
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("CrashListMF"), parent = job)
 
-	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData) {
-		if (newState.isAppHasStoppedDialogBox) incCnt(targetWidget!!.uid,prevState.uid)
+	private val crashes: MutableMap<ActionData, String> = mutableMapOf()
+
+	override suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
+		val actionData = deferredAction.await()
+
+		if (newState.isAppHasStoppedDialogBox) {
+			crashes[actionData] = actionData.exception
+			if (actionData.targetWidget != null)
+				incCnt(actionData.targetWidget.uid, prevState.uid)
+		}
 	}
 
 	override suspend fun dump(context: ExplorationContext) {
-		dump(File(context.getModel().config.baseDir.toString() + "${File.separator}crashlist.txt"))
+		job.joinChildren() // wait that all updates are applied before changing the counter value
+		val out = StringBuffer()
+		out.appendln(header)
+		crashes.toSortedMap(compareBy { it.prevState.first })
+				.forEach { crash ->
+					val actionData = crash.key
+					val exception = crash.value
+
+					out.appendln("${actionData.actionType};${actionData.targetWidget};\t${actionData.prevState};$exception")
+			}
+
+		val file = context.getModel().config.baseDir.resolve("crashlist.txt")
+		Files.write(file, out.lines())
+	}
+
+	companion object {
+		@JvmStatic
+		val header = "ActionType;WidgetId".padEnd(38)+"; State-Context".padEnd(38)+";Exception"
 	}
 }
