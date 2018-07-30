@@ -190,13 +190,14 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 	private val widgetQueue: MutableMap<ConcreteId,Deferred<Widget>> = ConcurrentHashMap()
 	protected val _widgetParser: (List<String>) -> Deferred<Widget> = { line ->
 		log("parse widget $line")
-		Pair((UUID.fromString(line[Widget.idIdx.first])),UUID.fromString(line[Widget.idIdx.second])).let { widgetId ->
+		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
+		Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId).let { widgetId ->
 			widgetQueue.computeIfAbsent(widgetId) { id ->
 				log("parse widget absent $id")
 				async(CoroutineName("parseWidget $id"), parent = job) {
 					Widget.fromString(line,customWidgetIndicies).also { widget ->
 						model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
-						assert(id == widget.id, { "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" })
+						assert(id == widget.id)	{ "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" }
 					}
 				}
 			}

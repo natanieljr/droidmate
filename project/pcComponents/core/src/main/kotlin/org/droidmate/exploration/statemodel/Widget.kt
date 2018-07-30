@@ -169,7 +169,7 @@ class Widget(properties: WidgetData, val uidImgId: Lazy<Pair<UUID,UUID?>>) {
 			WidgetData.fromString(line,indexMap).apply { xpath = line[P.XPath.idx(indexMap)] }.let { w ->
 				assert(w.uid.toString()==line[P.WdId.idx(indexMap)]) {
 					"ERROR on widget parsing: property-Id was ${w.uid} but should have been ${line[P.WdId.idx(indexMap)]}"}
-				val imgId = line[P.ImgId.idx(indexMap)].let{ if(it == "null") null else UUID.fromString(it)}
+				val imgId = line[P.ImgId.idx(indexMap)].asUUID()
 				return Widget(w,lazyOf(Pair(UUID.fromString(line[P.UID.idx(indexMap)]),imgId)))
 						.apply { parentId = line[P.ParentID.idx(indexMap)].let { if (it == "null") null else idFromString(it) } }
 			}
