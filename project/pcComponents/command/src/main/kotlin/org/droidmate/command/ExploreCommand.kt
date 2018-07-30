@@ -65,8 +65,6 @@ import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
-import org.droidmate.exploration.strategy.custom.DeAwintaSanimedius
 import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
@@ -131,22 +129,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				res.add(StrategySelector(++priority, "denyPermission", StrategySelector.denyPermission))
 
 			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
-
-			res.add(StrategySelector(++priority, "ComShreeHomeLogin", {context, pool, _ ->
-				if (context.apk.packageName == "com.shree.home" && context.getCurrentState().widgets.any { it.resourceId == "com.shree.home:id/useremail" })
-					pool.getFirstInstanceOf(ComShreeHomeLogin::class.java)
-				else
-					null
-			}))
-
-			res.add(StrategySelector(++priority, "DeAwintaSanimedius", {context, pool, _ ->
-				if (context.apk.packageName == "de.awinta.sanimedius" &&
-						context.getCurrentState().widgets.any { it.contentDesc == "Forgotten your password?" } &&
-						context.getCurrentState().widgets.any { it.contentDesc == "Register" })
-					pool.getFirstInstanceOf(DeAwintaSanimedius::class.java)
-				else
-					null
-			}))
 
 			// Interval reset
 			if (cfg[resetEvery] > 0)
@@ -213,9 +195,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 			if (cfg[minimizeMaximize])
 				strategies.add(MinimizeMaximize())
-
-			strategies.add(ComShreeHomeLogin())
-			strategies.add(DeAwintaSanimedius())
 
 			return strategies
 		}
