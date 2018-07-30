@@ -143,6 +143,9 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 	val isHomeScreen: Boolean
 		get() = topNodePackageName.startsWith(androidLauncherPackageName) && !widgets.any { it.text == "Widgets" }
 
+	val isShareScreen: Boolean
+		get() = topNodePackageName == "android" && widgets.any { it.resourceId == "android:id/contentPanel" }
+
 	val isAppHasStoppedDialogBox: Boolean
 		get() = topNodePackageName == androidPackageName &&
 				(widgets.any { it.resourceId == "android:id/aerr_close" } &&
