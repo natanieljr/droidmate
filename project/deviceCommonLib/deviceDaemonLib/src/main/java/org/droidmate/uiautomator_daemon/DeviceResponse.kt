@@ -80,6 +80,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 		@JvmStatic
 		private val androidLauncher:(deviceModel: String)-> String by lazy {{ deviceModel:String ->
 			when {
+				deviceModel.startsWith("Google-Pixel XL/") -> "com.google.android.apps.nexuslauncher"
 				deviceModel.startsWith("Google-Android SDK built for x86/26") -> "com.google.android.apps.nexuslauncher"
 				deviceModel.startsWith("Google-Android SDK built for x86/25") -> "com.google.android.apps.nexuslauncher"
 				deviceModel.startsWith("Google-Android SDK built for x86") -> "com.android.launcher"

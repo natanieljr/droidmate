@@ -286,7 +286,7 @@ class VisualizationGraph : ApkReport() {
 	fun createVisualizationGraph(model: Model, apk: IApk, apkReportDir: Path, resourceDir: Path) {
 		val targetVisFolder = apkReportDir.resolve(topLevelDirName)
 		// Copy the folder with the required resources
-		val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)
+		val zippedVisDir = Resource("vis.zip").extractTo(resourceDir).toAbsolutePath()
 		zippedVisDir.unzip(targetVisFolder)
 		Files.delete(zippedVisDir)
 
