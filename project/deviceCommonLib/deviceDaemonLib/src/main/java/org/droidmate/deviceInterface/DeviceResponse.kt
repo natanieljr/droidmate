@@ -40,7 +40,9 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val deviceDisplayHeight: Int,
                                               val screenshot: ByteArray,
                                               val screenshotWidth: Int,
-                                              val screenshotHeight: Int) : Serializable {
+                                              val screenshotHeight: Int,
+                                              val appSize: Pair<Int,Int>,
+                                              val statusBarSize: Int) : Serializable {
 
 	var throwable: Throwable? = null
 	private val androidPackageName = "android"
@@ -63,7 +65,8 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 					0,
 					ByteArray(0),
 					0,
-					0)
+					0,
+					Pair(0,0),0)
 		}
 
 		/**
@@ -101,10 +104,11 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			}
 		}}
 
-		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int): DeviceResponse = runBlocking{
+		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
 			DeviceResponse(windowHierarchyDump = uiDump, topNodePackageName = widgets.lastOrNull()?.packageName ?: "No Widgets", widgets = widgets, androidLauncherPackageName = androidLauncher(deviceModel),
-					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height)
+					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height,
+					appSize = appArea, statusBarSize = sH)
 		}
 	}
 

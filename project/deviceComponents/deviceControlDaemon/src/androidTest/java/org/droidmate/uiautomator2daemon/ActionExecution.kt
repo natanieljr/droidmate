@@ -153,8 +153,8 @@ fun fetchDeviceData(device: UiDevice, timeout: Long =200, afterAction: Boolean =
 	val (imgPixels,w,h) = debugT("wait for screen avg = ${wt/ max(1,wc)}",{ runBlocking {
 		imgProcess.await()}
 	}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1} )
+	val appArea = if(UiHierarchy.appArea.isEmpty) UiHierarchy.computeAppArea() else UiHierarchy.appArea
 	return debugT("compute UI-dump", {
-
 		DeviceResponse.create(uiHierarchy = uiHierarchy,
 				uiDump =
 				"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
@@ -163,7 +163,8 @@ fun fetchDeviceData(device: UiDevice, timeout: Long =200, afterAction: Boolean =
 				, deviceModel = deviceModel,
 				displayWidth = device.displayWidth, displayHeight = device.displayHeight,
 				screenshot = imgPixels,
-				width = w, height = h)
+				width = w, height = h,
+				appArea = Pair(appArea.width(),appArea.height()), sH = appArea.top)
 	},inMillis = true)
 }
 

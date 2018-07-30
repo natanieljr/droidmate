@@ -27,6 +27,7 @@ package org.droidmate.exploration.statemodel
 
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.exploration.statemodel.Widget.Companion.widgetHeader
+import java.awt.Rectangle
 import java.io.File
 import java.util.*
 
@@ -42,6 +43,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),isHomeScreen = homeScreen, topNodePackageName = topPackage)
 
 	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } }
+	var appArea: Rectangle = Rectangle()
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
 //              isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,

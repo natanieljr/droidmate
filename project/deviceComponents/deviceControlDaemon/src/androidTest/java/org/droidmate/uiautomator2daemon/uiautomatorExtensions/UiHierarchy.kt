@@ -3,6 +3,7 @@
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.*
 import android.util.Log
@@ -25,11 +26,14 @@ import kotlin.system.measureTimeMillis
 object UiHierarchy : UiParser() {
 	private const val LOGTAG = "droidmate/UiHierarchy"
 
+	var appArea: Rect = Rect()
+
 	private var nActions = 0
 	private var ut = 0L
 	suspend fun fetch(device: UiDevice): List<WidgetData> = debugT(" compute UiNodes avg= ${ut/(max(nActions,1)*1000000)}", {
 		deviceW = device.displayWidth
 		deviceH = device.displayHeight
+		appArea = computeAppArea()
 		val nodes = LinkedList<WidgetData>()
 
 		device.getNonSystemRootNodes().let{

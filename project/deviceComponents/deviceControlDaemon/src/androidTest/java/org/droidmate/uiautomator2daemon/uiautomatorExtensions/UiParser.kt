@@ -1,12 +1,17 @@
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
+import android.app.Service
+import android.graphics.Point
 import android.graphics.Rect
+import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.getBounds
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
 import org.droidmate.deviceInterface.guimodel.WidgetData
 import org.droidmate.deviceInterface.guimodel.center
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy.appArea
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
 
@@ -49,7 +54,7 @@ abstract class UiParser {
 				focused = if (isFocusable) isFocused else null,
 				scrollable = isScrollable,
 				selected = isSelected,
-				visible = isVisibleToUser,
+				visible = isVisibleToUser && nodeRect.intersect(appArea), // visible if partially within app area
 				boundsX = nodeRect.left,
 				boundsY = nodeRect.top,
 				boundsHeight = nodeRect.height(),
@@ -96,6 +101,26 @@ abstract class UiParser {
 						this.uncoveredCoord = Pair(uncoveredX.first,uncoveredY.first)
 					}
 				}
+	}
+
+	/**
+	 * The display may contain decorative elements as the status and menue bar which.
+	 * We use this method to check if an element is unvisible, since it is overlayed by such decorative elements.
+	 */
+	fun computeAppArea():Rect{
+	// compute the height of the status bar, which determines the offset for any visible app element
+		var sH = 0
+		val resources = InstrumentationRegistry.getInstrumentation().context.resources
+		val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+		if (resourceId > 0) {
+			sH = resources.getDimensionPixelSize(resourceId)
+		}
+
+		val p = Point()
+		(InstrumentationRegistry.getInstrumentation().context.getSystemService(Service.WINDOW_SERVICE) as WindowManager)
+		.defaultDisplay.getSize(p)
+
+		return Rect(0,sH,p.x,p.y)
 	}
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =

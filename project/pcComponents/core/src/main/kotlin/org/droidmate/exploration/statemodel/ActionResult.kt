@@ -39,6 +39,7 @@ import org.droidmate.device.deviceInterface.MissingDeviceLogs
 import org.droidmate.deviceInterface.DeviceResponse
 import org.droidmate.deviceInterface.guimodel.EmptyAction
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import java.awt.Rectangle
 import java.io.ByteArrayInputStream
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -129,10 +130,10 @@ open class ActionResult(val action: ExplorationAction,
 	}
 
 	fun resultState(widgets: List<Widget>): StateData = resultState(lazyOf(widgets))
-	fun resultState(widgets: Lazy<List<Widget>>): StateData {
+	private fun resultState(widgets: Lazy<List<Widget>>): StateData {
 		return guiSnapshot.let { g ->
 			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName, g.isHomeScreen, g.isAppHasStoppedDialogBox,
-					g.isRequestRuntimePermissionDialogBox)
+					g.isRequestRuntimePermissionDialogBox).apply { appArea = Rectangle(0,g.statusBarSize,g.appSize.first,g.appSize.second+g.statusBarSize) }
 		}
 	}
 }
