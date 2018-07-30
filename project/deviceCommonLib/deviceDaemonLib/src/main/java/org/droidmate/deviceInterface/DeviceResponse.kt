@@ -106,7 +106,10 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 
 		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
-			DeviceResponse(windowHierarchyDump = uiDump, topNodePackageName = widgets.lastOrNull()?.packageName ?: "No Widgets", widgets = widgets, androidLauncherPackageName = androidLauncher(deviceModel),
+			DeviceResponse(windowHierarchyDump = uiDump,
+					topNodePackageName = widgets.findLast { it.packageName != "com.google.android.inputmethod.latin" } // avoid the keyboard to be falesly recognized as packagename
+							?.packageName ?: "No Widgets",
+					widgets = widgets, androidLauncherPackageName = androidLauncher(deviceModel),
 					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height,
 					appSize = appArea, statusBarSize = sH)
 		}
