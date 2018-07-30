@@ -67,8 +67,6 @@ import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
 import org.droidmate.exploration.strategy.custom.DeAwintaSanimedius
-import org.droidmate.exploration.strategy.custom.ComShreeHomeLogin
-import org.droidmate.exploration.strategy.custom.DeAwintaSanimedius
 import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
