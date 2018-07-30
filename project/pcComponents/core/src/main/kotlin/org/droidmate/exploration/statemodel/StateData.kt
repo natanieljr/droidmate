@@ -43,15 +43,6 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } }
 
-//  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
-//              isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,
-//              isRequestRuntimePermissionDialogBox: Boolean = false, isCompleteActionUsingDialogBox: Boolean,
-//              isSelectAHomeAppDialogBox: Boolean = false, isUseLauncherAsHomeDialogBox: Boolean
-//  )
-//        :this(widgets/*.sortedBy { it.uid.dumpString() }*/,topNodePackageName, androidLauncherPackageName, isHomeScreen,
-//      isAppHasStoppedDialogBox,isRequestRuntimePermissionDialogBox,isCompleteActionUsingDialogBox,
-//      isSelectAHomeAppDialogBox,isUseLauncherAsHomeDialogBox)
-
 	// ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
 	private val lazyIds: Lazy<ConcreteId> =
 			lazy {
@@ -72,15 +63,15 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	/** id computed like uid while ignoring all edit fields */
 	val iEditId: UUID by lazy {
 		//lazyIds.value.third
-		widgets.fold(emptyUUID, { iEdit, widget -> addRelevantNonEdit(iEdit, widget) })
+		widgets.fold(emptyUUID) { iEdit, widget -> addRelevantNonEdit(iEdit, widget) }
 	}
 
 	val actionableWidgets by lazy { widgets.filter { it.canBeActedUpon } }
 	val distinctTargets by lazy { actionableWidgets.filter { it.isLeaf || it.uncoveredCoord!=null }}
 	val hasEdit: Boolean by lazy { widgets.any { it.isEdit } }
 
-	// for elements without text content only the image is available which may introduce variance just due to sligh color differences, therefore
-	// non-text elements are only considered if they can be acted upon and don't have actable descendents
+	// for elements without text content only the image is available which may introduce variance just due to slight color differences, therefore
+	// non-text elements are only considered if they can be acted upon and don't have actionable descendants
 	fun isRelevantForId(w: Widget): Boolean = !isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon) || (w.canBeActedUpon && !w.hasActableDescendant)
 			)
 	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text content or it is a leaf) */
@@ -91,9 +82,9 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	/** determine which UID this state would have, if it ignores [widgets] for the id computation
 	 * this is used to identify consequent states where interacted edit fields are to be ignored
 	 * for UID computation (instead the initial edit field UID will be restored) */
-	fun idWhenIgnoring(widgets: Collection<Widget>): UUID = widgets.fold(emptyUUID, { id, w ->
+	fun idWhenIgnoring(widgets: Collection<Widget>): UUID = widgets.fold(emptyUUID) { id, w ->
 		if (!widgets.contains(w)) addRelevantId(id, w) else id
-	})
+	}
 
 	val hasActionableWidgets by lazy{ actionableWidgets.isNotEmpty() }
 
@@ -129,10 +120,10 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 		 * assume that the given set of ids are all relevant for the uid computation*/
 		@JvmStatic
 		fun computeIds(widgetIds: List<UUID>, editIds: List<UUID>): Pair<UUID, UUID> =
-				widgetIds.fold(Pair(emptyUUID, emptyUUID),
-						{ (id, iEdit): Pair<UUID, UUID>, widget ->
-							Pair(id + widget, if (editIds.contains(id)) iEdit else (iEdit + id))
-						})
+				widgetIds.fold(Pair(emptyUUID, emptyUUID)) {
+					(id, iEdit): Pair<UUID, UUID>, widget ->
+					Pair(id + widget, if (editIds.contains(id)) iEdit else (iEdit + id))
+				}
 
 	}
 
