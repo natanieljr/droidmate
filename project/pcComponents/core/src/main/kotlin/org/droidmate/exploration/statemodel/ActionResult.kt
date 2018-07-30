@@ -130,7 +130,7 @@ open class ActionResult(val action: AbstractExplorationAction,
 	fun resultState(widgets: Lazy<List<Widget>>): StateData {
 		return guiSnapshot.let { g ->
 			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName, g.isHomeScreen, g.isAppHasStoppedDialogBox,
-					g.isRequestRuntimePermissionDialogBox)
+					g.isRequestRuntimePermissionDialogBox, g.isShareScreen)
 		}
 	}
 }

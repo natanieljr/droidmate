@@ -96,7 +96,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	suspend fun nonCrashingWidgets() = getCurrentState().let{ s-> s.distinctTargets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
 
 	fun belongsToApp(state: StateData): Boolean {
-		return state.topNodePackageName == apk.packageName
+		return state.topNodePackageName == apk.packageName || state.isShareScreen
 	}
 
 	fun add(action: AbstractExplorationAction, result: ActionResult) {
