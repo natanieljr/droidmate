@@ -51,19 +51,23 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
+@Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                                    val apk: IApk,
                                                    adbWrapper: IAdbWrapper,
                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   val watcher: LinkedList<ModelFeature> = LinkedList(),
+                                                   private val watcher: LinkedList<ModelFeature> = LinkedList(),
                                                    val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
                                                    val actionTrace: Trace = _model.initNewTrace(watcher)) {
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
-			= (watcher.find { it is T } ?: T::class.java.newInstance().also { watcher.add(it); actionTrace.addWatcher(it) }) as T
+			= ( findWatcher{ it is T } ?: T::class.java.newInstance().also { addWatcher(it) } ) as T
 
-	@Suppress("MemberVisibilityCanBePrivate")
+	fun findWatcher(c: (ModelFeature)->Boolean) = watcher.find(c)
+
+	fun<T:ModelFeature> addWatcher(w: T){ watcher.add(w); actionTrace.addWatcher(w) }
+
 	val crashlist: CrashListMF = getOrCreateWatcher()
 	val exceptionIsPresent: Boolean
 		get() = exception !is DeviceExceptionMissing

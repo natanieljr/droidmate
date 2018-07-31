@@ -44,9 +44,9 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 		: this(cfg.randomSeed, modelName, arffName)
 
 	protected open val eventWatcher: EventProbabilityMF by lazy {
-		(eContext.watcher.find { it is EventProbabilityMF }
+		(eContext.findWatcher { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
-						.also { eContext.watcher.add(it) }) as EventProbabilityMF
+						.also { eContext.addWatcher(it) }) as EventProbabilityMF
 	}
 
 	@Suppress("MemberVisibilityCanBePrivate")

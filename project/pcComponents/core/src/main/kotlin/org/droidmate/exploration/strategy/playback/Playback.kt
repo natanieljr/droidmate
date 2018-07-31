@@ -45,9 +45,9 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	private var lastSkipped: ActionData = ActionData.empty
 
 	private val watcher: ActionPlaybackFeature by lazy {
-		(eContext.watcher.find { it is ActionPlaybackFeature }
+		(eContext.findWatcher { it is ActionPlaybackFeature }
 				?: ActionPlaybackFeature(model)
-						.also { eContext.watcher.add(it) }) as ActionPlaybackFeature
+						.also { eContext.addWatcher(it) }) as ActionPlaybackFeature
 	}
 
 	override fun initialize(memory: ExplorationContext) {
