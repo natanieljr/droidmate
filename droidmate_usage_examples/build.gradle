@@ -12,7 +12,7 @@ buildscript {
 apply plugin: 'kotlin'
 
 group = 'org.droidmate.droidmate-2'
-version = '1.0-RC3'
+version = '1.0-RC4'
 
 repositories {
     mavenLocal()
@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.droidmate:droidmate-2:1.0-RC3"
+    compile "org.droidmate:droidmate-2:1.0-RC4"
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
