@@ -145,7 +145,7 @@ data class ActionData constructor(val actionType: String, val targetWidget: Widg
 	}
 }
 
-class Trace(private val watcher: List<ModelFeature> = emptyList(), private val config: ModelConfig, modelJob: Job, val id:UUID) {
+class Trace(private val watcher: MutableList<ModelFeature> = mutableListOf(), private val config: ModelConfig, modelJob: Job, val id:UUID) {
 	private val date by lazy { "${timestamp()}_${hashCode()}" }
 
 	private val processorJob = Job(parent = modelJob)
@@ -236,6 +236,8 @@ class Trace(private val watcher: List<ModelFeature> = emptyList(), private val c
 
 		debugT("set dstState", { this.newState = Triple(dstState, actionTargets, action.action) })
 	}
+
+    fun addWatcher(mf: ModelFeature) = watcher.add(mf)
 
 	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
 	 * this function is purposely not called for the whole ActionData set, such that we can issue all watcher updates

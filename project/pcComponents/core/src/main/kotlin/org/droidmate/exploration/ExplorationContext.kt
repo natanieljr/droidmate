@@ -61,7 +61,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                                    val actionTrace: Trace = _model.initNewTrace(watcher)) {
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
-			= (watcher.find { it is T } ?: T::class.java.newInstance().also { watcher.add(it) }) as T
+			= (watcher.find { it is T } ?: T::class.java.newInstance().also { watcher.add(it); actionTrace.addWatcher(it) }) as T
 
 	@Suppress("MemberVisibilityCanBePrivate")
 	val crashlist: CrashListMF = getOrCreateWatcher()
