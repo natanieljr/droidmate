@@ -34,10 +34,9 @@ import org.droidmate.debug.debugT
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
-import org.droidmate.deviceInterface.guimodel.ActionQueue
-import org.droidmate.deviceInterface.guimodel.EmptyAction
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.exploration.actions.widgetTargets
+import org.droidmate.exploration.statemodel.Trace.Companion.computeData
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.io.File
 import java.time.LocalDateTime
@@ -51,12 +50,12 @@ data class ActionData constructor(val actionType: String, val targetWidget: Widg
                                           val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
                                           val successful: Boolean, val exception: String,
                                           val resState: ConcreteId, val deviceLogs: IDeviceLogs = MissingDeviceLogs,
-                                          private val sep:String) {
+                                          private val sep:String, val data: String="") {
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: IDeviceLogs, exception: DeviceException, successful: Boolean, resState: ConcreteId, sep:String)
 			: this(action.name, widgetTargets.pollFirst(),
-			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep)
+			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep, computeData(action))
 
 	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
 			: this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId, sep) {
@@ -67,7 +66,7 @@ data class ActionData constructor(val actionType: String, val targetWidget: Widg
 	constructor(action: ExplorationAction, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
 			: this(action.name, if(action.hasWidgetTarget) widgetTargets.pollFirst() else null, res.startTimestamp,
 			res.endTimestamp, deviceLogs = res.deviceLogs, exception = res.exception.toString(), successful = res.successful,
-			resState = resStateId, sep = sep) {
+			resState = resStateId, sep = sep, data = computeData(action)) {
 		prevState = prevStateId
 	}
 
@@ -99,6 +98,7 @@ data class ActionData constructor(val actionType: String, val targetWidget: Widg
 			ActionDataFields.PrevId -> prevState.dumpString()
 			ActionDataFields.DstId -> resState.dumpString()
 			ActionDataFields.WId -> targetWidget?.run { id.dumpString() } ?: "null"
+			ActionData.Companion.ActionDataFields.Data -> data
 		}
 	}
 
@@ -111,6 +111,7 @@ data class ActionData constructor(val actionType: String, val targetWidget: Widg
 				actionType = e[ActionDataFields.Action.ordinal], targetWidget = target, startTimestamp = LocalDateTime.parse(e[ActionDataFields.StartTime.ordinal]),
 				endTimestamp = LocalDateTime.parse(e[ActionDataFields.EndTime.ordinal]), successful = e[ActionDataFields.SuccessFul.ordinal].toBoolean(),
 				exception = e[ActionDataFields.Exception.ordinal], resState = idFromString(e[ActionDataFields.DstId.ordinal]), sep = contentSeparator
+		,data = e[ActionDataFields.Data.ordinal]
 		).apply { prevState = idFromString(e[ActionDataFields.PrevId.ordinal]) }
 
 		@JvmStatic
@@ -131,7 +132,7 @@ data class ActionData constructor(val actionType: String, val targetWidget: Widg
 		@JvmStatic val srcStateIdx = ActionDataFields.PrevId.ordinal
 
 		enum class ActionDataFields(var header: String = "") { PrevId("Source State"), Action, WId("Interacted Widget"),
-			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception;
+			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception, Data;
 
 			init {
 				if (header == "") header = name
@@ -345,6 +346,14 @@ class Trace(private val watcher: MutableList<ModelFeature> = mutableListOf(), pr
 	companion object {
 		@JvmStatic
 		private val dumpMutex = Mutex()
+
+		@JvmStatic
+		fun computeData(e: ExplorationAction):String = when(e){
+			is TextInsert -> e.text
+			is Swipe -> "${e.start.first},${e.start.second} TO ${e.end.first},${e.end.second}"
+			is RotateUI -> e.rotation.toString()
+			else -> ""
+		}
 	}
 
 	override fun equals(other: Any?): Boolean {
