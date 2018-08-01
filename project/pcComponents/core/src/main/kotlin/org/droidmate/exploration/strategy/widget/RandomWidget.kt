@@ -122,9 +122,10 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 					}}
 		}
 	}, inMillis = true)
+			.filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
 
 	private fun chooseBiased(): ExplorationAction = runBlocking{
-		val candidates = computeCandidates().filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
+		val candidates = computeCandidates()
 				.let { filteredCandidates ->
 			// for each widget in this state the number of interactions
 			counter.numExplored(currentState, filteredCandidates).entries
