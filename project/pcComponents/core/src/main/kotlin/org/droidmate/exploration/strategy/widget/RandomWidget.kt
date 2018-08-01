@@ -117,9 +117,6 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 				noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
 				else -> emptyList() // we are stuck, everything is blacklisted
 			}
-					.filter { runBlocking { // only consider elements we did not yet interact with in the current state context
-						counter.widgetCntForState(it.uid, currentState.uid) == 0
-					}}
 		}
 	}, inMillis = true)
 
