@@ -208,11 +208,9 @@ class Trace(private val watcher: MutableList<ModelFeature> = mutableListOf(), pr
 						P_addAction(ActionData(ActionQueue.startName,res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
 						P_addAll(it)
 						P_addAction(ActionData(ActionQueue.endName,res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
-						lastActionType = it.last().actionType
 					}
 				else ActionData(res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep =config[sep]).also {
 					debugT("add action", { P_addAction(it) })
-					lastActionType = it.actionType
 				}
 				widgetTargets.clear()
 			})
@@ -229,7 +227,7 @@ class Trace(private val watcher: MutableList<ModelFeature> = mutableListOf(), pr
 
 	fun update(action: ActionResult, dstState: StateData) {
 		size += 1
-		lastActionType = action.action::class.simpleName ?: "ERROR"
+		lastActionType = action.action.name
 		// we did not update this.dstState yet, therefore it contains the now 'old' state
 
 		val actionTargets = widgetTargets.toList()  // we may have an action queue and therefore multiple targets in the same state
