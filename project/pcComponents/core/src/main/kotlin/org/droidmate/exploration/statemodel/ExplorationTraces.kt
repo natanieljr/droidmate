@@ -208,9 +208,11 @@ class Trace(private val watcher: MutableList<ModelFeature> = mutableListOf(), pr
 						P_addAction(ActionData(ActionQueue.startName,res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
 						P_addAll(it)
 						P_addAction(ActionData(ActionQueue.endName,res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
+						lastActionType = it.last().actionType
 					}
 				else ActionData(res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep =config[sep]).also {
 					debugT("add action", { P_addAction(it) })
+					lastActionType = it.actionType
 				}
 				widgetTargets.clear()
 			})

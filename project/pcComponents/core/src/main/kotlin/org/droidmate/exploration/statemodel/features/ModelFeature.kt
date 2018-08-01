@@ -75,7 +75,7 @@ abstract class ModelFeature {
 	 * The [targetWidgets] belong to the actions with hasWidgetTarget = true and are in the same order as they appeared
 	 * in the actionqueue.
 	 **/
-	open suspend fun onNewInteracted(tradeId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
 
 	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
@@ -98,7 +98,7 @@ abstract class ModelFeature {
 	 *
 	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional timeout to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
 	open suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
-	}
+	} // FIXME in case of an ActionQueue this will not work properly
 
 	/** this method is called on each call to [ExplorationContext].dump()
 	 * this method should call `job.joinChildren()` to wait wait for all updates to be applied before persistating the features state

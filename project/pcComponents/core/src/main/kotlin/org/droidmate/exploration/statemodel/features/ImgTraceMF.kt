@@ -58,7 +58,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 
 	var i: AtomicInteger = AtomicInteger(0)
-	override suspend fun onNewInteracted(tradeId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData){
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData){
 		// check if we have any screenshots to process
 		if(!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
 

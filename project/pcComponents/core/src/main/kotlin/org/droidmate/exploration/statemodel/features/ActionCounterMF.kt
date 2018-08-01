@@ -44,7 +44,7 @@ class ActionCounterMF : ModelFeature() {
 		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 	}
 
-	override suspend fun onNewInteracted(tradeId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData): Unit =
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData): Unit =
 			targetWidgets.forEach { target ->
 				prevState.uid.let { sId ->
 					target.let { w -> pCnt.compute(w.packageName) { _, c -> c?.inc() ?: 1 } }

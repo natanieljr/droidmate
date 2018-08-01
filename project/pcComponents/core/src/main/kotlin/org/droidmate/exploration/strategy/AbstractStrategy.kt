@@ -161,6 +161,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 *
 	 * @return If the strategy has to perform more actionTrace
 	 */
+	@Deprecated("this should be removed as now ActionQueues are available for action sequences without interruption")
 	abstract fun mustPerformMoreActions(): Boolean
 
 	/**

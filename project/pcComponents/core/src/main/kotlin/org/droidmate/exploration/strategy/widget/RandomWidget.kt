@@ -105,9 +105,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	private fun List<Widget>.chooseRandomly():ExplorationAction{
 		if(this.isEmpty())
 			return eContext.resetApp()
-
-		eContext.lastTarget = this[random.nextInt(this.size)]
-		return chooseActionForWidget(eContext.lastTarget!!)
+		return chooseActionForWidget(this[random.nextInt(this.size)])
 	}
 
 	open suspend fun computeCandidates():Collection<Widget> = debugT("blacklist computation", {

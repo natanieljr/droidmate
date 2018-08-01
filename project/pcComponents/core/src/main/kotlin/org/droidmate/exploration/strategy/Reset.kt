@@ -35,9 +35,6 @@ import org.droidmate.exploration.actions.resetApp
  */
 class Reset : AbstractStrategy() {
 	override fun internalDecide(): ExplorationAction {
-		// There' no previous widget after a reset
-		this.eContext.lastTarget = Widget()
-
 		return eContext.resetApp()
 	}
 

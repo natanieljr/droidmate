@@ -37,7 +37,7 @@ import kotlin.coroutines.experimental.CoroutineContext
 class CrashListMF : WidgetCountingMF() {
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("CrashListMF"), parent = job)
 
-	override suspend fun onNewInteracted(tradeId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) = targetWidgets.forEach {
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) = targetWidgets.forEach {
 		if (newState.isAppHasStoppedDialogBox) incCnt(it.uid,prevState.uid)
 	}
 

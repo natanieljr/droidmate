@@ -74,7 +74,6 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 		val selectedIdx = stochasticSelect(probabilities.values, 10)
 		val chosenWidgetInfo = candidates[selectedIdx]
 
-		this.eContext.lastTarget = chosenWidgetInfo
 		return chooseActionForWidget(chosenWidgetInfo)
 	}
 
