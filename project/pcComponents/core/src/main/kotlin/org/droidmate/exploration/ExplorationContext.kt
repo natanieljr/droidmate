@@ -105,7 +105,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	}
 
 	fun add(action: ExplorationAction, result: ActionResult) {
-		lastTarget = widgetTargets.last // this may be used by some strategies or ModelFeatures
+		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 
