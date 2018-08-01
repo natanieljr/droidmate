@@ -149,6 +149,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	override fun hashCode(): Int {
 		return this.javaClass.hashCode()
 	}
+	override fun toString() = uniqueStrategyName
 
 	/**
 	 * Defines if the exploration action will perform more actionTrace or if it will return the
