@@ -151,9 +151,9 @@ object UiHierarchy : UiParser() {
 		}
 	}
 
-	suspend fun getScreenShot(): Bitmap {
+	suspend fun getScreenShot(): Bitmap? {
 		var screenshot =
-				debugT("first screen-fetch attemp ", {Screenshot.capture().bitmap},inMillis = true)
+				debugT("first screen-fetch attempt ", {Screenshot.capture()?.bitmap},inMillis = true)
 
 		if (screenshot == null){
 			Log.d(LOGTAG,"screenshot failed")

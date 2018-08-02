@@ -141,12 +141,13 @@ fun fetchDeviceData(device: UiDevice, timeout: Long =200, afterAction: Boolean =
 	val img = async{ debugT("img capture time", {
 		delay(timeout/2) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
 		UiHierarchy.getScreenShot() },inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
-	val imgProcess = async { img.await().let{  s ->
+	val imgProcess = async { img.await()?.let{  s ->
 		Triple(
 //						ByteArray(0)
 				UiHierarchy.compressScreenshot(s)
 				, s.width, s.height).apply { s.recycle() }
-	}}
+	} ?: Triple(ByteArray(0), device.displayWidth, device.displayHeight)	// if we couldn't capture screenshots
+	}
 	val uiHierarchy = async{ UiHierarchy.fetch(device)}
 //			val xmlDump = runBlocking { UiHierarchy.getXml(device) }
 

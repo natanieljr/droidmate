@@ -30,6 +30,8 @@ import kotlinx.coroutines.experimental.channels.sendBlocking
 import org.droidmate.configuration.ConfigProperties.ModelProperties
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -107,6 +109,7 @@ class Model private constructor(val config: ModelConfig) {
 	 * REMARK if @widgets is set you have to ensure synchronization for this set on your own
 	 * if it is not set it will automatically use the models widget actor
 	 */
+    @Deprecated("to be removed")
 	suspend inline fun findWidgetOrElse(id: String, widgets: Collection<Widget>? = null, crossinline otherwise: (ConcreteId) -> Widget?): Widget? {
 		return if (id == "null") null
 		else idFromString(id).let {
@@ -139,9 +142,11 @@ class Model private constructor(val config: ModelConfig) {
 
 				if (config[ModelProperties.imgDump.states]) launch(CoroutineName("screen-dump"),parent = modelDumpJob) {
 					action.screenshot.let { 	// if there is any screen-shot write it to the state extraction directory
-						java.io.File(config.statePath(newState.stateId,  fileExtension = ".png")).let { file ->
-							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-						}
+						if(it.isNotEmpty())
+							java.io.File(config.statePath(newState.stateId,  fileExtension = ".png")).let { file ->
+								Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+							}
+                        else logger.warn("No Screenshot available for ${newState.stateId}")
 						//DEBUG
 //						java.io.File(config.statePath(newState.stateId, postfix = "$nStates", fileExtension = ".png")).let { file ->
 //							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
@@ -236,6 +241,7 @@ class Model private constructor(val config: ModelConfig) {
 	// */
 
 	companion object {
+        val logger: Logger by lazy { LoggerFactory.getLogger(this::class.java) }
 		@JvmStatic
 		fun emptyModel(config: ModelConfig): Model = Model(config).apply { runBlocking { addState(StateData.emptyState) }}
 
