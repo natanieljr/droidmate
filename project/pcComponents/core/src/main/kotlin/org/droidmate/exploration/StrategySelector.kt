@@ -193,8 +193,8 @@ class StrategySelector constructor(val priority: Int,
 		val cannotExplore: SelectorFunction = { context, pool, _ ->
 			if (!context.explorationCanMoveOn()){
 				val lastActionType = context.getLastActionType()
-				val (lastLaunchDistance,launchIdx) = with(context.actionTrace.getActions()) {
-					lastIndexOf(findLast{ !it.actionType.isQueueEnd() }).let{ Pair( size-it, it)}
+				val (lastLaunchDistance,secondLast) = with(context.actionTrace.getActions()) {
+					lastIndexOf(findLast{ !it.actionType.isQueueEnd() }).let{ Pair( size-it, this.getOrNull(it-1))}
 				}
 				when {
 					lastActionType.isPressBack() -> { // if previous action was back, terminate
@@ -207,7 +207,7 @@ class StrategySelector constructor(val priority: Int,
 								logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
-							context.actionTrace.getActions()[launchIdx].actionType.isPressBack() -> {
+							secondLast?.actionType?.isPressBack() ?: false -> {
 								logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
