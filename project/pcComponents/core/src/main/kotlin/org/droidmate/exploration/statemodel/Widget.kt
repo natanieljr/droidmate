@@ -40,7 +40,7 @@ import javax.imageio.ImageIO
  * @param uidImgId this lazy value was introduced for performance optimization as the uid computation can be very expensive. It is either already known (initialized) or there is a co-routine running to compute the Widget.uid
  */
 @Suppress("MemberVisibilityCanBePrivate")
-class Widget(properties: WidgetData, val uidImgId: Lazy<Pair<UUID,UUID?>>) {
+data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID?>>) {
 
 	constructor(_uid:Lazy<UUID>,properties: WidgetData): this(properties, lazyOf(Pair(_uid.value,null)))
 	constructor(properties: WidgetData = WidgetData.empty()) : this(properties, lazy { computeId(properties) })
@@ -53,29 +53,29 @@ class Widget(properties: WidgetData, val uidImgId: Lazy<Pair<UUID,UUID?>>) {
 
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyId] */
-	val propertyId: UUID = properties.uid
+	val propertyId: UUID get() = properties.uid
 
-	val text: String = properties.text
-	val contentDesc: String = properties.contentDesc
-	val resourceId: String = properties.resourceId
-	val className: String = properties.className
-	val packageName: String = properties.packageName
-	val isPassword: Boolean = properties.isPassword
-	val enabled: Boolean = properties.enabled
-	val visible: Boolean = properties.visible
-	val clickable: Boolean = properties.clickable
-	val longClickable: Boolean = properties.longClickable
-	val scrollable: Boolean = properties.scrollable
-	val checked: Boolean? = properties.checked
-	val focused: Boolean? = properties.focused
-	val selected: Boolean = properties.selected
+	val text: String get() = properties.text
+	val contentDesc: String get() = properties.contentDesc
+	val resourceId: String get() = properties.resourceId
+	val className: String get() = properties.className
+	val packageName: String get() = properties.packageName
+	val isPassword: Boolean get() = properties.isPassword
+	val enabled: Boolean get() = properties.enabled
+	val visible: Boolean get() = properties.visible
+	val clickable: Boolean get() = properties.clickable
+	val longClickable: Boolean get() = properties.longClickable
+	val scrollable: Boolean get() = properties.scrollable
+	val checked: Boolean? get() = properties.checked
+	val focused: Boolean? get() = properties.focused
+	val selected: Boolean get() = properties.selected
 	val bounds: Rectangle = Rectangle(properties.boundsX, properties.boundsY, properties.boundsWidth, properties.boundsHeight)
-	val xpath: String = properties.xpath
+	val xpath: String get() = properties.xpath
 	var parentId: Pair<UUID, UUID>? = null
-	val isLeaf: Boolean = properties.isLeaf
+	val isLeaf: Boolean get() = properties.isLeaf
 
-	val uncoveredCoord: Pair<Int, Int>? = properties.uncoveredCoord
-	val hasActableDescendant: Boolean = properties.hasActableDescendant
+	val uncoveredCoord: Pair<Int, Int>? get() = properties.uncoveredCoord
+	val hasActableDescendant: Boolean get() = properties.hasActableDescendant
 	//TODO we need image similarity otherwise even sleigh changes like additional boarders/highlighting will screw up the imgId
 	//TODO check if still buggy in amazon "Sign In" does not always compute to same id
 	// if we don't have any text content we use the image, otherwise use the text for unique identification
@@ -92,10 +92,10 @@ class Widget(properties: WidgetData, val uidImgId: Lazy<Pair<UUID,UUID?>>) {
 	val imgId get() =  uidImgId.value.second
 	val id by lazy { Pair(uid, propertyId+imgId) }
 	// used internally to re-identify elements between device and pc (computed as hash code of the elements (customized) unique xpath)
-	internal val idHash = properties.idHash
+	internal val idHash get() = properties.idHash
 
 
-	val isEdit: Boolean = properties.editable
+	val isEdit: Boolean get() = properties.editable
 
 	fun hasContent(): Boolean = (text + contentDesc) != ""
 
