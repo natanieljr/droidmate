@@ -36,12 +36,17 @@ object UiHierarchy : UiParser() {
 		appArea = computeAppArea()
 		val nodes = LinkedList<WidgetData>()
 
-		device.getNonSystemRootNodes().let{
-			it.forEachIndexed { index: Int, root: AccessibilityNodeInfo ->
-				rootIdx = index
-				createBottomUp(root,parentXpath = "//", nodes = nodes)
+		try {
+			device.getNonSystemRootNodes().let {
+				it.forEachIndexed { index: Int, root: AccessibilityNodeInfo ->
+					rootIdx = index
+					createBottomUp(root, parentXpath = "//", nodes = nodes)
+				}
 			}
+		} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date
+			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}")
 		}
+
 		nodes.also { Log.d(LOGTAG,"#elems = ${it.size}")}
 	}, inMillis = true, timer = {ut += it; nActions+=1})
 
@@ -152,8 +157,11 @@ object UiHierarchy : UiParser() {
 	}
 
 	suspend fun getScreenShot(): Bitmap? {
-		var screenshot =
-				debugT("first screen-fetch attempt ", {Screenshot.capture()?.bitmap},inMillis = true)
+		var screenshot: Bitmap? = null
+		debugT("first screen-fetch attempt ", {
+			try{ screenshot = Screenshot.capture()?.bitmap }
+			catch (e: Exception){ Log.w(LOGTAG,"exception on screenshot-capture") }
+		},inMillis = true)
 
 		if (screenshot == null){
 			Log.d(LOGTAG,"screenshot failed")
@@ -163,7 +171,7 @@ object UiHierarchy : UiParser() {
 		return screenshot.also {
 			if (it == null)
 				Log.w(LOGTAG,"no screenshot available")
-			}
+		}
 	}
 
 	@JvmStatic private var t = 0.0
@@ -180,7 +188,7 @@ object UiHierarchy : UiParser() {
 			bytes = stream.toByteArray()
 			stream.close()
 		} catch (e: Exception) {
-			Log.e(LOGTAG, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
+			Log.w(LOGTAG, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
 		}
 
 		bytes

@@ -24,12 +24,12 @@ inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline
 
 fun UiDevice.apply(processor: NodeProcessor){
 	try{
-	getNonSystemRootNodes().mapIndexed { index, root: AccessibilityNodeInfo ->
-		rootIndex = index
-		processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
-	}
-	}catch(e: IllegalStateException){
-		Log.e("droidmate/UiDevice","error while processing AccessibilityNode tree ${e.localizedMessage}")
+		getNonSystemRootNodes().mapIndexed { index, root: AccessibilityNodeInfo ->
+			rootIndex = index
+			processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+		}
+	}catch(e: Exception){
+		Log.w("droidmate/UiDevice","error while processing AccessibilityNode tree ${e.localizedMessage}")
 	}
 }
 
@@ -38,9 +38,14 @@ fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeP
 	val xPath = parentXpath +"${node.className}[${index + 1}]"
 	val proceed = processor(node,index,xPath)
 
-	if(proceed)
-	(0 until nChildren).map { i ->
-		processTopDown(node.getChild(i),i,processor, postProcessor, "$xPath/")
+	try {
+		if(proceed)
+			(0 until nChildren).map { i ->
+				processTopDown(node.getChild(i), i, processor, postProcessor, "$xPath/")
+			}
+	} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date
+		Log.w("droidmate/UiDevice", "error child of $parentXpath node no longer available ${e.localizedMessage}")
+		node.refresh()
 	}
 	val res = postProcessor(node)
 

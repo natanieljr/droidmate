@@ -6,6 +6,7 @@ import android.graphics.Rect
 import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.getBounds
+import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
