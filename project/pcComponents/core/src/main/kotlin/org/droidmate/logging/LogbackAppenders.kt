@@ -46,12 +46,17 @@ class LogbackAppenders {
 
 		@JvmStatic
 		fun getStdStreamsAppenders(): List<Appender<ILoggingEvent>> {
-			val log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
-			val appenders = log.iteratorForAppenders()
-					.asSequence()
-					.filter { appender -> appender.name in stdStreamsAppenders() }
-					.toList()
-			return appenders
+			val log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+
+			if (log is Logger) {
+				val appenders = log.iteratorForAppenders()
+						.asSequence()
+						.filter { appender -> appender.name in stdStreamsAppenders() }
+						.toList()
+				return appenders
+			} else {
+				return emptyList()
+			}
 		}
 
 		// Adapted from http://groovy.codehaus.org/JN3515-Interception
