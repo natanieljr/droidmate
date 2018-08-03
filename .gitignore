@@ -65,7 +65,7 @@ uiautomator2-daemon-test.apk
 generated_Monitor_api23.java
 
 # Temporary stuff
-intrumentation-logs
+instrumentation-logs
 out
 out.txt
 **/test_artifacts/temp/
