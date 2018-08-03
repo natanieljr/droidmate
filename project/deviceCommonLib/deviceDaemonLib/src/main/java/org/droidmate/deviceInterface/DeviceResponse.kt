@@ -121,7 +121,9 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			DeviceResponse(windowHierarchyDump = uiDump,
 					topNodePackageName = widgets.findLast { it.packageName != "com.google.android.inputmethod.latin" } // avoid the keyboard to be falesly recognized as packagename
 							?.packageName ?: "No Widgets",
-					widgets = widgets, androidPackageName = getAndroidPackageName(deviceModel),
+					widgets = widgets,
+					androidLauncherPackageName = androidLauncher(deviceModel),
+					androidPackageName = getAndroidPackageName(deviceModel),
 					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height,
 					appSize = appArea, statusBarSize = sH)
 		}

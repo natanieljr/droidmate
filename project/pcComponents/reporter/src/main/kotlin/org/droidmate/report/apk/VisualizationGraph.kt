@@ -254,7 +254,7 @@ class VisualizationGraph : ApkReport() {
 
 		obj.addProperty("id", src?.id?.dumpString())
 		obj.addProperty("uid", src?.uid.toString())
-	  obj.addProperty("propertyId", w?.propertyId.toString())
+	  obj.addProperty("propertyId", src?.propertyId.toString())
 		obj.addProperty("text", src?.text)
 		obj.addProperty("contentDesc", src?.contentDesc)
 		obj.addProperty("resourceId", src?.resourceId)
@@ -269,7 +269,7 @@ class VisualizationGraph : ApkReport() {
 		obj.addProperty("checked", src?.checked)
 		obj.addProperty("focused", src?.focused)
 		obj.addProperty("selected", src?.selected)
-		obj.addProperty("xpath", src.xpath)
+		obj.addProperty("xpath", src?.xpath)
 		obj.addProperty("isLeaf", src?.isLeaf)
 
 		return obj
