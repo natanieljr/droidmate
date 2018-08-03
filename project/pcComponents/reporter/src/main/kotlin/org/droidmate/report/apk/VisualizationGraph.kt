@@ -32,6 +32,7 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.misc.unzip
+import org.droidmate.uiautomator_daemon.guimodel.WidgetData
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*
@@ -162,6 +163,14 @@ class VisualizationGraph : ApkReport() {
 			// Include all important properties to make the states searchable
 			val properties = arrayListOf(stateId, src.topNodePackageName, src.uid.toString(), src.configId.toString(), src.iEditId.toString())
 			obj.addProperty("content", properties.joinToString("\n"))
+
+			// Widgets
+			val widgets = JsonArray()
+			for (w in src.widgets) {
+				widgets.add(context.serialize(w))
+			}
+
+			obj.add("widgets", widgets)
 			return obj
 		}
 	}
@@ -185,35 +194,26 @@ class VisualizationGraph : ApkReport() {
 	}
 
 	/**
+	 * Custom Json serializer to control the serialization for Widget objects.
+	 */
+	inner class WidgetAdapter : JsonSerializer<Widget> {
+		override fun serialize(src: Widget, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+			return convertWidget(src)
+		}
+	}
+
+
+
+	/**
 	 * Custom Json serializer to control the serialization for <HashMap<Int, Widget?> objects.
 	 */
-	inner class WidgetAdapter : JsonSerializer<HashMap<Int, Widget?>> {
+	inner class IdxWidgetHashMapAdapter : JsonSerializer<HashMap<Int, Widget?>> {
 		override fun serialize(src: HashMap<Int, Widget?>, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
 			val widgets = JsonArray()
 			for ((idx, w) in src) {
-				val obj = JsonObject()
+				val obj = convertWidget(w)
 				// TODO dataString might be interesting?
 				obj.addProperty("idxOfAction", idx)
-				obj.addProperty("id", w?.id?.dumpString())
-				obj.addProperty("uid", w?.uid.toString())
-				obj.addProperty("propertyConfigId", w?.propertyConfigId.toString())
-				obj.addProperty("text", w?.text)
-				obj.addProperty("contentDesc", w?.contentDesc)
-				obj.addProperty("resourceId", w?.resourceId)
-				obj.addProperty("className", w?.text)
-				obj.addProperty("packageName", w?.text)
-				obj.addProperty("isPassword", w?.text)
-				obj.addProperty("enabled", w?.enabled)
-				obj.addProperty("visible", w?.visible)
-				obj.addProperty("clickable", w?.clickable)
-				obj.addProperty("longClickable", w?.longClickable)
-				obj.addProperty("scrollable", w?.scrollable)
-				obj.addProperty("checked", w?.checked)
-				obj.addProperty("focused", w?.focused)
-				obj.addProperty("selected", w?.selected)
-				obj.addProperty("xpath", w?.xpath)
-				obj.addProperty("isLeaf", w?.isLeaf)
-
 				widgets.add(obj)
 			}
 
@@ -242,6 +242,35 @@ class VisualizationGraph : ApkReport() {
 		}
 	}
 
+    /**
+     * Converts a given Widget as JsonObject with all the necessary information.
+     */
+	private fun convertWidget(src: Widget?): JsonObject {
+		val obj = JsonObject()
+
+		obj.addProperty("id", src?.id?.dumpString())
+		obj.addProperty("uid", src?.uid.toString())
+		obj.addProperty("propertyConfigId", src?.propertyConfigId.toString())
+		obj.addProperty("text", src?.text)
+		obj.addProperty("contentDesc", src?.contentDesc)
+		obj.addProperty("resourceId", src?.resourceId)
+		obj.addProperty("className", src?.className)
+		obj.addProperty("packageName", src?.packageName)
+		obj.addProperty("isPassword", src?.isPassword)
+		obj.addProperty("enabled", src?.enabled)
+		obj.addProperty("visible", src?.visible)
+		obj.addProperty("clickable", src?.clickable)
+		obj.addProperty("longClickable", src?.longClickable)
+		obj.addProperty("scrollable", src?.scrollable)
+		obj.addProperty("checked", src?.checked)
+		obj.addProperty("focused", src?.focused)
+		obj.addProperty("selected", src?.selected)
+//		obj.addProperty("xpath", src.xpath)
+		obj.addProperty("isLeaf", src?.isLeaf)
+
+		return obj
+	}
+
 	/**
 	 * Returns the path of the image, which should be used for the according state. Use
 	 * the Default.png if no such file with the according stateId exists. This is the case
@@ -265,7 +294,8 @@ class VisualizationGraph : ApkReport() {
 		gsonBuilder.registerTypeAdapter(StateData::class.java, StateDataAdapter())
 		gsonBuilder.registerTypeAdapter(Edge::class.java, EdgeAdapter())
 		gsonBuilder.registerTypeAdapter(IApk::class.java, IApkAdapter())
-		gsonBuilder.registerTypeAdapter(HashMap<Int, Widget?>()::class.java, WidgetAdapter())
+		gsonBuilder.registerTypeAdapter(Widget::class.java, WidgetAdapter())
+		gsonBuilder.registerTypeAdapter(HashMap<Int, Widget?>()::class.java, IdxWidgetHashMapAdapter())
 
 		return gsonBuilder.create()
 	}
