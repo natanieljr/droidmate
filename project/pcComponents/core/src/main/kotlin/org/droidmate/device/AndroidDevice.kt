@@ -34,6 +34,7 @@ import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
+import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
@@ -340,8 +341,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun launchApp(packageName: String): DeviceResponse {
-		log.debug("perform(newLaunchAppDeviceAction($packageName))")
-		return this.perform(LaunchAppAction(packageName))
+		log.warn("perform(newLaunchAppDeviceAction($packageName, ${cfg[launchActivityDelay]}))")
+		return this.perform(LaunchAppAction(packageName, cfg[launchActivityDelay]))
 	}
 
 	override fun closeMonitorServers() {
