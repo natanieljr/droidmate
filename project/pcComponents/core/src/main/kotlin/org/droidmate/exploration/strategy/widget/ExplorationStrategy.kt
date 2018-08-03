@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.strategy.AbstractStrategy
 
 /**
@@ -41,8 +41,8 @@ abstract class ExplorationStrategy : AbstractStrategy() {
 		return false
 	}
 
-	override fun internalDecide(): AbstractExplorationAction {
-		assert(eContext.explorationCanMoveOn(), {"Selected and explore action, but exploration cannot proceed."})
+	override fun internalDecide(): ExplorationAction {
+		assert(eContext.explorationCanMoveOn()) {"Selected and explore action, but exploration cannot proceed."}
 
 		val allWidgetsBlackListed = eContext.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
 		if (allWidgetsBlackListed)
@@ -62,5 +62,5 @@ abstract class ExplorationStrategy : AbstractStrategy() {
 		return false //currentState.allWidgetsBlacklisted()
 	}
 
-	abstract fun chooseAction(): AbstractExplorationAction
+	abstract fun chooseAction(): ExplorationAction
 }

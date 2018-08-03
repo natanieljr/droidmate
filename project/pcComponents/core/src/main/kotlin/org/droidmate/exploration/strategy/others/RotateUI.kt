@@ -1,6 +1,6 @@
 package org.droidmate.exploration.strategy.others
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.actions.rotate
 import org.droidmate.exploration.strategy.AbstractStrategy
 
@@ -9,7 +9,7 @@ class RotateUI(private val rotation: Int) : AbstractStrategy() {
 		return false
 	}
 
-	override fun internalDecide(): AbstractExplorationAction {
+	override fun internalDecide(): ExplorationAction {
 		return eContext.rotate(rotation)
 	}
 }

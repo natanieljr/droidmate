@@ -38,6 +38,8 @@ import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFi
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
 import org.droidmate.configuration.ConfigProperties.ModelProperties.path.statesSubDir
 import org.droidmate.debug.debugT
+import org.droidmate.deviceInterface.guimodel.P
+import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.ModelConfig.Companion.defaultWidgetSuffix
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import java.nio.file.Files
@@ -48,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.streams.toList
 
-open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate logger for the intermediate processing steps
+open class ModelLoader(protected val config: ModelConfig, private val customWidgetIndicies: Map<P,Int> = P.defaultIndicies) {  // TODO integrate logger for the intermediate processing steps
 	private val model = Model.emptyModel(config)
 
 	private val job = Job()
@@ -84,7 +86,8 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(context, parent = job){
 		channel.consumeEach { tracePath ->
 			log("process path $tracePath")
-			synchronized(model) { model.initNewTrace(watcher) }.let { trace ->
+			val traceId = tracePath.fileName.toString().removePrefix(config[traceFilePrefix]).toUUID()
+			synchronized(model) { model.initNewTrace(watcher, traceId) }.let { trace ->
 				P_processLines(tracePath, lineProcessor = _actionParser).let { actionPairs ->  // use maximal parallelism to process the single actions/states
 					if (watcher.isEmpty()){
 						val resState = actionPairs.last().await().second
@@ -177,22 +180,24 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 				StateData.fromFile(it,isHomeScreen,topPackage).also { newState -> model.addState(newState) }
 			else StateData.emptyState
 		}.also {
-					log("computed state $stateId with ${it.widgets.size} widgets")
-					assert(stateId == it.stateId, {
-						"ERROR on state parsing inconsistent UUID created ${it.stateId} instead of $stateId" }) }
+			log("computed state $stateId with ${it.widgets.size} widgets")
+			assert(stateId == it.stateId)
+			{ "ERROR on state parsing inconsistent UUID created ${it.stateId} instead of $stateId" }
+		}
 	}
 
 	/** temporary map of all processed widgets for state parsing */
 	private val widgetQueue: MutableMap<ConcreteId,Deferred<Widget>> = ConcurrentHashMap()
 	protected val _widgetParser: (List<String>) -> Deferred<Widget> = { line ->
 		log("parse widget $line")
-		Pair((UUID.fromString(line[Widget.idIdx.first])),UUID.fromString(line[Widget.idIdx.second])).let { widgetId ->
+		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
+		Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId).let { widgetId ->
 			widgetQueue.computeIfAbsent(widgetId) { id ->
 				log("parse widget absent $id")
 				async(CoroutineName("parseWidget $id"), parent = job) {
-					Widget.fromString(line).also { widget ->
+					Widget.fromString(line,customWidgetIndicies).also { widget ->
 						model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
-						assert(id == widget.id, { "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" })
+						assert(id == widget.id)	{ "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" }
 					}
 				}
 			}

@@ -23,13 +23,13 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.uiautomator_daemon
+package org.droidmate.deviceInterface
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
 import org.slf4j.LoggerFactory
 import java.io.Serializable
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.WidgetData
 
 
 open class DeviceResponse private constructor(val windowHierarchyDump: String,
@@ -41,7 +41,9 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val deviceDisplayHeight: Int,
                                               val screenshot: ByteArray,
                                               val screenshotWidth: Int,
-                                              val screenshotHeight: Int) : Serializable {
+                                              val screenshotHeight: Int,
+                                              val appSize: Pair<Int,Int>,
+                                              val statusBarSize: Int) : Serializable {
 
 	var throwable: Throwable? = null
 	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
@@ -64,7 +66,8 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 					0,
 					ByteArray(0),
 					0,
-					0)
+					0,
+					Pair(0,0),0)
 		}
 
 		/**
@@ -113,18 +116,14 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			}
 		}}
 
-		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int): DeviceResponse = runBlocking{
+		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
 			DeviceResponse(windowHierarchyDump = uiDump,
-                            topNodePackageName = widgets.lastOrNull()?.packageName ?: "No Widgets",
-                            widgets = widgets,
-                            androidLauncherPackageName = androidLauncher(deviceModel),
-                            androidPackageName = getAndroidPackageName(deviceModel),
-                            deviceDisplayWidth = displayWidth,
-                            deviceDisplayHeight = displayHeight,
-                            screenshot = screenshot,
-                            screenshotWidth = width,
-                            screenshotHeight = height)
+					topNodePackageName = widgets.findLast { it.packageName != "com.google.android.inputmethod.latin" } // avoid the keyboard to be falesly recognized as packagename
+							?.packageName ?: "No Widgets",
+					widgets = widgets, androidPackageName = getAndroidPackageName(deviceModel),
+					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height,
+					appSize = appArea, statusBarSize = sH)
 		}
 	}
 

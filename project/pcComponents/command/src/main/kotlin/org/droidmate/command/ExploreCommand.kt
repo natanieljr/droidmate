@@ -33,6 +33,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.apksLimit
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
+import org.droidmate.configuration.ConfigProperties.ModelProperties.path.cleanDirs
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
@@ -58,9 +59,11 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.deviceInterface.guimodel.ActionType
+import org.droidmate.deviceInterface.guimodel.EmptyAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.exploration.actions.TerminateExplorationAction
+import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
@@ -76,7 +79,8 @@ import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.tools.*
-import org.droidmate.uiautomator_daemon.guimodel.FetchGUiAction
+import org.droidmate.deviceInterface.guimodel.GlobalAction
+import org.droidmate.exploration.statemodel.EmptyActionResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -106,7 +110,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 			res.add(StrategySelector(++priority, "startExplorationReset", StrategySelector.startExplorationReset))
 
-			// Action based terminate
+			// ExplorationAction based terminate
 			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
 				val actionLimit = if (cfg[widgetIndexes].first() >= 0)
 					cfg[widgetIndexes].size // TODO what is this widgetIndexes for?
@@ -229,7 +233,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	private val reporters: MutableList<Reporter> = mutableListOf()
 
 	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
-		cleanOutputDir(cfg)
+		if(cfg[cleanDirs]) cleanOutputDir(cfg)
 
 		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
 		if (!validateApks(apks, cfg[runOnNotInlined]))
@@ -405,14 +409,14 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
 		// Construct initial action and run it on the device to obtain initial result.
-		var action: AbstractExplorationAction? = null
+		var action: ExplorationAction = EmptyAction
 		var result: ActionResult = EmptyActionResult
 
 		var isFirst = true
 		val strategy: IExplorationStrategy = strategyProvider.invoke(explorationContext)
 
 		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
-		while (isFirst || (result.successful && action !is TerminateExplorationAction)) {
+		while (isFirst || (result.successful && !action.isTerminate())) {
 			// decide for an action
 			action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
 			// execute action
@@ -427,7 +431,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			}
 		}
 
-		assert(!result.successful || action is TerminateExplorationAction)
+		assert(!result.successful || action.isTerminate())
 
 		strategy.close()
 		explorationContext.dump()
@@ -453,7 +457,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	private fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
 		log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
 
-		val initialGuiSnapshot = device.perform(FetchGUiAction)
+		val initialGuiSnapshot = device.perform(GlobalAction(ActionType.FetchGUI))
 
 		if (!initialGuiSnapshot.isHomeScreen)
 			log.warn(Markers.appHealth,

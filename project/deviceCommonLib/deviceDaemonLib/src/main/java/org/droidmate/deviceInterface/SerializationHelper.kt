@@ -1,6 +1,3 @@
-// DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2018. Saarland University
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -23,17 +20,23 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.uiautomator_daemon
+package org.droidmate.deviceInterface
 
-class UiAutomatorDaemonException : Exception {
+import java.io.*
 
+object SerializationHelper {
 
-	constructor() : super() {}
+	@JvmStatic
+	@Throws(IOException::class)
+	fun writeObjectToStream(outputStream: DataOutputStream, toWrite: Any) {
+		val objectOutput = ObjectOutputStream(outputStream)
+		objectOutput.writeObject(toWrite)
+		objectOutput.flush()
+	}
 
-	constructor(arg0: String, arg1: Throwable) : super(arg0, arg1) {}
-
-	constructor(arg0: String) : super(arg0) {}
-
-	constructor(arg0: Throwable) : super(arg0) {}
-
+	@JvmStatic
+	@Throws(IOException::class, ClassNotFoundException::class)
+	fun readObjectFromStream(inputStream: DataInputStream): Any {
+		return ObjectInputStream(inputStream).readObject()
+	}
 }

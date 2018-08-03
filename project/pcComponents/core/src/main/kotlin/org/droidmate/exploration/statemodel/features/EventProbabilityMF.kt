@@ -92,7 +92,7 @@ open class EventProbabilityMF(modelName: String,
 		return model
 	}
 
-	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData) {
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
 		wekaInstances.delete()
 
 		val actionableWidgets = newState.actionableWidgets

@@ -25,8 +25,8 @@
 package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.uiautomator_daemon.DeviceCommand
-import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.deviceInterface.DeviceCommand
+import org.droidmate.deviceInterface.DeviceResponse
 
 interface IUiautomatorDaemonClient {
 	@Throws(DeviceException::class)

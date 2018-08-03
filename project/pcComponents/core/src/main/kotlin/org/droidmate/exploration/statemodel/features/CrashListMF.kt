@@ -32,7 +32,9 @@ import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
-import java.nio.file.Files
+import org.droidmate.exploration.statemodel.Widget
+import java.io.Files
+import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
 class CrashListMF : WidgetCountingMF() {
@@ -40,7 +42,7 @@ class CrashListMF : WidgetCountingMF() {
 
 	private val crashes: MutableMap<ActionData, String> = mutableMapOf()
 
-	override suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) = targetWidgets.forEach {
 		val actionData = deferredAction.await()
 
 		if (newState.isAppHasStoppedDialogBox) {

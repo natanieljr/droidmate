@@ -47,7 +47,7 @@ class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : 
 	 * <p>
 	 * The logs logged with the monitor logger will have different timestamps than the logged monitor logs, even though
 	 * {@link IDeviceTimeDiff} is applied. This is because the method that logs is executed a couple of seconds after the monitor
-	 * logs were logged on the device. Empirical observation shows up to 5 seconds delay for API logs.
+	 * logs were logged on the device. Empirical observation shows up to 5 seconds timeout for API logs.
 	 *
 	 * </p>
 	 */

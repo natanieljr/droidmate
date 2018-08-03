@@ -19,9 +19,9 @@
 
 package org.droidmate.uiautomator2daemon
 
-import org.droidmate.uiautomator_daemon.DeviceCommand
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.DeviceCommand
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.UiAutomatorDaemonException
 
 interface IUiAutomator2DaemonDriver {
 	@Throws(UiAutomatorDaemonException::class)

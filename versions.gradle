@@ -3,7 +3,7 @@ project.ext {
 
 	javaVersion = JavaVersion.VERSION_1_8
 
-	kotlin_version = '1.2.51'
+	kotlin_version = '1.2.60'
 	androidBuildToolsVersion = "27.0.3"
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25

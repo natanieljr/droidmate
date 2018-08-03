@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.deviceInterface.DeviceResponse
 
 class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: DeviceResponse) : IUnreliableDeviceGuiSnapshotProvider {
 	override fun provide(): DeviceResponse {

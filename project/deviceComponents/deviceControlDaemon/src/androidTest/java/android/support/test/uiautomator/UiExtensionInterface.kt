@@ -1,6 +1,7 @@
 package android.support.test.uiautomator
 
 import android.graphics.Rect
+import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 
 
@@ -11,27 +12,40 @@ fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
 }
 
 /** @return true if children should be recursively traversed */
-typealias NodeProcessor = (rootNode: AccessibilityNodeInfo, index: Int)	-> Boolean
+typealias NodeProcessor = (rootNode: AccessibilityNodeInfo, index: Int, xPath: String)	-> Boolean
 typealias PostProcessor<T> = (rootNode: AccessibilityNodeInfo)	-> T
 const val osPkg = "com.android.systemui"
+var rootIndex:Int = 0
 inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline postProcessor: PostProcessor<T>): List<T> =
-	getNonSystemRootNodes().map { root: AccessibilityNodeInfo ->
-				processTopDown(root,processor = processor,postProcessor = postProcessor)
+	getNonSystemRootNodes().mapIndexed { index,root: AccessibilityNodeInfo ->
+		rootIndex = index
+		processTopDown(root,processor = processor,postProcessor = postProcessor)
 	}
 
 fun UiDevice.apply(processor: NodeProcessor){
-	getNonSystemRootNodes().map { root: AccessibilityNodeInfo ->
-		processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+	try{
+		getNonSystemRootNodes().mapIndexed { index, root: AccessibilityNodeInfo ->
+			rootIndex = index
+			processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+		}
+	}catch(e: Exception){
+		Log.w("droidmate/UiDevice","error while processing AccessibilityNode tree ${e.localizedMessage}")
 	}
 }
 
-fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeProcessor, postProcessor: PostProcessor<T>):T{
+fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeProcessor, postProcessor: PostProcessor<T>, parentXpath: String = "//"):T{
 	val nChildren = node.childCount
-	val proceed = processor(node,index)
+	val xPath = parentXpath +"${node.className}[${index + 1}]"
+	val proceed = processor(node,index,xPath)
 
-	if(proceed)
-	(0 until nChildren).map { i ->
-		processTopDown(node.getChild(i),i,processor, postProcessor)
+	try {
+		if(proceed)
+			(0 until nChildren).map { i ->
+				processTopDown(node.getChild(i), i, processor, postProcessor, "$xPath/")
+			}
+	} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date
+		Log.w("droidmate/UiDevice", "error child of $parentXpath node no longer available ${e.localizedMessage}")
+		node.refresh()
 	}
 	val res = postProcessor(node)
 

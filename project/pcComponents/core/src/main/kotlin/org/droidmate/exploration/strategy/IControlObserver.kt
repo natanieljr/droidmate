@@ -53,7 +53,7 @@ interface IControlObserver {
 	 *
 	 * @param strategy Exploration strategy that interacted with the target
 	 * @param targetWidget Exploration's target that has been found
-	 * @param result Action performed on the target, alongside its results
+	 * @param result ExplorationAction performed on the target, alongside its results
 	 */
 	fun onTargetFound(strategy: ISelectableExplorationStrategy, targetWidget: ITargetWidget,
 	                  result: ActionResult)

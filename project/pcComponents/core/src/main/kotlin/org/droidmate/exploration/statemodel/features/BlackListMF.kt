@@ -28,12 +28,13 @@ package org.droidmate.exploration.statemodel.features
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.newCoroutineContext
+import org.droidmate.deviceInterface.guimodel.ActionType
+import org.droidmate.deviceInterface.guimodel.LaunchApp
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import java.io.File
+import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
 class BlackListMF: WidgetCountingMF() {
@@ -42,13 +43,13 @@ class BlackListMF: WidgetCountingMF() {
 	private var lastActionableState: StateData = StateData.emptyState
 
 	/** used to keep track of the last state before we got stuck */
-	override suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
 		if(prevState.isHomeScreen || !isStuck(deferredAction.await().actionType)) this.lastActionableState = prevState
 	}
 
 	@Suppress("DEPRECATION")
 	private fun isStuck(actionType: String): Boolean =	when(actionType){  // ignore initial reset
-		ResetAppExplorationAction::class.simpleName, PressBackExplorationAction::class.simpleName -> true
+		LaunchApp.name, ActionType.PressBack.name -> true
 		else -> false
 	}
 

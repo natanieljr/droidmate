@@ -44,9 +44,9 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 
 
 	protected val watcher: EventProbabilityMF by lazy {
-		(eContext.watcher.find { it is EventProbabilityMF }
+		(eContext.findWatcher { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
-						.also { eContext.watcher.add(it) }) as EventProbabilityMF
+						.also { eContext.addWatcher(it) }) as EventProbabilityMF
 	}
 
 	/**

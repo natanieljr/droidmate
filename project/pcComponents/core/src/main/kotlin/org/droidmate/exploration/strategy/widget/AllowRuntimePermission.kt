@@ -24,14 +24,14 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.actions.click
 
 /**
  * Exploration strategy that always clicks "Allow" on runtime permission dialogs.
  */
 class AllowRuntimePermission : ExplorationStrategy() {
-	override fun chooseAction(): AbstractExplorationAction {
+	override fun chooseAction(): ExplorationAction {
 		val allowButton = eContext.getCurrentState().widgets.let { widgets ->
 			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 					?: widgets.first { it.text.toUpperCase() == "ALLOW" }
@@ -40,6 +40,6 @@ class AllowRuntimePermission : ExplorationStrategy() {
 		// Remove blacklist restriction from previous action since it will need to be executed again
 //        this.eContext.lastTarget.blackListed = false    //TODO
 
-		return allowButton.click().apply { runtimePermission = true }
+		return allowButton.click()
 	}
 }

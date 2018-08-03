@@ -27,17 +27,19 @@ package org.droidmate.uiautomator2daemon
 
 import android.app.UiAutomation
 import android.content.Context
-import android.os.Build
 
 import android.os.RemoteException
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.*
 import android.util.Log
+import org.droidmate.deviceInterface.DeviceCommand
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.ExecuteCommand
+import org.droidmate.deviceInterface.StopDaemonCommand
+import org.droidmate.deviceInterface.UiAutomatorDaemonException
 
-import org.droidmate.uiautomator2daemon.DeviceAction.Companion.fetchDeviceData
-import org.droidmate.uiautomator_daemon.*
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 import kotlin.math.max
 
 /**
@@ -48,18 +50,10 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 	private val context: Context
 	private val automation: UiAutomation
 
-	private val deviceModel: String
-		get() {
-			Log.d(uiaDaemon_logcatTag, "getDeviceModel()")
-			val model = Build.MODEL
-			val manufacturer = Build.MANUFACTURER
-			val api = Build.VERSION.SDK_INT
-			val fullModelName = "$manufacturer-$model/$api"
-			Log.d(uiaDaemon_logcatTag, "Device model: $fullModelName")
-			return fullModelName
-		}
-
 	init {
+		interactableTimeout = waitForInteractableTimeout
+		idleTimeout = waitForIdleTimeout
+
 		// Disabling waiting for selector implicit timeout
 		Configurator.getInstance().waitForSelectorTimeout = 0L
 
@@ -114,22 +108,24 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 	private var et = 0.0
 	@Throws(UiAutomatorDaemonException::class)
 	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse =
-		DeviceAction.fromAction(deviceCommand.guiAction, waitForIdleTimeout, waitForInteractableTimeout).let { action ->
+		deviceCommand.guiAction.let { action ->
 			debugT(" EXECUTE-TIME avg = ${et / max(1, nActions)}", {
 
-				Log.v(uiaDaemon_logcatTag, "Performing GUI action ${deviceCommand.guiAction}")
+				Log.v(uiaDaemon_logcatTag, "Performing GUI action $action")
 
-				debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
-					action?.execute(device, context, automation)
+				val result = debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
+					action.execute(device, context, automation)
 				}, inMillis = true, timer = {
 					tExec += it
 				})
 
-				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, deviceModel, waitForIdleTimeout) }, inMillis = true, timer = {
+				if( !action.isFetch() ) // only fetch once even if the action was a FetchGUI action
+				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, waitForIdleTimeout, afterAction = true) }, inMillis = true, timer = {
 //					if (action !is DeviceLaunchApp) {
 						tFetch += it
 //					}
 					})
+				else result as DeviceResponse
 			}, inMillis = true, timer = {
 //				if (action !is DeviceLaunchApp) {
 					et += it / 1000000.0

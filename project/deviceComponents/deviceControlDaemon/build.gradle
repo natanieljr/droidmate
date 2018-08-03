@@ -26,6 +26,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'project-report'
 
+apply from: file("../../../versions.gradle")
 
 buildscript {
 	apply from: file("../../../versions.gradle")
