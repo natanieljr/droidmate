@@ -29,6 +29,7 @@ import android.app.UiAutomation
 import android.content.Context
 import android.content.Intent
 import android.net.wifi.WifiManager
+import android.os.SystemClock.sleep
 import android.support.test.uiautomator.*
 import android.util.Log
 import kotlinx.coroutines.experimental.async
@@ -110,7 +111,7 @@ internal sealed class DeviceAction {
 				is PressBackAction -> DevicePressBack()
 				is PressHomeAction -> DevicePressHome()
 				is EnableWifiAction -> DeviceEnableWifi()
-				is LaunchAppAction -> DeviceLaunchApp(appLaunchIconName)
+				is LaunchAppAction -> DeviceLaunchApp(appLaunchIconName, launchActivityDelay)
 				is FetchGUiAction -> DeviceFetchGUIAction()
 				is RotateUIAction -> DeviceRotateUIAction(rotation)
 				is MinimizeMaximizeAction -> DeviceMinimizeMaximizeAction()
@@ -223,7 +224,7 @@ private class DeviceEnableWifi : DeviceAction() {
 }
 
 
-internal data class DeviceLaunchApp(val appPackageName: String) : DeviceAction() {
+internal data class DeviceLaunchApp(val appPackageName: String, val launchActivityDelay: Long) : DeviceAction() {
 
 	override fun execute(device: UiDevice, context: Context, automation: UiAutomation) {
 		// Launch the app
@@ -239,6 +240,9 @@ internal data class DeviceLaunchApp(val appPackageName: String) : DeviceAction()
 			device.wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 					10000)
 			device.waitForIdle(100)
+
+			sleep(launchActivityDelay)
+
 		}.let { Log.d(logTag, "load-time $it millis") }
 	}
 }

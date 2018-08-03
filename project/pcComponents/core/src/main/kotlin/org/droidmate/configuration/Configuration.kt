@@ -222,7 +222,7 @@ abstract class ConfigProperties {
 		val deviceIndex by intType
 		val deviceSerialNumber by stringType
 		val runOnNotInlined by booleanType
-		val launchActivityDelay by intType
+		val launchActivityDelay by longType
 		val launchActivityTimeout by intType
 		val apiVersion by intType
 	}
