@@ -89,7 +89,7 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 					else false
 			}.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
-			val idMatch: SelectorCondition = { node, xPath ->
+			val idMatch: SelectorCondition = { _, xPath ->
 				idHash == xPath.hashCode()+rootIndex
 			}
 			UiHierarchy.findAndPerform(device,idMatch) { // do this for API Level above 19 (exclusive)
