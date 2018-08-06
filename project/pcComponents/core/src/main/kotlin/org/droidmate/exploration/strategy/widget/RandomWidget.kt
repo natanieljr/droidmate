@@ -27,6 +27,7 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.emptyId
@@ -74,7 +75,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	 * will appear, but the functionality may not be triggered yet.
 	 * Now we do not want to penalize this target just because it required a permission and the functionality was not yet triggered
 	 */
-	private fun repeatLastAction(): AbstractExplorationAction {
+	private fun repeatLastAction(): ExplorationAction {
 //		val lastActionBeforePermission = currentState.let {
 //			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
 //		}
@@ -101,12 +102,10 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			}
 
 
-	private fun List<Widget>.chooseRandomly():AbstractExplorationAction{
+	private fun List<Widget>.chooseRandomly():ExplorationAction{
 		if(this.isEmpty())
 			return eContext.resetApp()
-
-		eContext.lastTarget = this[random.nextInt(this.size)]
-		return chooseActionForWidget(eContext.lastTarget!!)
+		return chooseActionForWidget(this[random.nextInt(this.size)])
 	}
 
 	open suspend fun computeCandidates():Collection<Widget> = debugT("blacklist computation", {
@@ -119,9 +118,11 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			}
 		}
 	}, inMillis = true)
+			.filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
 
-	private fun chooseBiased(): AbstractExplorationAction = runBlocking{
-		val candidates = computeCandidates().let { filteredCandidates ->
+	private fun chooseBiased(): ExplorationAction = runBlocking{
+		val candidates = computeCandidates()
+				.let { filteredCandidates ->
 			// for each widget in this state the number of interactions
 			counter.numExplored(currentState, filteredCandidates).entries
 					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
@@ -149,25 +150,25 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 		} else candidates.chooseRandomly()
 	}
 
-	private fun chooseRandomly(): AbstractExplorationAction{
+	private fun chooseRandomly(): ExplorationAction{
 		return currentState.actionableWidgets.chooseRandomly()
 	}
 
-	protected open fun chooseRandomWidget(): AbstractExplorationAction {
+	protected open fun chooseRandomWidget(): ExplorationAction {
 		return if (biased)
 			chooseBiased()
 		else
 			chooseRandomly()
 	}
 
-	protected open fun chooseActionForWidget(chosenWidget: Widget): AbstractExplorationAction {
+	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
 
 		while (!chosenWidget.canBeActedUpon) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		val actionList: MutableList<AbstractExplorationAction> = mutableListOf()
+		val actionList: MutableList<ExplorationAction> = mutableListOf()
 
 		if (widget.longClickable){    // lower probability of longClick if click is possible as it is more probable progressing the exploration
 			if(widget.clickable) {
@@ -179,11 +180,11 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			actionList.add(widget.click())
 
 		if (widget.checked != null)
-			actionList.add(widget.click())
+			actionList.add(widget.tick())
 
 		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
-		if (widget.scrollable)
-			actionList.add(widget.click())
+//		if (widget.scrollable)
+//			actionList.add(widget.click())
 
 		/*if (chosenWidget.scrollable) {
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))
@@ -200,7 +201,9 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 		return actionList[randomIdx]
 	}
 
-	override fun chooseAction(): AbstractExplorationAction {
+	override fun chooseAction(): ExplorationAction {
+		if(eContext.isEmpty())
+            return eContext.resetApp() // very first action -> start the app via reset
 		// Repeat previous action is last action was to click on a runtime permission dialog
 		if (mustRepeatLastAction())
 			return repeatLastAction()

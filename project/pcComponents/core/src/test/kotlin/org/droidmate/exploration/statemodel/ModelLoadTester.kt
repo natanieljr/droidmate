@@ -34,7 +34,7 @@ class ModelLoadTester: DroidmateTestCase(), TestModel by DefaultTestModel(), Mod
 	}
 
 	@Test fun loadTest(){
-		val actions = listOf(TestModel.TestAction(testWidget,testState.stateId))
+		val actions = listOf(createTestAction(testWidget,testState.stateId))
 		val model = execute(listOf(actions),states)
 		runBlocking {
 			expect(model.getState(testState.stateId)!!.widgetsDump("\t"),testState.widgetsDump("\t"))
@@ -55,10 +55,10 @@ class ModelLoadTester: DroidmateTestCase(), TestModel by DefaultTestModel(), Mod
 
 	@Test fun loadMultipleActionsTest(){
 		val actions = LinkedList<ActionData>().apply {
-			add(TestModel.TestAction(nextState = testState.stateId,actionType = "ResetAppExplorationAction"))
+			add(createTestAction(nextState = testState.stateId,actionType = "ResetAppExplorationAction"))
 			for(i in 1..5)
-				add(TestModel.TestAction(prevState = testState.stateId,nextState = testState.stateId,actionType = "$i test action",targetWidget = testWidget))
-			add(TestModel.TestAction(prevState = testState.stateId,actionType = "last null action"))
+				add(createTestAction(oldState = testState.stateId,nextState = testState.stateId,actionType = "$i test action",targetWidget = testWidget))
+			add(createTestAction(oldState = testState.stateId,actionType = "last null action"))
 		}
 		val model = execute(listOf(actions),states)
 

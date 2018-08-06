@@ -7,9 +7,13 @@ interface IGraph<S, L>{
 
 	fun update(source: S, prevDestination: S?, newDestination: S, prevLabel: L, newLabel: L): Edge<S, L>?
 
+    fun getVertices(): Set<Vertex<S>>
+
 	fun edge(order: Int): Edge<S, L>?
 
 	fun edge(source: S, destination: S?, label: L): Edge<S, L>?
+
+    fun edges(): List<Edge<S, L>>
 
 	fun edges(source: Vertex<S>): List<Edge<S, L>>
 

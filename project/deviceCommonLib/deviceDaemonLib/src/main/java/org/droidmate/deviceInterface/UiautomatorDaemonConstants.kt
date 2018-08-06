@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 
 // WISH Borges: Check if the package should be kept with the previous name or updated to org.droidmate.uiautomator2daemon
-package org.droidmate.uiautomator_daemon
+package org.droidmate.deviceInterface
 
 object UiautomatorDaemonConstants {
 

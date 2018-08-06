@@ -25,9 +25,9 @@
 
 package org.droidmate.exploration
 
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
-import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.deviceInterface.guimodel.LaunchApp
+import org.droidmate.deviceInterface.guimodel.isPressBack
+import org.droidmate.deviceInterface.guimodel.isQueueEnd
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
@@ -39,123 +39,111 @@ typealias SelectorFunction = suspend (context: ExplorationContext, explorationPo
 typealias OnSelected = (context: ExplorationContext) -> Unit
 
 class StrategySelector constructor(val priority: Int,
-								   val description: String,
-								   val selector: SelectorFunction,
-								   val onSelected: OnSelected? = null,
-								   vararg val bundle: Any){
+                                   val description: String,
+                                   val selector: SelectorFunction,
+                                   val onSelected: OnSelected? = null,
+                                   vararg val bundle: Any){
 	constructor(priority: Int,
-				description: String,
-				selector: SelectorFunction,
-				bundle: Any): this(priority, description, selector, null, bundle)
+	            description: String,
+	            selector: SelectorFunction,
+	            bundle: Any): this(priority, description, selector, null, bundle)
 
 
 	override fun toString(): String {
 		return "($priority)-$description"
 	}
 
-    companion object {
-        val logger: Logger by lazy { LoggerFactory.getLogger(StrategySelector::class.java) }
+	companion object {
+		val logger: Logger by lazy { LoggerFactory.getLogger(StrategySelector::class.java) }
 
 		/**
-		 * Get action before the last one.
-		 *
-		 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
+		 * Terminate the exploration after a predefined number of actions
 		 */
-		private suspend fun ExplorationContext.getSecondLastAction(): ActionData {
-			if (this.getSize() < 2)
-				return ActionData.empty
-
-			return this.actionTrace.P_getActions().dropLast(1).last()
+		@JvmStatic
+		val actionBasedTerminate : SelectorFunction = { context, pool, bundle ->
+			val maxActions = bundle!![0] .toString().toInt()
+			if (context.actionTrace.size == maxActions) {
+				logger.debug("Maximum number of actions reached. Returning 'Terminate'")
+				pool.getFirstInstanceOf(Terminate::class.java)
+			}
+			else
+				null
 		}
 
-        /**
-         * Terminate the exploration after a predefined number of actions
-         */
+		/**
+		 * Terminate the exploration after a predefined elapsed time
+		 */
 		@JvmStatic
-        val actionBasedTerminate : SelectorFunction = { context, pool, bundle ->
-            val maxActions = bundle!![0] .toString().toInt()
-            if (context.actionTrace.size == maxActions) {
-                logger.debug("Maximum number of actions reached. Returning 'Terminate'")
-                pool.getFirstInstanceOf(Terminate::class.java)
-            }
-            else
-                null
-        }
+		val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
+			val timeLimit = bundle!![0].toString().toInt()
+			if(timeLimit <= 0) null
+			else {
+				val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because eContext start time is not yet initialized
 
-        /**
-         * Terminate the exploration after a predefined elapsed time
-         */
-        @JvmStatic
-        val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
-	        val timeLimit = bundle!![0].toString().toInt()
-	        if (timeLimit <= 0) null
-	        else {
-		        val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because eContext start time is not yet initialized
+				if (diff >= timeLimit) {
+					logger.debug("Exploration time exhausted. Returning 'Terminate'")
+					pool.getFirstInstanceOf(Terminate::class.java)
+				} else
+					null
+			}
+		}
 
-		        if (diff >= timeLimit) {
-			        logger.debug("Exploration time exhausted. Returning 'Terminate'")
-			        pool.getFirstInstanceOf(Terminate::class.java)
-		        } else
-			        null
-	        }
-        }
-
-        /**
-         * Restarts the exploration when the current state is an "app not responding" dialog
-         */
+		/**
+		 * Restarts the exploration when the current state is an "app not responding" dialog
+		 */
 		@JvmStatic
-        val appCrashedReset: SelectorFunction = { context, pool, _ ->
-            val currentState = context.getCurrentState()
+		val appCrashedReset: SelectorFunction = { context, pool, _ ->
+			val currentState = context.getCurrentState()
 
-            if (currentState.isAppHasStoppedDialogBox) {
-                logger.debug("Current screen is 'App has stopped'. Returning 'Reset'")
-                pool.getFirstInstanceOf(Reset::class.java)
-            }
-            else
-                null
-        }
+			if (currentState.isAppHasStoppedDialogBox) {
+				logger.debug("Current screen is 'App has stopped'. Returning 'Reset'")
+				pool.getFirstInstanceOf(Reset::class.java)
+			}
+			else
+				null
+		}
 
-        /**
-         * Sets the device to a known state (wifi on, empty logcat) and starts the app
-         */
+		/**
+		 * Sets the device to a known state (wifi on, empty logcat) and starts the app
+		 */
 		@JvmStatic
-        val startExplorationReset: SelectorFunction = { context, pool, _ ->
-            if (context.isEmpty()) {
-                logger.debug("Context is empty, must start exploration. Returning 'Reset'")
-                pool.getFirstInstanceOf(Reset::class.java)
-            }
-            else
-                null
-        }
+		val startExplorationReset: SelectorFunction = { context, pool, _ ->
+			if (context.isEmpty()) {
+				logger.debug("Context is empty, must start exploration. Returning 'Reset'")
+				pool.getFirstInstanceOf(Reset::class.java)
+			}
+			else
+				null
+		}
 
-        /**
-         * Resets the exploration once a predetermined number of non-reset actions has been executed
-         */
+		/**
+		 * Resets the exploration once a predetermined number of non-reset actions has been executed
+		 */
 		@JvmStatic
-        val intervalReset: SelectorFunction = { context, pool, bundle ->
-            val interval = bundle!![0].toString().toInt()
+		val intervalReset: SelectorFunction = { context, pool, bundle ->
+			val interval = bundle!![0].toString().toInt()
 
-            val lastReset = context.actionTrace.P_getActions()
-                    .indexOfLast { it -> it.actionType == ResetAppExplorationAction::class.java.simpleName }
+			val lastReset = context.actionTrace.P_getActions()
+					.indexOfLast { it -> it.actionType == LaunchApp.name }
 
-            val currAction = context.actionTrace.size
-            val diff = currAction - lastReset
+			val currAction = context.actionTrace.size
+			val diff = currAction - lastReset
 
-            if (diff > interval){
-                logger.debug("Has not restarted for $diff actions. Returning 'Reset'")
-                pool.getFirstInstanceOf(Reset::class.java)
-            }
-            else
-                null
-        }
+			if (diff > interval){
+				logger.debug("Has not restarted for $diff actions. Returning 'Reset'")
+				pool.getFirstInstanceOf(Reset::class.java)
+			}
+			else
+				null
+		}
 
-        /**
-         * Selects a random widget and acts over it
-         */
+		/**
+		 * Selects a random widget and acts over it
+		 */
 		@JvmStatic
-        val randomWidget: SelectorFunction = { _, pool, _ ->
-            pool.getFirstInstanceOf(RandomWidget::class.java)
-        }
+		val randomWidget: SelectorFunction = { _, pool, _ ->
+			pool.getFirstInstanceOf(RandomWidget::class.java)
+		}
 
 		/**
 		 * Randomly selects a widget among those classified by a static model as "has event" and acts over it
@@ -173,61 +161,60 @@ class StrategySelector constructor(val priority: Int,
 			pool.getFirstInstanceOf(ModelBased::class.java)
 		}
 
-        /**
-         * Randomly presses back.
-         *
-         * Expected bundle: Array: [Probability (Double), java.util.Random].
-         *
-         * Passing a different bundle will crash the execution.
-         */
+		/**
+		 * Randomly presses back.
+		 *
+		 * Expected bundle: Array: [Probability (Double), java.util.Random].
+		 *
+		 * Passing a different bundle will crash the execution.
+		 */
 		@JvmStatic
-        val randomBack: SelectorFunction = {context, pool, bundle ->
-            val bundleArray = bundle!!
-            val probability = bundleArray[0] as Double
-            val random = bundleArray[1] as Random
-            val value = random.nextDouble()
+		val randomBack: SelectorFunction = {context, pool, bundle ->
+			val bundleArray = bundle!!
+			val probability = bundleArray[0] as Double
+			val random = bundleArray[1] as Random
+			val value = random.nextDouble()
 
-            if ((context.getLastActionType() == ResetAppExplorationAction::class.java.simpleName) || (value > probability))
-                null
-            else {
-                logger.debug("Has triggered back probability and previous action was not to press back. Returning 'Back'")
-                pool.getFirstInstanceOf(Back::class.java)
-            }
-        }
+			val lastLaunchDistance = with(context.actionTrace.getActions()) {
+				size-lastIndexOf(findLast{ !it.actionType.isQueueEnd() })
+			}
+			if ((lastLaunchDistance <=3 ) || (value > probability))
+				null
+			else {
+				logger.debug("Has triggered back probability and previous action was not to press back. Returning 'Back'")
+				pool.getFirstInstanceOf(Back::class.java)
+			}
+		}
 
 		@JvmStatic
-        val cannotExplore: SelectorFunction = { context, pool, _ ->
+		val cannotExplore: SelectorFunction = { context, pool, _ ->
 			if (!context.explorationCanMoveOn()){
 				val lastActionType = context.getLastActionType()
-
-				// last action was reset
-				when (lastActionType){
-					PressBackExplorationAction::class.simpleName -> {
+				val (lastLaunchDistance,secondLast) = with(context.actionTrace.getActions()) {
+					lastIndexOf(findLast{ !it.actionType.isQueueEnd() }).let{ Pair( size-it, this.getOrNull(it-1))}
+				}
+				when {
+					lastActionType.isPressBack() -> { // if previous action was back, terminate
 						logger.debug("Cannot explore. Last action was back. Returning 'Reset'")
 						pool.getFirstInstanceOf(Reset::class.java)
 					}
-
-					ResetAppExplorationAction::class.java.simpleName -> {
-						// if previous action was back, terminate
-						when {
+					lastLaunchDistance <=3 -> { // since app reset is an ActionQueue of (Launch+EnableWifi)
+						when {  // last action was reset
 							context.getCurrentState().isAppHasStoppedDialogBox -> {
 								logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
-							context.getSecondLastAction().actionType == PressBackExplorationAction::class.java.simpleName -> {
+							secondLast?.actionType?.isPressBack() ?: false -> {
 								logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
-
-						// otherwise, press back
-							else -> {
+							else -> { // otherwise, press back
 								logger.debug("Cannot explore. Returning 'Back'")
 								pool.getFirstInstanceOf(Back::class.java)
 							}
 						}
 					}
-
-					// by default, if it cannot explore, presses back
+				// by default, if it cannot explore, presses back
 					else -> pool.getFirstInstanceOf(Back::class.java)
 				}
 			}
@@ -241,13 +228,7 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val allowPermission: SelectorFunction = { context, pool, _ ->
-			val widgets = context.getCurrentState().widgets
-			var hasAllowButton = widgets.any { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
-
-			if (!hasAllowButton)
-				hasAllowButton = widgets.any { it.text.toUpperCase() == "ALLOW" }
-
-			if (hasAllowButton) {
+			if (context.getCurrentState().isRequestRuntimePermissionDialogBox) {
 				logger.debug("Runtime permission dialog. Returning 'AllowRuntimePermission'")
 				pool.getFirstInstanceOf(AllowRuntimePermission::class.java)
 			}
@@ -297,5 +278,5 @@ class StrategySelector constructor(val priority: Int,
 		val dfs: SelectorFunction = {_, pool, _ ->
 			pool.getFirstInstanceOf(DFS::class.java)
 		}
-    }
+	}
 }

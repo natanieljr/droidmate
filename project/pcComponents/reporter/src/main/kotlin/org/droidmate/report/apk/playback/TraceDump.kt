@@ -40,7 +40,7 @@ class TraceDump @JvmOverloads constructor(playbackStrategy: Playback,
 
 		val sb = StringBuilder()
 
-		val header = "TraceNr\tActionNr\tRequested\tReproduced\tAction\n"
+		val header = "TraceNr\tActionNr\tRequested\tReproduced\tExplorationAction\n"
 		sb.append(header)
 
 		TODO("use ModelFeature with own dump method if the current model does not have sufficient data")

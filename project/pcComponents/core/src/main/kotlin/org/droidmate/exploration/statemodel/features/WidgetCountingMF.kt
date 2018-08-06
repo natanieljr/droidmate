@@ -47,18 +47,14 @@ abstract class WidgetCountingMF : ModelFeature() {
 	 * @param stateId the unique id of the state (the prevState) from which the widget was triggered
 	 */
 	fun incCnt(wId: UUID, stateId: UUID){
-		wCnt.compute(wId) { _, m ->
-			m?.incCnt(stateId) ?: mutableMapOf(stateId to 1)
-		}
+		wCnt.compute(wId) { _, m -> m?.incCnt(stateId) ?: mutableMapOf(stateId to 1) }
 	}
 
 	/** decrease the counter for a given widget id [wId] and state eContext [stateId].
 	 * The minimal possible value is 0 for any counter value.
 	 */
 	fun decCnt(wId: UUID, stateId: UUID){
-		wCnt.compute(wId) { _, m ->
-			m?.decCnt(stateId) ?: mutableMapOf(stateId to 0)
-		}
+		wCnt.compute(wId) { _, m -> m?.decCnt(stateId) ?: mutableMapOf(stateId to 0)}
 	}
 
 	suspend fun isBlacklisted(wId: UUID, threshold: Int = 1): Boolean {

@@ -22,12 +22,14 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.exploration.actions.EmptyAction
-import org.droidmate.device.deviceInterface.DeviceLogs
-import java.time.LocalDateTime
+package org.droidmate.deviceInterface
 
-object EmptyActionResult : ActionResult(EmptyAction, LocalDateTime.MIN, LocalDateTime.MIN, DeviceLogs())
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import java.io.Serializable
 
+sealed class DeviceCommand() : Serializable
+
+class StopDaemonCommand: DeviceCommand()
+
+class ExecuteCommand(val guiAction: ExplorationAction) : DeviceCommand()

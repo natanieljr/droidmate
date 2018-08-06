@@ -78,7 +78,7 @@ class ModelConfig private constructor(path: Path,
 		return idPath(baseDir, id.toString(), postfix, fileExtension)
 	}
 
-	val traceFile = { date: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$date${config[traceFileExtension]}" }
+	val traceFile = { traceId: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$traceId${config[traceFileExtension]}" }
 
 	companion object {
 		const val defaultWidgetSuffix = "_AllWidgets"
@@ -101,6 +101,7 @@ class ModelConfig private constructor(path: Path,
 }
 
 val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
+fun String.asUUID(): UUID? = if(this == "null") null else UUID.fromString(this)
 typealias ConcreteId = Pair<UUID, UUID>
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun ConcreteId.toString() = "${first}_$second"  // mainly for nicer debugging strings

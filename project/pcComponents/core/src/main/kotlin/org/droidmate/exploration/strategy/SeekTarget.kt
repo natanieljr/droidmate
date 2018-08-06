@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.strategy.widget.RandomWidget
@@ -78,7 +78,7 @@ class SeekTarget private constructor(private val target: ITargetWidget, private 
 		this.target.trySatisfyWidgetOrDependency(satisfiedWidget)
 	}
 
-	override fun chooseActionForWidget(chosenWidget: Widget): AbstractExplorationAction {
+	override fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		this.acquiredTarget = this.target.getTarget(chosenWidget)
 
 		return super.chooseActionForWidget(chosenWidget)

@@ -1,4 +1,4 @@
-package org.droidmate.uiautomator_daemon.guimodel
+package org.droidmate.deviceInterface.guimodel
 
 import java.io.Serializable
 import java.nio.charset.Charset
@@ -65,23 +65,24 @@ data class WidgetData(
 		fun empty() = WidgetData(text = "EMPTY")
 
 		@JvmStatic
-		fun fromString(line: List<String>):WidgetData =
-				WidgetData( text = line[P.Text.ordinal], clickable = line[P.Clickable.ordinal].toBoolean(), longClickable =
-				line[P.LongClickable.ordinal].toBoolean(), scrollable = line[P.Scrollable.ordinal].toBoolean(),
-						isPassword = line[P.IsPassword.ordinal].toBoolean(), enabled = line[P.Enabled.ordinal].toBoolean(),
-						selected = line[P.Selected.ordinal].toBoolean(), visible = line[P.Visible.ordinal].toBoolean(), 	checked =
-				flag(line[P.Checked.ordinal]),	focused = flag(line[P.Focused.ordinal]), boundsX = line[P.BoundsX.ordinal].toInt(),
-						boundsY = line[P.BoundsY.ordinal].toInt(), boundsWidth = line[P.BoundsWidth.ordinal].toInt(),
-						boundsHeight = line[P.BoundsHeight.ordinal].toInt(),contentDesc = line[P.Desc.ordinal],
-						resourceId = line[P.ResId.ordinal], packageName = line[P.PackageName.ordinal], className = line[P.Type.ordinal],
-						isLeaf = line[P.IsLeaf.ordinal].toBoolean()
+		fun fromString(line: List<String>, indexMap: Map<P, Int> = P.defaultIndicies): WidgetData =
+				WidgetData(text = line[P.Text.idx(indexMap)], clickable = line[P.Clickable.idx(indexMap)].toBoolean(), longClickable =
+				line[P.LongClickable.idx(indexMap)].toBoolean(), scrollable = line[P.Scrollable.idx(indexMap)].toBoolean(),
+						isPassword = line[P.IsPassword.idx(indexMap)].toBoolean(), enabled = line[P.Enabled.idx(indexMap)].toBoolean(),
+						selected = line[P.Selected.idx(indexMap)].toBoolean(), visible = line[P.Visible.idx(indexMap)].toBoolean(), checked =
+				flag(line[P.Checked.idx(indexMap)]), focused = flag(line[P.Focused.idx(indexMap)]), boundsX = line[P.BoundsX.idx(indexMap)].toInt(),
+						boundsY = line[P.BoundsY.idx(indexMap)].toInt(), boundsWidth = line[P.BoundsWidth.idx(indexMap)].toInt(),
+						boundsHeight = line[P.BoundsHeight.idx(indexMap)].toInt(), contentDesc = line[P.Desc.idx(indexMap)],
+						resourceId = line[P.ResId.idx(indexMap)], packageName = line[P.PackageName.idx(indexMap)], className = line[P.Type.idx(indexMap)],
+						isLeaf = line[P.IsLeaf.idx(indexMap)].toBoolean(), editable = line[P.Editable.idx(indexMap)].toBoolean()
 				).apply {
-					uncoveredCoord = line[P.Coord.ordinal].let{ if(it=="null") null else with(it.split(",")){ kotlin.Pair(get(0).toInt(), get(1).toInt()) }}
+					uncoveredCoord = line[P.Coord.idx(indexMap)].let{ if(it=="null") null else with(it.split(",")){ kotlin.Pair(get(0).toInt(), get(1).toInt()) }}
 				}
 
 	}
 }
 
+@Suppress("MemberVisibilityCanBePrivate")
 enum class P(var header: String = "") {
 	UID, WdId(header = "data UID"),
 	Type("widget class"),
@@ -96,6 +97,7 @@ enum class P(var header: String = "") {
 	LongClickable,
 	Scrollable,
 	Checked,
+	Editable,
 	Focused,
 	Selected,
 	IsPassword,
@@ -106,10 +108,16 @@ enum class P(var header: String = "") {
 	ResId("Resource Id"),
 	XPath,
 	IsLeaf,
-	PackageName;
+	PackageName,
+	ImgId;
 
 	init {
 		if (header == "") header = name
+	}
+	
+	fun idx(indexMap:Map<P,Int> = defaultIndicies): Int = indexMap[this]!!
+	companion object {
+		@JvmStatic val defaultIndicies = P.values().associate { it to it.ordinal }
 	}
 }
 private val flag = { entry: String -> if (entry == "disabled") null else entry.toBoolean() }

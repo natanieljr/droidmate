@@ -26,6 +26,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'project-report'
 
+apply from: file("../../../versions.gradle")
 
 buildscript {
 	apply from: file("../../../versions.gradle")
@@ -76,7 +77,9 @@ repositories {
 }
 
 dependencies {
-	androidTestImplementation project(':deviceDaemonLib')
+	implementation (project(path: ':deviceDaemonLib')){
+		transitive = false
+	}
 
 	androidTestImplementation 'commons-io:commons-io:2.6'
 //    androidTestCompile 'com.google.guava:guava:19.0'

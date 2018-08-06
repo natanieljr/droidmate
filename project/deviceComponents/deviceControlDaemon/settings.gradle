@@ -32,10 +32,16 @@
  *   http://stackoverflow.com/a/14730140/986533
  */
 
-rootProject.projectDir = new File(settingsDir, "..");
-rootProject.name = "uiautomator2-daemon-standalone"
+rootProject.name = "deviceControlDaemon"
 
-include(":deviceControlDaemon")
 include(":deviceDaemonLib")
-
 project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceDaemonLib/")
+
+//def isIncludedBuild = gradle.parent != null
+//if(!isIncludedBuild) {
+//	includeBuild ('../../deviceCommonLib/deviceDaemonLib'){
+//		dependencySubstitution {
+//			substitute module('org.droidmate:deviceDaemonLib') with project(':')
+//		}
+//	}
+//}

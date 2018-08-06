@@ -22,7 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-
+apply plugin: 'idea'
 apply from: project(":project:pcComponents").file("debug.gradle")
 
 
@@ -36,8 +36,9 @@ kotlin {
 		coroutines 'enable'
 	}
 }
+
 repositories {
-	jcenter() // required for coroutines
+	mavenLocal()
 }
 
 dependencies {
@@ -52,6 +53,7 @@ dependencies {
 	testCompile 'org.hamcrest:hamcrest-core:1.3'
 
 	compile project(":deviceDaemonLib")
+//	compile "org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}"
 
 	compile 'com.beust:jcommander:1.72'
 	compile 'com.google.guava:guava:23.0'

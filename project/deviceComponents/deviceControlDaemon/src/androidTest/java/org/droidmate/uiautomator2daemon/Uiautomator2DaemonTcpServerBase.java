@@ -22,8 +22,8 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.Log;
 
-import org.droidmate.uiautomator_daemon.SerializationHelper;
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants;
+import org.droidmate.deviceInterface.SerializationHelper;
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

@@ -29,10 +29,8 @@ import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
-import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.experimental.CoroutineContext
@@ -46,12 +44,14 @@ class ActionCounterMF : ModelFeature() {
 		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 	}
 
-	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData): Unit =
-			prevState.uid.let { sId ->
-				targetWidget?.let { w -> pCnt.compute(w.packageName, {_,c -> c?.inc() ?: 1}) }
-				sCnt.incCnt(sId)   // the state the very last action acted on
-				// record the respective widget the exploration interacted
-				targetWidget?.let { wCnt.compute(it.uid, { _, m -> m?.incCnt(sId) ?: mutableMapOf(sId to 1) }) }
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData): Unit =
+			targetWidgets.forEach { target ->
+				prevState.uid.let { sId ->
+					target.let { w -> pCnt.compute(w.packageName) { _, c -> c?.inc() ?: 1 } }
+					sCnt.incCnt(sId)   // the state the very last action acted on
+					// record the respective widget the exploration interacted
+					target.let { wCnt.compute(it.uid) { _, m -> m?.incCnt(sId) ?: mutableMapOf(sId to 1) } }
+				}
 			}
 
 
@@ -66,6 +66,13 @@ class ActionCounterMF : ModelFeature() {
 	suspend fun unexplored(s: StateData): Set<Widget> {
 		job.joinChildren()
 		return numExplored(s).filter { it.value == 0 }.keys  // collect all widgets which are not in our action counter => not interacted with
+	}
+
+	/** determine the number of unique states explored so far */
+	@Suppress("unused")
+	suspend fun numStates():Int{
+		job.joinChildren()
+		return sCnt.size
 	}
 
 	@Suppress("MemberVisibilityCanBePrivate")

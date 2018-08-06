@@ -40,7 +40,7 @@ inline fun<reified MsgType> Actor<MsgType>.create(job: Job)
 	for (msg in channel)	onReceive(msg)
 }
 
-/** in principle adding any element to a collection would be a fast task, however due to the potential delay for the widget.uid computation
+/** in principle adding any element to a collection would be a fast task, however due to the potential timeout for the widget.uid computation
  * the state id may be delayed as well and the hash function of Widget and StateData base on this id.
  * Therefore this computation and the set management was taken from the critical path of the execution by using this actor
  */

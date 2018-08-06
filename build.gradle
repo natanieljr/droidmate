@@ -9,7 +9,7 @@
 
 allprojects {
 	group = "org.droidmate"
-	version = "1.0-RC4"
+	version = "1.1-SNAPSHOT"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
@@ -30,7 +30,6 @@ allprojects {
 		from sourceSets.main.allSource
 		from sourceSets.test.allSource
 	}
-
 	apply plugin: 'maven'
 	artifacts {
 		archives sourcesJar
@@ -50,7 +49,7 @@ task Debug{
 
 buildscript {
 	repositories {
-		jcenter()
+		mavenCentral()
 	}
 	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
 	dependencies {
@@ -88,8 +87,7 @@ jar {
 
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish'
-
-publish.dependsOn {
+task resolveDependencies{ doFirst {
 	configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
 
 		if (resolvedArtifact.name != "all")
@@ -107,4 +105,5 @@ publish.dependsOn {
 				}
 			}
 	}
-}
+}}
+publish.dependsOn(resolveDependencies)

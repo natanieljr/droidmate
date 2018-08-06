@@ -2,9 +2,8 @@ package org.droidmate.exploration.statemodel.features.graph
 
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.newCoroutineContext
+import org.droidmate.deviceInterface.guimodel.isLaunchApp
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.actions.AbstractExplorationAction.Companion.getActionIdentifier
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.ActionData.Companion.ActionDataFields
 import org.droidmate.exploration.statemodel.StateData
@@ -31,7 +30,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 		// After reset, link to root node.
 		// Root node is static (Empty) because the app may present different initial screens after each reset
 		@Suppress("DEPRECATION")
-		val sourceState = if (lastAction.actionType == getActionIdentifier<ResetAppExplorationAction>())
+		val sourceState = if (lastAction.actionType.isLaunchApp())
 			root.data
 		else
 			context.getState(lastAction.prevState) ?: StateData.emptyState
