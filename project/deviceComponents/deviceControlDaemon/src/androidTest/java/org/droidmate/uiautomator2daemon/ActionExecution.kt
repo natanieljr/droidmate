@@ -44,8 +44,8 @@ inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Uni
 	return res
 }
 
-inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
-	return nullableDebugT(msg, block, timer, inMillis)!!
+inline fun <T> debugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T {
+	return nullableDebugT(msg, block, timer, inMillis) ?: throw RuntimeException("debugT is non nullable use nullableDebugT instead")
 }
 
 private const val logTag = UiautomatorDaemonConstants.deviceLogcatTagPrefix + "ActionExecution"
@@ -92,10 +92,11 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 			val idMatch: SelectorCondition = { _, xPath ->
 				idHash == xPath.hashCode()+rootIndex
 			}
-			UiHierarchy.findAndPerform(device,idMatch) { // do this for API Level above 19 (exclusive)
+			UiHierarchy.findAndPerform(device,idMatch) { nodeInfo ->
+				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
-				it.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
+				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
 					if(it) runBlocking { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perfom successfull=$it")
 				} }.also {
@@ -138,21 +139,22 @@ fun fetchDeviceData(device: UiDevice, timeout: Long =200, afterAction: Boolean =
 				time += it/1000000
 				cnt += 1}) // this sometimes really sucks in perfomance but we do not yet have any reliable alternative
 
-	val img = async{ debugT("img capture time", {
+	val img = async{ nullableDebugT("img capture time", {
 		delay(timeout/2) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
-		UiHierarchy.getScreenShot() },inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
-	val imgProcess = async { img.await()?.let{  s ->
-		Triple(
-//						ByteArray(0)
-				UiHierarchy.compressScreenshot(s)
-				, s.width, s.height).apply { s.recycle() }
-	} ?: Triple(ByteArray(0), device.displayWidth, device.displayHeight)	// if we couldn't capture screenshots
+		UiHierarchy.getScreenShot(timeout)
+	},inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
+	val imgProcess = async {
+		img.await()?.let{  s ->
+			Triple(	UiHierarchy.compressScreenshot(s)
+					, s.width, s.height).apply { s.recycle() }
+		} ?: Triple(ByteArray(0), device.displayWidth, device.displayHeight)	// if we couldn't capture screenshots
+				.also { Log.d(logTag,"create empty image") }
 	}
 	val uiHierarchy = async{ UiHierarchy.fetch(device)}
 //			val xmlDump = runBlocking { UiHierarchy.getXml(device) }
 
-	val (imgPixels,w,h) = debugT("wait for screen avg = ${wt/ max(1,wc)}",{ runBlocking {
-		imgProcess.await()}
+	val (imgPixels,w,h) = debugT("wait for screen avg = ${wt/ max(1,wc)}",
+			{ runBlocking {	imgProcess.await() }
 	}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1} )
 	val appArea = if(UiHierarchy.appArea.isEmpty) UiHierarchy.computeAppArea() else UiHierarchy.appArea
 	return debugT("compute UI-dump", {

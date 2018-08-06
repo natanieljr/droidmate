@@ -47,7 +47,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 * List of observers to be notified when widgets get blacklisted or
 	 * when a target is found
 	 */
-	private val listeners = ArrayList<IControlObserver>()
+	override val listeners = ArrayList<IControlObserver>()
+	/**
+	 * if this parameter is true we can invoke a strategy without registering it, this should be only used for internal
+	 * default strategies from our selector functions like Reset,Back etc.
+	 */
+	override val noContext: Boolean = false
 
 	/**
 	 * Internal context of the strategy. Synchronized with exploration context upon initialization.

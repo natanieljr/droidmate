@@ -32,7 +32,7 @@ import org.droidmate.exploration.actions.terminateApp
  *
  * @author Nataniel P. Borges Jr.
  */
-class Terminate : AbstractStrategy() {
+object Terminate : AbstractStrategy() {
 	override fun mustPerformMoreActions(): Boolean {
 		return false
 	}

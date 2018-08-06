@@ -35,6 +35,8 @@ import org.droidmate.exploration.ExplorationContext
  */
 interface ISelectableExplorationStrategy {
 	val uniqueStrategyName: String
+	val listeners: ArrayList<IControlObserver>
+	val noContext: Boolean
 
 	fun initialize(memory: ExplorationContext)
 

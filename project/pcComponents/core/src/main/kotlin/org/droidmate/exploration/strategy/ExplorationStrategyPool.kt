@@ -133,7 +133,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 
 	override fun takeControl(strategy: ISelectableExplorationStrategy) {
 		ExplorationStrategyPool.logger.debug("Receiving back control from strategy $strategy")
-		assert(this.strategies.contains(strategy))
+		assert(this.strategies.contains(strategy) || strategy.noContext)
 		this.activeStrategy = null
 	}
 
@@ -146,6 +146,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		receivedStrategies.forEach { this.registerStrategy(it) }
 	}
 
+	@Suppress("MemberVisibilityCanBePrivate")
 	fun registerStrategy(strategy: ISelectableExplorationStrategy): Boolean {
 		ExplorationStrategyPool.logger.info("Registering strategy $strategy.")
 
@@ -191,6 +192,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		else
 			logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
+		if(this.activeStrategy!!.listeners.isEmpty()) this.activeStrategy!!.registerListener(this)  // allow for strategy objects outside of the pool
 		val selectedAction = this.activeStrategy!!.decide()
 
 		logger.info("(${this.memory.getSize()}) $selectedAction")

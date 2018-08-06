@@ -34,7 +34,7 @@ import org.droidmate.exploration.actions.pressBack
  *
  * @author Nataniel P. Borges Jr.
  */
-class Back : AbstractStrategy() {
+object Back : AbstractStrategy() {
 	override fun mustPerformMoreActions(): Boolean {
 		return false
 	}

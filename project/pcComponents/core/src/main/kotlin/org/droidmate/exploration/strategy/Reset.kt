@@ -33,7 +33,7 @@ import org.droidmate.exploration.actions.resetApp
  *
  * @author Nataniel P. Borges Jr.
  */
-class Reset : AbstractStrategy() {
+object Reset : AbstractStrategy() {
 	override fun internalDecide(): ExplorationAction {
 		return eContext.resetApp()
 	}

@@ -169,9 +169,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		fun getDefaultStrategies(cfg: ConfigurationWrapper): List<ISelectableExplorationStrategy>{
 			val strategies = LinkedList<ISelectableExplorationStrategy>()
 
-			strategies.add(Back())
-			strategies.add(Reset())
-			strategies.add(Terminate())
+			strategies.add(Back)
+			strategies.add(Reset)
+			strategies.add(Terminate)
 
 			if (cfg[playback])
 				strategies.add(Playback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath()))

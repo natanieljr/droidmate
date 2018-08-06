@@ -25,9 +25,10 @@
 
 package org.droidmate.exploration
 
-import org.droidmate.deviceInterface.guimodel.LaunchApp
-import org.droidmate.deviceInterface.guimodel.isPressBack
-import org.droidmate.deviceInterface.guimodel.isQueueEnd
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.exploration.actions.pressBack
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
@@ -186,12 +187,32 @@ class StrategySelector constructor(val priority: Int,
 			}
 		}
 
+		object WaitForLaunch:AbstractStrategy() {
+			override val noContext: Boolean = true
+			var cnt = 0
+			override fun mustPerformMoreActions(): Boolean = false
+
+			override fun internalDecide(): ExplorationAction {
+				return if(cnt++ < 2){
+					runBlocking {  delay(5000) }
+					GlobalAction(ActionType.FetchGUI)
+				}
+				else GlobalAction(ActionType.PressBack)
+			}
+		}
+
 		@JvmStatic
 		val cannotExplore: SelectorFunction = { context, pool, _ ->
 			if (!context.explorationCanMoveOn()){
 				val lastActionType = context.getLastActionType()
 				val (lastLaunchDistance,secondLast) = with(context.actionTrace.getActions()) {
-					lastIndexOf(findLast{ !it.actionType.isQueueEnd() }).let{ Pair( size-it, this.getOrNull(it-1))}
+					lastIndexOf(findLast{ it.actionType.isLaunchApp() }).let{ launchIdx ->
+						val beforeLaunch = this.getOrNull(launchIdx-1)?.let {
+							if(it.actionType.isQueueStart())	this.getOrNull(launchIdx-2)
+							else it
+						}
+						Pair( size-launchIdx, beforeLaunch)
+					}
 				}
 				when {
 					lastActionType.isPressBack() -> { // if previous action was back, terminate
@@ -208,9 +229,9 @@ class StrategySelector constructor(val priority: Int,
 								logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
-							else -> { // otherwise, press back
-								logger.debug("Cannot explore. Returning 'Back'")
-								pool.getFirstInstanceOf(Back::class.java)
+							else -> { // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed refetch for now
+								logger.debug("Cannot explore. Returning 'Wait'")
+								WaitForLaunch
 							}
 						}
 					}
@@ -218,9 +239,11 @@ class StrategySelector constructor(val priority: Int,
 					else -> pool.getFirstInstanceOf(Back::class.java)
 				}
 			}
-			else
+			else{
 			// can move forwards
+				WaitForLaunch.cnt = 0
 				null
+			}
 		}
 
 		/**
@@ -257,7 +280,8 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val explorationExhausted: SelectorFunction = { context, pool, _ ->
-			val exhausted = !context.isEmpty() && context.areAllWidgetsExplored()
+			// wait for at least two actions to allow for second fetch after launch for slow/non-synchronized apps
+			val exhausted = context.actionTrace.size<2 && context.areAllWidgetsExplored()
 
 			if (exhausted)
 				pool.getFirstInstanceOf(Terminate::class.java)

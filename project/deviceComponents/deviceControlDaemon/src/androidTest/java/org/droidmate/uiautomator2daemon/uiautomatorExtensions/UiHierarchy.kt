@@ -93,8 +93,8 @@ object UiHierarchy : UiParser() {
 				!node.refresh() -> {Log.w(LOGTAG,"refresh on node $xPath failed"); false}
 			// do not traverse deeper
 			else -> {
-				found = cond(node,xPath).also {
-					if(it){
+				found = cond(node,xPath).also { isFound ->
+					if(isFound){
 						successfull = action(node).run { if(retry && !this){
 							Log.d(LOGTAG,"action failed on $node\n with id ${xPath.hashCode()+rootIndex}, try a second time")
 							runBlocking { delay(20) }
@@ -156,7 +156,7 @@ object UiHierarchy : UiParser() {
 		}
 	}
 
-	suspend fun getScreenShot(): Bitmap? {
+	suspend fun getScreenShot(delayForRetry:Long): Bitmap? {
 		var screenshot: Bitmap? = null
 		debugT("first screen-fetch attempt ", {
 			try{ screenshot = Screenshot.capture()?.bitmap }
@@ -165,8 +165,8 @@ object UiHierarchy : UiParser() {
 
 		if (screenshot == null){
 			Log.d(LOGTAG,"screenshot failed")
-			delay(10)
-			screenshot = Screenshot.capture().bitmap
+			delay(delayForRetry)
+			screenshot = Screenshot.capture()?.bitmap
 		}
 		return screenshot.also {
 			if (it == null)
