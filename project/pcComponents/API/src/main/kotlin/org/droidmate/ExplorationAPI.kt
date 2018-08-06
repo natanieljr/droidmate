@@ -27,9 +27,7 @@
 package org.droidmate
 
 import org.droidmate.command.CoverageCommand
-import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
-import org.droidmate.command.InlineCommand
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
@@ -37,13 +35,10 @@ import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.frontend.ExceptionHandler
-import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.report.Reporter
 import org.droidmate.report.apk.VisualizationGraph
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystems
-import java.time.LocalDate
 import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -62,18 +57,6 @@ object ExplorationAPI {
 	@JvmStatic
 	val config: (args: Array<String>) -> ConfigurationWrapper = { args -> ConfigurationBuilder().build(args, FileSystems.getDefault()) }
 
-	/****************************** Apk-Inline API methods *****************************/
-	@JvmStatic
-	@JvmOverloads
-	fun inline(args: Array<String> = emptyArray()) {
-		inline(setup(args))
-	}
-
-	@JvmStatic
-	fun inline(cfg: ConfigurationWrapper) {
-		log.info("inline the apks if necessary")
-		tryExecute(InlineCommand(cfg), cfg)
-	}
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic
@@ -121,42 +104,9 @@ object ExplorationAPI {
 	fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
 	                     selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = defaultReporter): List<ExplorationContext> {
 		val cfg = setup(args)
-		inline(cfg)
+		Instrumentation.inline(cfg)
 
 		return explore(cfg, strategies, selectors, reportCreators)
 	}
 
-	private fun tryExecute(command: DroidmateCommand, cfg: ConfigurationWrapper): List<ExplorationContext> {
-		val exitStatus: Int
-
-		try {
-			return command.execute(cfg)
-		} catch (e: Throwable) {
-			e.printStackTrace()
-			exitStatus = ExceptionHandler().handle(e)
-		}
-		System.exit(exitStatus)
-		return emptyList()
-	}
-
-	private fun setup(args: Array<String>): ConfigurationWrapper {
-		println(copyRight)
-
-		LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
-		log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.ConfigurationWrapper::class.java.simpleName} from args " +
-				"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
-		log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
-
-		return config(args)
-	}
-
-	private val copyRight = """ |DroidMate, an automated execution generator for Android apps.
-                  |Copyright (c) 2012 - ${LocalDate.now().year} Saarland University
-                  |This program is free software licensed under GNU GPL v3.
-                  |
-                  |You should have received a copy of the GNU General Public License
-                  |along with this program.  If not, see <http://www.gnu.org/licenses/>.
-                  |
-                  |email: jamrozik@st.cs.uni-saarland.de
-                  |web: www.droidmate.org""".trimMargin()
 }
