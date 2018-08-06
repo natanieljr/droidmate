@@ -81,7 +81,7 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 				.resolve("CoverageHelper/xyz/ylimit/androcov")
 
 		//Resource("CoverageHelper.java").extractTo(resourceDir)
-		Resource("CoverageHelper.class").extractTo(resourceDir)
+		Resource("CoverageHelper.java").extractTo(resourceDir)
 
 		val helperDirPath = cfg.resourceDir.resolve("CoverageHelper")
 		processDirs.add(helperDirPath.toString())

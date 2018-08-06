@@ -28,7 +28,6 @@ package org.droidmate.exploration.statemodel.features
 import kotlinx.coroutines.experimental.*
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
-import org.droidmate.configuration.ConfigurationException
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.exploration.ExplorationContext
@@ -47,9 +46,11 @@ import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.streams.toList
 
 /**
  * Model feature to monitor the statement coverage by processing and optional instrumentation file and actively
@@ -63,6 +64,8 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	private val dateFormat = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StatementCoverageMF"), parent = job)
+	private val processingJob = Job()
+	private val processingContext: CoroutineContext = newCoroutineContext(context = CoroutineName("processingStatementCoverageMF"), parent = processingJob)
 
 	private val instrumentationDir = Paths.get(modelCfg[statementCoverageDir].toString()).toAbsolutePath()
 	private val logcatOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(modelCfg.appName)
@@ -82,7 +85,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 		instrumentationMap = getInstrumentation(modelCfg.appName)
 
 		// Start monitoring the coverage
-		launch {
+		launch(processingContext) {
 			run()
 		}
 	}
@@ -109,18 +112,10 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	 * return: instrumentation-a2dp.Vol.json
 	 */
 	private fun getInstrumentationFile(apkName: String): Path {
-		val procApkName = apkName
-			.split("_")
-			.firstOrNull()?.replace(".apk", "") ?: apkName.replace(".apk", "")
-		val instrumentationFileName = "instrumentation-$procApkName.json"
-
-		val instrumentationFile = instrumentationDir.resolve(instrumentationFileName).toAbsolutePath()
-
-		if (!Files.exists(instrumentationFile)) {
-			throw ConfigurationException("Instrumentation file not found: $instrumentationFile")
-		}
-
-		return instrumentationFile
+		return Files.list(instrumentationDir)
+				.toList()
+				.first{ it.fileName.toString().contains(apkName)
+						&& it.fileName.toString().endsWith(".apk.json")}
 	}
 
 	@Throws(IOException::class)
@@ -173,7 +168,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 
 			while (running.get()) {
 				counter = monitorLogcat(counter)
-				Thread.sleep(5)
+				runBlocking { delay(5) }
 			}
 
 		} catch (ex: Exception) {
@@ -205,8 +200,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 					val timestamp = logParts[0] + " " + logParts[1]
 
 					dateFormat.parse(timestamp)
-				}
-				else{
+				} else {
 					Date.from(Instant.now())
 				}
 
@@ -237,9 +231,34 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	 * Notifies the logcat monitor and [sysCmdExecutor] to finish.
 	 */
 	override suspend fun dump(context: ExplorationContext) {
+		job.joinChildren()
 		running.set(false)
 		sysCmdExecutor.stopCurrentExecutionIfExisting()
 		log.info("Coverage monitor thread destroyed")
+
+		// Wait for the last file to be processed before proceeding
+		processingJob.joinChildren()
+
+		val sb = StringBuilder()
+		sb.appendln(header)
+
+		if (executedStatementsMap.isNotEmpty()) {
+			val sortedStatements = executedStatementsMap.entries
+					.sortedBy { it.value }
+			val initialDate = sortedStatements.first().value
+
+			sortedStatements
+					.forEach {
+						sb.appendln("${it.key};${Duration.between(initialDate.toInstant(), it.value.toInstant()).toMillis() / 1000}")
+					}
+		}
+
+		val outputFile = context.getModel().config.baseDir.resolve("coverage.txt")
+		Files.write(outputFile, sb.lines())
+	}
+
+	companion object {
+		private const val header = "Statement;Time"
 	}
 
 }

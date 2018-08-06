@@ -109,15 +109,13 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	}
 
 	open suspend fun computeCandidates():Collection<Widget> = debugT("blacklist computation", {
+		val nonCrashing = super.eContext.nonCrashingWidgets()
 		excludeBlacklisted(super.eContext.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
 			when {
 				noBlacklisted.isNotEmpty() -> noBlacklisted
 				noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
-				else -> emptyList() // we are stuck, everything is blacklisted
+				else -> nonCrashing
 			}
-					.filter { runBlocking { // only consider elements we did not yet interact with in the current state context
-						counter.widgetCntForState(it.uid, currentState.uid) == 0
-					}}
 		}
 	}, inMillis = true)
 			.filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported

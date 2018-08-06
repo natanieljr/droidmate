@@ -26,6 +26,7 @@
 
 package org.droidmate
 
+import org.droidmate.command.CoverageCommand
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.command.ExploreCommand
 import org.droidmate.command.InlineCommand
@@ -72,6 +73,19 @@ object ExplorationAPI {
 	fun inline(cfg: ConfigurationWrapper) {
 		log.info("inline the apks if necessary")
 		tryExecute(InlineCommand(cfg), cfg)
+	}
+
+	/****************************** Apk-Instrument (Coverage) API methods *****************************/
+	@JvmStatic
+	@JvmOverloads
+	fun instrument(args: Array<String> = emptyArray()) {
+		instrument(setup(args))
+	}
+
+	@JvmStatic
+	fun instrument(cfg: ConfigurationWrapper) {
+		log.info("instrument the apks for coverage if necessary")
+		tryExecute(CoverageCommand(cfg), cfg)
 	}
 
 	/****************************** Exploration API methods *****************************/
