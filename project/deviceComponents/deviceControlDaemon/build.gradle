@@ -77,7 +77,9 @@ repositories {
 }
 
 dependencies {
-	androidTestImplementation project(':deviceDaemonLib')
+	implementation (project(path: ':deviceDaemonLib')){
+		transitive = false
+	}
 
 	androidTestImplementation 'commons-io:commons-io:2.6'
 //    androidTestCompile 'com.google.guava:guava:19.0'

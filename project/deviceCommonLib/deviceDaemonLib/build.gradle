@@ -30,6 +30,10 @@
 
   Because some of the classes are deployed on an Android Device, the classes in this project are compiled with Java 7.
 */
+apply from: file("../../../versions.gradle")
+group = "org.droidmate"
+version = project.ext.driverLib_version
+apply plugin: 'idea'
 
 buildscript {
 	apply from: file("../../../versions.gradle")
@@ -41,6 +45,10 @@ buildscript {
 	}
 }
 apply plugin: 'kotlin'
+ // for publishing to m2
+apply plugin: 'maven'
+
+
 /*
    This project has to be built with Java 7. Otherwise the "ant -f build-customized.xml build" of uiautomator-daemon
    fails with:

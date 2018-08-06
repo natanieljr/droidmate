@@ -8,6 +8,7 @@ project.ext {
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25
 	androidCompileSdkVersion = 27
+	driverLib_version = '2.0'
 
 	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = 'v0.2.4'

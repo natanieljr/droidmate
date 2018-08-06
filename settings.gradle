@@ -1,7 +1,9 @@
 rootProject.name = 'droidmate-2'
 
-includeBuild 'project/deviceComponents/deviceControlDaemon/'
-
+def isIncludedBuild = gradle.parent != null
+if(!isIncludedBuild) {
+	includeBuild ('project/deviceComponents/deviceControlDaemon/')
+}
 include(
 		"project:pcComponents", // use this to identify all child projects
 		"project:pcComponents:commonLib",
@@ -13,8 +15,8 @@ include(
 		"project:pcComponents:core",
 		"project:pcComponents:reporter",
 		"project:pcComponents:command",
-		"project:pcComponents:API",
-		':deviceDaemonLib'
+		"project:pcComponents:API"
+		,':deviceDaemonLib'
 )
 
 
