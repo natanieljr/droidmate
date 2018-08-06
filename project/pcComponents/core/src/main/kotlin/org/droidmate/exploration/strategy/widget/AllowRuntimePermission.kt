@@ -34,7 +34,7 @@ class AllowRuntimePermission : ExplorationStrategy() {
 	override fun chooseAction(): ExplorationAction {
 		val allowButton = eContext.getCurrentState().widgets.let { widgets ->
 			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
-					?: widgets.first { it.text.toUpperCase() == "ALLOW" }
+					?: widgets.firstOrNull { it.text.toUpperCase() == "ALLOW" } ?: widgets.first { it.text.toUpperCase() == "OK" }
 		}
 
 		// Remove blacklist restriction from previous action since it will need to be executed again

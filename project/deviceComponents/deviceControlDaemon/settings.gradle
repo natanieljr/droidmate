@@ -39,7 +39,7 @@ project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceD
 
 //def isIncludedBuild = gradle.parent != null
 //if(!isIncludedBuild) {
-//	includeBuild ('../../deviceDaemonLib/'){
+//	includeBuild ('../../deviceCommonLib/deviceDaemonLib'){
 //		dependencySubstitution {
 //			substitute module('org.droidmate:deviceDaemonLib') with project(':')
 //		}

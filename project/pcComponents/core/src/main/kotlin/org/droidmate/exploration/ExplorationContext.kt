@@ -299,7 +299,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	}
 
 	private fun assertFirstActionIsLaunchApp() {
-		assert(actionTrace.first().actionType.isLaunchApp()// || actionTrace.first().actionType == PlaybackResetAction::class.simpleName
+		assert(actionTrace.getActions().subList(0,4).any { it.actionType.isLaunchApp() }// || actionTrace.first().actionType == PlaybackResetAction::class.simpleName
 		 )
 	}
 

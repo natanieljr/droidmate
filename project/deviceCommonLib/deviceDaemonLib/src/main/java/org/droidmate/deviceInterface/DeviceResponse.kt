@@ -147,9 +147,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 	val isAppHasStoppedDialogBox: Boolean
 		get() = topNodePackageName == androidPackageName &&
 				(widgets.any { it.resourceId == "android:id/aerr_close" } &&
-						widgets.any { it.resourceId == "android:id/aerr_wait" }) ||
-				(widgets.any { it.text == "OK" } &&
-						!widgets.any { it.text == "Just once" })
+						widgets.any { it.resourceId == "android:id/aerr_wait" })
 
 	val isCompleteActionUsingDialogBox: Boolean
 		get() = !isSelectAHomeAppDialogBox &&
@@ -169,7 +167,11 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 				widgets.any { it.text == "Always" }
 
 	val isRequestRuntimePermissionDialogBox: Boolean
-		get() = widgets.any { it.resourceId == resIdRuntimePermissionDialog }
+		get() = widgets.any { it.resourceId == resIdRuntimePermissionDialog  || // identify if we have a permission request
+				it.text.toUpperCase() == "DON'T ALLOW" }  // handle cases for apps who 'customize' this request and use own resourceIds e.g. Home-Depot
+				// check that we have a ok or allow button
+				&& widgets.any{it.text.toUpperCase() == "ALLOW" || it.text.toUpperCase() == "OK" }
+
 
 	fun belongsToApp(appPackageName: String): Boolean = this.topNodePackageName == appPackageName
 }

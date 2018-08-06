@@ -228,13 +228,7 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val allowPermission: SelectorFunction = { context, pool, _ ->
-			val widgets = context.getCurrentState().widgets
-			var hasAllowButton = widgets.any { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
-
-			if (!hasAllowButton)
-				hasAllowButton = widgets.any { it.text.toUpperCase() == "ALLOW" }
-
-			if (hasAllowButton) {
+			if (context.getCurrentState().isRequestRuntimePermissionDialogBox) {
 				logger.debug("Runtime permission dialog. Returning 'AllowRuntimePermission'")
 				pool.getFirstInstanceOf(AllowRuntimePermission::class.java)
 			}
