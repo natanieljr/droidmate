@@ -48,14 +48,7 @@ data class WidgetData(
 	var uncoveredCoord: Pair<Int,Int>? = null
 	var parentHash: Int = 0
 	var childrenXpathHashes: List<Int> = emptyList()
-
-	// Currently used only for Android'' native text edits: use xpath instead of text for re-identification
-	// Text changes every time we input a new letter,
-	// With the old metric re-identification is not possible
-	fun content(): String = if (className == "android.widget.EditText")
-					xpath
-				else
-					text + contentDesc
+	fun content(): String = text + contentDesc
 
 	val actable: Boolean by lazy{ enabled && visible && (clickable || checked ?: false || longClickable || scrollable)}
 	var hasActableDescendant: Boolean = false
