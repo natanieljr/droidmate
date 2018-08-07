@@ -100,7 +100,11 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 		}
 		else {
 			val instrumentationFile = getInstrumentationFile(apkName)
-			readInstrumentationFile(instrumentationFile)
+
+			if (instrumentationFile != null)
+				readInstrumentationFile(instrumentationFile)
+			else
+				emptyMap()
 		}
 	}
 
@@ -111,10 +115,10 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	 * apkName = a2dp.Vol_137.apk
 	 * return: instrumentation-a2dp.Vol.json
 	 */
-	private fun getInstrumentationFile(apkName: String): Path {
+	private fun getInstrumentationFile(apkName: String): Path? {
 		return Files.list(instrumentationDir)
 				.toList()
-				.first{ it.fileName.toString().contains(apkName)
+				.firstOrNull{ it.fileName.toString().contains(apkName)
 						&& it.fileName.toString().endsWith(".apk.json")}
 	}
 
