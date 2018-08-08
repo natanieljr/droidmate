@@ -50,7 +50,7 @@ import kotlin.coroutines.experimental.CoroutineContext
 class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ImgTraceMF"), parent = job)
 
-	private val targetDir = (cfg.baseDir.resolve("imgTrace"))
+	private val targetDir = (cfg.baseDir.resolve("ModelFeatures/imgTrace"))
 	init {
 		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 		targetDir.deleteDir()

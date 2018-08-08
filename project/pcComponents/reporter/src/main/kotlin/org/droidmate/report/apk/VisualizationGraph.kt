@@ -345,7 +345,8 @@ class VisualizationGraph : ApkReport() {
 			// TODO Jenny proposed to visualize multiple traces in different colors in the future, as we only
 			// use the first trace right now
 			val actions = if(ignoreConfig) markTargets(model,targetImgDir) else	model.getPaths().first().getActions().mapIndexed{ i,a -> Pair(i,a) }
-			val states = model.getStates()
+			val states = model.getStates().filter { s-> // avoid unconnected states
+				actions.any { (_,a) -> a.prevState == s.stateId || a.resState == s.stateId } }.toSet()
 			val graph = Graph(states,
 					actions,
 					actions.first().second.startTimestamp.toString(),
