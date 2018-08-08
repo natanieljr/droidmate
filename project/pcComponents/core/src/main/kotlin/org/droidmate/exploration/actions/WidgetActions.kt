@@ -66,7 +66,7 @@ fun WidgetData.click(): ExplorationAction {
 	val y = center(boundsY, boundsHeight)
 	return Click(x, y)
 }
-private fun Widget.clickCoordinate(): Pair<Int,Int> =
+fun Widget.clickCoordinate(): Pair<Int,Int> =
 	uncoveredCoord ?: Pair(bounds.centerX.toInt(),bounds.centerY.toInt())
 
 
