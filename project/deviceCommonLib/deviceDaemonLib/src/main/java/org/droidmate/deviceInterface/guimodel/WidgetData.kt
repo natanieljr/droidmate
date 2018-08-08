@@ -50,7 +50,7 @@ data class WidgetData(
 	var uncoveredCoord: Pair<Int,Int>? = null
 	var parentHash: Int = 0
 	var childrenXpathHashes: List<Int> = emptyList()
-	fun content(): String = "$text $contentDesc"
+	fun content(): String = "$text$contentDesc"
 
 	val actable: Boolean by lazy{ enabled && visible && (clickable || checked ?: false || longClickable || scrollable)}
 	var hasActableDescendant: Boolean = false
