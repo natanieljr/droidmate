@@ -40,7 +40,8 @@ data class WidgetData(
 		this.xpath = xPath
 	}
 
-	val uid: UUID = _uid?: toString().toUUID()
+	// quick-fix for compatibility reasons with previous model-dumps
+	val uid: UUID = _uid?: toString().replaceAfter("_uid",")").replace(", _uid","").toUUID()
 	var xpath: String = ""
 	var idHash: Int = 0
 	/** coordinate where only this element is triggered and no actable child
