@@ -26,7 +26,7 @@ class ModelTester: DroidmateTestCase(), TestModel by DefaultTestModel() {
 	@Test
 	fun widgetUidTest(){
 		val emptyWidget = Widget()
-		expect(parentData.uid, WidgetData.empty().toString().toUUID())
+		expect(parentData.uid, WidgetData.empty().toString().replaceAfter("_uid",")").replace(", _uid","").toUUID())  // quickFix due to new WidgetData constructor
 		expect(emptyWidget.propertyId, parentData.uid)
 		expect(emptyWidget.uid, parentData.content().toUUID())
 		expect(parentWidget.id.dumpString(),"ba2b45bd-c11e-3a4a-ae86-aab2ac693cbb_ad50bfd4-2f22-3d8d-b716-fa93641caa1c")
