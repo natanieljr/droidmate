@@ -31,7 +31,8 @@ data class WidgetData(
 		val boundsHeight: Int = 0,
 
 		val isLeaf: Boolean = false,
-		val visible: Boolean = false
+		val visible: Boolean = false,
+		val _uid: UUID? = null  // for copy/transform function only to transfer old uid values
 ) : Serializable{
 
 	constructor(resId: String, xPath: String)
@@ -39,7 +40,7 @@ data class WidgetData(
 		this.xpath = xPath
 	}
 
-	val uid: UUID = toString().toUUID()
+	val uid: UUID = _uid?: toString().toUUID()
 	var xpath: String = ""
 	var idHash: Int = 0
 	/** coordinate where only this element is triggered and no actable child
