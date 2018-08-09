@@ -146,9 +146,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 	val isAppHasStoppedDialogBox: Boolean
 		get() = topNodePackageName == androidPackageName &&
 				(widgets.any { it.resourceId == "android:id/aerr_close" } &&
-						widgets.any { it.resourceId == "android:id/aerr_wait" }) ||
-				(widgets.any { it.text == "OK" } &&
-						!widgets.any { it.text == "Just once" })
+						widgets.any { it.resourceId == "android:id/aerr_wait" })
 
 	val isCompleteActionUsingDialogBox: Boolean
 		get() = !isSelectAHomeAppDialogBox &&
