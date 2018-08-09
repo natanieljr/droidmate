@@ -192,8 +192,10 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		else
 			logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
-		if(this.activeStrategy!!.listeners.isEmpty()) this.activeStrategy!!.registerListener(this)  // allow for strategy objects outside of the pool
+		val s = this.activeStrategy!!	// this val is necessary since .decide() may set this.activeStrategy to null already
 		val selectedAction = this.activeStrategy!!.decide()
+		// for non-registered strategies hand back control to this pool
+		if(s.noContext) this.activeStrategy = null
 
 		logger.info("(${this.memory.getSize()}) $selectedAction")
 
