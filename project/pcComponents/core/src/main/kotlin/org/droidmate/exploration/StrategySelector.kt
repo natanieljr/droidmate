@@ -28,7 +28,6 @@ package org.droidmate.exploration
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.deviceInterface.guimodel.*
-import org.droidmate.exploration.actions.pressBack
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
@@ -190,6 +189,7 @@ class StrategySelector constructor(val priority: Int,
 		object WaitForLaunch:AbstractStrategy() {
 			override val noContext: Boolean = true
 			var cnt = 0
+			@Suppress("OverridingDeprecatedMember")
 			override fun mustPerformMoreActions(): Boolean = false
 
 			override fun internalDecide(): ExplorationAction {
@@ -281,7 +281,7 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
 		val explorationExhausted: SelectorFunction = { context, pool, _ ->
 			// wait for at least two actions to allow for second fetch after launch for slow/non-synchronized apps
-			val exhausted = context.actionTrace.size<2 && context.areAllWidgetsExplored()
+			val exhausted = context.actionTrace.size>2 && context.areAllWidgetsExplored()
 
 			if (exhausted)
 				pool.getFirstInstanceOf(Terminate::class.java)
