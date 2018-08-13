@@ -20,6 +20,10 @@ class Graph<S, L>(root: S,
 		return vertex
 	}
 
+    fun contains(data: S): Boolean = getVertex(data) != null
+
+    fun getVertex(data: S): Vertex<S>? = getVertices().find { stateComparison(it.data, data) }
+
 	private fun addDirectedEdge(source: S, destination: S?, label: L, weight: Double): Edge<S, L> {
 		val sourceVertex = createVertex(source)
 		val destinationVertex = destination?.run { createVertex(destination) }
