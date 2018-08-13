@@ -120,29 +120,33 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	}, inMillis = true)
 			.filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
 
-	private fun chooseBiased(): ExplorationAction = runBlocking{
-		val candidates = computeCandidates()
+	protected suspend fun getCandidates(): List<Widget>{
+		return computeCandidates()
 				.let { filteredCandidates ->
-			// for each widget in this state the number of interactions
-			counter.numExplored(currentState, filteredCandidates).entries
-					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
-						if(pkgName != super.eContext.apk.packageName) {
-							val pkgActions = counter.pkgCount(pkgName)
-							countEntry.map { Pair(it.key, pkgActions) }
-						} else
-							countEntry.map { Pair(it.key, it.value) }
-					}// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
-				.groupBy { (_,countVal) -> countVal }.let {
-				it.listOfSmallest()?.map { (w,_) -> w }?.let { leastInState: List<Widget> ->
-					// determine the subset of widgets which were least interacted with
-					// if multiple widgets clicked with same frequency, choose the one least clicked over all states
-					if (leastInState.size > 1) {
-						leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
-					} else leastInState
+					// for each widget in this state the number of interactions
+					counter.numExplored(currentState, filteredCandidates).entries
+							.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
+								if(pkgName != super.eContext.apk.packageName) {
+									val pkgActions = counter.pkgCount(pkgName)
+									countEntry.map { Pair(it.key, pkgActions) }
+								} else
+									countEntry.map { Pair(it.key, it.value) }
+							}// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
+							.groupBy { (_,countVal) -> countVal }.let { map ->
+								map.listOfSmallest()?.map { (w,_) -> w }?.let { leastInState: List<Widget> ->
+									// determine the subset of widgets which were least interacted with
+									// if multiple widgets clicked with same frequency, choose the one least clicked over all states
+									if (leastInState.size > 1) {
+										leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
+									} else leastInState
+								}
+							}
+							?: emptyList()
 				}
-			}
-					?: emptyList()
-		}
+	}
+
+	private fun chooseBiased(): ExplorationAction = runBlocking{
+		val candidates = getCandidates()
 		// no valid candidates -> go back to previous state
 		if(candidates.isEmpty()){
 			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
