@@ -190,8 +190,8 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 							else -> Pair(w.idHash.toUUID(),null)
 						}
 						visibleText.isNotBlank() -> { // compute id from textual content if there is any
-							val ignoreNumpers = visibleText.replace("[0-9]", "")
-							if (ignoreNumpers.isNotEmpty()) Pair(ignoreNumpers.toUUID(),null)
+							val ignoreNumbers = visibleText.replace("[0-9]", "")
+							if (ignoreNumbers.isNotEmpty()) Pair(ignoreNumbers.toUUID(),null)
 							else Pair(visibleText.toUUID(),null)
 						}
 						else -> screenImg?.let {  // we have an Widget without any visible text
