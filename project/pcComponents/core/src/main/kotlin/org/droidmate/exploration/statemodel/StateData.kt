@@ -42,6 +42,15 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),isHomeScreen = homeScreen, topNodePackageName = topPackage)
 
+	// Initialize the parent ID. It's first necessary to have all widgets converted before being able to link them.
+	init{
+		_widgets.value.forEach { widget ->
+			widget.parentId = _widgets.value.firstOrNull {
+				it.idHash == widget.parentHash
+			}?.id
+		}
+	}
+
 	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } }
 	var appArea: Rectangle = Rectangle()
 
