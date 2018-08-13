@@ -93,7 +93,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 	val id by lazy { Pair(uid, propertyId+imgId) }
 	// used internally to re-identify elements between device and pc (computed as hash code of the elements (customized) unique xpath)
 	internal val idHash get() = properties.idHash
-
+	internal val parentHash get() = properties.parentHash
 
 	val isEdit: Boolean get() = properties.editable
 
