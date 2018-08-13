@@ -42,6 +42,8 @@ import org.droidmate.deviceInterface.guimodel.P
 import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.ModelConfig.Companion.defaultWidgetSuffix
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import java.io.BufferedReader
+import java.io.FileReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -79,10 +81,14 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 
 	protected open fun traceProducer() = produce<Path>(context, parent = job, capacity = 5){
 		log("TRACE PRODUCER CALL")
-		Files.list(Paths.get(config.baseDir.toUri())).filter { it.fileName.toString().startsWith(config[traceFilePrefix]) }
-				.also{
-			for( p in it){	send(p)	}
-		}
+		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
+            s.filter { it.fileName.toString().startsWith(config[traceFilePrefix]) }
+                    .also {
+                        for (p in it) {
+                            send(p)
+                        }
+                    }
+        }
 	}
 
 	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(context, parent = job){
@@ -110,17 +116,15 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 		log("\n getFileContent skip=$skip, path= ${path.toUri()} \n")
 
 		if (!file.exists()) { return null } // otherwise this state has no widgets
-		file.bufferedReader().use { return it.lines().skip(skip).toList()
-//				.also {
-//			if(path.toUri().toString().contains("trace")) {
-//				log(" FILE-Content ")
-//				it.forEach { log(it) }
-//				log(" END FileContent")
-//			}
-//		}
-		}
+
+        return BufferedReader(FileReader(file)).use {
+            it.lines().skip(skip).toList()
+        }
 	}
-	private inline fun <reified T> P_processLines(path: Path, skip: Long = 1, crossinline lineProcessor: (List<String>) -> Deferred<T>): List<Deferred<T>> {
+
+
+
+    private inline fun <reified T> P_processLines(path: Path, skip: Long = 1, crossinline lineProcessor: (List<String>) -> Deferred<T>): List<Deferred<T>> {
 		log("call P_processLines for ${path.toUri()}")
 		getFileContent(path,skip)?.let { br ->	// skip the first line (headline)
 			assert(br.count() > 0) { "ERROR on model loading: file ${path.fileName} does not contain any entries" }
@@ -157,7 +161,7 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 		Pair(ActionData.createFromString(entries, targetWidget, config[sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}}
 	protected open fun getStateFile(stateId: ConcreteId): Triple<Path,Boolean,String>{
-		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).toList().first {
+		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).use { it.toList() }.first {
 			it.fileName.toString().startsWith( stateId.dumpString()+ defaultWidgetSuffix ) }
 		return contentPath.fileName.toString().let {
 			Triple(contentPath, it.contains("HS"), it.substring(it.indexOf("_PN-")+4,it.indexOf(config[stateFileExtension])))
