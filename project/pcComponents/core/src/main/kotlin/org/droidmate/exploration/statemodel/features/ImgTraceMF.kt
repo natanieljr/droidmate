@@ -76,7 +76,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 			return
 		}
 
-		val stateImg = ImageIO.read(screenFile)
+		val stateImg = ImageIO.read(targetFile)
 		highlightWidget(stateImg, targetWidgets, step)
 		ImageIO.write(stateImg,"png",targetFile)
 	}
@@ -87,7 +87,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffs
 	stateImg.createGraphics().apply{
 		paint = Color.red
 		stroke = BasicStroke(10F)
-		font = Font("TimesRoman", Font.PLAIN, 70)
+		font = Font("TimesRoman", Font.PLAIN, 60)
 		val targetsPerAction = targetWidgets.mapIndexed{ i,t -> Pair(idxOffset[i],t)}.groupBy { it.first }
 
 		val targetCounter: MutableMap<ConcreteId,LinkedList<Pair<Int,Int>>> = HashMap() // used to compute offsets in the number string
@@ -102,8 +102,8 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffs
 			drawOval(it.bounds)
 			val text = targetCounter[it.id]!!.joinToString(separator = ", ") { "${it.first}.${it.second}" }
 			if( text.length>20 ) 		font = Font("TimesRoman", Font.PLAIN, 20)
-			drawString(text,it.bounds.x,it.bounds.y)
-			font = Font("TimesRoman", Font.PLAIN, 70) // reset font to bigger font
+			drawString(text,it.bounds.x+(it.bounds.width/10),it.bounds.y+(it.bounds.height/10))
+			font = Font("TimesRoman", Font.PLAIN, 60) // reset font to bigger font
 		}
 	}
 }
