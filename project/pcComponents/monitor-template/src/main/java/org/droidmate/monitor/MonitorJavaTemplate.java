@@ -41,6 +41,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -396,6 +397,7 @@ public class MonitorJavaTemplate
 		return ApiPolicy.Allow;
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private static int getPort() throws Exception {
 		File file = new File("#PORT_FILE_PATH");
 		FileInputStream fis = new FileInputStream(file);
@@ -403,7 +405,7 @@ public class MonitorJavaTemplate
 		fis.read(data);
 		fis.close();
 
-		return Integer.parseInt(new String(data, "UTF-8"));
+		return Integer.parseInt(new String(data, StandardCharsets.UTF_8));
 	}
 
 	private static void redirectConstructors() {
