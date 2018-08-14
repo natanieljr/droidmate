@@ -50,7 +50,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 		@Throws(DeviceException::class)
 		@JvmStatic
-		private fun tryResolveSerialNumber(adbWrapper: IAdbWrapper, usedSerialNumbers: List<String>, deviceIndex: Int): String {
+		fun tryResolveSerialNumber(adbWrapper: IAdbWrapper, usedSerialNumbers: List<String>, deviceIndex: Int): String {
 			val devicesDescriptors = adbWrapper.getAndroidDevicesDescriptors()
 			return getSerialNumber(devicesDescriptors, usedSerialNumbers, deviceIndex)
 		}
