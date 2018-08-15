@@ -42,16 +42,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),isHomeScreen = homeScreen, topNodePackageName = topPackage)
 
-	// Initialize the parent ID. It's first necessary to have all widgets converted before being able to link them.
-	init{
-		_widgets.value.forEach { widget ->
-			widget.parentId = _widgets.value.firstOrNull {
-				it.idHash == widget.parentHash
-			}?.id
-		}
-	}
-
-	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } }
+	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } 	}
 	var appArea: Rectangle = Rectangle()
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
@@ -92,8 +83,8 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 	// for elements without text content only the image is available which may introduce variance just due to sligh color differences, therefore
 	// non-text elements are only considered if they can be acted upon and don't have actable descendents
-	fun isRelevantForId(w: Widget): Boolean = !isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon) || (w.canBeActedUpon && !w.hasActableDescendant)
-			)
+	fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon) || (w.canBeActedUpon && !w.hasActableDescendant)
+			)).also { w.usedForStateId = it }
 	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text content or it is a leaf) */
 	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)) id + w.uid else id
 

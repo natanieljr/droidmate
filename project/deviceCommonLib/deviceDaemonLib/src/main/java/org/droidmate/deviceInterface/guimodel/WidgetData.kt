@@ -104,7 +104,8 @@ enum class P(var header: String = "") {
 	XPath,
 	IsLeaf,
 	PackageName,
-	ImgId;
+	ImgId,
+	UsedforStateId;
 
 	init {
 		if (header == "") header = name

@@ -99,6 +99,8 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 
 	fun hasContent(): Boolean = (text + contentDesc) != ""
 
+	var usedForStateId = false
+
 	val dataString:(String)->String by lazy {{ sep:String ->
 		P.values().joinToString(separator = sep) { p ->
 			when (p) {
@@ -129,6 +131,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 				P.Coord -> uncoveredCoord?.let { it.first.toString()+","+it.second.toString() } ?: "null"
 				P.Editable -> isEdit.toString()
 				P.ImgId -> imgId.toString()
+				P.UsedforStateId -> usedForStateId.toString()
 			}
 		}
 	}}
@@ -171,7 +174,9 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 					"ERROR on widget parsing: property-Id was ${w.uid} but should have been ${line[P.WdId.idx(indexMap)]}"}
 				val imgId = line[P.ImgId.idx(indexMap)].asUUID()
 				return Widget(w,lazyOf(Pair(UUID.fromString(line[P.UID.idx(indexMap)]),imgId)))
-						.apply { parentId = line[P.ParentID.idx(indexMap)].let { if (it == "null") null else idFromString(it) } }
+						.apply { parentId = line[P.ParentID.idx(indexMap)].let { if (it == "null") null else idFromString(it) }
+							if(line.size>P.UsedforStateId.ordinal)
+								usedForStateId = line[P.UsedforStateId.idx(indexMap)].toBoolean()}
 			}
 		}
 
