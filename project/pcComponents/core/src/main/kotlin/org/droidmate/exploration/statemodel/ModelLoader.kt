@@ -33,10 +33,10 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.produce
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFileExtension
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
-import org.droidmate.configuration.ConfigProperties.ModelProperties.path.statesSubDir
 import org.droidmate.debug.debugT
 import org.droidmate.deviceInterface.guimodel.P
 import org.droidmate.deviceInterface.guimodel.toUUID
@@ -49,37 +49,41 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.experimental.CoroutineContext
+import java.util.logging.Logger
 import kotlin.streams.toList
 
 open class ModelLoader(protected val config: ModelConfig, private val customWidgetIndicies: Map<P,Int> = P.defaultIndicies) {  // TODO integrate logger for the intermediate processing steps
 	private val model = Model.emptyModel(config)
 
+	private val jobName = "ModelParsing ${config.appName}(${config.baseDir})"
 	private val job = Job()
-	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ModelParsing ${config.appName}(${config.baseDir})"), parent = job)
+	private val logger = Logger.getLogger(this::class.java.simpleName)
 
 	private fun context(name:String, parent:Job = job) = newCoroutineContext(context = CoroutineName(name), parent = parent)
 
 	@Suppress("UNUSED_PARAMETER")
-	private fun log(msg: String) {}//= println("[${Thread.currentThread().name}] $msg")
+	private fun log(msg: String) = if(config[ConfigProperties.Core.debugMode] && msg.contains("5498cd1f-c4c6-3014-a3b3-9e9e795c5631")){ println("[${Thread.currentThread().name}] $msg") } else {}
 
 	/** temporary map of all processed states for trace parsing */
 	private val stateQueue: MutableMap<ConcreteId,Deferred<StateData>> = ConcurrentHashMap()
 
 	protected fun execute(watcher: LinkedList<ModelFeature>): Model{
 		// the very first state of any trace is always an empty state which is automatically added on Model initialization
-		StateData.emptyState.let{ stateQueue[it.stateId] = async { it } }
+		StateData.emptyState.let{ stateQueue[it.stateId] = async(CoroutineName("empty State")) { it } }
 		val producer = traceProducer()
 		repeat(5){ traceProcessor( producer, watcher ) }  // process up to 5 exploration traces in parallel
 		runBlocking {
 			log("wait for children completion")
 			job.joinChildren() } // wait until all traces were processed (the processor adds the trace to the model)
+		job.invokeOnCompletion { exception -> if(exception!=null) {
+			throw RuntimeException("\n---------------------------\n ERROR while parsing model $jobName",exception)}
+		}
 		stateQueue.clear()
 		widgetQueue.clear()
 		return model
 	}
 
-	protected open fun traceProducer() = produce<Path>(context, parent = job, capacity = 5){
+	protected open fun traceProducer() = produce<Path>(context(jobName), capacity = 5){
 		log("TRACE PRODUCER CALL")
 		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
             s.filter { it.fileName.toString().startsWith(config[traceFilePrefix]) }
@@ -91,9 +95,9 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
         }
 	}
 
-	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(context, parent = job){
+	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(context(jobName)){
 		channel.consumeEach { tracePath ->
-			log("process path $tracePath")
+			logger.info("process path $tracePath")
 			val traceId = tracePath.fileName.toString().removePrefix(config[traceFilePrefix]).toUUID()
 			synchronized(model) { model.initNewTrace(watcher, traceId) }.let { trace ->
 				P_processLines(tracePath, lineProcessor = _actionParser).let { actionPairs ->  // use maximal parallelism to process the single actions/states
@@ -141,7 +145,7 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 		val resState = idFromString(entries[ActionData.resStateIdx]).let { resId ->
 			log("parse result: $resId")
 			// parse the result state with the contained widgets and queue them to make them available to other coroutines
-			stateQueue.computeIfAbsent(resId, stateTask).also { launch{ assert(it.await().stateId == resId) {"ERROR result State $it should have id $resId"} } }
+			stateQueue.computeIfAbsent(resId, stateTask).also { launch(CoroutineName("assert stateId $resId")){ assert(it.await().stateId == resId) {"ERROR result State $it should have id $resId"} } }
 		}
 		val targetWidget = entries[ActionData.widgetIdx].let { widgetIdString ->
 			if (widgetIdString == "null") null
@@ -153,7 +157,8 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 								log("SRC-State $srcId computed")
 								assert(srcState.stateId == srcId) {" ERROR source state $srcState should have id $srcId"}
 								srcState.widgets.find { it.id == targetWidgetId }
-										.also { assert(it != null) {" ERROR could not find target widget $targetWidgetId in source state $srcState" } }
+										.also {
+											assert(it != null) {" ERROR could not find target widget $targetWidgetId in source state $srcState" } }
 							}
 				}
 			}
@@ -168,22 +173,51 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 		}
 	}
 
+	private fun computeActableDescendent(widgets: Collection<Widget>){
+		val toProcess: LinkedList<ConcreteId> = LinkedList()
+		widgets.filter { it.properties.actable && it.parentId != null }.forEach {
+			toProcess.add(it.parentId!!) }
+		var i=0
+		while (i<toProcess.size){
+			val n = toProcess[i++]
+			widgets.find { it.id == n }?.run {
+				this.properties.hasActableDescendant = true
+				if(parentId != null && !toProcess.contains(parentId!!)) toProcess.add(parentId!!)
+			}
+		}
+	}
+
 	protected suspend fun P_parseState(stateId: ConcreteId):StateData {
-		log("parse state $stateId")
+		logger.info("parse state $stateId")
 		val(contentPath,isHomeScreen,topPackage) = getStateFile(stateId)
+		val widgets = P_processLines(path = contentPath, lineProcessor = _widgetParser).map{it.await()}
+		computeActableDescendent(widgets)
 		return mutableSetOf<Widget>().apply {	// create the set of contained elements (widgets)
 			log(" parse file ${contentPath.toUri()}")
-			val widgets = P_processLines(path = contentPath, lineProcessor = _widgetParser).map{it.await()}
 
-			widgets.forEach {
+			widgets.forEach { w ->
 				log("await for each")
 				// add the parsed widget to temporary set AND initialize the parent property
-				log(" add widget $it")
-				add(it)
+				log(" add widget $w")
+				add(w.copy().apply { parentId = w.parentId })
 			}
-		}.let {
-			if (it.isNotEmpty())
-				StateData.fromFile(it,isHomeScreen,topPackage).also { newState -> model.addState(newState) }
+		}.let { widgetSet ->
+			if (widgetSet.isNotEmpty())
+				StateData.fromFile(widgetSet,isHomeScreen,topPackage).also { newState ->
+					val lS = widgets.filter{ it.usedForStateId }
+					val nS = newState.widgets.filter {
+						newState.isRelevantForId(it)   // IMPORTANT: use this call instead of accessing usedForState property because the later is only initialized after the uid is accessed
+					}
+					if(lS.isNotEmpty()) {
+						val uidC = nS.containsAll(lS) && lS.containsAll(nS)
+						val nOnly = nS.minus(lS)
+						val lOnly = lS.minus(nS)
+						assert(uidC) {
+							"ERROR different set of widgets used for UID computation used \n ${nOnly.map { it.id }}\n instead of \n ${lOnly.map { it.id }}"
+						}
+					}
+					model.addState(newState)
+				}
 			else StateData.emptyState
 		}.also {
 			log("computed state $stateId with ${it.widgets.size} widgets")
@@ -192,13 +226,16 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 		}
 	}
 
+	// FIXME different states may contain widgets with the same ID (uid,imgId+propertyId) but different ParentIds -> use string.hashcode as key value instead
 	/** temporary map of all processed widgets for state parsing */
 	private val widgetQueue: MutableMap<ConcreteId,Deferred<Widget>> = ConcurrentHashMap()
 	protected val _widgetParser: (List<String>) -> Deferred<Widget> = { line ->
 		log("parse widget $line")
 		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
-		Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId).let { widgetId ->
-			widgetQueue.computeIfAbsent(widgetId) { id ->
+//		val parentId = line[P.ParentID.idx(customWidgetIndicies)].let { if (it == "null") emptyId else idFromString(it) }
+//		Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId+parentId.first+parentId.second).let { widgetIdPlusParent ->
+//			widgetQueue.computeIfAbsent(widgetIdPlusParent) {
+				val id = ConcreteId(UUID.fromString(line[Widget.idIdx.first]),wConfigId)
 				log("parse widget absent $id")
 				async(context("parseWidget $id")) {
 					Widget.fromString(line,customWidgetIndicies).also { widget ->
@@ -206,8 +243,8 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 						assert(id == widget.id)	{ "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" }
 					}
 				}
-			}
-		}
+//			}
+//		}
 	}
 
 	companion object {  // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
@@ -215,28 +252,41 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 			return debugT("model loading", { ModelLoader(config).execute(watcher) }, inMillis = true)
 		}
 
-		@JvmStatic fun main(args: Array<String>) {  // helping function to identify differences of two state files  // --statesSubDir=.
-			val id1 by stringType
-			val id2 by stringType
+//			val config = ModelConfig("debug_diffs", true, cfg = parseArgs(args,	CommandLineOption(statesSubDir), CommandLineOption(id1),CommandLineOption(id2)).first)
+//			val loader = ModelLoader(config)
+//
+//			runBlocking {
+//				val s1 = loader.P_parseState(idFromString(config[id1]))
+//				val s2 = loader.P_parseState(idFromString(config[id2]))
+//				val onlyInS1 = s1.widgets.filterNot { s2.widgets.contains(it) }.filter{s1.isRelevantForId(it)}
+//				println("widgets which are only in s1")
+//				onlyInS1.forEach{
+//					if(s1.isRelevantForId(it)) println(it.dataString("\t"))
+//				}
+//				println("\n widgets which are only in s2")
+//				val onlyInS2 = s2.widgets.filterNot { s1.widgets.contains(it) }.filter{s2.isRelevantForId(it)}
+//				onlyInS2.forEach{
+//					if(s2.isRelevantForId(it)) println(it.dataString("\t"))
+//				}
+//
+//			}
 
-			val config = ModelConfig("debug_diffs", true, cfg = parseArgs(args,	CommandLineOption(statesSubDir), CommandLineOption(id1),CommandLineOption(id2)).first)
-			val loader = ModelLoader(config)
-
-			runBlocking {
-				val s1 = loader.P_parseState(idFromString(config[id1]))
-				val s2 = loader.P_parseState(idFromString(config[id2]))
-				val onlyInS1 = s1.widgets.filterNot { s2.widgets.contains(it) }.filter{s1.isRelevantForId(it)}
-				println("widgets which are only in s1")
-				onlyInS1.forEach{
-					if(s1.isRelevantForId(it)) println(it.dataString("\t"))
-				}
-				println("\n widgets which are only in s2")
-				val onlyInS2 = s2.widgets.filterNot { s1.widgets.contains(it) }.filter{s2.isRelevantForId(it)}
-				onlyInS2.forEach{
-					if(s2.isRelevantForId(it)) println(it.dataString("\t"))
-				}
-
-			}
+		/**
+		 * helping/debug function to manually load a model.
+		 * The directory containing the 'model' folder and the app name have to be specified, e.g.
+		 * '--Output-outputDir=pathToModelDir --appName=sampleApp'
+		 * --Core-debugMode=true (optional for enabling print-outs)
+		 */
+		@JvmStatic fun main(args: Array<String>) {
+			// stateDiff(args)
+			val appName by stringType
+			val cfg = parseArgs(args,
+					CommandLineOption(ConfigProperties.Output.outputDir), CommandLineOption(ConfigProperties.Core.debugMode),
+					CommandLineOption(appName)
+			).first
+			val config = ModelConfig(cfg[appName], true, cfg = cfg)
+			val m = ModelLoader.loadModel(config)
+			println(m)
 		}
 
 	} /** end COMPANION **/

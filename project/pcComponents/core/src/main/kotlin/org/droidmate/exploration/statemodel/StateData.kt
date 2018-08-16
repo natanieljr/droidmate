@@ -59,7 +59,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 			lazy {
 				widgets.fold(Pair(emptyUUID, emptyUUID)) { (id, configId), widget ->  // e.g. keyboard elements have a different package-name and are therefore ignored for uid computation
 					// however different selectable auto-completion proposes are only 'rendered' such that we have to include the img id to ensure different state configuration id's if these are different
-					Pair(addRelevantId(id, widget), configId + if(ignoredTarget(widget)) widget.uid + widget.propertyId else widget.propertyId)
+					Pair(addRelevantId(id, widget), configId + widget.uid + widget.id.second)
 				}
 			}
 	private val ignoredTarget:(Widget)->Boolean = { w -> (w.packageName != topNodePackageName && w.canBeActedUpon)
