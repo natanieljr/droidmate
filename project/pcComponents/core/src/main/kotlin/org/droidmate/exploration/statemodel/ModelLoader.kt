@@ -226,25 +226,21 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 		}
 	}
 
-	// FIXME different states may contain widgets with the same ID (uid,imgId+propertyId) but different ParentIds -> use string.hashcode as key value instead
 	/** temporary map of all processed widgets for state parsing */
-	private val widgetQueue: MutableMap<ConcreteId,Deferred<Widget>> = ConcurrentHashMap()
+	private val widgetQueue: MutableMap<Int,Deferred<Widget>> = ConcurrentHashMap()
 	protected val _widgetParser: (List<String>) -> Deferred<Widget> = { line ->
 		log("parse widget $line")
 		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
-//		val parentId = line[P.ParentID.idx(customWidgetIndicies)].let { if (it == "null") emptyId else idFromString(it) }
-//		Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId+parentId.first+parentId.second).let { widgetIdPlusParent ->
-//			widgetQueue.computeIfAbsent(widgetIdPlusParent) {
-				val id = ConcreteId(UUID.fromString(line[Widget.idIdx.first]),wConfigId)
-				log("parse widget absent $id")
-				async(context("parseWidget $id")) {
-					Widget.fromString(line,customWidgetIndicies).also { widget ->
-						model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
-						assert(id == widget.id)	{ "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" }
-					}
+		val id = ConcreteId(UUID.fromString(line[Widget.idIdx.first]),wConfigId)
+		widgetQueue.computeIfAbsent(line.toTypedArray().contentHashCode()) {
+			log("parse widget absent $id")
+			async(context("parseWidget $id")) {
+				Widget.fromString(line, customWidgetIndicies).also { widget ->
+					model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
+					assert(id == widget.id) { "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" }
 				}
-//			}
-//		}
+			}
+		}
 	}
 
 	companion object {  // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
