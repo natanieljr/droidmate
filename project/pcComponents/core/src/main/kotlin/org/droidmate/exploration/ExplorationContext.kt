@@ -67,7 +67,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 
 	fun findWatcher(c: (ModelFeature)->Boolean) = watcher.find(c)
 
-	fun<T:ModelFeature> addWatcher(w: T){ watcher.add(w); actionTrace.addWatcher(w) }
+	fun<T:ModelFeature> addWatcher(w: T){ actionTrace.addWatcher(w) }
 
 	val crashlist: CrashListMF = getOrCreateWatcher()
 	val exceptionIsPresent: Boolean
