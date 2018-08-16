@@ -169,10 +169,13 @@ class Model private constructor(val config: ModelConfig) {
 	}
 
 	private fun computeNewState(action: ActionResult, @Suppress("UNUSED_PARAMETER") interactedEF: Map<UUID, List<Pair<StateData, Widget>>>): StateData {
-		debugT("compute Widget set ", { action.getWidgets(config) })
+		debugT("compute Widget set ", { action.getWidgets(config) })  // compute all widgets existing in the current state
 				.let { widgets ->
-					// compute all widgets existing in the current state
-
+					widgets.forEach { widget ->  // Initialize the parent ID. It's first necessary to have all widgets  converted before being able to link them.
+						widget.parentId = widgets.firstOrNull {
+							it.idHash == widget.parentHash
+						}?.id
+					}
 					debugT("compute result State for ${widgets.size}\n", { action.resultState(widgets) }).let { state ->
 						// revise state if it contains previously interacted edit fields
 
