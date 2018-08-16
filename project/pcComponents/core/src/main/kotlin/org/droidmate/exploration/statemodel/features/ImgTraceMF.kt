@@ -83,11 +83,13 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 
 }
 
+var shapeColor: Color = Color.red
+var textColor: Color = Color.magenta
 fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffset: List<Int>){
 	stateImg.createGraphics().apply{
-		paint = Color.red
 		stroke = BasicStroke(10F)
 		font = Font("TimesRoman", Font.PLAIN, 60)
+
 		val targetsPerAction = targetWidgets.mapIndexed{ i,t -> Pair(idxOffset[i],t)}.groupBy { it.first }
 
 		val targetCounter: MutableMap<ConcreteId,LinkedList<Pair<Int,Int>>> = HashMap() // used to compute offsets in the number string
@@ -99,9 +101,12 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffs
 		}
 		// highlight all targets and add text labels
 		targetWidgets.forEach{ it ->
+			paint = shapeColor// reset color for next shape drawing
 			drawOval(it.bounds)
-			val text = targetCounter[it.id]!!.joinToString(separator = ", ") { "${it.first}.${it.second}" }
+			// draw the label number for the element
+			val text = targetCounter[it.id]!!.joinToString(separator = ", ") { if(it.first!=0) "${it.first}.${it.second}" else "${it.second}" }
 			if( text.length>20 ) 		font = Font("TimesRoman", Font.PLAIN, 20)
+			paint = textColor// for better visibility use a different color then the boarder
 			drawString(text,it.bounds.x+(it.bounds.width/10),it.bounds.y+(it.bounds.height/10))
 			font = Font("TimesRoman", Font.PLAIN, 60) // reset font to bigger font
 		}
