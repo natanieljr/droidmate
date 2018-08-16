@@ -23,6 +23,8 @@
 //
 // web: www.droidmate.org
 
+@file:Suppress("ReplaceSingleLineLet")
+
 package org.droidmate.exploration.statemodel
 
 import kotlinx.coroutines.experimental.*
