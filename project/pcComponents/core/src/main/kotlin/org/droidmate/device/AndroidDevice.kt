@@ -32,9 +32,7 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
-import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
-import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
@@ -306,11 +304,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
 		log.debug("uninstallApk($apkPackageName, ignoreFailure: $ignoreFailure)")
 		adbWrapper.uninstallApk(serialNumber, apkPackageName, ignoreFailure)
-	}
-
-	override fun launchApp(packageName: String): DeviceResponse {
-		log.warn("FIXME delay not used perform(newLaunchAppDeviceAction($packageName, ${cfg[launchActivityDelay]}))")
-		return this.perform(LaunchApp(packageName))
 	}
 
 	override fun closeMonitorServers() {

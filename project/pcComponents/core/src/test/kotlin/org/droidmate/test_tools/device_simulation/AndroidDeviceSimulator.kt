@@ -182,10 +182,6 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun launchApp(packageName: String): DeviceResponse {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
 	override fun appIsRunning(appPackageName: String): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
