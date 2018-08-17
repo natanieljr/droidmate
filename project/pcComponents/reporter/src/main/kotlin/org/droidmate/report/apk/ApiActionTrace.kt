@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.deviceInterface.guimodel.isLaunchApp
 import org.droidmate.deviceInterface.guimodel.isPressBack
-import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import java.nio.file.Path
 
