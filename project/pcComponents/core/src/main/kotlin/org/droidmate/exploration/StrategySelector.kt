@@ -188,16 +188,29 @@ class StrategySelector constructor(val priority: Int,
 
 		object WaitForLaunch:AbstractStrategy() {
 			override val noContext: Boolean = true
-			var cnt = 0
+			private var cnt = 0
+			var terminate = false
+
+			fun init(){
+				cnt = 0
+				terminate = false
+			}
+
 			@Suppress("OverridingDeprecatedMember")
 			override fun mustPerformMoreActions(): Boolean = false
 
 			override fun internalDecide(): ExplorationAction {
-				return if(cnt++ < 2){
-					runBlocking {  delay(5000) }
-					GlobalAction(ActionType.FetchGUI)
+				return when{
+					cnt++ < 2 ->{
+						runBlocking {  delay(5000) }
+						GlobalAction(ActionType.FetchGUI)
+					}
+					terminate -> {
+						StrategySelector.logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
+						GlobalAction(ActionType.Terminate)
+					}
+					else -> GlobalAction(ActionType.PressBack)
 				}
-				else GlobalAction(ActionType.PressBack)
 			}
 		}
 
@@ -219,15 +232,15 @@ class StrategySelector constructor(val priority: Int,
 						logger.debug("Cannot explore. Last action was back. Returning 'Reset'")
 						pool.getFirstInstanceOf(Reset::class.java)
 					}
-					lastLaunchDistance <=3 -> { // since app reset is an ActionQueue of (Launch+EnableWifi)
+					lastLaunchDistance <=3 || context.getLastActionType().isFetch() -> { // since app reset is an ActionQueue of (Launch+EnableWifi), or we had a WaitForLaunch action
 						when {  // last action was reset
 							context.getCurrentState().isAppHasStoppedDialogBox -> {
 								logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
 							secondLast?.actionType?.isPressBack() ?: false -> {
-								logger.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
-								pool.getFirstInstanceOf(Terminate::class.java)
+								WaitForLaunch.terminate = true  // try to wait for launch but terminate if we still have nothing to explore afterwards
+								WaitForLaunch
 							}
 							else -> { // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed refetch for now
 								logger.debug("Cannot explore. Returning 'Wait'")
@@ -239,9 +252,8 @@ class StrategySelector constructor(val priority: Int,
 					else -> pool.getFirstInstanceOf(Back::class.java)
 				}
 			}
-			else{
-			// can move forwards
-				WaitForLaunch.cnt = 0
+			else{			// can move forwards
+				WaitForLaunch.init()
 				null
 			}
 		}

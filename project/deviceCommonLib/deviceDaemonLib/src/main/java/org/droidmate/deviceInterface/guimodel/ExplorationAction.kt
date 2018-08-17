@@ -35,6 +35,7 @@ enum class ActionType{
 data class GlobalAction(val actionType: ActionType) : ExplorationAction(){ override val name = actionType.name }
 fun String.isTerminate():Boolean = this == ActionType.Terminate.name
 fun String.isPressBack():Boolean = this == ActionType.PressBack.name
+fun String.isFetch():Boolean = this == ActionType.FetchGUI.name
 
 data class RotateUI(val rotation: Int): ExplorationAction()
 data class LaunchApp(val appLaunchIconName: String, val timeout: Long = 10000) : ExplorationAction(){
