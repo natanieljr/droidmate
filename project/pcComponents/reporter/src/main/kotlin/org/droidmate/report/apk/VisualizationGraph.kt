@@ -291,7 +291,10 @@ class VisualizationGraph : ApkReport() {
 	 * image.
 	 */
 	private fun getImgPath(id: String?, imgDir: Path): String {
-		return if (id != null && Files.list(imgDir).anyMatch { it.fileName.toString().startsWith(id) }) {
+		return if (id != null
+			// Image is available
+			&& Files.list(imgDir).use { list -> list.anyMatch { it.fileName.toString().startsWith(id) } }) {
+
 			val dirName = imgDir.fileName.toString()
 			assert(dirName == "states" || dirName == "widgets")
 			Paths.get(".")
@@ -320,6 +323,15 @@ class VisualizationGraph : ApkReport() {
 		gsonBuilder.registerTypeAdapter(HashMap<Int, Widget?>()::class.java, IdxWidgetHashMapAdapter())
 
 		return gsonBuilder.create()
+	}
+
+	private fun copyFilteredFiles(from: Path, to: Path, suffix: String) {
+		Files.list(from)
+			.use { list ->
+				list.filter { filename -> filename.toString().endsWith(suffix) }.forEach {
+					Files.copy(it, to.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
+				}
+			}
 	}
 
 	override fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
@@ -354,21 +366,9 @@ class VisualizationGraph : ApkReport() {
 		targetWidgetsImgDir = targetImgDir.resolve("widgets")
 		Files.createDirectories(targetWidgetsImgDir)
 
-		Files.list(model.config.stateDst)
-			.filter { filename -> filename.toString().endsWith(".png") }
-			.forEach {
-				Files.copy(it, targetStatesImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
-			}
-		Files.list(model.config.widgetImgDst)
-			.filter { filename -> filename.toString().endsWith(".png") }
-			.forEach {
-				Files.copy(it, targetWidgetsImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
-			}
-		Files.list(model.config.widgetNonInteractiveImgDst)
-			.filter { filename -> filename.toString().endsWith(".png") }
-			.forEach {
-				Files.copy(it, targetWidgetsImgDir.resolve(it.fileName.toString()), StandardCopyOption.REPLACE_EXISTING)
-			}
+		copyFilteredFiles(model.config.stateDst, targetStatesImgDir, ".png")
+		copyFilteredFiles(model.config.widgetImgDst, targetWidgetsImgDir, ".png")
+		copyFilteredFiles(model.config.widgetNonInteractiveImgDst, targetWidgetsImgDir, ".png")
 
 		val jsonFile = targetVisFolder.resolve("data.js")
 		val gson = getCustomGsonBuilder()
