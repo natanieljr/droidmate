@@ -97,7 +97,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 
 	val isEdit: Boolean get() = properties.editable
 
-	fun hasContent(): Boolean = (text + contentDesc) != ""
+	fun hasContent(): Boolean = (text + contentDesc).isNotBlank()
 
 	var usedForStateId = false
 
