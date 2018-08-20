@@ -133,8 +133,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 		return when {
 			this.isHomeScreen -> "<GUI state: home screen>"
 			this.isAppHasStoppedDialogBox -> "<GUI state of \"App has stopped\" dialog box.>"// OK widget enabled: ${this.okWidget.enabled}>"
-			this.isRequestRuntimePermissionDialogBox -> "<GUI state of \"Runtime permission\" dialog box.>"// Allow widget enabled: ${this.allowWidget.enabled}>"
-			this.isCompleteActionUsingDialogBox -> "<GUI state of \"Complete action using\" dialog box.>"
+//			this.isCompleteActionUsingDialogBox -> "<GUI state of \"Complete action using\" dialog box.>"
 			this.isSelectAHomeAppDialogBox -> "<GUI state of \"Select a home app\" dialog box.>"
 			this.isUseLauncherAsHomeDialogBox -> "<GUI state of \"Use Launcher as Home\" dialog box.>"
 			else -> "<GuiState pkg=$topNodePackageName Widgets count = ${widgets.size}>"
@@ -149,11 +148,11 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 				(widgets.any { it.resourceId == "android:id/aerr_close" } &&
 						widgets.any { it.resourceId == "android:id/aerr_wait" })
 
-	val isCompleteActionUsingDialogBox: Boolean
-		get() = !isSelectAHomeAppDialogBox &&
-				!isUseLauncherAsHomeDialogBox &&
-				topNodePackageName == androidPackageName &&
-				widgets.any { it.text == "Just once" }
+//	val isCompleteActionUsingDialogBox: Boolean
+//		get() = !isSelectAHomeAppDialogBox &&
+//				!isUseLauncherAsHomeDialogBox &&
+//				topNodePackageName == androidPackageName &&
+//				widgets.any { it.text == "Just once" }
 
 	val isSelectAHomeAppDialogBox: Boolean
 		get() = topNodePackageName == androidPackageName &&
@@ -166,12 +165,4 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 				widgets.any { it.text == "Just once" } &&
 				widgets.any { it.text == "Always" }
 
-	val isRequestRuntimePermissionDialogBox: Boolean
-		get() = widgets.any { it.resourceId == resIdRuntimePermissionDialog  || // identify if we have a permission request
-				it.text.toUpperCase() == "DON'T ALLOW" }  // handle cases for apps who 'customize' this request and use own resourceIds e.g. Home-Depot
-				// check that we have a ok or allow button
-				&& widgets.any{it.text.toUpperCase() == "ALLOW" || it.text.toUpperCase() == "OK" }
-
-
-	fun belongsToApp(appPackageName: String): Boolean = this.topNodePackageName == appPackageName
 }

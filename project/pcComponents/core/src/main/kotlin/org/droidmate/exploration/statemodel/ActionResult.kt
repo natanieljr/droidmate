@@ -132,8 +132,8 @@ open class ActionResult(val action: ExplorationAction,
 	fun resultState(widgets: List<Widget>): StateData = resultState(lazyOf(widgets))
 	private fun resultState(widgets: Lazy<List<Widget>>): StateData {
 		return guiSnapshot.let { g ->
-			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName, g.isHomeScreen, g.isAppHasStoppedDialogBox,
-					g.isRequestRuntimePermissionDialogBox).apply { appArea = Rectangle(0,g.statusBarSize,g.appSize.first,g.appSize.second+g.statusBarSize) }
+			StateData(widgets, topNodePackageName = g.topNodePackageName,
+					isAppHasStoppedDialogBox = g.isAppHasStoppedDialogBox, isHomeScreen = g.isHomeScreen).apply { appArea = Rectangle(0,g.statusBarSize,g.appSize.first,g.appSize.second+g.statusBarSize) }
 		}
 	}
 }

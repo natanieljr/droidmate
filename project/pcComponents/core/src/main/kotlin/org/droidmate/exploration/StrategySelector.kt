@@ -218,12 +218,12 @@ class StrategySelector constructor(val priority: Int,
 		val cannotExplore: SelectorFunction = { context, pool, _ ->
 			if (!context.explorationCanMoveOn()){
 				val lastActionType = context.getLastActionType()
-				val (lastLaunchDistance,secondLast) = with(context.actionTrace.getActions()) {
+				val (lastLaunchDistance,secondLast) = with(
+						context.actionTrace.getActions().filterNot {
+							it.actionType.isQueueStart()|| it.actionType.isQueueEnd() }
+				){
 					lastIndexOf(findLast{ it.actionType.isLaunchApp() }).let{ launchIdx ->
-						val beforeLaunch = this.getOrNull(launchIdx-1)?.let {
-							if(it.actionType.isQueueStart())	this.getOrNull(launchIdx-2)
-							else it
-						}
+						val beforeLaunch = this.getOrNull(launchIdx - 1)
 						Pair( size-launchIdx, beforeLaunch)
 					}
 				}

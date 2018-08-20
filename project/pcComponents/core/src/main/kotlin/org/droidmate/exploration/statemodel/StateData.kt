@@ -35,15 +35,29 @@ import java.util.*
  * States have two components, the Id determined by its Widgets image, text and description and the ConfigId defined by the WidgetsProperties.
  ** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
 class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
-                            val topNodePackageName: String = "", val androidLauncherPackageName: String = "", //TODO check if androidLauncherPackageName really necessary
+                            val topNodePackageName: String = "",
                             val isHomeScreen: Boolean = false,
-                            val isAppHasStoppedDialogBox: Boolean = false,
-                            val isRequestRuntimePermissionDialogBox: Boolean = false) {
+                            val isAppHasStoppedDialogBox: Boolean = false) {
 
-	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),isHomeScreen = homeScreen, topNodePackageName = topPackage)
+	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),
+			topNodePackageName = topPackage, isHomeScreen=homeScreen)
 
 	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } 	}
 	var appArea: Rectangle = Rectangle()
+
+	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
+	val isRequestRuntimePermissionDialogBox: Boolean	by lazy {
+		widgets.any { // identify if we have a permission request
+			it.resourceId == resIdRuntimePermissionDialog  ||
+					// handle cases for apps who 'customize' this request and use own resourceIds e.g. Home-Depot
+			when(it.text.toUpperCase()) {
+						"ALLOW", "DENY", "DON'T ALLOW" -> true
+						else -> false
+			}
+		}
+		// check that we have a ok or allow button
+		&& widgets.any{it.text.toUpperCase().let{ wText -> wText == "ALLOW" || wText == "OK" } }
+	}
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
 //              isHomeScreen: Boolean, isAppHasStoppedDialogBox: Boolean,
