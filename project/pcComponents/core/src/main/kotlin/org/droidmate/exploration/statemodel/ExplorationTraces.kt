@@ -287,7 +287,10 @@ class Trace(private val watcher: MutableList<ModelFeature> = mutableListOf(), pr
 	private fun P_addAll(actions:List<ActionData>) = trace.sendBlocking(AddAll(actions))  // this does never actually block the sending since the capacity is unlimited
 
 	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
-	fun getActions(): List<ActionData> = trace.S_getAll()
+	fun getActions(): List<ActionData> {
+		runBlocking { processorJob.joinChildren() }
+		return trace.S_getAll()
+	}
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within co-routines to make complete use of suspendable feature */
 	suspend fun P_getActions(): List<ActionData>{
