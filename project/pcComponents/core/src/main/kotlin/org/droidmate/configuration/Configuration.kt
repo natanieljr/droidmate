@@ -179,7 +179,6 @@ abstract class ConfigProperties {
 	object ApiMonitorServer : PropertyGroup() {
 		val monitorSocketTimeout by intType
 		val monitorUseLogcat by booleanType
-		val monitorUseLegacyStream by booleanType
 		val basePort by intType
 	}
 

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.support.test.uiautomator.*
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
@@ -50,7 +51,7 @@ inline fun <T> debugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, 
 
 private const val logTag = UiautomatorDaemonConstants.deviceLogcatTagPrefix + "ActionExecution"
 
-fun ExplorationAction.execute(device: UiDevice, context: Context, automation: UiAutomation): Any{
+fun ExplorationAction.execute(device: UiDevice, context: Context, automation: UiAutomation): Any {
 	Log.d(logTag, "START execution ${toString()}")
 	val result: Any = when(this){ // REMARK this has to be an assignment for when to check for exhausiveness
 		is Click ->{
@@ -103,8 +104,8 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 				Log.d(logTag,"action was sucessfull=$it")
 			}
 		}
-		is RotateUI -> device.rotate(rotation,automation)
-		is LaunchApp -> device.launchApp(appLaunchIconName,context,timeout)
+		is RotateUI -> device.rotate(rotation, automation)
+		is LaunchApp -> device.launchApp(appLaunchIconName, context, launchActivityDelay, timeout)
 		is Swipe -> {
 			val (x0,y0) = start
 			val (x1,y1) = end
@@ -208,7 +209,7 @@ private fun UiDevice.minimizeMaximize(){
 	}
 }
 
-private fun UiDevice.launchApp(appPackageName: String,context: Context,waitTime: Long):Boolean{
+private fun UiDevice.launchApp(appPackageName: String, context: Context, launchActivityDelay: Long, waitTime: Long): Boolean {
 	var success = false
 	// Launch the app
 	val intent = context.packageManager
@@ -222,7 +223,8 @@ private fun UiDevice.launchApp(appPackageName: String,context: Context,waitTime:
 		// Wait for the app to appear
 		wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 				waitTime)
-		success = UiHierarchy.waitFor(this, interactableTimeout,actableAppElem)
+		SystemClock.sleep(launchActivityDelay)
+		success = UiHierarchy.waitFor(this, interactableTimeout, actableAppElem)
 	}.also { Log.d(logTag, "load-time $it millis") }
 	return success
 }

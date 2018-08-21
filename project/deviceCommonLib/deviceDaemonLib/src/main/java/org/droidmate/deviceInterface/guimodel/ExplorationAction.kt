@@ -43,7 +43,7 @@ fun String.isPressBack():Boolean = this == ActionType.PressBack.name
 fun String.isFetch():Boolean = this == ActionType.FetchGUI.name
 
 data class RotateUI(val rotation: Int): ExplorationAction()
-data class LaunchApp(val appLaunchIconName: String, val timeout: Long = 10000) : ExplorationAction(){
+data class LaunchApp(val appLaunchIconName: String, val launchActivityDelay: Long = 0, val timeout: Long = 10000) : ExplorationAction() {
 	companion object {
 		val name: String = this::class.java.declaringClass.simpleName
 	}

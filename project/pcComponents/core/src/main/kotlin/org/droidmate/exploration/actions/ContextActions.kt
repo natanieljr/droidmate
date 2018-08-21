@@ -2,10 +2,11 @@
 
 package org.droidmate.exploration.actions
 
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.exploration.ExplorationContext
 
-		/**
+/**
  * These are the new interface functions to interact with the overall screen
  * The implementation of the actions itself is going to be refactored in the new version and all
  * old ExplorationActions are going to be removed.
@@ -44,5 +45,8 @@ fun ExplorationContext.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int=35
 @JvmOverloads fun ExplorationContext.queue(actions: List<ExplorationAction>,delay:Long=0) = ActionQueue(actions,delay)
 
 //TODO enableWifi takes ~11s therefore we may consider to only do it once on exploration start instead
-fun ExplorationContext.resetApp(): ExplorationAction = queue(listOf(LaunchApp(apk.packageName),GlobalAction(ActionType.EnableWifi))) // using ActionQue to issue multiple actions
+fun ExplorationContext.resetApp(): ExplorationAction {
+    // Using ActionQue to issue multiple actions
+    return queue(listOf(LaunchApp(apk.packageName, cfg[ConfigProperties.Exploration.launchActivityDelay]), GlobalAction(ActionType.EnableWifi)))
+}
 fun terminateApp(): ExplorationAction = GlobalAction(ActionType.Terminate)

@@ -25,7 +25,6 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.resetApp
 
 /**
