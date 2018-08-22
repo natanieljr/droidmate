@@ -41,16 +41,17 @@ data class WidgetData(
 	}
 
 	// quick-fix for compatibility reasons with previous model-dumps
-	val uid: UUID = _uid?: toString().replaceAfter("_uid",")").replace(", _uid","").toUUID()
+	private val idString by lazy{ toString().replaceAfter("_uid",")").replace(", _uid","") }
+	val pId: UUID get() = _uid ?: (if(idHash!=0) idString+idHash.toString() else idString).toUUID()
 	var xpath: String = ""
-	var idHash: Int = 0
+	var idHash: Int = 0 //FIXME as soon as model loader with compatibility mode is available this will be moved into constructor and 'always' be required by dump
 	/** coordinate where only this element is triggered and no actable child
 	 * even if this element is actable this uncoveredCoord may be null if the children are overlying the whole element bounds
 	 */
 	var uncoveredCoord: Pair<Int,Int>? = null
 	var parentHash: Int = 0
 	var childrenXpathHashes: List<Int> = emptyList()
-	fun content(): String = "$text$contentDesc"
+	fun content(): String = "$text$contentDesc" //TODO insert space once compatibility mode ModelLoader is done
 
 	val actable: Boolean by lazy{ enabled && visible && (clickable || checked ?: false || longClickable || scrollable)}
 	var hasActableDescendant: Boolean = false
@@ -72,6 +73,7 @@ data class WidgetData(
 						isLeaf = line[P.IsLeaf.idx(indexMap)].toBoolean(), editable = line[P.Editable.idx(indexMap)].toBoolean()
 				).apply {
 					uncoveredCoord = line[P.Coord.idx(indexMap)].let{ if(it=="null") null else with(it.split(",")){ kotlin.Pair(get(0).toInt(), get(1).toInt()) }}
+					P.HashId.execIfSet(line,indexMap){ idHash = it.toInt() }
 				}
 
 	}
@@ -105,13 +107,23 @@ enum class P(var header: String = "") {
 	IsLeaf,
 	PackageName,
 	ImgId,
-	UsedforStateId;
+	UsedforStateId,
+	HashId;
 
 	init {
 		if (header == "") header = name
 	}
 	
 	fun idx(indexMap:Map<P,Int> = defaultIndicies): Int = indexMap[this]!!
+	/**
+	 * execute a given function body only if this enum entry can be contained in the line (by ordinal)
+	 * [body] gets the respective string value from line as input parameter
+	**/
+	fun execIfSet(line:List<String>, indexMap: Map<P, Int>, body:(String)->Unit){
+		val idx = this.idx(indexMap)
+		if(line.size>idx) body( line[idx] )
+	}
+
 	companion object {
 		@JvmStatic val defaultIndicies = P.values().associate { it to it.ordinal }
 	}
