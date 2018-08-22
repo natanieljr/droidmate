@@ -41,5 +41,5 @@ class DefaultTestModel: TestModel {
 
 	override val testWidgetDumpString = "5a3d425d-66bc-38d5-a375-07e0b682e0ba;${testWidgetData.pId};class-mock;"+
 			"true;null;text-mock;description-mock;${parentWidget.id.dumpString()};true;true;true;false;false;disabled;"+
-			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock;null;false"
+			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock;null;false;0"
 }
