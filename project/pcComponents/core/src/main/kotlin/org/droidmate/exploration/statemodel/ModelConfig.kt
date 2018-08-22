@@ -103,6 +103,7 @@ class ModelConfig private constructor(path: Path,
 
 val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
 fun String.asUUID(): UUID? = if(this == "null") null else UUID.fromString(this)
+fun String.asConcreteId(): ConcreteId? = if(this == "null") null else idFromString(this)
 typealias ConcreteId = Pair<UUID, UUID>
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun ConcreteId.toString() = "${first}_$second"  // mainly for nicer debugging strings

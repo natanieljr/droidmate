@@ -17,17 +17,22 @@ object EmptyAction: ExplorationAction()
 
 data class Click(val x: Int, val y: Int, override val hasWidgetTarget: Boolean = false, val delay: Long=0): ExplorationAction(){
 	companion object {
-		const val name = "Click"
+		val name: String = this::class.java.declaringClass.simpleName
 	}
 }
 fun String.isClick():Boolean = this == Click.name
 data class LongClick(val x: Int, val y: Int, override val hasWidgetTarget: Boolean = false, val delay: Long=0): ExplorationAction(){
 	companion object {
-		const val name = "LongClick"
+		val name: String = this::class.java.declaringClass.simpleName
 	}
 }
 fun String.isLongClick():Boolean = this == LongClick.name
-data class TextInsert(val idHash: Int, val text:String, override val hasWidgetTarget: Boolean = false): ExplorationAction()
+data class TextInsert(val idHash: Int, val text:String, override val hasWidgetTarget: Boolean = false): ExplorationAction(){
+	companion object {
+		val name: String = this::class.java.declaringClass.simpleName
+	}
+}
+fun String.isTextInsert(): Boolean = this == TextInsert.name
 
 enum class ActionType{
 	PressBack, PressHome, PressEnter, CloseKeyboard, EnableWifi, MinimizeMaximize, FetchGUI, Terminate;
@@ -40,7 +45,7 @@ fun String.isFetch():Boolean = this == ActionType.FetchGUI.name
 data class RotateUI(val rotation: Int): ExplorationAction()
 data class LaunchApp(val appLaunchIconName: String, val timeout: Long = 10000) : ExplorationAction(){
 	companion object {
-		const val name = "LaunchApp"
+		val name: String = this::class.java.declaringClass.simpleName
 	}
 }
 fun String.isLaunchApp():Boolean = this == LaunchApp.name
