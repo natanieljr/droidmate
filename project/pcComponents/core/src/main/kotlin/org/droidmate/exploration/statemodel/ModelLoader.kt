@@ -188,7 +188,7 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 	}
 
 	protected suspend fun P_parseState(stateId: ConcreteId):StateData {
-		logger.info("parse state $stateId")
+//		logger.info("parse state $stateId")
 		val(contentPath,isHomeScreen,topPackage) = getStateFile(stateId)
 		val widgets = P_processLines(path = contentPath, lineProcessor = _widgetParser).map{it.await()}
 		computeActableDescendent(widgets)
