@@ -28,6 +28,7 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.emptyId
@@ -39,14 +40,22 @@ import java.util.*
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
+open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 												  private val biased: Boolean = true) : ExplorationStrategy() {
+
+	protected var random = Random(randomSeed)
+		private set
+
+	override fun initialize(memory: ExplorationContext) {
+		super.initialize(memory)
+		random = Random(randomSeed)
+	}
+
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
 	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed)
 
-	protected val random = Random(randomSeed)
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>()	}
 	private val blackList: BlackListMF by lazy {	eContext.getOrCreateWatcher<BlackListMF>() }

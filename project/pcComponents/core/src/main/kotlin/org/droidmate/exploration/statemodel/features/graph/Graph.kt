@@ -25,8 +25,8 @@ class Graph<S, L>(root: S,
     fun getVertex(data: S): Vertex<S>? = getVertices().find { stateComparison(it.data, data) }
 
 	private fun addDirectedEdge(source: S, destination: S?, label: L, weight: Double): Edge<S, L> {
-		val sourceVertex = createVertex(source)
-		val destinationVertex = destination?.run { createVertex(destination) }
+		val sourceVertex = getVertex(source)?:createVertex(source)
+		val destinationVertex = destination?.run { getVertex(destination)?:createVertex(destination) }
 
 		val edge = Edge(sourceVertex, destinationVertex, numEdges++, label, labelComparison, 0, weight)
 
@@ -75,22 +75,28 @@ class Graph<S, L>(root: S,
 
 	override fun edges(source: Vertex<S>): List<Edge<S, L>> = adjacencyMap[source] ?: emptyList()
 
-	override fun edges(source: S): List<Edge<S, L>> = edges(createVertex(source))
+	override fun edges(source: S): List<Edge<S, L>> = getVertex(source)?.let{ edges(it) }?: emptyList()
 
-	override fun edges(source: S, destination: S?): List<Edge<S, L>> = edges(source)
-			.filter { it.destination == destination }
+	override fun edges(source: S, destination: S?): List<Edge<S, L>> = edges(source).filter {
+        (it.destination == null && destination == null) || (it.destination != null && destination != null && stateComparison(it.destination!!.data, destination))
+    }
 
-	override fun edge(source: S, destination: S?, label: L): Edge<S, L>? = edges(source, destination)
-			.firstOrNull{ it.label == label }
+	override fun edge(source: S, destination: S?, label: L): Edge<S, L>? {
+        val edges = edges(source, destination)
+        return edges.find {
+            labelComparison(it.label, label)
+        }
+    }
 
 	override fun isEmpty(): Boolean {
 		return adjacencyMap[root]?.isEmpty() ?: true
 	}
 
 	override fun ancestors(destination: S): List<Vertex<S>> {
-		val targetVertex = createVertex(destination)
-		return adjacencyMap
-				.filter { p -> p.value.any { it.destination ==  targetVertex} }
+		val targetVertex = getVertex(destination) ?: return emptyList()
+
+        return adjacencyMap
+				.filter { p -> p.value.any { it.destination == targetVertex} }
 				.map { it.key }
 	}
 

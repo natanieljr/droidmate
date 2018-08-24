@@ -53,7 +53,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyId] */
-	val propertyId: UUID get() = properties.uid
+	val propertyId: UUID get() = properties.pId
 
 	val text: String get() = properties.text
 	val contentDesc: String get() = properties.contentDesc
@@ -97,7 +97,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 
 	val isEdit: Boolean get() = properties.editable
 
-	fun hasContent(): Boolean = (text + contentDesc) != ""
+	fun hasContent(): Boolean = (text + contentDesc).isNotBlank()
 
 	var usedForStateId = false
 
@@ -132,6 +132,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 				P.Editable -> isEdit.toString()
 				P.ImgId -> imgId.toString()
 				P.UsedforStateId -> usedForStateId.toString()
+				P.HashId -> properties.idHash.toString()
 			}
 		}
 	}}
@@ -170,13 +171,13 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 		@JvmStatic
 		fun fromString(line: List<String>, indexMap: Map<P, Int> = P.defaultIndicies): Widget {
 			WidgetData.fromString(line,indexMap).apply { xpath = line[P.XPath.idx(indexMap)] }.let { w ->
-				assert(w.uid.toString()==line[P.WdId.idx(indexMap)]) {
-					"ERROR on widget parsing: property-Id was ${w.uid} but should have been ${line[P.WdId.idx(indexMap)]}"}
+				assert(w.pId.toString()==line[P.WdId.idx(indexMap)]) {
+					"ERROR on widget parsing: property-Id was ${w.pId} but should have been ${line[P.WdId.idx(indexMap)]}"}
 				val imgId = line[P.ImgId.idx(indexMap)].asUUID()
 				return Widget(w,lazyOf(Pair(UUID.fromString(line[P.UID.idx(indexMap)]),imgId)))
 						.apply { parentId = line[P.ParentID.idx(indexMap)].let { if (it == "null") null else idFromString(it) }
-							if(line.size>P.UsedforStateId.ordinal)
-								usedForStateId = line[P.UsedforStateId.idx(indexMap)].toBoolean()}
+							P.UsedforStateId.execIfSet(line,indexMap){ usedForStateId = it.toBoolean() }
+						}
 			}
 		}
 
@@ -233,7 +234,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 											config[ModelProperties.imgDump.widget.nonInteractable] && !w.actable ) )
 
 								launch {
-									File(config.widgetImgPath(id = widgetIdPair.value.first, postfix = "_${w.uid}", interactive = w.actable)).let {
+									File(config.widgetImgPath(id = widgetIdPair.value.first, postfix = "_${w.pId}", interactive = w.actable)).let {
 										if (!it.exists()) ImageIO.write(wImg, "png", it)
 									}
 								}
