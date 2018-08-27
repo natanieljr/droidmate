@@ -170,7 +170,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 		/** widget creation */
 		@JvmStatic
 		fun fromString(line: List<String>, indexMap: Map<P, Int> = P.defaultIndicies): Widget {
-			WidgetData.fromString(line,indexMap).apply { xpath = line[P.XPath.idx(indexMap)] }.let { w ->
+			WidgetData.fromString(line,indexMap).let { w ->
 				assert(w.pId.toString()==line[P.WdId.idx(indexMap)]) {
 					"ERROR on widget parsing: property-Id was ${w.pId} but should have been ${line[P.WdId.idx(indexMap)]}"}
 				val imgId = line[P.ImgId.idx(indexMap)].asUUID()

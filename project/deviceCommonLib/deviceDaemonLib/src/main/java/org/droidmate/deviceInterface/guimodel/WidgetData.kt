@@ -32,7 +32,7 @@ data class WidgetData(
 
 		val isLeaf: Boolean = false,
 		val visible: Boolean = false,
-		val _uid: UUID? = null  // for copy/transform function only to transfer old uid values
+		private val _uid: UUID? = null  // for copy/transform function only to transfer old pId values
 ) : Serializable{
 
 	constructor(resId: String, xPath: String)
@@ -72,6 +72,7 @@ data class WidgetData(
 						resourceId = line[P.ResId.idx(indexMap)], packageName = line[P.PackageName.idx(indexMap)], className = line[P.Type.idx(indexMap)],
 						isLeaf = line[P.IsLeaf.idx(indexMap)].toBoolean(), editable = line[P.Editable.idx(indexMap)].toBoolean()
 				).apply {
+					xpath = line[P.XPath.idx(indexMap)]
 					uncoveredCoord = line[P.Coord.idx(indexMap)].let{ if(it=="null") null else with(it.split(",")){ kotlin.Pair(get(0).toInt(), get(1).toInt()) }}
 					P.HashId.execIfSet(line,indexMap){ idHash = it.toInt() }
 				}
