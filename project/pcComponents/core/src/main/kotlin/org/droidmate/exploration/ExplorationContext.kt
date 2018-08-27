@@ -53,7 +53,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
-class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
+class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper,
                                                    val apk: IApk,
                                                    adbWrapper: IAdbWrapper,
                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
