@@ -60,11 +60,6 @@ class VisualizationGraph : ApkReport() {
 	private lateinit var targetStatesImgDir: Path
 
 	/**
-	 * The directory which will contain all images for the widgets.
-	 */
-	private lateinit var targetWidgetsImgDir: Path
-
-	/**
 	 * Edge encapsulates an ActionData object, because the frontend cannot have multiple
 	 * edges for the same transitions. Therefore, the indices are stored and the corresponding
 	 * targetWidgets are mapped to the indices. E.g., for an Edge e1, the transition was taken
@@ -165,7 +160,7 @@ class VisualizationGraph : ApkReport() {
 			obj.addProperty("stateId", stateId)
 			obj.addProperty("topNodePackageName", src.topNodePackageName)
 			obj.addProperty("shape", "image")
-			obj.addProperty("image", getImgPath(stateId, targetStatesImgDir))
+			obj.addProperty("image", getImgPath(stateId))
 			obj.addProperty("uid", src.uid.toString())
 			obj.addProperty("configId", src.configId.toString())
 			obj.addProperty("iEditId", src.iEditId.toString())
@@ -210,7 +205,7 @@ class VisualizationGraph : ApkReport() {
 	 */
 	inner class WidgetAdapter : JsonSerializer<Widget> {
 		override fun serialize(src: Widget, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-			return convertWidget(src)
+			return convertWidget(src, context)
 		}
 	}
 
@@ -222,7 +217,7 @@ class VisualizationGraph : ApkReport() {
 		override fun serialize(src: HashMap<Int, Widget?>, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
 			val widgets = JsonArray()
 			for ((idx, w) in src) {
-				val obj = convertWidget(w)
+				val obj = convertWidget(w, context)
 				// TODO dataString might be interesting?
 				obj.addProperty("idxOfAction", idx)
 				widgets.add(obj)
@@ -256,14 +251,14 @@ class VisualizationGraph : ApkReport() {
 	/**
 	 * Converts a given Widget as JsonObject with all the necessary information.
 	 */
-	private fun convertWidget(src: Widget?): JsonObject {
+	private fun convertWidget(src: Widget?, context: JsonSerializationContext): JsonObject {
 		val obj = JsonObject()
 
 		val id = src?.id?.dumpString()
 		obj.addProperty("id", id)
 		obj.addProperty("uid", src?.uid.toString())
 		obj.addProperty("propertyId", src?.propertyId.toString())
-		obj.addProperty("image", getImgPath(id, targetWidgetsImgDir))
+		obj.addProperty("image", getImgPath(id))
 		obj.addProperty("text", src?.text)
 		obj.addProperty("contentDesc", src?.contentDesc)
 		obj.addProperty("resourceId", src?.resourceId)
@@ -277,6 +272,7 @@ class VisualizationGraph : ApkReport() {
 		obj.addProperty("scrollable", src?.scrollable)
 		obj.addProperty("checked", src?.checked)
 		obj.addProperty("focused", src?.focused)
+		obj.add("bounds", context.serialize(src?.bounds))
 		obj.addProperty("selected", src?.selected)
 		obj.addProperty("xpath", src?.xpath)
 		obj.addProperty("isLeaf", src?.isLeaf)
@@ -290,16 +286,14 @@ class VisualizationGraph : ApkReport() {
 	 * e.g. for the initial state or for states for which DroidMate could not acquire an
 	 * image.
 	 */
-	private fun getImgPath(id: String?, imgDir: Path): String {
+	private fun getImgPath(id: String?): String {
 		return if (id != null
 			// Image is available
-			&& Files.list(imgDir).use { list -> list.anyMatch { it.fileName.toString().startsWith(id) } }) {
+			&& Files.list(targetStatesImgDir).use { list -> list.anyMatch { it.fileName.toString().startsWith(id) } }) {
 
-			val dirName = imgDir.fileName.toString()
-			assert(dirName == "states" || dirName == "widgets")
 			Paths.get(".")
 				.resolve("img")
-				.resolve(dirName)
+				.resolve("states")
 				.resolve("$id.png")
 				.toString()
 		} else
@@ -363,12 +357,8 @@ class VisualizationGraph : ApkReport() {
 		Files.createDirectories(targetImgDir)
 		targetStatesImgDir = targetImgDir.resolve("states")
 		Files.createDirectories(targetStatesImgDir)
-		targetWidgetsImgDir = targetImgDir.resolve("widgets")
-		Files.createDirectories(targetWidgetsImgDir)
 
 		copyFilteredFiles(model.config.stateDst, targetStatesImgDir, ".png")
-		copyFilteredFiles(model.config.widgetImgDst, targetWidgetsImgDir, ".png")
-		copyFilteredFiles(model.config.widgetNonInteractiveImgDst, targetWidgetsImgDir, ".png")
 
 		val jsonFile = targetVisFolder.resolve("data.js")
 		val gson = getCustomGsonBuilder()
