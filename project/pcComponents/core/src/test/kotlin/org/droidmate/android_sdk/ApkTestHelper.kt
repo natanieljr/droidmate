@@ -40,19 +40,15 @@ class ApkTestHelper {
 			return Apk(
 					Paths.get("/path/to/$name.apk"),
 					"$name.pkg_name",
-					"${name}_lActName",
-					"${name}_lActCompName",
 					"${name}_applicationLabel")
 		}
 
 		@JvmStatic
-		fun build(packageName: String, launchableActivityName: String, launchableActivityComponentName: String, applicationLabel: String): Apk {
+		fun build(packageName: String, launchableActivityName: String, applicationLabel: String): Apk {
 			val path = Paths.get("/path/to/$packageName.apk")
 			return Apk(
 					path,
 					packageName,
-					launchableActivityName,
-					launchableActivityComponentName,
 					applicationLabel)
 		}
 
@@ -64,8 +60,6 @@ class ApkTestHelper {
 			return Apk(
 					path,
 					"$name.pkg_name",
-					"${name}_lActName",
-					"${name}_lActCompName",
 					"${name}_applicationLabel")
 		}
 	}

@@ -45,10 +45,12 @@ import kotlin.math.max
 /**
  * Decides if UiAutomator2DaemonDriver should wait for the window to go to idle state after each click.
  */
-internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val waitForInteractableTimeout: Long) : IUiAutomator2DaemonDriver {
+class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val waitForInteractableTimeout: Long) : IUiAutomator2DaemonDriver {
 	private val device: UiDevice
 	private val context: Context
 	private val automation: UiAutomation
+	// Will be updated during the run, when the right command is sent
+	var appPackageName: String = ""
 
 	init {
 		interactableTimeout = waitForInteractableTimeout
@@ -113,13 +115,13 @@ internal class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, pr
 				Log.v(uiaDaemon_logcatTag, "Performing GUI action $action")
 
 				val result = debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
-					action.execute(device, context, automation)
+					action.execute(device, context, automation, this)
 				}, inMillis = true, timer = {
 					tExec += it
 				})
 
 				if( !action.isFetch() ) // only fetch once even if the action was a FetchGUI action
-				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, waitForIdleTimeout, afterAction = true) }, inMillis = true, timer = {
+				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, context, appPackageName, waitForIdleTimeout, afterAction = true) }, inMillis = true, timer = {
 //					if (action !is DeviceLaunchApp) {
 						tFetch += it
 //					}

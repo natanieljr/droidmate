@@ -45,11 +45,6 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 
 		@JvmStatic
 		@Throws(DroidmateException::class)
-		fun tryGetLaunchableActivityComponentNameFromBadgingDump(aaptBadgingDump: String): String =
-				tryGetPackageNameFromBadgingDump(aaptBadgingDump) + "/" + tryGetLaunchableActivityNameFromBadgingDump(aaptBadgingDump)
-
-		@JvmStatic
-		@Throws(DroidmateException::class)
 		private fun tryGetPackageNameFromBadgingDump(aaptBadgingDump: String): String {
 			assert(aaptBadgingDump.isNotEmpty())
 
@@ -58,20 +53,6 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 			return when {
 				matcher.isEmpty() -> throw DroidmateException("No package name found in 'aapt dump badging'")
 				matcher.size > 1 -> throw DroidmateException("More than one package name found in 'aapt dump badging'")
-				else -> getAndValidateFirstMatch(matcher)
-			}
-		}
-
-		@JvmStatic
-		@Throws(LaunchableActivityNameProblemException::class)
-		private fun tryGetLaunchableActivityNameFromBadgingDump(aaptBadgingDump: String): String {
-			assert(aaptBadgingDump.isNotEmpty())
-
-			val matcher = Regex("(?:.*)launchable-activity: name='(\\S*)'.*").findAll(aaptBadgingDump).toList()
-
-			return when {
-				matcher.isEmpty() -> throw LaunchableActivityNameProblemException("No launchable activity found.")
-				matcher.size > 1 -> throw LaunchableActivityNameProblemException("More than one launchable activity found.", /* isFatal */ true)
 				else -> getAndValidateFirstMatch(matcher)
 			}
 		}
@@ -118,24 +99,6 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 		return packageName
 	}
 
-	override fun getLaunchableActivityName(apk: Path): String {
-		assert(Files.isRegularFile(apk))
-
-		val launchableActivityName = tryGetLaunchableActivityNameFromBadgingDump(aaptDumpBadging(apk))
-
-		assert(launchableActivityName.isNotEmpty())
-		return launchableActivityName
-	}
-
-	override fun getLaunchableActivityComponentName(apk: Path): String {
-		assert(Files.isRegularFile(apk))
-
-		val launchableActivityComponentName = tryGetLaunchableActivityComponentNameFromBadgingDump(aaptDumpBadging(apk))
-
-		assert(launchableActivityComponentName.isNotEmpty())
-		return launchableActivityComponentName
-	}
-
 	override fun getApplicationLabel(apk: Path): String {
 		assert(Files.isRegularFile(apk))
 
@@ -144,32 +107,13 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	override fun getMetadata(apk: Path): List<String> {
-		val activity: List<String> = try {
-			arrayListOf(getLaunchableActivityName(apk), getLaunchableActivityComponentName(apk))
-		} catch (e: LaunchableActivityNameProblemException) {
-			if (e.isFatal) {
-				throw e
-			} else {
-				log.trace("While getting metadata for $apk, got an: $e " +
-						"Substituting null for the launchable activity (component) name.")
-				ArrayList()
-			}
-		}
-
 		val applicationLabel = try {
 			getApplicationLabel(apk)
 		} catch (e: DroidmateException) {
-			if (activity.isEmpty())
-				throw NotEnoughDataToStartAppException("No launchable activity name is present and no non-empty application label is present, " +
-						"so the app cannot be launched by intent neither by clicking on its app icon (because it won't be there, due to " +
-						"missing label. Thus, the app is unworkable for DroidMate")
-			else
-				""
+			""
 		}
-		return arrayListOf(getPackageName(apk),
-				activity.firstOrNull() ?: "No launchable activity",
-				activity.lastOrNull() ?: "No launchable activity",
-				applicationLabel)
+
+		return arrayListOf(getPackageName(apk), applicationLabel)
 	}
 
 	var aaptDumpBadgingInstr: (Path) -> String = { instrumentedApk ->

@@ -51,18 +51,18 @@ inline fun <T> debugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, 
 
 private const val logTag = UiautomatorDaemonConstants.deviceLogcatTagPrefix + "ActionExecution"
 
-fun ExplorationAction.execute(device: UiDevice, context: Context, automation: UiAutomation): Any {
+fun ExplorationAction.execute(device: UiDevice, context: Context, automation: UiAutomation, driver: UiAutomator2DaemonDriver): Any {
 	Log.d(logTag, "START execution ${toString()}")
-	val result: Any = when(this){ // REMARK this has to be an assignment for when to check for exhausiveness
-		is Click ->{
-			device.verifyCoordinate(x,y)
-			device.click(x, y,interactableTimeout).apply {
+	val result: Any = when(this) { // REMARK this has to be an assignment for when to check for exhaustiveness
+		is Click -> {
+			device.verifyCoordinate(x, y)
+			device.click(x, y, interactableTimeout).apply {
 				runBlocking { delay(delay) }
 			}
 		}
-		is LongClick ->{
-			device.verifyCoordinate(x,y)
-			device.longClick(x, y,interactableTimeout).apply {
+		is LongClick -> {
+			device.verifyCoordinate(x, y)
+			device.longClick(x, y, interactableTimeout).apply {
 				runBlocking { delay(delay) }
 			}
 		}
@@ -81,8 +81,8 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 					device.minimizeMaximize()
 					true
 				}
-				ActionType.FetchGUI ->	fetchDeviceData(device, idleTimeout, afterAction = false)
-				ActionType.Terminate -> false /* should never be transfered to the device */
+				ActionType.FetchGUI ->	fetchDeviceData(device, context, driver.appPackageName, idleTimeout, afterAction = false)
+				ActionType.Terminate -> false /* should never be transferred to the device */
 				ActionType.PressEnter -> device.pressEnter()
 				ActionType.CloseKeyboard ->
 					if (UiHierarchy.any(device) { node, _ -> node.packageName == "com.google.android.inputmethod.latin" })
@@ -91,21 +91,25 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 			}.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
 			val idMatch: SelectorCondition = { _, xPath ->
-				idHash == xPath.hashCode()+rootIndex
+				idHash == xPath.hashCode() + rootIndex
 			}
-			UiHierarchy.findAndPerform(device,idMatch) { nodeInfo ->
+			UiHierarchy.findAndPerform(device, idMatch) { nodeInfo ->
 				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
 					if(it) runBlocking { delay(idleTimeout) } // wait for display update
-					Log.d(logTag, "perfom successfull=$it")
+					Log.d(logTag, "perform successful=$it")
 				} }.also {
-				Log.d(logTag,"action was sucessfull=$it")
+				Log.d(logTag,"action was successful=$it")
 			}
 		}
 		is RotateUI -> device.rotate(rotation, automation)
-		is LaunchApp -> device.launchApp(appLaunchIconName, context, launchActivityDelay, timeout)
+		is LaunchApp -> {
+			// Update driver
+			driver.appPackageName = packageName
+			device.launchApp(packageName, context, launchActivityDelay, timeout)
+		}
 		is Swipe -> {
 			val (x0,y0) = start
 			val (x1,y1) = end
@@ -116,7 +120,7 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 		is ActionQueue -> runBlocking {
 			var success = true
 			actions.forEach { it -> success = success &&
-					it.execute(device,context,automation).apply{ delay(delay) } as Boolean }
+					it.execute(device, context, automation, driver).apply{ delay(delay) } as Boolean }
 		}
 	}
 	Log.d(logTag, "END execution of ${toString()}")
@@ -127,7 +131,7 @@ private var time: Long = 0
 private var cnt = 0
 private var wt = 0.0
 private var wc = 0
-fun fetchDeviceData(device: UiDevice, timeout: Long =200, afterAction: Boolean = true): DeviceResponse {
+fun fetchDeviceData(device: UiDevice, context: Context, appPackageName: String, timeout: Long = 200, afterAction: Boolean = true): DeviceResponse {
 	debugT("wait for IDLE avg = ${time / max(1,cnt)} ms", {
 		device.waitForIdle(timeout)
 		if (afterAction && UiHierarchy.any(device,cond = isWebView)){ // waitForIdle is insufficient for WebView's therefore we need to handle the stabalize separately
@@ -158,13 +162,19 @@ fun fetchDeviceData(device: UiDevice, timeout: Long =200, afterAction: Boolean =
 			{ runBlocking {	imgProcess.await() }
 	}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1} )
 	val appArea = if(UiHierarchy.appArea.isEmpty) UiHierarchy.computeAppArea() else UiHierarchy.appArea
+	val launachableMainActivity = try {
+		context.packageManager.getLaunchIntentForPackage(appPackageName).component.className
+	} catch (e: IllegalStateException) {
+		""
+	}
 	return debugT("compute UI-dump", {
 		DeviceResponse.create(uiHierarchy = uiHierarchy,
 				uiDump =
 				"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
 						", because (currently) we would have to traverse the tree a second time"
 //									xmlDump
-				, deviceModel = deviceModel,
+				, launchableActivity = launachableMainActivity,
+				deviceModel = deviceModel,
 				displayWidth = device.displayWidth, displayHeight = device.displayHeight,
 				screenshot = imgPixels,
 				width = w, height = h,
@@ -209,7 +219,7 @@ private fun UiDevice.minimizeMaximize(){
 	}
 }
 
-private fun UiDevice.launchApp(appPackageName: String, context: Context, launchActivityDelay: Long, waitTime: Long): Boolean {
+private fun UiDevice.launchApp(appPackageName: String, context: Context, waitTime: Long): Boolean {
 	var success = false
 	// Launch the app
 	val intent = context.packageManager

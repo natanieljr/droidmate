@@ -6,7 +6,7 @@ import java.io.Serializable
 
 /** ExplorationActions which are send to the device,
  * the device control driver is then deciding how to execute them based on their type and parameters */
-sealed class ExplorationAction : Serializable{
+sealed class ExplorationAction : Serializable {
 	open val name: String get() = this::class.java.simpleName
 	open val hasWidgetTarget = false
 
@@ -43,7 +43,7 @@ fun String.isPressBack():Boolean = this == ActionType.PressBack.name
 fun String.isFetch():Boolean = this == ActionType.FetchGUI.name
 
 data class RotateUI(val rotation: Int): ExplorationAction()
-data class LaunchApp(val appLaunchIconName: String, val launchActivityDelay: Long = 0, val timeout: Long = 10000) : ExplorationAction() {
+data class LaunchApp(val packageName: String, val launchActivityDelay: Long = 0, val timeout: Long = 10000) : ExplorationAction() {
 	companion object {
 		val name: String = this::class.java.declaringClass.simpleName
 	}

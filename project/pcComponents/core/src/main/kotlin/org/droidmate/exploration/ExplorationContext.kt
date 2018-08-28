@@ -109,6 +109,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
+		apk.updateLaunchableActivityName(result.guiSnapshot.launchableMainActivityName)
 
 		assert(action.toString() == result.action.toString()) { "ERROR on ACTION-RESULT construction the wrong action was instantiated ${result.action} instead of $action"}
 		_model.S_updateModel(result, actionTrace)
@@ -116,7 +117,8 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 	fun dump() {
-		println("dump models and watcher") //TODO Logger.info
+        println("dump models and watcher") //TODO Logger.info
+		assert(!apk.launchableMainActivityName.isBlank()) { "launchableMainActivityName was ${apk.launchableMainActivityName}" }
 		_model.P_dumpModel(_model.config)
 		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
 
