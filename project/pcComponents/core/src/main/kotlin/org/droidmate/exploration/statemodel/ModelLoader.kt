@@ -52,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 import kotlin.streams.toList
 
+@Deprecated("to be removed", replaceWith = ReplaceWith("ModelParserP(config)"))
 open class ModelLoader(protected val config: ModelConfig, private val customWidgetIndicies: Map<P,Int> = P.defaultIndicies) {  // TODO integrate logger for the intermediate processing steps
 	private val model = Model.emptyModel(config)
 
@@ -282,7 +283,7 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 			).first
 			val config = ModelConfig(cfg[appName], true, cfg = cfg)
 			val m = ModelLoader.loadModel(config)
-			println(m)
+			println("${config.appName} $m")
 		}
 
 	} /** end COMPANION **/

@@ -116,12 +116,12 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 	fun dump() {
+		println("dump models and watcher") //TODO Logger.info
 		_model.P_dumpModel(_model.config)
 		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
 
 		// wait until all dump's completed
 		runBlocking {
-			println("dump models and watcher") //TODO Logger.info
 			ModelFeature.dumpJob.joinChildren()
 			_model.modelDumpJob.joinChildren()
 			println("DONE - dump models and watcher")
