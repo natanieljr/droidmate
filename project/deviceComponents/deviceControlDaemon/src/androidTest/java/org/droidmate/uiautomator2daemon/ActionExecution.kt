@@ -219,7 +219,7 @@ private fun UiDevice.minimizeMaximize(){
 	}
 }
 
-private fun UiDevice.launchApp(appPackageName: String, context: Context, waitTime: Long): Boolean {
+private fun UiDevice.launchApp(appPackageName: String, context: Context, launchActivityDelay: Long, waitTime: Long): Boolean {
 	var success = false
 	// Launch the app
 	val intent = context.packageManager
