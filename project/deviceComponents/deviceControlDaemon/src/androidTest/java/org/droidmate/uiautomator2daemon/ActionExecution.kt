@@ -223,7 +223,7 @@ private fun UiDevice.launchApp(appPackageName: String, context: Context, launchA
 		// Wait for the app to appear
 		wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 				waitTime)
-		SystemClock.sleep(launchActivityDelay)
+		runBlocking { delay(launchActivityDelay) }
 		success = UiHierarchy.waitFor(this, interactableTimeout, actableAppElem)
 	}.also { Log.d(logTag, "load-time $it millis") }
 	return success
