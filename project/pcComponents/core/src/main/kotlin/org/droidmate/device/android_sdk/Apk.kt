@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.device.android_sdk
 
 import org.apache.commons.io.FilenameUtils
@@ -35,8 +36,6 @@ import java.nio.file.Paths
 // Suppresses warnings incorrectly caused by assertion checks in ctor.
 class Apk constructor(internalPath: Path,
                       override val packageName: String,
-                      override val launchableActivityName: String,
-                      override val launchableActivityComponentName: String,
                       override val applicationLabel: String) : IApk {
 
 	companion object {
@@ -44,22 +43,18 @@ class Apk constructor(internalPath: Path,
 		private val log by lazy { LoggerFactory.getLogger(Apk::class.java) }
 
 		private const val dummyVal = "DUMMY"
-		private val dummyApk = Apk(Paths.get("./dummy.apk"), dummyVal, dummyVal, dummyVal, dummyVal)
+		private val dummyApk = Apk(Paths.get("./dummy.apk"), dummyVal, dummyVal)
 
 		@JvmStatic
 		fun build(aapt: IAaptWrapper, path: Path): Apk {
 			assert(Files.isRegularFile(path))
 
 			val packageName: String
-			val launchableActivityName: String
-			val launchableActivityComponentName: String
 			val applicationLabel: String
 			try {
 				val data = aapt.getMetadata(path)
 				packageName = data[0]
-				launchableActivityName = data[1]
-				launchableActivityComponentName = data[2]
-				applicationLabel = data[3]
+				applicationLabel = data[1]
 			} catch (e: LaunchableActivityNameProblemException) {
 				log.warn(Markers.appHealth, "! While getting metadata for $path, got an: $e Returning null apk.")
 				assert(e.isFatal)
@@ -69,13 +64,7 @@ class Apk constructor(internalPath: Path,
 				return dummyApk
 			}
 
-			if (arrayListOf(launchableActivityName, launchableActivityComponentName).any { it.isEmpty() }) {
-				assert(arrayListOf(launchableActivityName, launchableActivityComponentName).all { it.isEmpty() })
-				log.debug("$Apk.simpleName class instance for $path has null launchableActivityName and thus also " +
-						"launchableActivityComponentName.")
-			}
-
-			return Apk(path, packageName, launchableActivityName, launchableActivityComponentName, applicationLabel)
+			return Apk(path, packageName, applicationLabel)
 		}
 	}
 
@@ -84,6 +73,7 @@ class Apk constructor(internalPath: Path,
 	override val fileName: String
 	override val fileNameWithoutExtension: String
 	override val absolutePath: String
+	override var launchableMainActivityName: String = ""
 
 	init {
 		val fileName = path.fileName.toString()
@@ -98,7 +88,8 @@ class Apk constructor(internalPath: Path,
 		this.fileNameWithoutExtension = FilenameUtils.getBaseName(path.fileName.toString())
 		this.absolutePath = absolutePath
 
-		assert(this.launchableActivityName.isNotEmpty() || this.applicationLabel.isNotEmpty())
+		// TODO @Nataniel please check is this true?
+		assert(this.applicationLabel.isNotEmpty())
 	}
 
 	override val path: Path

@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.android_sdk
 
 import org.droidmate.device.android_sdk.IAaptWrapper
@@ -36,16 +37,6 @@ class AaptWrapperStub(private val apks: List<IApk>) : IAaptWrapper {
 		return ""
 	}
 
-	override fun getLaunchableActivityName(apk: Path): String {
-		assert(false, { "Not yet implemented!" })
-		return ""
-	}
-
-	override fun getLaunchableActivityComponentName(apk: Path): String {
-		assert(false, { "Not yet implemented!" })
-		return ""
-	}
-
 	override fun getApplicationLabel(apk: Path): String {
 		assert(false, { "Not yet implemented!" })
 		return ""
@@ -53,6 +44,6 @@ class AaptWrapperStub(private val apks: List<IApk>) : IAaptWrapper {
 
 	override fun getMetadata(apk: Path): List<String> {
 		val data = apks.single { it.absolutePath == apk.toAbsolutePath().toString() }
-		return arrayListOf(data.packageName, data.launchableActivityName, data.launchableActivityComponentName, data.applicationLabel)
+		return arrayListOf(data.packageName, data.launchableMainActivityName, data.applicationLabel)
 	}
 }

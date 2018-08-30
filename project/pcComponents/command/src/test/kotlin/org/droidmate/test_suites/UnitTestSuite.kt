@@ -27,7 +27,6 @@ package org.droidmate.test_suites
 
 
 import org.droidmate.report.ReporterTestSuite
-import org.droidmate.android_sdk.AaptWrapperTest
 import org.droidmate.android_sdk.AdbWrapperTest
 import org.droidmate.configuration.ConfigurationBuilderTest
 import org.droidmate.device.DeviceTest
@@ -44,7 +43,6 @@ import org.junit.runners.Suite
 @RunWith(Suite::class)
 @Suite.SuiteClasses(
 		ConfigurationBuilderTest::class,
-		AaptWrapperTest::class,
 		AdbWrapperTest::class,
 		DeviceTest::class,
 		ExplorationTestSuite::class,

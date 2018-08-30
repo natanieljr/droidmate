@@ -40,7 +40,7 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
 
 		val activitySeenMap = HashMap<String, Int>()
 		var lastActivity = ""
-		var currActivity = data.apk.launchableActivityName
+		var currActivity = data.apk.launchableMainActivityName
 
 		// Always see the main activity
 		activitySeenMap.put(currActivity, 1)
@@ -50,7 +50,7 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
 			if (record.actionType.isPressBack())
 				currActivity = lastActivity
 			else if (record.actionType.isLaunchApp())
-				currActivity = data.apk.launchableActivityName
+				currActivity = data.apk.launchableMainActivityName
 
 			if (currActivity == "")
 				currActivity = "<DEVICE HOME>"

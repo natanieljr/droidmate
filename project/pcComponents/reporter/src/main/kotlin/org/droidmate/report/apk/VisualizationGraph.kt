@@ -128,10 +128,7 @@ class VisualizationGraph : ApkReport() {
 			get() = Paths.get("./")
 		override val packageName: String
 			get() = "DummyPackageName"
-		override val launchableActivityName: String
-			get() = "DummyLaunchableActivityName"
-		override val launchableActivityComponentName: String
-			get() = "DummyLaunchableActivityComponentName"
+		override var launchableMainActivityName = "DummyLaunchableMainActivityName"
 		override val applicationLabel: String
 			get() = "DummyApplicationLabel"
 		override val fileName: String
@@ -139,7 +136,7 @@ class VisualizationGraph : ApkReport() {
 		override val fileNameWithoutExtension: String
 			get() = "DummyFileNameWithoutExtension"
 		override val absolutePath: String
-			get() = "DummyAsolutePath"
+			get() = "DummyAbsolutePath"
 		override val inlined: Boolean
 			get() = false
 		override val instrumented: Boolean
@@ -209,7 +206,6 @@ class VisualizationGraph : ApkReport() {
 		}
 	}
 
-
 	/**
 	 * Custom Json serializer to control the serialization for <HashMap<Int, Widget?> objects.
 	 */
@@ -235,8 +231,7 @@ class VisualizationGraph : ApkReport() {
 			val obj = JsonObject()
 			obj.addProperty("path", src.path.toString())
 			obj.addProperty("packageName", src.packageName)
-			obj.addProperty("launchableActivityName", src.launchableActivityName)
-			obj.addProperty("launchableActivityComponentName", src.launchableActivityComponentName)
+			obj.addProperty("launchableMainActivityName", src.launchableMainActivityName)
 			obj.addProperty("applicationLabel", src.applicationLabel)
 			obj.addProperty("fileName", src.fileName)
 			obj.addProperty("fileNameWithoutExtension", src.fileNameWithoutExtension)
