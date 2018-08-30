@@ -1,8 +1,8 @@
 package org.droidmate.exploration.statemodel.features.graph
 
 class Graph<S, L>(root: S,
-				  private val stateComparison : (S, S) -> Boolean = { a, b -> a == b },
-				  private val labelComparison : (L, L) -> Boolean = { a, b -> a == b }): IGraph<S, L>{
+				  val stateComparison : (S, S) -> Boolean = { a, b -> a == b },
+				  val labelComparison : (L, L) -> Boolean = { a, b -> a == b }): IGraph<S, L>{
 	private val adjacencyMap: MutableMap<Vertex<S>, MutableList<Edge<S, L>>> = mutableMapOf()
 
 	override val root: Vertex<S> = createVertex(root)
