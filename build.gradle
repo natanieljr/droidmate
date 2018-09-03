@@ -107,3 +107,16 @@ task resolveDependencies{ doFirst {
 	}
 }}
 publish.dependsOn(resolveDependencies)
+
+uploadArchives {
+    repositories {
+       mavenDeployer {
+             repository(url: "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/") {
+             authentication(userName: "$testifyNexusUser", password: "$testifyNexusPassword")
+}
+             pom.version = resolvedArtifact.moduleVersion.id.version
+             pom.artifactId = resolvedArtifact.moduleVersion.id.name
+             pom.groupId = resolvedArtifact.moduleVersion.id.group
+       }
+    }
+}
