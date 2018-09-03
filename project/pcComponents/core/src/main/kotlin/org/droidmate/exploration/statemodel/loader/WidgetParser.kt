@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.HashMap
 
-abstract class WidgetParserI<T>: ParserI<T,Widget> {
+internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	var indiciesComputed: AtomicBoolean = AtomicBoolean(false)
 	/** temporary map of all processed widgets for state parsing */
 	abstract val queue: MutableMap<Int, T>
@@ -81,7 +81,7 @@ abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	}
 }
 
-class WidgetParserS(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Widget>(){
+internal class WidgetParserS(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Widget>(){
 	override val isSequential: Boolean = true
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Widget = runBlocking(newContext("parseWidget $id")) { computeWidget(s,id) }
@@ -91,7 +91,7 @@ class WidgetParserS(override val model: Model, override val parentJob: Job? = nu
 	override val queue: MutableMap<Int, Widget> = HashMap()
 }
 
-class WidgetParserP(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Deferred<Widget>>(){
+internal class WidgetParserP(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Deferred<Widget>>(){
 	override val isSequential: Boolean = false
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Deferred<Widget> = async(newContext("parseWidget $id")){

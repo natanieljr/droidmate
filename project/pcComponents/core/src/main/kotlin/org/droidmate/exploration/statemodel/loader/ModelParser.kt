@@ -20,9 +20,24 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
-// TODO constructor parameter to enable compatibility mode
+/** public interface, used to parse any model **/
+interface ModelParser{
+	companion object {
+		fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
+		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false)
+				: Model{
+			if(sequential) return debugT("model loading", {
+				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
+			}, inMillis = true)
+			return debugT("model loading", {
+				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
+			}, inMillis = true)
+		}
+	}
+}
+
 // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
-abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
+private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>, ModelParser{
 	abstract val config: ModelConfig
 	abstract val reader: ContentReader
 	abstract val stateParser: StateParserI<S,W>
@@ -136,16 +151,6 @@ abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
 
 	companion object {
 
-		@JvmStatic fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
-		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = true)
-				: Model{
-			if(sequential) return debugT("model loading", {
-				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
-			}, inMillis = true)
-			return debugT("model loading", {
-				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
-			}, inMillis = true)
-		}
 		/**
 		 * helping/debug function to manually load a model.
 		 * The directory containing the 'model' folder and the app name have to be specified, e.g.
@@ -162,7 +167,7 @@ abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
 			val config = ModelConfig(cfg[appName], true, cfg = cfg)
 			val m =
 //				loadModel(config, autoFix = false, sequential = true)
-				loadModel(config, autoFix = true, sequential = false, enablePrint = false)
+					ModelParser.loadModel(config, autoFix = true, sequential = false, enablePrint = false)
 //				debugT("load time parallel", { ModelParserP(config).loadModel() }, inMillis = true)
 //				debugT("load time sequentiel", { ModelParserS(config).loadModel() }, inMillis = true)
 
@@ -178,8 +183,8 @@ abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
 
 }
 
-class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
-                   override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
+private class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
+                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
 	: ModelParserI<Deferred<Pair<ActionData, StateData>>, Deferred<StateData>, Deferred<Widget>>() {
 	override val isSequential: Boolean = true //TODO only for debugging
 
@@ -198,8 +203,8 @@ class ModelParserP(override val config: ModelConfig, override val reader: Conten
 
 }
 
-class ModelParserS(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
-                   override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
+private class ModelParserS(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
+                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
 	: ModelParserI<Pair<ActionData, StateData>, StateData, Widget >() {
 	override val isSequential: Boolean = true
 

@@ -32,6 +32,7 @@ import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
+import org.droidmate.exploration.statemodel.loader.ModelParser
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import java.lang.Integer.max
 import java.nio.file.Path
@@ -53,7 +54,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	override fun initialize(memory: ExplorationContext) {
 		super.initialize(memory)
 
-		model = ModelLoader.loadModel(ModelConfig(modelDir, eContext.apk.packageName, true))
+		model = ModelParser.loadModel(ModelConfig(modelDir, eContext.apk.packageName, true))
 	}
 
 	private fun isComplete(): Boolean {
@@ -66,11 +67,11 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	}
 
 	private fun getNextTraceAction(peek: Boolean = false): ActionData {
-		model.let {
-			it.getPaths()[traceIdx].let { currentTrace ->
+		model.let { m ->
+			m.getPaths()[traceIdx].let { currentTrace ->
 				if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
-					if(it.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
-					return it.getPaths()[traceIdx + 1].first().also {
+					if(m.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
+					return m.getPaths()[traceIdx + 1].first().also {
 						if (!peek) {
 							traceIdx += 1
 							actionIdx = 0

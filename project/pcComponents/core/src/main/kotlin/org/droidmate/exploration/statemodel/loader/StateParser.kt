@@ -9,7 +9,7 @@ import org.droidmate.exploration.statemodel.loader.WidgetParserI.Companion.compu
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-abstract class StateParserI<T,W>: ParserI<T,StateData> {
+internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 	abstract val widgetParser: WidgetParserI<W>
 	abstract val reader: ContentReader
 
@@ -142,7 +142,7 @@ abstract class StateParserI<T,W>: ParserI<T,StateData> {
 	fun fixedStateId(idString: String) = idFromString(idString).let{	idMapping[it] ?: it }
 }
 
-class StateParserS(override val widgetParser: WidgetParserS,
+internal class StateParserS(override val widgetParser: WidgetParserS,
                    override val reader: ContentReader,
                    override val model: Model,
                    override val parentJob: Job? = null,
@@ -156,7 +156,7 @@ class StateParserS(override val widgetParser: WidgetParserS,
 	override suspend fun getElem(e: StateData): StateData = e
 }
 
-class StateParserP(override val widgetParser: WidgetParserP,
+internal class StateParserP(override val widgetParser: WidgetParserP,
                    override val reader: ContentReader,
                    override val model: Model,
                    override val parentJob: Job? = null,

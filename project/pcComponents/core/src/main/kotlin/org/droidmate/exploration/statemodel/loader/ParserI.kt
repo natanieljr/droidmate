@@ -8,7 +8,8 @@ import kotlin.coroutines.experimental.coroutineContext
  * if [isSequential]==true @T is Deferred<R> and otherwise we directly compute @R
  * we need a reference to the model in order to add the States and Widgets, TODO alternatively we could return the queues to the calling instance and have them added by the main thread
  */
-interface ParserI<T,out R> {
+
+internal interface ParserI<T,out R> {
 	val isSequential: Boolean
 	val parentJob: Job?
 	val model: Model
