@@ -15,6 +15,7 @@ import org.droidmate.debug.debugT
 import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -44,7 +45,9 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 	abstract val widgetParser: WidgetParserI<W>
 	abstract val enablePrint: Boolean
 
-	override val parentJob: Job = Job()
+    protected val logger = LoggerFactory.getLogger(javaClass)
+
+    override val parentJob: Job = Job()
 	override val model by lazy{ Model.emptyModel(config) }
 	private val jobName by lazy{ "ModelParsing ${config.appName}(${config.baseDir})" }
 	protected val actionParseJobName: (List<String>)->String = { actionS ->
@@ -62,7 +65,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		repeat(if(isSequential) 1 else 5)
 		{ traceProcessor( producer, watcher ) }  // process up to 5 exploration traces in parallel
 		runBlocking(CoroutineName(jobName)) {
-			log("wait for children completion")
+			logger.debug("wait for children completion")
 //			parentJob.joinChildren() } // wait until all traces were processed (the processor adds the trace to the model)
 			parentJob.children.forEach {
 				it.join()
@@ -85,7 +88,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 	abstract fun addEmptyState()
 
 	private fun traceProducer() = produce<Path>(newContext(jobName), capacity = 5) {
-		log("TRACE PRODUCER CALL")
+		logger.trace("PRODUCER CALL")
 		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
 			s.filter { it.fileName.toString().startsWith(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]) }
 					.also {
@@ -98,26 +101,26 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 
 	private val modelMutex = Mutex()
 	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(newContext(jobName)){
-		log("trace processor launched")
-		if(enablePrint) println("trace processor launched")
+		logger.debug("trace processor launched")
+		if(enablePrint) logger.info("trace processor launched")
 		channel.consumeEach { tracePath ->
-			if(enablePrint) println("\nprocess TracePath $tracePath")
+			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
 			val traceId = tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).toUUID()
 			modelMutex.withLock { model.initNewTrace(watcher, traceId) }
 					.let { trace ->
 						reader.processLines(tracePath, lineProcessor = processor).let { actionPairs ->  // use maximal parallelism to process the single actions/states
 							if (watcher.isEmpty()){
 								val resState = getElem(actionPairs.last()).second
-								log(" wait for completion of actions")
+								logger.debug(" wait for completion of actions")
 								trace.updateAll(actionPairs.map { getElem(it).first }, resState)
 							}  // update trace actions
 							else {
-								log(" wait for completion of EACH action")
+								logger.debug(" wait for completion of EACH action")
 								actionPairs.forEach { getElem(it).let{ (action,resState) -> trace.update(action, resState) }}
 							}
 						}
 					}
-			log("CONSUMED trace $tracePath")
+			logger.debug("CONSUMED trace $tracePath")
 		}
 	}
 
@@ -131,7 +134,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		val srcState = stateParser.queue[srcId]!!.getState()
 		val targetWidget = targetWidgetId?.let { tId ->
 			srcState.widgets.find { it.id == tId } ?: run{
-				log("ERROR target widget $tId cannot be found in src state")
+				logger.warn("ERROR target widget $tId cannot be found in src state")
 				null
 			}
 		}
@@ -143,7 +146,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 			println("id's changed due to automatic repair new action is \n $fixedActionS\n instead of \n $actionS")
 
 		return Pair(ActionData.createFromString(fixedActionS, targetWidget, config[ConfigProperties.ModelProperties.dump.sep]), resState)
-				.also { log("\n computed TRACE ${actionS[ActionData.resStateIdx]}: ${it.first.actionString()}") }
+				.also { logger.debug("\n computed TRACE ${actionS[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}
 
 	@Suppress("ReplaceSingleLineLet")

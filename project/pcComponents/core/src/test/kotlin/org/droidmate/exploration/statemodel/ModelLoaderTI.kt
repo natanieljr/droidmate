@@ -17,7 +17,7 @@ interface ModelLoaderTI{
 	fun parseWidget(widget: Widget):Deferred<Widget?>
 
 	// TODO these are state dependend => use very carefully in Unit-Tests
-	val actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData>>
+	val actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData?>>
 	suspend fun parseState(stateId: ConcreteId):StateData
 
 }
@@ -64,7 +64,7 @@ class ModelLoaderT(config: ModelConfig): ModelLoader(config), ModelLoaderTI {
 
 	override fun parseWidget(widget: Widget): Deferred<Widget?> = _widgetParser(widget.splittedDumpString(config[ModelProperties.dump.sep]))
 
-	override val actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData>> = _actionParser
+	override val actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData?>> = _actionParser
 	override suspend fun parseState(stateId: ConcreteId): StateData = P_parseState(stateId)
 
 }

@@ -2,6 +2,7 @@ package org.droidmate.exploration.statemodel.loader
 
 import kotlinx.coroutines.experimental.*
 import org.droidmate.exploration.statemodel.Model
+import org.slf4j.LoggerFactory
 import kotlin.coroutines.experimental.coroutineContext
 
 /**
@@ -17,9 +18,9 @@ internal interface ParserI<T,out R> {
 	val processor: suspend (s: List<String>) -> T
 	suspend fun getElem(e: T): R
 
-	@Suppress("UNUSED_PARAMETER")
-	fun log(msg: String)
-	{}
+//	@Suppress("UNUSED_PARAMETER")
+//	fun log(msg: String)
+//	{}
 //		 = println("[${Thread.currentThread().name}] $msg")
 
 	suspend fun context(name:String, parent: Job? = parentJob) = newCoroutineContext(context = CoroutineName(name), parent = coroutineContext[Job])

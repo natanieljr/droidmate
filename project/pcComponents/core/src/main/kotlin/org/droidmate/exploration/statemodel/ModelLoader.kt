@@ -42,6 +42,7 @@ import org.droidmate.deviceInterface.guimodel.P
 import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.ModelConfig.Companion.defaultWidgetSuffix
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.FileReader
 import java.nio.file.Files
@@ -49,7 +50,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Logger
 import kotlin.streams.toList
 
 @Deprecated("to be removed", replaceWith = ReplaceWith("ModelParserP(config)"))
@@ -58,7 +58,7 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 
 	private val jobName = "ModelParsing ${config.appName}(${config.baseDir})"
 	private val job = Job()
-	private val logger = Logger.getLogger(this::class.java.simpleName)
+	private val logger = LoggerFactory.getLogger(javaClass)
 
 	private fun context(name:String, parent:Job = job) = newCoroutineContext(context = CoroutineName(name), parent = parent)
 
@@ -66,7 +66,7 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 	private fun log(msg: String) = if(config[ConfigProperties.Core.debugMode] && msg.contains("5498cd1f-c4c6-3014-a3b3-9e9e795c5631")){ println("[${Thread.currentThread().name}] $msg") } else {}
 
 	/** temporary map of all processed states for trace parsing */
-	private val stateQueue: MutableMap<ConcreteId,Deferred<StateData>> = ConcurrentHashMap()
+	private val stateQueue: MutableMap<ConcreteId,Deferred<StateData?>> = ConcurrentHashMap()
 
 	protected fun execute(watcher: LinkedList<ModelFeature>): Model{
 		// the very first state of any trace is always an empty state which is automatically added on Model initialization
@@ -105,11 +105,13 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 					if (watcher.isEmpty()){
 						val resState = actionPairs.last().await().second
 						log(" wait for completion of actions")
+
+                        if (resState != null)
 						trace.updateAll(actionPairs.map { it.await().first }, resState)
 					}  // update trace actions
 					else {
 						log(" wait for completion of EACH action")
-						actionPairs.forEach { it.await().let{ (action,resState) -> trace.update(action, resState) }}
+						actionPairs.forEach { it.await().let{ (action,resState) -> if (resState!= null) trace.update(action, resState) }}
 					}
 				}
 			}
@@ -136,17 +138,43 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 			return br.map { line -> lineProcessor(line.split(config[sep]).map { it.trim() }) }
 		} ?: return emptyList()
 	}
-	private val stateTask: (ConcreteId)->Deferred<StateData> = { key -> async(context("parseState $key")){ P_parseState(key)} }
+
+
+    private class Validation<T>(private val computation: () -> T) {
+        val result: Pair<T?, Throwable?> = {
+            try {
+                Pair(computation(), null)
+            } catch (t: Throwable) {
+                Pair(null, t)
+            }
+        }()
+
+
+        fun isSuccess() = result.first != null
+
+        fun isError() = result.first == null
+
+        fun get(): T = result.first?:{ throw result.second?: throw IllegalStateException() }()
+    }
+
+	private val stateTask: (ConcreteId)->Deferred<StateData?> = { key -> async(context("parseState $key")){
+        try {
+            P_parseState(key)
+        } catch (t: Throwable) {
+            logger.error("Error while parsing state $key", t)
+            null
+        }
+    }}
 
 	/** compute for each line in the trace file the ActionData object and the resulting StateData object */
-	protected val _actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData>> = { entries ->
+	protected val _actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData?>> = { entries ->
 		log("parse action $entries")
 		async(context("actionParser ${entries[ActionData.srcStateIdx]}->${entries[ActionData.resStateIdx]}")) {
 		// we createFromString the source state and target widget if there is any
 		val resState = idFromString(entries[ActionData.resStateIdx]).let { resId ->
 			log("parse result: $resId")
 			// parse the result state with the contained widgets and queue them to make them available to other coroutines
-			stateQueue.computeIfAbsent(resId, stateTask).also { launch(CoroutineName("assert stateId $resId")){ assert(it.await().stateId == resId) {"ERROR result State $it should have id $resId"} } }
+			stateQueue.computeIfAbsent(resId, stateTask).also { launch(CoroutineName("assert stateId $resId")){ assert(it.await()?.stateId == resId) {"ERROR result State $it should have id $resId"} } }
 		}
 		val targetWidget = entries[ActionData.widgetIdx].let { widgetIdString ->
 			if (widgetIdString == "null") null
@@ -156,8 +184,8 @@ open class ModelLoader(protected val config: ModelConfig, private val customWidg
 					stateQueue.computeIfAbsent(srcId, stateTask)
 							.await().let { srcState ->
 								log("SRC-State $srcId computed")
-								assert(srcState.stateId == srcId) {" ERROR source state $srcState should have id $srcId"}
-								srcState.widgets.find { it.id == targetWidgetId }
+								assert(srcState?.stateId == srcId) {" ERROR source state $srcState should have id $srcId"}
+								srcState?.widgets?.find { it.id == targetWidgetId }
 										.also {
 											assert(it != null) {" ERROR could not find target widget $targetWidgetId in source state $srcState" } }
 							}
