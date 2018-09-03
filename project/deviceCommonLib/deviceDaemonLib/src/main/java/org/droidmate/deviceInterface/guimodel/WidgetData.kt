@@ -115,7 +115,15 @@ enum class P(var header: String = "") {
 		if (header == "") header = name
 	}
 	
-	fun idx(indexMap:Map<P,Int> = defaultIndicies): Int = indexMap[this]!!
+	fun idx(indexMap:Map<P,Int> = defaultIndicies): Int {
+        return if (indexMap[this] == null) {
+//            println("Missing field $this")
+            Integer.MAX_VALUE
+        } else  {
+            indexMap[this]!!
+        }
+    }
+
 	/**
 	 * execute a given function body only if this enum entry can be contained in the line (by ordinal)
 	 * [body] gets the respective string value from line as input parameter
