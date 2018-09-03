@@ -120,8 +120,8 @@ publishing.repositories {
         maven {
             url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/"
             credentials {
-                username = "$testifyNexusUser"
-                password = "$testifyNexusPassword"
+                username = "$testifyNexusDeployer"
+                password = "$testifyNexusDeployerPassword"
             }
         }
 }
