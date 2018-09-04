@@ -11,7 +11,6 @@ import kotlin.coroutines.experimental.coroutineContext
  */
 
 internal interface ParserI<T,out R> {
-	val isSequential: Boolean
 	val parentJob: Job?
 	val model: Model
 

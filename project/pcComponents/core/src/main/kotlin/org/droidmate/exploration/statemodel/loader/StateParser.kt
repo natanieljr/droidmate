@@ -56,10 +56,10 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 		verify("ERROR could not find target widget $targetWidgetId in source state $srcId", {
 
             logger.debug("wait for srcState $srcId")
-				getElem(queue.computeIfAbsent(srcId, parseIfAbset)).widgets.any { it.id == targetWidgetId }
+				getElem(queue.getOrPut(srcId) {parseIfAbset(srcId)}).widgets.any { it.id == targetWidgetId }
 		}){ // repair function
 			val actionType = actionData[ActionData.Companion.ActionDataFields.Action.ordinal]
-			val possibleTargets = getElem(queue.computeIfAbsent(srcId, parseIfAbset))
+			val possibleTargets = getElem(queue[srcId]!!)
 					.widgets.filter {
 				it.uid == targetWidgetId.first && it.canBeActedUpon && rightActionType(it,actionType)}
 			when(possibleTargets.size){
@@ -99,12 +99,15 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 				}) //!!! Widget.copy does not yield a new reference for WidgetData !
 			}
 		}.let { widgetSet ->
-			if (widgetSet.isNotEmpty())
-				StateData.fromFile(widgetSet,homeScreen = isHomeScreen,topPackage = topPackage).also { newState ->
+			var ns: StateData
+			if (widgetSet.isNotEmpty()) {
+				StateData.fromFile(widgetSet, homeScreen = isHomeScreen, topPackage = topPackage).also { newState ->
+					ns = newState
 
 					verify("ERROR different set of widgets used for UID computation used", {
 						val correctId = stateId == newState.stateId
-						if(!correctId) println ( "ERROR on state parsing inconsistent UUID created ${newState.stateId} instead of $stateId" )
+						if (!correctId)
+							println("ERROR on state parsing inconsistent UUID created ${newState.stateId} instead of $stateId")
 						val lS = widgets.filter { it.usedForStateId }
 						if (lS.isNotEmpty()) {
 							val nS = newState.widgets.filter {
@@ -113,18 +116,18 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 							val uidC = nS.containsAll(lS) && lS.containsAll(nS)
 							val nOnly = nS.minus(lS)
 							val lOnly = lS.minus(nS)
-							if(!uidC) println("ERROR different set of widgets used for UID computation used \n ${nOnly.map { it.id }}\n instead of \n ${lOnly.map { it.id }}")
+							if (!uidC){
+								println("ERROR different set of widgets used for UID computation used \n ${nOnly.map { it.id }}\n instead of \n ${lOnly.map { it.id }}")
+								ns = StateData.fromFile(widgetSet, newState.isHomeScreen, newState.topNodePackageName)
+							}
 							uidC && correctId
 						} else correctId
-					}){
-						newState.widgets.forEach { w->
-							w.usedForStateId = widgetSet.find { it.id == w.id }!!.usedForStateId
-						}
-						idMapping[stateId] = newState.stateId
+					}) {
+						idMapping[stateId] = ns.stateId
 					}
-					model.addState(newState)
+					model.addState(ns)
 				}
-			else StateData.emptyState
+			} else StateData.emptyState
 		}
 	}
 
@@ -154,8 +157,6 @@ internal class StateParserS(override val widgetParser: WidgetParserS,
 
 	override fun P_S_process(id: ConcreteId): StateData = runBlocking(newContext("blocking compute State $id")) { computeState(id) }
 
-	override val isSequential: Boolean get() = true
-
 	override suspend fun getElem(e: StateData): StateData = e
 }
 
@@ -170,8 +171,6 @@ internal class StateParserP(override val widgetParser: WidgetParserP,
         logger.debug("parallel compute state $id")
 		computeState(id)
 	}
-
-	override val isSequential: Boolean get() = true
 
 	override suspend fun getElem(e: Deferred<StateData>): StateData =
 			e.await()

@@ -15,6 +15,7 @@ import org.droidmate.debug.debugT
 import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,10 +28,10 @@ interface ModelParser{
 		fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
 		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false)
 				: Model{
-			if(sequential) return debugT("model loading", {
+			if(sequential) return debugT("model loading (sequential)", {
 				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
 			}, inMillis = true)
-			return debugT("model loading", {
+			return debugT("model loading (parallel)", {
 				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
 			}, inMillis = true)
 		}
@@ -44,10 +45,11 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 	abstract val stateParser: StateParserI<S,W>
 	abstract val widgetParser: WidgetParserI<W>
 	abstract val enablePrint: Boolean
+	abstract 	val isSequential: Boolean
 
-    protected val logger = LoggerFactory.getLogger(javaClass)
+	protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-    override val parentJob: Job = Job()
+	override val parentJob: Job = Job()
 	override val model by lazy{ Model.emptyModel(config) }
 	private val jobName by lazy{ "ModelParsing ${config.appName}(${config.baseDir})" }
 	protected val actionParseJobName: (List<String>)->String = { actionS ->
@@ -189,7 +191,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 private class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
                            override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
 	: ModelParserI<Deferred<Pair<ActionData, StateData>>, Deferred<StateData>, Deferred<Widget>>() {
-	override val isSequential: Boolean = true //TODO only for debugging
+	override val isSequential: Boolean = true
 
 	override val widgetParser by lazy { WidgetParserP(model,parentJob, compatibilityMode) }
 	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode)}

@@ -70,8 +70,11 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 		 * Optionally a map of oldName->newName can be given to automatically infere renamed header entries
 		 */
 		@JvmStatic fun computeWidgetIndicies(header: List<String>, renamed: Map<String,String> = emptyMap()): Map<P,Int>{
-			if(header.size!= P.values().size) println("WARN the given Widget File does not specify all available properties," +
-					"this may lead to different Widget properties and may require to be parsed in compatibility mode")
+			if(header.size!= P.values().size){
+				val missing = P.values().filter { !header.contains(it.name) }
+				println("WARN the given Widget File does not specify all available properties," +
+						"this may lead to different Widget properties and may require to be parsed in compatibility mode\n missing entries: $missing")
+			}
 			val mapping = HashMap<P,Int>()
 			header.forEachIndexed { index, s ->
 				val key = renamed[s] ?: s
@@ -86,7 +89,6 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 }
 
 internal class WidgetParserS(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Widget>(){
-	override val isSequential: Boolean = true
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Widget = runBlocking(newContext("parseWidget $id")) { computeWidget(s,id) }
 
@@ -96,7 +98,6 @@ internal class WidgetParserS(override val model: Model, override val parentJob: 
 }
 
 internal class WidgetParserP(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Deferred<Widget>>(){
-	override val isSequential: Boolean = false
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Deferred<Widget> = async(newContext("parseWidget $id")){
 		computeWidget(s,id)
