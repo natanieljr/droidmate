@@ -133,7 +133,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		val targetWidgetId = widgetParser.fixedWidgetId(actionS[ActionData.widgetIdx])
 
 		val srcId = idFromString(actionS[ActionData.srcStateIdx])
-		val srcState = stateParser.queue[srcId]!!.getState()
+		val srcState = stateParser.queue.getOrDefault(srcId,stateParser.parseIfAbsent(srcId)).getState()
 		val targetWidget = targetWidgetId?.let { tId ->
 			srcState.widgets.find { it.id == tId } ?: run{
 				logger.warn("ERROR target widget $tId cannot be found in src state")

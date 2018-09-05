@@ -31,7 +31,7 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 
 	override val processor: suspend (actionData: List<String>) -> T = {  parseState(it) }
 
-	private val parseIfAbset: (ConcreteId)->T = { id ->
+	internal val parseIfAbsent: (ConcreteId)->T = { id ->
 		logger.debug("parse absent state $id")
 		P_S_process(id) }
 	private val rightActionType: (Widget,actionType: String)->Boolean = { w,t ->
@@ -48,7 +48,7 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 		val resId = idFromString(actionData[ActionData.resStateIdx])
 		logger.debug("parse result State: $resId")
 		// parse the result state with the contained widgets and queue them to make them available to other coroutines
-		val resState = queue.computeIfAbsent(resId, parseIfAbset)
+		val resState = queue.computeIfAbsent(resId, parseIfAbsent)
 
 		val targetWidgetId = widgetParser.fixedWidgetId(actionData[ActionData.widgetIdx])	?: return resState
         logger.debug("validate for target widget $targetWidgetId")
@@ -56,7 +56,7 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 		verify("ERROR could not find target widget $targetWidgetId in source state $srcId", {
 
             logger.debug("wait for srcState $srcId")
-				getElem(queue.getOrPut(srcId) {parseIfAbset(srcId)}).widgets.any { it.id == targetWidgetId }
+				getElem(queue.getOrPut(srcId) {parseIfAbsent(srcId)}).widgets.any { it.id == targetWidgetId }
 		}){ // repair function
 			val actionType = actionData[ActionData.Companion.ActionDataFields.Action.ordinal]
 			val possibleTargets = getElem(queue[srcId]!!)
