@@ -12,7 +12,7 @@ import java.nio.file.Paths
 import kotlin.streams.toList
 
 
-internal open class ContentReader(val config: ModelConfig){
+open class ContentReader(val config: ModelConfig){
 	@Suppress("UNUSED_PARAMETER")
 	fun log(msg: String)
 	{}

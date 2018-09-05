@@ -26,13 +26,14 @@ import java.util.*
 interface ModelParser{
 	companion object {
 		fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
-		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false)
+		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false,
+		              contentReader: ContentReader = ContentReader(config))
 				: Model{
 			if(sequential) return debugT("model loading (sequential)", {
-				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
+				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader).loadModel(watcher)
 			}, inMillis = true)
 			return debugT("model loading (parallel)", {
-				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
+				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader).loadModel(watcher)
 			}, inMillis = true)
 		}
 	}
