@@ -56,11 +56,15 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 		verify("ERROR could not find target widget $targetWidgetId in source state $srcId", {
 
             logger.debug("wait for srcState $srcId")
-				getElem(queue.getOrPut(srcId) {parseIfAbsent(srcId)}).widgets.any { it.id == targetWidgetId }
+				getElem(queue.computeIfAbsent(srcId, parseIfAbsent)).widgets.any { it.id == targetWidgetId }
 		}){ // repair function
 			val actionType = actionData[ActionData.Companion.ActionDataFields.Action.ordinal]
-			val possibleTargets = getElem(queue[srcId]!!)
-					.widgets.filter {
+			var srcS = queue[srcId]
+			while(srcS == null) { // due to concurrency the value is not yet written to queue -> wait a bit
+				delay(1)
+				srcS = queue[srcId]
+			}
+			val possibleTargets = getElem(srcS).widgets.filter {
 				it.uid == targetWidgetId.first && it.canBeActedUpon && rightActionType(it,actionType)}
 			when(possibleTargets.size){
 				0 -> throw IllegalStateException("cannot re-compute targetWidget $targetWidgetId in state $srcId")
@@ -89,14 +93,15 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 
 			widgets.forEach { w ->
 				// add the parsed widget to temporary set AND initialize the parent property
-				add(Widget(w.properties.copy().apply{ // TODO these values should go into constructor as soon as uid computation is adapted to use annotated values only
+				val wCpy = if(enableChecks) Widget(w.properties.copy().apply{ // TODO these values should go into constructor as soon as uid computation is adapted to use annotated values only
 					xpath = w.xpath
 					idHash = w.idHash
 					uncoveredCoord = w.uncoveredCoord
 					hasActableDescendant = w.hasActableDescendant
 				}, w.uidImgId).apply {
 					parentId = w.parentId
-				}) //!!! Widget.copy does not yield a new reference for WidgetData !
+				} else w
+				add(wCpy) //!!! Widget.copy does not yield a new reference for WidgetData !
 			}
 		}.let { widgetSet ->
 			var ns: StateData
@@ -149,10 +154,11 @@ internal abstract class StateParserI<T,W>: ParserI<T,StateData> {
 }
 
 internal class StateParserS(override val widgetParser: WidgetParserS,
-                   override val reader: ContentReader,
-                   override val model: Model,
-                   override val parentJob: Job? = null,
-                   override val compatibilityMode: Boolean) : StateParserI<StateData,Widget>(){
+                            override val reader: ContentReader,
+                            override val model: Model,
+                            override val parentJob: Job? = null,
+                            override val compatibilityMode: Boolean,
+                            override val enableChecks: Boolean) : StateParserI<StateData,Widget>(){
 	override val queue: MutableMap<ConcreteId, StateData> = HashMap()
 
 	override fun P_S_process(id: ConcreteId): StateData = runBlocking(newContext("blocking compute State $id")) { computeState(id) }
@@ -161,10 +167,11 @@ internal class StateParserS(override val widgetParser: WidgetParserS,
 }
 
 internal class StateParserP(override val widgetParser: WidgetParserP,
-                   override val reader: ContentReader,
-                   override val model: Model,
-                   override val parentJob: Job? = null,
-                   override val compatibilityMode: Boolean) : StateParserI<Deferred<StateData>,Deferred<Widget>>(){
+                            override val reader: ContentReader,
+                            override val model: Model,
+                            override val parentJob: Job? = null,
+                            override val compatibilityMode: Boolean,
+                            override val enableChecks: Boolean) : StateParserI<Deferred<StateData>,Deferred<Widget>>(){
 	override val queue: MutableMap<ConcreteId, Deferred<StateData>> = ConcurrentHashMap()
 
 	override fun P_S_process(id: ConcreteId): Deferred<StateData> =	async(newContext("compute state $id")){

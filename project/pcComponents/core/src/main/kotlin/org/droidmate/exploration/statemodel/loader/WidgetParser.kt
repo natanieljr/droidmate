@@ -88,7 +88,9 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	}
 }
 
-internal class WidgetParserS(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Widget>(){
+internal class WidgetParserS(override val model: Model, override val parentJob: Job? = null,
+                             override val compatibilityMode: Boolean,
+                             override val enableChecks: Boolean): WidgetParserI<Widget>(){
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Widget = runBlocking(newContext("parseWidget $id")) { computeWidget(s,id) }
 
@@ -97,7 +99,9 @@ internal class WidgetParserS(override val model: Model, override val parentJob: 
 	override val queue: MutableMap<Int, Widget> = HashMap()
 }
 
-internal class WidgetParserP(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Deferred<Widget>>(){
+internal class WidgetParserP(override val model: Model, override val parentJob: Job? = null,
+                             override val compatibilityMode: Boolean,
+                             override val enableChecks: Boolean): WidgetParserI<Deferred<Widget>>(){
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Deferred<Widget> = async(newContext("parseWidget $id")){
 		computeWidget(s,id)

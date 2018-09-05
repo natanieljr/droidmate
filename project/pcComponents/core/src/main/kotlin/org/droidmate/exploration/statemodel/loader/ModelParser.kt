@@ -27,13 +27,13 @@ interface ModelParser{
 	companion object {
 		fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
 		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false,
-		              contentReader: ContentReader = ContentReader(config))
+		              contentReader: ContentReader = ContentReader(config), enableChecks: Boolean = true)
 				: Model{
 			if(sequential) return debugT("model loading (sequential)", {
-				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader).loadModel(watcher)
+				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
 			}, inMillis = true)
 			return debugT("model loading (parallel)", {
-				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader).loadModel(watcher)
+				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
 			}, inMillis = true)
 		}
 	}
@@ -190,12 +190,13 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 }
 
 private class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
-                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
+                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true,
+                           override val enableChecks: Boolean)
 	: ModelParserI<Deferred<Pair<ActionData, StateData>>, Deferred<StateData>, Deferred<Widget>>() {
 	override val isSequential: Boolean = true
 
-	override val widgetParser by lazy { WidgetParserP(model,parentJob, compatibilityMode) }
-	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode)}
+	override val widgetParser by lazy { WidgetParserP(model,parentJob, compatibilityMode, enableChecks) }
+	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks)}
 
 	override val processor: suspend(s: List<String>) -> Deferred<Pair<ActionData, StateData>> = { actionS ->
 		async(context(actionParseJobName(actionS))) { parseAction(actionS) }
@@ -210,12 +211,13 @@ private class ModelParserP(override val config: ModelConfig, override val reader
 }
 
 private class ModelParserS(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
-                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
+                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true,
+                           override val enableChecks: Boolean)
 	: ModelParserI<Pair<ActionData, StateData>, StateData, Widget >() {
 	override val isSequential: Boolean = true
 
-	override val widgetParser by lazy { WidgetParserS(model,parentJob, compatibilityMode) }
-	override val stateParser  by lazy { StateParserS(widgetParser, reader, model, parentJob, compatibilityMode)}
+	override val widgetParser by lazy { WidgetParserS(model,parentJob, compatibilityMode, enableChecks) }
+	override val stateParser  by lazy { StateParserS(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks)}
 
 	override val processor: suspend (List<String>) -> Pair<ActionData, StateData> = { actionS:List<String> ->
 		parseAction(actionS)
