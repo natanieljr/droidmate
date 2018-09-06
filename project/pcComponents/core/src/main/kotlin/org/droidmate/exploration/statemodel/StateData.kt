@@ -34,15 +34,15 @@ import java.util.*
 /**
  * States have two components, the Id determined by its Widgets image, text and description and the ConfigId defined by the WidgetsProperties.
  ** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
-class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
+class StateData (private val _widgets: Lazy<Collection<Widget>>,
                             val topNodePackageName: String = "",
                             val isHomeScreen: Boolean = false,
                             val isAppHasStoppedDialogBox: Boolean = false) {
 
-	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),
+	constructor(widgets: Collection<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets),
 			topNodePackageName = topPackage, isHomeScreen=homeScreen)
 
-	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } 	}
+	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() } 	}
 	var appArea: Rectangle = Rectangle()
 
 	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
@@ -132,7 +132,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 		// to load the model from previously stored files
 		@JvmStatic
-		fun fromFile(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String): StateData = StateData(widgets,homeScreen = homeScreen,topPackage = topPackage)
+		fun fromFile(widgets: Collection<Widget>, homeScreen:Boolean, topPackage: String): StateData = StateData(widgets,homeScreen = homeScreen,topPackage = topPackage)
 
 		/** dummy element if a state has to be given but no widget data is available */
 		@JvmStatic

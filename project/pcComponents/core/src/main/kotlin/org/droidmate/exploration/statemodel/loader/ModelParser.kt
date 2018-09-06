@@ -23,24 +23,22 @@ import java.nio.file.Paths
 import java.util.*
 
 /** public interface, used to parse any model **/
-interface ModelParser{
-	companion object {
-		fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
-		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false,
-		              contentReader: ContentReader = ContentReader(config), enableChecks: Boolean = true)
-				: Model{
-			if(sequential) return debugT("model loading (sequential)", {
-				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
-			}, inMillis = true)
-			return debugT("model loading (parallel)", {
-				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
-			}, inMillis = true)
-		}
+object ModelParser{
+	@JvmOverloads @JvmStatic fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
+	                            autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false,
+	                            contentReader: ContentReader = ContentReader(config), enableChecks: Boolean = true)
+			: Model{
+		if(sequential) return debugT("model loading (sequential)", {
+			ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
+		}, inMillis = true)
+		return debugT("model loading (parallel)", {
+			ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
+		}, inMillis = true)
 	}
 }
 
 // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
-private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>, ModelParser{
+private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
 	abstract val config: ModelConfig
 	abstract val reader: ContentReader
 	abstract val stateParser: StateParserI<S,W>
@@ -48,7 +46,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 	abstract val enablePrint: Boolean
 	abstract 	val isSequential: Boolean
 
-//	protected val logger: Logger = LoggerFactory.getLogger(javaClass)
+	override val logger: Logger = LoggerFactory.getLogger(javaClass)
 
 	override val parentJob: Job = Job()
 	override val model by lazy{ Model.emptyModel(config) }
@@ -68,14 +66,14 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		repeat(if(isSequential) 1 else 5)
 		{ traceProcessor( producer, watcher ) }  // process up to 5 exploration traces in parallel
 		runBlocking(CoroutineName(jobName)) {
-//			logger.debug("wait for children completion")
+			log("wait for children completion")
 //			parentJob.joinChildren() } // wait until all traces were processed (the processor adds the trace to the model)
 			parentJob.children.forEach {
 				it.join()
 				it.invokeOnCompletion { exception ->
 					if (exception != null) {
 						parentJob.cancel(RuntimeException("Error in $it"))
-						println("\n---------------------------\n ERROR while parsing model $jobName : $it : ${it.children}")
+						logger.error("\n---------------------------\n ERROR while parsing model $jobName : $it : ${it.children}")
 						exception.printStackTrace()
 					}
 				}
@@ -91,7 +89,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 	abstract fun addEmptyState()
 
 	private fun traceProducer() = produce<Path>(newContext(jobName), capacity = 5) {
-//		logger.trace("PRODUCER CALL")
+		logger.trace("PRODUCER CALL")
 		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
 			s.filter { it.fileName.toString().startsWith(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]) }
 					.also {
@@ -104,32 +102,32 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 
 	private val modelMutex = Mutex()
 	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(newContext(jobName)){
-//		logger.debug("trace processor launched")
-//		if(enablePrint) logger.info("trace processor launched")
+		logger.trace("trace processor launched")
+		if(enablePrint) logger.info("trace processor launched")
 		channel.consumeEach { tracePath ->
-//			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
+			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
 			val traceId = tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).toUUID()
 			modelMutex.withLock { model.initNewTrace(watcher, traceId) }
 					.let { trace ->
 						reader.processLines(tracePath, lineProcessor = processor).let { actionPairs ->  // use maximal parallelism to process the single actions/states
 							if (watcher.isEmpty()){
 								val resState = getElem(actionPairs.last()).second
-//								logger.debug(" wait for completion of actions")
+								logger.debug(" wait for completion of actions")
 								trace.updateAll(actionPairs.map { getElem(it).first }, resState)
 							}  // update trace actions
 							else {
-//								logger.debug(" wait for completion of EACH action")
+								logger.debug(" wait for completion of EACH action")
 								actionPairs.forEach { getElem(it).let{ (action,resState) -> trace.update(action, resState) }}
 							}
 						}
 					}
-//			logger.debug("CONSUMED trace $tracePath")
+			logger.debug("CONSUMED trace $tracePath")
 		}
 	}
 
 	/** parse the action this function is called in the processor either asynchronous (Deferred) or sequential (blocking) */
 	suspend fun parseAction(actionS: List<String>): Pair<ActionData, StateData> {
-//		if(enablePrint) println("\n\t ---> parse action $actionS")
+		if(enablePrint) println("\n\t ---> parse action $actionS")
 		val resState = stateParser.processor(actionS).getState()
 		val targetWidgetId = widgetParser.fixedWidgetId(actionS[ActionData.widgetIdx])
 
@@ -137,7 +135,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		val srcState = stateParser.queue.getOrDefault(srcId,stateParser.parseIfAbsent(srcId)).getState()
 		val targetWidget = targetWidgetId?.let { tId ->
 			srcState.widgets.find { it.id == tId } ?: run{
-//				logger.warn("ERROR target widget $tId cannot be found in src state")
+				logger.warn("ERROR target widget $tId cannot be found in src state")
 				null
 			}
 		}
@@ -149,7 +147,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 			println("id's changed due to automatic repair new action is \n $fixedActionS\n instead of \n $actionS")
 
 		return Pair(ActionData.createFromString(fixedActionS, targetWidget, config[ConfigProperties.ModelProperties.dump.sep]), resState)
-//				.also { logger.debug("\n computed TRACE ${actionS[ActionData.resStateIdx]}: ${it.first.actionString()}") }
+				.also { log("\n computed TRACE ${actionS[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}
 
 	@Suppress("ReplaceSingleLineLet")

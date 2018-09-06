@@ -6,6 +6,7 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.deviceInterface.guimodel.P
 import org.droidmate.exploration.statemodel.*
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -19,7 +20,7 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	private var customWidgetIndicies: Map<P,Int> = P.defaultIndicies
 	private val lock = Mutex()  // to guard the indicy setter
 
-//    val logger = LoggerFactory.getLogger(javaClass)
+    override val logger: Logger = LoggerFactory.getLogger(javaClass)
 
 
     suspend fun setCustomWidgetIndicies(m: Map<P,Int>){
@@ -35,7 +36,7 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	private val idMapping: ConcurrentHashMap<ConcreteId,ConcreteId> = ConcurrentHashMap()
 
 	protected suspend fun computeWidget(line: List<String>,id: ConcreteId): Widget {
-//		logger.debug("compute widget $id")
+		log("compute widget $id")
 		if(!isActive) return Widget() // if there was already an error the parsing may be canceled -> stop here
 
 		return Widget.fromString(line,customWidgetIndicies).also { widget ->
@@ -48,12 +49,12 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 
 	abstract fun P_S_process(s: List<String>, id: ConcreteId): T
 	private fun parseWidget(line: List<String>): T {
-//		logger.debug("parse widget $line")
+		log("parse widget $line")
 		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
 		val id = Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId)
 
 		return queue.computeIfAbsent(line.toTypedArray().contentHashCode()){
-//            logger.debug("parse absent widget $id")
+            log("parse absent widget $id")
 			P_S_process(line,id)
 		}
 	}

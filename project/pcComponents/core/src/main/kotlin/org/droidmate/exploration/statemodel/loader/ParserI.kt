@@ -2,6 +2,7 @@ package org.droidmate.exploration.statemodel.loader
 
 import kotlinx.coroutines.experimental.*
 import org.droidmate.exploration.statemodel.Model
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.coroutines.experimental.coroutineContext
 
@@ -12,10 +13,11 @@ internal interface ParserI<T,out R> {
 	val processor: suspend (s: List<String>) -> T
 	suspend fun getElem(e: T): R
 
-//	@Suppress("UNUSED_PARAMETER")
-//	fun log(msg: String)
-//	{}
-//		 = println("[${Thread.currentThread().name}] $msg")
+	val logger: Logger
+	@Suppress("UNUSED_PARAMETER")
+	fun log(msg: String)
+	{}
+//		 = logger.debug("[${Thread.currentThread().name}] $msg")
 
 	suspend fun context(name:String, parent: Job? = parentJob) = newCoroutineContext(context = CoroutineName(name), parent = coroutineContext[Job])
 	fun newContext(name: String) = newCoroutineContext(context = CoroutineName(name), parent = parentJob)
@@ -31,7 +33,7 @@ internal interface ParserI<T,out R> {
 			if (!c())
 				throw IllegalStateException("invalid Model(enable compatibility mode to attempt transformation to valid state):\n$msg")
 		} else if(!c()){
-			println("WARN: had to apply repair function")
+			logger.warn("had to apply repair function due to parse error '$msg' in thread [${Thread.currentThread().name}]")
 			repair()
 		}
 	}
