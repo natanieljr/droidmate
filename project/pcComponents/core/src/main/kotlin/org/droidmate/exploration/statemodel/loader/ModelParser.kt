@@ -38,7 +38,7 @@ object ModelParser{
 }
 
 // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
-private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
+internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
 	abstract val config: ModelConfig
 	abstract val reader: ContentReader
 	abstract val stateParser: StateParserI<S,W>
@@ -55,10 +55,6 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		"actionParser ${actionS[ActionData.Companion.ActionDataFields.Action.ordinal]}:${actionS[ActionData.srcStateIdx]}->${actionS[ActionData.resStateIdx]}"}
 
 	fun loadModel(watcher: LinkedList<ModelFeature> = LinkedList()): Model {
-		return execute(watcher)
-	}
-
-	fun execute(watcher: LinkedList<ModelFeature>): Model{
 		// the very first state of any trace is always an empty state which is automatically added on Model initialization
 		addEmptyState()
 		// start producer who just sends trace paths to the multiple trace processor jobs
@@ -88,7 +84,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 	}
 	abstract fun addEmptyState()
 
-	private fun traceProducer() = produce<Path>(newContext(jobName), capacity = 5) {
+	protected open fun traceProducer() = produce<Path>(newContext(jobName), capacity = 5) {
 		logger.trace("PRODUCER CALL")
 		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
 			s.filter { it.fileName.toString().startsWith(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]) }

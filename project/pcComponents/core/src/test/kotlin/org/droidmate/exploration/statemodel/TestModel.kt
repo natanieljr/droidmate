@@ -12,7 +12,7 @@ interface TestModel{
 }
 
 typealias TestAction = ActionData
-@JvmOverloads fun createTestAction(targetWidget:Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"):	TestAction
+@JvmOverloads fun createTestAction(targetWidget: Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"): TestAction
 		= ActionData(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";").apply {
 	prevState = oldState
 }
