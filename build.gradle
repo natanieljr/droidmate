@@ -86,7 +86,6 @@ jar {
 }
 
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
-/*
 apply plugin: 'maven-publish'
 task resolveDependencies{ doFirst {
 	configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
@@ -108,20 +107,3 @@ task resolveDependencies{ doFirst {
 	}
 }}
 publish.dependsOn(resolveDependencies)
-*/
-
-apply plugin: 'maven-publish'
-
-publishing.publications {
-
-}
-
-publishing.repositories {
-        maven {
-            url = "https://soot-build.cs.uni-paderborn.de/nexus/repository/testify/"
-            credentials {
-                username = "$testifyNexusDeployer"
-                password = "$testifyNexusDeployerPassword"
-            }
-        }
-}
