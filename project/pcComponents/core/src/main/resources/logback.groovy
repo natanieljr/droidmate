@@ -33,7 +33,7 @@ import static org.droidmate.logging.LogbackConstants.*
 import static org.droidmate.logging.LogbackUtils.getLogFilePath
 import static org.droidmate.logging.LogbackUtils.getLogFilePathForLastElement
 
-final Level STDOUT_LOG_LEVEL = toLevel(System.getProperty(system_prop_stdout_loglevel, "INFO"))
+final Level STDOUT_LOG_LEVEL = toLevel(System.getProperty(system_prop_stdout_loglevel, "TRACE"))
 final Level STDERR_LOG_LEVEL = ERROR
 
 final String appender_file_osCmd = "os_cmd.txt"
