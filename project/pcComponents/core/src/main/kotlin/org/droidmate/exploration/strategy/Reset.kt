@@ -40,8 +40,4 @@ object Reset : AbstractStrategy() {
 	override fun mustPerformMoreActions(): Boolean {
 		return false
 	}
-
-	override fun toString(): String {
-		return this.javaClass.toString()
-	}
 }
