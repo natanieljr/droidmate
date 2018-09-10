@@ -1,33 +1,93 @@
-package org.droidmate.exploration.statemodel
+package org.droidmate.exploration.statemodel.loader
 
-import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.channels.produce
-import org.droidmate.configuration.ConfigProperties.ModelProperties
+import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.droidmate.configuration.ConfigProperties.ModelProperties
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
+
 /** test interface for the model loader, which cannot be done with mockito due to coroutine incompatibility */
-interface ModelLoaderTI{
+internal interface ModelLoaderTI{
 	var testTraces: List<Collection<ActionData>>
 	var testStates: Collection<StateData>
 
 	fun execute(testTraces: List<Collection<ActionData>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeature> = LinkedList()): Model
-	fun parseWidget(widget: Widget):Deferred<Widget?>
+	suspend fun parseWidget(widget: Widget): Widget?
 
-	// TODO these are state dependend => use very carefully in Unit-Tests
-	val actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData?>>
-	suspend fun parseState(stateId: ConcreteId):StateData
+	/** REMARK these are state dependend => use very carefully in Unit-Tests */
+	val actionParser: suspend (List<String>) -> Pair<ActionData, StateData>
+	suspend fun parseState(stateId: ConcreteId): StateData
 
 }
 
-class ModelLoaderT(config: ModelConfig): ModelLoader(config), ModelLoaderTI {
-	override lateinit var testTraces: List<Collection<ActionData>>
-	override lateinit var testStates: Collection<StateData>
+class TestReader(config: ModelConfig): ContentReader(config){
+	lateinit var testStates: Collection<StateData>
+	lateinit var testTraces: List<Collection<ActionData>>
+	private val traceContents: (idx: Int) -> List<String> = { idx ->
+		testTraces[idx].map { actionData -> actionData.actionString().also { log(it) } } }
 
-	private val traceContents: (idx: Int) -> List<String> = { idx -> testTraces[idx].map { it.actionString().also { log(it) } } }
-	private fun log(msg: String) = println("TestModelLoader[${Thread.currentThread().name}] $msg")
+	private fun headerPlusString(s:List<String>,skip: Long):List<String> = LinkedList<String>().apply {
+		add(Widget.widgetHeader(config[ModelProperties.dump.sep]))
+		addAll(s)
+	}.let {
+		it.subList(skip.toInt(),it.size)
+	}
+
+	override fun getFileContent(path: Path, skip: Long): List<String>? = path.fileName.toString().let { name ->
+		log("getFileContent for ${path.toUri()}")
+		when {
+			(name.startsWith(config[ModelProperties.dump.traceFilePrefix])) ->
+				traceContents(name.removePrefix(config[ModelProperties.dump.traceFilePrefix]).toInt())
+			name.contains("fa5d6ec4-129e-cde6-cfbf-eb837096de60_829a5484-73d6-ba71-57fc-d143d1cecaeb") ->
+				headerPlusString(debugString.split("\n"), skip)
+			else ->
+				headerPlusString(testStates.find { s -> s.stateId == idFromString(name.removeSuffix(ModelConfig.defaultWidgetSuffix)) }!!.widgetsDump(config[ModelProperties.dump.sep]),skip)
+		}
+	}
+
+	override fun getStateFile(stateId: ConcreteId): Triple<Path, Boolean, String>{
+		val s = testStates.find { s -> s.stateId == stateId }
+		if(s == null)
+			println("debug error")
+		return s!!.let{
+			Triple(Paths.get(config.widgetFile(stateId,it.isHomeScreen,it.topNodePackageName)),it.isHomeScreen,it.topNodePackageName)
+		}
+	}
+
+}
+
+internal class ModelLoaderT(override val config: ModelConfig): ModelParserI<Pair<ActionData, StateData>, StateData, Widget>(), ModelLoaderTI {
+
+	/** creating test environment */
+	override val enableChecks: Boolean = true
+	override val compatibilityMode: Boolean = false
+	override val enablePrint: Boolean = false
+	override val reader: TestReader = TestReader(config)
+	override val isSequential: Boolean = true
+	override fun log(msg: String) = println("TestModelLoader[${Thread.currentThread().name}] $msg")
+
+	/** implementing ModelParser default methods */
+	override val widgetParser by lazy { WidgetParserS(model,parentJob, compatibilityMode, enableChecks) }
+	override val stateParser  by lazy { StateParserS(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks) }
+
+	override val processor: suspend (List<String>) -> Pair<ActionData, StateData> = { actionS:List<String> ->
+		parseAction(actionS)
+	}
+	override fun addEmptyState() {
+		StateData.emptyState.let{ stateParser.queue[it.stateId] = it }
+	}
+	override suspend fun getElem(e: Pair<ActionData, StateData>): Pair<ActionData, StateData> = e
+
+	/** custom test environment */
+	override var testStates: Collection<StateData>
+		get() = reader.testStates
+		set(value) { reader.testStates = value}
+	override var testTraces: List<Collection<ActionData>>
+		get() = reader.testTraces
+		set(value) { reader.testTraces = value}
 
 	override fun traceProducer() = produce<Path>(capacity = 5) {
 		log("Produce trace paths")
@@ -37,39 +97,21 @@ class ModelLoaderT(config: ModelConfig): ModelLoader(config), ModelLoaderTI {
 		}
 	}
 
-	override fun getFileContent(path: Path, skip: Long): List<String>? = path.fileName.toString().let { name ->
-		log("getFileContent for ${path.toUri()}")
-		when {
-			(name.startsWith(config[ModelProperties.dump.traceFilePrefix])) ->
-				traceContents(name.removePrefix(config[ModelProperties.dump.traceFilePrefix]).toInt())
-			name.contains("fa5d6ec4-129e-cde6-cfbf-eb837096de60_829a5484-73d6-ba71-57fc-d143d1cecaeb") ->
-				debugString.split("\n")
-			else ->
-				idFromString(name.removeSuffix(ModelConfig.defaultWidgetSuffix)).let { stateId ->
-					testStates.find { s -> s.stateId == stateId }!!.widgetsDump(config[ModelProperties.dump.sep])
-				}
-		}
-	}
-//	override fun getStateFile(stateId: ConcreteId) = Triple(Paths.get(config.widgetFile(stateId,false,"ch.bailu.aat")),false,"ch.bailu.aat")
-	override fun getStateFile(stateId: ConcreteId) = testStates.find { s -> s.stateId == stateId }!!.let{
-	 Triple(Paths.get(config.widgetFile(stateId,it.isHomeScreen,it.topNodePackageName)),it.isHomeScreen,it.topNodePackageName)
-	}
-
 	override fun execute(testTraces: List<Collection<ActionData>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeature>): Model {
 //		log(testActions.)
 		this.testTraces = testTraces
 		this.testStates = testStates
-		return execute(watcher)
+		return loadModel(watcher)
 	}
 
-	override fun parseWidget(widget: Widget): Deferred<Widget?> = _widgetParser(widget.splittedDumpString(config[ModelProperties.dump.sep]))
+	override suspend fun parseWidget(widget: Widget): Widget? =
+			widgetParser.processor(widget.splittedDumpString(config[ModelProperties.dump.sep]))
 
-	override val actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData?>> = _actionParser
-	override suspend fun parseState(stateId: ConcreteId): StateData = P_parseState(stateId)
-
+	override val actionParser: suspend (List<String>) -> Pair<ActionData, StateData> = processor
+	override suspend fun parseState(stateId: ConcreteId): StateData = stateParser.parseIfAbsent(stateId)
 }
 
-private val debugString = "881086d0-66da-39d3-89a7-3ef465ab4971;ccff4dcd-b1ec-3ebf-b2e0-8757b1f8119f;android.view.ViewGroup;true;;;null;true;true;true;false;false;disabled;false;false;false;789;63;263;263;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.LinearLayout[1]/android.widget.HorizontalScrollView[1]/android.widget.LinearLayout[1]/android.view.ViewGroup[4];false;ch.bailu.aat\n" +
+private const val debugString = "881086d0-66da-39d3-89a7-3ef465ab4971;ccff4dcd-b1ec-3ebf-b2e0-8757b1f8119f;android.view.ViewGroup;true;;;null;true;true;true;false;false;disabled;false;false;false;789;63;263;263;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.LinearLayout[1]/android.widget.HorizontalScrollView[1]/android.widget.LinearLayout[1]/android.view.ViewGroup[4];false;ch.bailu.aat\n" +
 		"8945671d-0726-31ff-ae18-48c904674dbf;b940bd4d-7415-39c7-9410-fb90c9e00eb2;android.widget.LinearLayout;false;;;null;true;true;false;false;false;disabled;disabled;false;false;0;0;1080;1794;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1];false;ch.bailu.aat\n" +
 		"8c578de3-7278-3da4-88d7-63ea86c5cf20;5316bbd9-b134-3beb-8afd-274c882125a5;android.widget.TextView;false;GPS;;null;true;true;false;false;false;disabled;disabled;false;false;526;89;263;51;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.LinearLayout[1]/android.widget.HorizontalScrollView[1]/android.widget.LinearLayout[1]/android.view.ViewGroup[3]/android.widget.TextView[1];true;ch.bailu.aat\n" +
 		"94e3c002-756a-3f54-b9bb-f568589de199;fe8404e6-0a37-33c4-96e2-fee2823f7e7c;android.widget.LinearLayout;true;;;null;true;true;true;false;false;disabled;disabled;false;false;0;694;1080;184;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.ScrollView[2]/android.widget.LinearLayout[1]/android.widget.LinearLayout[3];false;ch.bailu.aat\n" +

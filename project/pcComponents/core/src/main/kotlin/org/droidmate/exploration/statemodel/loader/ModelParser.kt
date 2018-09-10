@@ -15,6 +15,7 @@ import org.droidmate.debug.debugT
 import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -22,42 +23,38 @@ import java.nio.file.Paths
 import java.util.*
 
 /** public interface, used to parse any model **/
-interface ModelParser{
-	companion object {
-		fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
-		                         autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false)
-				: Model{
-			if(sequential) return debugT("model loading", {
-				ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
-			}, inMillis = true)
-			return debugT("model loading", {
-				ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint).loadModel(watcher)
-			}, inMillis = true)
-		}
+object ModelParser{
+	@JvmOverloads @JvmStatic fun loadModel(config: ModelConfig, watcher: LinkedList<ModelFeature> = LinkedList(),
+	                            autoFix: Boolean = false, sequential: Boolean = false, enablePrint: Boolean = false,
+	                            contentReader: ContentReader = ContentReader(config), enableChecks: Boolean = true)
+			: Model{
+		if(sequential) return debugT("model loading (sequential)", {
+			ModelParserS(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
+		}, inMillis = true)
+		return debugT("model loading (parallel)", {
+			ModelParserP(config, compatibilityMode = autoFix, enablePrint = enablePrint, reader = contentReader, enableChecks = enableChecks).loadModel(watcher)
+		}, inMillis = true)
 	}
 }
 
 // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
-private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>, ModelParser{
+internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData>>{
 	abstract val config: ModelConfig
 	abstract val reader: ContentReader
 	abstract val stateParser: StateParserI<S,W>
 	abstract val widgetParser: WidgetParserI<W>
 	abstract val enablePrint: Boolean
+	abstract 	val isSequential: Boolean
 
-    protected val logger = LoggerFactory.getLogger(javaClass)
+	override val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-    override val parentJob: Job = Job()
+	override val parentJob: Job = Job()
 	override val model by lazy{ Model.emptyModel(config) }
 	private val jobName by lazy{ "ModelParsing ${config.appName}(${config.baseDir})" }
 	protected val actionParseJobName: (List<String>)->String = { actionS ->
 		"actionParser ${actionS[ActionData.Companion.ActionDataFields.Action.ordinal]}:${actionS[ActionData.srcStateIdx]}->${actionS[ActionData.resStateIdx]}"}
 
 	fun loadModel(watcher: LinkedList<ModelFeature> = LinkedList()): Model {
-		return execute(watcher)
-	}
-
-	fun execute(watcher: LinkedList<ModelFeature>): Model{
 		// the very first state of any trace is always an empty state which is automatically added on Model initialization
 		addEmptyState()
 		// start producer who just sends trace paths to the multiple trace processor jobs
@@ -65,14 +62,14 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		repeat(if(isSequential) 1 else 5)
 		{ traceProcessor( producer, watcher ) }  // process up to 5 exploration traces in parallel
 		runBlocking(CoroutineName(jobName)) {
-			logger.debug("wait for children completion")
+			log("wait for children completion")
 //			parentJob.joinChildren() } // wait until all traces were processed (the processor adds the trace to the model)
 			parentJob.children.forEach {
 				it.join()
 				it.invokeOnCompletion { exception ->
 					if (exception != null) {
 						parentJob.cancel(RuntimeException("Error in $it"))
-						println("\n---------------------------\n ERROR while parsing model $jobName : $it : ${it.children}")
+						logger.error("\n---------------------------\n ERROR while parsing model $jobName : $it : ${it.children}")
 						exception.printStackTrace()
 					}
 				}
@@ -87,7 +84,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 	}
 	abstract fun addEmptyState()
 
-	private fun traceProducer() = produce<Path>(newContext(jobName), capacity = 5) {
+	protected open fun traceProducer() = produce<Path>(newContext(jobName), capacity = 5) {
 		logger.trace("PRODUCER CALL")
 		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
 			s.filter { it.fileName.toString().startsWith(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]) }
@@ -101,7 +98,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 
 	private val modelMutex = Mutex()
 	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(newContext(jobName)){
-		logger.debug("trace processor launched")
+		logger.trace("trace processor launched")
 		if(enablePrint) logger.info("trace processor launched")
 		channel.consumeEach { tracePath ->
 			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
@@ -131,7 +128,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 		val targetWidgetId = widgetParser.fixedWidgetId(actionS[ActionData.widgetIdx])
 
 		val srcId = idFromString(actionS[ActionData.srcStateIdx])
-		val srcState = stateParser.queue[srcId]!!.getState()
+		val srcState = stateParser.queue.getOrDefault(srcId,stateParser.parseIfAbsent(srcId)).getState()
 		val targetWidget = targetWidgetId?.let { tId ->
 			srcState.widgets.find { it.id == tId } ?: run{
 				logger.warn("ERROR target widget $tId cannot be found in src state")
@@ -146,7 +143,7 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 			println("id's changed due to automatic repair new action is \n $fixedActionS\n instead of \n $actionS")
 
 		return Pair(ActionData.createFromString(fixedActionS, targetWidget, config[ConfigProperties.ModelProperties.dump.sep]), resState)
-				.also { logger.debug("\n computed TRACE ${actionS[ActionData.resStateIdx]}: ${it.first.actionString()}") }
+				.also { log("\n computed TRACE ${actionS[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}
 
 	@Suppress("ReplaceSingleLineLet")
@@ -187,12 +184,13 @@ private abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateData
 }
 
 private class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
-                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
+                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true,
+                           override val enableChecks: Boolean)
 	: ModelParserI<Deferred<Pair<ActionData, StateData>>, Deferred<StateData>, Deferred<Widget>>() {
-	override val isSequential: Boolean = true //TODO only for debugging
+	override val isSequential: Boolean = true
 
-	override val widgetParser by lazy { WidgetParserP(model,parentJob, compatibilityMode) }
-	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode)}
+	override val widgetParser by lazy { WidgetParserP(model,parentJob, compatibilityMode, enableChecks) }
+	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks)}
 
 	override val processor: suspend(s: List<String>) -> Deferred<Pair<ActionData, StateData>> = { actionS ->
 		async(context(actionParseJobName(actionS))) { parseAction(actionS) }
@@ -207,12 +205,13 @@ private class ModelParserP(override val config: ModelConfig, override val reader
 }
 
 private class ModelParserS(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
-                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true)
+                           override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true,
+                           override val enableChecks: Boolean)
 	: ModelParserI<Pair<ActionData, StateData>, StateData, Widget >() {
 	override val isSequential: Boolean = true
 
-	override val widgetParser by lazy { WidgetParserS(model,parentJob, compatibilityMode) }
-	override val stateParser  by lazy { StateParserS(widgetParser, reader, model, parentJob, compatibilityMode)}
+	override val widgetParser by lazy { WidgetParserS(model,parentJob, compatibilityMode, enableChecks) }
+	override val stateParser  by lazy { StateParserS(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks)}
 
 	override val processor: suspend (List<String>) -> Pair<ActionData, StateData> = { actionS:List<String> ->
 		parseAction(actionS)

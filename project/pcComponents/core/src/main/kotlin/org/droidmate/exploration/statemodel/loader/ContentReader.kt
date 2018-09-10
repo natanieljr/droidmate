@@ -12,7 +12,7 @@ import java.nio.file.Paths
 import kotlin.streams.toList
 
 
-internal open class ContentReader(val config: ModelConfig){
+open class ContentReader(val config: ModelConfig){
 	@Suppress("UNUSED_PARAMETER")
 	fun log(msg: String)
 	{}
@@ -42,7 +42,9 @@ internal open class ContentReader(val config: ModelConfig){
 	suspend inline fun <T> processLines(path: Path, skip: Long = 1, crossinline lineProcessor: suspend (List<String>) -> T): List<T> {
 		log("call P_processLines for ${path.toUri()}")
 		getFileContent(path,skip)?.let { br ->	// skip the first line (headline)
-			assert(br.count() > 0) { "ERROR on model loading: file ${path.fileName} does not contain any entries" }
+			assert(br.count() > 0 // all 'non-empty' states have to have entries for their widgets
+					|| skip==0L || !path.fileName.startsWith("d41d8cd9-8f00-3204-a980-0998ecf8427e_d41d8cd9-8f00-3204-a980-0998ecf8427e"))
+				{ "ERROR on model loading: file ${path.fileName} does not contain any entries" }
 			return br.map { line -> lineProcessor(line.split(config[ConfigProperties.ModelProperties.dump.sep]).map { it.trim() }) }
 		} ?: return emptyList()
 	}

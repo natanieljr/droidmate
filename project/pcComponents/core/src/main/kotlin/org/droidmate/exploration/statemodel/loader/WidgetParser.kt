@@ -6,6 +6,7 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.deviceInterface.guimodel.P
 import org.droidmate.exploration.statemodel.*
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -19,7 +20,7 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	private var customWidgetIndicies: Map<P,Int> = P.defaultIndicies
 	private val lock = Mutex()  // to guard the indicy setter
 
-    val logger = LoggerFactory.getLogger(javaClass)
+    override val logger: Logger = LoggerFactory.getLogger(javaClass)
 
 
     suspend fun setCustomWidgetIndicies(m: Map<P,Int>){
@@ -35,7 +36,7 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	private val idMapping: ConcurrentHashMap<ConcreteId,ConcreteId> = ConcurrentHashMap()
 
 	protected suspend fun computeWidget(line: List<String>,id: ConcreteId): Widget {
-		logger.debug("compute widget $id")
+		log("compute widget $id")
 		if(!isActive) return Widget() // if there was already an error the parsing may be canceled -> stop here
 
 		return Widget.fromString(line,customWidgetIndicies).also { widget ->
@@ -48,12 +49,12 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 
 	abstract fun P_S_process(s: List<String>, id: ConcreteId): T
 	private fun parseWidget(line: List<String>): T {
-		logger.debug("parse widget $line")
+		log("parse widget $line")
 		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
 		val id = Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId)
 
 		return queue.computeIfAbsent(line.toTypedArray().contentHashCode()){
-            logger.debug("parse absent widget $id")
+            log("parse absent widget $id")
 			P_S_process(line,id)
 		}
 	}
@@ -70,8 +71,11 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 		 * Optionally a map of oldName->newName can be given to automatically infere renamed header entries
 		 */
 		@JvmStatic fun computeWidgetIndicies(header: List<String>, renamed: Map<String,String> = emptyMap()): Map<P,Int>{
-			if(header.size!= P.values().size) println("WARN the given Widget File does not specify all available properties," +
-					"this may lead to different Widget properties and may require to be parsed in compatibility mode")
+			if(header.size!= P.values().size){
+				val missing = P.values().filter { !header.contains(it.name) }
+				println("WARN the given Widget File does not specify all available properties," +
+						"this may lead to different Widget properties and may require to be parsed in compatibility mode\n missing entries: $missing")
+			}
 			val mapping = HashMap<P,Int>()
 			header.forEachIndexed { index, s ->
 				val key = renamed[s] ?: s
@@ -85,8 +89,9 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 	}
 }
 
-internal class WidgetParserS(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Widget>(){
-	override val isSequential: Boolean = true
+internal class WidgetParserS(override val model: Model, override val parentJob: Job? = null,
+                             override val compatibilityMode: Boolean,
+                             override val enableChecks: Boolean): WidgetParserI<Widget>(){
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Widget = runBlocking(newContext("parseWidget $id")) { computeWidget(s,id) }
 
@@ -95,8 +100,9 @@ internal class WidgetParserS(override val model: Model, override val parentJob: 
 	override val queue: MutableMap<Int, Widget> = HashMap()
 }
 
-internal class WidgetParserP(override val model: Model, override val parentJob: Job? = null, override val compatibilityMode: Boolean): WidgetParserI<Deferred<Widget>>(){
-	override val isSequential: Boolean = false
+internal class WidgetParserP(override val model: Model, override val parentJob: Job? = null,
+                             override val compatibilityMode: Boolean,
+                             override val enableChecks: Boolean): WidgetParserI<Deferred<Widget>>(){
 
 	override fun P_S_process(s: List<String>, id: ConcreteId): Deferred<Widget> = async(newContext("parseWidget $id")){
 		computeWidget(s,id)
