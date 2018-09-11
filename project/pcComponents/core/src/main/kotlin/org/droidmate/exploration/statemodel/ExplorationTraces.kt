@@ -227,7 +227,7 @@ class Trace(private val watcher: MutableList<ModelFeature> = mutableListOf(), pr
 
 	fun update(action: ActionResult, dstState: StateData) {
 		size += 1
-		lastActionType = if(action.action is ActionQueue) action.action.actions.last().name  else action.action.name
+		lastActionType = if(action.action is ActionQueue) action.action.actions.lastOrNull()?.name ?:"empty queue"  else action.action.name
 		// we did not update this.dstState yet, therefore it contains the now 'old' state
 
 		val actionTargets = widgetTargets.toList()  // we may have an action queue and therefore multiple targets in the same state
