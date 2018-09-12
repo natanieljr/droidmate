@@ -35,9 +35,7 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.deviceInterface.guimodel.ActionType
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.deviceInterface.guimodel.isLaunchApp
+import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
@@ -222,13 +220,36 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 	private fun assertLogsAreSortedByTime() {
-		val apiLogs = actionTrace.getActions().flatMap { it.deviceLogs.apiLogs }
+		val apiLogs = actionTrace.getActions()
+				.mapQueueToSingleElement()
+				.flatMap { it.deviceLogs.apiLogs }
 
 		assert(explorationStartTime <= explorationEndTime)
 
 		val ret = ApiLogcatMessageListExtensions.sortedByTimePerPID(apiLogs)
 		assert(ret)
 	}
+
+	private fun List<ActionData>.mapQueueToSingleElement(): List<ActionData>{
+		var startQueue = 0
+		var endQueue = 0
+
+		val newList : MutableList<ActionData> = mutableListOf()
+
+		this.forEach {
+			if (startQueue == endQueue)
+				newList.add(it)
+
+			if (it.actionType.isQueueStart())
+				startQueue++
+
+			if (it.actionType.isQueueEnd())
+				endQueue++
+		}
+
+		return newList
+	}
+
 
 	private fun assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull() {
 		//TODO improve or remove if redundant
