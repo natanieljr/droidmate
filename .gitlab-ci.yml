@@ -10,7 +10,7 @@ unitTestsUnix:
   script:
     - chmod +x ./gradlew
     - echo "Running unit tests on Unix"
-    - ./gradlew test
+    - ./gradlew clean build test --debug
 
 unitTestsWindows:
   stage: test
@@ -18,4 +18,4 @@ unitTestsWindows:
         - droidmatewin
   script:
     - echo "Running unit tests on Windows"
-    - .\gradlew test
+    - ./gradlew clean build test --debug
