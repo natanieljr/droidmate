@@ -28,6 +28,7 @@ import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.misc.MonitorConstants
 import org.slf4j.LoggerFactory
+import java.util.LinkedList
 
 class MonitorsClient(socketTimeout: Int,
                      private val deviceSerialNumber: String,
@@ -39,7 +40,7 @@ class MonitorsClient(socketTimeout: Int,
 	}
 
 	// remove this.getPorts from all methods
-	private val monitorTcpClient: ITcpClientBase<String, ArrayList<ArrayList<String>>> = TcpClientBase(socketTimeout)
+	private val monitorTcpClient: ITcpClientBase<String, LinkedList<ArrayList<String>>> = TcpClientBase(socketTimeout)
 
 	override fun anyMonitorIsReachable(): Boolean {
 		val out = this.isServerReachable(this.getPort())

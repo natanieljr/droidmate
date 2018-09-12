@@ -36,15 +36,12 @@ buildscript {
 	}
 }
 
-plugins {
-	id "org.jetbrains.kotlin.jvm" version '1.2.51'
-}
-
+apply from: file("../versions.gradle") // contains kotlin_version
 apply plugin: 'kotlin'
 
 repositories {
-	jcenter()
 	mavenCentral()
+	jcenter()
 	mavenLocal()
 	maven { url = "https://jitpack.io" }
 }

@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
@@ -95,7 +96,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 				this.getSignInButton(widgets) != null
 	}
 
-	private fun clickSignIn(widgets: List<Widget>): AbstractExplorationAction {
+	private fun clickSignIn(widgets: List<Widget>): ExplorationAction {
 		val button = getSignInButton(widgets)
 
 		if (button != null) {
@@ -111,7 +112,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 				widgets.any { it.resourceId == RES_ID_EMAIL }
 	}
 
-	private fun insertEmail(widgets: List<Widget>): AbstractExplorationAction {
+	private fun insertEmail(widgets: List<Widget>): ExplorationAction {
 		val button = widgets.firstOrNull { it.resourceId == RES_ID_EMAIL }
 
 		if (button != null) {
@@ -128,7 +129,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 				widgets.any { it.resourceId == RES_ID_PASSWORD }
 	}
 
-	private fun insertPassword(widgets: List<Widget>): AbstractExplorationAction {
+	private fun insertPassword(widgets: List<Widget>): ExplorationAction {
 		val button = widgets.firstOrNull { it.resourceId == RES_ID_PASSWORD }
 
 		if (button != null) {
@@ -144,12 +145,12 @@ class LoginWithFacebook : ExplorationStrategy() {
 				widgets.any { w -> CONTENT_DESC_LOGIN.any { c -> c.trim() == w.contentDesc.trim() } }
 	}
 
-	private fun clickLogIn(widgets: List<Widget>): AbstractExplorationAction {
+	private fun clickLogIn(widgets: List<Widget>): ExplorationAction {
 		val button = widgets.firstOrNull { w -> CONTENT_DESC_LOGIN.any { c -> c.trim() == w.contentDesc.trim() } }
 
 		if (button != null) {
 			loginClicked = true
-			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
+			// Logging in on facebook is sometimes slow. Add a 3 seconds timeout
 			return button.click()
 		}
 
@@ -161,12 +162,12 @@ class LoginWithFacebook : ExplorationStrategy() {
 				widgets.any { it.contentDesc.trim() == CONTENT_DESC_CONTINUE }
 	}
 
-	private fun clickContinue(widgets: List<Widget>): AbstractExplorationAction {
+	private fun clickContinue(widgets: List<Widget>): ExplorationAction {
 		val button = widgets.firstOrNull { it.contentDesc.trim() == CONTENT_DESC_CONTINUE }
 
 		if (button != null) {
 			continueClicked = true
-			// Logging in on facebook is sometimes slow. Add a 3 seconds delay
+			// Logging in on facebook is sometimes slow. Add a 3 seconds timeout
 			return button.click()
 		}
 
@@ -198,7 +199,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		return StrategyPriority.NONE
 	}*/
 
-	private fun getWidgetAction(widgets: List<Widget>): AbstractExplorationAction {
+	private fun getWidgetAction(widgets: List<Widget>): ExplorationAction {
 		// Can click on login
 		return when {
 			canClickSignIn(widgets) -> clickSignIn(widgets)
@@ -210,7 +211,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		}
 	}
 
-	override fun chooseAction(): AbstractExplorationAction {
+	override fun chooseAction(): ExplorationAction {
 		return if (eContext.getCurrentState().isRequestRuntimePermissionDialogBox) {
 			val widget = eContext.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }

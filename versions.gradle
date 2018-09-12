@@ -3,11 +3,12 @@ project.ext {
 
 	javaVersion = JavaVersion.VERSION_1_8
 
-	kotlin_version = '1.2.51'
+	kotlin_version = '1.2.60'
 	androidBuildToolsVersion = "27.0.3"
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25
 	androidCompileSdkVersion = 27
+	driverLib_version = '2.0'
 
 	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = 'v0.2.4'

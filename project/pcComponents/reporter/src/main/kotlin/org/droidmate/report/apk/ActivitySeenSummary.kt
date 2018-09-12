@@ -25,8 +25,8 @@
 
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
+import org.droidmate.deviceInterface.guimodel.isLaunchApp
+import org.droidmate.deviceInterface.guimodel.isPressBack
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import java.nio.file.Path
@@ -40,17 +40,17 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
 
 		val activitySeenMap = HashMap<String, Int>()
 		var lastActivity = ""
-		var currActivity = data.apk.launchableActivityName
+		var currActivity = data.apk.launchableMainActivityName
 
 		// Always see the main activity
 		activitySeenMap.put(currActivity, 1)
 
 		data.actionTrace.getActions().forEach { record ->
 
-			if (record.actionType == PressBackExplorationAction::class.simpleName)
+			if (record.actionType.isPressBack())
 				currActivity = lastActivity
-			else if (record.actionType == ResetAppExplorationAction::class.simpleName)
-				currActivity = data.apk.launchableActivityName
+			else if (record.actionType.isLaunchApp())
+				currActivity = data.apk.launchableMainActivityName
 
 			if (currActivity == "")
 				currActivity = "<DEVICE HOME>"

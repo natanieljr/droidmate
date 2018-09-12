@@ -38,7 +38,7 @@ import org.droidmate.device.deviceInterface.RobustDevice
 import org.droidmate.logging.Markers
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.DroidmateException
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants
 import org.slf4j.LoggerFactory
 
 class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
@@ -50,7 +50,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 		@Throws(DeviceException::class)
 		@JvmStatic
-		private fun tryResolveSerialNumber(adbWrapper: IAdbWrapper, usedSerialNumbers: List<String>, deviceIndex: Int): String {
+		fun tryResolveSerialNumber(adbWrapper: IAdbWrapper, usedSerialNumbers: List<String>, deviceIndex: Int): String {
 			val devicesDescriptors = adbWrapper.getAndroidDevicesDescriptors()
 			return getSerialNumber(devicesDescriptors, usedSerialNumbers, deviceIndex)
 		}

@@ -78,7 +78,7 @@ object FetchGUiAction: Action()
 
 data class RotateUIAction(val rotation: Int): Action()
 
-data class LaunchAppAction(val appLaunchIconName: String, val launchActivityDelay: Long) : Action()
+data class LaunchAppAction(val packageName: String, val launchActivityDelay: Long) : Action()
 
 data class SimulationAdbClearPackageAction(val packageName: String) : Action()
 

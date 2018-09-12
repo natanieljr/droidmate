@@ -28,7 +28,7 @@ package org.droidmate.debug
 import kotlin.system.measureNanoTime
 
 // TODO we would like to read this property from the DroidMate.Configuration instead
-const val measurePerformance = true
+const val measurePerformance = false
 
 inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T? {
 	var res: T? = null

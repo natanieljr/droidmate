@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.actions.terminateApp
 
 /**
@@ -32,12 +32,12 @@ import org.droidmate.exploration.actions.terminateApp
  *
  * @author Nataniel P. Borges Jr.
  */
-class Terminate : AbstractStrategy() {
+object Terminate : AbstractStrategy() {
 	override fun mustPerformMoreActions(): Boolean {
 		return false
 	}
 
-	override fun internalDecide(): AbstractExplorationAction {
+	override fun internalDecide(): ExplorationAction {
 		return terminateApp()
 	}
 }

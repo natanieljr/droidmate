@@ -27,6 +27,8 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.emptyId
@@ -38,14 +40,22 @@ import java.util.*
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
-open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
+open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 												  private val biased: Boolean = true) : ExplorationStrategy() {
+
+	protected var random = Random(randomSeed)
+		private set
+
+	override fun initialize(memory: ExplorationContext) {
+		super.initialize(memory)
+		random = Random(randomSeed)
+	}
+
 	/**
 	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
 	 */
 	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed)
 
-	protected val random = Random(randomSeed)
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>()	}
 	private val blackList: BlackListMF by lazy {	eContext.getOrCreateWatcher<BlackListMF>() }
@@ -74,7 +84,7 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 	 * will appear, but the functionality may not be triggered yet.
 	 * Now we do not want to penalize this target just because it required a permission and the functionality was not yet triggered
 	 */
-	private fun repeatLastAction(): AbstractExplorationAction {
+	private fun repeatLastAction(): ExplorationAction {
 //		val lastActionBeforePermission = currentState.let {
 //			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
 //		}
@@ -101,12 +111,10 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			}
 
 
-	private fun List<Widget>.chooseRandomly():AbstractExplorationAction{
+	private fun List<Widget>.chooseRandomly():ExplorationAction{
 		if(this.isEmpty())
 			return eContext.resetApp()
-
-		eContext.lastTarget = this[random.nextInt(this.size)]
-		return chooseActionForWidget(eContext.lastTarget!!)
+		return chooseActionForWidget(this[random.nextInt(this.size)])
 	}
 
 	open suspend fun computeCandidates():Collection<Widget> = debugT("blacklist computation", {
@@ -119,29 +127,35 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			}
 		}
 	}, inMillis = true)
+			.filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
 
-	private fun chooseBiased(): AbstractExplorationAction = runBlocking{
-		val candidates = computeCandidates().let { filteredCandidates ->
-			// for each widget in this state the number of interactions
-			counter.numExplored(currentState, filteredCandidates).entries
-					.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
-						if(pkgName != super.eContext.apk.packageName) {
-							val pkgActions = counter.pkgCount(pkgName)
-							countEntry.map { Pair(it.key, pkgActions) }
-						} else
-							countEntry.map { Pair(it.key, it.value) }
-					}// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
-				.groupBy { (_,countVal) -> countVal }.let {
-				it.listOfSmallest()?.map { (w,_) -> w }?.let { leastInState: List<Widget> ->
-					// determine the subset of widgets which were least interacted with
-					// if multiple widgets clicked with same frequency, choose the one least clicked over all states
-					if (leastInState.size > 1) {
-						leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
-					} else leastInState
+	protected suspend fun getCandidates(): List<Widget>{
+		return computeCandidates()
+				.let { filteredCandidates ->
+					// for each widget in this state the number of interactions
+					counter.numExplored(currentState, filteredCandidates).entries
+							.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
+								if(pkgName != super.eContext.apk.packageName) {
+									val pkgActions = counter.pkgCount(pkgName)
+									countEntry.map { Pair(it.key, pkgActions) }
+								} else
+									countEntry.map { Pair(it.key, it.value) }
+							}// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
+							.groupBy { (_,countVal) -> countVal }.let { map ->
+								map.listOfSmallest()?.map { (w,_) -> w }?.let { leastInState: List<Widget> ->
+									// determine the subset of widgets which were least interacted with
+									// if multiple widgets clicked with same frequency, choose the one least clicked over all states
+									if (leastInState.size > 1) {
+										leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
+									} else leastInState
+								}
+							}
+							?: emptyList()
 				}
-			}
-					?: emptyList()
-		}
+	}
+
+	private fun chooseBiased(): ExplorationAction = runBlocking{
+		val candidates = getCandidates()
 		// no valid candidates -> go back to previous state
 		if(candidates.isEmpty()){
 			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
@@ -149,25 +163,25 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 		} else candidates.chooseRandomly()
 	}
 
-	private fun chooseRandomly(): AbstractExplorationAction{
+	private fun chooseRandomly(): ExplorationAction{
 		return currentState.actionableWidgets.chooseRandomly()
 	}
 
-	protected open fun chooseRandomWidget(): AbstractExplorationAction {
+	protected open fun chooseRandomWidget(): ExplorationAction {
 		return if (biased)
 			chooseBiased()
 		else
 			chooseRandomly()
 	}
 
-	protected open fun chooseActionForWidget(chosenWidget: Widget): AbstractExplorationAction {
+	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
 
 		while (!chosenWidget.canBeActedUpon) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		val actionList: MutableList<AbstractExplorationAction> = mutableListOf()
+		val actionList: MutableList<ExplorationAction> = mutableListOf()
 
 		if (widget.longClickable){    // lower probability of longClick if click is possible as it is more probable progressing the exploration
 			if(widget.clickable) {
@@ -179,11 +193,11 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 			actionList.add(widget.click())
 
 		if (widget.checked != null)
-			actionList.add(widget.click())
+			actionList.add(widget.tick())
 
 		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
-		if (widget.scrollable)
-			actionList.add(widget.click())
+//		if (widget.scrollable)
+//			actionList.add(widget.click())
 
 		/*if (chosenWidget.scrollable) {
 				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))
@@ -200,7 +214,9 @@ open class RandomWidget @JvmOverloads constructor(randomSeed: Long,
 		return actionList[randomIdx]
 	}
 
-	override fun chooseAction(): AbstractExplorationAction {
+	override fun chooseAction(): ExplorationAction {
+		if(eContext.isEmpty())
+            return eContext.resetApp() // very first action -> start the app via reset
 		// Repeat previous action is last action was to click on a runtime permission dialog
 		if (mustRepeatLastAction())
 			return repeatLastAction()

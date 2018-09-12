@@ -25,8 +25,8 @@
 package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuilder,
                                            override val packageName: String)*/ // TODO Fix tests
@@ -34,7 +34,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 	override val packageName: String
 		get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
-	override fun updateState(deviceAction: Action) {
+	override fun updateState(deviceAction: ExplorationAction) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -63,7 +63,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 
 	private var currentTransitionResult: IScreenTransitionResult? = null
 
-	private var lastAction: Action? = null
+	private var lastAction: ExplorationAction? = null
 
 	constructor(timeGenerator: ITimeGenerator, packageName: String, specString: String) :
 					this(GuiScreensBuilderFromSpec(timeGenerator, specString, packageName), packageName)
@@ -75,7 +75,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 			this.initialScreen = guiScreens.single { it.getId() == GuiScreen.idHome }
 	}
 
-	override fun updateState(deviceAction: Action) {
+	override fun updateState(deviceAction: ExplorationAction) {
 			this.currentTransitionResult = this.getCurrentScreen().perform(deviceAction)
 			this.lastAction = deviceAction
 	}

@@ -32,24 +32,25 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
-import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
-import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
+import org.droidmate.deviceInterface.DeviceCommand
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.ExecuteCommand
+import org.droidmate.deviceInterface.StopDaemonCommand
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
-import org.droidmate.uiautomator_daemon.*
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.logcatLogFileName
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_packageName
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uia2Daemon_testPackageName
-import org.droidmate.uiautomator_daemon.guimodel.*
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.logcatLogFileName
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_packageName
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_testPackageName
+import org.droidmate.deviceInterface.guimodel.*
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
@@ -127,52 +128,17 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return adbWrapper.listPackage(serialNumber, packageName).contains(packageName)
 	}
 
-	override fun perform(action: Action): DeviceResponse {
+	override fun perform(action: ExplorationAction): DeviceResponse {
 		log.debug("perform($action)")
-		assert(action::class in arrayListOf(ClickAction::class,
-				FetchGUiAction::class,
-				CoordinateClickAction::class,
-				CoordinateLongClickAction::class,
-				LongClickAction::class,
-				TextAction::class,
-				WaitAction::class,
-				SwipeAction::class,
-				PressBackAction::class,
-				PressHomeAction::class,
-				EnableWifiAction::class,
-				LaunchAppAction::class,
-				RotateUIAction::class,
-				MinimizeMaximizeAction::class,
-				SimulationAdbClearPackageAction::class)) {"tried to perform unknown action ${action::class.simpleName}"}
 
 		return when (action) {
-			is WaitAction -> wait(action)
-			is LaunchAppAction -> execute(action)
-			is ClickAction -> execute(action)
-			is CoordinateClickAction -> execute(action)
-			is LongClickAction -> execute(action)
-			is CoordinateLongClickAction -> execute(action)
-			is TextAction -> execute(action)
-			is SwipeAction -> execute(action)
-			is PressBackAction -> execute(action)
-			is PressHomeAction -> execute(action)
-			is EnableWifiAction -> execute(action)
-			is RotateUIAction -> execute(action)
-			is MinimizeMaximizeAction -> execute(action)
-			is FetchGUiAction -> execute(action)
-			is SimulationAdbClearPackageAction -> throw DeviceException("call .clearPackage() directly instead")
-			is MultiAction -> TODO()
+			is SimulationAdbClearPackage -> throw DeviceException("call .clearPackage() directly instead")
+			else -> execute(action)
 		}
 	}
 
 	@Throws(DeviceException::class)
-	private fun wait(action: WaitAction): DeviceResponse {
-		log.debug("perform wait action")
-		return issueCommand(ExecuteCommand(action))
-	}
-
-	@Throws(DeviceException::class)
-	private fun execute(action: Action): DeviceResponse =
+	private fun execute(action: ExplorationAction): DeviceResponse =
 			issueCommand(ExecuteCommand(action))
 
 	@Throws(DeviceException::class)
@@ -338,11 +304,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
 		log.debug("uninstallApk($apkPackageName, ignoreFailure: $ignoreFailure)")
 		adbWrapper.uninstallApk(serialNumber, apkPackageName, ignoreFailure)
-	}
-
-	override fun launchApp(packageName: String): DeviceResponse {
-		log.warn("perform(newLaunchAppDeviceAction($packageName, ${cfg[launchActivityDelay]}))")
-		return this.perform(LaunchAppAction(packageName, cfg[launchActivityDelay]))
 	}
 
 	override fun closeMonitorServers() {

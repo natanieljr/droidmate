@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.test_suites
 
-import org.droidmate.exploration.statemodel.ModelLoadTester
+import org.droidmate.exploration.statemodel.loader.ModelLoadTester
 import org.droidmate.exploration.statemodel.ModelTester
 import org.droidmate.frontend.DroidmateFrontendTest
 import org.junit.runner.RunWith

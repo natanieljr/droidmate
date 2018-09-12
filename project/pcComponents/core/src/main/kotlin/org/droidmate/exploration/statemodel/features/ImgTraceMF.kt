@@ -31,25 +31,26 @@ import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.configuration.ConfigProperties
+import org.droidmate.exploration.statemodel.ConcreteId
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.misc.deleteDir
-import java.awt.BasicStroke
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Rectangle
+import java.awt.*
+import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Files
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
+import kotlin.collections.HashMap
 import kotlin.coroutines.experimental.CoroutineContext
 
 /** use this function to create a sequence of screen images in which the interacted target is highlighted by a red boarder */
 class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ImgTraceMF"), parent = job)
 
-	private val targetDir = (cfg.baseDir.resolve("imgTrace"))
+	private val targetDir = (cfg.baseDir.resolve("ModelFeatures/imgTrace"))
 	init {
 		job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 		targetDir.deleteDir()
@@ -57,7 +58,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 
 	var i: AtomicInteger = AtomicInteger(0)
-	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData){
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData){
 		// check if we have any screenshots to process
 		if(!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
 
@@ -70,21 +71,51 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		if(!screenFile.exists()) return // thread was canceled but no file to process is ready yet
 
 		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step.png")
-		if(targetWidget == null) {		// move file to trace directory
+		if(targetWidgets.isEmpty()) {		// move file to trace directory
 			screenFile.copyTo(targetFile, overwrite = true)
 			return
 		}
 
-		val stateImg = ImageIO.read(screenFile)
-		stateImg.createGraphics().apply{
-			paint = Color.red
-			stroke = BasicStroke(10F)
-			drawOval(targetWidget.bounds)
-		}
+		val stateImg = ImageIO.read(targetFile)
+		highlightWidget(stateImg, targetWidgets, step)
 		ImageIO.write(stateImg,"png",targetFile)
 	}
 
-	private fun Graphics.drawOval(bounds: Rectangle){
-		this.drawOval(bounds.x,bounds.y,bounds.width,bounds.height)
+}
+
+var shapeColor: Color = Color.red
+var textColor: Color = Color.magenta
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffset: List<Int>){
+	stateImg.createGraphics().apply{
+		stroke = BasicStroke(10F)
+		font = Font("TimesRoman", Font.PLAIN, 60)
+
+		val targetsPerAction = targetWidgets.mapIndexed{ i,t -> Pair(idxOffset[i],t)}.groupBy { it.first }
+
+		val targetCounter: MutableMap<ConcreteId,LinkedList<Pair<Int,Int>>> = HashMap() // used to compute offsets in the number string
+		// compute the list of indicies for each widget-target (for labeling)
+		targetsPerAction.forEach{ (idx, targets) ->
+			targets.forEachIndexed{ index, (_,t) ->
+				targetCounter.compute(t.id) { _, indicies -> (indicies ?: LinkedList()).apply { add(Pair(idx,index)) }}
+			}
+		}
+		// highlight all targets and add text labels
+		targetWidgets.forEach{ it ->
+			paint = shapeColor// reset color for next shape drawing
+			drawOval(it.bounds)
+			// draw the label number for the element
+			val text = targetCounter[it.id]!!.joinToString(separator = ", ") { if(it.first!=0) "${it.first}.${it.second}" else "${it.second}" }
+			if( text.length>20 ) 		font = Font("TimesRoman", Font.PLAIN, 20)
+			paint = textColor// for better visibility use a different color then the boarder
+			drawString(text,it.bounds.x+(it.bounds.width/10),it.bounds.y+(it.bounds.height/10))
+			font = Font("TimesRoman", Font.PLAIN, 60) // reset font to bigger font
+		}
 	}
+}
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffset: Int = 0)
+	= highlightWidget(stateImg,targetWidgets,(0 until targetWidgets.size).map{ idxOffset })
+
+
+fun Graphics.drawOval(bounds: Rectangle){
+	this.drawOval(bounds.x,bounds.y,bounds.width,bounds.height)
 }

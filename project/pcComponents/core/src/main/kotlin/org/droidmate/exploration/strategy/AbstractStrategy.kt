@@ -25,11 +25,11 @@
 
 package org.droidmate.exploration.strategy
 
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -47,7 +47,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 * List of observers to be notified when widgets get blacklisted or
 	 * when a target is found
 	 */
-	private val listeners = ArrayList<IControlObserver>()
+	override val listeners = ArrayList<IControlObserver>()
+	/**
+	 * if this parameter is true we can invoke a strategy without registering it, this should be only used for internal
+	 * default strategies from our selector functions like Reset,Back etc.
+	 */
+	override val noContext: Boolean = false
 
 	/**
 	 * Internal context of the strategy. Synchronized with exploration context upon initialization.
@@ -128,7 +133,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		this.listeners.add(listener)
 	}
 
-	override fun decide(): AbstractExplorationAction {
+	override fun decide(): ExplorationAction {
 		val action = this.internalDecide()
 
 		if (!this.mustPerformMoreActions())
@@ -149,6 +154,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	override fun hashCode(): Int {
 		return this.javaClass.hashCode()
 	}
+	override fun toString() = uniqueStrategyName
 
 	/**
 	 * Defines if the exploration action will perform more actionTrace or if it will return the
@@ -160,12 +166,13 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 *
 	 * @return If the strategy has to perform more actionTrace
 	 */
+	@Deprecated("this should be removed as now ActionQueues are available for action sequences without interruption")
 	abstract fun mustPerformMoreActions(): Boolean
 
 	/**
 	 * Selects an action to be executed based on the [current widget context][currentState]
 	 */
-	abstract fun internalDecide(): AbstractExplorationAction
+	abstract fun internalDecide(): ExplorationAction
 
 	companion object {
 		val logger: Logger by lazy { LoggerFactory.getLogger(ExplorationStrategy::class.java) }

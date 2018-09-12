@@ -38,12 +38,6 @@ interface IAaptWrapper {
 	fun getPackageName(apk: Path): String
 
 	@Throws(DroidmateException::class)
-	fun getLaunchableActivityName(apk: Path): String
-
-	@Throws(DroidmateException::class)
-	fun getLaunchableActivityComponentName(apk: Path): String
-
-	@Throws(DroidmateException::class)
 	fun getApplicationLabel(apk: Path): String
 
 	@Throws(DroidmateException::class)

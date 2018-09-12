@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.actions.PressBackExplorationAction
-import org.droidmate.exploration.actions.ResetAppExplorationAction
+import org.droidmate.deviceInterface.guimodel.isLaunchApp
+import org.droidmate.deviceInterface.guimodel.isPressBack
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import java.nio.file.Path
@@ -38,14 +38,14 @@ class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "a
 		sb.append(header)
 
 		var lastActivity = ""
-		var currActivity = data.apk.launchableActivityName
+		var currActivity = data.apk.launchableMainActivityName
 
 		data.actionTrace.getActions().forEachIndexed { actionNr, record ->
 
-			if (record.actionType == PressBackExplorationAction::class.simpleName)
+			if (record.actionType .isPressBack())
 				currActivity = lastActivity
-			else if (record.actionType == ResetAppExplorationAction::class.simpleName)
-				currActivity = data.apk.launchableActivityName
+			else if (record.actionType.isLaunchApp())
+				currActivity = data.apk.launchableMainActivityName
 
 			val logs = record.deviceLogs.apiLogs
 

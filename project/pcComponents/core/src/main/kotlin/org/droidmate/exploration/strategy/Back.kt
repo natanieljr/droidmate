@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.actions.pressBack
 
 /**
@@ -34,12 +34,12 @@ import org.droidmate.exploration.actions.pressBack
  *
  * @author Nataniel P. Borges Jr.
  */
-class Back : AbstractStrategy() {
+object Back : AbstractStrategy() {
 	override fun mustPerformMoreActions(): Boolean {
 		return false
 	}
 
-	override fun internalDecide(): AbstractExplorationAction {
+	override fun internalDecide(): ExplorationAction {
 		return eContext.pressBack()
 	}
 }

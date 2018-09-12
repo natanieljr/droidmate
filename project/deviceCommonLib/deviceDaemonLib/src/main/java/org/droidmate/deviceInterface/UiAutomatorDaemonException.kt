@@ -22,17 +22,18 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.exploration.strategy.playback
 
-import org.droidmate.exploration.actions.ResetAppExplorationAction
+package org.droidmate.deviceInterface
 
-class PlaybackResetAction : ResetAppExplorationAction() {
+class UiAutomatorDaemonException : Exception {
 
-	override fun toShortString(): String {
-		return "(Playback) ${super.toShortString()}"
-	}
 
-	override fun toTabulatedString(): String {
-		return "(Playback) ${super.toTabulatedString()}"
-	}
+	constructor() : super() {}
+
+	constructor(arg0: String, arg1: Throwable) : super(arg0, arg1) {}
+
+	constructor(arg0: String) : super(arg0) {}
+
+	constructor(arg0: Throwable) : super(arg0) {}
+
 }

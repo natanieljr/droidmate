@@ -53,7 +53,8 @@ class ModelConfig private constructor(path: Path,
 
 	val baseDir = path.resolve(appName)  // directory path where the model file(s) should be stored
 	val stateDst = baseDir.resolve(config[statesSubDir].path)       // each state gets an own file named according to UUID in this directory
-	private val widgetImgDst = baseDir.resolve(config[widgetsSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
+	val widgetImgDst = baseDir.resolve(config[widgetsSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
+	val widgetNonInteractiveImgDst = widgetImgDst.resolve(nonInteractiveDir)
 
 	init {  // initialize directories (clear them if cleanDirs is enabled)
 		if (!isLoadC){
@@ -61,7 +62,7 @@ class ModelConfig private constructor(path: Path,
 			Files.createDirectories((baseDir))
 			Files.createDirectories((stateDst))
 			Files.createDirectories((widgetImgDst))
-			Files.createDirectories((widgetImgDst.resolve(nonInteractiveDir)))
+			Files.createDirectories((widgetNonInteractiveImgDst))
 		}
 	}
 
@@ -78,7 +79,7 @@ class ModelConfig private constructor(path: Path,
 		return idPath(baseDir, id.toString(), postfix, fileExtension)
 	}
 
-	val traceFile = { date: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$date${config[traceFileExtension]}" }
+	val traceFile = { traceId: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$traceId${config[traceFileExtension]}" }
 
 	companion object {
 		const val defaultWidgetSuffix = "_AllWidgets"
@@ -101,6 +102,8 @@ class ModelConfig private constructor(path: Path,
 }
 
 val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
+fun String.asUUID(): UUID? = if(this == "null") null else UUID.fromString(this)
+fun String.asConcreteId(): ConcreteId? = if(this == "null") null else idFromString(this)
 typealias ConcreteId = Pair<UUID, UUID>
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 fun ConcreteId.toString() = "${first}_$second"  // mainly for nicer debugging strings

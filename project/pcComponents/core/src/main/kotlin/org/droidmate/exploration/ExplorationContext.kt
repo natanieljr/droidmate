@@ -35,6 +35,9 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
+import org.droidmate.deviceInterface.guimodel.ActionType
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.guimodel.isLaunchApp
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
@@ -42,8 +45,6 @@ import org.droidmate.exploration.statemodel.features.StatementCoverageMF
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.exploration.statemodel.features.CrashListMF
 import org.droidmate.exploration.statemodel.features.ImgTraceMF
-import org.droidmate.exploration.strategy.EmptyActionResult
-import org.droidmate.exploration.strategy.playback.PlaybackResetAction
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.misc.TimeProvider
 import java.awt.Rectangle
@@ -51,17 +52,22 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
-class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
+@Suppress("MemberVisibilityCanBePrivate")
+class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper,
                                                    val apk: IApk,
                                                    adbWrapper: IAdbWrapper,
                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   val watcher: LinkedList<ModelFeature> = LinkedList(),
+                                                   private val watcher: LinkedList<ModelFeature> = LinkedList(),
                                                    val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
                                                    val actionTrace: Trace = _model.initNewTrace(watcher)) {
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
-			= (watcher.find { it is T } ?: T::class.java.newInstance().also { watcher.add(it) }) as T
+			= ( findWatcher{ it is T } ?: T::class.java.newInstance().also { addWatcher(it) } ) as T
+
+	fun findWatcher(c: (ModelFeature)->Boolean) = watcher.find(c)
+
+	fun<T:ModelFeature> addWatcher(w: T){ actionTrace.addWatcher(w) }
 
 	val crashlist: CrashListMF = getOrCreateWatcher()
 	val exceptionIsPresent: Boolean
@@ -99,22 +105,25 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		return state.topNodePackageName == apk.packageName
 	}
 
-	fun add(action: AbstractExplorationAction, result: ActionResult) {
+	fun add(action: ExplorationAction, result: ActionResult) {
+		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
+		apk.updateLaunchableActivityName(result.guiSnapshot.launchableMainActivityName)
 
-		if(action is AbstractClickExplorationAction) assert(result.action.widget == action.widget) { "ERROR on ACTION-RESULT construction the wrong action was instantiated widget was ${result.action.widget} instead of ${action.widget}"}
+		assert(action.toString() == result.action.toString()) { "ERROR on ACTION-RESULT construction the wrong action was instantiated ${result.action} instead of $action"}
 		_model.S_updateModel(result, actionTrace)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}
 
 	fun dump() {
+        println("dump models and watcher") //TODO Logger.info
+		assert(!apk.launchableMainActivityName.isBlank()) { "launchableMainActivityName was ${apk.launchableMainActivityName}" }
 		_model.P_dumpModel(_model.config)
 		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
 
 		// wait until all dump's completed
 		runBlocking {
-			println("dump models and watcher") //TODO Logger.info
 			ModelFeature.dumpJob.joinChildren()
 			_model.modelDumpJob.joinChildren()
 			println("DONE - dump models and watcher")
@@ -198,7 +207,7 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 			assert(this.explorationStartTime > LocalDateTime.MIN)
 			assert(this.explorationEndTime > LocalDateTime.MIN)
 
-			assertFirstActionIsReset()
+			assertFirstActionIsLaunchApp()
 			assertLastActionIsTerminateOrResultIsFailure()
 			assertLastGuiSnapshotIsHomeOrResultIsFailure()
 			assertOnlyLastActionMightHaveDeviceException()
@@ -291,13 +300,14 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		}
 	}
 
-	private fun assertFirstActionIsReset() {
-		assert(actionTrace.first().actionType == ResetAppExplorationAction::class.simpleName || actionTrace.first().actionType == PlaybackResetAction::class.simpleName)
+	private fun assertFirstActionIsLaunchApp() {
+		assert(actionTrace.getActions().subList(0,4).any { it.actionType.isLaunchApp() }// || actionTrace.first().actionType == PlaybackResetAction::class.simpleName
+		 )
 	}
 
 	private fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {
 		actionTrace.last()?.let {
-			assert(!it.successful || it.actionType == TerminateExplorationAction::class.simpleName)
+			assert(!it.successful || it.actionType == ActionType.Terminate.name)
 		}
 	}
 

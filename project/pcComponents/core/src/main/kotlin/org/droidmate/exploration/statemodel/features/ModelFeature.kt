@@ -27,12 +27,14 @@ package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.ExplorationContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
 /**
@@ -49,33 +51,58 @@ abstract class ModelFeature {
 	}
 
 	/** used in the strategy to ensure that the updating coroutine function already finished.
-	 * calling job.joinChildren() will wait for all currently running [onNewAction] and update instances to complete*/
+	 * calling job.joinChildren() will wait for all currently running [onNewAction] and update instances to complete
+	 * independent features should start their own child-job e.g. `init { job = Job(parent = (this.job)) }`
+	 */
 	var job = Job()
 
 	/** the eContext in which the update tasks of the class are going to be started,
 	 * for performance reasons they should run within the same pool for each feature
-	 * e.g. you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
+	 * e.g. `newCoroutineContext(context = CoroutineName("FeatureNameMF"), parent = job)`
+	 * or you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
 	abstract val context: CoroutineContext
 
 	/** this is called after the model was completely updated with the new action and state
-	 * this method gives access to the complete [context] inclusive other ModelFeatures */
+	 * this method gives access to the complete [context] inclusive other ModelFeatures
+	 *
+	 * WARNING: this method is not triggered when loading an already existing model
+	 */
 	open suspend fun onContextUpdate(context: ExplorationContext) { /* do nothing [to be overwritten] */
 	}
 
-	/** called whenever a new [targetWidget] was executed on the device resulting in [newState]
-	 * this function may be used instead of update for simpler access to the action and result state
+	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
+	 * this function may be used instead of update for simpler access to the action and result state.
+	 * The [targetWidgets] belong to the actions with hasWidgetTarget = true and are in the same order as they appeared
+	 * in the actionqueue.
 	 **/
-	open suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	}
+
+	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
+	 * this function may be used instead of update for simpler access to the action and result state.
+	 * The [targetWidgets] belong to the actions with hasWidgetTarget = true and are in the same order as they appeared
+	 * in the actionqueue.
+	 *
+	 * WARNING: this method only gets `EmptyAction` when loading an already existing model
+	 **/
+	open suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction,
+	                                 targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
+		/* do nothing [to be overwritten] */
+	}
+
+
+	// TODO check if an additional method with (targets,actions:ExplorationAction) would prove usefull
 
 	/** called whenever a new action was executed on the device resulting in [newState]
 	 * this function may be used instead of update for simpler access to the action and result state.
 	 *
-	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional delay to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
-	open suspend fun onNewAction(deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
-	}
+	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional timeout to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
+	open suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	} // FIXME in case of an ActionQueue this will not work properly
 
-	/** this method is called on each call to [ExplorationContext].dump() */
+	/** this method is called on each call to [ExplorationContext].dump()
+	 * this method should call `job.joinChildren()` to wait wait for all updates to be applied before persistating the features state
+	 */
 	open suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */
 	}
 }

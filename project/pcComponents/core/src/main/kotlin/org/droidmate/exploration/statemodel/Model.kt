@@ -30,6 +30,9 @@ import kotlinx.coroutines.experimental.channels.sendBlocking
 import org.droidmate.configuration.ConfigProperties.ModelProperties
 import org.droidmate.debug.debugT
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.droidmate.exploration.statemodel.loader.ModelParser
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -37,8 +40,9 @@ import java.util.*
 import kotlin.collections.HashSet
 import kotlin.system.measureTimeMillis
 
-internal operator fun UUID.plus(uuid: UUID): UUID {
-	return UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
+internal operator fun UUID.plus(uuid: UUID?): UUID {
+	return if(uuid == null) this
+	else UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
 }
 
 /** s_* should be only used in sequential eContext as it currently does not handle parallelism*/
@@ -53,16 +57,17 @@ class Model private constructor(val config: ModelConfig) {
 	val modelDumpJob = Job()
 
 
-	fun initNewTrace(watcher: LinkedList<ModelFeature>): Trace {
-		return Trace(watcher,config, modelJob).also {actionTrace ->
+	fun initNewTrace(watcher: LinkedList<ModelFeature>,id: UUID = UUID.randomUUID()): Trace {
+		return Trace(watcher,config, modelJob,id).also {actionTrace ->
 			addTrace(actionTrace)
 		}
 	}
 
 	private val states = CollectionActor(HashSet<StateData>(),"StateActor").create(modelJob)
 	/** @return a view to the data (suspending function) */
-	suspend fun getStates(): Set<StateData> = states.getAll()
-	/** @return a view to the data (blocking function) */
+	suspend fun getStates(): Set<StateData> = states.getAll<StateData,Set<StateData>>()
+	@Suppress("unused")
+			/** @return a view to the data (blocking function) */
 	fun S_getStates(): Set<StateData> = runBlocking{ states.getAll<StateData,Set<StateData>>() }
 
 	suspend fun addState(s: StateData){
@@ -105,6 +110,7 @@ class Model private constructor(val config: ModelConfig) {
 	 * REMARK if @widgets is set you have to ensure synchronization for this set on your own
 	 * if it is not set it will automatically use the models widget actor
 	 */
+    @Deprecated("to be removed")
 	suspend inline fun findWidgetOrElse(id: String, widgets: Collection<Widget>? = null, crossinline otherwise: (ConcreteId) -> Widget?): Widget? {
 		return if (id == "null") null
 		else idFromString(id).let {
@@ -113,9 +119,11 @@ class Model private constructor(val config: ModelConfig) {
 	}
 
 	fun P_dumpModel(config: ModelConfig) = launch(CoroutineName("Model-dump"),parent = modelDumpJob) {
-		println("dump Model with ${getStates().size}")
-		paths.map { t -> launch(CoroutineName("trace-dump"),parent = modelDumpJob) { t.dump(config) } }
-		getStates().map { s -> launch(CoroutineName("state-dump ${s.uid}"),parent = modelDumpJob) { s.dump(config) } }
+		getStates().let{ states ->
+			println("dump Model with ${states.size}")
+			states.forEach { s -> launch(CoroutineName("state-dump ${s.uid}"),parent = coroutineContext[Job]) { s.dump(config) } }
+		}
+		paths.forEach { t -> launch(CoroutineName("trace-dump"),parent = coroutineContext[Job]) { t.dump(config) } }
 	}
 
 	private var uTime: Long = 0
@@ -137,9 +145,11 @@ class Model private constructor(val config: ModelConfig) {
 
 				if (config[ModelProperties.imgDump.states]) launch(CoroutineName("screen-dump"),parent = modelDumpJob) {
 					action.screenshot.let { 	// if there is any screen-shot write it to the state extraction directory
-						java.io.File(config.statePath(newState.stateId,  fileExtension = ".png")).let { file ->
-							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-						}
+						if(it.isNotEmpty())
+							java.io.File(config.statePath(newState.stateId,  fileExtension = ".png")).let { file ->
+								Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+							}
+                        else logger.warn("No Screenshot available for ${newState.stateId}")
 						//DEBUG
 //						java.io.File(config.statePath(newState.stateId, postfix = "$nStates", fileExtension = ".png")).let { file ->
 //							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
@@ -161,22 +171,26 @@ class Model private constructor(val config: ModelConfig) {
 		}
 	}
 
-	private fun computeNewState(action: ActionResult, interactedEF: Map<UUID, List<Pair<StateData, Widget>>>): StateData {
-		debugT("compute Widget set ", { action.getWidgets(config) })
+	private fun computeNewState(action: ActionResult, @Suppress("UNUSED_PARAMETER") interactedEF: Map<UUID, List<Pair<StateData, Widget>>>): StateData {
+		debugT("compute Widget set ", { action.getWidgets(config) })  // compute all widgets existing in the current state
 				.let { widgets ->
-					// compute all widgets existing in the current state
-
+					widgets.forEach { widget ->  // Initialize the parent ID. It's first necessary to have all widgets  converted before being able to link them.
+						widget.parentId = widgets.firstOrNull {
+							it.idHash == widget.parentHash
+						}?.id
+					}
 					debugT("compute result State for ${widgets.size}\n", { action.resultState(widgets) }).let { state ->
 						// revise state if it contains previously interacted edit fields
 
-						return debugT("special widget handling", {
-							if (state.hasEdit) interactedEF[state.iEditId]?.let {
-								action.resultState(lazy { handleEditFields(state, it) })
-							} ?: state
-							else state
-						})
+						//FIXME this is currently buggy anyway and issues concurrent modification exception
+//						return debugT("special widget handling", {
+//							if (state.hasEdit) interactedEF[state.iEditId]?.let {
+//								action.resultState(lazy { handleEditFields(state, it) })
+//							} ?: state
+//							else state
+//						})
 //					return s!! //}
-//				return state
+				return state
 					}
 				}
 	}
@@ -188,6 +202,7 @@ class Model private constructor(val config: ModelConfig) {
 //		else null
 //	}
 	/** check for all edit fields of the state if we already interacted with them and thus potentially changed their text property, if so overwrite the uid to the original one (before we interacted with it) */
+	/* TODO instead of modifying, we simply re-create widgets and states
 	private val handleEditFields: (StateData, List<Pair<StateData, Widget>>) -> List<Widget> = { state, interactedEF ->
 		//		async {
 		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
@@ -229,8 +244,10 @@ class Model private constructor(val config: ModelConfig) {
 				}
 //		}
 	}
+	// */
 
 	companion object {
+        val logger: Logger by lazy { LoggerFactory.getLogger(this::class.java) }
 		@JvmStatic
 		fun emptyModel(config: ModelConfig): Model = Model(config).apply { runBlocking { addState(StateData.emptyState) }}
 
@@ -243,11 +260,11 @@ class Model private constructor(val config: ModelConfig) {
 		 */
 		@Suppress("unused")
 		@JvmStatic fun loadAppModel(appName: String, watcher: LinkedList<ModelFeature> = LinkedList())
-				= ModelLoader.loadModel(ModelConfig(appName = appName, isLoadC = true), watcher)
+				= ModelParser.loadModel(ModelConfig(appName = appName, isLoadC = true), watcher)
 
 		@JvmStatic
 		fun main(args: Array<String>) {
-			val test = ModelLoader.loadModel(ModelConfig(path = Paths.get("..","out","playback"), appName = "testModel", isLoadC =true))//loadAppModel("loadTest")
+			val test = ModelParser.loadModel(ModelConfig(path = Paths.get("..","out","playback"), appName = "testModel", isLoadC =true))//loadAppModel("loadTest")
 			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
 			test.getPaths().first().getActions().forEach { a ->
 				println("ACTION: " + a.actionString())

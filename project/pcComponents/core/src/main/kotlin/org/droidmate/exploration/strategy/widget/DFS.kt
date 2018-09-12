@@ -1,9 +1,10 @@
 package org.droidmate.exploration.strategy.widget
 
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.actions.*
 
 class DFS: GraphBasedExploration(){
-	override fun chooseAction(): AbstractExplorationAction {
+	override fun chooseAction(): ExplorationAction {
 		val nextEdge = graph.edges(currentState)
 				.firstOrNull { it.destination == null &&
 						it.label.targetWidget != null &&

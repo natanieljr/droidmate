@@ -25,4 +25,4 @@
 
 package org.droidmate.device
 
-public interface IAndroidDevice : IDeployableAndroidDevice, IExplorableAndroidDevice
+interface IAndroidDevice : IDeployableAndroidDevice, IExplorableAndroidDevice

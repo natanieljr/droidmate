@@ -33,67 +33,85 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.produce
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.stateFileExtension
 import org.droidmate.configuration.ConfigProperties.ModelProperties.dump.traceFilePrefix
-import org.droidmate.configuration.ConfigProperties.ModelProperties.path.statesSubDir
 import org.droidmate.debug.debugT
+import org.droidmate.deviceInterface.guimodel.P
+import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.ModelConfig.Companion.defaultWidgetSuffix
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.slf4j.LoggerFactory
+import java.io.BufferedReader
+import java.io.FileReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.streams.toList
 
-open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate logger for the intermediate processing steps
+@Deprecated("to be removed", replaceWith = ReplaceWith("ModelParserP(config)"))
+open class ModelLoader(protected val config: ModelConfig, private val customWidgetIndicies: Map<P,Int> = P.defaultIndicies) {  // TODO integrate logger for the intermediate processing steps
 	private val model = Model.emptyModel(config)
 
+	private val jobName = "ModelParsing ${config.appName}(${config.baseDir})"
 	private val job = Job()
-	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ModelParsing"), parent = job)
+	private val logger = LoggerFactory.getLogger(javaClass)
+
+	private fun context(name:String, parent:Job = job) = newCoroutineContext(context = CoroutineName(name), parent = parent)
 
 	@Suppress("UNUSED_PARAMETER")
-	private fun log(msg: String) {}//= println("[${Thread.currentThread().name}] $msg")
+	private fun log(msg: String) = if(config[ConfigProperties.Core.debugMode] && msg.contains("5498cd1f-c4c6-3014-a3b3-9e9e795c5631")){ println("[${Thread.currentThread().name}] $msg") } else {}
 
 	/** temporary map of all processed states for trace parsing */
-	private val stateQueue: MutableMap<ConcreteId,Deferred<StateData>> = ConcurrentHashMap()
+	private val stateQueue: MutableMap<ConcreteId,Deferred<StateData?>> = ConcurrentHashMap()
 
 	protected fun execute(watcher: LinkedList<ModelFeature>): Model{
 		// the very first state of any trace is always an empty state which is automatically added on Model initialization
-		StateData.emptyState.let{ stateQueue[it.stateId] = async { it } }
+		StateData.emptyState.let{ stateQueue[it.stateId] = async(CoroutineName("empty State")) { it } }
 		val producer = traceProducer()
 		repeat(5){ traceProcessor( producer, watcher ) }  // process up to 5 exploration traces in parallel
 		runBlocking {
 			log("wait for children completion")
 			job.joinChildren() } // wait until all traces were processed (the processor adds the trace to the model)
+		job.invokeOnCompletion { exception -> if(exception!=null) {
+			throw RuntimeException("\n---------------------------\n ERROR while parsing model $jobName",exception)}
+		}
 		stateQueue.clear()
 		widgetQueue.clear()
 		return model
 	}
 
-	protected open fun traceProducer() = produce<Path>(context, parent = job, capacity = 5){
+	protected open fun traceProducer() = produce<Path>(context(jobName), capacity = 5){
 		log("TRACE PRODUCER CALL")
-		Files.list(Paths.get(config.baseDir.toUri())).filter { it.fileName.toString().startsWith(config[traceFilePrefix]) }
-				.also{
-			for( p in it){	send(p)	}
-		}
+		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
+            s.filter { it.fileName.toString().startsWith(config[traceFilePrefix]) }
+                    .also {
+                        for (p in it) {
+                            send(p)
+                        }
+                    }
+        }
 	}
 
-	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(context, parent = job){
+	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(context(jobName)){
 		channel.consumeEach { tracePath ->
-			log("process path $tracePath")
-			synchronized(model) { model.initNewTrace(watcher) }.let { trace ->
+			logger.info("process path $tracePath")
+			val traceId = tracePath.fileName.toString().removePrefix(config[traceFilePrefix]).toUUID()
+			synchronized(model) { model.initNewTrace(watcher, traceId) }.let { trace ->
 				P_processLines(tracePath, lineProcessor = _actionParser).let { actionPairs ->  // use maximal parallelism to process the single actions/states
 					if (watcher.isEmpty()){
 						val resState = actionPairs.last().await().second
 						log(" wait for completion of actions")
+
+                        if (resState != null)
 						trace.updateAll(actionPairs.map { it.await().first }, resState)
 					}  // update trace actions
 					else {
 						log(" wait for completion of EACH action")
-						actionPairs.forEach { it.await().let{ (action,resState) -> trace.update(action, resState) }}
+						actionPairs.forEach { it.await().let{ (action,resState) -> if (resState!= null) trace.update(action, resState) }}
 					}
 				}
 			}
@@ -105,32 +123,58 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 		log("\n getFileContent skip=$skip, path= ${path.toUri()} \n")
 
 		if (!file.exists()) { return null } // otherwise this state has no widgets
-		file.bufferedReader().use { return it.lines().skip(skip).toList().also {
-			if(path.toUri().toString().contains("trace")) {
-				log(" FILE-Content ")
-				it.forEach { log(it) }
-				log(" END FileContent")
-			}
-		} }
+
+        return BufferedReader(FileReader(file)).use {
+            it.lines().skip(skip).toList()
+        }
 	}
-	private inline fun <reified T> P_processLines(path: Path, skip: Long = 1, crossinline lineProcessor: (List<String>) -> Deferred<T>): List<Deferred<T>> {
+
+
+
+    private inline fun <reified T> P_processLines(path: Path, skip: Long = 1, crossinline lineProcessor: (List<String>) -> Deferred<T>): List<Deferred<T>> {
 		log("call P_processLines for ${path.toUri()}")
 		getFileContent(path,skip)?.let { br ->	// skip the first line (headline)
-			assert(br.count() > 0, { "ERROR on model loading: file ${path.fileName} does not contain any entries" })
+			assert(br.count() > 0) { "ERROR on model loading: file ${path.fileName} does not contain any entries" }
 			return br.map { line -> lineProcessor(line.split(config[sep]).map { it.trim() }) }
 		} ?: return emptyList()
 	}
-	private val stateTask: (ConcreteId)->Deferred<StateData> = { key -> async(CoroutineName("parseState $key"),parent = job){ P_parseState(key)} }
+
+
+    private class Validation<T>(private val computation: () -> T) {
+        val result: Pair<T?, Throwable?> = {
+            try {
+                Pair(computation(), null)
+            } catch (t: Throwable) {
+                Pair(null, t)
+            }
+        }()
+
+
+        fun isSuccess() = result.first != null
+
+        fun isError() = result.first == null
+
+        fun get(): T = result.first?:{ throw result.second?: throw IllegalStateException() }()
+    }
+
+	private val stateTask: (ConcreteId)->Deferred<StateData?> = { key -> async(context("parseState $key")){
+        try {
+            P_parseState(key)
+        } catch (t: Throwable) {
+            logger.error("Error while parsing state $key", t)
+            null
+        }
+    }}
 
 	/** compute for each line in the trace file the ActionData object and the resulting StateData object */
-	protected val _actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData>> = { entries ->
+	protected val _actionParser: (List<String>) -> Deferred<Pair<ActionData, StateData?>> = { entries ->
 		log("parse action $entries")
-		async(CoroutineName("actionParser"), parent = job) {
+		async(context("actionParser ${entries[ActionData.srcStateIdx]}->${entries[ActionData.resStateIdx]}")) {
 		// we createFromString the source state and target widget if there is any
 		val resState = idFromString(entries[ActionData.resStateIdx]).let { resId ->
 			log("parse result: $resId")
 			// parse the result state with the contained widgets and queue them to make them available to other coroutines
-			stateQueue.computeIfAbsent(resId, stateTask).also { launch{ assert(it.await().stateId == resId, {"ERROR result State $it should have id $resId"})} }
+			stateQueue.computeIfAbsent(resId, stateTask).also { launch(CoroutineName("assert stateId $resId")){ assert(it.await()?.stateId == resId) {"ERROR result State $it should have id $resId"} } }
 		}
 		val targetWidget = entries[ActionData.widgetIdx].let { widgetIdString ->
 			if (widgetIdString == "null") null
@@ -140,9 +184,10 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 					stateQueue.computeIfAbsent(srcId, stateTask)
 							.await().let { srcState ->
 								log("SRC-State $srcId computed")
-								assert(srcState.stateId == srcId, {" ERROR source state $srcState should have id $srcId"})
-								srcState.widgets.find { it.id == targetWidgetId }
-										.also { assert(it != null, {" ERROR could not find target widget $targetWidgetId in source state $srcState" }) }
+								assert(srcState?.stateId == srcId) {" ERROR source state $srcState should have id $srcId"}
+								srcState?.widgets?.find { it.id == targetWidgetId }
+										.also {
+											assert(it != null) {" ERROR could not find target widget $targetWidgetId in source state $srcState" } }
 							}
 				}
 			}
@@ -150,50 +195,78 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 		Pair(ActionData.createFromString(entries, targetWidget, config[sep]), resState.await()).also { log("\n computed TRACE ${entries[ActionData.resStateIdx]}: ${it.first.actionString()}") }
 	}}
 	protected open fun getStateFile(stateId: ConcreteId): Triple<Path,Boolean,String>{
-		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).toList().first {
+		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).use { it.toList() }.first {
 			it.fileName.toString().startsWith( stateId.dumpString()+ defaultWidgetSuffix ) }
 		return contentPath.fileName.toString().let {
 			Triple(contentPath, it.contains("HS"), it.substring(it.indexOf("_PN-")+4,it.indexOf(config[stateFileExtension])))
 		}
 	}
 
+	private fun computeActableDescendent(widgets: Collection<Widget>){
+		val toProcess: LinkedList<ConcreteId> = LinkedList()
+		widgets.filter { it.properties.actable && it.parentId != null }.forEach {
+			toProcess.add(it.parentId!!) }
+		var i=0
+		while (i<toProcess.size){
+			val n = toProcess[i++]
+			widgets.find { it.id == n }?.run {
+				this.properties.hasActableDescendant = true
+				if(parentId != null && !toProcess.contains(parentId!!)) toProcess.add(parentId!!)
+			}
+		}
+	}
+
 	protected suspend fun P_parseState(stateId: ConcreteId):StateData {
-		log("parse state $stateId")
+//		logger.info("parse state $stateId")
 		val(contentPath,isHomeScreen,topPackage) = getStateFile(stateId)
+		val widgets = P_processLines(path = contentPath, lineProcessor = _widgetParser).map{it.await()}
+		computeActableDescendent(widgets)
 		return mutableSetOf<Widget>().apply {	// create the set of contained elements (widgets)
 			log(" parse file ${contentPath.toUri()}")
-				val widgets = P_processLines(path = contentPath, lineProcessor = _widgetParser).map{it.await()}
 
-					widgets.forEach {
-					log("await for each")
-					it.also {
-						// add the parsed widget to temporary set AND initialize the parent property
-						log(" add widget $it")
-						add(it)
+			widgets.forEach { w ->
+				log("await for each")
+				// add the parsed widget to temporary set AND initialize the parent property
+				log(" add widget $w")
+				add(w.copy().apply { parentId = w.parentId })
+			}
+		}.let { widgetSet ->
+			if (widgetSet.isNotEmpty())
+				StateData.fromFile(widgetSet,isHomeScreen,topPackage).also { newState ->
+					val lS = widgets.filter{ it.usedForStateId }
+					val nS = newState.widgets.filter {
+						newState.isRelevantForId(it)   // IMPORTANT: use this call instead of accessing usedForState property because the later is only initialized after the uid is accessed
 					}
+					if(lS.isNotEmpty()) {
+						val uidC = nS.containsAll(lS) && lS.containsAll(nS)
+						val nOnly = nS.minus(lS)
+						val lOnly = lS.minus(nS)
+						assert(uidC) {
+							"ERROR different set of widgets used for UID computation used \n ${nOnly.map { it.id }}\n instead of \n ${lOnly.map { it.id }}"
+						}
+					}
+					model.addState(newState)
 				}
-		}.let {
-			if (it.isNotEmpty())
-				StateData.fromFile(it,isHomeScreen,topPackage).also { newState -> model.addState(newState) }
 			else StateData.emptyState
 		}.also {
-					log("computed state $stateId with ${it.widgets.size} widgets")
-					assert(stateId == it.stateId, {
-						"ERROR on state parsing inconsistent UUID created ${it.stateId} instead of $stateId" }) }
+			log("computed state $stateId with ${it.widgets.size} widgets")
+			assert(stateId == it.stateId)
+			{ "ERROR on state parsing inconsistent UUID created ${it.stateId} instead of $stateId" }
+		}
 	}
 
 	/** temporary map of all processed widgets for state parsing */
-	private val widgetQueue: MutableMap<ConcreteId,Deferred<Widget>> = ConcurrentHashMap()
+	private val widgetQueue: MutableMap<Int,Deferred<Widget>> = ConcurrentHashMap()
 	protected val _widgetParser: (List<String>) -> Deferred<Widget> = { line ->
 		log("parse widget $line")
-		Pair((UUID.fromString(line[Widget.idIdx.first])),UUID.fromString(line[Widget.idIdx.second])).let { widgetId ->
-			widgetQueue.computeIfAbsent(widgetId) { id ->
-				log("parse widget absent $id")
-				async(CoroutineName("parseWidget $id"), parent = job) {
-					Widget.fromString(line).also { widget ->
-						model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
-						assert(id == widget.id, { "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" })
-					}
+		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
+		val id = ConcreteId(UUID.fromString(line[Widget.idIdx.first]),wConfigId)
+		widgetQueue.computeIfAbsent(line.toTypedArray().contentHashCode()) {
+			log("parse widget absent $id")
+			async(context("parseWidget $id")) {
+				Widget.fromString(line, customWidgetIndicies).also { widget ->
+					model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
+					assert(id == widget.id) { "ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id" }
 				}
 			}
 		}
@@ -204,28 +277,41 @@ open class ModelLoader(protected val config: ModelConfig) {  // TODO integrate l
 			return debugT("model loading", { ModelLoader(config).execute(watcher) }, inMillis = true)
 		}
 
-		@JvmStatic fun main(args: Array<String>) {  // helping function to identify differences of two state files  // --statesSubDir=.
-			val id1 by stringType
-			val id2 by stringType
+//			val config = ModelConfig("debug_diffs", true, cfg = parseArgs(args,	CommandLineOption(statesSubDir), CommandLineOption(id1),CommandLineOption(id2)).first)
+//			val loader = ModelLoader(config)
+//
+//			runBlocking {
+//				val s1 = loader.P_parseState(idFromString(config[id1]))
+//				val s2 = loader.P_parseState(idFromString(config[id2]))
+//				val onlyInS1 = s1.widgets.filterNot { s2.widgets.contains(it) }.filter{s1.isRelevantForId(it)}
+//				println("widgets which are only in s1")
+//				onlyInS1.forEach{
+//					if(s1.isRelevantForId(it)) println(it.dataString("\t"))
+//				}
+//				println("\n widgets which are only in s2")
+//				val onlyInS2 = s2.widgets.filterNot { s1.widgets.contains(it) }.filter{s2.isRelevantForId(it)}
+//				onlyInS2.forEach{
+//					if(s2.isRelevantForId(it)) println(it.dataString("\t"))
+//				}
+//
+//			}
 
-			val config = ModelConfig("debug_diffs", true, cfg = parseArgs(args,	CommandLineOption(statesSubDir), CommandLineOption(id1),CommandLineOption(id2)).first)
-			val loader = ModelLoader(config)
-
-			runBlocking {
-				val s1 = loader.P_parseState(idFromString(config[id1]))
-				val s2 = loader.P_parseState(idFromString(config[id2]))
-				val onlyInS1 = s1.widgets.filterNot { s2.widgets.contains(it) }.filter{s1.isRelevantForId(it)}
-				println("widgets which are only in s1")
-				onlyInS1.forEach{
-					if(s1.isRelevantForId(it)) println(it.dataString("\t"))
-				}
-				println("\n widgets which are only in s2")
-				val onlyInS2 = s2.widgets.filterNot { s1.widgets.contains(it) }.filter{s2.isRelevantForId(it)}
-				onlyInS2.forEach{
-					if(s2.isRelevantForId(it)) println(it.dataString("\t"))
-				}
-
-			}
+		/**
+		 * helping/debug function to manually load a model.
+		 * The directory containing the 'model' folder and the app name have to be specified, e.g.
+		 * '--Output-outputDir=pathToModelDir --appName=sampleApp'
+		 * --Core-debugMode=true (optional for enabling print-outs)
+		 */
+		@JvmStatic fun main(args: Array<String>) {
+			// stateDiff(args)
+			val appName by stringType
+			val cfg = parseArgs(args,
+					CommandLineOption(ConfigProperties.Output.outputDir), CommandLineOption(ConfigProperties.Core.debugMode),
+					CommandLineOption(appName)
+			).first
+			val config = ModelConfig(cfg[appName], true, cfg = cfg)
+			val m = ModelLoader.loadModel(config)
+			println("${config.appName} $m")
 		}
 
 	} /** end COMPANION **/

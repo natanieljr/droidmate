@@ -3,11 +3,9 @@
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.support.test.runner.screenshot.Screenshot
-import android.support.test.uiautomator.NodeProcessor
-import android.support.test.uiautomator.UiDevice
-import android.support.test.uiautomator.apply
-import android.support.test.uiautomator.getNonSystemRootNodes
+import android.support.test.uiautomator.*
 import android.util.Log
 import android.util.Xml
 import android.view.accessibility.AccessibilityNodeInfo
@@ -16,7 +14,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.uiautomator2daemon.debugT
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.WidgetData
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.util.*
@@ -28,19 +26,27 @@ import kotlin.system.measureTimeMillis
 object UiHierarchy : UiParser() {
 	private const val LOGTAG = "droidmate/UiHierarchy"
 
+	var appArea: Rect = Rect()
+
 	private var nActions = 0
 	private var ut = 0L
 	suspend fun fetch(device: UiDevice): List<WidgetData> = debugT(" compute UiNodes avg= ${ut/(max(nActions,1)*1000000)}", {
 		deviceW = device.displayWidth
 		deviceH = device.displayHeight
+		appArea = computeAppArea()
 		val nodes = LinkedList<WidgetData>()
 
-		device.getNonSystemRootNodes().let{
-			it.forEachIndexed { index: Int, root: AccessibilityNodeInfo ->
-				rootIdx = index
-				createBottomUp(root,parentXpath = "//", nodes = nodes)
+		try {
+			device.getNonSystemRootNodes().let {
+				it.forEachIndexed { index: Int, root: AccessibilityNodeInfo ->
+					rootIdx = index
+					createBottomUp(root, parentXpath = "//", nodes = nodes)
+				}
 			}
+		} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date
+			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}\n last widget was ${nodes.lastOrNull()}")
 		}
+
 		nodes.also { Log.d(LOGTAG,"#elems = ${it.size}")}
 	}, inMillis = true, timer = {ut += it; nActions+=1})
 
@@ -66,18 +72,51 @@ object UiHierarchy : UiParser() {
 	}}, inMillis = true)
 
 	/** check if this node fullfills the given condition and recursively check descendents if not **/
-	fun any(device: UiDevice, cond: SelectorCondition):Boolean{
-		var found = false
+	fun any(device: UiDevice, retry: Boolean=false, cond: SelectorCondition):Boolean{
+		return findAndPerform(device, cond, retry) { _ -> true}
+	}
 
-		val processor:NodeProcessor = { node,_ ->
-			if (!isActive || !node.isVisibleToUser || !node.refresh()) false  // do not traverse deeper
-			else {
-				found = cond(node)
+	/** looks for a UiElement fulfilling [cond] and executes [action] on it.
+	 * The search condition should be unique to avoid unwanted side-effects on other nodes which fulfill the same condition.
+	 */
+	@JvmOverloads fun findAndPerform(device: UiDevice, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
+		var found = false
+		var successfull = false
+
+		val processor:NodeProcessor = { node,_, xPath ->
+			when{
+				found -> false // we already found our target and performed our action -> stop searching
+				!isActive -> {Log.w(LOGTAG,"process became inactive"); false}
+				!node.isVisibleToUser -> {
+//					Log.d(LOGTAG,"node $xPath is invisible")
+					false}
+				!node.refresh() -> {Log.w(LOGTAG,"refresh on node $xPath failed"); false}
+			// do not traverse deeper
+			else -> {
+				found = cond(node,xPath).also { isFound ->
+					if(isFound){
+						successfull = action(node).run { if(retry && !this){
+							Log.d(LOGTAG,"action failed on $node\n with id ${xPath.hashCode()+rootIndex}, try a second time")
+							runBlocking { delay(20) }
+							action(node)
+							}else this
+						}.also {
+							Log.d(LOGTAG,"action returned $it")
+						}
+					}
+				}
 				!found // continue if condition is not fulfilled yet
+				}
 			}
 		}
 		device.apply(processor)
-		return found
+		if(retry && !found) {
+			Log.d(LOGTAG,"didn't find target, try a second time")
+			runBlocking { delay(20) }
+			device.apply(processor)
+		}
+		Log.d(LOGTAG,"found = $found")
+		return found && successfull
 	}
 
 	/** @paramt timeout amount of mili seconds, maximal spend to wait for condition [cond] to become true (default 10s)
@@ -96,7 +135,7 @@ object UiHierarchy : UiParser() {
 
 		while(!found && time<timeout){
 			measureTimeMillis {
-				with(async { any(device, cond) }) {
+				with(async { any(device, retry=false, cond=cond) }) {
 					var i = 0
 					while(!isCompleted && i<scanTimeout){
 						delay(10)
@@ -112,22 +151,27 @@ object UiHierarchy : UiParser() {
 				Log.d(LOGTAG,"$found single wait iteration $this")
 			}
 		}
-		found
+		found.also {
+			Log.d(LOGTAG,"wait was successful: $found")
+		}
 	}
 
-	suspend fun getScreenShot(): Bitmap {
-		var screenshot =
-				debugT("first screen-fetch attemp ", {Screenshot.capture().bitmap},inMillis = true)
+	suspend fun getScreenShot(delayForRetry:Long): Bitmap? {
+		var screenshot: Bitmap? = null
+		debugT("first screen-fetch attempt ", {
+			try{ screenshot = Screenshot.capture()?.bitmap }
+			catch (e: Exception){ Log.w(LOGTAG,"exception on screenshot-capture") }
+		},inMillis = true)
 
 		if (screenshot == null){
 			Log.d(LOGTAG,"screenshot failed")
-			delay(10)
-			screenshot = Screenshot.capture().bitmap
+			delay(delayForRetry)
+			screenshot = Screenshot.capture()?.bitmap
 		}
 		return screenshot.also {
 			if (it == null)
 				Log.w(LOGTAG,"no screenshot available")
-			}
+		}
 	}
 
 	@JvmStatic private var t = 0.0
@@ -144,7 +188,7 @@ object UiHierarchy : UiParser() {
 			bytes = stream.toByteArray()
 			stream.close()
 		} catch (e: Exception) {
-			Log.e(LOGTAG, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
+			Log.w(LOGTAG, "Failed to compress screenshot: ${e.message}. Stacktrace: ${e.stackTrace}")
 		}
 
 		bytes

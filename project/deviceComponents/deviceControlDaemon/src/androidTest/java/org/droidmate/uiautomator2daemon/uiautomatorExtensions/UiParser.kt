@@ -1,12 +1,18 @@
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
+import android.app.Service
+import android.graphics.Point
 import android.graphics.Rect
+import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.getBounds
+import android.util.Log
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
-import org.droidmate.uiautomator_daemon.guimodel.WidgetData
-import org.droidmate.uiautomator_daemon.guimodel.center
+import org.droidmate.deviceInterface.guimodel.WidgetData
+import org.droidmate.deviceInterface.guimodel.center
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy.appArea
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
 
@@ -15,14 +21,14 @@ abstract class UiParser {
 	protected var deviceW: Int = 0
 	protected var deviceH: Int = 0
 	protected var rootIdx: Int = 0
-	protected suspend fun createBottomUp(node: AccessibilityNodeInfo, index: Int = 0, parentXpath: String, nodes: MutableList<WidgetData>, parentH: Int = 0): WidgetData{
+	protected suspend fun createBottomUp(node: AccessibilityNodeInfo, index: Int = 0, parentXpath: String, nodes: MutableList<WidgetData>, parentH: Int = 0): WidgetData {
 		if(!isActive) return WidgetData("Error Fetch was canceled")
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
 		val nChildren = node.childCount
 		// bottom-up strategy, process children first if they exist
 		val children = (0 until nChildren).map { i ->
-			createBottomUp(node.getChild(i),i, xPath,nodes,xPath.hashCode()+rootIdx)
+			createBottomUp(node.getChild(i),i, "$xPath/",nodes,xPath.hashCode()+rootIdx)
 		}
 
 		return node.createWidget(xPath,children,parentH).also {
@@ -31,7 +37,7 @@ abstract class UiParser {
 		}
 	}
 
-	private fun AccessibilityNodeInfo.createWidget(xPath: String, children: List<WidgetData>,parentH: Int): WidgetData{
+	private fun AccessibilityNodeInfo.createWidget(xPath: String, children: List<WidgetData>, parentH: Int): WidgetData {
 		val nodeRect: Rect = this.getBounds(deviceW, deviceH)
 
 		val node = WidgetData(
@@ -41,15 +47,15 @@ abstract class UiParser {
 				className = safeCharSeqToString(className),
 				packageName = safeCharSeqToString(packageName),
 				enabled = isEnabled,
-				editable = isEditable, // could be usefull for custom widget classes to identify input fields				java.lang.Boolean.toString(isCheckable),
+				editable = isEditable, // could be usefull for custom widget classes to identify input fields
 				isPassword = isPassword,
 				clickable = isClickable,
 				longClickable = isLongClickable,
-				checked = if(isCheckable) isChecked else null,
-				focused = if(isFocusable)	isFocused else null,
+				checked = if (isCheckable) isChecked else null,
+				focused = if (isFocusable) isFocused else null,
 				scrollable = isScrollable,
 				selected = isSelected,
-				visible = isVisibleToUser,
+				visible = isVisibleToUser && nodeRect.intersect(appArea), // visible if partially within app area
 				boundsX = nodeRect.left,
 				boundsY = nodeRect.top,
 				boundsHeight = nodeRect.height(),
@@ -98,9 +104,29 @@ abstract class UiParser {
 				}
 	}
 
+	/**
+	 * The display may contain decorative elements as the status and menue bar which.
+	 * We use this method to check if an element is unvisible, since it is overlayed by such decorative elements.
+	 */
+	fun computeAppArea():Rect{
+	// compute the height of the status bar, which determines the offset for any visible app element
+		var sH = 0
+		val resources = InstrumentationRegistry.getInstrumentation().context.resources
+		val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+		if (resourceId > 0) {
+			sH = resources.getDimensionPixelSize(resourceId)
+		}
+
+		val p = Point()
+		(InstrumentationRegistry.getInstrumentation().context.getSystemService(Service.WINDOW_SERVICE) as WindowManager)
+		.defaultDisplay.getSize(p)
+
+		return Rect(0,sH,p.x,p.y)
+	}
+
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
 			{ serializer: XmlSerializer, width: Int, height: Int ->
-				{ node: AccessibilityNodeInfo, index: Int->
+				{ node: AccessibilityNodeInfo, index: Int, _ ->
 					serializer.startTag("", "node")
 					if (!nafExcludedClass(node))
 						serializer.attribute("", "NAF", java.lang.Boolean.toString(true))
@@ -139,7 +165,7 @@ abstract class UiParser {
 	private fun safeCharSeqToString(cs: CharSequence?): String {
 		return if (cs == null)	""
 		else
-			stripInvalidXMLChars(cs).replace(";", "<semicolon>").replace("\n", "<newline>")
+			stripInvalidXMLChars(cs).replace(";", "<semicolon>").replace(Regex("\\r\\n|\\r|\\n"), "<newline>").trim()
 	}
 
 	private fun stripInvalidXMLChars(cs: CharSequence): String {

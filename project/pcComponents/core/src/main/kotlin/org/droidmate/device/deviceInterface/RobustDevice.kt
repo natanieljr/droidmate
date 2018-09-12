@@ -38,10 +38,8 @@ import org.droidmate.device.TcpServerUnreachableException
 import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
-import org.droidmate.uiautomator_daemon.guimodel.FetchGUiAction
-import org.droidmate.uiautomator_daemon.guimodel.PressHomeAction
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
@@ -185,7 +183,7 @@ class RobustDevice : IRobustDevice {
 
 		},
 				this.stopAppRetryAttempts,
-				/* Retry delay. Zero, because after seeing the app didn't stop, we immediately clear package again. */
+				/* Retry timeout. Zero, because after seeing the app didn't stop, we immediately clear package again. */
 				0)
 	}
 
@@ -200,14 +198,14 @@ class RobustDevice : IRobustDevice {
 					guiSnapshot.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
 					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
-						perform(PressHomeAction)
+						perform(GlobalAction(ActionType.PressHome))
 					}
 				}
 			}
 
 			guiSnapshot.isHomeScreen
 		},
-				ensureHomeScreenIsDisplayedAttempts, /* delay */ 0)
+				ensureHomeScreenIsDisplayedAttempts, /* timeout */ 0)
 
 		if (!guiSnapshot.isHomeScreen) {
 			throw DeviceException("Failed to ensure home screen is displayed. " +
@@ -259,7 +257,7 @@ class RobustDevice : IRobustDevice {
 			false
 	}
 
-	override fun perform(action: Action): DeviceResponse {
+	override fun perform(action: ExplorationAction): DeviceResponse {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
 							{ debugT("perform action ${action::class.simpleName} avg = ${time/max(1,c)}", {this.device.perform(action)}
@@ -284,55 +282,6 @@ class RobustDevice : IRobustDevice {
 
 	@Throws(DeviceException::class)
 	private fun getAppIsRunningRebootingIfNecessary(packageName: String): Boolean = rebootIfNecessary("device.appIsRunning(packageName:$packageName)", true) { this.device.appIsRunning(packageName) }
-
-	override fun launchApp(packageName: String): DeviceResponse {
-		log.debug("launchApp($packageName)")
-		return rebootIfNecessary("device.launchApp(packageName:$packageName)", true) { this.device.launchApp(packageName) }
-	}
-
-	override fun launchApp(apk: IApk): DeviceResponse {
-		return this.launchApp(apk.packageName)
-
-		/*if (apk.launchableActivityName.isNotEmpty())
-			this.launchApp(apk.launchableActivityComponentName)
-		else {
-			assert(apk.applicationLabel.isNotEmpty())
-			this.clickAppIcon(apk.applicationLabel)
-		}*/
-
-		//return this.perform(FetchGUiAction())
-	}
-
-	/*override fun launchApp(packageName: String) {
-		// KJA recognition if launch succeeded and checking if ANR is displayed should be also implemented for
-		// this.clickAppIcon(), which is called by caller of this method.
-
-		var launchSucceeded = false
-		try {
-			// WISH when ANR immediately appears, waiting for full SysCmdExecutor.sysCmdExecuteTimeout to pass here is wasteful.
-			this.device.launchApp(packageName)
-			launchSucceeded = true
-
-		} catch (e: AdbWrapperException) {
-			log.warn(Markers.appHealth, "! device.launchApp($packageName) threw $e " +
-					"Discarding the exception, rebooting and continuing.")
-
-			this.rebootAndRestoreConnection()
-		}
-
-		// KJA if launch succeeded, but uia-daemon broke, this command will reboot device, returning home screen,
-		// making exploration strategy terminate due to "home screen after reset". This happened on
-		// net.zedge.android_v4.10.2-inlined.apk
-		// KJA think where else the bug above can also cause problems. I.e. getting home screen due to uia-d reset.
-		val guiSnapshot = this.getExplorableGuiSnapshotWithoutClosingANR()
-
-		// KJA this case happened once com.spotify.music_v1.4.0.631-inlined.apk, but I forgot to write down random seed.
-		// If this will happen more often, consider giving app second chance on restarting even after it crashes:
-		// do not try to relaunch here; instead do it in exploration strategy. This way API logs from the failed launch will be
-		// separated.
-		if (launchSucceeded && guiSnapshot.isAppHasStoppedDialogBox)
-			log.debug(Markers.appHealth, "device.launchApp($packageName) succeeded, but ANR is displayed.")
-	}*/
 
 	@Throws(DeviceException::class)
 	private fun getExplorableGuiSnapshot(): DeviceResponse {
@@ -397,7 +346,7 @@ class RobustDevice : IRobustDevice {
 	private fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
 		return rebootIfNecessary("device.getGuiSnapshot()", true) {
-			perform(FetchGUiAction)
+			perform(GlobalAction(ActionType.FetchGUI))
 		}
 	}
 

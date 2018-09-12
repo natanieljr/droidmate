@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.actions.AbstractExplorationAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.statemodel.features.EventProbabilityMF
@@ -44,9 +44,9 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 		: this(cfg.randomSeed, modelName, arffName)
 
 	protected open val eventWatcher: EventProbabilityMF by lazy {
-		(eContext.watcher.find { it is EventProbabilityMF }
+		(eContext.findWatcher { it is EventProbabilityMF }
 				?: EventProbabilityMF(modelName, arffName, true)
-						.also { eContext.watcher.add(it) }) as EventProbabilityMF
+						.also { eContext.addWatcher(it) }) as EventProbabilityMF
 	}
 
 	@Suppress("MemberVisibilityCanBePrivate")
@@ -66,7 +66,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	/**
 	 * Selects a widget following "Fitness Proportionate Selection"
 	 */
-	override fun chooseRandomWidget(): AbstractExplorationAction {
+	override fun chooseRandomWidget(): ExplorationAction {
 		val candidates = this.internalGetWidgets()
 		assert(candidates.isNotEmpty())
 
@@ -74,7 +74,6 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 		val selectedIdx = stochasticSelect(probabilities.values, 10)
 		val chosenWidgetInfo = candidates[selectedIdx]
 
-		this.eContext.lastTarget = chosenWidgetInfo
 		return chooseActionForWidget(chosenWidgetInfo)
 	}
 

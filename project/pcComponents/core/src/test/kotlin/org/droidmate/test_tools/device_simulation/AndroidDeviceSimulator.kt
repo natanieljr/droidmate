@@ -28,8 +28,8 @@ package org.droidmate.test_tools.device_simulation
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.device.IAndroidDevice
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import java.nio.file.Path
 import java.time.LocalDateTime
 
@@ -158,7 +158,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun perform(action: Action): DeviceResponse {
+	override fun perform(action: ExplorationAction): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -179,10 +179,6 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	}
 
 	override fun anyMonitorIsReachable(): Boolean {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
-	override fun launchApp(packageName: String): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -267,7 +263,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 			return outSnapshot
 	}
 
-	override fun perform(action: Action) {
+	override fun perform(action: ExplorationAction) {
 			log.debug("perform($action)")
 
 			findMatchingExceptionSpecAndThrowIfApplies("perform", this.getCurrentlyDeployedPackageName())
@@ -289,7 +285,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 			}
 	}
 
-	private fun updateSimulatorState(action: Action) {
+	private fun updateSimulatorState(action: ExplorationAction) {
 			//if (action is ClickExplorationAction)
 			//  println("action widget uid: ${(action as ClickExplorationAction).widget.uid}")
 

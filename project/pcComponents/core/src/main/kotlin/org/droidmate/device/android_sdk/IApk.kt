@@ -31,8 +31,6 @@ import java.nio.file.Path
 interface IApk : Serializable {
 	val path: Path
 	val packageName: String
-	val launchableActivityName: String
-	val launchableActivityComponentName: String
 	val applicationLabel: String
 	val fileName: String
 	val fileNameWithoutExtension: String
@@ -42,4 +40,14 @@ interface IApk : Serializable {
 	val instrumented: Boolean
 
 	val isDummy: Boolean
+
+	/**
+	 * An APK can have multiple launchable activities. Therefore, we set this value
+	 * during run, when we get this information from the device.
+	 */
+	var launchableMainActivityName: String
+	fun updateLaunchableActivityName(newValue: String) {
+		launchableMainActivityName = if (newValue.isBlank()) launchableMainActivityName else newValue
+	}
+
 }

@@ -1,13 +1,14 @@
-package org.droidmate.exploration.statemodel
+package org.droidmate.exploration.statemodel.loader
 
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.configuration.ConfigProperties.ModelProperties
 import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
+import org.droidmate.configuration.ConfigProperties.ModelProperties
+import org.droidmate.exploration.statemodel.*
 import java.util.*
 
 private val config = ModelConfig("JUnit", true)
@@ -23,18 +24,16 @@ private val config = ModelConfig("JUnit", true)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
 class ModelLoadTester: DroidmateTestCase(), TestModel by DefaultTestModel(), ModelLoaderTI by ModelLoaderT(config) {
-	private val testState = StateData(setOf(testWidget),homeScreen= false,topPackage = testWidget.packageName)
-	private val states = listOf(testState)
+	private val testState = StateData(setOf(testWidget), homeScreen = false, topPackage = testWidget.packageName)
+	private val states = listOf(testState, StateData.emptyState)
 
 	@Test
 	fun widgetParsingTest() = runBlocking{
-		parseWidget(testWidget).await()!!.let{
-			expect(it.dataString(config[ModelProperties.dump.sep]),testWidget.dataString(config[ModelProperties.dump.sep]))
-		}
+		expect(parseWidget(testWidget)!!.dataString(config[ModelProperties.dump.sep]),testWidget.dataString(config[ModelProperties.dump.sep]))
 	}
 
 	@Test fun loadTest(){
-		val actions = listOf(TestModel.TestAction(testWidget,testState.stateId))
+		val actions = listOf(createTestAction(testWidget, testState.stateId))
 		val model = execute(listOf(actions),states)
 		runBlocking {
 			expect(model.getState(testState.stateId)!!.widgetsDump("\t"),testState.widgetsDump("\t"))
@@ -55,10 +54,10 @@ class ModelLoadTester: DroidmateTestCase(), TestModel by DefaultTestModel(), Mod
 
 	@Test fun loadMultipleActionsTest(){
 		val actions = LinkedList<ActionData>().apply {
-			add(TestModel.TestAction(nextState = testState.stateId,actionType = "ResetAppExplorationAction"))
+			add(createTestAction(nextState = testState.stateId, actionType = "ResetAppExplorationAction"))
 			for(i in 1..5)
-				add(TestModel.TestAction(prevState = testState.stateId,nextState = testState.stateId,actionType = "$i test action",targetWidget = testWidget))
-			add(TestModel.TestAction(prevState = testState.stateId,actionType = "last null action"))
+				add(createTestAction(oldState = testState.stateId, nextState = testState.stateId, actionType = "$i test action", targetWidget = testWidget))
+			add(createTestAction(oldState = testState.stateId, actionType = "last null action"))
 		}
 		val model = execute(listOf(actions),states)
 

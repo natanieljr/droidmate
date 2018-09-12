@@ -8,88 +8,86 @@
 // www.droidmate.org
 
 allprojects {
-	group = "org.droidmate"
-	version = "1.0"
+    group = "org.droidmate"
+    version = "1.1-SNAPSHOT"
 
-	/* Merge all the build directories into one. */
+    /* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
 
-	repositories {
+    repositories {
 //		mavenLocal()
-		mavenCentral()
-		jcenter()
+        mavenCentral()
+        jcenter()
 
-		maven { url = 'https://jitpack.io' }
-	}
+        maven { url = 'https://jitpack.io' }
+    }
 
-	apply plugin: 'java'
+    apply plugin: 'java'
 
-	task sourcesJar(type: Jar, dependsOn: "classes") {
-		classifier = 'sources'
-		from sourceSets.main.allJava
-		from sourceSets.main.allSource
-		from sourceSets.test.allSource
-	}
-
-	apply plugin: 'maven'
-	artifacts {
-		archives sourcesJar
-	}
+    task sourcesJar(type: Jar, dependsOn: "classes") {
+        classifier = 'sources'
+        from sourceSets.main.allJava
+        from sourceSets.main.allSource
+        from sourceSets.test.allSource
+    }
+    apply plugin: 'maven'
+    artifacts {
+        archives sourcesJar
+    }
 }
 
 apply from: file("project/log.gradle")
 apply from: file("project/functions.gradle")
 
 project.ext { // direct child projects would be childProjects
-	pcJvmTargets = subprojects.find() { it.name == 'pcComponents' }.subprojects
+    pcJvmTargets = subprojects.find() { it.name == 'pcComponents' }.subprojects
 }
 
-task Debug{
-	println(pcJvmTargets)
+task Debug {
+    println(pcJvmTargets)
 }
 
 buildscript {
-	repositories {
-		jcenter()
-	}
-	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
-	dependencies {
-		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
-	}
+    repositories {
+        mavenCentral()
+    }
+    apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
+    }
 }
 
 configure(pcJvmTargets) {
 
-	apply from: file("${rootProject.projectDir}/versions.gradle")
+    apply from: file("${rootProject.projectDir}/versions.gradle")
 
-	apply plugin: "kotlin"
-	sourceCompatibility = project.ext.javaVersion
-	targetCompatibility = project.ext.javaVersion
+    apply plugin: "kotlin"
+    sourceCompatibility = project.ext.javaVersion
+    targetCompatibility = project.ext.javaVersion
 
-	dependencies {
-		compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-		compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-		compile 'org.slf4j:slf4j-api:1.7.25'
-	}
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+        compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+        compile 'org.slf4j:slf4j-api:1.7.25'
+    }
 }
 
 apply from: file("${rootProject.projectDir}/versions.gradle")
 apply plugin: "kotlin"
 
-dependencies{
-	compile project(":project:pcComponents:API")
+dependencies {
+    compile project(":project:pcComponents:API")
 }
 
 jar {
-	manifest {
-		attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
-	}
+    manifest {
+        attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
+    }
 }
 
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish'
-
-publish.dependsOn {
+task resolveDependencies{ doFirst {
 	configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
 
 		if (resolvedArtifact.name != "all")
@@ -107,4 +105,5 @@ publish.dependsOn {
 				}
 			}
 	}
-}
+}}
+publish.dependsOn(resolveDependencies)

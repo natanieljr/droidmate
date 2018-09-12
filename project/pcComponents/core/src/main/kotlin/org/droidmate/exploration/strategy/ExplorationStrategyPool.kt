@@ -26,13 +26,11 @@
 package org.droidmate.exploration.strategy
 
 import kotlinx.coroutines.experimental.*
-import org.droidmate.debug.debugT
-import org.droidmate.debug.nullableDebugT
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionResult
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.actions.AbstractExplorationAction
 import org.slf4j.LoggerFactory
 import java.lang.Math.max
 
@@ -125,7 +123,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 			}
 
 
-		ExplorationStrategyPool.logger.debug("Best strategy is $bestStrategy (${bestStrategy.second.getCompleted()})")
+		ExplorationStrategyPool.logger.info("Best strategy is (${bestStrategy.first.description}->${bestStrategy.second.getCompleted()?.uniqueStrategyName})")
 
 		// notify
 		bestStrategy.first.onSelected?.invoke(this.memory)
@@ -135,7 +133,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 
 	override fun takeControl(strategy: ISelectableExplorationStrategy) {
 		ExplorationStrategyPool.logger.debug("Receiving back control from strategy $strategy")
-		assert(this.strategies.contains(strategy))
+		assert(this.strategies.contains(strategy) || strategy.noContext)
 		this.activeStrategy = null
 	}
 
@@ -148,6 +146,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		receivedStrategies.forEach { this.registerStrategy(it) }
 	}
 
+	@Suppress("MemberVisibilityCanBePrivate")
 	fun registerStrategy(strategy: ISelectableExplorationStrategy): Boolean {
 		ExplorationStrategyPool.logger.info("Registering strategy $strategy.")
 
@@ -179,7 +178,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		this.updateStrategiesState(record)
 	}
 
-	override fun decide(result: ActionResult): AbstractExplorationAction {
+	override fun decide(result: ActionResult): ExplorationAction {
 
 		logger.debug("decide($result)")
 
@@ -193,7 +192,10 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		else
 			logger.debug("Control is currently with strategy ${this.activeStrategy}")
 
+		val s = this.activeStrategy!!	// this val is necessary since .decide() may set this.activeStrategy to null already
 		val selectedAction = this.activeStrategy!!.decide()
+		// for non-registered strategies hand back control to this pool
+		if(s.noContext) this.activeStrategy = null
 
 		logger.info("(${this.memory.getSize()}) $selectedAction")
 

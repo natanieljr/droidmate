@@ -27,8 +27,8 @@ package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.guimodel.Action
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 import java.time.LocalDateTime
 
@@ -36,11 +36,8 @@ interface IExplorableAndroidDevice {
 	@Throws(DeviceException::class)
 	fun hasPackageInstalled(packageName: String): Boolean
 
-	//@Throws(DeviceException::class)
-	//fun getGuiSnapshot(): GuiStatusResponse
-
 	@Throws(DeviceException::class)
-	fun perform(action: Action): DeviceResponse
+	fun perform(action: ExplorationAction): DeviceResponse
 
 	@Throws(DeviceException::class)
 	fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage>
@@ -59,9 +56,6 @@ interface IExplorableAndroidDevice {
 
 	@Throws(DeviceException::class)
 	fun anyMonitorIsReachable(): Boolean
-
-	@Throws(DeviceException::class)
-	fun launchApp(packageName: String): DeviceResponse
 
 	@Throws(DeviceException::class)
 	fun appIsRunning(appPackageName: String): Boolean

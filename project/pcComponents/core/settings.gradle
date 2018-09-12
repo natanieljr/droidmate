@@ -1,0 +1,10 @@
+
+rootProject.name = 'core'
+def isIncludedBuild = gradle.parent != null
+if(!isIncludedBuild) {
+	includeBuild ('../../deviceCommonLib/deviceDaemonLib'){
+		dependencySubstitution {
+			substitute module('org.droidmate:deviceDaemonLib') with project(':')
+		}
+	}
+}

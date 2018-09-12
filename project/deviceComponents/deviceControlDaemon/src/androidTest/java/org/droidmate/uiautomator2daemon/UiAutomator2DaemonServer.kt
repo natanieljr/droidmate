@@ -20,14 +20,14 @@
 package org.droidmate.uiautomator2daemon
 
 import android.util.Log
-import org.droidmate.uiautomator_daemon.DeviceCommand
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.StopDaemonCommand
-import org.droidmate.uiautomator_daemon.UiAutomatorDaemonException
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG
+import org.droidmate.deviceInterface.DeviceCommand
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.StopDaemonCommand
+import org.droidmate.deviceInterface.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG
 
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 
 class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver: IUiAutomator2DaemonDriver)
 	: Uiautomator2DaemonTcpServerBase<DeviceCommand, DeviceResponse>(UIADAEMON_SERVER_START_TAG, UIADAEMON_SERVER_START_MSG) {

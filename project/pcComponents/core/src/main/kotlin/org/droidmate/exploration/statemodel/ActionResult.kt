@@ -32,11 +32,14 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.debug.debugT
 import org.droidmate.debug.measurePerformance
+import org.droidmate.device.deviceInterface.DeviceLogs
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.device.deviceInterface.IDeviceLogs
 import org.droidmate.device.deviceInterface.MissingDeviceLogs
-import org.droidmate.exploration.actions.AbstractExplorationAction
-import org.droidmate.uiautomator_daemon.DeviceResponse
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.guimodel.EmptyAction
+import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import java.awt.Rectangle
 import java.io.ByteArrayInputStream
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -47,7 +50,7 @@ import javax.imageio.ImageIO
  *
  * this should be only used for state model instantiation and not for exploration strategies
  *
- * @param action Action which was sent (by the ExplorationStrategy) to DroidMate
+ * @param action ExplorationAction which was sent (by the ExplorationStrategy) to DroidMate
  * @param startTimestamp Time the action selection started (used to sync logcat)
  * @param endTimestamp Time the action selection started (used to sync logcat)
  * @param deviceLogs APIs triggered by this action
@@ -57,7 +60,7 @@ import javax.imageio.ImageIO
  *
  * @author Nataniel P. Borges Jr.
  */
-open class ActionResult(val action: AbstractExplorationAction,
+open class ActionResult(val action: ExplorationAction,
                         val startTimestamp: LocalDateTime,
                         val endTimestamp: LocalDateTime,
                         val deviceLogs: IDeviceLogs = MissingDeviceLogs,
@@ -127,13 +130,14 @@ open class ActionResult(val action: AbstractExplorationAction,
 	}
 
 	fun resultState(widgets: List<Widget>): StateData = resultState(lazyOf(widgets))
-	fun resultState(widgets: Lazy<List<Widget>>): StateData {
+	private fun resultState(widgets: Lazy<List<Widget>>): StateData {
 		return guiSnapshot.let { g ->
-			StateData(widgets, g.topNodePackageName, g.androidLauncherPackageName, g.isHomeScreen, g.isAppHasStoppedDialogBox,
-					g.isRequestRuntimePermissionDialogBox)
+			StateData(widgets, topNodePackageName = g.topNodePackageName,
+					isAppHasStoppedDialogBox = g.isAppHasStoppedDialogBox, isHomeScreen = g.isHomeScreen).apply { appArea = Rectangle(0,g.statusBarSize,g.appSize.first,g.appSize.second+g.statusBarSize) }
 		}
 	}
 }
+object EmptyActionResult : ActionResult(EmptyAction, LocalDateTime.MIN, LocalDateTime.MIN, DeviceLogs())
 
 private var timeS: Long = 0
 private var timeP: Long = 0

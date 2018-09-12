@@ -27,9 +27,9 @@ package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.uiautomator_daemon.DeviceCommand
-import org.droidmate.uiautomator_daemon.DeviceResponse
-import org.droidmate.uiautomator_daemon.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.DeviceCommand
+import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.UiautomatorDaemonConstants
 
 class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
                                           private val deviceSerialNumber: String,

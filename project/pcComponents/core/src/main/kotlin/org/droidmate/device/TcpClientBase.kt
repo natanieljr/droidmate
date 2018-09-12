@@ -26,7 +26,7 @@
 package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.uiautomator_daemon.SerializationHelper
+import org.droidmate.deviceInterface.SerializationHelper
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.EOFException
@@ -37,7 +37,7 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable>
-	@JvmOverloads constructor(private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
+	constructor(private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
 	/*companion object {
 			private val log = LoggerFactory.getLogger(TcpClientBase::class.java)
 	}*/
