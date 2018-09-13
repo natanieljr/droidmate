@@ -23,11 +23,31 @@
 //
 // web: www.droidmate.org
 
+import java.nio.file.Files
+import java.nio.file.Paths
+
 apply plugin: 'project-report' // http://www.gradle.org/docs/current/userguide/project_reports_plugin.html
+apply plugin: 'application'
+
+mainClassName = "org.droidmate.frontend.DroidmateFrontend"
+
+// Run by ':project:pcComponents:command:run'
+(tasks.run as JavaExec).configure {
+
+	assert sourceSets.main.runtimeClasspath == classpath
+
+	workingDir rootDir
+	java.nio.file.Path argsFile = Paths.get("$rootDir/args.txt")
+	if (Files.exists(argsFile))
+	{
+		List<String> appArgs = argsFile.text.readLines().first().split(" ") as List<String>
+		args appArgs
+	}
+}
 
 jar {
 	manifest {
-		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
+		attributes 'Main-Class': mainClassName
 	}
 }
 
