@@ -45,7 +45,7 @@ dependencies {
 	// jdk dependency necessary for kotlin/stream library used by ResourceManager
 	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5"
+	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.26.0"
 
 	// Needed to allow logback to read the logback.groovy class
 	compile 'org.codehaus.groovy:groovy-all:2.4.12'
