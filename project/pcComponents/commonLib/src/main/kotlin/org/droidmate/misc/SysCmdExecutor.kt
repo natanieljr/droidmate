@@ -41,7 +41,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 
 	/** Timeout for executing system commands, in milliseconds. Zero or negative value means no timeout. */
 	// App that often requires more than one minute for "adb start": net.zedge.android_v4.10.2-inlined.apk
-	val sysCmdExecuteTimeout = 1000 * 60 * 2
+	private val sysCmdExecuteTimeout = 1000 * 60 * 2
 
 	/*
  * References:
@@ -59,7 +59,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 	}
 
 	override fun executeWithTimeout(commandDescription: String, timeout: Int, vararg cmdLineParams: String): Array<String> {
-		assert(cmdLineParams.isNotEmpty(), { "At least one command line parameters has to be given, denoting the executable." })
+		assert(cmdLineParams.isNotEmpty()) { "At least one command line parameters has to be given, denoting the executable." }
 
 		val params = cmdLineParams.toList().toTypedArray()
 
@@ -116,7 +116,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 					+ "Captured stderr: %s",
 					command.toString(),
 					e.exitValue,
-					getExecutionTimeMsg(executionTimeStopwatch, timeout, e.getExitValue(), commandDescription),
+					getExecutionTimeMsg(executionTimeStopwatch, timeout, e.exitValue, commandDescription),
 					if (processStdoutStream.toString().isEmpty()) processStdoutStream.toString() else "<stdout is empty>",
 					if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
 					e)
@@ -137,7 +137,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 			log.trace("Captured stderr:")
 			log.trace(processStderrStream.toString())
 		}
-		log.trace("Captured exit value: " + exitValue)
+		log.trace("Captured exit value: $exitValue")
 		log.trace("DONE executing system command")
 
 		return arrayOf(processStdoutStream.toString(), processStderrStream.toString())

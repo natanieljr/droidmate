@@ -24,10 +24,10 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-class Pad(private val first: String, private val second: String) {
+class Pad(first: String, second: String) {
 
-	val firstPadded: String
-	val secondPadded: String
+	private val firstPadded: String
+	private val secondPadded: String
 
 	operator fun component1() = firstPadded
 	operator fun component2() = secondPadded

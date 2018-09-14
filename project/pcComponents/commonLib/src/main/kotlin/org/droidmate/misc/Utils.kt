@@ -123,20 +123,20 @@ class Utils {
 
 		@JvmStatic
 		fun quoteIfIsPathToExecutable(path: String): String {
-			if (SystemUtils.IS_OS_WINDOWS) {
+			return if (SystemUtils.IS_OS_WINDOWS) {
 				if (Files.isExecutable(Paths.get(path)))
-					return '"' + path + '"'
+					'"' + path + '"'
 				else
-					return path
+					path
 			} else {
-				return path
+				path
 			}
 		}
 
 		@JvmStatic
 		fun quoteAbsolutePaths(stringArray: Array<String>): Array<String> {
 			stringArray.forEachIndexed { idx, it ->
-				if (File(it).isAbsolute())
+				if (File(it).isAbsolute)
 					stringArray[idx] = '"' + it + '"'
 			}
 			return stringArray

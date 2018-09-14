@@ -28,6 +28,6 @@ package org.droidmate.misc
 class ThrowablesCollection constructor(val throwables: List<Throwable>)
 	: DroidmateException("An aggregating exception holding a collection of ${Throwable::class.java.simpleName}s.") {
 	companion object {
-		private const val serialVersionUID: Long = -3644688474512679196L;
+		private const val serialVersionUID: Long = -3644688474512679196L
 	}
 }
