@@ -27,6 +27,7 @@ package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.joinChildren
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
@@ -62,6 +63,15 @@ abstract class ModelFeature {
 	 * e.g. `newCoroutineContext(context = CoroutineName("FeatureNameMF"), parent = job)`
 	 * or you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
 	abstract val context: CoroutineContext
+
+	/** this method is called to away for all features to be processed
+	 * this method gives access to the complete [context] inclusive other ModelFeatures
+	 *
+	 * WARNING: this method should not be called form within the model feature (unless running in a different job), otherwise it will cause a deadlock
+	 */
+	suspend fun await(){
+		job.joinChildren()
+	}
 
 	/** this is called after the model was completely updated with the new action and state
 	 * this method gives access to the complete [context] inclusive other ModelFeatures
