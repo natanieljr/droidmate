@@ -26,40 +26,26 @@ package org.droidmate.report
 
 import org.droidmate.misc.replaceVariable
 import org.droidmate.misc.zeroLeastSignificantDigits
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class extensions_miscKtTest {
 
 	@Test
 	fun zeroDigitsTest() {
-		assertThat(1299.zeroLeastSignificantDigits(2), equalTo(1200L))
+		assertEquals(1299.zeroLeastSignificantDigits(2), 1200L)
 	}
 
 	@Test
 	fun replaceVariableTest() {
-		assertThat(
+		assertEquals(
 				StringBuilder(
 						"Value of var_1 is \$var_1, value of xyz is \$xyz, and again, \$var_1 is the value of var_1.")
 						.replaceVariable("var_1", "777")
 						.replaceVariable("xyz", "magic")
 						.toString(),
-				equalTo(
-						"Value of var_1 is 777, value of xyz is magic, and again, 777 is the value of var_1."
-				))
+				"Value of var_1 is 777, value of xyz is magic, and again, 777 is the value of var_1."
+				)
 	}
-
-	// TODO Fix tests
-	/*@Test
-	fun setByUniqueStringTest() {
-		assertThat(
-			listOf(5, 6, 9, 10, 13, 29, 50, 60).setByUniqueString(
-				extractItems = { listOf(it, it + 1) },
-				uniqueString = { it.toString().dropLast(1) }
-			),
-			equalTo(setOf(5, 10, 29, 30, 50, 60))
-		)
-	}*/
 }
 

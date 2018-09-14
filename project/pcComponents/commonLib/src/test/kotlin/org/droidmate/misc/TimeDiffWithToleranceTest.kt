@@ -24,11 +24,10 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
 import org.junit.Test
 import java.time.Duration
 import java.time.LocalDateTime
+import kotlin.test.assertEquals
 
 class TimeDiffWithToleranceTest {
 	@Test
@@ -40,8 +39,8 @@ class TimeDiffWithToleranceTest {
 		val result1 = diff.warnIfBeyond(LocalDateTime.now(), LocalDateTime.now().minusSeconds(4), "First element", "2nd item", "apkFileName")
 		val result2 = diff.warnIfBeyond(LocalDateTime.now(), LocalDateTime.now().minusSeconds(2), "Item1", "Thing2", "apkFileName")
 
-		assertThat(result1, equalTo(true))
-		assertThat(result2, equalTo(false))
+		assertEquals(result1, true)
+		assertEquals(result2, false)
 	}
 
 }
