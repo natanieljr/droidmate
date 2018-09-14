@@ -25,10 +25,7 @@
 
 package org.droidmate.exploration
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.joinChildren
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.*
 import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
@@ -45,6 +42,8 @@ import org.droidmate.exploration.statemodel.features.CrashListMF
 import org.droidmate.exploration.statemodel.features.ImgTraceMF
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.misc.TimeProvider
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.awt.Rectangle
 import java.time.Duration
 import java.time.LocalDateTime
@@ -59,6 +58,10 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
                                                    private val watcher: LinkedList<ModelFeature> = LinkedList(),
                                                    val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
                                                    val actionTrace: Trace = _model.initNewTrace(watcher)) {
+	companion object {
+		@JvmStatic
+		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
+	}
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
 			= ( findWatcher{ it is T } ?: T::class.java.newInstance().also { addWatcher(it) } ) as T
@@ -114,17 +117,32 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}
 
+	fun close() {
+		log.info("finishing context updates, dumping data and restarting features")
+		dump()
+
+		// can use the same auxiliary job as the dump function, as it's already free
+		log.info("preparing features for next app")
+		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-finish"), parent = ModelFeature.auxiliaryJob) { it.onAppExplorationFinished(context) } } }
+
+		// wait until all features are restarted
+		runBlocking {
+			ModelFeature.auxiliaryJob.joinChildren()
+			log.debug("DONE - app finished notification")
+		}
+	}
+
 	fun dump() {
-        println("dump models and watcher") //TODO Logger.info
+		log.info("dump models and watcher")
 		assert(!apk.launchableMainActivityName.isBlank()) { "launchableMainActivityName was ${apk.launchableMainActivityName}" }
 		_model.P_dumpModel(_model.config)
-		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.auxiliaryJob) { it.dump(context) } } }
 
 		// wait until all dump's completed
 		runBlocking {
-			ModelFeature.dumpJob.joinChildren()
+			ModelFeature.auxiliaryJob.joinChildren()
 			_model.modelDumpJob.joinChildren()
-			println("DONE - dump models and watcher")
+			log.debug("DONE - dump models and watcher")
 		}
 	}
 
