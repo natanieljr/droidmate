@@ -28,7 +28,7 @@ package org.droidmate.configuration;
 
 import org.droidmate.misc.DroidmateException;
 
-public class ConfigurationException : DroidmateException {
+class ConfigurationException : DroidmateException {
 	companion object {
 		private const val serialVersionUID: Long = 1
 

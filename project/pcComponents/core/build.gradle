@@ -50,13 +50,10 @@ dependencies {
 	// Needed to allow logback to read the logback.groovy class
 	compile 'org.codehaus.groovy:groovy-all:2.4.12'
 
-	testCompile 'org.hamcrest:hamcrest-core:1.3'
-
 	compile project(":deviceDaemonLib")
 //	compile "org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}"
 
-	compile 'com.beust:jcommander:1.72'
-	compile 'com.google.guava:guava:23.0'
+	//compile 'com.beust:jcommander:1.72'
 	compile 'org.apache.commons:commons-lang3:3.8'
 	compile 'commons-io:commons-io:2.6'
 	compile 'org.apache.commons:commons-exec:1.3'
@@ -66,9 +63,6 @@ dependencies {
 	compile 'net.sf.opencsv:opencsv:2.3'
 	compile 'org.json:json:20160212'
 
-	// For visualizing device GUI model graphs
-	compile 'org.graphstream:gs-core:1.3'
-
 	// Filesystem stubbing
 	compile 'com.google.jimfs:jimfs:1.1'
 
@@ -77,9 +71,6 @@ dependencies {
 	compile 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
 	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
-
-	// Only for org.droidmate.tests_misc.JavaReprosTest.BBoxError
-	testCompile 'de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.10'
 
 	testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
 }
