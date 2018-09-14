@@ -173,7 +173,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 					nextTrace = getNextTraceAction()
 				}
 
-				LaunchApp(eContext.apk.packageName)
+				eContext.resetApp()
 			}
 			action.isPressBack() -> {
 				// If already in home screen, ignore
