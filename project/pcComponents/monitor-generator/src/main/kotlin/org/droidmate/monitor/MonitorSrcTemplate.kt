@@ -74,7 +74,7 @@ class MonitorSrcTemplate constructor(monitorSrcTemplatePath: Path, androidApi: A
 	}
 
 	fun injectGeneratedCode(genMethodsTargets: String): String {
-		return monitorSrcTemplate.split(System.lineSeparator()).map {
+		return monitorSrcTemplate.split(System.lineSeparator()).joinToString(System.lineSeparator()) {
 			if (it.contains(injectionPoints_methodTargets))
 				genMethodsTargets
 			else {
@@ -84,6 +84,5 @@ class MonitorSrcTemplate constructor(monitorSrcTemplatePath: Path, androidApi: A
 						BuildConstants.AVD_dir_for_temp_files + BuildConstants.port_file_name)
 			}
 		}
-				.joinToString(System.lineSeparator())
 	}
 }

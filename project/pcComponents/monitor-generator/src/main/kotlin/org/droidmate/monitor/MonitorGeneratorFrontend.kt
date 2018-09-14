@@ -53,7 +53,6 @@ class MonitorGeneratorFrontend {
 					MonitorSrcTemplate(res.monitorSrcTemplatePath, res.androidApi))
 
 
-//    List<ApiMethodSignature> signatures = getLegacyMethodSignatures(res)
 			val signatures = getMethodSignatures(res)
 
 			val monitorSrc = monitorGenerator.generate(signatures)

@@ -27,8 +27,8 @@ package org.droidmate.monitor
 
 import org.droidmate.apis.ApiMethodSignature
 
-class MonitorGenerator constructor(val redirectionsGenerator: IRedirectionsGenerator,
-                                   val monitorSrcTemplate: MonitorSrcTemplate) : IMonitorGenerator {
+class MonitorGenerator constructor(private val redirectionsGenerator: IRedirectionsGenerator,
+								   private val monitorSrcTemplate: MonitorSrcTemplate) : IMonitorGenerator {
 
 	override fun generate(signatures: List<ApiMethodSignature>): String {
 		val genMethodTargets = redirectionsGenerator.generateMethodTargets(signatures)
