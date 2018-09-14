@@ -81,7 +81,6 @@ dependencies {
 		transitive = false
 	}
 
-	androidTestImplementation 'commons-io:commons-io:2.6'
 	// Testing-only dependencies
 	// Force usage of support annotations in the test app, since it is internally used by the runner module.
 	androidTestImplementation 'com.android.support.test:runner:1.0.1'
