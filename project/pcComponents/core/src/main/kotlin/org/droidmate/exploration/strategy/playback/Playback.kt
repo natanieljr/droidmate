@@ -37,13 +37,15 @@ import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import java.lang.Integer.max
 import java.nio.file.Path
 
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 open class Playback constructor(private val modelDir: Path) : ExplorationStrategy() {
 
 	private var traceIdx = 0
 	private var actionIdx = 0
-	private lateinit var model : Model
+	protected lateinit var model : Model
 	private var lastSkipped: ActionData = ActionData.empty
+	protected var toExecute: ActionData = ActionData.empty
+
 
 	private val watcher: ActionPlaybackFeature by lazy {
 		(eContext.findWatcher { it is ActionPlaybackFeature }
@@ -119,9 +121,10 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 			return terminateApp()
 
 		val currTraceData = getNextTraceAction()
+		toExecute = currTraceData
 		val action = currTraceData.actionType
 		return when {
-			action.isClick() || 	action.isLongClick()-> {
+			action.isClick() || action.isLongClick()-> {
 				val verifyExecutability = currTraceData.targetWidget.canExecute(eContext.getCurrentState())
 				if(verifyExecutability.first>0.0) {
 					if(action.isClick())
@@ -162,7 +165,16 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 				}
 			}
 			action.isTerminate() -> terminateApp()
-			action.isLaunchApp() -> LaunchApp(eContext.apk.packageName)
+			action.isQueueStart() -> {
+				// Currently it supports only the launch app queue
+				// TODO Waiting Jenny's playback fix
+				var nextTrace = getNextTraceAction()
+				while(!nextTrace.actionType.isQueueEnd()){
+					nextTrace = getNextTraceAction()
+				}
+
+				LaunchApp(eContext.apk.packageName)
+			}
 			action.isPressBack() -> {
 				// If already in home screen, ignore
 				if (eContext.getCurrentState().isHomeScreen) {
@@ -233,7 +245,8 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 
 	override fun chooseAction(): ExplorationAction {
 		if( !eContext.isEmpty() && eContext.getCurrentState().isAppHasStoppedDialogBox && ! supposedToBeCrash()
-			&& !getNextTraceAction(peek = true).actionType.isLaunchApp())	handleReplayCrash()
+			&& !getNextTraceAction(peek = true).actionType.isLaunchApp())
+			handleReplayCrash()
 
 		return getNextAction().also{ println("PLAYBACK: $it")}
 	}
