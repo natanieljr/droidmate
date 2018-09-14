@@ -27,9 +27,12 @@ package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.Model
+import java.nio.file.Files
+import java.time.Duration
 import java.util.*
 import kotlin.collections.HashSet
 import kotlin.coroutines.experimental.CoroutineContext
@@ -48,5 +51,25 @@ class ActionPlaybackFeature(val storedModel: Model,
 
 	fun addNonReplayableActions(traceIdx: Int, actionIdx: Int){
 		skippedActions.add(Pair(traceIdx, actionIdx))
+	}
+
+	override suspend fun dump(context: ExplorationContext) {
+		job.joinChildren()
+
+		val sb = StringBuilder()
+		sb.appendln(header)
+
+		skippedActions.forEach {
+			val trace = it.first
+			val action = it.second
+			sb.appendln("$trace;$action")
+		}
+
+		val outputFile = context.getModel().config.baseDir.resolve("playbackErrors.txt")
+		Files.write(outputFile, sb.lines())
+	}
+
+	companion object {
+		private const val header = "Trace;Action"
 	}
 }
