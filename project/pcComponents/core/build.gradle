@@ -60,7 +60,7 @@ dependencies {
 	compile 'org.slf4j:slf4j-api:1.7.25'
 	compile 'ch.qos.logback:logback-classic:1.2.3'
 	compile 'ch.qos.logback:logback-core:1.2.3'
-	compile 'net.sf.opencsv:opencsv:2.3'
+	//compile 'net.sf.opencsv:opencsv:2.3'
 	compile 'org.json:json:20160212'
 
 	// Filesystem stubbing
@@ -69,10 +69,6 @@ dependencies {
 	compile 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
 
 	compile 'com.natpryce:konfig:1.6.6.0'  // configuration library
-
-	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
-
-	testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
 }
 
 apply from: file("resources.gradle")
