@@ -84,10 +84,10 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 		if (msgs.joinToString(System.lineSeparator()).contains("Note: log switch off, only log_main and log_events will have logs!"))
 			nrMessages = 3
 
-		assert(msgs.size == nrMessages, {
+		assert(msgs.size == nrMessages) {
 			"Expected exactly one message on logcat (with tag ${UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG}) " +
 					"confirming that uia-daemon server has started. Instead, got ${msgs.size} messages. Msgs:\n${msgs.joinToString(System.lineSeparator())}"
-		})
+		}
 		assert(msgs.last().contains(UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG))
 	}
 

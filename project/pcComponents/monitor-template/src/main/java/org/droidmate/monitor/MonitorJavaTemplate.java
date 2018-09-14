@@ -55,11 +55,6 @@ import java.util.*;
 // import de.larma.arthook.*;
 // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
 
-// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-// import org.droidmate.monitor.IMonitorHook;
-// import org.droidmate.monitor.MonitorHook;
-// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
 /**
  * <p>
  * This class will be used by {@code MonitorGenerator} to create {@code Monitor.java} deployed on the device. This class will be
@@ -440,10 +435,6 @@ public class MonitorJavaTemplate
 
 		redirectConstructors();
 
-		// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-		// monitorHook.init(context);
-		// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
 		Log.d(MonitorConstants.Companion.getTag_mjt(), MonitorConstants.Companion.getMsgPrefix_init_success() + context.getPackageName());
 	}
 
@@ -485,10 +476,6 @@ public class MonitorJavaTemplate
 					return new LinkedList<ArrayList<String>>(Collections.singletonList(payload));
 
 				} else if (MonitorConstants.Companion.getSrvCmd_close().equals(input)) {
-					// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-					// monitorHook.finalizeMonitorHook();
-					// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
 					// In addition to the logic above, this command is handled in
 					// org.droidmate.monitor.MonitorJavaTemplate.MonitorTcpServer.shouldCloseServerSocket
 
@@ -715,12 +702,6 @@ public class MonitorJavaTemplate
 		}
 	}
 
-	//endregion
-
-	//region Hook code
-	// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-	// public static IMonitorHook monitorHook = new MonitorHook();
-	// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
 	//endregion
 
 	//region Generated code

@@ -136,8 +136,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	override fun decide(): ExplorationAction {
 		val action = this.internalDecide()
 
-		if (!this.mustPerformMoreActions())
-			this.handleControl()
+		this.handleControl()
 
 		return action
 	}
@@ -155,19 +154,6 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		return this.javaClass.hashCode()
 	}
 	override fun toString() = uniqueStrategyName
-
-	/**
-	 * Defines if the exploration action will perform more actionTrace or if it will return the
-	 * execution control to the listeners.
-	 *
-	 * Example of strategies which would require multiple actionTrace:
-	 * - Login
-	 * - Register
-	 *
-	 * @return If the strategy has to perform more actionTrace
-	 */
-	@Deprecated("this should be removed as now ActionQueues are available for action sequences without interruption")
-	abstract fun mustPerformMoreActions(): Boolean
 
 	/**
 	 * Selects an action to be executed based on the [current widget context][currentState]

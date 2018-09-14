@@ -75,7 +75,7 @@ class DeviceTimeDiff(private val device: IExplorableAndroidDevice) : IDeviceTime
 		val msg = "computeDiff(device) result: " +
 				"Current time: ${now.format(formatter)} " +
 				"Device time: ${deviceTime.format(formatter)} " +
-				"Resulting diff: ${diff.toString()}"
+				"Resulting diff: $diff"
 
 		log.trace(msg)
 

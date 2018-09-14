@@ -23,18 +23,14 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.configuration;
+package org.droidmate.configuration
 
 
-import org.droidmate.misc.DroidmateException;
+import org.droidmate.misc.DroidmateException
 
-class ConfigurationException : DroidmateException {
+class ConfigurationException(message: String) : DroidmateException(message) {
 	companion object {
 		private const val serialVersionUID: Long = 1
 
 	}
-
-	constructor(message: String) : super(message)
-
-	constructor(cause: Throwable) : super(cause)
 }

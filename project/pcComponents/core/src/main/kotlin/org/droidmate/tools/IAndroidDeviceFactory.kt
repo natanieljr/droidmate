@@ -28,6 +28,6 @@ package org.droidmate.tools
 import org.droidmate.device.IAndroidDevice
 
 
-public interface IAndroidDeviceFactory {
+interface IAndroidDeviceFactory {
 	fun create(serialNumber: String): IAndroidDevice
 }

@@ -174,11 +174,11 @@ class LoginWithFacebook : ExplorationStrategy() {
 		throw DroidmateException("The exploration shouldn' have reached this point.")
 	}
 
-	override fun mustPerformMoreActions(): Boolean {
+	/*override fun mustPerformMoreActions(): Boolean {
 		// Between sign in and log in it's a single process, afterwards it may change depending on
 		// what facebook displays, therefore handle it on a case by case basis on getFitness method
 		return signInClicked && !loginClicked
-	}
+	}*/
 
 	// TODO
 	/*override fun getFitness(): StrategyPriority {

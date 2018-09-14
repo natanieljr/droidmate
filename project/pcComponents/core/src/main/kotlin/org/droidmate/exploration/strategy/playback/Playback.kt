@@ -136,7 +136,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 					val prevEquiv = lastSkipped.targetWidget.canExecute(eContext.getCurrentState())  // check if the last skipped action may be appyable now
 					val peekAction = getNextTraceAction(peek = true)
 					val nextEquiv = peekAction.targetWidget.canExecute(eContext.getCurrentState())
-					val ExplorationAction = if (prevEquiv.first > nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
+					val explorationAction = if (prevEquiv.first > nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
 							&& runBlocking {
 								model.getState(lastSkipped.resState)?.run {
 									actionableWidgets.any {
@@ -158,7 +158,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 						println("[skip action ($traceIdx,$actionIdx)] (${currentState.stateId}) $lastSkipped")
 						getNextAction()
 					}
-					ExplorationAction
+					explorationAction
 				}
 			}
 			action.isTerminate() -> terminateApp()

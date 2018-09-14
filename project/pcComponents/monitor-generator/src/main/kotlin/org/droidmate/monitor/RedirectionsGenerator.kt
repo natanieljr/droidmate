@@ -96,9 +96,9 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
 					""
 				else
 					", ") +
-						(0 until ams.paramClasses.size).map {
+						(0 until ams.paramClasses.size).joinToString(", ") {
 							ams.paramClasses[it] + " " + paramVarNames[it]
-						}.joinToString(", ")
+						}
 		}
 
 		@JvmStatic
@@ -120,7 +120,7 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
 				else
 					""
 			else
-				", " + (0 until ams.paramClasses.size).map { paramVarNames[it] }.joinToString(", ")
+				", " + (0 until ams.paramClasses.size).joinToString(", ") { paramVarNames[it] }
 		}
 
 		@JvmStatic
@@ -170,8 +170,7 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
 
 	override fun generateMethodTargets(signatures: List<ApiMethodSignature>): String {
 		return signatures
-				.filterNot { it.objectClass.startsWith("android.test.") } // For justification, see [1] in dev doc at the end of this method.
-				.map { ams ->
+				.filterNot { it.objectClass.startsWith("android.test.") }.joinToString("") { ams ->
 
 					val out = StringBuilder()
 
@@ -179,7 +178,7 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
 
 						out.append(String.format("@Hook(\"%s\")", ams.hook) + nl)
 						out.append(String.format("public static %s %s", ams.returnClass, ams.name) + nl)
-						out.append("{" + nl)
+						out.append("{$nl")
 
 						/**
 						 * MonitorJavaTemplate and MonitorTcpServer have calls to Log.i() and Log.v() in them, whose tag starts with
@@ -189,26 +188,24 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
 						 */
 						if (ams.objectClass == "android.util.Log" && (ams.methodName in arrayListOf("v", "d", "i", "w", "e")) && paramClasses.size in arrayListOf(2, 3)) {
 							out.append(ind4 + ind4 + "if (p0.startsWith(\"${MonitorConstants.tag_prefix}\"))" + nl)
-							if (paramClasses.size == 2)
-								out.append(ind4 + ind4 + "  return OriginalMethod.by(new \$() {}).invokeStatic(p0, p1);" + nl)
-							else if (paramClasses.size == 3)
-								out.append(ind4 + ind4 + "  return OriginalMethod.by(new \$() {}).invokeStatic(p0, p1, p2);" + nl)
-							else
-								assert(false, { "paramClasses.size() is not in [2,3]. It is ${paramClasses.size}" })
+							when {
+								paramClasses.size == 2 -> out.append("$ind4$ind4  return OriginalMethod.by(new \$() {}).invokeStatic(p0, p1);$nl")
+								paramClasses.size == 3 -> out.append("$ind4$ind4  return OriginalMethod.by(new \$() {}).invokeStatic(p0, p1, p2);$nl")
+								else -> assert(false) { "paramClasses.size() is not in [2,3]. It is ${paramClasses.size}" }
+							}
 						}
 
 						out.append(ind4 + "String stackTrace = getStackTrace();" + nl)
 						out.append(ind4 + "long threadId = getThreadId();" + nl)
 						out.append(ind4 + String.format("String logSignature = %s;", ams.logId) + nl)
-						out.append(ind4 + "monitorHook.hookBeforeApiCall(logSignature);" + nl)
 						out.append(ind4 + String.format("Log.%s(\"%s\", logSignature);", MonitorConstants.loglevel, MonitorConstants.tag_api) + nl)
 						out.append(ind4 + "addCurrentLogs(logSignature);" + nl)
 
 						out.append(ind4 + "List<Uri> uriList = new ArrayList<>();" + nl)
 
 						(0 until ams.paramClasses.size).forEach { x ->
-							if (ams.paramClasses.get(x).equals("android.net.Uri"))
-								out.append(ind4 + "uriList.add(p${x});" + nl)
+							if (ams.paramClasses[x] == "android.net.Uri")
+								out.append(ind4 + "uriList.add(p$x);" + nl)
 						}
 						out.append(ind4 + "ApiPolicy policy = getPolicy(\"${ams.getShortSignature()}\", uriList);" + nl)
 						// Currently, when denying, the method is not being called
@@ -224,14 +221,14 @@ class RedirectionsGenerator constructor(private val androidApi: AndroidAPI) : IR
 						out.append(ind4 + ind4 + ind4 + "throw e;" + nl)
 						out.append(ind4 + ind4 + "default:" + nl)
 						out.append(ind4 + ind4 + ind4 + "throw new RuntimeException(\"Policy for api ${ams.objectClass}->${ams.methodName} cannot be determined.\");" + nl)
-						out.append(ind4 + "}" + nl)
+						out.append("$ind4}$nl")
 
-						out.append("}" + nl)
+						out.append("}$nl")
 						out.append(ind4 + nl)
 					}
 
 					out.toString()
-				}.joinToString("")
+				}
 	}
 
 	/*

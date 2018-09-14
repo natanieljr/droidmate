@@ -36,8 +36,4 @@ object Reset : AbstractStrategy() {
 	override fun internalDecide(): ExplorationAction {
 		return eContext.resetApp()
 	}
-
-	override fun mustPerformMoreActions(): Boolean {
-		return false
-	}
 }

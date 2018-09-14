@@ -29,11 +29,9 @@ import java.io.BufferedInputStream
 import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
-import java.util.*
 import java.util.zip.ZipFile
 
 /**
@@ -47,10 +45,10 @@ fun Int.zeroLeastSignificantDigits(digitsToZero: Int): Long {
 
 /**
  * Given a string builder over a string containing variables in form of "$var_name" (without ""), it will replace
- * all such variables with their value. For examples, see [org.droidmate.report.extensions_miscKtTest.replaceVariableTest].
+ * all such variables with their value.
  */
 fun StringBuilder.replaceVariable(varName: String, value: String): StringBuilder {
-	val fullVarName = '$' + varName
+	val fullVarName = "$$varName"
 	while (this.indexOf(fullVarName) != -1) {
 		val startIndex = this.indexOf(fullVarName)
 		val endIndex = startIndex + fullVarName.length
@@ -65,19 +63,6 @@ val Duration.minutesAndSeconds: String
 		val s = this.seconds - m * 60
 		return "$m".padStart(4, ' ') + "m " + "$s".padStart(2, ' ') + "s"
 	}
-
-fun <T, TItem> Iterable<T>.setByUniqueString(
-		extractItems: (T) -> Iterable<TItem>,
-		uniqueString: (TItem) -> UUID
-): Set<TItem> {
-
-	val grouped: Map<UUID, List<TItem>> = this.flatMap { extractItems(it) }.groupBy { uniqueString(it) }
-	val uniquesByString: Map<UUID, TItem> = grouped.mapValues { it.value.first() }
-	val uniques: Collection<TItem> = uniquesByString.values
-	val uniquesSet = uniques.toSet()
-	check(uniques.size == uniquesSet.size)
-	return uniquesSet
-}
 
 /**
  * Unzips a zipped archive into [targetDirectory].

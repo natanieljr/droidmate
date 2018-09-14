@@ -32,7 +32,7 @@ import org.droidmate.device.IDeployableAndroidDevice
 /**
  * @see ApkDeployer
  */
-public interface IApkDeployer {
+interface IApkDeployer {
 
 	fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: (IApk) -> Any): List<ApkExplorationException>
 }

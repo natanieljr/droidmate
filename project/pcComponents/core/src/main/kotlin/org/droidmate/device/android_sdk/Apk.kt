@@ -59,9 +59,6 @@ class Apk constructor(internalPath: Path,
 				log.warn(Markers.appHealth, "! While getting metadata for $path, got an: $e Returning null apk.")
 				assert(e.isFatal)
 				return dummyApk
-			} catch (e: NotEnoughDataToStartAppException) {
-				log.warn(Markers.appHealth, "! While getting metadata for $path, got an: $e Returning null apk.")
-				return dummyApk
 			}
 
 			return Apk(path, packageName, applicationLabel)

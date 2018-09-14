@@ -31,7 +31,6 @@ import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
 import kotlin.streams.toList
 
 class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
@@ -62,12 +61,12 @@ class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
 		if (apks.isEmpty())
 			log.warn("No apks found! Apks were expected to be found in: {}", apksDir.toAbsolutePath().toString())
 
-		val builtApks = apks.map { Apk.build(aapt, it) }.toList()
+		var builtApks = apks.map { Apk.build(aapt, it) }.toList()
 
 		builtApks.filter { !it.inlined }.forEach { p -> log.info("Following input apk is not inlined: ${p.fileName}") }
 
 		if (shuffle)
-			Collections.shuffle(builtApks)
+			builtApks = builtApks.shuffled()
 
 		logApksUsedIntoRunData(builtApks)
 

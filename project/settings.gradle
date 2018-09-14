@@ -32,7 +32,6 @@ include(
 		"projects:tools:androcov",
 		"projects:uiautomator-daemon-lib",
 		"projects:monitor-template",
-		"projects:monitor-hook",
 		"projects:monitor-generator",
 		"projects:core",
 		"projects:reporter",

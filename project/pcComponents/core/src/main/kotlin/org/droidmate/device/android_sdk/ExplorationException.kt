@@ -26,17 +26,10 @@ package org.droidmate.device.android_sdk
 
 import org.droidmate.misc.DroidmateException
 
-open class ExplorationException : DroidmateException {
+open class ExplorationException(cause: Throwable) : DroidmateException(cause) {
 
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 
-	constructor() : super()
-
-	constructor(cause: Throwable) : super(cause)
-
-	constructor(message: String, cause: Throwable) : super(message, cause)
-
-	constructor(message: String) : super(message)
 }
