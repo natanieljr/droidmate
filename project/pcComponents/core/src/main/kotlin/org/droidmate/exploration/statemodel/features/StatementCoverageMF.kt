@@ -31,7 +31,9 @@ import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.sta
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.ModelConfig
+import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.logging.Markers
 import org.droidmate.misc.SysCmdInterruptableExecutor
 import org.droidmate.misc.deleteDir
@@ -64,8 +66,6 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	private val dateFormat = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StatementCoverageMF"), parent = job)
-	private val processingJob = Job()
-	private val processingContext: CoroutineContext = newCoroutineContext(context = CoroutineName("processingStatementCoverageMF"), parent = processingJob)
 
 	private val instrumentationDir = Paths.get(modelCfg[statementCoverageDir].toString()).toAbsolutePath()
 	private val logcatOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(modelCfg.appName)
@@ -75,19 +75,24 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 
 	// Coverage monitor variables
 	private val sysCmdExecutor = SysCmdInterruptableExecutor()
-	private var running: AtomicBoolean = AtomicBoolean(true)
 	private val purgedDeviceSerialNumber = cfg[ConfigProperties.Exploration.deviceSerialNumber].toString().replace(":", "-")
+
+	private var lastReadStatement = ""
+	private var counter = 0
 
 	init {
 		job = Job(parent = (this.job)) // We don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 		logcatOutputDir.deleteDir()
 		Files.createDirectories(logcatOutputDir)
-		instrumentationMap = getInstrumentation(modelCfg.appName)
 
-		// Start monitoring the coverage
-		launch(processingContext) {
-			run()
-		}
+		instrumentationMap = getInstrumentation(modelCfg.appName)
+	}
+
+	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
+		// must wait for the action before reading the logcat data
+		deferredAction.await()
+
+		readCoverageFromLogcat()
 	}
 
 	/**
@@ -161,74 +166,58 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	}
 
 	/**
-	 * Starts monitoring the coverage.
-	 */
-	private fun run() {
-		log.info(Markers.appHealth, "Start monitoring coverage for ${modelCfg.appName}. Output to ${cfg.coverageReportDirPath.toAbsolutePath()}")
-
-		try {
-			Files.createDirectories(logcatOutputDir)
-			var counter = 0
-
-			while (running.get()) {
-				counter = monitorLogcat(counter)
-				runBlocking { delay(5) }
-			}
-
-		} catch (ex: Exception) {
-			ex.printStackTrace()
-		}
-	}
-
-	/**
 	 * Starts executing a command in order to monitor the logcat if the previous command is already terminated.
 	 * Additionally, it parses the returned logcat output and updates [executedStatementsMap].
 	 */
-	private fun monitorLogcat(counter: Int): Int {
+	private fun readCoverageFromLogcat() {
 
 		val file = getLogFilename(counter)
 		val output = adbWrapper.executeCommand(sysCmdExecutor, cfg.deviceSerialNumber, "", "Logcat coverage monitor",
-				"logcat", "-v", "threadtime", "-s", "System.out")
+				"logcat", "-d", "-v", "threadtime", "-s", "System.out")
 		//log.info("Writing logcat output into $file")
 
-		output.lines().forEach { line ->
-			if (line.contains("[androcov]") && !line.contains("CoverageHelper")) {
-				val parts = line.split("uuid=".toRegex(), 2).toTypedArray()
+		output.lines()
+				.filter { it.contains("[androcov]")
+						&& !it.contains("CoverageHelper")
+						&& it > lastReadStatement }
+				.forEach { line ->
+					val parts = line.split("uuid=".toRegex(), 2).toTypedArray()
 
-				// Get uuid
-				val uuid = parts.last()
+					// Get uuid
+					val uuid = parts.last()
 
-				val tms = if (parts.size > 1) {
-					// Get timestamp
-					val logParts = parts[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-					val timestamp = logParts[0] + " " + logParts[1]
+					val tms = if (parts.size > 1) {
+						// Get timestamp
+						val logParts = parts[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+						val timestamp = logParts[0] + " " + logParts[1]
 
-					dateFormat.parse(timestamp)
-				} else {
-					Date.from(Instant.now())
+						dateFormat.parse(timestamp)
+					} else {
+						Date.from(Instant.now())
+					}
+
+					// Add the statement if it wasn't executed before
+					val found = executedStatementsMap.containsKey(uuid)
+
+					if (!found /*&& instrumentationMap.containsKey(uuid)*/)
+						executedStatementsMap[uuid] = tms
+
+					lastReadStatement = line
 				}
-
-				// Add the statement if it wasn't executed before
-				val found = executedStatementsMap.containsKey(uuid)
-
-				if (!found && instrumentationMap.containsKey(uuid))
-					executedStatementsMap[uuid] = tms
-			}
-		}
 
 		log.info("Current statement coverage: ${getCurrentCoverage()}")
 
 		// Write the logcat content into a file
 		Files.write(file, output.toByteArray())
 
-		return counter + 1
+		counter++
 	}
 
 	/**
 	 * Returns the logfile name depending on the [counter] in which the logcat content is written into.
 	 */
 	private fun getLogFilename(counter: Int): Path {
-		return logcatOutputDir.resolve("${modelCfg.appName}-logcat_${purgedDeviceSerialNumber}_%03d".format(counter))
+		return logcatOutputDir.resolve("${modelCfg.appName}-logcat_${purgedDeviceSerialNumber}_%04d".format(counter))
 	}
 
 	/**
@@ -236,12 +225,8 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	 */
 	override suspend fun dump(context: ExplorationContext) {
 		job.joinChildren()
-		running.set(false)
 		sysCmdExecutor.stopCurrentExecutionIfExisting()
 		log.info("Coverage monitor thread destroyed")
-
-		// Wait for the last file to be processed before proceeding
-		processingJob.joinChildren()
 
 		val sb = StringBuilder()
 		sb.appendln(header)
