@@ -27,6 +27,7 @@ package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.joinChildren
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
@@ -46,8 +47,9 @@ abstract class ModelFeature {
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ModelFeature::class.java) }
-		/** dump is waiting for other job's completion, therefore it needs its own independent job, the eContext.dump waits for the children of this job */
-		@JvmStatic val dumpJob = Job()
+		/** dump and onAppExplorationFinished are waiting for other job's completion, therefore they need their own independent job,
+		 * the eContext.dump and eContext.close wait for the children of this job */
+		@JvmStatic val auxiliaryJob = Job()
 	}
 
 	/** used in the strategy to ensure that the updating coroutine function already finished.
@@ -61,6 +63,15 @@ abstract class ModelFeature {
 	 * e.g. `newCoroutineContext(context = CoroutineName("FeatureNameMF"), parent = job)`
 	 * or you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
 	abstract val context: CoroutineContext
+
+	/** this method is called to away for all features to be processed
+	 * this method gives access to the complete [context] inclusive other ModelFeatures
+	 *
+	 * WARNING: this method should not be called form within the model feature (unless running in a different job), otherwise it will cause a deadlock
+	 */
+	suspend fun await(){
+		job.joinChildren()
+	}
 
 	/** this is called after the model was completely updated with the new action and state
 	 * this method gives access to the complete [context] inclusive other ModelFeatures
@@ -100,8 +111,14 @@ abstract class ModelFeature {
 	open suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
 	} // FIXME in case of an ActionQueue this will not work properly
 
+	/** this method is called on each call to [ExplorationContext].close(), executed after [ModelFeature].dump()
+	 * this method should call `job.joinChildren()` to ensure all updates have been applied before restarting the feature state
+	 */
+	open suspend fun onAppExplorationFinished(context: ExplorationContext) {  /* do nothing [to be overwritten] */
+	}
+
 	/** this method is called on each call to [ExplorationContext].dump()
-	 * this method should call `job.joinChildren()` to wait wait for all updates to be applied before persistating the features state
+	 * this method should call `job.joinChildren()` to wait for all updates to be applied before persisting the features state
 	 */
 	open suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */
 	}

@@ -26,16 +26,11 @@ package org.droidmate.command
 
 import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.device.android_sdk.AaptWrapper
-import org.droidmate.device.android_sdk.Apk
 import org.droidmate.apk_inliner.ApkInliner
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
-import org.slf4j.LoggerFactory
-
-import java.nio.file.Files
-import java.nio.file.Path
 
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 											  private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {

@@ -26,16 +26,8 @@ package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 
-class TcpServerUnreachableException : DeviceException {
+class TcpServerUnreachableException(cause: Throwable) : DeviceException(cause) {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
-
-	constructor() : super()
-
-	constructor(cause: Throwable) : super(cause)
-
-	constructor(message: String, cause: Throwable) : super(message, cause)
-
-	constructor(message: String) : super(message)
 }

@@ -22,7 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.misc;
+package org.droidmate.misc
 
 import java.util.*
 
@@ -75,6 +75,6 @@ class MonitorConstants {
 		// BuildConstants.getLocale() is not used here as monitor_time_formatter_locale is used in android device.
 		//public static final Locale monitor_time_formatter_locale  = BuildConstants.getLocale();
 		@JvmStatic
-		val monitor_time_formatter_locale: Locale = Locale.US;
+		val monitor_time_formatter_locale: Locale = Locale.US
 	}
 }

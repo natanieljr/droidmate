@@ -42,12 +42,12 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	}
 
 	val monitorPort by lazy {
-		assert(deviceSerialNumber.isNotEmpty(), {"deviceSerialNumber should not be empty."})
+		assert(deviceSerialNumber.isNotEmpty()) {"deviceSerialNumber should not be empty."}
 		cfg[ConfigProperties.ApiMonitorServer.basePort] + deviceSerialNumber.hashCode() % 999
 	}
 
 	val uiAutomatorPort by lazy {
-		assert(deviceSerialNumber.isNotEmpty(), {"deviceSerialNumber should not be empty."})
+		assert(deviceSerialNumber.isNotEmpty()) {"deviceSerialNumber should not be empty."}
 		cfg[ConfigProperties.UiAutomatorServer.basePort] + deviceSerialNumber.hashCode() % 999
 	}
 
@@ -179,7 +179,6 @@ abstract class ConfigProperties {
 	object ApiMonitorServer : PropertyGroup() {
 		val monitorSocketTimeout by intType
 		val monitorUseLogcat by booleanType
-		val monitorUseLegacyStream by booleanType
 		val basePort by intType
 	}
 

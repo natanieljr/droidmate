@@ -75,7 +75,7 @@ def generateMonitor = { JavaExec je, List<String> args, File generatedMonitor ->
 	["main", "classpath", "standardOutput"].each { je."$it" = runTask."$it" }
 
 	je.args = args
-	// Output is not muted as we want to see in Gradle build log output of org.droidmate.monitor.MonitorGeneratorFrontend.loadMonitorHookIfAvailableElseNull
+	// Output is not muted as we want to see in Gradle build log output
 	//je.standardOutput = new ByteArrayOutputStream() // Mute the task stdout
 	je.outputs.file generatedMonitor
 
@@ -86,9 +86,6 @@ def generatedMonitor = { int apiLevel -> new File(runTask.workingDir, BuildKt.ge
 task generateMonitor_api23(type: JavaExec) { generateMonitor(it as JavaExec, ["api23"], generatedMonitor(23)) }
 
 //endregion
-
-evaluationDependsOn(":project:pcComponents:monitor-hook")
-Jar monitorHookJarTask = findProject(":project:pcComponents:monitor-hook").jar as Jar
 
 evaluationDependsOn(":project:pcComponents:commonLib")
 Jar libCommonJarTask = findProject(":project:pcComponents:commonLib").jar as Jar
@@ -117,12 +114,11 @@ def monitorApk = { int apiLevel -> new File(buildDir, "monitor_api${apiLevel}.ap
 File libsBuilt = new File(monitorApkScaffoldingDir, "libs_built")
 
 def buildMonitorApk = { GradleBuild task, int apiLevel ->
-	task.dependsOn([libCommonJarTask, monitorHookJarTask, tasks.getByName("generateMonitor_api$apiLevel")])
+	task.dependsOn([libCommonJarTask, tasks.getByName("generateMonitor_api$apiLevel")])
 
 	task.group = "build"
 
 	task.inputs.files libCommonJarTask
-	task.inputs.files monitorHookJarTask
 	task.inputs.files tasks.getByName("generateMonitor_api$apiLevel")
 
 	File libsApi = new File(monitorApkScaffoldingDir, "libs_api$apiLevel")
@@ -133,7 +129,6 @@ def buildMonitorApk = { GradleBuild task, int apiLevel ->
 
 	task.doFirst {
 		delete libsBuilt
-		copy { it.from monitorHookJarTask.archivePath into libsBuilt }
 		copy { it.from libCommonJarTask.archivePath into libsBuilt }
 		copyFileWithRename(generatedMonitor(apiLevel), monitorJava(apiLevel))
 		assert monitorJava(apiLevel).file

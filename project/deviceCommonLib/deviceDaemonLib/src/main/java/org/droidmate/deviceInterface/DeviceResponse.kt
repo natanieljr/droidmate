@@ -35,6 +35,7 @@ import org.droidmate.deviceInterface.guimodel.WidgetData
 open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val topNodePackageName: String,
                                               val widgets: List<WidgetData>,
+                                              val launchableMainActivityName: String,
                                               val androidLauncherPackageName: String,
                                               val androidPackageName: String,
                                               val deviceDisplayWidth: Int,
@@ -60,6 +61,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			DeviceResponse("",
 					"empty",
 					emptyList(),
+					"",
 					"",
 					"",
 					0,
@@ -106,8 +108,10 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			}
 		}}
 
+		private val getLaunchableMainActivityName:(launchableMainActivity: String) -> String by lazy {{ launchableMainActivity: String -> launchableMainActivity }}
+
 		@JvmStatic
-		private val getAndroidPackageName:(deviceModel: String)-> String by lazy {{ deviceModel:String ->
+		private val getAndroidPackageName:(deviceModel: String) -> String by lazy {{ deviceModel:String ->
 			when {
 				deviceModel.startsWith("OnePlus-A0001") -> "com.cyanogenmod.trebuchet"
 				else -> {
@@ -116,12 +120,13 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			}
 		}}
 
-		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
+		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, launchableActivity: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
 			DeviceResponse(windowHierarchyDump = uiDump,
 					topNodePackageName = widgets.findLast { !it.packageName.startsWith("com.google.android.inputmethod.latin") } // avoid the keyboard to be falesly recognized as packagename
 							?.packageName ?: "No Widgets",
 					widgets = widgets,
+					launchableMainActivityName = getLaunchableMainActivityName(launchableActivity),
 					androidLauncherPackageName = androidLauncher(deviceModel),
 					androidPackageName = getAndroidPackageName(deviceModel),
 					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height,

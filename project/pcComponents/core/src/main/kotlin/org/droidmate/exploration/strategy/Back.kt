@@ -35,10 +35,6 @@ import org.droidmate.exploration.actions.pressBack
  * @author Nataniel P. Borges Jr.
  */
 object Back : AbstractStrategy() {
-	override fun mustPerformMoreActions(): Boolean {
-		return false
-	}
-
 	override fun internalDecide(): ExplorationAction {
 		return eContext.pressBack()
 	}

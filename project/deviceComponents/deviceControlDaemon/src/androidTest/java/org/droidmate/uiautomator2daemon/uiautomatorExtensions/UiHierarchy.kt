@@ -44,7 +44,7 @@ object UiHierarchy : UiParser() {
 				}
 			}
 		} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date
-			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}")
+			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}\n last widget was ${nodes.lastOrNull()}")
 		}
 
 		nodes.also { Log.d(LOGTAG,"#elems = ${it.size}")}

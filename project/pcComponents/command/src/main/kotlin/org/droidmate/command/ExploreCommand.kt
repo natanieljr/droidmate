@@ -434,7 +434,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		assert(!result.successful || action.isTerminate())
 
 		strategy.close()
-		explorationContext.dump()
+		explorationContext.close()
 
 		// Propagate exception if there was any
 		if (!result.successful)

@@ -87,13 +87,13 @@ class LoginWithGoogle : ExplorationStrategy() {
 		throw DroidmateException("The exploration shouldn' have reached this point.")
 	}
 
-	override fun mustPerformMoreActions(): Boolean {
+	/*override fun mustPerformMoreActions(): Boolean {
 		return !eContext.getCurrentState().widgets
 				.any {
 					it.visible &&
 							it.resourceId == RES_ID_ACCOUNT
 				}
-	}
+	}*/
 
 	// TODO
 	/*override fun getFitness(): StrategyPriority {

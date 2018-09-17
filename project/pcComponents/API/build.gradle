@@ -33,7 +33,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'  // requires jcenter
+		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'  // requires jcenter
 	}
 }
 

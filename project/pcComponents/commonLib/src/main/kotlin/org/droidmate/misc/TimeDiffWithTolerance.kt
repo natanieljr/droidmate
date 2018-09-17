@@ -36,7 +36,7 @@ class TimeDiffWithTolerance(private val tolerance: Duration) {
 
 	fun warnIfBeyond(start: LocalDateTime, end: LocalDateTime, startName: String, endName: String, apkFileName: String): Boolean {
 		val startAfterEnd = Duration.between(end, start)
-		if (startAfterEnd > tolerance) {
+		return if (startAfterEnd > tolerance) {
 
 			val (startNamePadded, endNamePadded) = Pad(startName, endName)
 			log.warn(Markers.appHealth,
@@ -45,8 +45,8 @@ class TimeDiffWithTolerance(private val tolerance: Duration) {
 							"$endNamePadded : $end\n" +
 							"Tolerance  : ${tolerance.toMillis()} ms\n" +
 							"Difference : ${startAfterEnd.toMillis()} ms")
-			return true
+			true
 		} else
-			return false
+			false
 	}
 }

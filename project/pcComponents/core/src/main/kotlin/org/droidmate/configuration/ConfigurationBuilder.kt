@@ -34,7 +34,6 @@ import com.natpryce.konfig.*
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.apache.commons.lang3.builder.StandardToStringStyle
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
-import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLegacyStream
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLogcat
 import org.droidmate.configuration.ConfigProperties.Core.configPath
 import org.droidmate.configuration.ConfigProperties.Core.logLevel
@@ -123,7 +122,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			// ApiMonitorServer
 			CommandLineOption(monitorSocketTimeout, description = "Socket timeout to communicate with the API monitor service."),
 			CommandLineOption(monitorUseLogcat, description = "Use logical for API logging instead of TCPServer (deprecated)."),
-			CommandLineOption(monitorUseLegacyStream, description = "Use legacy Java serialization API for device communication (not recommended)."),
 			CommandLineOption(ConfigProperties.ApiMonitorServer.basePort, description = "The base port for the communication with the the API monitor service. DroidMate communicates over this base port + device index."),
 			// ExecutionMode
 			CommandLineOption(inline, description = "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks. This flag cannot be combined with another execution mode."),

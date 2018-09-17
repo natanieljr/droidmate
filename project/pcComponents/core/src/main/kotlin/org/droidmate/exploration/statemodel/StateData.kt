@@ -34,15 +34,15 @@ import java.util.*
 /**
  * States have two components, the Id determined by its Widgets image, text and description and the ConfigId defined by the WidgetsProperties.
  ** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
-class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
+class StateData (private val _widgets: Lazy<Collection<Widget>>,
                             val topNodePackageName: String = "",
                             val isHomeScreen: Boolean = false,
                             val isAppHasStoppedDialogBox: Boolean = false) {
 
-	constructor(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets.toList()),
+	constructor(widgets: Collection<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets),
 			topNodePackageName = topPackage, isHomeScreen=homeScreen)
 
-	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() }.distinctBy { it.id } 	}
+	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() } 	}
 	var appArea: Rectangle = Rectangle()
 
 	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
@@ -76,9 +76,6 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 					Pair(addRelevantId(id, widget), configId + widget.uid + widget.id.second)
 				}
 			}
-	private val ignoredTarget:(Widget)->Boolean = { w -> (w.packageName != topNodePackageName && w.canBeActedUpon)
-		|| (!w.hasContent())  // alternatively we could just always add uid to configId to be sure all cases are covered?
-	}
 
 	val uid: UUID by lazy { lazyIds.value.first }
 	val configId: UUID by lazy { lazyIds.value.second }
@@ -100,7 +97,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 	fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon) || (w.canBeActedUpon && !w.hasActableDescendant)
 			)).also { w.usedForStateId = it }
 	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text content or it is a leaf) */
-	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)) id + w.uid else id
+	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)){ id + w.uid } else id
 
 	private fun addRelevantNonEdit(id: UUID, w: Widget): UUID = if (w.isEdit) addRelevantId(id, w) else id
 
@@ -135,7 +132,7 @@ class StateData /*private*/(private val _widgets: Lazy<List<Widget>>,
 
 		// to load the model from previously stored files
 		@JvmStatic
-		fun fromFile(widgets: Set<Widget>, homeScreen:Boolean, topPackage: String): StateData = StateData(widgets,homeScreen,topPackage)
+		fun fromFile(widgets: Collection<Widget>, homeScreen:Boolean, topPackage: String): StateData = StateData(widgets,homeScreen = homeScreen,topPackage = topPackage)
 
 		/** dummy element if a state has to be given but no widget data is available */
 		@JvmStatic

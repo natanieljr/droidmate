@@ -33,6 +33,5 @@ import org.droidmate.device.deviceInterface.IRobustDevice
  * @see AndroidDeviceDeployer
  */
 interface IAndroidDeviceDeployer {
-	//throws DeviceException
 	fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> List<ApkExplorationException>): List<ExplorationException>
 }

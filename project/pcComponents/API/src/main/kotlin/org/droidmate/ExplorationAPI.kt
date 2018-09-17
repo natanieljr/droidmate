@@ -95,6 +95,18 @@ object ExplorationAPI {
 		return tryExecute(exploration, cfg)
 	}
 
+	@JvmStatic
+	@JvmOverloads
+	fun inline(args: Array<String> = emptyArray()) {
+		val cfg = setup(args)
+		inline(cfg)
+	}
+
+	@JvmStatic
+	fun inline(cfg: ConfigurationWrapper) {
+		Instrumentation.inline(cfg)
+	}
+
 	/**
 	 * 1. inline the apks in the directory if they do not end on `-inlined.apk`
 	 * 2. run the exploration with the strategies listed in the property `explorationStrategies`

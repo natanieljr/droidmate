@@ -33,7 +33,6 @@ import org.droidmate.deviceInterface.guimodel.LaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
-import java.io.File
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 

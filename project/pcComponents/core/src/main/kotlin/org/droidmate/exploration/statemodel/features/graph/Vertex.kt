@@ -12,4 +12,7 @@ data class Vertex<S>(val data: S,
 				this.javaClass.isInstance(other) &&
 				stateComparison((other as Vertex<S>).data, this.data)
 	}
+
+    override fun hashCode(): Int = data!!.hashCode()
+
 }

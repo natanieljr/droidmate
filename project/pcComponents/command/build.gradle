@@ -23,11 +23,31 @@
 //
 // web: www.droidmate.org
 
+import java.nio.file.Files
+import java.nio.file.Paths
+
 apply plugin: 'project-report' // http://www.gradle.org/docs/current/userguide/project_reports_plugin.html
+apply plugin: 'application'
+
+mainClassName = "org.droidmate.frontend.DroidmateFrontend"
+
+// Run by ':project:pcComponents:command:run'
+(tasks.run as JavaExec).configure {
+
+	assert sourceSets.main.runtimeClasspath == classpath
+
+	workingDir rootDir
+	java.nio.file.Path argsFile = Paths.get("$rootDir/args.txt")
+	if (Files.exists(argsFile))
+	{
+		List<String> appArgs = argsFile.text.readLines().first().split(" ") as List<String>
+		args appArgs
+	}
+}
 
 jar {
 	manifest {
-		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
+		attributes 'Main-Class': mainClassName
 	}
 }
 
@@ -38,13 +58,6 @@ dependWithTest([project, ":project:pcComponents:reporter", "kotlin"])
 dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
 
 dependencies {
-	// TODO check this, does not seem so anymore
-	// Necessary to make tests from 'lib-kotlin' ('commonLib') work.
-//	testCompile 'org.xmlunit:xmlunit-core:2.1.1'
-
-	// Necessary to make tests from 'reporter' work.
-	testCompile 'org.hamcrest:hamcrest-library:1.3'
-
 	// Workaround for: 'gradlew :p:command:test' fails when reporter tests are run from command line.
 	// It works when run from IntelliJ or when run with 'gradlew :p:reporter:test'
 	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
@@ -54,9 +67,6 @@ dependencies {
 }
 
 apply from: file("test.gradle")
-
-// So the published jar to local maven repo with task "install" won't be called command.jar but droidmate.jar
-//jar.baseName = rootProject.name
 
 apply from: project(":project:pcComponents").file("debug.gradle")
 kotlin {

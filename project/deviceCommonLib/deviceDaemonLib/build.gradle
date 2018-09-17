@@ -83,7 +83,7 @@ dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
 	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
 	compile 'org.slf4j:slf4j-api:1.7.25'
-	compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5'
+	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 }
 
 compileKotlin {

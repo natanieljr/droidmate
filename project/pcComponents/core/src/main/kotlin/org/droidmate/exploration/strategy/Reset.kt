@@ -25,7 +25,6 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.actions.resetApp
 
 /**
@@ -36,13 +35,5 @@ import org.droidmate.exploration.actions.resetApp
 object Reset : AbstractStrategy() {
 	override fun internalDecide(): ExplorationAction {
 		return eContext.resetApp()
-	}
-
-	override fun mustPerformMoreActions(): Boolean {
-		return false
-	}
-
-	override fun toString(): String {
-		return this.javaClass.toString()
 	}
 }

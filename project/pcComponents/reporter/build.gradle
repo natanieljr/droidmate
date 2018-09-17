@@ -35,8 +35,6 @@ dependWithTest([project, ":project:pcComponents:core", "kotlin"])
 
 dependencies {
 
-	testCompile 'org.hamcrest:hamcrest-library:1.3'
-
 	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 	testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 

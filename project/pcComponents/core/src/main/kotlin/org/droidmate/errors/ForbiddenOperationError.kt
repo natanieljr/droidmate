@@ -24,9 +24,4 @@
 // web: www.droidmate.org
 package org.droidmate.errors
 
-class ForbiddenOperationError : DroidmateError {
-
-	constructor() : super()
-
-	constructor(message: String) : super(message)
-}
+class ForbiddenOperationError : DroidmateError()

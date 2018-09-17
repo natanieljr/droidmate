@@ -25,13 +25,10 @@
 
 package org.droidmate.device.android_sdk
 
-class NoAndroidDevicesAvailableException : AdbWrapperException {
+class NoAndroidDevicesAvailableException() : AdbWrapperException(NoAndroidDevicesAvailableException.message) {
 	companion object {
 		private const val serialVersionUID: Long = 1
 		private const val message = "No android devices available, i.e. command \"<android sdk>/platform-tools/adb devices\" returns no devices."
 	}
 
-	constructor() : super(NoAndroidDevicesAvailableException.message)
-
-	constructor(cause: Throwable) : super(NoAndroidDevicesAvailableException.message, cause)
 }

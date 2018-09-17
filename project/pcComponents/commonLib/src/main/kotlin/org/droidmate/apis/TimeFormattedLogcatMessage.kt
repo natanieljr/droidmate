@@ -46,7 +46,7 @@ class TimeFormattedLogcatMessage private constructor(override val time: LocalDat
 		private const val serialVersionUID: Long = 1
 
 		@JvmStatic
-		public val assumedDate: LocalDateTime = LocalDateTime.now()
+		val assumedDate: LocalDateTime = LocalDateTime.now()
 		private val rawMessageTimeFormatter = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS")
 		private val withYearMessageTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
 

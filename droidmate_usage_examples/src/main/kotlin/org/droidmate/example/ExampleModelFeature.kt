@@ -1,11 +1,13 @@
 package org.droidmate.example
 
 import kotlinx.coroutines.experimental.CoroutineName
+import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
+import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.StateData
-import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.features.ModelFeature
+import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
 class ExampleModelFeature: ModelFeature(){
@@ -16,9 +18,19 @@ class ExampleModelFeature: ModelFeature(){
 		job = Job(parent = (this.job)) // We don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 	}
 
-	override suspend fun onNewInteracted(targetWidget: Widget?, prevState: StateData, newState: StateData) {
+	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
+		val action = deferredAction.await()
+
 		// Check [org.droidmate.exploration.statemodel.features.ModelFeature] for more notification possibilities
-		println("Widget $targetWidget was clicked. Old state: $prevState, new state: $newState")
+		println("Transitioning from state $prevState to state $newState")
+
+		if (action.targetWidget != null)
+			println("Clicked widget: ${action.targetWidget}")
+
+		println("Triggered APIs: ${action.deviceLogs.apiLogs.joinToString { "${it.uniqueString}\n" }}")
+
+		action.deviceLogs
+
 		count++
 	}
 

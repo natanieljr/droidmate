@@ -28,7 +28,7 @@ package org.droidmate.logging
 import java.io.IOException
 import java.io.OutputStream
 
-public class NOPOutputStream : OutputStream() {
+class NOPOutputStream : OutputStream() {
 
 	@Throws(IOException::class)
 	override fun write(b: Int) {

@@ -37,8 +37,5 @@ interface IRobustDevice : IAndroidDevice, IDeviceMessagesReader {
 	fun appIsNotRunning(apk: IApk): Boolean
 
 	@Throws(DeviceException::class)
-	fun launchApp(apk: IApk): DeviceResponse
-
-	@Throws(DeviceException::class)
 	fun rebootAndRestoreConnection()
 }

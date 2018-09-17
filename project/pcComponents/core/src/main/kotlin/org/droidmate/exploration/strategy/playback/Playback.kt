@@ -32,17 +32,20 @@ import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.statemodel.Model
 import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
+import org.droidmate.exploration.statemodel.loader.ModelParser
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import java.lang.Integer.max
 import java.nio.file.Path
 
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 open class Playback constructor(private val modelDir: Path) : ExplorationStrategy() {
 
 	private var traceIdx = 0
 	private var actionIdx = 0
-	private lateinit var model : Model
+	protected lateinit var model : Model
 	private var lastSkipped: ActionData = ActionData.empty
+	protected var toExecute: ActionData = ActionData.empty
+
 
 	private val watcher: ActionPlaybackFeature by lazy {
 		(eContext.findWatcher { it is ActionPlaybackFeature }
@@ -53,7 +56,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	override fun initialize(memory: ExplorationContext) {
 		super.initialize(memory)
 
-		model = ModelLoader.loadModel(ModelConfig(modelDir, eContext.apk.packageName, true))
+		model = ModelParser.loadModel(ModelConfig(modelDir, eContext.apk.packageName, true))
 	}
 
 	private fun isComplete(): Boolean {
@@ -66,11 +69,11 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	}
 
 	private fun getNextTraceAction(peek: Boolean = false): ActionData {
-		model.let {
-			it.getPaths()[traceIdx].let { currentTrace ->
+		model.let { m ->
+			m.getPaths()[traceIdx].let { currentTrace ->
 				if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
-					if(it.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
-					return it.getPaths()[traceIdx + 1].first().also {
+					if(m.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
+					return m.getPaths()[traceIdx + 1].first().also {
 						if (!peek) {
 							traceIdx += 1
 							actionIdx = 0
@@ -118,9 +121,10 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 			return terminateApp()
 
 		val currTraceData = getNextTraceAction()
+		toExecute = currTraceData
 		val action = currTraceData.actionType
 		return when {
-			action.isClick() || 	action.isLongClick()-> {
+			action.isClick() || action.isLongClick()-> {
 				val verifyExecutability = currTraceData.targetWidget.canExecute(eContext.getCurrentState())
 				if(verifyExecutability.first>0.0) {
 					if(action.isClick())
@@ -135,7 +139,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 					val prevEquiv = lastSkipped.targetWidget.canExecute(eContext.getCurrentState())  // check if the last skipped action may be appyable now
 					val peekAction = getNextTraceAction(peek = true)
 					val nextEquiv = peekAction.targetWidget.canExecute(eContext.getCurrentState())
-					val ExplorationAction = if (prevEquiv.first > nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
+					val explorationAction = if (prevEquiv.first > nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
 							&& runBlocking {
 								model.getState(lastSkipped.resState)?.run {
 									actionableWidgets.any {
@@ -157,11 +161,20 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 						println("[skip action ($traceIdx,$actionIdx)] (${currentState.stateId}) $lastSkipped")
 						getNextAction()
 					}
-					ExplorationAction
+					explorationAction
 				}
 			}
 			action.isTerminate() -> terminateApp()
-			action.isLaunchApp() -> LaunchApp(eContext.apk.packageName)
+			action.isQueueStart() -> {
+				// Currently it supports only the launch app queue
+				// TODO Waiting Jenny's playback fix
+				var nextTrace = getNextTraceAction()
+				while(!nextTrace.actionType.isQueueEnd()){
+					nextTrace = getNextTraceAction()
+				}
+
+				eContext.resetApp()
+			}
 			action.isPressBack() -> {
 				// If already in home screen, ignore
 				if (eContext.getCurrentState().isHomeScreen) {
@@ -232,7 +245,8 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 
 	override fun chooseAction(): ExplorationAction {
 		if( !eContext.isEmpty() && eContext.getCurrentState().isAppHasStoppedDialogBox && ! supposedToBeCrash()
-			&& !getNextTraceAction(peek = true).actionType.isLaunchApp())	handleReplayCrash()
+			&& !getNextTraceAction(peek = true).actionType.isLaunchApp())
+			handleReplayCrash()
 
 		return getNextAction().also{ println("PLAYBACK: $it")}
 	}

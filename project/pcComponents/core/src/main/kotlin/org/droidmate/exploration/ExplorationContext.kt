@@ -25,19 +25,14 @@
 
 package org.droidmate.exploration
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.joinChildren
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.*
 import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.deviceInterface.guimodel.ActionType
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.deviceInterface.guimodel.isLaunchApp
+import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
@@ -47,13 +42,15 @@ import org.droidmate.exploration.statemodel.features.CrashListMF
 import org.droidmate.exploration.statemodel.features.ImgTraceMF
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.misc.TimeProvider
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.awt.Rectangle
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
 @Suppress("MemberVisibilityCanBePrivate")
-class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
+class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper,
                                                    val apk: IApk,
                                                    adbWrapper: IAdbWrapper,
                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
@@ -61,13 +58,17 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                                    private val watcher: LinkedList<ModelFeature> = LinkedList(),
                                                    val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
                                                    val actionTrace: Trace = _model.initNewTrace(watcher)) {
+	companion object {
+		@JvmStatic
+		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
+	}
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
 			= ( findWatcher{ it is T } ?: T::class.java.newInstance().also { addWatcher(it) } ) as T
 
 	fun findWatcher(c: (ModelFeature)->Boolean) = watcher.find(c)
 
-	fun<T:ModelFeature> addWatcher(w: T){ watcher.add(w); actionTrace.addWatcher(w) }
+	fun<T:ModelFeature> addWatcher(w: T){ actionTrace.addWatcher(w) }
 
 	val crashlist: CrashListMF = getOrCreateWatcher()
 	val exceptionIsPresent: Boolean
@@ -109,22 +110,39 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
 		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
+		apk.updateLaunchableActivityName(result.guiSnapshot.launchableMainActivityName)
 
 		assert(action.toString() == result.action.toString()) { "ERROR on ACTION-RESULT construction the wrong action was instantiated ${result.action} instead of $action"}
 		_model.S_updateModel(result, actionTrace)
 		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
 	}
 
+	fun close() {
+		log.info("finishing context updates, dumping data and restarting features")
+		dump()
+
+		// can use the same auxiliary job as the dump function, as it's already free
+		log.info("preparing features for next app")
+		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-finish"), parent = ModelFeature.auxiliaryJob) { it.onAppExplorationFinished(context) } } }
+
+		// wait until all features are restarted
+		runBlocking {
+			ModelFeature.auxiliaryJob.joinChildren()
+			log.debug("DONE - app finished notification")
+		}
+	}
+
 	fun dump() {
+		log.info("dump models and watcher")
+		assert(!apk.launchableMainActivityName.isBlank()) { "launchableMainActivityName was ${apk.launchableMainActivityName}" }
 		_model.P_dumpModel(_model.config)
-		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.dumpJob) { it.dump(context) } } }
+		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.auxiliaryJob) { it.dump(context) } } }
 
 		// wait until all dump's completed
 		runBlocking {
-			println("dump models and watcher") //TODO Logger.info
-			ModelFeature.dumpJob.joinChildren()
+			ModelFeature.auxiliaryJob.joinChildren()
 			_model.modelDumpJob.joinChildren()
-			println("DONE - dump models and watcher")
+			log.debug("DONE - dump models and watcher")
 		}
 	}
 
@@ -220,13 +238,36 @@ class ExplorationContext @JvmOverloads constructor(cfg: ConfigurationWrapper,
 	}
 
 	private fun assertLogsAreSortedByTime() {
-		val apiLogs = actionTrace.getActions().flatMap { it.deviceLogs.apiLogs }
+		val apiLogs = actionTrace.getActions()
+				.mapQueueToSingleElement()
+				.flatMap { it.deviceLogs.apiLogs }
 
 		assert(explorationStartTime <= explorationEndTime)
 
 		val ret = ApiLogcatMessageListExtensions.sortedByTimePerPID(apiLogs)
 		assert(ret)
 	}
+
+	private fun List<ActionData>.mapQueueToSingleElement(): List<ActionData>{
+		var startQueue = 0
+		var endQueue = 0
+
+		val newList : MutableList<ActionData> = mutableListOf()
+
+		this.forEach {
+			if (startQueue == endQueue)
+				newList.add(it)
+
+			if (it.actionType.isQueueStart())
+				startQueue++
+
+			if (it.actionType.isQueueEnd())
+				endQueue++
+		}
+
+		return newList
+	}
+
 
 	private fun assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull() {
 		//TODO improve or remove if redundant

@@ -48,14 +48,14 @@ class LogbackAppenders {
 		fun getStdStreamsAppenders(): List<Appender<ILoggingEvent>> {
 			val log = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
 
-			if (log is Logger) {
+			return if (log is Logger) {
 				val appenders = log.iteratorForAppenders()
 						.asSequence()
 						.filter { appender -> appender.name in stdStreamsAppenders() }
 						.toList()
-				return appenders
+				appenders
 			} else {
-				return emptyList()
+				emptyList()
 			}
 		}
 

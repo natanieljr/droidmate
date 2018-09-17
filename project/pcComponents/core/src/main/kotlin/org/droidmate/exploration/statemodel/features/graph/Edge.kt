@@ -22,6 +22,11 @@ data class Edge<S, L>(val source: Vertex<S>,
 		if (other == null || !this.javaClass.isInstance(other))
 			return false
 
-		return labelComparison((other as Edge<S, L>).label, this.label)
+        val otherEdge = (other as Edge<S, L>)
+        return labelComparison(otherEdge.label, this.label) && other.source == source && other.destination == destination
 	}
+
+    override fun hashCode(): Int {
+        return arrayOf(source, destination, label).contentDeepHashCode()
+    }
 }

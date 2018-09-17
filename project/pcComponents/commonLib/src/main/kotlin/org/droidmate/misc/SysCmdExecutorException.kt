@@ -27,7 +27,7 @@ package org.droidmate.misc;
 
 class SysCmdExecutorException(message: String, cause: Throwable) : DroidmateException(message, cause) {
 	companion object {
-		private const val serialVersionUID: Long = -3644688474512679196L;
+		private const val serialVersionUID: Long = -3644688474512679196L
 	}
 
 }

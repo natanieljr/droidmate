@@ -41,6 +41,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -52,11 +53,6 @@ import java.util.*;
 
 // org.droidmate.monitor.MonitorSrcTemplate:API_23_UNCOMMENT_LINES
 // import de.larma.arthook.*;
-// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
-// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-// import org.droidmate.monitor.IMonitorHook;
-// import org.droidmate.monitor.MonitorHook;
 // org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
 
 /**
@@ -396,6 +392,7 @@ public class MonitorJavaTemplate
 		return ApiPolicy.Allow;
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private static int getPort() throws Exception {
 		File file = new File("#PORT_FILE_PATH");
 		FileInputStream fis = new FileInputStream(file);
@@ -403,7 +400,7 @@ public class MonitorJavaTemplate
 		fis.read(data);
 		fis.close();
 
-		return Integer.parseInt(new String(data, "UTF-8"));
+		return Integer.parseInt(new String(data, StandardCharsets.UTF_8));
 	}
 
 	private static void redirectConstructors() {
@@ -438,10 +435,6 @@ public class MonitorJavaTemplate
 
 		redirectConstructors();
 
-		// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-		// monitorHook.init(context);
-		// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
 		Log.d(MonitorConstants.Companion.getTag_mjt(), MonitorConstants.Companion.getMsgPrefix_init_success() + context.getPackageName());
 	}
 
@@ -451,7 +444,7 @@ public class MonitorJavaTemplate
 		Mock
 	}
 
-	static class MonitorTcpServer extends TcpServerBase<String, ArrayList<ArrayList<String>>> {
+	static class MonitorTcpServer extends TcpServerBase<String, LinkedList<ArrayList<String>>> {
 
 		public Context context;
 
@@ -460,16 +453,16 @@ public class MonitorJavaTemplate
 		}
 
 		@Override
-		protected ArrayList<ArrayList<String>> OnServerRequest(String input) {
+		protected LinkedList<ArrayList<String>> OnServerRequest(String input) {
 			synchronized (currentLogs) {
 				validateLogsAreNotFromMonitor(currentLogs);
 
 				if (MonitorConstants.Companion.getSrvCmd_connCheck().equals(input)) {
 					final ArrayList<String> payload = new ArrayList<String>(Arrays.asList(getPid(), getPackageName(), ""));
-					return new ArrayList<ArrayList<String>>(Collections.singletonList(payload));
+					return new LinkedList<ArrayList<String>>(Collections.singletonList(payload));
 
 				} else if (MonitorConstants.Companion.getSrvCmd_get_logs().equals(input)) {
-					ArrayList<ArrayList<String>> logsToSend = new ArrayList<ArrayList<String>>(currentLogs);
+					LinkedList<ArrayList<String>> logsToSend = new LinkedList<ArrayList<String>>(currentLogs);
 					currentLogs.clear();
 
 					return logsToSend;
@@ -480,21 +473,17 @@ public class MonitorJavaTemplate
 					final ArrayList<String> payload = new ArrayList<String>(Arrays.asList(time, null, null));
 
 					Log.d(MonitorConstants.Companion.getTag_srv(), "getTime: " + time);
-					return new ArrayList<ArrayList<String>>(Collections.singletonList(payload));
+					return new LinkedList<ArrayList<String>>(Collections.singletonList(payload));
 
 				} else if (MonitorConstants.Companion.getSrvCmd_close().equals(input)) {
-					// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-					// monitorHook.finalizeMonitorHook();
-					// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
-
 					// In addition to the logic above, this command is handled in
 					// org.droidmate.monitor.MonitorJavaTemplate.MonitorTcpServer.shouldCloseServerSocket
 
-					return new ArrayList<ArrayList<String>>();
+					return new LinkedList<ArrayList<String>>();
 
 				} else {
 					Log.e(MonitorConstants.Companion.getTag_srv(), "! Unexpected command from DroidMate TCP client. The command: " + input);
-					return new ArrayList<ArrayList<String>>();
+					return new LinkedList<ArrayList<String>>();
 				}
 			}
 		}
@@ -713,12 +702,6 @@ public class MonitorJavaTemplate
 		}
 	}
 
-	//endregion
-
-	//region Hook code
-	// org.droidmate.monitor.MonitorSrcTemplate:UNCOMMENT_LINES
-	// public static IMonitorHook monitorHook = new MonitorHook();
-	// org.droidmate.monitor.MonitorSrcTemplate:KEEP_LINES
 	//endregion
 
 	//region Generated code

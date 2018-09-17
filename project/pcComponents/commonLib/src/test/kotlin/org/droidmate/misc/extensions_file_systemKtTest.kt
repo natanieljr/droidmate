@@ -24,10 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.nio.file.Paths
+import kotlin.test.assertEquals
 
 class extensions_file_systemKtTest {
 
@@ -38,8 +37,8 @@ class extensions_file_systemKtTest {
 		// Act
 		val actual = fixture.withExtension("newext")
 
-		assertThat(actual.parent.toString(), equalTo(fixture.parent.toString()))
-		assertThat(actual.fileName.toString(), equalTo("xyz.newext"))
+		assertEquals(actual.parent.toString(), fixture.parent.toString())
+		assertEquals(actual.fileName.toString(), "xyz.newext")
 	}
 }
 

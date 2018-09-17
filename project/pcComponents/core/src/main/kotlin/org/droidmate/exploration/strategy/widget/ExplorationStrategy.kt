@@ -37,10 +37,6 @@ abstract class ExplorationStrategy : AbstractStrategy() {
 	// region overrides
 
 
-	override fun mustPerformMoreActions(): Boolean {
-		return false
-	}
-
 	override fun internalDecide(): ExplorationAction {
 		assert(eContext.explorationCanMoveOn()) {"Selected and explore action, but exploration cannot proceed."}
 

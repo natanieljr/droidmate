@@ -12,7 +12,7 @@ interface TestModel{
 }
 
 typealias TestAction = ActionData
-@JvmOverloads fun createTestAction(targetWidget:Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"):	TestAction
+@JvmOverloads fun createTestAction(targetWidget: Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"): TestAction
 		= ActionData(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";").apply {
 	prevState = oldState
 }
@@ -39,7 +39,7 @@ class DefaultTestModel: TestModel {
 	override val testWidget: Widget by lazy{ super.testWidget }
 	override val parentWidget: Widget by lazy{ super.parentWidget }
 
-	override val testWidgetDumpString = "5a3d425d-66bc-38d5-a375-07e0b682e0ba;${testWidgetData.uid};class-mock;"+
+	override val testWidgetDumpString = "5a3d425d-66bc-38d5-a375-07e0b682e0ba;${testWidgetData.pId};class-mock;"+
 			"true;null;text-mock;description-mock;${parentWidget.id.dumpString()};true;true;true;false;false;disabled;"+
-			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock;null;false"
+			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock;null;false;0"
 }

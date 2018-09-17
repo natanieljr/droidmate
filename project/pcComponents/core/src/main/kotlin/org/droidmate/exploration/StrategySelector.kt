@@ -196,9 +196,6 @@ class StrategySelector constructor(val priority: Int,
 				terminate = false
 			}
 
-			@Suppress("OverridingDeprecatedMember")
-			override fun mustPerformMoreActions(): Boolean = false
-
 			override fun internalDecide(): ExplorationAction {
 				return when{
 					cnt++ < 2 ->{
@@ -242,7 +239,7 @@ class StrategySelector constructor(val priority: Int,
 								WaitForLaunch.terminate = true  // try to wait for launch but terminate if we still have nothing to explore afterwards
 								WaitForLaunch
 							}
-							else -> { // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed refetch for now
+							else -> { // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed re-fetch for now
 								logger.debug("Cannot explore. Returning 'Wait'")
 								WaitForLaunch
 							}
