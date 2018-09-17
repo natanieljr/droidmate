@@ -27,7 +27,6 @@ package org.droidmate.misc
 import com.konradjamrozik.Resource
 import com.konradjamrozik.asEnvDir
 import com.konradjamrozik.resolveRegularFile
-import org.apache.commons.lang3.StringUtils
 import java.util.*
 
 /**
@@ -55,14 +54,6 @@ class BuildConstants {
 		@JvmStatic
 		val apk_fixtures = safeGetProperty(properties, "apk_fixtures")
 		@JvmStatic
-		val apk_inliner_param_input = safeGetProperty(properties, "apk_inliner_param_input")
-		@JvmStatic
-		val apk_inliner_param_output_dir = safeGetProperty(properties, "apk_inliner_param_output_dir")
-		@JvmStatic
-		val apk_inliner_param_input_default = safeGetProperty(properties, "apk_inliner_param_input_default")
-		@JvmStatic
-		val apk_inliner_param_output_dir_default = safeGetProperty(properties, "apk_inliner_param_output_dir_default")
-		@JvmStatic
 		val AVD_dir_for_temp_files = safeGetProperty(properties, "AVD_dir_for_temp_files")
 		@JvmStatic
 		val dir_name_temp_extracted_resources = safeGetProperty(properties, "dir_name_temp_extracted_resources")
@@ -89,11 +80,11 @@ class BuildConstants {
 		private fun loadProperties(fileName: String): Map<String, String> {
 			val text = Resource(fileName).text
 			val out: MutableMap<String, String> = hashMapOf()
-			StringUtils.split(text, "\r\n").forEach { line ->
+			text.lines().forEach { line ->
 				if (line.isNotEmpty()) {
 					val splitLine = line.split("=")
 					assert(splitLine.size == 2)
-					out.put(splitLine[0], splitLine[1])
+					out[splitLine[0]] = splitLine[1]
 				}
 			}
 			return out
@@ -114,7 +105,7 @@ class BuildConstants {
 		private fun safeGetProperty(properties: Map<String, String>, key: String): String {
 			assert(properties.containsKey(key))
 			val value = properties[key]!!
-			assert(value.length > 0)
+			assert(value.isNotEmpty())
 			return value
 		}
 	}
