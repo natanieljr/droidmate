@@ -24,7 +24,7 @@ class ActivitySeenSummaryMF : ModelFeature() {
 
         val activitySeenMap = HashMap<String, Int>()
         var lastActivity = ""
-        var currActivity = context.apk.launchableActivityName
+        var currActivity = context.apk.launchableMainActivityName
 
         // Always see the main activity
         activitySeenMap.put(currActivity, 1)
@@ -34,7 +34,7 @@ class ActivitySeenSummaryMF : ModelFeature() {
             if (record.actionType.isPressBack())
                 currActivity = lastActivity
             else if (record.actionType.isLaunchApp())
-                currActivity = context.apk.launchableActivityName
+                currActivity = context.apk.launchableMainActivityName
 
             if (currActivity == "")
                 currActivity = "<DEVICE HOME>"

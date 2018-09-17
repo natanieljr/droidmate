@@ -8,6 +8,8 @@ import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.misc.withExtension
 import org.droidmate.report.misc.plot
 import org.droidmate.deviceInterface.guimodel.isClick
+import org.droidmate.exploration.statemodel.StateData
+import org.droidmate.exploration.statemodel.Widget
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.temporal.ChronoUnit
@@ -19,6 +21,27 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
     override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("EffectiveActionsMF"), parent = job)
     init{
         job = Job(parent = (this.job)) // we don't want to wait for other features (or having them wait for us), therefore create our own (child) job
+    }
+
+    /**
+     * Keep track of effective actions during exploration
+     * This is not used to dump the report at the end
+     */
+    private var totalActions = 0
+    private var effectiveActions = 0
+
+    override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
+        totalActions++
+        if (prevState != newState)
+            effectiveActions++
+    }
+
+    fun getTotalActions(): Int {
+        return totalActions
+    }
+
+    fun getEffectiveActions(): Int {
+        return effectiveActions
     }
 
     override suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */

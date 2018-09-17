@@ -22,14 +22,14 @@ class ApiActionTraceMF : ModelFeature() {
         sb.append(header)
 
         var lastActivity = ""
-        var currActivity = context.apk.launchableActivityName
+        var currActivity = context.apk.launchableMainActivityName
 
         context.actionTrace.getActions().forEachIndexed { actionNr, record ->
 
             if (record.actionType.isPressBack())
                 currActivity = lastActivity
             else if (record.actionType.isLaunchApp())
-                currActivity = context.apk.launchableActivityName
+                currActivity = context.apk.launchableMainActivityName
 
             val logs = record.deviceLogs.apiLogs
 
