@@ -47,15 +47,15 @@ internal abstract class WidgetParserI<T>: ParserI<T,Widget> {
 		}
 	}
 
-	abstract fun P_S_process(s: List<String>, id: ConcreteId): T
-	private fun parseWidget(line: List<String>): T {
+	abstract fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): T
+	private suspend fun parseWidget(line: List<String>): T = currentScope{
 		log("parse widget $line")
 		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
 		val id = Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId)
 
 		return queue.computeIfAbsent(line.toTypedArray().contentHashCode()){
             log("parse absent widget $id")
-			P_S_process(line,id)
+			P_S_process(line,id, this)
 		}
 	}
 	override val processor: suspend (List<String>) -> T = { parseWidget(it) }
@@ -93,7 +93,7 @@ internal class WidgetParserS(override val model: Model, override val parentJob: 
                              override val compatibilityMode: Boolean,
                              override val enableChecks: Boolean): WidgetParserI<Widget>(){
 
-	override fun P_S_process(s: List<String>, id: ConcreteId): Widget = runBlocking(newContext("parseWidget $id")) { computeWidget(s,id) }
+	override fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): Widget = runBlocking(scope.coroutineContext+CoroutineName("parseWidget $id")) { computeWidget(s,id) }
 
 	override suspend fun getElem(e: Widget): Widget = e
 
@@ -104,7 +104,8 @@ internal class WidgetParserP(override val model: Model, override val parentJob: 
                              override val compatibilityMode: Boolean,
                              override val enableChecks: Boolean): WidgetParserI<Deferred<Widget>>(){
 
-	override fun P_S_process(s: List<String>, id: ConcreteId): Deferred<Widget> = async(newContext("parseWidget $id")){
+	override fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): Deferred<Widget> =
+			scope.async(CoroutineName("parseWidget $id")){
 		computeWidget(s,id)
 	}
 

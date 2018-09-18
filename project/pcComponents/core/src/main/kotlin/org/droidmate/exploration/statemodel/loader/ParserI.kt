@@ -4,7 +4,7 @@ import kotlinx.coroutines.experimental.*
 import org.droidmate.exploration.statemodel.Model
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.coroutines.experimental.coroutineContext
+import kotlin.coroutines.experimental.EmptyCoroutineContext
 
 internal interface ParserI<T,out R> {
 	val parentJob: Job?
@@ -19,8 +19,7 @@ internal interface ParserI<T,out R> {
 	{}
 //		 = logger.debug("[${Thread.currentThread().name}] $msg")
 
-	suspend fun context(name:String, parent: Job? = parentJob) = newCoroutineContext(context = CoroutineName(name), parent = coroutineContext[Job])
-	fun newContext(name: String) = newCoroutineContext(context = CoroutineName(name), parent = parentJob)
+	fun newContext(name: String) = GlobalScope.newCoroutineContext(CoroutineName(name) + (parentJob ?: EmptyCoroutineContext))
 
 	val compatibilityMode: Boolean
 	val enableChecks: Boolean
