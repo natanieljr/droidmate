@@ -121,7 +121,7 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 
 		try {
 			val outputStreams = sysCmdExecutor.execute(
-					commandDescription, cfg.aaptCommand, "dump badging", instrumentedApk.toAbsolutePath().toString())
+					commandDescription, cfg.aaptCommand, "dump", "badging", instrumentedApk.toAbsolutePath().toString())
 
 			val aaptBadgingDump = outputStreams[0]
 
