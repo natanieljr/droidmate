@@ -26,7 +26,6 @@
 package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.*
-import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.IAdbWrapper
@@ -34,8 +33,6 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.ModelConfig
 import org.droidmate.exploration.statemodel.StateData
-import org.droidmate.logging.Markers
-import org.droidmate.misc.SysCmdInterruptableExecutor
 import org.droidmate.misc.deleteDir
 import java.io.IOException
 import java.nio.file.Files
@@ -50,7 +47,6 @@ import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.streams.toList
 
@@ -73,11 +69,8 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
 	private val instrumentationMap: Map<String, String>
 
-	// Coverage monitor variables
-	private val sysCmdExecutor = SysCmdInterruptableExecutor()
-	private val purgedDeviceSerialNumber = cfg[ConfigProperties.Exploration.deviceSerialNumber].toString().replace(":", "-")
-
 	private var lastReadStatement = ""
+	private var lastTime = Date.from(Instant.now())
 	private var counter = 0
 
 	init {
@@ -164,7 +157,6 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 			executedStatementsMap.size / instrumentationMap.size.toDouble()
 		}
 	}
-
 	/**
 	 * Starts executing a command in order to monitor the logcat if the previous command is already terminated.
 	 * Additionally, it parses the returned logcat output and updates [executedStatementsMap].
@@ -172,9 +164,17 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	private fun readCoverageFromLogcat() {
 
 		val file = getLogFilename(counter)
-		val output = adbWrapper.executeCommand(sysCmdExecutor, cfg.deviceSerialNumber, "", "Logcat coverage monitor",
-				"logcat", "-d", "-v", "threadtime", "-s", "System.out")
-		//log.info("Writing logcat output into $file")
+		val command = mutableListOf("logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
+
+		// Does not work with Apache-Exec 1.3
+		// Returns the following error: Captured stderr: -t ""2018-09-18 13:48:53.735"" not in time format
+		/*if (lastReadStatement.isNotEmpty()) {
+			val readFrom = dateFormat.format(lastTime)
+			command.addAll(listOf("-t", "'$readFrom'"))
+		}*/
+
+		val output = adbWrapper.executeCommand(cfg.deviceSerialNumber, "", "Logcat coverage monitor",
+				*command.toTypedArray())
 
 		output.lines()
 				.filter { it.contains("[androcov]")
@@ -186,15 +186,12 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 					// Get uuid
 					val uuid = parts.last()
 
-					val tms = if (parts.size > 1) {
-						// Get timestamp
-						val logParts = parts[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-						val timestamp = logParts[0] + " " + logParts[1]
+					assert(parts.size > 1)
+					// Get timestamp
+					val logParts = parts[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+					val timestamp = logParts[0] + " " + logParts[1]
 
-						dateFormat.parse(timestamp)
-					} else {
-						Date.from(Instant.now())
-					}
+					val tms = dateFormat.parse(timestamp)
 
 					// Add the statement if it wasn't executed before
 					val found = executedStatementsMap.containsKey(uuid)
@@ -203,6 +200,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 						executedStatementsMap[uuid] = tms
 
 					lastReadStatement = line
+					lastTime = tms
 				}
 
 		log.info("Current statement coverage: ${getCurrentCoverage()}")
@@ -217,16 +215,11 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	 * Returns the logfile name depending on the [counter] in which the logcat content is written into.
 	 */
 	private fun getLogFilename(counter: Int): Path {
-		return logcatOutputDir.resolve("${modelCfg.appName}-logcat_${purgedDeviceSerialNumber}_%04d".format(counter))
+		return logcatOutputDir.resolve("${modelCfg.appName}-logcat-%04d".format(counter))
 	}
 
-	/**
-	 * Notifies the logcat monitor and [sysCmdExecutor] to finish.
-	 */
 	override suspend fun dump(context: ExplorationContext) {
 		job.joinChildren()
-		sysCmdExecutor.stopCurrentExecutionIfExisting()
-		log.info("Coverage monitor thread destroyed")
 
 		val sb = StringBuilder()
 		sb.appendln(header)
