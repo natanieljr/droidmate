@@ -63,7 +63,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 						  private val adbWrapper: IAdbWrapper) : ModelFeature() {
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
-	private val dateFormat = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.getDefault())
+	private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StatementCoverageMF"), parent = job)
 
