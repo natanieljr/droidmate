@@ -103,7 +103,7 @@ class SysCmdInterruptableExecutor : ISysCmdExecutor {
 		log.trace("Timeout: {} ms", timeout)
 		log.trace("Command:")
 		log.trace(commandLine)
-		log.trace(Markers.osCmd, commandLine)
+		log.info(Markers.osCmd, commandLine)
 
 		val executionTimeStopwatch = Stopwatch.createStarted()
 
@@ -124,8 +124,8 @@ class SysCmdInterruptableExecutor : ISysCmdExecutor {
 						command.toString(),
 						e.exitValue,
 						getExecutionTimeMsg(executionTimeStopwatch, timeout, e.getExitValue(), commandDescription),
-						if (processStdoutStream.toString().isEmpty()) processStdoutStream.toString() else "<stdout is empty>",
-						if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
+						if (processStdoutStream.toString().isNotEmpty()) processStdoutStream.toString() else "<stdout is empty>",
+						if (processStderrStream.toString().isNotEmpty()) processStderrStream.toString() else "<stderr is empty>"),
 						e)
 			}
 		} catch (e: IOException) {
@@ -134,8 +134,8 @@ class SysCmdInterruptableExecutor : ISysCmdExecutor {
 					+ "Captured stdout: %s\n"
 					+ "Captured stderr: %s",
 					command.toString(),
-					if (processStdoutStream.toString().isEmpty()) processStdoutStream.toString() else "<stdout is empty>",
-					if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
+					if (processStdoutStream.toString().isNotEmpty()) processStdoutStream.toString() else "<stdout is empty>",
+					if (processStderrStream.toString().isNotEmpty()) processStderrStream.toString() else "<stderr is empty>"),
 					e)
 		} finally {
 			currentWatchdog = null
@@ -145,7 +145,7 @@ class SysCmdInterruptableExecutor : ISysCmdExecutor {
 			log.trace("Captured stderr:")
 			log.trace(processStderrStream.toString())
 		}
-		log.trace("Captured exit value: " + exitValue)
+		log.trace("Captured exit value: $exitValue")
 		log.trace("DONE executing system command")
 
 		return arrayOf(processStdoutStream.toString(), processStderrStream.toString())

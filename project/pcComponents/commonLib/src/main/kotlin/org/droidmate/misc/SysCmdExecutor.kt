@@ -25,7 +25,6 @@
 
 package org.droidmate.misc
 
-import com.google.common.base.Joiner
 import com.google.common.base.Stopwatch
 import org.apache.commons.exec.*
 import org.droidmate.logging.Markers
@@ -72,7 +71,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 		val quotedCmdLineParamsTail = Utils.quoteAbsolutePaths(params.drop(1).toTypedArray())
 
 		// Prepare the command to execute.
-		val commandLine = Joiner.on(" ").join(arrayListOf(cmdLineParams[0], *quotedCmdLineParamsTail))
+		val commandLine = listOf(cmdLineParams[0], *quotedCmdLineParamsTail).joinToString (" ")
 
 		val command = CommandLine.parse(commandLine)
 
@@ -99,7 +98,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 		log.trace("Timeout: {} ms", timeout)
 		log.trace("Command:")
 		log.trace(commandLine)
-		log.trace(Markers.osCmd, commandLine)
+		log.info(Markers.osCmd, commandLine)
 
 		val executionTimeStopwatch = Stopwatch.createStarted()
 
@@ -117,8 +116,8 @@ class SysCmdExecutor : ISysCmdExecutor {
 					command.toString(),
 					e.exitValue,
 					getExecutionTimeMsg(executionTimeStopwatch, timeout, e.exitValue, commandDescription),
-					if (processStdoutStream.toString().isEmpty()) processStdoutStream.toString() else "<stdout is empty>",
-					if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
+					if (processStdoutStream.toString().isNotEmpty()) processStdoutStream.toString() else "<stdout is empty>",
+					if (processStderrStream.toString().isNotEmpty()) processStderrStream.toString() else "<stderr is empty>"),
 					e)
 
 		} catch (e: IOException) {
@@ -127,8 +126,8 @@ class SysCmdExecutor : ISysCmdExecutor {
 					+ "Captured stdout: %s\n"
 					+ "Captured stderr: %s",
 					command.toString(),
-					if (processStdoutStream.toString().isEmpty()) processStdoutStream.toString() else "<stdout is empty>",
-					if (processStderrStream.toString().isEmpty()) processStderrStream.toString() else "<stderr is empty>"),
+					if (processStdoutStream.toString().isNotEmpty()) processStdoutStream.toString() else "<stdout is empty>",
+					if (processStderrStream.toString().isNotEmpty()) processStderrStream.toString() else "<stderr is empty>"),
 					e)
 		} finally {
 			log.trace("Captured stdout:")
