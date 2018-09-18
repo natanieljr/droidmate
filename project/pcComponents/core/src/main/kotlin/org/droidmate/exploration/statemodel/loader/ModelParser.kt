@@ -102,7 +102,7 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 		if(enablePrint) logger.info("trace processor launched")
 		channel.consumeEach { tracePath ->
 			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
-			val traceId = tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).toUUID()
+			val traceId = UUID.fromString(tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).removeSuffix(config[ConfigProperties.ModelProperties.dump.traceFileExtension]))
 			modelMutex.withLock { model.initNewTrace(watcher, traceId) }
 					.let { trace ->
 						reader.processLines(tracePath, lineProcessor = processor).let { actionPairs ->  // use maximal parallelism to process the single actions/states
