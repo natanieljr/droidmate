@@ -26,9 +26,9 @@
 package org.droidmate.exploration.statemodel.features
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.sync.Mutex
 import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.ActionData
 import org.droidmate.exploration.statemodel.ModelConfig
@@ -44,19 +44,22 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.BufferedReader
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.streams.toList
+import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
+
 
 /**
  * Model feature to monitor the statement coverage by processing and optional instrumentation file and actively
  * monitor and parse the logcat in order to calculate the coverage.
  */
 class StatementCoverageMF(private val cfg: ConfigurationWrapper,
-						  private val modelCfg: ModelConfig,
-						  private val adbWrapper: IAdbWrapper) : ModelFeature() {
+						  private val modelCfg: ModelConfig) : ModelFeature() {
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
 	private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
@@ -68,6 +71,8 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 
 	private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
 	private val instrumentationMap: Map<String, String>
+
+	private val mutex = Mutex()
 
 	private var lastReadStatement = ""
 	private var lastTime = Date.from(Instant.now())
@@ -85,7 +90,14 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 		// must wait for the action before reading the logcat data
 		deferredAction.await()
 
-		readCoverageFromLogcat()
+		// Prevent multiple runs of this feature, otherwise logcat may crash
+		try {
+			mutex.lock()
+			readCoverageFromLogcat()
+		}
+		finally {
+			mutex.unlock()
+		}
 	}
 
 	/**
@@ -147,16 +159,49 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 
 	/**
 	 * Returns the current measured coverage.
-	 * Note: Returns 1 if [instrumentationMap] is empty.
+	 * Note: Returns 0 if [instrumentationMap] is empty.
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	fun getCurrentCoverage(): Double {
 		return if (instrumentationMap.isEmpty()) {
-			1.0
+			0.0
 		} else {
 			executedStatementsMap.size / instrumentationMap.size.toDouble()
 		}
 	}
+
+	private fun executeCommand(): List<String> {
+		val command = mutableListOf(cfg.adbCommand, "-s", cfg.deviceSerialNumber,
+				"logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
+
+		// AdbWrapper does not work with Apache-Exec 1.3 because it uses Runtime.exec
+		// Returns the following error: Captured stderr: -t ""2018-09-18 13:48:53.735"" not in time format
+		if (lastReadStatement.isNotEmpty()) {
+			val readFrom = dateFormat.format(lastTime)
+			command.addAll(listOf("-t", readFrom))
+		}
+
+
+		val builder = ProcessBuilder(command)
+
+		val process = builder.start()
+
+		val inputReader = InputStreamReader(process.inputStream)
+
+		// Fixed maximum time because sometimes the process is not stopping automatically
+		val success = process.waitFor(1.toLong(), TimeUnit.SECONDS)
+
+		val stdout = BufferedReader(inputReader).lines().toList()
+
+		if (success) {
+			val exitVal = process.exitValue()
+			assert(exitVal == 0) { "Logcat process exited with error $exitVal." }
+		}
+
+		process.destroy()
+		return stdout
+	}
+
 	/**
 	 * Starts executing a command in order to monitor the logcat if the previous command is already terminated.
 	 * Additionally, it parses the returned logcat output and updates [executedStatementsMap].
@@ -164,20 +209,10 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	private fun readCoverageFromLogcat() {
 
 		val file = getLogFilename(counter)
-		val command = mutableListOf("logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
 
-		// Does not work with Apache-Exec 1.3
-		// Returns the following error: Captured stderr: -t ""2018-09-18 13:48:53.735"" not in time format
-		/*if (lastReadStatement.isNotEmpty()) {
-			val readFrom = dateFormat.format(lastTime)
-			command.addAll(listOf("-t", "'$readFrom'"))
-		}*/
+		val output = executeCommand()
 
-		val output = adbWrapper.executeCommand(cfg.deviceSerialNumber, "", "Logcat coverage monitor",
-				*command.toTypedArray())
-
-		output.lines()
-				.filter { it.contains("[androcov]")
+		output.filter { it.contains("[androcov]")
 						&& !it.contains("CoverageHelper")
 						&& it > lastReadStatement }
 				.forEach { line ->
@@ -206,7 +241,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 		log.info("Current statement coverage: ${getCurrentCoverage()}")
 
 		// Write the logcat content into a file
-		Files.write(file, output.toByteArray())
+		Files.write(file, output.toList())
 
 		counter++
 	}

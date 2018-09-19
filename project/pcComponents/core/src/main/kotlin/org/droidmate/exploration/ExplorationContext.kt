@@ -52,7 +52,6 @@ import java.util.*
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper,
                                                    val apk: IApk,
-                                                   adbWrapper: IAdbWrapper,
                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    private val watcher: LinkedList<ModelFeature> = LinkedList(),
@@ -93,7 +92,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
 		if (_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
-		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config, adbWrapper))
+		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config))
 	}
 
 	fun getCurrentState(): StateData = actionTrace.currentState
