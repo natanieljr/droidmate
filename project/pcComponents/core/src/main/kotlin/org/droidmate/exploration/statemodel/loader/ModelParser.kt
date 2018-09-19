@@ -12,7 +12,6 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.debug.debugT
-import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.slf4j.Logger
@@ -74,6 +73,8 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 					}
 				}
 			}
+			parentJob.cancel()
+			parentJob.cancel()
 		}
 		clearQueues()
 		return model
@@ -102,7 +103,12 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 		if(enablePrint) logger.info("trace processor launched")
 		channel.consumeEach { tracePath ->
 			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
-			val traceId = UUID.fromString(tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).removeSuffix(config[ConfigProperties.ModelProperties.dump.traceFileExtension]))
+			val traceId =
+					try {
+						UUID.fromString(tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).removeSuffix(config[ConfigProperties.ModelProperties.dump.traceFileExtension]))
+					}catch(e:IllegalArgumentException){ // tests do not use valid UUIDs but rather int indicies
+						emptyUUID
+					}
 			modelMutex.withLock { model.initNewTrace(watcher, traceId) }
 					.let { trace ->
 						reader.processLines(tracePath, lineProcessor = processor).let { actionPairs ->  // use maximal parallelism to process the single actions/states
