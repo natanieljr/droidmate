@@ -1,6 +1,9 @@
 package org.droidmate.exploration.statemodel.loader
 
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.channels.produce
+import kotlinx.coroutines.experimental.currentScope
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.configuration.ConfigProperties.ModelProperties
@@ -89,13 +92,13 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserI<Pair
 		get() = reader.testTraces
 		set(value) { reader.testTraces = value}
 
-	override fun traceProducer() = produce<Path>(capacity = 5) {
+	override fun traceProducer() = GlobalScope.produce(Dispatchers.Default, capacity = 5, block = {
 		log("Produce trace paths")
 		testTraces.forEach { log(it.toString() + "\n") }
 		for (i in 0 until testTraces.size) {
 			send(Paths.get(config[ModelProperties.dump.traceFilePrefix] + i.toString()))
 		}
-	}
+	})
 
 	override fun execute(testTraces: List<Collection<ActionData>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeature>): Model {
 //		log(testActions.)
@@ -108,7 +111,7 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserI<Pair
 			widgetParser.processor(widget.splittedDumpString(config[ModelProperties.dump.sep]))
 
 	override val actionParser: suspend (List<String>) -> Pair<ActionData, StateData> = processor
-	override suspend fun parseState(stateId: ConcreteId): StateData = stateParser.parseIfAbsent(stateId)
+	override suspend fun parseState(stateId: ConcreteId): StateData = currentScope(stateParser.parseIfAbsent)(stateId)
 }
 
 private const val debugString = "881086d0-66da-39d3-89a7-3ef465ab4971;ccff4dcd-b1ec-3ebf-b2e0-8757b1f8119f;android.view.ViewGroup;true;;;null;true;true;true;false;false;disabled;false;false;false;789;63;263;263;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.LinearLayout[1]/android.widget.HorizontalScrollView[1]/android.widget.LinearLayout[1]/android.view.ViewGroup[4];false;ch.bailu.aat\n" +

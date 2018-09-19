@@ -12,7 +12,6 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.debug.debugT
-import org.droidmate.deviceInterface.guimodel.toUUID
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.slf4j.Logger
@@ -74,6 +73,8 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 					}
 				}
 			}
+			parentJob.cancel()
+			parentJob.cancel()
 		}
 		clearQueues()
 		return model
@@ -84,7 +85,7 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 	}
 	abstract fun addEmptyState()
 
-	protected open fun traceProducer() = produce<Path>(newContext(jobName), capacity = 5) {
+	protected open fun traceProducer() = CoroutineScope(newContext(jobName)).produce<Path>(capacity = 5) {
 		logger.trace("PRODUCER CALL")
 		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
 			s.filter { it.fileName.toString().startsWith(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]) }
@@ -97,12 +98,17 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 	}
 
 	private val modelMutex = Mutex()
-	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = launch(newContext(jobName)){
+	private fun traceProcessor(channel: ReceiveChannel<Path>, watcher: LinkedList<ModelFeature>) = CoroutineScope(newContext(jobName)).launch{
 		logger.trace("trace processor launched")
 		if(enablePrint) logger.info("trace processor launched")
 		channel.consumeEach { tracePath ->
 			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
-			val traceId = tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).toUUID()
+			val traceId =
+					try {
+						UUID.fromString(tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).removeSuffix(config[ConfigProperties.ModelProperties.dump.traceFileExtension]))
+					}catch(e:IllegalArgumentException){ // tests do not use valid UUIDs but rather int indicies
+						emptyUUID
+					}
 			modelMutex.withLock { model.initNewTrace(watcher, traceId) }
 					.let { trace ->
 						reader.processLines(tracePath, lineProcessor = processor).let { actionPairs ->  // use maximal parallelism to process the single actions/states
@@ -128,7 +134,7 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 		val targetWidgetId = widgetParser.fixedWidgetId(actionS[ActionData.widgetIdx])
 
 		val srcId = idFromString(actionS[ActionData.srcStateIdx])
-		val srcState = stateParser.queue.getOrDefault(srcId,stateParser.parseIfAbsent(srcId)).getState()
+		val srcState = stateParser.queue.getOrDefault(srcId,currentScope(stateParser.parseIfAbsent)(srcId)).getState()
 		val targetWidget = targetWidgetId?.let { tId ->
 			srcState.widgets.find { it.id == tId } ?: run{
 				logger.warn("ERROR target widget $tId cannot be found in src state")
@@ -193,11 +199,11 @@ private class ModelParserP(override val config: ModelConfig, override val reader
 	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks)}
 
 	override val processor: suspend(s: List<String>) -> Deferred<Pair<ActionData, StateData>> = { actionS ->
-		async(context(actionParseJobName(actionS))) { parseAction(actionS) }
+		currentScope { async(CoroutineName(actionParseJobName(actionS))) { parseAction(actionS) } }
 	}
 
 	override fun addEmptyState() {
-		StateData.emptyState.let{ stateParser.queue[it.stateId] = async(CoroutineName("empty State")) { it } }
+		StateData.emptyState.let{ stateParser.queue[it.stateId] = runBlocking{ async(CoroutineName("empty State")) { it } } }
 	}
 
 	override suspend fun getElem(e: Deferred<Pair<ActionData, StateData>>): Pair<ActionData, StateData> = e.await()
