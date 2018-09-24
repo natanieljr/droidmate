@@ -178,8 +178,6 @@ class Model private constructor(val config: ModelConfig) {
 						widget.parentId = widgets.firstOrNull {
 							it.idHash == widget.parentHash
 						}?.id
-
-						assert(widgets.all { (it.parentId != null) || (it.parentHash == 0) })
 					}
 					debugT("compute result State for ${widgets.size}\n", { action.resultState(widgets) }).let { state ->
 						// revise state if it contains previously interacted edit fields
