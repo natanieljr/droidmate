@@ -26,6 +26,7 @@
 
 package org.droidmate
 
+import com.natpryce.konfig.CommandLineOption
 import org.droidmate.command.CoverageCommand
 import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.ConfigurationBuilder
@@ -55,7 +56,7 @@ object ExplorationAPI {
 	}
 
 	@JvmStatic
-	val config: (args: Array<String>) -> ConfigurationWrapper = { args -> ConfigurationBuilder().build(args, FileSystems.getDefault()) }
+	fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().build(args, FileSystems.getDefault(), *options)
 
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
