@@ -31,6 +31,7 @@ import org.droidmate.logging.Markers
 import org.droidmate.misc.ISysCmdExecutor.Companion.getExecutionTimeMsg
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 
 class SysCmdExecutor : ISysCmdExecutor {
@@ -62,18 +63,12 @@ class SysCmdExecutor : ISysCmdExecutor {
 
 		val params = cmdLineParams.toList().toTypedArray()
 
-		// If the command string to be executed is a file path to an executable (as opposed to plain command e.g. "java"),
-		// then it should be quoted so spaces in it are handled properly.
-		params[0] = Utils.quoteIfIsPathToExecutable(cmdLineParams[0])
-
-		// If a parameter is an absolute path it might contain spaces in it and if yes, the parameter has to be quoted
-		// to be properly interpreted.
-		val quotedCmdLineParamsTail = Utils.quoteAbsolutePaths(params.drop(1).toTypedArray())
-
-		// Prepare the command to execute.
-		val commandLine = listOf(cmdLineParams[0], *quotedCmdLineParamsTail).joinToString (" ")
-
-		val command = CommandLine.parse(commandLine)
+		// It is recommended to build the command incrementally using .addArgument(..)
+		// rather than using CommandLine.parse(..)
+		val command = CommandLine(params[0])
+		for (param in params.drop(1).toTypedArray()) {
+			command.addArgument(param, false)
+		}
 
 		// Prepare the process stdout and stderr listeners.
 		val processStdoutStream = ByteArrayOutputStream()
@@ -97,8 +92,8 @@ class SysCmdExecutor : ISysCmdExecutor {
 		log.trace(commandDescription)
 		log.trace("Timeout: {} ms", timeout)
 		log.trace("Command:")
-		log.trace(commandLine)
-		log.info(Markers.osCmd, commandLine)
+		log.trace(command.toString())
+		log.info(Markers.osCmd, command.toString())
 
 		val executionTimeStopwatch = Stopwatch.createStarted()
 

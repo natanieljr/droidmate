@@ -130,7 +130,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 		val commandDescription = "Executing adb (Android Debug Bridge) to install ${apkToInstall.fileName} on Android (Virtual) Device."
 
 		try {
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s", deviceSerialNumber, "install -r",
+			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-s", deviceSerialNumber, "install", "-r",
 					apkToInstall.toAbsolutePath().toString())
 
 			if (stdStreams[0].contains("[INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES]"))
@@ -267,7 +267,7 @@ Logcat reference:
 [2] http://developer.android.com/tools/debugging/debugging-log.html#outputFormat
 
 */
-					"logcat -d -b main -v time *:s", messageTag)
+					"logcat", "-d", "-b", "main", "-v", "time", "*:s", messageTag)
 
 			return stdStreams[0]
 					.split(System.lineSeparator())
@@ -285,7 +285,7 @@ Logcat reference:
 
 			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"shell pm list packages")
+					"shell", "pm", "list", "packages")
 
 			return stdStreams[0]
 
@@ -301,7 +301,7 @@ Logcat reference:
 
 			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"shell pm list packages $packageName")
+					"shell", "pm", "list", "packages")
 
 			return stdStreams[0]
 
@@ -317,7 +317,7 @@ Logcat reference:
 
 			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"shell ps")
+					"shell", "ps")
 
 			return stdStreams[0]
 
@@ -333,7 +333,7 @@ Logcat reference:
 
 			sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"logcat -c")
+					"logcat", "-c")
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException(e)
@@ -467,7 +467,7 @@ Logcat reference:
 			// http://developer.android.com/tools/help/adb.html#am
 			val stdStreams = sysCmdExecutor.executeWithTimeout(commandDescription, cfg[launchActivityTimeout], cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"shell am start", // start an activity using Activity Manager (am)
+					"shell", "am", "start", // start an activity using Activity Manager (am)
 					"-W", // wait for launch to complete
 					"-S", // force stop before starting activity
 					"-a", "android.intent.action.MAIN", // from package android.content.Intent.ACTION_MAIN
@@ -501,7 +501,7 @@ Logcat reference:
 			// http://stackoverflow.com/questions/3117095/stopping-an-android-app-from-console/3117310#3117310
 			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"shell pm clear", // clear everything associated with a package
+					"shell", "pm", "clear", // clear everything associated with a package
 					apkPackageName)
 
 			val stdout = stdStreams[0].trim()
@@ -537,8 +537,8 @@ Logcat reference:
 		try {
 			val stdStreams = this.sysCmdExecutor.executeWithoutTimeout(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"shell am instrument",
-					"--user 0",
+					"shell", "am" ,"instrument",
+					"--user", "0",
 					uiaDaemonCmdLine,
 					"-w",
 					testRunner)
@@ -567,7 +567,7 @@ Logcat reference:
 		val pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + pulledFileName
 
 		val stdout = this.executeCommand(deviceSerialNumber, "", "Pull file (API23 compatibility)",
-				"exec-out run-as", shellPackageName, "cat", pulledFilePath)
+				"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
 
 		Files.write(destinationFilePath, stdout.toByteArray())
 	}
@@ -579,7 +579,7 @@ Logcat reference:
 		try {
 			val filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + fileName
 			this.executeCommand(deviceSerialNumber, "", "Delete file (API23 compatibility).",
-					"shell run-as", shellPackageName, "rm", filePath)
+					"shell", "run-as", shellPackageName, "rm", filePath)
 		} catch (e: Exception) {
 			// Logcat file does not exist on new devices, therefore it crashes on the first attempt
 			if (!fileName.contains("droidmate_logcat"))
