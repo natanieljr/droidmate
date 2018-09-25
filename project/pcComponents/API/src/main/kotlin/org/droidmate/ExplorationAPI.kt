@@ -28,6 +28,7 @@ package org.droidmate
 
 import org.droidmate.command.CoverageCommand
 import org.droidmate.command.ExploreCommand
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
@@ -51,7 +52,22 @@ object ExplorationAPI {
 	 */
 	@JvmStatic  // -config ../customConfig.properties
 	fun main(args: Array<String>) { // e.g.`-config filePath` or `--configPath=filePath`
-		explore(args)
+		val cfg = setup(args)
+
+		if (cfg[ConfigProperties.ExecutionMode.coverage])
+			instrument(cfg)
+
+		if (cfg[ConfigProperties.ExecutionMode.inline])
+			inline(cfg)
+
+		if (cfg[ConfigProperties.ExecutionMode.explore])
+			explore(cfg)
+
+		if ( !cfg[ConfigProperties.ExecutionMode.explore] &&
+				!cfg[ConfigProperties.ExecutionMode.inline] &&
+				!cfg[ConfigProperties.ExecutionMode.coverage] ){
+			log.info("DroidMate was not configured to run in any known exploration mode. Finishing.")
+		}
 	}
 
 	@JvmStatic
