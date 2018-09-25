@@ -368,7 +368,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 		val processList = this.adbWrapper.executeCommand(this.serialNumber,
 				"USER", "Check if process $packageName is running.",
-				"shell ps"
+				"shell", "ps"
 		)
 
 		return processList.contains(packageName)
@@ -377,7 +377,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun isPackageInstalled(packageName: String): Boolean {
 		val uiadPackageList = this.adbWrapper.executeCommand(this.serialNumber,
 				"", "Check if package $packageName is installed.",
-				"shell pm list packages $packageName")
+				"shell", "pm", "list", "packages", packageName)
 		val packages = uiadPackageList.trim().replace("package:", "").replace("\r", "|").replace("\n", "|").split("\\|")
 		return packages.any { it == packageName }
 	}
