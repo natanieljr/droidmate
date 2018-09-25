@@ -45,10 +45,10 @@ import org.droidmate.exploration.statemodel.Widget
 	return  TextInsert(this.idHash,newContent,true)
 }
 fun Widget.dragTo(x:Int,y:Int,stepSize:Int):ExplorationAction = TODO()
-fun Widget.swipeUp(stepSize: Int):ExplorationAction = TODO()
-fun Widget.swipeDown(stepSize: Int):ExplorationAction = TODO()
-fun Widget.swipeLeft(stepSize: Int):ExplorationAction = TODO()
-fun Widget.swipeRight(stepSize: Int):ExplorationAction = TODO()
+fun Widget.swipeUp(stepSize: Int):ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), Pair(this.bounds.centerX.toInt(), this.bounds.y), stepSize, true)
+fun Widget.swipeDown(stepSize: Int):ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y), Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), stepSize, true)
+fun Widget.swipeLeft(stepSize: Int):ExplorationAction = Swipe(Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), Pair(this.bounds.x, this.bounds.centerY.toInt()), stepSize, true)
+fun Widget.swipeRight(stepSize: Int):ExplorationAction = Swipe(Pair(this.bounds.x, this.bounds.centerY.toInt()), Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), stepSize, true)
 
 /** navigate to this widget (which may be currently out of screen) and click it */
 fun Widget.navigateTo(action:(Widget)->ExplorationAction):ExplorationAction{
