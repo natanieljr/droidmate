@@ -195,20 +195,18 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 		if (widget.checked != null)
 			actionList.add(widget.tick())
 
-		// TODO: Currently is doing a normal click. Replace for the swipe action (bellow)
-//		if (widget.scrollable)
-//			actionList.add(widget.click())
+		// TODO There is still no swipe left or right, only up and down
+		if (chosenWidget.scrollable) {
+				actionList.add(chosenWidget.swipeUp(chosenWidget.bounds.height / 2))
+				actionList.add(chosenWidget.swipeDown(chosenWidget.bounds.height / 2))
+				//actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_left))
+				//actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_down))
+		}
 
-		/*if (chosenWidget.scrollable) {
-				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_right))
-				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_up))
-				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_left))
-				actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_down))
-		}*/
-
-		logger.debug("Chosen widget info: $widget")
+		logger.debug("Chosen widget info: $widget: ${widget.canBeActedUpon}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}")
 
 		val maxVal = actionList.size
+
 		assert(maxVal > 0)
 		val randomIdx = random.nextInt(maxVal)
 		return actionList[randomIdx]
