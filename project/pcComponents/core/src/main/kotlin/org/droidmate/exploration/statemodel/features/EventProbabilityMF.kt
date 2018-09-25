@@ -176,7 +176,7 @@ open class EventProbabilityMF(modelName: String,
 		attributeValues[0] = model.getNominalIndex(0, this.getRefinedType())
 
 		if (this.parentId != null)
-			attributeValues[1] = model.getNominalIndex(1, state.widgets.first { it.id == parentId }.getRefinedType())
+			attributeValues[1] = model.getNominalIndex(1, state.widgets.first { parent -> parent.id == this.parentId }.getRefinedType())
 		else
 			attributeValues[1] = model.getNominalIndex(1, "none")
 
