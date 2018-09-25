@@ -45,7 +45,7 @@ class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
 		log.info("Reading input apks from ${apksDir.toAbsolutePath()}")
 
 		var apks = Files.list(apksDir)
-				.filter { it.toString().endsWith(".apk") }
+				.filter { it.toString().endsWith(".apk") && it.toFile().isFile }
 				.sorted()
 				.toList()
 

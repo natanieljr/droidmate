@@ -125,7 +125,7 @@ class Utils {
 		fun quoteIfIsPathToExecutable(path: String): String {
 			return if (SystemUtils.IS_OS_WINDOWS) {
 				if (Files.isExecutable(Paths.get(path)))
-					'"' + path + '"'
+					"\"$path\""
 				else
 					path
 			} else {
@@ -137,7 +137,7 @@ class Utils {
 		fun quoteAbsolutePaths(stringArray: Array<String>): Array<String> {
 			stringArray.forEachIndexed { idx, it ->
 				if (File(it).isAbsolute)
-					stringArray[idx] = '"' + it + '"'
+					stringArray[idx] = "\"$it\""
 			}
 			return stringArray
 		}

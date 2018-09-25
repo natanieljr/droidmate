@@ -117,7 +117,7 @@ class AaptWrapper constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	var aaptDumpBadgingInstr: (Path) -> String = { instrumentedApk ->
-		val commandDescription = "Executing aapt (Android Asset Packaging Tool) to extract package name of apk ${instrumentedApk.toAbsolutePath()}."
+		val commandDescription = "Executing aapt (Android Asset Packaging Tool) to extract package name of apk \"${instrumentedApk.toAbsolutePath()}\"."
 
 		try {
 			val outputStreams = sysCmdExecutor.execute(
