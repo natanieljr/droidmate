@@ -28,6 +28,8 @@ package org.droidmate.exploration.statemodel.features
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.sync.Mutex
 import org.apache.commons.lang3.StringUtils
 import org.droidmate.exploration.statemodel.StateData
 import org.droidmate.exploration.statemodel.Widget
@@ -70,6 +72,11 @@ open class EventProbabilityMF(modelName: String,
 	}
 
 	/**
+	 * Mutex for synchronization
+	 */
+	protected val mutex = Mutex()
+
+	/**
 	 * Load instances used to train the model and then remove all elements.
 	 *
 	 * This is necessary because we applied a String-to-Nominal filter and, therefore,
@@ -93,34 +100,39 @@ open class EventProbabilityMF(modelName: String,
 	}
 
 	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
-		wekaInstances.delete()
+		try {
+			mutex.lock()
+			wekaInstances.delete()
 
-		val actionableWidgets = newState.actionableWidgets
-		actionableWidgets.forEach { wekaInstances.add(it.toWekaInstance(newState, wekaInstances)) }
+			val actionableWidgets = newState.actionableWidgets
+			actionableWidgets.forEach { wekaInstances.add(it.toWekaInstance(newState, wekaInstances)) }
 
-		for (i in 0 until wekaInstances.numInstances()) {
-			val instance = wekaInstances.instance(i)
-			try {
-				// Probability of having event
-				val predictionProbability : Double
+			for (i in 0 until wekaInstances.numInstances()) {
+				val instance = wekaInstances.instance(i)
+				try {
+					// Probability of having event
+					val predictionProbability: Double
 
-				val equivWidget = actionableWidgets[i]
-				if (useClassMembershipProbability) {
-					// Get probability distribution of the prediction ( [false, true] )
-					predictionProbability = classifier.distributionForInstance(instance)[1]
+					val equivWidget = actionableWidgets[i]
+					if (useClassMembershipProbability) {
+						// Get probability distribution of the prediction ( [false, true] )
+						predictionProbability = classifier.distributionForInstance(instance)[1]
+					} else {
+						val classification = classifier.classifyInstance(instance)
+						// Classified as true = 1.0
+						predictionProbability = classification
+					}
+
+					widgetProbability[equivWidget.uid] = predictionProbability
+
+				} catch (e: ArrayIndexOutOfBoundsException) {
+					log.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
+					// do nothing
 				}
-				else {
-					val classification = classifier.classifyInstance(instance)
-					// Classified as true = 1.0
-					predictionProbability = classification
-				}
-
-				widgetProbability[equivWidget.uid] = predictionProbability
-
-			} catch (e: ArrayIndexOutOfBoundsException) {
-				log.error("Could not classify widget of type ${actionableWidgets[i]}. Ignoring it", e)
-				// do nothing
 			}
+		}
+		finally {
+			mutex.unlock()
 		}
 	}
 
@@ -201,9 +213,18 @@ open class EventProbabilityMF(modelName: String,
 	protected val widgetProbability = mutableMapOf<UUID, Double>() // probability of each widget having an event
 
 	open fun getProbabilities(state: StateData): Map<Widget, Double> {
-		return state.actionableWidgets
-				.map { it to (widgetProbability[it.uid] ?: 0.0) }
-				.toMap()
+		try {
+			runBlocking{ mutex.lock() }
+			val data = state.actionableWidgets
+					.map { it to (widgetProbability[it.uid] ?: 0.0) }
+					.toMap()
+
+			assert(data.isNotEmpty()) { "No actionable widgets to be interacted with" }
+
+			return data
+		} finally {
+			mutex.unlock()
+		}
 	}
 
 	override fun equals(other: Any?): Boolean {
