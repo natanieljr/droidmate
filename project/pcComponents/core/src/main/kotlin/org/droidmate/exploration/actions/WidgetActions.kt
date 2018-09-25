@@ -38,8 +38,8 @@ import org.droidmate.exploration.statemodel.Widget
 	widgetTargets.add(this)
 	return clickCoordinate().let{ (x,y) -> LongClick(x, y,true,delay) }
 }
-@JvmOverloads fun Widget.setText(newContent: String, isVisible: Boolean=false): ExplorationAction{
-	if(!(visible||isVisible) || !enabled || !isEdit)
+@JvmOverloads fun Widget.setText(newContent: String, isVisible: Boolean=false, enableValidation: Boolean =true): ExplorationAction{
+	if(enableValidation && (!(visible||isVisible) || !enabled || !isEdit))
 		throw RuntimeException("ERROR: tried to enter text on non-actable Widget $this")
 	widgetTargets.add(this)
 	return  TextInsert(this.idHash,newContent,true)

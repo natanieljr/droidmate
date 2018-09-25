@@ -112,10 +112,11 @@ import java.nio.file.*
  */
 class ConfigurationBuilder : IConfigurationBuilder {
 	@Throws(ConfigurationException::class)
-	override fun build(args: Array<String>): ConfigurationWrapper = build(args, FileSystems.getDefault())
+	override fun build(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = build(args, FileSystems.getDefault(),*options)
 
 	@Throws(ConfigurationException::class)
-	override fun build(args: Array<String>, fs: FileSystem): ConfigurationWrapper = build(parseArgs(args,
+	override fun build(args: Array<String>, fs: FileSystem, vararg options: CommandLineOption): ConfigurationWrapper = build(parseArgs(args,
+			*options,
 			// Core
 			CommandLineOption(logLevel, description = "Logging level of the entirety of application. Possible values, comma separated: info, debug, trace, warn, error."),
 			CommandLineOption(configPath, description = "Path to a custom configuration file, which replaces the default configuration.", short = "config"),
