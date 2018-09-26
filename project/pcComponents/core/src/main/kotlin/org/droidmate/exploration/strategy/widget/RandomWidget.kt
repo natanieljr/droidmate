@@ -29,6 +29,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies.Parameters
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.guimodel.Swipe
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.Widget
@@ -180,34 +181,6 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 			chooseRandomly()
 	}
 
-	@Suppress("MemberVisibilityCanBePrivate")
-	protected fun Widget.availableActions(): List<ExplorationAction>{
-		val actionList: MutableList<ExplorationAction> = mutableListOf()
-
-		if (this.longClickable) {    // lower probability of longClick if click is possible as it is more probable progressing the exploration
-			if (this.clickable) {
-				if (random.nextInt(100) > 55)
-					actionList.add(this.longClick())
-			} else
-				actionList.add(this.longClick())
-		}
-
-		if (this.clickable)
-			actionList.add(this.click())
-
-		if (this.checked != null)
-			actionList.add(this.tick())
-
-		if (this.scrollable && randomScroll) {
-			actionList.add(this.swipeUp())
-			actionList.add(this.swipeDown())
-			actionList.add(this.swipeRight())
-			actionList.add(this.swipeLeft())
-		}
-
-		return actionList
-	}
-
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
 
@@ -217,7 +190,10 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 
 		logger.debug("Chosen widget info: $widget: ${widget.canBeActedUpon}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
 
-		val actionList = widget.availableActions()
+		val actionList = if (randomScroll)
+			widget.availableActions()
+		else
+			widget.availableActions().filterNot { it is Swipe }
 
 		val maxVal = actionList.size
 

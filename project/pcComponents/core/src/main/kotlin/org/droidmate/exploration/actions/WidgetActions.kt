@@ -79,3 +79,24 @@ fun Widget.clickCoordinate(): Pair<Int, Int> =
 		uncoveredCoord ?: Pair(bounds.centerX.toInt(), bounds.centerY.toInt())
 
 
+fun Widget.availableActions(): List<ExplorationAction>{
+	val actionList: MutableList<ExplorationAction> = mutableListOf()
+
+	if (this.longClickable)
+		actionList.add(this.longClick())
+
+	if (this.clickable)
+		actionList.add(this.click())
+
+	if (this.checked != null)
+		actionList.add(this.tick())
+
+	if (this.scrollable) {
+		actionList.add(this.swipeUp())
+		actionList.add(this.swipeDown())
+		actionList.add(this.swipeRight())
+		actionList.add(this.swipeLeft())
+	}
+
+	return actionList
+}
