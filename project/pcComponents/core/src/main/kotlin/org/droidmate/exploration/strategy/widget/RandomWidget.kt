@@ -25,6 +25,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.configuration.ConfigProperties.Strategies.Parameters
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.debug.debugT
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
@@ -35,13 +36,18 @@ import org.droidmate.exploration.statemodel.emptyId
 import org.droidmate.exploration.statemodel.features.ActionCounterMF
 import org.droidmate.exploration.statemodel.features.BlackListMF
 import org.droidmate.exploration.statemodel.features.listOfSmallest
-import java.util.*
+import java.util.Random
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
+ *
+ * @param randomSeed Random exploration seed
+ * @param biased Prioritise UI elements which have not yet been interacted with, instead of plain random
+ * @param randomScroll Trigger not only clicks and long clicks, but also scroll actions when the UI element supports it
  */
 open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
-												  private val biased: Boolean = true) : ExplorationStrategy() {
+												  private val biased: Boolean = true,
+												  private val randomScroll: Boolean = true) : ExplorationStrategy() {
 
 	protected var random = Random(randomSeed)
 		private set
@@ -52,13 +58,13 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	}
 
 	/**
-	 * Creates a new exploration strategy instance using the []configured random seed][cfg]
+	 * Creates a new exploration strategy instance using the [configured random seed][cfg]
 	 */
-	constructor(cfg: ConfigurationWrapper): this(cfg.randomSeed)
+	constructor(cfg: ConfigurationWrapper) : this(cfg.randomSeed, cfg[Parameters.biasedRandom], cfg[Parameters.randomScroll])
 
 	@Suppress("MemberVisibilityCanBePrivate")
-	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>()	}
-	private val blackList: BlackListMF by lazy {	eContext.getOrCreateWatcher<BlackListMF>() }
+	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>() }
+	private val blackList: BlackListMF by lazy { eContext.getOrCreateWatcher<BlackListMF>() }
 
 	private fun mustRepeatLastAction(): Boolean {
 		if (!this.eContext.isEmpty()) {
@@ -68,9 +74,8 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 					// Has last action
 					this.eContext.lastTarget != null &&
 					// Has a state that is not a runtime permission
-					eContext.getModel().let{runBlocking { it.getStates() }}
-							.filterNot { it.stateId == emptyId }
-							.filterNot { it.isRequestRuntimePermissionDialogBox }
+					eContext.getModel().let { runBlocking { it.getStates() } }
+							.filterNot { it.stateId == emptyId && it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&
 					// Can re-execute the same action
 					currentState.actionableWidgets
@@ -103,23 +108,23 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	 * @param tInState the threshold to consider the widget blacklisted within the current state eContext
 	 * @param tOverall the threshold to consider the widget blacklisted over all states
 	 */
-	protected open suspend fun excludeBlacklisted(candidates: List<Widget>, tInState:Int=1, tOverall:Int=2, block:(listedInsState:List<Widget>, blacklisted: List<Widget>)->List<Widget>): List<Widget> =
-			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, tInState) }.let{ noBlacklistedInState ->
-				noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, tOverall) }.let{ noBlacklisted ->
+	protected open suspend fun excludeBlacklisted(candidates: List<Widget>, tInState: Int = 1, tOverall: Int = 2, block: (listedInsState: List<Widget>, blacklisted: List<Widget>) -> List<Widget>): List<Widget> =
+			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, tInState) }.let { noBlacklistedInState ->
+				noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, tOverall) }.let { noBlacklisted ->
 					block(noBlacklistedInState, noBlacklisted)
 				}
 			}
 
 
-	private fun List<Widget>.chooseRandomly():ExplorationAction{
-		if(this.isEmpty())
+	private fun List<Widget>.chooseRandomly(): ExplorationAction {
+		if (this.isEmpty())
 			return eContext.resetApp()
 		return chooseActionForWidget(this[random.nextInt(this.size)])
 	}
 
-	open suspend fun computeCandidates():Collection<Widget> = debugT("blacklist computation", {
+	open suspend fun computeCandidates(): Collection<Widget> = debugT("blacklist computation", {
 		val nonCrashing = super.eContext.nonCrashingWidgets()
-		excludeBlacklisted(super.eContext.nonCrashingWidgets()){ noBlacklistedInState, noBlacklisted ->
+		excludeBlacklisted(super.eContext.nonCrashingWidgets()) { noBlacklistedInState, noBlacklisted ->
 			when {
 				noBlacklisted.isNotEmpty() -> noBlacklisted
 				noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
@@ -127,22 +132,23 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 			}
 		}
 	}, inMillis = true)
-			.filter{ it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
+			.filter { it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
 
-	protected suspend fun getCandidates(): List<Widget>{
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected suspend fun getCandidates(): List<Widget> {
 		return computeCandidates()
 				.let { filteredCandidates ->
 					// for each widget in this state the number of interactions
 					counter.numExplored(currentState, filteredCandidates).entries
-							.groupBy { it.key.packageName }.flatMap { (pkgName,countEntry) ->
-								if(pkgName != super.eContext.apk.packageName) {
+							.groupBy { it.key.packageName }.flatMap { (pkgName, countEntry) ->
+								if (pkgName != super.eContext.apk.packageName) {
 									val pkgActions = counter.pkgCount(pkgName)
 									countEntry.map { Pair(it.key, pkgActions) }
 								} else
 									countEntry.map { Pair(it.key, it.value) }
 							}// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
-							.groupBy { (_,countVal) -> countVal }.let { map ->
-								map.listOfSmallest()?.map { (w,_) -> w }?.let { leastInState: List<Widget> ->
+							.groupBy { (_, countVal) -> countVal }.let { map ->
+								map.listOfSmallest()?.map { (w, _) -> w }?.let { leastInState: List<Widget> ->
 									// determine the subset of widgets which were least interacted with
 									// if multiple widgets clicked with same frequency, choose the one least clicked over all states
 									if (leastInState.size > 1) {
@@ -154,16 +160,16 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 				}
 	}
 
-	private fun chooseBiased(): ExplorationAction = runBlocking{
+	private fun chooseBiased(): ExplorationAction = runBlocking {
 		val candidates = getCandidates()
 		// no valid candidates -> go back to previous state
-		if(candidates.isEmpty()){
+		if (candidates.isEmpty()) {
 			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
 			eContext.pressBack()
 		} else candidates.chooseRandomly()
 	}
 
-	private fun chooseRandomly(): ExplorationAction{
+	private fun chooseRandomly(): ExplorationAction {
 		return currentState.actionableWidgets.chooseRandomly()
 	}
 
@@ -183,10 +189,12 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 
 		val actionList: MutableList<ExplorationAction> = mutableListOf()
 
-		if (widget.longClickable){    // lower probability of longClick if click is possible as it is more probable progressing the exploration
-			if(widget.clickable) {
-				if (random.nextInt(100) > 55) actionList.add(widget.longClick())
-			}else 	actionList.add(widget.longClick())
+		if (widget.longClickable) {    // lower probability of longClick if click is possible as it is more probable progressing the exploration
+			if (widget.clickable) {
+				if (random.nextInt(100) > 55)
+					actionList.add(widget.longClick())
+			} else
+				actionList.add(widget.longClick())
 		}
 
 		if (widget.clickable)
@@ -195,15 +203,14 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 		if (widget.checked != null)
 			actionList.add(widget.tick())
 
-		// TODO There is still no swipe left or right, only up and down
-		if (chosenWidget.scrollable) {
-				actionList.add(chosenWidget.swipeUp(chosenWidget.bounds.height / 2))
-				actionList.add(chosenWidget.swipeDown(chosenWidget.bounds.height / 2))
-				//actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_left))
-				//actionList.add(ExplorationAction.newWidgetExplorationAction(chosenWidget, 0, guiActionSwipe_down))
+		if (chosenWidget.scrollable && this.randomScroll) {
+			actionList.add(chosenWidget.swipeUp())
+			actionList.add(chosenWidget.swipeDown())
+			actionList.add(chosenWidget.swipeRight())
+			actionList.add(chosenWidget.swipeLeft())
 		}
 
-		logger.debug("Chosen widget info: $widget: ${widget.canBeActedUpon}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}")
+		logger.debug("Chosen widget info: $widget: ${widget.canBeActedUpon}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
 
 		val maxVal = actionList.size
 
@@ -213,8 +220,8 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	}
 
 	override fun chooseAction(): ExplorationAction {
-		if(eContext.isEmpty())
-            return eContext.resetApp() // very first action -> start the app via reset
+		if (eContext.isEmpty())
+			return eContext.resetApp() // very first action -> start the app via reset
 		// Repeat previous action is last action was to click on a runtime permission dialog
 		if (mustRepeatLastAction())
 			return repeatLastAction()

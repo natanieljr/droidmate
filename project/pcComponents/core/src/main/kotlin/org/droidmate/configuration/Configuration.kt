@@ -249,6 +249,8 @@ abstract class ConfigProperties {
 
 		object Parameters : PropertyGroup() {
 			val uiRotation by intType
+			val randomScroll by booleanType
+			val biasedRandom by booleanType
 		}
 	}
 
