@@ -41,7 +41,7 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 
 	@JvmOverloads
 	constructor(cfg: ConfigurationWrapper, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
-		: this(cfg.randomSeed, modelName, arffName)
+			: this(cfg.randomSeed, modelName, arffName)
 
 	protected open val eventWatcher: EventProbabilityMF by lazy {
 		(eContext.findWatcher { it is EventProbabilityMF }
@@ -53,12 +53,12 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	protected val countWatcher: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>() }
 
 	/**
-     * Get all widgets which from a [widget eContext][currentState].
-     * For each widget, stores the estimated probability to have an event (according to the model)
-     *
-     * @return List of widgets with their probability to have an event
-     */
-    override fun internalGetWidgets(): List<Widget> {
+	 * Get all widgets which from a [widget eContext][currentState].
+	 * For each widget, stores the estimated probability to have an event (according to the model)
+	 *
+	 * @return List of widgets with their probability to have an event
+	 */
+	override fun internalGetWidgets(): List<Widget> {
 		return eventWatcher.getProbabilities(currentState)
 				.map { it.key }
 	}
@@ -72,21 +72,22 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 
 		val probabilities = getCandidatesProbabilities()
 		val selectedIdx = stochasticSelect(probabilities.values, 10)
-		val chosenWidgetInfo = candidates[selectedIdx]
+		val widget = candidates[selectedIdx]
 
-		return chooseActionForWidget(chosenWidgetInfo)
+		return chooseActionForWidget(widget)
 	}
 
 	/**
 	 * Returns an array with the probabilities of the candidates
 	 */
-	protected open fun getCandidatesProbabilities(): Map<Widget,Double> {
+	protected open fun getCandidatesProbabilities(): Map<Widget, Double> {
 		return eventWatcher.getProbabilities(currentState)
-				.map { it.key to
-						(if (runBlocking { countWatcher.widgetCnt(it.key.uid) } == 0)
-							it.value * 2
-						else
-							it.value)
+				.map {
+					it.key to
+							(if (runBlocking { countWatcher.widgetCnt(it.key.uid) } == 0)
+								it.value * 2
+							else
+								it.value)
 				}
 				.toMap()
 	}
@@ -97,7 +98,8 @@ open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: L
 	 * weight: array with the probabilities of each candidate
 	 * n_select: number of iterations
 	 */
-	private fun stochasticSelect(weight: Collection<Double>, n_select: Int): Int {
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected fun stochasticSelect(weight: Collection<Double>, n_select: Int): Int {
 
 		val n = weight.size
 		val counter = IntArray(n)

@@ -180,6 +180,34 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 			chooseRandomly()
 	}
 
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected fun Widget.availableActions(): List<ExplorationAction>{
+		val actionList: MutableList<ExplorationAction> = mutableListOf()
+
+		if (this.longClickable) {    // lower probability of longClick if click is possible as it is more probable progressing the exploration
+			if (this.clickable) {
+				if (random.nextInt(100) > 55)
+					actionList.add(this.longClick())
+			} else
+				actionList.add(this.longClick())
+		}
+
+		if (this.clickable)
+			actionList.add(this.click())
+
+		if (this.checked != null)
+			actionList.add(this.tick())
+
+		if (this.scrollable && randomScroll) {
+			actionList.add(this.swipeUp())
+			actionList.add(this.swipeDown())
+			actionList.add(this.swipeRight())
+			actionList.add(this.swipeLeft())
+		}
+
+		return actionList
+	}
+
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
 
@@ -187,34 +215,14 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		val actionList: MutableList<ExplorationAction> = mutableListOf()
-
-		if (widget.longClickable) {    // lower probability of longClick if click is possible as it is more probable progressing the exploration
-			if (widget.clickable) {
-				if (random.nextInt(100) > 55)
-					actionList.add(widget.longClick())
-			} else
-				actionList.add(widget.longClick())
-		}
-
-		if (widget.clickable)
-			actionList.add(widget.click())
-
-		if (widget.checked != null)
-			actionList.add(widget.tick())
-
-		if (chosenWidget.scrollable && this.randomScroll) {
-			actionList.add(chosenWidget.swipeUp())
-			actionList.add(chosenWidget.swipeDown())
-			actionList.add(chosenWidget.swipeRight())
-			actionList.add(chosenWidget.swipeLeft())
-		}
-
 		logger.debug("Chosen widget info: $widget: ${widget.canBeActedUpon}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
+
+		val actionList = widget.availableActions()
 
 		val maxVal = actionList.size
 
-		assert(maxVal > 0)
+		assert(maxVal > 0) { "No actions can be performed on the widget $widget" }
+
 		val randomIdx = random.nextInt(maxVal)
 		return actionList[randomIdx]
 	}
