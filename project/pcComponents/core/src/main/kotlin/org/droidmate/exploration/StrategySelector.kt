@@ -158,7 +158,7 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val randomBiased: SelectorFunction = { _, pool, _ ->
-			pool.getFirstInstanceOf(ModelBased::class.java)
+			pool.getFirstInstanceOf(FitnessProportionateSelection::class.java)
 		}
 
 		/**
