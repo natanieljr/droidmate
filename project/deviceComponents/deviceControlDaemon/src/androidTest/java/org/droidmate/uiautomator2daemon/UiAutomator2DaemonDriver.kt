@@ -57,7 +57,9 @@ class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val
 		idleTimeout = waitForIdleTimeout
 
 		// Disabling waiting for selector implicit timeout
-		Configurator.getInstance().waitForSelectorTimeout = 0L
+		val c = Configurator.getInstance()
+		c.waitForSelectorTimeout = 0L
+		c.uiAutomationFlags = UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES
 
 		// The instrumentation required to run uiautomator2-daemon is
 		// provided by the command: adb shell instrument <PACKAGE>/<RUNNER>

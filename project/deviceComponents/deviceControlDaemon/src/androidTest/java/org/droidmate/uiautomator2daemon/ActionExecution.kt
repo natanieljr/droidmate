@@ -3,10 +3,10 @@ package org.droidmate.uiautomator2daemon
 import android.app.UiAutomation
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
 import android.support.test.uiautomator.*
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
@@ -235,6 +235,12 @@ private fun UiDevice.launchApp(appPackageName: String, context: Context, launchA
 				waitTime)
 		runBlocking { delay(launchActivityDelay) }
 		success = UiHierarchy.waitFor(this, interactableTimeout, actableAppElem)
+		// mute audio after app launch (for very annoying apps we may need a contentObserver listening on audio setting changes)
+		val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+		audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE,0)
+		audio.adjustStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_MUTE,0)
+		audio.adjustStreamVolume(AudioManager.STREAM_ALARM, AudioManager.ADJUST_MUTE,0)
+
 	}.also { Log.d(logTag, "load-time $it millis") }
 	return success
 }
