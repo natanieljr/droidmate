@@ -189,7 +189,7 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T,Pair<ActionData, StateDat
 
 }
 
-private class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
+internal open class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
                            override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true,
                            override val enableChecks: Boolean)
 	: ModelParserI<Deferred<Pair<ActionData, StateData>>, Deferred<StateData>, Deferred<Widget>>() {

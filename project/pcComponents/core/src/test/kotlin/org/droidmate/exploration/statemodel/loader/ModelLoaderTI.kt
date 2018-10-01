@@ -1,9 +1,7 @@
 package org.droidmate.exploration.statemodel.loader
 
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.produce
-import kotlinx.coroutines.experimental.currentScope
 import org.droidmate.exploration.statemodel.*
 import org.droidmate.exploration.statemodel.features.ModelFeature
 import org.droidmate.configuration.ConfigProperties.ModelProperties
@@ -21,7 +19,7 @@ internal interface ModelLoaderTI{
 	suspend fun parseWidget(widget: Widget): Widget?
 
 	/** REMARK these are state dependend => use very carefully in Unit-Tests */
-	val actionParser: suspend (List<String>) -> Pair<ActionData, StateData>
+//	val actionParser: suspend (List<String>) -> Pair<ActionData, StateData>
 	suspend fun parseState(stateId: ConcreteId): StateData
 
 }
@@ -62,29 +60,23 @@ class TestReader(config: ModelConfig): ContentReader(config){
 
 }
 
-internal class ModelLoaderT(override val config: ModelConfig): ModelParserI<Pair<ActionData, StateData>, StateData, Widget>(), ModelLoaderTI {
+internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(config,enableChecks = true), ModelLoaderTI {
 
 	/** creating test environment */
 	override val enableChecks: Boolean = true
 	override val compatibilityMode: Boolean = false
 	override val enablePrint: Boolean = false
 	override val reader: TestReader = TestReader(config)
-	override val isSequential: Boolean = true
+	override val isSequential: Boolean = false
 	override fun log(msg: String) = println("TestModelLoader[${Thread.currentThread().name}] $msg")
 
 	/** implementing ModelParser default methods */
-	override val widgetParser by lazy { WidgetParserS(model,parentJob, compatibilityMode, enableChecks) }
-	override val stateParser  by lazy { StateParserS(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks) }
-
-	override val processor: suspend (List<String>) -> Pair<ActionData, StateData> = { actionS:List<String> ->
-		parseAction(actionS)
-	}
-	override fun addEmptyState() {
-		StateData.emptyState.let{ stateParser.queue[it.stateId] = it }
-	}
-	override suspend fun getElem(e: Pair<ActionData, StateData>): Pair<ActionData, StateData> = e
+	override val widgetParser by lazy { WidgetParserP(model,parentJob, compatibilityMode, enableChecks) }
+	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks) }
 
 	/** custom test environment */
+//	override val actionParser: suspend (List<String>) -> Pair<ActionData, StateData> = processor
+//	override val actionParser: suspend (List<String>) -> Pair<ActionData, StateData> = { args -> processor(args).await() }
 	override var testStates: Collection<StateData>
 		get() = reader.testStates
 		set(value) { reader.testStates = value}
@@ -108,10 +100,9 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserI<Pair
 	}
 
 	override suspend fun parseWidget(widget: Widget): Widget? =
-			widgetParser.processor(widget.splittedDumpString(config[ModelProperties.dump.sep]))
+			widgetParser.getElem( widgetParser.processor(widget.splittedDumpString(config[ModelProperties.dump.sep])) )
 
-	override val actionParser: suspend (List<String>) -> Pair<ActionData, StateData> = processor
-	override suspend fun parseState(stateId: ConcreteId): StateData = currentScope(stateParser.parseIfAbsent)(stateId)
+	override suspend fun parseState(stateId: ConcreteId): StateData = stateParser.getElem( currentScope(stateParser.parseIfAbsent)(stateId) )
 }
 
 private const val debugString = "881086d0-66da-39d3-89a7-3ef465ab4971;ccff4dcd-b1ec-3ebf-b2e0-8757b1f8119f;android.view.ViewGroup;true;;;null;true;true;true;false;false;disabled;false;false;false;789;63;263;263;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.LinearLayout[1]/android.widget.HorizontalScrollView[1]/android.widget.LinearLayout[1]/android.view.ViewGroup[4];false;ch.bailu.aat\n" +
