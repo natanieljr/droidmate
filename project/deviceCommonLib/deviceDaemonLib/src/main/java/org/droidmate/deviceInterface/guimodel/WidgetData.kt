@@ -53,7 +53,7 @@ data class WidgetData(
 	var childrenXpathHashes: List<Int> = emptyList()
 	fun content(): String = "$text$contentDesc" //TODO insert space once compatibility mode ModelLoader is done
 
-	val actable: Boolean by lazy{ enabled && visible && (clickable || checked ?: false || longClickable || scrollable)}
+	val actable: Boolean by lazy{ enabled && visible && ( editable || clickable || checked ?: false || longClickable || scrollable)}
 	var hasActableDescendant: Boolean = false
 
 	companion object {

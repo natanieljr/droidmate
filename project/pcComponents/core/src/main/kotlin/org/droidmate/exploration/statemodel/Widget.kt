@@ -157,7 +157,7 @@ data class Widget(val properties: WidgetData, val uidImgId: Lazy<Pair<UUID, UUID
 		return "${clsPart}resourceId: $pResId / text: $pText / contDesc: $pContDesc / click xy: [$px,$py]"
 	}
 
-	val canBeActedUpon by lazy { enabled && visible && (clickable || checked ?: false || longClickable || scrollable) }
+	val canBeActedUpon by lazy { enabled && visible && ( isEdit || clickable || checked ?: false || longClickable || scrollable) }
 
 	/*************************/
 	companion object {
