@@ -224,7 +224,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 		// Set the logging directory for the logback logger as early as possible
 		val outputPath = Paths.get(config[outputDir].toString())
-								.resolve(getDeviceDir(config))
 								.resolve(ConfigurationWrapper.log_dir_name)
 
 		System.setProperty("logsDir", outputPath.toString())
@@ -251,10 +250,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 				setupResourcesAndPaths(config)
 				validateExplorationSettings(config)
 				normalizeAndroidApi(config)
-
-				// This increment is done so each connected device will have its uiautomator-daemon reachable on a separate port.
-				//config.uiautomatorDaemonTcpPort += config.deviceIndex
-
 			} catch (e: ConfigurationException) {
 				throw e
 			}
@@ -288,29 +283,8 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 		@JvmStatic
 		private fun validateExplorationStrategySettings(cfg: ConfigurationWrapper) {
-			/*val settingsCount = widgetClickingStrategySettingsCount(cfg)
-
-			if (settingsCount > 1)
-				throw ConfigurationException("Exploration strategy has been configured in too many different ways. Only one of the following expressions can be true:\n" +
-						"randomSeed >= null: ${cfg[randomSeed] >= 0}\n" +
-						"widgetIndexes.isNotEmpty(): ${cfg[widgetIndexes].isNotEmpty()}")*/
-
 			if (cfg[randomSeed] == -1L) {
 				log.info("Generated random seed: ${cfg.randomSeed}")
-			}
-		}
-
-		/*@JvmStatic
-		private fun widgetClickingStrategySettingsCount(cfg: ConfigurationWrapper): Int =
-				arrayListOf(cfg.alwaysClickFirstWidget, cfg.widgetIndexes.isNotEmpty()).map { if (it) 1 else 0 }.sum()*/
-
-		@JvmStatic
-		private fun getDeviceDir(cfg: Configuration): String {
-			// If not using main device, export again
-			return when {
-				cfg[deviceSerialNumber].isNotEmpty() -> "device" + cfg[deviceSerialNumber].replace(":", "-")
-				cfg[deviceIndex] > 0 -> "device" + cfg[deviceIndex]
-				else -> ""
 			}
 		}
 
@@ -327,8 +301,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		@JvmStatic
 		@Throws(ConfigurationException::class)
 		private fun setupResourcesAndPaths(cfg: ConfigurationWrapper) {
-			cfg.droidmateOutputDirPath = cfg.getPath(cfg[outputDir])
-					.resolve(getDeviceDir(cfg)).toAbsolutePath()
+			cfg.droidmateOutputDirPath = cfg.getPath(cfg[outputDir]).toAbsolutePath()
 			cfg.resourceDir = cfg.droidmateOutputDirPath
 					.resolve(BuildConstants.dir_name_temp_extracted_resources)
 			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath
