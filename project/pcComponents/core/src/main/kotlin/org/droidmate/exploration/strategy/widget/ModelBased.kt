@@ -25,6 +25,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.statemodel.Widget
 import org.droidmate.exploration.statemodel.features.EventProbabilityMF
 
@@ -32,8 +33,8 @@ import org.droidmate.exploration.statemodel.features.EventProbabilityMF
  * Exploration strategy that select a (pseudo-)random widget from the screen.
  */
 open class ModelBased @JvmOverloads constructor(randomSeed: Long,
-												modelName: String = "HasModel.model",
-												arffName: String = "baseModelFile.arff") : RandomWidget(randomSeed) {
+												protected val modelName: String = "HasModel.model",
+												protected val arffName: String = "baseModelFile.arff") : RandomWidget(randomSeed) {
 	/**
 	 * Creates a new exploration strategy instance reading the random seed from the configuration file
 	 */
@@ -42,12 +43,8 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 				modelName: String = "HasModel.model",
 				arffName: String = "baseModelFile.arff") : this(cfg.randomSeed, modelName, arffName)
 
-
-	protected val watcher: EventProbabilityMF by lazy {
-		(eContext.findWatcher { it is EventProbabilityMF }
-				?: EventProbabilityMF(modelName, arffName, true)
-						.also { eContext.addWatcher(it) }) as EventProbabilityMF
-	}
+	protected val watcher: EventProbabilityMF
+		get() = (eContext.findWatcher { it is EventProbabilityMF } as EventProbabilityMF)
 
 	/**
 	 * Get all widgets which from the current state that are classified as "with event"
@@ -72,6 +69,12 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 		this.eContext.lastTarget?.let { candidates = candidates.filterNot { p -> p.uid == it.uid } }
 
 		return candidates
+	}
+
+	override fun initialize(memory: ExplorationContext) {
+		super.initialize(memory)
+
+		eContext.addWatcher(EventProbabilityMF(modelName, arffName, true))
 	}
 
 	// region java overrides
