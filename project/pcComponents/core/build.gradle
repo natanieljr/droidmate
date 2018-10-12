@@ -48,7 +48,7 @@ dependencies {
 	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 
 	// Needed to allow logback to read the logback.groovy class
-	compile 'org.codehaus.groovy:groovy-all:2.4.12'
+	compile 'org.codehaus.groovy:groovy-all:2.5.2'
 
 	compile project(":deviceDaemonLib")
 
