@@ -10,19 +10,6 @@ import java.time.LocalDate
 
 private val log by lazy { LoggerFactory.getLogger("API-Command") }
 
-internal fun tryExecute(command: DroidmateCommand, cfg: ConfigurationWrapper): List<ExplorationContext> {
-	val exitStatus: Int
-
-	try {
-		return command.execute(cfg)
-	} catch (e: Throwable) {
-		e.printStackTrace()
-		exitStatus = ExceptionHandler().handle(e)
-	}
-	System.exit(exitStatus)
-	return emptyList()
-}
-
 internal fun setup(args: Array<String>): ConfigurationWrapper {
 	println(copyRight)
 

@@ -18,6 +18,6 @@ object Instrumentation {
 	@JvmStatic
 	fun inline(cfg: ConfigurationWrapper) {
 		log.info("inline the apks if necessary")
-		tryExecute(InlineCommand(cfg), cfg)
+		InlineCommand(cfg).execute(cfg)
 	}
 }

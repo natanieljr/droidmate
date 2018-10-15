@@ -85,7 +85,7 @@ object ExplorationAPI {
 	@JvmStatic
 	fun instrument(cfg: ConfigurationWrapper) {
 		log.info("instrument the apks for coverage if necessary")
-		tryExecute(CoverageCommand(cfg), cfg)
+		CoverageCommand(cfg).execute(cfg)
 	}
 
 	/****************************** Exploration API methods *****************************/
@@ -109,7 +109,7 @@ object ExplorationAPI {
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
-		return tryExecute(exploration, cfg)
+		return exploration.execute(cfg)
 	}
 
 	@JvmStatic
