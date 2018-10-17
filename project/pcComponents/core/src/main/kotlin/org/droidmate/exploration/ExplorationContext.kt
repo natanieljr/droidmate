@@ -33,6 +33,8 @@ import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.guimodel.isQueueEnd
+import org.droidmate.deviceInterface.guimodel.isQueueStart
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
@@ -275,7 +277,36 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 	private fun assertOnlyLastActionMightHaveDeviceException() {
-		assert(actionTrace.getActions().dropLast(1).all { a -> a.successful })
+		// assert(actionTrace.getActions().dropLast(1).all { a -> a.successful })
+
+		val actions = actionTrace.getActions().dropLast(1)
+
+		/** Consider all elements within a ActionQueue as a single action for the assertion
+		    (-> consider only the ActionQueue end) */
+		var inQueue = false
+		for (action in actions) {
+
+			if (action.actionType.isQueueStart()) {
+				// ActionQueue start
+				// -> ignore
+				inQueue = true
+				continue
+			}
+
+			if (inQueue && !action.actionType.isQueueEnd()) {
+				// ActionQueue entry
+				// -> ignore
+				continue
+			}
+
+			if (action.actionType.isQueueEnd()) {
+				// ActionQueue end
+				inQueue = false
+			}
+
+			assert(action.successful) { "Not only the last action had a device exception" }
+		}
+
 	}
 
 	private fun warnIfTimestampsAreIncorrectWithGivenTolerance() {
@@ -297,7 +328,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		// Possible reason is that some logs from previous app exploration were pending to be output to logcat and have outputted
 		// moments after logcat was cleared.
 		// - the time diff on the device was different when the logcat messages were output, than the time diff measured by DroidMate.
-		// This should not be of concern as manual inspection shows that the device time diff changes only a little bit over time,
+		// This should not be of concern as manual inspection shows that the device time diff changes only a little bit over time,A
 		// far less than to justify sudden 10 second difference.
 		val diff = TimeDiffWithTolerance(Duration.ofSeconds(5))
 		warnIfExplorationStartTimeIsNotBeforeEndTime(diff, apk.fileName)
