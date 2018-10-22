@@ -48,9 +48,11 @@ class JarsignerWrapper(private val sysCmdExecutor: ISysCmdExecutor,
 			// http://developer.android.com/tools/publishing/app-signing.html#debugmode
 			// http://developer.android.com/tools/publishing/app-signing.html#signapp
 			sysCmdExecutor.execute(commandDescription, jarsignerPath.toRealPath().toString(),
-					"-sigalg MD5withRSA -digestalg SHA1",
+					"-sigalg", "SHA1withRSA",
+					"-digestalg", "SHA1",
+					"-storepass", "android",
+					"-keypass", "android",
 					"-keystore", debugKeystore.toRealPath().toString(),
-					"-storepass android -keypass android ",
 					apk.toRealPath().toString(),
 					"androiddebugkey")
 

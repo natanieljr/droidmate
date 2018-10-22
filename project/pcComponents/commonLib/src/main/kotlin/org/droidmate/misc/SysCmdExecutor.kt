@@ -34,6 +34,12 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 
+/**
+ * References:
+ * http://commons.apache.org/exec/apidocs/index.html
+ * http://commons.apache.org/exec/tutorial.html
+ * http://blog.sanaulla.info/2010/09/07/execute-external-process-from-within-jvm-using-apache-commons-exec-library/
+ */
 class SysCmdExecutor : ISysCmdExecutor {
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(SysCmdExecutor::class.java) }
@@ -42,13 +48,6 @@ class SysCmdExecutor : ISysCmdExecutor {
 	/** Timeout for executing system commands, in milliseconds. Zero or negative value means no timeout. */
 	// App that often requires more than one minute for "adb start": net.zedge.android_v4.10.2-inlined.apk
 	private val sysCmdExecuteTimeout = 1000 * 60 * 2
-
-	/*
- * References:
- * http://commons.apache.org/exec/apidocs/index.html
- * http://commons.apache.org/exec/tutorial.html
- * http://blog.sanaulla.info/2010/09/07/execute-external-process-from-within-jvm-using-apache-commons-exec-library/
- */
 
 	override fun execute(commandDescription: String, vararg cmdLineParams: String): Array<String> {
 		return executeWithTimeout(commandDescription, sysCmdExecuteTimeout, *cmdLineParams)
@@ -59,7 +58,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 	}
 
 	override fun executeWithTimeout(commandDescription: String, timeout: Int, vararg cmdLineParams: String): Array<String> {
-		assert(cmdLineParams.isNotEmpty()) { "At least one command line parameters has to be given, denoting the executable." }
+		assert(cmdLineParams.isNotEmpty()) { "At least one command line parameter has to be given, denoting the executable." }
 
 		val params = cmdLineParams.toList().toTypedArray()
 
