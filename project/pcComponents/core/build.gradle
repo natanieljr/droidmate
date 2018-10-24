@@ -50,7 +50,8 @@ dependencies {
 	// Needed to allow logback to read the logback.groovy class
 	compile 'org.codehaus.groovy:groovy-all:2.5.2'
 
-	compile project(":deviceDaemonLib")
+//	compile project(":deviceDaemonLib")
+	compile group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
 
 	compile 'org.slf4j:slf4j-api:1.7.25'
 	compile 'ch.qos.logback:logback-classic:1.2.3'

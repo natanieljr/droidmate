@@ -1,9 +1,45 @@
+
+pluginManagement {  // this is essential to make simultaneous includes of android and jvm modules possible without IntelliJ/gradle to die
+
+	repositories {
+		gradlePluginPortal()
+		google()
+	}
+
+	resolutionStrategy {
+		eachPlugin {
+			switch(requested.id.id) {
+				case "kotlin-platform-common" :
+					useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+					break
+				case "kotlin-platform-android" :
+					useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+					break
+				case "com.android.library" :
+					useModule("com.android.tools.build:gradle:${requested.version}")
+					break
+			}
+		}
+	}
+}
+
 rootProject.name = 'droidmate-2'
 
-def isIncludedBuild = gradle.parent != null
-if(!isIncludedBuild) {
-	includeBuild ('project/deviceComponents/deviceControlDaemon/')
-}
+enableFeaturePreview('STABLE_PUBLISHING') //  for later gradle 5 compatibility
+
+//def isIncludedBuild = gradle.parent != null
+//if(!isIncludedBuild) {  // nested includes (not for android) are supported since gradle 4.10+
+includeBuild('project/deviceCommonLib/deviceDaemonLib')
+
+// as long as nested includes are not supported for android we cannot do this or it would screw up IntelliJ dependency resolving when it uses 'include' to access the shared device library
+//	includeBuild ('project/deviceComponents/deviceControlDaemon')
+// !!!//includeBuild('project/deviceComponents')  // to include the build of the android modules (this probably requires a dependency to the library publish task)
+	//=> NOPE destroys dependencies as well
+//}
+// right now this is probably not even necessary due to our strange deploy hacks in core/deviceControlDaemon.gradle
+include("project:deviceComponents") // to include the build of the android modules (this probably requires a dependency to the library publish task before 'DeviceControlDaemon' can be compiled)
+// for proper android code highlighting we have to add the settings file (i.e. from deviceDaemonLib) via attach gradle project or open it as its own project
+
 include(
 		"project:pcComponents", // use this to identify all child projects
 		"project:pcComponents:commonLib",
@@ -15,8 +51,10 @@ include(
 		"project:pcComponents:reporter",
 		"project:pcComponents:command",
 		"project:pcComponents:API"
-		,':deviceDaemonLib'
-)
+//		,':deviceDaemonLib' // does not allow for versioning and does not work properly with IntelliJ 18.1.6+
+//		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
+		)
 
 
-project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib/')
+//project(':deviceControlDaemon').projectDir = new File("project/deviceComponents/deviceControlDaemon/")
+//project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib/')

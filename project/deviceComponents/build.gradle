@@ -1,0 +1,4 @@
+// once we stop using hacky deploy scripts we may need this instead
+//apply plugin: "java"
+//
+//compileJava.dependsOn gradle.includedBuild('deviceDaemonLib').task(':install')

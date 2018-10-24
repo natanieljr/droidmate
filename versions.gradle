@@ -3,13 +3,14 @@ project.ext {
 
 	javaVersion = JavaVersion.VERSION_1_8
 
-	kotlin_version = '1.2.70'
+	driverLib_version = '2.0-LATEST'  // our device interface (right now subject to change, but after refactoring it should not require further updates)
+
+	kotlin_version = '1.2.71'
 	coroutines_version = '0.26.0'
-	androidBuildToolsVersion = "27.0.3"
+	androidBuildToolsVersion = "28.0.3"
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25
 	androidCompileSdkVersion = 27
-	driverLib_version = '2.0'
 
 	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = 'v0.2.4'

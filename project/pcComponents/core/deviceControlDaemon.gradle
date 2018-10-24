@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 import org.droidmate.buildsrc.BuildKt
 
+//FIXME we should use the native gradle composite build dependencies/tasks instead of these strange hacks
 File uia2DaemonProjectDir = new File(rootProject.projectDir, BuildKt.uia2_daemon_relative_project_dir.path)
 assert uia2DaemonProjectDir.isDirectory()
 
@@ -48,6 +49,7 @@ task assembleUiautomator2Daemon(type: GradleBuild) { GradleBuild task ->
 	task.buildFile = new File(uia2DaemonProjectDir, "build.gradle")
 	task.tasks = ['assemble', 'assembleAndroidTest']
 }
+assembleUiautomator2Daemon.dependsOn gradle.includedBuild('deviceDaemonLib').task(':install')
 
 String uia2DaemonApkName = "${uia2DaemonName}.apk"
 String uia2DaemonTestApkName = "${uia2DaemonName}-test.apk"

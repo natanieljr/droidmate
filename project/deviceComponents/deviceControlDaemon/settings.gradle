@@ -34,14 +34,12 @@
 
 rootProject.name = "deviceControlDaemon"
 
-include(":deviceDaemonLib")
-project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceDaemonLib/")
-
-//def isIncludedBuild = gradle.parent != null
-//if(!isIncludedBuild) {
-//	includeBuild ('../../deviceCommonLib/deviceDaemonLib'){
-//		dependencySubstitution {
-//			substitute module('org.droidmate:deviceDaemonLib') with project(':')
-//		}
-//	}
-//}
+// sadly nested builds are not yet supported for android gradle projects
+def isIncludedBuild = gradle.parent != null
+if(!isIncludedBuild) {
+	includeBuild('../../deviceCommonLib/deviceDaemonLib')
+}
+else{
+	include(":deviceDaemonLib")
+	project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceDaemonLib/")
+}

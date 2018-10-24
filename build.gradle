@@ -7,6 +7,10 @@
 //
 // www.droidmate.org
 
+wrapper{
+    gradleVersion = '4.10.2'  //define what gradle wrapper version is to be used on wrapper initialization (only if there is no wrapper yet or 'gradlew wrapper' is called)
+}
+
 allprojects {
     group = "org.droidmate"
     version = "1.1-SNAPSHOT"
