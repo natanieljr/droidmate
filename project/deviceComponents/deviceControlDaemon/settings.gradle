@@ -34,18 +34,6 @@
 
 rootProject.name = "deviceControlDaemon"
 
-// sadly nested builds are not yet supported for android gradle projects
-def isIncludedBuild = gradle.parent != null
-if(!isIncludedBuild) {
-	includeBuild('../../deviceCommonLib/deviceDaemonLib'){
-		dependencySubstitution {
-// can be removed as soon as we publish the artifact separately, such that the CI server can use it as external dependency
-			substitute module('org.droidmate:deviceDaemonLib') with project(':')
-		}
-	}
-}
-else{
-	include(":deviceDaemonLib")
-	project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceDaemonLib/")
-}
+include(":deviceDaemonLib")
+project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceDaemonLib/")
 
