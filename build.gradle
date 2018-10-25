@@ -14,7 +14,7 @@ buildscript {
 	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
-		classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1' // for jitpack gradle support?
+//		classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1' // for jitpack gradle support?
 		}
 }
 
