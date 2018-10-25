@@ -69,6 +69,14 @@ val adb_command_relative = "platform-tools/adb$exeExt"
 val aapt_command = android_sdk_dir.resolveRegularFile(aapt_command_relative)
 val adb_command = android_sdk_dir.resolveRegularFile(adb_command_relative)
 
+//jitpack debugging list all files in android home
+val debug = Files.list(android_sdk_dir).use {  file ->
+	file.forEach {
+		val fileName = it.fileName.toString()
+		println("available directories in AndroidHome $fileName")
+	}
+}
+
 var anyVersion = ""
 private var minApi = Pair("",Int.MAX_VALUE)  //TODO do we really want the lowest from 23 and not the highest version?
 val androidVersions = Files.list(android_sdk_dir.resolveDir("platforms")).use{ file ->
