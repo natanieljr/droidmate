@@ -75,6 +75,7 @@ val androidVersions = Files.list(android_sdk_dir.resolveDir("platforms")).use{ f
 	file.forEach {
 		val fileName = it.fileName.toString()
 		anyVersion = fileName
+		println("available platforms version $fileName")
 		val versionCmp = fileName.replace("android-","").toIntOrNull()
 		if(versionCmp!=null && versionCmp>=23 && versionCmp < minApi.second)
 			minApi = Pair(fileName,versionCmp)
