@@ -7,6 +7,17 @@
 //
 // www.droidmate.org
 
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
+	}
+}
+apply from: file("${rootProject.projectDir}/versions.gradle")
+
 wrapper{
     gradleVersion = '4.10.2'  //define what gradle wrapper version is to be used on wrapper initialization (only if there is no wrapper yet or 'gradlew wrapper' is called)
 }
@@ -38,6 +49,19 @@ allprojects {
     artifacts {
         archives sourcesJar
     }
+
+	apply from: file("${rootProject.projectDir}/versions.gradle")
+/* this is necessary as long as we do not publish the library into its own repository, since the CI server does not seam to support composite builds but only multi-project hierarchies */
+	configurations.all {
+		resolutionStrategy.dependencySubstitution {
+			def targetProject = findProject(":deviceDaemonLib")
+			if (targetProject != null) {
+				def substitution = substitute module("org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
+				if(substitution != null)
+					substitution because "the lib is not yet published independently but the ci server cannot resolve includeBuild dependencies"
+			}
+		}
+	}
 }
 
 apply from: file("project/log.gradle")
@@ -51,15 +75,6 @@ task Debug {
     println(pcJvmTargets)
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
-    }
-}
 
 configure(pcJvmTargets) {
 
@@ -76,7 +91,6 @@ configure(pcJvmTargets) {
     }
 }
 
-apply from: file("${rootProject.projectDir}/versions.gradle")
 apply plugin: "kotlin"
 
 dependencies {

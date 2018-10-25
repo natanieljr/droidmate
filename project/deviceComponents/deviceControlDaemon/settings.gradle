@@ -35,11 +35,11 @@
 rootProject.name = "deviceControlDaemon"
 
 // sadly nested builds are not yet supported for android gradle projects
-def isIncludedBuild = gradle.parent != null
-if(!isIncludedBuild) {
-	includeBuild('../../deviceCommonLib/deviceDaemonLib')
-}
-else{
+//def isIncludedBuild = gradle.parent != null
+//if(!isIncludedBuild) {
+//	includeBuild('../../deviceCommonLib/deviceDaemonLib') // we have to use include project until we release the library artifact independently for the CI to work
+//}
+//else{
 	include(":deviceDaemonLib")
 	project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceDaemonLib/")
-}
+//}
