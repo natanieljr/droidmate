@@ -55,15 +55,16 @@ val jarsigner = java_home.resolveRegularFile(jarsigner_relative_path)
 //$ANDROID_HOME/build-tools/ lists available versions -> we want to find the highest installed version
 var max:Pair<String,Int> = Pair("",0)
 val buildTools = Files.list(android_sdk_dir.resolve("build-tools")).use { file ->
+	println("available build-tools: ")
 	file.forEach {
 	val fileName = it.fileName.toString()
+	println("\t$fileName")
 	val versionCmp = fileName.replace(".","").toIntOrNull()
 	if(versionCmp!=null && versionCmp > max.second)
 		max = Pair(fileName,versionCmp)
 } }
 
 private val build_tools_version = max.first
-private val android_platform_version_api23 = "23"
 val aapt_command_relative = "build-tools/$build_tools_version/aapt$exeExt"
 val adb_command_relative = "platform-tools/adb$exeExt"
 val aapt_command = android_sdk_dir.resolveRegularFile(aapt_command_relative)
@@ -71,19 +72,21 @@ val adb_command = android_sdk_dir.resolveRegularFile(adb_command_relative)
 
 //jitpack debugging list all files in android home
 val debug = Files.list(android_sdk_dir).use {  file ->
+	println("available directories in AndroidHome: ")
 	file.forEach {
 		val fileName = it.fileName.toString()
-		println("available directories in AndroidHome $fileName")
+		println("\t$fileName")
 	}
 }
 
 var anyVersion = ""
 private var minApi = Pair("",Int.MAX_VALUE)  //TODO do we really want the lowest from 23 and not the highest version?
 val androidVersions = Files.list(android_sdk_dir.resolveDir("platforms")).use{ file ->
+	println("available platforms versions: ")
 	file.forEach {
 		val fileName = it.fileName.toString()
 		anyVersion = fileName
-		println("available platforms version $fileName")
+		println("\t$fileName")
 		val versionCmp = fileName.replace("android-","").toIntOrNull()
 		if(versionCmp!=null && versionCmp>=23 && versionCmp < minApi.second)
 			minApi = Pair(fileName,versionCmp)
@@ -98,8 +101,8 @@ val android_jar_api23 = android_platform_dir_api23.resolveRegularFile("android.j
 val android_extras_m2repo = android_sdk_dir.resolveDir("extras/android/m2repository")
 //endregion
 
-val monitor_generator_res_name_monitor_template = "monitorTemplate.txt"
-private val monitor_generator_output_dir = "temp"
+const val monitor_generator_res_name_monitor_template = "monitorTemplate.txt"
+private const val monitor_generator_output_dir = "temp"
 fun generated_monitor(apiLevel: Int): String {
 	return "$monitor_generator_output_dir/generated_Monitor_api$apiLevel.java"
 }
@@ -112,16 +115,16 @@ val apk_inliner_param_input = "-input"
 val apk_inliner_param_output_dir = "-outputDir"
 val AVD_dir_for_temp_files = "/data/local/tmp/"
 
-val uia2_daemon_project_name = "deviceControlDaemon"
+const val uia2_daemon_project_name = "deviceControlDaemon"
 val uia2_daemon_relative_project_dir = File("project${File.separator}deviceComponents", uia2_daemon_project_name)
 
-val monitored_apk_fixture_api23_name = "MonitoredApkFixture_api23-debug.apk"
+const val monitored_apk_fixture_api23_name = "MonitoredApkFixture_api23-debug.apk"
 val monitored_inlined_apk_fixture_api23_name = "${monitored_apk_fixture_api23_name.removeSuffix(".apk")}-inlined.apk"
 
-val monitor_api23_apk_name = "monitor_api23.apk"
-val monitor_on_avd_apk_name = "monitor.apk"
-val api_policies_file_name = "api_policies.txt"
-val port_file_name = "port.tmp"
+const val monitor_api23_apk_name = "monitor_api23.apk"
+const val monitor_on_avd_apk_name = "monitor.apk"
+const val api_policies_file_name = "api_policies.txt"
+const val port_file_name = "port.tmp"
 /**
  * Denotes name of directory containing apk fixtures for testing. The handle to this path is expected to be obtained
  * in following ways:
@@ -134,11 +137,11 @@ val port_file_name = "port.tmp"
  *
  *   new Resource("<this_var_reference>").extractTo(fs.getPath(BuildConstants.dir_name_temp_extracted_resources))
  */
-val apk_fixtures = "fixtures/apks"
+const val apk_fixtures = "fixtures/apks"
 
 val test_temp_dir_name = "out${File.separator}temp_dir_for_tests"
 
-val monitored_apis_xml = "monitored_apis.json"
+const val monitored_apis_xml = "monitored_apis.json"
 
 /**
  * Directory for resources extracted from jars in the classpath.
@@ -146,7 +149,7 @@ val monitored_apis_xml = "monitored_apis.json"
  * Some resources have to be extracted to a directory. For example, an .apk file that is inside a .jar needs to be pushed
  * to a device.
  */
-val dir_name_temp_extracted_resources = "temp_extracted_resources"
+const val dir_name_temp_extracted_resources = "temp_extracted_resources"
 
 // !!! DUPLICATION WARNING !!! with org.droidmate.MonitorConstants.monitor_time_formatter_locale 
 val locale = Locale.US
