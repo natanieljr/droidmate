@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'project-report'
 
 apply from: file("../../../versions.gradle")
@@ -96,7 +97,7 @@ dependencies {
 
 	// Testing-only dependencies
 	// Force usage of support annotations in the test app, since it is internally used by the runner module.
-	androidTestImplementation 'com.android.support.test:runner:1.0.1'
+	androidTestImplementation 'com.android.support.test:runner:1.0.1' // do not update right now or the build will fail
 
 	// UiAutomator Testing
 	androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
