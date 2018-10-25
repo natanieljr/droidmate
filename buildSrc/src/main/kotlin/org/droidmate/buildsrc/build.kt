@@ -54,7 +54,8 @@ val jarsigner = java_home.resolveRegularFile(jarsigner_relative_path)
 //region Android SDK components
 //$ANDROID_HOME/build-tools/ lists available versions -> we want to find the highest installed version
 var max:Pair<String,Int> = Pair("",0)
-val buildTools = Files.list(android_sdk_dir.resolve("build-tools")).use { it.forEach {
+val buildTools = Files.list(android_sdk_dir.resolve("build-tools")).use { file ->
+	file.forEach {
 	val fileName = it.fileName.toString()
 	val versionCmp = fileName.replace(".","").toIntOrNull()
 	if(versionCmp!=null && versionCmp > max.second)
@@ -67,7 +68,18 @@ val aapt_command_relative = "build-tools/$build_tools_version/aapt$exeExt"
 val adb_command_relative = "platform-tools/adb$exeExt"
 val aapt_command = android_sdk_dir.resolveRegularFile(aapt_command_relative)
 val adb_command = android_sdk_dir.resolveRegularFile(adb_command_relative)
-private val android_platform_dir_api23 = android_sdk_dir.resolveDir("platforms/android-$android_platform_version_api23")
+
+private var minApi = Pair("",Int.MAX_VALUE)  //TODO do we really want the lowest from 23 and not the highest version?
+val androidVersions = Files.list(android_sdk_dir.resolveDir("platforms")).use{ file ->
+	file.forEach {
+		val fileName = it.fileName.toString()
+		val versionCmp = fileName.replace("android-","").toIntOrNull()
+		if(versionCmp!=null && versionCmp>=23 && versionCmp < minApi.second)
+			minApi = Pair(fileName,versionCmp)
+	}
+}
+private val android_platform_dir_api23 = android_sdk_dir.resolveDir("platforms/${minApi.first}")
+
 val uiautomator_jar_api23 = android_platform_dir_api23.resolveRegularFile("uiautomator.jar")
 val android_jar_api23 = android_platform_dir_api23.resolveRegularFile("android.jar")
 val android_extras_m2repo = android_sdk_dir.resolveDir("extras/android/m2repository")
