@@ -29,12 +29,12 @@ enableFeaturePreview('STABLE_PUBLISHING') //  for later gradle 5 compatibility
 
 //def isIncludedBuild = gradle.parent != null
 //if(!isIncludedBuild) {  // nested includes (not for android) are supported since gradle 4.10+
-// we can use this instead of multi-project include as soon as we publish the artifact separately, such that the CI server can use it as external dependency
-// includeBuild('project/deviceCommonLib/deviceDaemonLib'){
-//    dependencySubstitution {
-//        substitute module('org.sample:number-utils') with project(':deviceDaemonLib')
-//    }
-//}
+includeBuild('project/deviceCommonLib/deviceDaemonLib'){
+    dependencySubstitution {
+// can be removed as soon as we publish the artifact separately, such that the CI server can use it as external dependency
+        substitute module('org.droidmate:deviceDaemonLib') with project(':')
+    }
+}
 
 // as long as nested includes are not supported for android we cannot do this or it would screw up IntelliJ dependency resolving when it uses 'include' to access the shared device library
 //	includeBuild ('project/deviceComponents/deviceControlDaemon')
@@ -56,10 +56,10 @@ include(
 		"project:pcComponents:reporter",
 		"project:pcComponents:command",
 		"project:pcComponents:API"
-		,':deviceDaemonLib' // does not allow for versioning and does not work properly with IntelliJ 18.1.6+
+//		,':deviceDaemonLib' // does not allow for versioning and does not work properly with IntelliJ 18.1.6+
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
 
 
 //project(':deviceControlDaemon').projectDir = new File("project/deviceComponents/deviceControlDaemon/")
-project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib')
+//project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib')

@@ -79,7 +79,7 @@ repositories {
 	maven {
 		url "https://maven.google.com"
 	}
-	mavenLocal()
+//	mavenLocal()
 }
 
 configurations.all {
@@ -89,9 +89,12 @@ configurations.all {
 //			substitute project(":deviceDaemonLib") with module("org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}")
 //			//because "we would prefer composite builds to allow for external dependencies but these do not yet work properly in android"
 //		}
-		def substitution = substitute module("org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
-		if(substitution != null)
-			substitution because "the lib is not yet published independently but the ci server cannot resolve includeBuild dependencies"
+		def targetProject = findProject(":deviceDaemonLib")
+		if (targetProject != null) {
+			def substitution = substitute module("org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
+			if(substitution != null)
+				substitution because "the lib is not yet published independently but the ci server cannot resolve includeBuild dependencies"
+		}
 	}
 }
 dependencies {
