@@ -1,5 +1,5 @@
 
-pluginManagement {  // this is essential to make simultaneous includes of android and jvm modules possible without IntelliJ/gradle to die
+pluginManagement {  // this seams essential to make simultaneous includes of android and jvm modules possible without IntelliJ/gradle to die
 
 	repositories {
 		gradlePluginPortal()
@@ -27,23 +27,9 @@ rootProject.name = 'droidmate-2'
 
 enableFeaturePreview('STABLE_PUBLISHING') //  for later gradle 5 compatibility
 
-//def isIncludedBuild = gradle.parent != null
-//if(!isIncludedBuild) {  // nested includes (not for android) are supported since gradle 4.10+
-// we can use this instead of multi-project include as soon as we publish the artifact separately, such that the CI server can use it as external dependency
-// includeBuild('project/deviceCommonLib/deviceDaemonLib'){
-//    dependencySubstitution {
-//        substitute module('org.sample:number-utils') with project(':deviceDaemonLib')
-//    }
-//}
-
-// as long as nested includes are not supported for android we cannot do this or it would screw up IntelliJ dependency resolving when it uses 'include' to access the shared device library
-//	includeBuild ('project/deviceComponents/deviceControlDaemon')
-// !!!//includeBuild('project/deviceComponents')  // to include the build of the android modules (this probably requires a dependency to the library publish task)
-	//=> NOPE destroys dependencies as well
-//}
 // right now this is probably not even necessary due to our strange deploy hacks in core/deviceControlDaemon.gradle
 include("project:deviceComponents") // to include the build of the android modules (this probably requires a dependency to the library publish task before 'DeviceControlDaemon' can be compiled)
-// for proper android code highlighting we have to add the settings file (i.e. from deviceDaemonLib) via attach gradle project or open it as its own project
+// for proper android code highlighting we have to add the settings file (i.e. from deviceControlDaemon) via attach gradle project or open it as its own project
 
 include(
 		"project:pcComponents", // use this to identify all child projects
@@ -60,6 +46,17 @@ include(
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
 
-
-//project(':deviceControlDaemon').projectDir = new File("project/deviceComponents/deviceControlDaemon/")
 project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib')
+//project(':deviceControlDaemon').projectDir = new File("project/deviceComponents/deviceControlDaemon/")
+
+/** REMARKS for later reference: */
+//def isIncludedBuild = gradle.parent != null
+//if(!isIncludedBuild) {  // nested includes (not for android) are supported since gradle 4.10+
+// we can use this instead of multi-project include as soon as we publish the artifact separately, such that the CI server can use it as external dependency
+// includeBuild('project/deviceCommonLib/deviceDaemonLib')
+
+// as long as nested includes are not supported for android we cannot do this or it would screw up IntelliJ dependency resolving when it uses 'include' to access the shared device library
+//	includeBuild ('project/deviceComponents/deviceControlDaemon')
+// !!!//includeBuild('project/deviceComponents')  // to include the build of the android modules (this probably requires a dependency to the library publish task)
+//=> NOPE destroys dependencies as well
+//}
