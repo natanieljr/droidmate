@@ -24,9 +24,10 @@ repositories {
 	jcenter()
 }
 
+apply from: file("../../../versions.gradle")
 android {
+	buildToolsVersion project.ext.androidBuildToolsVersion
 	compileSdkVersion 19
-	buildToolsVersion "27.0.3"
 
 	defaultConfig {
 		applicationId "org.droidmate.fixtures.apks.monitored"

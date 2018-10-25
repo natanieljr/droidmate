@@ -31,9 +31,10 @@ repositories {
 }
 
 
+apply from: file("../../../versions.gradle")
 android {
+	buildToolsVersion project.ext.androidBuildToolsVersion
 	compileSdkVersion 27
-	buildToolsVersion "27.0.3"
 
 	defaultConfig {
 		applicationId "org.droidmate.fixtures.apks.instrumented"
