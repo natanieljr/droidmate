@@ -36,6 +36,7 @@ import com.konradjamrozik.resolveRegularFile
 import org.zeroturnaround.exec.ProcessExecutor
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -51,7 +52,16 @@ val jarsigner_relative_path = "bin/jarsigner$exeExt"
 val jarsigner = java_home.resolveRegularFile(jarsigner_relative_path)
 
 //region Android SDK components
-private val build_tools_version = "27.0.3"
+//$ANDROID_HOME/build-tools/ lists available versions -> we want to find the highest installed version
+var max:Pair<String,Int> = Pair("",0)
+val buildTools = Files.list(android_sdk_dir.resolve("build-tools")).use { it.forEach {
+	val fileName = it.fileName.toString()
+	val versionCmp = fileName.replace(".","").toIntOrNull()
+	if(versionCmp!=null && versionCmp > max.second)
+		max = Pair(fileName,versionCmp)
+} }
+
+private val build_tools_version = max.first
 private val android_platform_version_api23 = "23"
 val aapt_command_relative = "build-tools/$build_tools_version/aapt$exeExt"
 val adb_command_relative = "platform-tools/adb$exeExt"
