@@ -69,16 +69,20 @@ val adb_command_relative = "platform-tools/adb$exeExt"
 val aapt_command = android_sdk_dir.resolveRegularFile(aapt_command_relative)
 val adb_command = android_sdk_dir.resolveRegularFile(adb_command_relative)
 
+var anyVersion = ""
 private var minApi = Pair("",Int.MAX_VALUE)  //TODO do we really want the lowest from 23 and not the highest version?
 val androidVersions = Files.list(android_sdk_dir.resolveDir("platforms")).use{ file ->
 	file.forEach {
 		val fileName = it.fileName.toString()
+		anyVersion = fileName
 		val versionCmp = fileName.replace("android-","").toIntOrNull()
 		if(versionCmp!=null && versionCmp>=23 && versionCmp < minApi.second)
 			minApi = Pair(fileName,versionCmp)
 	}
 }
-private val android_platform_dir_api23 = android_sdk_dir.resolveDir("platforms/${minApi.first}")
+val availableVersion = if(minApi.first.isBlank()) anyVersion else minApi.first
+private val android_platform_dir_api23 =
+		android_sdk_dir.resolveDir("platforms/$availableVersion")
 
 val uiautomator_jar_api23 = android_platform_dir_api23.resolveRegularFile("uiautomator.jar")
 val android_jar_api23 = android_platform_dir_api23.resolveRegularFile("android.jar")
