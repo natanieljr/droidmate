@@ -36,15 +36,19 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val topNodePackageName: String,
                                               val widgets: List<WidgetData>,
                                               val launchableMainActivityName: String,
-                                              val androidLauncherPackageName: String,
+                                              val androidLauncherPackageName: String, //TODO instead use directly isHomeScreen property (not get function)
                                               val androidPackageName: String,
                                               val deviceDisplayWidth: Int,
                                               val deviceDisplayHeight: Int,
                                               val screenshot: ByteArray,
                                               val screenshotWidth: Int,
                                               val screenshotHeight: Int,
-                                              val appSize: Pair<Int,Int>,
-                                              val statusBarSize: Int) : Serializable {
+                                              val appSize: Pair<Int,Int>, // FIXME
+		// we will need the boundaries of each non system window (appWindow:bounds,pkg,id) to know the scrollable area dimensions, as recomputing may be too expensive/annoying
+		// alternatively we can transfer window scrolling/navigate to widget to the device implementation and thus should not need this info anymore
+		// then we may store the widget->window id information on the device side (currently WidgetData) for faster mapping (instead of looking into the UiHierarchy)
+                                              val statusBarSize: Int
+) : Serializable {
 
 	var throwable: Throwable? = null
 	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"

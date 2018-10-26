@@ -30,11 +30,11 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.configuration.ConfigProperties
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.StateData
 import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.misc.deleteDir
 import java.awt.*
 import java.awt.image.BufferedImage

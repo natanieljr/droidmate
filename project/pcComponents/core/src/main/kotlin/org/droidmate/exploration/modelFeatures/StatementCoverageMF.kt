@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit
  * monitor and parse the logcat in order to calculate the coverage.
  */
 class StatementCoverageMF(private val cfg: ConfigurationWrapper,
-						  private val modelCfg: ModelConfig) : ModelFeature() {
+                          private val modelCfg: ModelConfig) : ModelFeature() {
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
 	private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())

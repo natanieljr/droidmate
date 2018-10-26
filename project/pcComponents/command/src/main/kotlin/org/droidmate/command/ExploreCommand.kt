@@ -33,7 +33,6 @@ import org.droidmate.configuration.ConfigProperties.Exploration.apksLimit
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
-import org.droidmate.configuration.ConfigProperties.ModelProperties.path.cleanDirs
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
@@ -81,6 +80,7 @@ import org.droidmate.report.apk.*
 import org.droidmate.tools.*
 import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.droidmate.explorationModel.EmptyActionResult
+import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
