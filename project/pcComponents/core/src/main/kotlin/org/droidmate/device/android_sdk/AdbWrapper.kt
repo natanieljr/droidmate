@@ -36,7 +36,7 @@ import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
 import org.droidmate.misc.Utils
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.DeviceConstants
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
@@ -527,11 +527,11 @@ Logcat reference:
 	private fun startUiautomatorDaemonApi23(deviceSerialNumber: String, port: Int) {
 		val commandDescription = "Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
 
-		val uiaDaemonCmdLine = 	"-e ${UiautomatorDaemonConstants.uiaDaemonParam_tcpPort} $port " +
-								"-e ${UiautomatorDaemonConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
-								"-e ${UiautomatorDaemonConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]}"
+		val uiaDaemonCmdLine = 	"-e ${DeviceConstants.uiaDaemonParam_tcpPort} $port " +
+								"-e ${DeviceConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
+								"-e ${DeviceConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]}"
 
-		val testRunner = UiautomatorDaemonConstants.uia2Daemon_testPackageName + "/" + UiautomatorDaemonConstants.uia2Daemon_testRunner
+		val testRunner = DeviceConstants.uia2Daemon_testPackageName + "/" + DeviceConstants.uia2Daemon_testRunner
 		val failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
 
 		try {
@@ -564,7 +564,7 @@ Logcat reference:
 		if (Files.exists(destinationFilePath))
 			Files.delete(destinationFilePath)
 
-		val pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + pulledFileName
+		val pulledFilePath = DeviceConstants.deviceLogcatLogDir_api23 + pulledFileName
 
 		val stdout = this.executeCommand(deviceSerialNumber, "", "Pull file (API23 compatibility)",
 				"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
@@ -577,7 +577,7 @@ Logcat reference:
 		assert(shellPackageName.isNotEmpty())
 
 		try {
-			val filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + fileName
+			val filePath = DeviceConstants.deviceLogcatLogDir_api23 + fileName
 			this.executeCommand(deviceSerialNumber, "", "Delete file (API23 compatibility).",
 					"shell", "run-as", shellPackageName, "rm", filePath)
 		} catch (e: Exception) {

@@ -78,7 +78,7 @@ class GuiScreen /*constructor(private val internalId: String,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 	// TODO Fix tests
-	//private static final String packageAndroidLauncher = new DeviceConfigurationFactory(UiautomatorDaemonConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
+	//private static final String packageAndroidLauncher = new DeviceConfigurationFactory(DeviceConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
 	/*companion object {
 			const val idHome = "home"
 			const val idChrome = "chrome"

@@ -26,7 +26,7 @@
 // WISH Borges: Check if the package should be kept with the previous name or updated to org.droidmate.uiautomator2daemon
 package org.droidmate.deviceInterface
 
-object UiautomatorDaemonConstants {
+object DeviceConstants {
 
 	// To understand why this is constant and not a cmd line parameter, see comment in
 	// org.droidmate.configuration.ConfigurationBuilder.bindAndValidate()

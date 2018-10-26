@@ -42,9 +42,9 @@ import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.logcatLogFileName
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_packageName
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_testPackageName
+import org.droidmate.deviceInterface.DeviceConstants.logcatLogFileName
+import org.droidmate.deviceInterface.DeviceConstants.uia2Daemon_packageName
+import org.droidmate.deviceInterface.DeviceConstants.uia2Daemon_testPackageName
 import org.droidmate.deviceInterface.communication.*
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction

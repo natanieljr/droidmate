@@ -20,7 +20,7 @@
 package org.droidmate.uiautomator2daemon
 
 import org.droidmate.deviceInterface.communication.DeviceCommand
-import org.droidmate.deviceInterface.communication.DeviceDaemonException
+import org.droidmate.uiautomator2daemon.exploration.DeviceDaemonException
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 
 interface IUiAutomator2DaemonDriver {

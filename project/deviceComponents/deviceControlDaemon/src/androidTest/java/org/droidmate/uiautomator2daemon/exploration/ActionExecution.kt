@@ -1,4 +1,4 @@
-package org.droidmate.uiautomator2daemon
+package org.droidmate.uiautomator2daemon.exploration
 
 import android.app.UiAutomation
 import android.content.Context
@@ -13,8 +13,9 @@ import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.deviceInterface.exploration.*
+import org.droidmate.uiautomator2daemon.UiAutomator2DaemonDriver
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.SelectorCondition
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector.actableAppElem
@@ -38,7 +39,7 @@ inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Uni
 			res = block.invoke()
 		}.let {
 			timer(it)
-			Log.d(UiautomatorDaemonConstants.deviceLogcatTagPrefix + "performance","TIME: ${if (inMillis) "${(it / 1000000.0).toInt()} ms" else "${it / 1000.0} ns/1000"} \t $msg")
+			Log.d(DeviceConstants.deviceLogcatTagPrefix + "performance","TIME: ${if (inMillis) "${(it / 1000000.0).toInt()} ms" else "${it / 1000.0} ns/1000"} \t $msg")
 		}
 	} else res = block.invoke()
 	return res
@@ -48,7 +49,7 @@ inline fun <T> debugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, 
 	return nullableDebugT(msg, block, timer, inMillis) ?: throw RuntimeException("debugT is non nullable use nullableDebugT instead")
 }
 
-private const val logTag = UiautomatorDaemonConstants.deviceLogcatTagPrefix + "ActionExecution"
+private const val logTag = DeviceConstants.deviceLogcatTagPrefix + "ActionExecution"
 
 fun ExplorationAction.execute(device: UiDevice, context: Context, automation: UiAutomation, driver: UiAutomator2DaemonDriver): Any {
 	Log.d(logTag, "START execution ${toString()}")
@@ -80,7 +81,7 @@ fun ExplorationAction.execute(device: UiDevice, context: Context, automation: Ui
 					device.minimizeMaximize()
 					true
 				}
-				ActionType.FetchGUI ->	fetchDeviceData(device, context, driver.appPackageName, idleTimeout, afterAction = false)
+				ActionType.FetchGUI -> fetchDeviceData(device, context, driver.appPackageName, idleTimeout, afterAction = false)
 				ActionType.Terminate -> false /* should never be transferred to the device */
 				ActionType.PressEnter -> device.pressEnter()
 				ActionType.CloseKeyboard ->
@@ -131,22 +132,25 @@ private var cnt = 0
 private var wt = 0.0
 private var wc = 0
 fun fetchDeviceData(device: UiDevice, context: Context, appPackageName: String, timeout: Long = 200, afterAction: Boolean = true): DeviceResponse {
-	debugT("wait for IDLE avg = ${time / max(1,cnt)} ms", {
+	debugT("wait for IDLE avg = ${time / max(1, cnt)} ms", {
 		device.waitForIdle(timeout)
-		if (afterAction && UiHierarchy.any(device,cond = isWebView)){ // waitForIdle is insufficient for WebView's therefore we need to handle the stabalize separately
-			Log.d(logTag,"WebView detected wait for actable element with different package name")
-			UiHierarchy.waitFor(device, interactableTimeout,actableAppElem)
+		if (afterAction && UiHierarchy.any(device, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabalize separately
+			Log.d(logTag, "WebView detected wait for actable element with different package name")
+			UiHierarchy.waitFor(device, interactableTimeout, actableAppElem)
 		}
-	},inMillis = true,
+	}, inMillis = true,
 			timer = {
-				Log.d(logTag,"time=${it/1000000}")
-				time += it/1000000
-				cnt += 1}) // this sometimes really sucks in perfomance but we do not yet have any reliable alternative
+				Log.d(logTag, "time=${it / 1000000}")
+				time += it / 1000000
+				cnt += 1
+			}) // this sometimes really sucks in perfomance but we do not yet have any reliable alternative
 
-	val img = async{ nullableDebugT("img capture time", {
-		delay(timeout/2) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
-		UiHierarchy.getScreenShot(timeout)
-	},inMillis = true ) } // could maybe use Espresso View.DecorativeView to fetch screenshot instead
+	val img = async{
+		nullableDebugT("img capture time", {
+			delay(timeout / 2) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
+			UiHierarchy.getScreenShot(timeout)
+		}, inMillis = true)
+	} // could maybe use Espresso View.DecorativeView to fetch screenshot instead
 	val imgProcess = async {
 		img.await()?.let{  s ->
 			Triple(	UiHierarchy.compressScreenshot(s)
@@ -157,9 +161,10 @@ fun fetchDeviceData(device: UiDevice, context: Context, appPackageName: String, 
 	val uiHierarchy = async{ UiHierarchy.fetch(device)}
 //			val xmlDump = runBlocking { UiHierarchy.getXml(device) }
 
-	val (imgPixels,w,h) = debugT("wait for screen avg = ${wt/ max(1,wc)}",
-			{ runBlocking {	imgProcess.await() }
-	}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1} )
+	val (imgPixels,w,h) = debugT("wait for screen avg = ${wt / max(1, wc)}",
+			{
+				runBlocking { imgProcess.await() }
+			}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
 	val appArea = if(UiHierarchy.appArea.isEmpty) UiHierarchy.computeAppArea() else UiHierarchy.appArea
 	val launachableMainActivity = try {
 		context.packageManager.getLaunchIntentForPackage(appPackageName).component.className
@@ -177,17 +182,17 @@ fun fetchDeviceData(device: UiDevice, context: Context, appPackageName: String, 
 				displayWidth = device.displayWidth, displayHeight = device.displayHeight,
 				screenshot = imgPixels,
 				width = w, height = h,
-				appArea = Pair(appArea.width(),appArea.height()), sH = appArea.top)
-	},inMillis = true)
+				appArea = Pair(appArea.width(), appArea.height()), sH = appArea.top)
+	}, inMillis = true)
 }
 
 private val deviceModel: String by lazy {
-		Log.d(UiautomatorDaemonConstants.uiaDaemon_logcatTag, "getDeviceModel()")
+		Log.d(DeviceConstants.uiaDaemon_logcatTag, "getDeviceModel()")
 		val model = Build.MODEL
 		val manufacturer = Build.MANUFACTURER
 		val api = Build.VERSION.SDK_INT
 		val fullModelName = "$manufacturer-$model/$api"
-		Log.d(UiautomatorDaemonConstants.uiaDaemon_logcatTag, "Device model: $fullModelName")
+		Log.d(DeviceConstants.uiaDaemon_logcatTag, "Device model: $fullModelName")
 		fullModelName
 	}
 

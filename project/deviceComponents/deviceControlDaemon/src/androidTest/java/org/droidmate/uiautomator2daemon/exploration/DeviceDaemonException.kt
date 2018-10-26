@@ -23,7 +23,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.deviceInterface.communication
+package org.droidmate.uiautomator2daemon.exploration
 
 @Suppress("unused")
 class DeviceDaemonException : Throwable {

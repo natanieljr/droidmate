@@ -38,7 +38,7 @@ import org.droidmate.device.deviceInterface.RobustDevice
 import org.droidmate.logging.Markers
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.DroidmateException
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.DeviceConstants
 import org.slf4j.LoggerFactory
 
 class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
@@ -145,8 +145,8 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 			if (cfg[uninstallAux]) {
 				if (cfg[apiVersion] == ConfigurationWrapper.api23) {
-					device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_testPackageName, true)
-					device.uninstallApk(UiautomatorDaemonConstants.uia2Daemon_packageName, true)
+					device.uninstallApk(DeviceConstants.uia2Daemon_testPackageName, true)
+					device.uninstallApk(DeviceConstants.uia2Daemon_packageName, true)
 				} else
 					throw UnexpectedIfElseFallthroughError()
 				device.removeJar(cfg.getPath(BuildConstants.monitor_on_avd_apk_name))

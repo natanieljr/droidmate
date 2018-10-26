@@ -23,18 +23,13 @@ import android.support.test.InstrumentationRegistry
 import android.support.test.filters.SdkSuppress
 import android.support.test.runner.AndroidJUnit4
 import android.util.Log
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.instrumentation_redirectionTag
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.logcatLogFileName
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemonParam_waitForInteractableTimeout
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemonParam_waitForIdleTimeout
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_waitForInteractableTimeout
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_waitForIdleTimeout
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import java.io.File
-import java.io.IOException
-
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemonParam_tcpPort
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_tcpPort
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
 
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = 18)

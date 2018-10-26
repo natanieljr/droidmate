@@ -77,7 +77,7 @@ fun `Restarts uiautomatorDaemon2 and communicates with it via TCP`()
 	val device = RobustDevice(
 		deviceTools.deviceFactory.create(FirstRealDeviceSerialNumber(deviceTools.adb).toString()), cfg)
 
-	if (device.isPackageInstalled(UiautomatorDaemonConstants.uia2Daemon_packageName))
+	if (device.isPackageInstalled(DeviceConstants.uia2Daemon_packageName))
 		println("uia-daemon2 is installed.")
 	else
 	{

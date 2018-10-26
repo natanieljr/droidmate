@@ -23,7 +23,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.droidmate.deviceInterface.communication.SerializationHelper;
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants;
+import org.droidmate.deviceInterface.DeviceConstants;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -34,7 +34,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Serializable, ServerOutputT extends Serializable> {
-	static final String tag = UiautomatorDaemonConstants.uiaDaemon_logcatTag + "/server";
+	static final String tag = DeviceConstants.uiaDaemon_logcatTag + "/server";
 	private int port;
 	private ServerSocket serverSocket;
 	private String serverStartMessageTag;

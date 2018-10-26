@@ -1,4 +1,6 @@
-# UiAutomator #
+# UiAutomator (outdated) #
+(*) we now work directly on UiAutomators AccessibilityNodeInfo and traverse their node tree
+
 [differences of UiObject and UiObject2](https://stackoverflow.com/questions/40881680/whats-is-the-difference-between-uiobject-and-uiobject2-other-than-uiautomator-2)
   * by default the UI-elements may have no id such that we have to rely on other means to uniquely identify the elements from the 'HierarchyDump' for later actions
   

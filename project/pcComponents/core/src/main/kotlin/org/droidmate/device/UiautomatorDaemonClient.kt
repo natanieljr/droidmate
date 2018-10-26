@@ -29,7 +29,7 @@ import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.deviceInterface.communication.DeviceCommand
 import org.droidmate.deviceInterface.exploration.DeviceResponse
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.DeviceConstants
 
 class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
                                           private val deviceSerialNumber: String,
@@ -70,7 +70,7 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 	private fun validateUiaDaemonServerStartLogcatMessages() {
 		val msgs = this.adbWrapper.waitForMessagesOnLogcat(
 				this.deviceSerialNumber,
-				UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG,
+				DeviceConstants.UIADAEMON_SERVER_START_TAG,
 				1,
 				this.startTimeout,
 				this.waitForInteractableTimeout)
@@ -85,10 +85,10 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 			nrMessages = 3
 
 		assert(msgs.size == nrMessages) {
-			"Expected exactly one message on logcat (with tag ${UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG}) " +
+			"Expected exactly one message on logcat (with tag ${DeviceConstants.UIADAEMON_SERVER_START_MSG}) " +
 					"confirming that uia-daemon server has started. Instead, got ${msgs.size} messages. Msgs:\n${msgs.joinToString(System.lineSeparator())}"
 		}
-		assert(msgs.last().contains(UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG))
+		assert(msgs.last().contains(DeviceConstants.UIADAEMON_SERVER_START_MSG))
 	}
 
 	override fun getUiaDaemonThreadIsNull(): Boolean = this.uiaDaemonThread == null
