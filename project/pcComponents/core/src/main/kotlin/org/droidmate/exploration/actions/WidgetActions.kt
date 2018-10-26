@@ -3,6 +3,7 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.Widget
 import org.droidmate.explorationModel.widgetTargets
 

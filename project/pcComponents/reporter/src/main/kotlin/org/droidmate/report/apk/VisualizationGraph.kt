@@ -29,7 +29,8 @@ import com.google.gson.*
 import com.konradjamrozik.Resource
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.isQueueEnd
+import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.highlightWidget

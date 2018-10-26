@@ -20,7 +20,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.deviceInterface
+package org.droidmate.deviceInterface.communication
 
 import java.io.*
 

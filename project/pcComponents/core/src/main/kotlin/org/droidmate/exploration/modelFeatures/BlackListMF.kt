@@ -28,8 +28,8 @@ package org.droidmate.exploration.modelFeatures
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.deviceInterface.guimodel.ActionType
-import org.droidmate.deviceInterface.guimodel.LaunchApp
+import org.droidmate.deviceInterface.exploration.ActionType
+import org.droidmate.deviceInterface.exploration.LaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.ActionData
 import org.droidmate.explorationModel.StateData

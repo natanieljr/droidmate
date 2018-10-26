@@ -28,9 +28,9 @@ package org.droidmate.explorationModel
 import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.guimodel.EmptyAction
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.exploration.EmptyAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.config.ModelConfig
 import java.awt.Rectangle
 import java.io.ByteArrayInputStream

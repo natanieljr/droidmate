@@ -25,7 +25,7 @@
 package org.droidmate.test_tools.device_simulation
 
 import com.google.common.base.MoreObjects
-import org.droidmate.deviceInterface.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 
 class ScreenTransitionResult(override val screen: IGuiScreen,
                              override val logs: List<TimeFormattedLogMessageI>) : IScreenTransitionResult {

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.droidmate.deviceInterface.guimodel
+package org.droidmate.deviceInterface.exploration
 
 import java.io.Serializable
 
@@ -56,7 +56,7 @@ data class Swipe(val start:Pair<Int,Int>,val end:Pair<Int,Int>,val stepSize:Int,
 
 fun String.isQueueStart() = this == ActionQueue.startName
 fun String.isQueueEnd() = this == ActionQueue.endName
-data class ActionQueue(val actions: List<ExplorationAction>,val delay: Long): ExplorationAction(){
+data class ActionQueue(val actions: List<ExplorationAction>, val delay: Long): ExplorationAction(){
 	override fun toString(): String = "ActionQueue[ ${actions.map { it.toString() }} ](delay=$delay)"
 
 	companion object {

@@ -28,7 +28,7 @@ import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.logcat.IDeviceMessagesReader
-import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.exploration.DeviceResponse
 
 interface IRobustDevice : IAndroidDevice, IDeviceMessagesReader {
 	@Throws(DeviceException::class)

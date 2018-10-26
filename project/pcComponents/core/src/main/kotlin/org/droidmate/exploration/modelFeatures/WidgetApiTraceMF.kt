@@ -5,7 +5,7 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
-import org.droidmate.deviceInterface.guimodel.isClick
+import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.ActionData
 import org.droidmate.explorationModel.StateData

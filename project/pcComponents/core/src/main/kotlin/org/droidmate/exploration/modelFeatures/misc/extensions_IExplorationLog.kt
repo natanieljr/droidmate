@@ -28,7 +28,7 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.Widget
 import org.droidmate.explorationModel.config.emptyUUID
-import org.droidmate.deviceInterface.guimodel.isLaunchApp
+import org.droidmate.deviceInterface.exploration.isLaunchApp
 import org.droidmate.explorationModel.DeviceLog
 import java.util.*
 

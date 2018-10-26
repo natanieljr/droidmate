@@ -26,7 +26,7 @@
 package org.droidmate.exploration.strategy
 
 import kotlinx.coroutines.experimental.*
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.ActionResult
 import org.droidmate.explorationModel.StateData
 import org.droidmate.exploration.ExplorationContext

@@ -23,30 +23,17 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.deviceInterface
+package org.droidmate.deviceInterface.communication
 
-import java.io.Serializable
-import java.time.LocalDateTime
+@Suppress("unused")
+class DeviceDaemonException : Throwable {
 
-/**
- * <p>
- * A logcat of monitored Android API call in form of a logcat message.
- * </p><p>
- *
- * The contract is the message was sent by a monitored apk to device's logcat and was read from logcat into an instance
- * implementing this interface.
- * </p>
- */
-interface TimeFormattedLogMessageI : Serializable {
-	val time: LocalDateTime
+	constructor() : super()
 
-	val level: String
+	constructor(arg0: String, arg1: Throwable) : super(arg0, arg1)
 
-	val tag: String
+	constructor(arg0: String) : super(arg0)
 
-	val pidString: String
+	constructor(arg0: Throwable) : super(arg0)
 
-	val messagePayload: String
-
-	val toLogcatMessageString: String
 }

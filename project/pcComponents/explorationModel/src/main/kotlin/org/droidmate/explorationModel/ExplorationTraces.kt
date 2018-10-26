@@ -29,8 +29,8 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.sendBlocking
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import org.droidmate.deviceInterface.TimeFormattedLogMessageI
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.Trace.Companion.computeData
 import org.droidmate.explorationModel.config.*
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep

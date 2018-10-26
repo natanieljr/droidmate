@@ -9,11 +9,11 @@ import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.MissingDeviceLogs
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.guimodel.ActionQueue
-import org.droidmate.deviceInterface.guimodel.ActionType
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.deviceInterface.guimodel.LaunchApp
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.exploration.ActionQueue
+import org.droidmate.deviceInterface.exploration.ActionType
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.LaunchApp
 import org.droidmate.explorationModel.ActionResult
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
@@ -29,7 +29,7 @@ lateinit var exception: DeviceException
 private var performT: Long = 0
 private var performN: Int = 0
 
-private fun performAction(action: ExplorationAction,app: IApk,device: IRobustDevice){
+private fun performAction(action: ExplorationAction, app: IApk, device: IRobustDevice){
 	when {
 		action.name == ActionType.Terminate.name -> terminate(app,device)
 		action is LaunchApp || (action is ActionQueue && action.actions.any { it is LaunchApp }) -> {

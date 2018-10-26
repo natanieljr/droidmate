@@ -25,7 +25,7 @@
 package org.droidmate.exploration.strategy.playback
 
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.*

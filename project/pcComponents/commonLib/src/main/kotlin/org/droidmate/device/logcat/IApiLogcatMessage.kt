@@ -26,7 +26,7 @@
 package org.droidmate.device.logcat
 
 import org.droidmate.device.apis.IApi
-import org.droidmate.deviceInterface.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 
 /**
  * <p>

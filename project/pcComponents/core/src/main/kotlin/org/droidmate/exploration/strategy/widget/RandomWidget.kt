@@ -28,8 +28,8 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.misc.debugT
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.deviceInterface.guimodel.Swipe
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.Swipe
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.Widget

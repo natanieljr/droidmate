@@ -2,7 +2,7 @@ package org.droidmate.exploration.modelFeatures.graph
 
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.deviceInterface.guimodel.isLaunchApp
+import org.droidmate.deviceInterface.exploration.isLaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.ActionData

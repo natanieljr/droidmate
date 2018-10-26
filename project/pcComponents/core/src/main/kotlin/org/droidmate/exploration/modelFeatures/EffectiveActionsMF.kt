@@ -3,7 +3,7 @@ package org.droidmate.exploration.modelFeatures
 import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.deviceInterface.guimodel.isClick
+import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.ActionData
 import org.droidmate.misc.withExtension

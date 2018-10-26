@@ -4,8 +4,8 @@ import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.device.logcat.ApiLogcatMessage
-import org.droidmate.deviceInterface.guimodel.isLaunchApp
-import org.droidmate.deviceInterface.guimodel.isPressBack
+import org.droidmate.deviceInterface.exploration.isLaunchApp
+import org.droidmate.deviceInterface.exploration.isPressBack
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import kotlin.coroutines.experimental.CoroutineContext

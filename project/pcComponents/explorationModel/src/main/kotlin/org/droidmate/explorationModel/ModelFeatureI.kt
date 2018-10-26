@@ -28,7 +28,7 @@ package org.droidmate.explorationModel
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.joinChildren
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*

@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.Widget
 import org.droidmate.exploration.modelFeatures.ActionCounterMF
 import org.droidmate.exploration.modelFeatures.EventProbabilityMF

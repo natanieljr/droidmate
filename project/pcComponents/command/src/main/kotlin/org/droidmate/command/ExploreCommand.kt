@@ -59,9 +59,9 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.deviceInterface.guimodel.ActionType
-import org.droidmate.deviceInterface.guimodel.EmptyAction
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ActionType
+import org.droidmate.deviceInterface.exploration.EmptyAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.ActionResult
@@ -79,7 +79,7 @@ import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.tools.*
-import org.droidmate.deviceInterface.guimodel.GlobalAction
+import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.droidmate.explorationModel.EmptyActionResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

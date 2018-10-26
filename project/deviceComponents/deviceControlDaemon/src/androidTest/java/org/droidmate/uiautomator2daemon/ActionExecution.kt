@@ -13,9 +13,8 @@ import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.deviceInterface.DeviceResponse
 import org.droidmate.deviceInterface.UiautomatorDaemonConstants
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.SelectorCondition
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector.actableAppElem

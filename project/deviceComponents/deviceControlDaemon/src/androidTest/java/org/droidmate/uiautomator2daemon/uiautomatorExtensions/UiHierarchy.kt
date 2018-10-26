@@ -146,7 +146,7 @@ object UiHierarchy : UiParser() {
 					else cancel()
 				}
 			}.run{ time += this
-				device.runWatchers() // to update the ui view?
+				device.runWatchers() // to update the exploration view?
 				if(!found && this<pollTime) delay(pollTime-this)
 				Log.d(LOGTAG,"$found single wait iteration $this")
 			}

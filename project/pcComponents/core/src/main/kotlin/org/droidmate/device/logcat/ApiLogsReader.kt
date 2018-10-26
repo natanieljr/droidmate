@@ -27,7 +27,7 @@ package org.droidmate.device.logcat
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.device.deviceInterface.IDeviceTimeDiff
-import org.droidmate.deviceInterface.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.MonitorConstants

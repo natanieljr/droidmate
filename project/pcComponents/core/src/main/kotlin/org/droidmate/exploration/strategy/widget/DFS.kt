@@ -1,6 +1,6 @@
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.actions.*
 
 class DFS: GraphBasedExploration(){

@@ -23,7 +23,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.deviceInterface
+package org.droidmate.deviceInterface.exploration
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
@@ -54,7 +54,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 	}
 
 	companion object {
-		private val log by lazy { LoggerFactory.getLogger(DeviceResponse::class.java) }
+		private val logger by lazy { LoggerFactory.getLogger(DeviceResponse::class.java) }
 
 		@JvmStatic
 		val empty: DeviceResponse by lazy {
@@ -69,7 +69,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 					ByteArray(0),
 					0,
 					0,
-					Pair(0,0),0)
+					Pair(0, 0), 0)
 		}
 
 		/**
@@ -102,7 +102,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 				deviceModel.startsWith("HUAWEI-FRD-L09") -> "com.huawei.android.launcher"
 				deviceModel.startsWith("OnePlus-A0001") -> "com.cyanogenmod.trebuchet"
 				else -> {
-					log.warn("Unrecognized device model of $deviceModel. Using the default.")
+					logger.warn("Unrecognized device model of $deviceModel. Using the default.")
 				"com.android.launcher"
 				}
 			}

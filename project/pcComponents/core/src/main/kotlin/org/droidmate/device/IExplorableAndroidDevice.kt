@@ -26,9 +26,9 @@
 package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.TimeFormattedLogMessageI
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 
 import java.time.LocalDateTime
 

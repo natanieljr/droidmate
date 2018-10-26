@@ -27,7 +27,7 @@ package org.droidmate.report.apk
 
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
-import org.droidmate.deviceInterface.guimodel.isClick
+import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.explorationModel.ActionData
 import org.droidmate.explorationModel.StateData
 import org.droidmate.explorationModel.Widget

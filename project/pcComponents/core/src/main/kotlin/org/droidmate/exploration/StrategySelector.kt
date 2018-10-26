@@ -27,7 +27,7 @@ package org.droidmate.exploration
 
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*

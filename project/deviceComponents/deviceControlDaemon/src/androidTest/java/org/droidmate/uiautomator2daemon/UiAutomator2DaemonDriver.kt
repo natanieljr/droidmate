@@ -33,13 +33,13 @@ import android.os.RemoteException
 import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.*
 import android.util.Log
-import org.droidmate.deviceInterface.DeviceCommand
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.ExecuteCommand
-import org.droidmate.deviceInterface.StopDaemonCommand
-import org.droidmate.deviceInterface.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.communication.DeviceCommand
+import org.droidmate.deviceInterface.communication.ExecuteCommand
+import org.droidmate.deviceInterface.communication.StopDaemonCommand
+import org.droidmate.deviceInterface.communication.DeviceDaemonException
 
 import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.exploration.DeviceResponse
 import kotlin.math.max
 
 /**

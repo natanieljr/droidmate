@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.TimeFormattedLogMessageI
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 
 class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
                                  packageName: String,

@@ -1,9 +1,9 @@
 package org.droidmate.explorationModel.loader
 
 import kotlinx.coroutines.experimental.*
-import org.droidmate.deviceInterface.guimodel.isClick
-import org.droidmate.deviceInterface.guimodel.isLongClick
-import org.droidmate.deviceInterface.guimodel.isTextInsert
+import org.droidmate.deviceInterface.exploration.isClick
+import org.droidmate.deviceInterface.exploration.isLongClick
+import org.droidmate.deviceInterface.exploration.isTextInsert
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.idFromString

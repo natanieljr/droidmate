@@ -2,7 +2,7 @@ package org.droidmate.uiautomator2daemon
 
 import android.support.test.uiautomator.*
 import android.util.Log
-import org.droidmate.deviceInterface.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.communication.DeviceDaemonException
 import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
 
 /**
@@ -80,11 +80,11 @@ fun executeAction(device: UiDevice, action: Action<UiObject, Boolean>, id: Strin
  *
  * @param id        the resource id of the targeted UI element. This String must not be empty!
  * @param action    the action to be executed on the UiObject2 as lambda function (e.g. `{o->o.click()}`)
- * @throws UiAutomatorDaemonException if action cannot be executed (target element could not be identified)
+ * @throws DeviceDaemonException if action cannot be executed (target element could not be identified)
  */
 fun executeAction2(device: UiDevice, action: Action<UiObject2, Unit>, id: String) {
 	assert(id.isNotEmpty(), { "Widget resourceId must not be empty to use this function" })
-	(device.findObject(By.res(id)) ?: throw UiAutomatorDaemonException("object with id $id could not be found")).let {
+	(device.findObject(By.res(id)) ?: throw DeviceDaemonException("object with id $id could not be found")).let {
 		action(it)
 	}
 }

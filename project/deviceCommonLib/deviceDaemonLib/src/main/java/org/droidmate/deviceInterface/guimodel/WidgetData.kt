@@ -1,5 +1,6 @@
 package org.droidmate.deviceInterface.guimodel
 
+import org.droidmate.deviceInterface.exploration.UiElementProperties
 import java.io.Serializable
 import java.nio.charset.Charset
 import java.util.*

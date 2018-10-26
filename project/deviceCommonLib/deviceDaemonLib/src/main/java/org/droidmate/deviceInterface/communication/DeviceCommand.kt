@@ -23,13 +23,13 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.deviceInterface
+package org.droidmate.deviceInterface.communication
 
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import java.io.Serializable
 
-sealed class DeviceCommand() : Serializable
+sealed class DeviceCommand : Serializable
 
-class StopDaemonCommand: DeviceCommand()
+object StopDaemonCommand : DeviceCommand()
 
 class ExecuteCommand(val guiAction: ExplorationAction) : DeviceCommand()

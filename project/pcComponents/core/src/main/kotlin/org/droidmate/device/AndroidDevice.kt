@@ -37,7 +37,6 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeo
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
 import org.droidmate.device.logcat.TimeFormattedLogcatMessage
-import org.droidmate.deviceInterface.*
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
@@ -46,7 +45,10 @@ import org.droidmate.misc.Utils
 import org.droidmate.deviceInterface.UiautomatorDaemonConstants.logcatLogFileName
 import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_packageName
 import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_testPackageName
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.communication.*
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.SimulationAdbClearPackage
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
@@ -154,7 +156,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 		log.trace("stopUiaDaemon(uiaDaemonThreadIsNull:$uiaDaemonThreadIsNull)")
 
-		this.issueCommand(StopDaemonCommand())
+		this.issueCommand(StopDaemonCommand)
 
 		if (uiaDaemonThreadIsNull)
 			assert(this.tcpClients.getUiaDaemonThreadIsNull())

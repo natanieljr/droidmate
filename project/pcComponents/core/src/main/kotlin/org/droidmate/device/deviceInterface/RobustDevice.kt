@@ -38,9 +38,11 @@ import org.droidmate.device.logcat.IDeviceMessagesReader
 import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.TimeFormattedLogMessageI
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.exploration.ActionType
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path

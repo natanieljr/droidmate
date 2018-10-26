@@ -32,9 +32,7 @@ import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
-import org.droidmate.deviceInterface.guimodel.*
-import org.droidmate.deviceInterface.guimodel.isQueueEnd
-import org.droidmate.deviceInterface.guimodel.isQueueStart
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.*
