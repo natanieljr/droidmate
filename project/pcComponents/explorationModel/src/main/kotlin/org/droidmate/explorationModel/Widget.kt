@@ -29,7 +29,6 @@ import kotlinx.coroutines.experimental.launch
 import org.droidmate.deviceInterface.guimodel.P
 import org.droidmate.deviceInterface.guimodel.WidgetData
 import org.droidmate.deviceInterface.guimodel.toUUID
-import org.droidmate.deviceInterface.ui.UiElementProperties
 import org.droidmate.explorationModel.config.*
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
