@@ -79,9 +79,9 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 		// On Huawei devices many logs are disabled by default to increase performance,
 		// if this message appears it's ok, the relevant informaiton will still be logged.
 		//     int logctl_get(): open '/dev/hwlog_switch' fail -1, 13. Permission denied
-		//     Note: log switch off, only log_main and log_events will have logs!
+		//     Note: logcat switch off, only log_main and log_events will have logs!
 		var nrMessages = 1
-		if (msgs.joinToString(System.lineSeparator()).contains("Note: log switch off, only log_main and log_events will have logs!"))
+		if (msgs.joinToString(System.lineSeparator()).contains("Note: logcat switch off, only log_main and log_events will have logs!"))
 			nrMessages = 3
 
 		assert(msgs.size == nrMessages) {

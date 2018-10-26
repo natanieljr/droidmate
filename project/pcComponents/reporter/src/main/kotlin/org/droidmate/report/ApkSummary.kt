@@ -27,14 +27,15 @@ package org.droidmate.report
 import com.konradjamrozik.Resource
 import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.explorationModel.ActionData
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable
-import org.droidmate.report.misc.resetActionsCount
+import org.droidmate.exploration.modelFeatures.misc.resetActionsCount
 import java.time.Duration
 
 class ApkSummary {
@@ -140,7 +141,7 @@ class ApkSummary {
 			val ExplorationContext.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
 				get() {
 					return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
-							extractItems = { it.deviceLogs.apiLogs },
+							extractItems = { action -> action.deviceLogs.map { ApiLogcatMessage.from(it) as IApiLogcatMessage } },
 							extractUniqueString = { it.uniqueString }
 					)
 				}
@@ -149,11 +150,10 @@ class ApkSummary {
 				get() {
 
 					return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
-							extractItems = { it.deviceLogs.apiLogs.map { apiLog -> Pair(it, apiLog) } },
+							extractItems = { action -> action.deviceLogs.map { apiLog -> Pair(action, ApiLogcatMessage.from(apiLog) as IApiLogcatMessage) } },
 							extractUniqueString = { (action, api) -> action.actionString() + "_" + api.uniqueString }
 					)
 				}
-
 		}
 	}
 

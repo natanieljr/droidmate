@@ -25,11 +25,12 @@
 package org.droidmate.report.misc
 
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.apis.IApiLogcatMessage
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.deviceInterface.guimodel.isLaunchApp
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.explorationModel.Widget
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.statemodel.emptyUUID
+import org.droidmate.explorationModel.config.emptyUUID
 import java.util.*
 
 val ExplorationContext.uniqueActionableWidgets: Set<Widget>
@@ -50,9 +51,7 @@ val ExplorationContext.uniqueApis: Set<IApiLogcatMessage>
 val ExplorationContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
 	get() = mutableSetOf<Pair<UUID, IApiLogcatMessage>>().apply {
 		actionTrace.getActions().forEach { action ->
-			action.deviceLogs.apiLogs.forEach{ api ->
-				add(Pair(action.targetWidget?.uid ?: emptyUUID, api))
-			}
+			action.deviceLogs.forEach{ add(Pair(action.targetWidget?.uid ?: emptyUUID, ApiLogcatMessage.from(it))) }
 		}
 	}
 

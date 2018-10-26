@@ -68,7 +68,7 @@ object UiautomatorDaemonConstants {
 	// These values are duplicated in Instrumentation library from Philipp.
 	// Has to be equivalent to:
 	// - de.uds.infsec.instrumentation.Instrumentation#TAG and
-	// - <Instrumentation project dir>/jni/utils/log.h#_LOG_TAG
+	// - <Instrumentation project dir>/jni/utils/logcat.h#_LOG_TAG
 	const val instrumentation_redirectionTag = "Instrumentation"
 	// end of DUPLICATION WARNING
 

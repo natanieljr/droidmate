@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
+import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.deviceInterface.guimodel.isLaunchApp
 import org.droidmate.deviceInterface.guimodel.isPressBack
@@ -47,11 +48,11 @@ class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "a
 			else if (record.actionType.isLaunchApp())
 				currActivity = data.apk.launchableMainActivityName
 
-			val logs = record.deviceLogs.apiLogs
+			val logs = record.deviceLogs
 
-			logs.forEach { log ->
-				if (log.methodName.toLowerCase().startsWith("startactivit")) {
-					val intent = log.getIntents()
+			logs.forEach {  ApiLogcatMessage.from(it).let{ apiLog ->
+				if (apiLog.methodName.toLowerCase().startsWith("startactivit")) {
+					val intent = apiLog.getIntents()
 					// format is: [ '[data=, component=<HERE>]', 'package ]
 					if (intent.isNotEmpty()) {
 						lastActivity = currActivity
@@ -59,8 +60,8 @@ class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "a
 					}
 				}
 
-				sb.appendln("$actionNr\t$currActivity\t${record.actionType}\t${log.objectClass}->${log.methodName}\t${log.uniqueString}")
-			}
+				sb.appendln("$actionNr\t$currActivity\t${record.actionType}\t${apiLog.objectClass}->${apiLog.methodName}\t${apiLog.uniqueString}")
+			}}
 		}
 
 		val reportFile = apkReportDir.resolve(fileName)

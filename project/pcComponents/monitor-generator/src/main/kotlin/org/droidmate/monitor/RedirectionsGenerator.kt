@@ -25,9 +25,9 @@
 
 package org.droidmate.monitor
 
-import org.droidmate.apis.Api
-import org.droidmate.apis.ApiLogcatMessage
-import org.droidmate.apis.ApiMethodSignature
+import org.droidmate.device.apis.Api
+import org.droidmate.device.apis.ApiMethodSignature
+import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.misc.MonitorConstants
 
 @Suppress("unused")
@@ -39,7 +39,7 @@ import org.droidmate.misc.MonitorConstants
  * To diagnose method signatures here that cannot be handled by ArtHook (which is used for Android 6), observe logcat output
  * during launch of main activity of an inlined app containing monitor generated using this class.
  *
- * A log similar to the following one will appear on it:
+ * A logcat similar to the following one will appear on it:
  * <pre>
  * 06-29 19:17:21.637 16375-16375/org.droidmate.fixtures.apks.monitored W/ArtHook: java.lang.RuntimeException: Can't find original method (redir_android_net_wifi_WifiManager_startScan1)
  * </pre>

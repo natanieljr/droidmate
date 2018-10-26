@@ -64,9 +64,9 @@ import org.droidmate.deviceInterface.guimodel.EmptyAction
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.ModelConfig
+import org.droidmate.explorationModel.ActionResult
+import org.droidmate.explorationModel.Model
+import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
@@ -80,7 +80,7 @@ import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.tools.*
 import org.droidmate.deviceInterface.guimodel.GlobalAction
-import org.droidmate.exploration.statemodel.EmptyActionResult
+import org.droidmate.explorationModel.EmptyActionResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -437,7 +437,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 		// Propagate exception if there was any
 		if (!result.successful)
-			explorationContext.exception = result.exception
+			explorationContext.exception = exception
 
 		explorationContext.explorationEndTime = TimeProvider.getNow()
 

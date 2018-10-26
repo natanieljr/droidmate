@@ -25,7 +25,7 @@
 package org.droidmate.device.deviceInterface
 
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.apis.ITimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.TimeFormattedLogMessageI
 
 import java.time.LocalDateTime
 
@@ -34,7 +34,7 @@ interface IDeviceTimeDiff {
 	fun sync(deviceTime: LocalDateTime): LocalDateTime
 
 	@Throws(DeviceException::class)
-	fun syncMessages(messages: List<ITimeFormattedLogcatMessage>): List<ITimeFormattedLogcatMessage>
+	fun syncMessages(messages: List<TimeFormattedLogMessageI>): List<TimeFormattedLogMessageI>
 
 	fun reset()
 }

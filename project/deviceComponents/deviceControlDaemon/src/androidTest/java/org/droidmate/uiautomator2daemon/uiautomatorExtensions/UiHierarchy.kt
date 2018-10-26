@@ -55,7 +55,7 @@ object UiHierarchy : UiParser() {
 		device.waitForIdle()
 
 		val serializer = Xml.newSerializer()
-		serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true)
+		serializer.setFeature("http://xmlpull.org/v1/doc/modelFeatures.html#indent-output", true)
 		serializer.setOutput(out)//, "UTF-8")
 
 		serializer.startDocument("UTF-8", true)

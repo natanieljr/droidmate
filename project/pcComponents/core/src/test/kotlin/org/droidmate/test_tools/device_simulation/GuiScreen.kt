@@ -245,7 +245,7 @@ class GuiScreen /*constructor(private val internalId: String,
 			assert(this.finishedBuilding)
 	}
 
-	private fun buildMonitorMessages(): List<ITimeFormattedLogcatMessage> {
+	private fun buildMonitorMessages(): List<TimeFormattedLogMessageI> {
 			return listOf(
 							TimeFormattedLogcatMessage.from(
 											this.timeGenerator!!.shiftAndGet(mapOf("milliseconds" to 1500)), // Milliseconds amount based on empirical evidence.

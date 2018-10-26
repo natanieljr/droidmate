@@ -28,11 +28,11 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.statemodel.*
-import org.droidmate.exploration.statemodel.ModelConfig
-import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
-import org.droidmate.exploration.statemodel.loader.ModelParser
+import org.droidmate.explorationModel.*
+import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.Model
+import org.droidmate.exploration.modelFeatures.ActionPlaybackFeature
+import org.droidmate.explorationModel.loader.ModelParser
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import java.lang.Integer.max
 import java.nio.file.Path
@@ -143,8 +143,8 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 							&& runBlocking {
 								model.getState(lastSkipped.resState)?.run {
 									actionableWidgets.any {
-										peekAction.targetWidget == null || it.uid == peekAction.targetWidget.uid
-												|| it.propertyId == peekAction.targetWidget.uid
+										peekAction.targetWidget == null || it.uid == peekAction.targetWidget!!.uid
+												|| it.propertyId == peekAction.targetWidget!!.uid
 									}
 								}
 							} == true) {

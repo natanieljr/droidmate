@@ -26,7 +26,7 @@
 package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.apis.ITimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.TimeFormattedLogMessageI
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.deviceInterface.DeviceResponse
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
@@ -162,11 +162,11 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> {
+	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> {
+	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -188,7 +188,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 
 	// TODO Fix tests
 	/*companion object {
-			private val log = LoggerFactory.getLogger(AndroidDeviceSimulator::class.java)
+			private val logcat = LoggerFactory.getLogger(AndroidDeviceSimulator::class.java)
 
 			@JvmStatic
 			fun build(timeGenerator: ITimeGenerator = TimeGenerator(),
@@ -206,7 +206,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 
 	var currentSimulation: IDeviceSimulation? = null
 
-	private val logcatMessagesToBeReadNext: MutableList<ITimeFormattedLogcatMessage> = mutableListOf()
+	private val logcatMessagesToBeReadNext: MutableList<TimeFormattedLogMessageI> = mutableListOf()
 
 	private val callCounters = CallCounters()
 	private var uiaDaemonIsRunning = false
@@ -222,7 +222,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 					= this.currentSimulation!!.packageName
 
 	override fun hasPackageInstalled(packageName: String): Boolean {
-			log.debug("hasPackageInstalled($packageName)")
+			logcat.debug("hasPackageInstalled($packageName)")
 			assert(this.getCurrentlyDeployedPackageName() == packageName)
 
 			val s = findMatchingExceptionSpecAndThrowIfApplies("hasPackageInstalled", packageName)
@@ -253,18 +253,18 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	}
 
 	override fun getGuiSnapshot(): IDeviceGuiSnapshot {
-			log.debug("getGuiSnapshot()")
+			logcat.debug("getGuiSnapshot()")
 
 			findMatchingExceptionSpecAndThrowIfApplies("getGuiSnapshot", this.getCurrentlyDeployedPackageName())
 
 			val outSnapshot = this.currentSimulation!!.getCurrentGuiSnapshot()
 
-			log.debug("getGuiSnapshot(): $outSnapshot")
+			logcat.debug("getGuiSnapshot(): $outSnapshot")
 			return outSnapshot
 	}
 
 	override fun perform(action: ExplorationAction) {
-			log.debug("perform($action)")
+			logcat.debug("perform($action)")
 
 			findMatchingExceptionSpecAndThrowIfApplies("perform", this.getCurrentlyDeployedPackageName())
 
@@ -294,7 +294,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	}
 
 	override fun clearLogcat() {
-			log.debug("clearLogcat()")
+			logcat.debug("clearLogcat()")
 
 			logcatMessagesToBeReadNext.clear()
 	}
@@ -304,10 +304,10 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 			this.stopUiaDaemon(false)
 	}
 
-	override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> =
+	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> =
 					logcatMessagesToBeReadNext.filter { it.tag == messageTag }
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> =
+	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> =
 					readLogcatMessages(messageTag)
 
 	override fun getCurrentTime(): LocalDateTime {

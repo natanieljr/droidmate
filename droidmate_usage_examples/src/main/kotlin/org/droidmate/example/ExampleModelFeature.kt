@@ -4,9 +4,9 @@ import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.statemodel.StateData
-import org.droidmate.exploration.statemodel.features.ModelFeature
+import org.droidmate.explorationModel.ActionData
+import org.droidmate.explorationModel.StateData
+import org.droidmate.exploration.modelFeatures.ModelFeature
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -15,13 +15,13 @@ class ExampleModelFeature: ModelFeature(){
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ExampleModelFeature"), parent = job)
 
 	init {
-		job = Job(parent = (this.job)) // We don't want to wait for other features (or having them wait for us), therefore create our own (child) job
+		job = Job(parent = (this.job)) // We don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
 	}
 
 	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
 		val action = deferredAction.await()
 
-		// Check [org.droidmate.exploration.statemodel.features.ModelFeature] for more notification possibilities
+		// Check [org.droidmate.explorationModel.modelFeatures.ModelFeature] for more notification possibilities
 		println("Transitioning from state $prevState to state $newState")
 
 		if (action.targetWidget != null)

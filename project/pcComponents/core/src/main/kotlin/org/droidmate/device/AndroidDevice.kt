@@ -29,8 +29,6 @@ package org.droidmate.device
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
@@ -38,10 +36,8 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInt
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
-import org.droidmate.deviceInterface.DeviceCommand
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.ExecuteCommand
-import org.droidmate.deviceInterface.StopDaemonCommand
+import org.droidmate.device.logcat.TimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.*
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
@@ -171,12 +167,12 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun isAvailable(): Boolean {
-//    log.trace("isAvailable(${this.serialNumber})")
+//    logcat.trace("isAvailable(${this.serialNumber})")
 		return this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
 	}
 
 	override fun reboot() {
-//    log.trace("reboot(${this.serialNumber})")
+//    logcat.trace("reboot(${this.serialNumber})")
 		this.adbWrapper.reboot(this.serialNumber)
 	}
 
@@ -222,13 +218,13 @@ class AndroidDevice constructor(private val serialNumber: String,
 			throw UnexpectedIfElseFallthroughError()
 	}
 
-	override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> {
+	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
 		log.debug("readLogcatMessages(tag: $messageTag)")
 		val messages = adbWrapper.readMessagesFromLogcat(this.serialNumber, messageTag)
 		return messages.map { TimeFormattedLogcatMessage.from(it) }
 	}
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> {
+	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
 		log.debug("waitForLogcatMessages(tag: $messageTag, minMessagesCount: $minMessagesCount, waitTimeout: $waitTimeout, queryDelay: $queryDelay)")
 		val messages = adbWrapper.waitForMessagesOnLogcat(this.serialNumber, messageTag, minMessagesCount, waitTimeout, queryDelay)
 		log.debug("waitForLogcatMessages(): obtained messages: ${messages.joinToString(System.lineSeparator())}")
@@ -283,7 +279,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return out
 	}
 
-	override fun anyMonitorIsReachable(): Boolean =//    log.debug("anyMonitorIsReachable()")
+	override fun anyMonitorIsReachable(): Boolean =//    logcat.debug("anyMonitorIsReachable()")
 			this.tcpClients.anyMonitorIsReachable()
 
 	override fun clearLogcat() {

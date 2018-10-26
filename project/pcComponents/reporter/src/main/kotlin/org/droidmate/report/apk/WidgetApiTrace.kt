@@ -26,10 +26,11 @@
 package org.droidmate.report.apk
 
 import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.deviceInterface.guimodel.isClick
-import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.statemodel.StateData
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.explorationModel.ActionData
+import org.droidmate.explorationModel.StateData
+import org.droidmate.explorationModel.Widget
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import java.nio.file.Path
@@ -43,12 +44,12 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 		data.actionTrace.getActions().forEachIndexed { actionNr, record ->
 			if (record.actionType.isClick()) {
 				val text = runBlocking { data.getState(record.resState)?.let { getActionWidget(record, it) } }
-				val logs = record.deviceLogs.apiLogs
+				val logs = record.deviceLogs
 				val widget = record.targetWidget
 
-				logs.forEach { log ->
-					sb.appendln("$actionNr\t$text\t${log.objectClass}->${log.methodName}\t$widget\t${log.uniqueString}")
-				}
+				logs.forEach { ApiLogcatMessage.from(it).let{ apiLog ->
+					sb.appendln("$actionNr\t$text\t${apiLog.objectClass}->${apiLog.methodName}\t$widget\t${apiLog.uniqueString}")
+				}}
 			}
 		}
 

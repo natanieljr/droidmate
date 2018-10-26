@@ -3,7 +3,8 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.deviceInterface.guimodel.*
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.widgetTargets
 
 /**
  * These are the new interface functions to interact with any widget.

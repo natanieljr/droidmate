@@ -57,9 +57,9 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 		@JvmStatic
 		private fun getSerialNumber(deviceDescriptors: List<AndroidDeviceDescriptor>, usedSerialNumbers: List<String>, deviceIndex: Int): String {
-//    log.trace("Serial numbers of found android devices:")
+//    logcat.trace("Serial numbers of found android devices:")
 //    assert deviceDescriptors?.size() > 0
-//    deviceDescriptors.each {AndroidDeviceDescriptor add -> log.trace(add.deviceSerialNumber)}
+//    deviceDescriptors.each {AndroidDeviceDescriptor add -> logcat.trace(add.deviceSerialNumber)}
 
 			val unrecognizedNumbers = usedSerialNumbers.minus(deviceDescriptors.map { it.deviceSerialNumber })
 			if (unrecognizedNumbers.isNotEmpty())

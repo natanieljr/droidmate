@@ -25,7 +25,7 @@
 
 package org.droidmate.monitor
 
-import org.droidmate.apis.ApiMethodSignature
+import org.droidmate.device.apis.ApiMethodSignature
 
 class MonitorGenerator constructor(private val redirectionsGenerator: IRedirectionsGenerator,
 								   private val monitorSrcTemplate: MonitorSrcTemplate) : IMonitorGenerator {

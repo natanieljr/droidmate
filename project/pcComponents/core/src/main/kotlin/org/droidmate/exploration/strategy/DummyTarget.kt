@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.explorationModel.Widget
 
 /**
  * Dummy target dependency, used to initialize dependencies as non-null

@@ -25,9 +25,9 @@
 package org.droidmate.device.deviceInterface
 
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.device.IExplorableAndroidDevice
+import org.droidmate.device.logcat.TimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.TimeFormattedLogMessageI
 import org.droidmate.misc.MonitorConstants
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -83,10 +83,10 @@ class DeviceTimeDiff(private val device: IExplorableAndroidDevice) : IDeviceTime
 		return diff
 	}
 
-	override fun syncMessages(messages: List<ITimeFormattedLogcatMessage>): List<ITimeFormattedLogcatMessage> {
+	override fun syncMessages(messages: List<TimeFormattedLogMessageI>): List<TimeFormattedLogMessageI> {
 		return messages.map {
 
-			//      log.trace("syncing: curr diff: ${this.diff} log dev. time: $it.time tag: $it.tag pid: $it.pidString, payload first 200 chars: ${it.messagePayload.take(200)}")
+			//      logcat.trace("syncing: curr diff: ${this.diff} logcat dev. time: $it.time tag: $it.tag pid: $it.pidString, payload first 200 chars: ${it.messagePayload.take(200)}")
 
 			TimeFormattedLogcatMessage.from(
 					this.sync(it.time),

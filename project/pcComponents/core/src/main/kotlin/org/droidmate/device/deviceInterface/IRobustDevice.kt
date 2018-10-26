@@ -27,6 +27,7 @@ package org.droidmate.device.deviceInterface
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.IAndroidDevice
+import org.droidmate.device.logcat.IDeviceMessagesReader
 import org.droidmate.deviceInterface.DeviceResponse
 
 interface IRobustDevice : IAndroidDevice, IDeviceMessagesReader {

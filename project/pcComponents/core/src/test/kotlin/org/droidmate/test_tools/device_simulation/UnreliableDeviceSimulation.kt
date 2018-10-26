@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
@@ -42,7 +42,7 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun getCurrentLogs(): List<ITimeFormattedLogcatMessage> {
+	override fun getCurrentLogs(): List<TimeFormattedLogMessageI> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 

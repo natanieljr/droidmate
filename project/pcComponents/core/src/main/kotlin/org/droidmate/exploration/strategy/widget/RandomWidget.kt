@@ -27,16 +27,16 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.debug.debugT
+import org.droidmate.misc.debugT
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.deviceInterface.guimodel.Swipe
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.statemodel.emptyId
-import org.droidmate.exploration.statemodel.features.ActionCounterMF
-import org.droidmate.exploration.statemodel.features.BlackListMF
-import org.droidmate.exploration.statemodel.features.listOfSmallest
+import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.config.emptyId
+import org.droidmate.exploration.modelFeatures.ActionCounterMF
+import org.droidmate.exploration.modelFeatures.BlackListMF
+import org.droidmate.exploration.modelFeatures.listOfSmallest
 import java.util.Random
 
 /**

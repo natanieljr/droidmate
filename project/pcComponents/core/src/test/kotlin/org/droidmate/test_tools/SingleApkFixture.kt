@@ -31,13 +31,13 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.tools.ApksProvider
 
 class SingleApkFixture constructor(aapt: IAaptWrapper,
-								   cfg: ConfigurationWrapper,
-								   apksProvider: ApksProvider = ApksProvider(aapt),
-								   apks: List<IApk> = apksProvider.getApks(cfg.apksDirPath,
+                                   cfg: ConfigurationWrapper,
+                                   apksProvider: ApksProvider = ApksProvider(aapt),
+                                   apks: List<IApk> = apksProvider.getApks(cfg.apksDirPath,
 										   cfg[ConfigProperties.Exploration.apksLimit],
 										   cfg[ConfigProperties.Exploration.apkNames],
 										   cfg[ConfigProperties.Deploy.shuffleApks]),
-								   private val apk: IApk = apks.first()
+                                   private val apk: IApk = apks.first()
 ) : IApk by apk {
 
 	init {

@@ -31,8 +31,11 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.statemodel.*
-import org.droidmate.exploration.statemodel.features.highlightWidget
+import org.droidmate.explorationModel.*
+import org.droidmate.exploration.modelFeatures.highlightWidget
+import org.droidmate.explorationModel.config.ConcreteId
+import org.droidmate.explorationModel.config.dumpString
+import org.droidmate.explorationModel.config.idFromString
 import org.droidmate.misc.unzip
 import java.lang.reflect.Type
 import java.nio.file.*

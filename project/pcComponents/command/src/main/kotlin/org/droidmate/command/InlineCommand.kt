@@ -33,7 +33,7 @@ import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
-											  private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
+                                              private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
 
 	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))

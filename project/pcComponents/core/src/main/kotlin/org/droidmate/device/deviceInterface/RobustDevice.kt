@@ -27,18 +27,19 @@ package org.droidmate.device.deviceInterface
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
-import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.debug.debugT
+import org.droidmate.misc.debugT
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.device.logcat.IDeviceMessagesReader
 import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
 import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.guimodel.*
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
@@ -101,8 +102,8 @@ class RobustDevice : IRobustDevice {
 	            checkDeviceAvailableAfterRebootFirstDelay: Int,
 	            checkDeviceAvailableAfterRebootLaterDelays: Int,
 	            waitForCanRebootDelay: Int,
-                deviceOperationAttempts: Int,
-                deviceOperationDelay: Int,
+	            deviceOperationAttempts: Int,
+	            deviceOperationDelay: Int,
 	            monitorUseLogcat: Boolean) {
 		this.device = device
 		this.cfg = cfg
@@ -260,8 +261,10 @@ class RobustDevice : IRobustDevice {
 	override fun perform(action: ExplorationAction): DeviceResponse {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
-							{ debugT("perform action ${action::class.simpleName} avg = ${time/max(1,c)}", {this.device.perform(action)}
-									,inMillis = true, timer = { time += it / 1000000.0; c += 1}) },
+							{
+								debugT("perform action ${action::class.simpleName} avg = ${time / max(1, c)}", { this.device.perform(action) }
+										, inMillis = true, timer = { time += it / 1000000.0; c += 1 })
+							},
 							{ this.restartUiaDaemon(false) },
 							DeviceException::class,
 							deviceOperationAttempts,
@@ -707,7 +710,7 @@ class RobustDevice : IRobustDevice {
         )
     }
 
-	override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> {
+	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
         return Utils.retryOnException(
                 { this.device.readLogcatMessages(messageTag) },
                 {},
@@ -718,7 +721,7 @@ class RobustDevice : IRobustDevice {
         )
     }
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> {
+	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
         return Utils.retryOnException(
                 { this.device.waitForLogcatMessages(messageTag, minMessagesCount, waitTimeout, queryDelay) },
                 {},

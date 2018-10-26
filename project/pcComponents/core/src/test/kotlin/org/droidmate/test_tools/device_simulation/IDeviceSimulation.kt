@@ -25,7 +25,7 @@
 package org.droidmate.test_tools.device_simulation
 
 import com.google.common.annotations.VisibleForTesting
-import org.droidmate.apis.ITimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.DeviceResponse
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
@@ -34,7 +34,7 @@ interface IDeviceSimulation {
 
 	fun getCurrentGuiSnapshot(): DeviceResponse
 
-	fun getCurrentLogs(): List<ITimeFormattedLogcatMessage>
+	fun getCurrentLogs(): List<TimeFormattedLogMessageI>
 
 	val packageName: String
 

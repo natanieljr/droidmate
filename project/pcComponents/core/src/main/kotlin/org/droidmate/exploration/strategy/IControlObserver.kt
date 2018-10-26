@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.explorationModel.ActionResult
 
 /**
  * Interface to receive notifications when control flow should be

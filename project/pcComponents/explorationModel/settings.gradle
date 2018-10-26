@@ -1,0 +1,4 @@
+rootProject.name = "explorationModel"
+
+includeBuild ('../../deviceCommonLib/deviceDaemonLib')
+

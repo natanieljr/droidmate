@@ -26,9 +26,9 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.exploration.statemodel.StateData
+import org.droidmate.explorationModel.ActionData
+import org.droidmate.explorationModel.ActionResult
+import org.droidmate.explorationModel.StateData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.slf4j.Logger

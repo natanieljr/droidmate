@@ -70,7 +70,7 @@ class MonitorsClient(socketTimeout: Int,
 		try {
 			return monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_time, this.getPort())
 		} catch (ignored: TcpServerUnreachableException) {
-			// log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_time} request.")
+			// logcat.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_time} request.")
 			assert(!this.anyMonitorIsReachable())
 			throw DeviceException("None of the monitor TCP servers were available.", true)
 		}
@@ -80,7 +80,7 @@ class MonitorsClient(socketTimeout: Int,
 		return try {
 			monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_logs, this.getPort())
 		} catch (ignored: TcpServerUnreachableException) {
-			// log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_logs} request.")
+			// logcat.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_logs} request.")
 			log.trace("None of the monitor TCP servers were available while obtaining API logs.")
 			ArrayList()
 		}
@@ -90,7 +90,7 @@ class MonitorsClient(socketTimeout: Int,
 		try {
 			monitorTcpClient.queryServer(MonitorConstants.srvCmd_close, this.getPort())
 		} catch (ignored: TcpServerUnreachableException) {
-			// log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_close} request.")
+			// logcat.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_close} request.")
 		}
 	}
 

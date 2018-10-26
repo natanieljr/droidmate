@@ -24,8 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.explorationModel.ActionData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import java.time.Duration
@@ -60,7 +61,7 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 					// create a list of (widget.id,IApiLogcatMessage)
 					actionTrace.getActions().forEach { action ->
 						// collect all apiLogs over the whole trace
-						action.deviceLogs.apiLogs.forEach { add(Pair(action, it)) }
+						action.deviceLogs.forEach { add(Pair(action, ApiLogcatMessage.from(it))) }
 					}
 				}.groupBy { (_, api) -> Duration.between(explorationStartTime, api.time).toMillis() } // group them by their start time (i.e. how may milli seconds elapsed since exploration start)
 

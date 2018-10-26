@@ -14,7 +14,7 @@ internal fun setup(args: Array<String>): ConfigurationWrapper {
 	println(copyRight)
 
 	LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
-	log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.ConfigurationWrapper::class.java.simpleName} from args " +
+	log.info("Bootstrapping DroidMate: building ${ConfigurationWrapper::class.java.simpleName} from args " +
 			"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
 	log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
 

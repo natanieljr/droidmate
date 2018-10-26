@@ -39,7 +39,7 @@ import java.net.SocketTimeoutException
 class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable>
 	constructor(private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
 	/*companion object {
-			private val log = LoggerFactory.getLogger(TcpClientBase::class.java)
+			private val logcat = LoggerFactory.getLogger(TcpClientBase::class.java)
 	}*/
 
 	private val serverAddress = "localhost"
@@ -48,9 +48,9 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
 	@Throws(TcpServerUnreachableException::class, DeviceException::class)
 	override fun queryServer(input: InputToServerT, port: Int): OutputFromServerT {
 		try {
-			//log.trace("Socket socket = this.tryGetSocket($serverAddress, $port)")
+			//logcat.trace("Socket socket = this.tryGetSocket($serverAddress, $port)")
 			val socket = this.tryGetSocket(serverAddress, port)
-//      log.trace("Got socket: $serverAddress:$port timeout: ${this.socketTimeout}")
+//      logcat.trace("Got socket: $serverAddress:$port timeout: ${this.socketTimeout}")
 
 			socket.soTimeout = this.socketTimeout
 
@@ -61,18 +61,18 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
 			// 2. search for: "Note - The ObjectInputStream constructor blocks until" in:
 			// http://docs.oracle.com/javase/7/docs/platform/serialization/spec/input.html
 			//
-//        log.trace("inputStream = new ObjectInputStream(socket<$serverAddress:$port>.inputStream)")
+//        logcat.trace("inputStream = new ObjectInputStream(socket<$serverAddress:$port>.inputStream)")
 			val inputStream = DataInputStream(socket.inputStream)
-//        log.trace("Got input stream")
+//        logcat.trace("Got input stream")
 
 			val outputStream = DataOutputStream(socket.outputStream)
-//        log.trace("got outputStream")
+//        logcat.trace("got outputStream")
 
 			SerializationHelper.writeObjectToStream(outputStream, input)
 			outputStream.flush()
 			val output = SerializationHelper.readObjectFromStream(inputStream) as OutputFromServerT
 
-//      log.trace("socket.close()")
+//      logcat.trace("socket.close()")
 			socket.close()
 
 			return output

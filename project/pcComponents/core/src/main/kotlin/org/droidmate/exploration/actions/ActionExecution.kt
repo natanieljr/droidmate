@@ -2,32 +2,29 @@ package org.droidmate.exploration.actions
 
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.debug.debugT
+import org.droidmate.misc.debugT
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.device.deviceInterface.DeviceLogsHandler
-import org.droidmate.device.deviceInterface.IDeviceLogs
+import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.device.deviceInterface.MissingDeviceLogs
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.device.logcat.MissingDeviceLogs
 import org.droidmate.deviceInterface.DeviceResponse
 import org.droidmate.deviceInterface.guimodel.ActionQueue
 import org.droidmate.deviceInterface.guimodel.ActionType
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 import org.droidmate.deviceInterface.guimodel.LaunchApp
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.explorationModel.ActionResult
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.util.*
 import kotlin.math.max
 
 private val log by lazy { LoggerFactory.getLogger("PC-ActionRun") }
-internal var widgetTargets = LinkedList<Widget>()
 
 private lateinit var snapshot: DeviceResponse
-private lateinit var logs: IDeviceLogs
-private lateinit var exception: DeviceException
+private lateinit var logs: MutableList<IApiLogcatMessage>
+lateinit var exception: DeviceException
 
 private var performT: Long = 0
 private var performN: Int = 0
@@ -56,7 +53,7 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult{
 
 		log.debug("1. Assert only background API logs are present, if any.")
 		val logsHandler = DeviceLogsHandler(device)
-//		debugT("reading log", { logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny() }, inMillis = true)
+//		debugT("reading logcat", { logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny() }, inMillis = true)
 //		logs = logsHandler.getLogs()
 
 		log.debug("2. Perform action ${this}")
@@ -64,7 +61,7 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult{
 		performAction(this,app,device)
 
 		log.debug("3. Read and clear API logs if any, then seal logs reading.")
-		debugT("read log after action", { logsHandler.readAndClearApiLogs() }, inMillis = true)
+		debugT("read logcat after action", { logsHandler.readAndClearApiLogs() }, inMillis = true)
 		logs = logsHandler.getLogs()
 
 		log.trace("$name.run(app=${app.fileName}, device) - DONE")
@@ -76,7 +73,7 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult{
 	val endTime = LocalDateTime.now()
 
 	// For post-conditions, see inside the constructor call made line below.
-	return ActionResult(this, startTime, endTime, logs, snapshot, exception = exception, screenshot = snapshot.screenshot)
+	return ActionResult(this, startTime, endTime, logs, snapshot, exception = exception.toString(), screenshot = snapshot.screenshot)
 
 }
 
@@ -84,11 +81,13 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult{
 @Throws(DeviceException::class)
 private fun defaultExecution(action: ExplorationAction, device: IRobustDevice){
 	try {
-		debugT("perform $action on average ${performT / max(performN,1)} ms", {
-			runBlocking{ launch {
-				// do the perform as launch to inject a suspension point, as perform is currently no suspend function
-				snapshot = device.perform(action)
-			}.join() }
+		debugT("perform $action on average ${performT / max(performN, 1)} ms", {
+			runBlocking {
+				launch {
+					// do the perform as launch to inject a suspension point, as perform is currently no suspend function
+					snapshot = device.perform(action)
+				}.join()
+			}
 		}, timer = {
 			performT += it / 1000000
 			performN += 1

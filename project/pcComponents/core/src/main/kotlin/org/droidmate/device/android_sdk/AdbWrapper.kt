@@ -203,7 +203,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	override fun forwardPort(deviceSerialNumber: String, port: Int) {
-//    log.trace("forwardPort(deviceSerialNumber:$deviceSerialNumber, port:$port)")
+//    logcat.trace("forwardPort(deviceSerialNumber:$deviceSerialNumber, port:$port)")
 
 		try {
 			val commandDescription = "Executing adb (Android Debug Bridge) to forward port $port to android device with s/n $deviceSerialNumber."
@@ -254,7 +254,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 					"-s", deviceSerialNumber,
 					/*
 Command line explanation:
--d      : Dumps the log to the screen and exits.
+-d      : Dumps the logcat to the screen and exits.
 -b main : Loads the "main" buffer.
 -v time : Sets the message output format to time (see [2]).
 *:s     : Suppresses all messages, besides the ones having messageTag.
@@ -347,17 +347,17 @@ Logcat reference:
 		try {
 			var timeLeftToQuery = waitTimeout
 			while (timeLeftToQuery >= 0 && readMessages.size < minMessagesCount) {
-//        log.verbose("waitForMessagesOnLogcat.sleep(queryDelay=$queryDelay)")
+//        logcat.verbose("waitForMessagesOnLogcat.sleep(queryDelay=$queryDelay)")
 				Thread.sleep(queryDelay.toLong())
 				timeLeftToQuery -= queryDelay
-//        log.verbose("waitForMessagesOnLogcat.readMessagesFromLogcat(messageTag=$messageTag) " +
+//        logcat.verbose("waitForMessagesOnLogcat.readMessagesFromLogcat(messageTag=$messageTag) " +
 //          "timeLeftToQuery=$timeLeftToQuery readMessages.size()=${readMessages.size()} minMessagesCount=$minMessagesCount")
 				readMessages = this.readMessagesFromLogcat(deviceSerialNumber, messageTag)
 			}
 		} catch (e: InterruptedException) {
 			throw AdbWrapperException(e)
 		}
-//    log.verbose("waitForMessagesOnLogcat loop finished. readMessages.size()=${readMessages.size()}")
+//    logcat.verbose("waitForMessagesOnLogcat loop finished. readMessages.size()=${readMessages.size()}")
 
 		if (readMessages.size < minMessagesCount) {
 			throw AdbWrapperException("Failed waiting for at least $minMessagesCount messages on logcat. " +

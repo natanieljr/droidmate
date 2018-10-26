@@ -25,7 +25,7 @@
 package org.droidmate.report.apk
 
 import org.droidmate.deviceInterface.guimodel.isClick
-import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.explorationModel.ActionData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.plot
 import org.droidmate.misc.withExtension

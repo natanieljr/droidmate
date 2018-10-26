@@ -42,7 +42,8 @@ include(
 		"project:pcComponents:reporter",
 		"project:pcComponents:command",
 		"project:pcComponents:API"
-		,':deviceDaemonLib' // does not allow for versioning and does not work properly with IntelliJ 18.1.6+
+		,"project:pcComponents:explorationModel"
+		,':deviceDaemonLib'
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
 

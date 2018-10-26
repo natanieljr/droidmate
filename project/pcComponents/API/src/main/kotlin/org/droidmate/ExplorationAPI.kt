@@ -34,8 +34,8 @@ import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.ModelConfig
+import org.droidmate.explorationModel.Model
+import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.report.Reporter
 import org.droidmate.report.apk.VisualizationGraph

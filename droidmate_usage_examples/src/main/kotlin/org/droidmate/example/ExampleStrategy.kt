@@ -8,7 +8,7 @@ import org.droidmate.exploration.actions.terminateApp
 import org.droidmate.exploration.strategy.AbstractStrategy
 
 class ExampleStrategy(private val someId: Int): AbstractStrategy(){
-	// Model features can be accessed from the strategy as well
+	// Model modelFeatures can be accessed from the strategy as well
 	private val modelFeature : ExampleModelFeature
 			get() = eContext.getOrCreateWatcher()
 

@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.report.apk
 
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.explorationModel.Widget
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 

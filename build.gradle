@@ -26,7 +26,7 @@ wrapper{
 
 allprojects {
     group = "org.droidmate"
-    version = "1.1-SNAPSHOT"
+    version = "1.2-SNAPSHOT"
 
     /* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
@@ -62,6 +62,7 @@ allprojects {
 				if(substitution != null)
 					substitution because "the lib is not yet published independently but the ci server cannot resolve includeBuild dependencies"
 			}
+			substitute module("org.droidmate:explorationModel") with project(":project:pcComponents:explorationModel")
 		}
 	}
 }

@@ -26,8 +26,8 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.statemodel.features.EventProbabilityMF
+import org.droidmate.explorationModel.Widget
+import org.droidmate.exploration.modelFeatures.EventProbabilityMF
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
@@ -40,8 +40,8 @@ open class ModelBased @JvmOverloads constructor(randomSeed: Long,
 	 */
 	@JvmOverloads
 	constructor(cfg: ConfigurationWrapper,
-				modelName: String = "HasModel.model",
-				arffName: String = "baseModelFile.arff") : this(cfg.randomSeed, modelName, arffName)
+	            modelName: String = "HasModel.model",
+	            arffName: String = "baseModelFile.arff") : this(cfg.randomSeed, modelName, arffName)
 
 	protected val watcher: EventProbabilityMF
 		get() = (eContext.findWatcher { it is EventProbabilityMF } as EventProbabilityMF)

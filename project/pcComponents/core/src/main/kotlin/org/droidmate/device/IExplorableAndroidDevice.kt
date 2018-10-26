@@ -26,8 +26,8 @@
 package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.apis.ITimeFormattedLogcatMessage
 import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.guimodel.ExplorationAction
 
 import java.time.LocalDateTime
@@ -40,10 +40,10 @@ interface IExplorableAndroidDevice {
 	fun perform(action: ExplorationAction): DeviceResponse
 
 	@Throws(DeviceException::class)
-	fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage>
+	fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI>
 
 	@Throws(DeviceException::class)
-	fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage>
+	fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI>
 
 	@Throws(DeviceException::class)
 	fun clearLogcat()
