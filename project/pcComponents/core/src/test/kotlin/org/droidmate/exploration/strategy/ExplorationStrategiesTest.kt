@@ -275,7 +275,7 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
 			strategy.initialize(explorationLog)
 			val guiState = Auxiliary.createGuiStateFromFile()
 			// Disable all widgets
-			guiState.widgets.forEach { p -> WidgetData(p.map.toMutableMap().apply { replace(WidgetData::enabled.name,false) }) }
+			guiState.widgets.forEach { p -> UiElementProperties(p.map.toMutableMap().apply { replace(UiElementProperties::enabled.name,false) }) }
 
 			var widgetContext = EmptyWidgetContext()//explorationLog.getState(guiState)
 			// Must not be executed

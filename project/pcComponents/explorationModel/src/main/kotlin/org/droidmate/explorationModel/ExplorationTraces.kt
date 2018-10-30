@@ -188,7 +188,7 @@ class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), p
 	private fun internalUpdate(srcState: StateData, targets: List<Widget>) {
 		this.targets.addAll(targets)
 		targets.forEach {
-			if (it.isEdit) editFields.compute(srcState.iEditId) { _, stateMap ->
+			if (it.isInputField) editFields.compute(srcState.iEditId) { _, stateMap ->
 				(stateMap ?: LinkedList()).apply { add(Pair(srcState, it)) }
 			}
 			Unit
@@ -286,11 +286,13 @@ class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), p
 	private fun P_addAction(action: ActionData) = trace.sendBlocking(Add(action))  // this does never actually block the sending since the capacity is unlimited
 	private fun P_addAll(actions:List<ActionData>) = trace.sendBlocking(AddAll(actions))  // this does never actually block the sending since the capacity is unlimited
 
+	//FIXME the run Blockings should be replaced with non-thread blocking coroutineScope
+	// -> requires suspend propagation in many places
 	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
-	fun getActions(): List<ActionData> {
-		runBlocking { processorJob.joinChildren() }
-		return trace.S_getAll()
-	}
+	fun getActions(): List<ActionData> = runBlocking{coroutineScope<List<ActionData>> {
+		processorJob.joinChildren()
+		return@coroutineScope trace.S_getAll()
+	}}
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within co-routines to make complete use of suspendable feature */
 	suspend fun P_getActions(): List<ActionData>{

@@ -92,18 +92,20 @@ class StateData (private val _widgets: Lazy<Collection<Widget>>,
 		widgets.fold(emptyUUID) { iEdit, widget -> addRelevantNonEdit(iEdit, widget) }
 	}
 
-	val actionableWidgets by lazy { widgets.filter { it.canBeActedUpon } }
-	val distinctTargets by lazy { actionableWidgets.filter { it.isLeaf || it.uncoveredCoord!=null }}
-	val hasEdit: Boolean by lazy { widgets.any { it.isEdit } }
+	val actionableWidgets by lazy { widgets.filter { it.isInteractive } }
+	val distinctTargets by lazy { actionableWidgets.filter { it.isLeaf() || (it.isInteractive && !it.hasActableDescendant) //FIXME this is a bit stricter than the uncovered coordinate -> if we need it overwrite generateWidgets function
+		//|| it.uncoveredCoord!=null
+	}}
+	val hasEdit: Boolean by lazy { widgets.any { it.isInputField } }
 
-	// for elements without text content only the image is available which may introduce variance just due to sligh color differences, therefore
+	// for elements without text visibleText only the image is available which may introduce variance just due to sligh color differences, therefore
 	// non-text elements are only considered if they can be acted upon and don't have actable descendents
-	fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf && w.canBeActedUpon) || (w.canBeActedUpon && !w.hasActableDescendant)
+	fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf() && w.isInteractive) || (w.isInteractive && !w.hasActableDescendant)
 			)).also { w.usedForStateId = it }
-	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text content or it is a leaf) */
+	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text visibleText or it is a leaf) */
 	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)){ id + w.uid } else id
 
-	private fun addRelevantNonEdit(id: UUID, w: Widget): UUID = if (w.isEdit) addRelevantId(id, w) else id
+	private fun addRelevantNonEdit(id: UUID, w: Widget): UUID = if (w.isInputField) addRelevantId(id, w) else id
 
 	/** determine which UID this state would have, if it ignores [widgets] for the id computation
 	 * this is used to identify consequent states where interacted edit fields are to be ignored

@@ -2,9 +2,9 @@
 
 package org.droidmate.exploration.actions
 
-import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.center
 import org.droidmate.explorationModel.widgetTargets
 
 /**
@@ -47,7 +47,7 @@ fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAc
 
 @JvmOverloads
 fun Widget.setText(newContent: String, isVisible: Boolean = false, enableValidation: Boolean = true): ExplorationAction {
-	if (enableValidation && (!(visible || isVisible) || !enabled || !isEdit))
+	if (enableValidation && (!(visible || isVisible) || !enabled || !isInputField))
 		throw RuntimeException("ERROR: tried to enter text on non-actable Widget $this")
 	widgetTargets.add(this)
 	return TextInsert(this.idHash, newContent, true)
@@ -71,14 +71,15 @@ fun Widget.navigateTo(action: (Widget) -> ExplorationAction): ExplorationAction 
  * Used by RobustDevice which does not currently parse Widgets.
  * This function should not be used anywhere else.
  */
-fun WidgetData.click(): ExplorationAction {
+fun UiElementPropertiesI.click(): ExplorationAction {
 	val x = center(boundsX, boundsWidth)
 	val y = center(boundsY, boundsHeight)
 	return Click(x, y)
 }
 
 fun Widget.clickCoordinate(): Pair<Int, Int> =
-		uncoveredCoord ?: Pair(bounds.centerX.toInt(), bounds.centerY.toInt())
+//		uncoveredCoord ?:   //FIXME missing feature
+		Pair(bounds.centerX.toInt(), bounds.centerY.toInt())
 
 
 fun Widget.availableActions(): List<ExplorationAction>{

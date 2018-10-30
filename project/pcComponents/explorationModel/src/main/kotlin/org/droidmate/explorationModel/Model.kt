@@ -31,7 +31,7 @@ import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.config.idFromString
-import org.droidmate.explorationModel.loader.ModelParser
+import org.droidmate.explorationModel.retention.loading.ModelParser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -264,7 +264,7 @@ class Model private constructor(val config: ModelConfig) {
 				= ModelParser.loadModel(ModelConfig(appName = appName, isLoadC = true), watcher)
 
 		@JvmStatic
-		fun main(args: Array<String>) {
+		suspend fun main(args: Array<String>) {
 			val test = ModelParser.loadModel(ModelConfig(path = Paths.get("src/main", "out", "playback"), appName = "testModel", isLoadC = true))//loadAppModel("loadTest")
 			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
 			test.getPaths().first().getActions().forEach { a ->

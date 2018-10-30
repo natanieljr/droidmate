@@ -6,7 +6,7 @@ project.ext {
 	driverLib_version = '2.0-LATEST'  // our device interface (right now subject to change, but after refactoring it should not require further updates)
 
 	kotlin_version = '1.2.71'
-	coroutines_version = '0.26.0'
+	coroutines_version = '0.30.2'
 	androidGradlePlugin_version = "3.2.1" // version 3.2+ requires build tools 28+
 	androidBuildToolsVersion = "28.0.3" // this is hardcoded in buildSrc/build.kt as well, TODO we should upgrade to 28 to support the newest gradle version
 	androidMinSdkVersion = 23

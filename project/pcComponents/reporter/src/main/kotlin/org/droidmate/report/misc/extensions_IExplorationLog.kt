@@ -35,7 +35,7 @@ import java.util.*
 
 val ExplorationContext.uniqueActionableWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {	runBlocking {
-		getModel().getWidgets().filter { it.canBeActedUpon }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
+		getModel().getWidgets().filter { it.isInteractive }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
 				.forEach { add(it.value.first()) }
 	} }
 

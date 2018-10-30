@@ -170,7 +170,7 @@ class VisualizationGraph : ApkReport() {
 			obj.addProperty("title", stateId)
 			// Include all important properties to make the states searchable
 			val properties = arrayListOf(stateId, src.topNodePackageName, src.uid.toString(), src.configId.toString(), src.iEditId.toString())
-			obj.addProperty("content", properties.joinToString("\n"))
+			obj.addProperty("visibleText", properties.joinToString("\n"))
 
 			// Widgets
 			val widgets = JsonArray()
@@ -274,7 +274,7 @@ class VisualizationGraph : ApkReport() {
 		obj.add("bounds", context.serialize(src?.bounds))
 		obj.addProperty("selected", src?.selected)
 		obj.addProperty("xpath", src?.xpath)
-		obj.addProperty("isLeaf", src?.isLeaf)
+		obj.addProperty("isLeaf", src?.isLeaf())
 
 		return obj
 	}

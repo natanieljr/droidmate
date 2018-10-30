@@ -2,8 +2,6 @@ package org.droidmate
 
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.ExplorationContext
-import org.droidmate.frontend.ExceptionHandler
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -30,3 +28,4 @@ private val copyRight = """ |DroidMate, an automated execution generator for And
                   |
                   |email: jamrozik@st.cs.uni-saarland.de
                   |web: www.droidmate.org""".trimMargin()
+

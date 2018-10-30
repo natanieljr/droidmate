@@ -1,4 +1,4 @@
-package org.droidmate.explorationModel.loader
+package org.droidmate.explorationModel.retention.loading
 
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ModelConfig

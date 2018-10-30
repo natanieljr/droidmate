@@ -1,4 +1,4 @@
-package org.droidmate.explorationModel.loader
+package org.droidmate.explorationModel.retention.loading
 
 import kotlinx.coroutines.experimental.*
 import org.droidmate.deviceInterface.exploration.isClick
@@ -7,7 +7,7 @@ import org.droidmate.deviceInterface.exploration.isTextInsert
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.idFromString
-import org.droidmate.explorationModel.loader.WidgetParserI.Companion.computeWidgetIndicies
+import org.droidmate.explorationModel.retention.loading.WidgetParserI.Companion.computeWidgetIndicies
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -43,7 +43,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 		w.enabled && when{
 			t.isClick() -> w.clickable || w.checked != null
 			t.isLongClick() -> w.longClickable
-			t.isTextInsert() -> w.isEdit
+			t.isTextInsert() -> w.isInputField
 			else -> false
 		}
 	}
@@ -70,7 +70,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 				srcS = queue[srcId]
 			}
 			val possibleTargets = getElem(srcS).widgets.filter {
-				it.uid == targetWidgetId.first && it.canBeActedUpon && rightActionType(it,actionType)}
+				it.uid == targetWidgetId.first && it.isInteractive && rightActionType(it,actionType)}
 			when(possibleTargets.size){
 				0 -> throw IllegalStateException("cannot re-compute targetWidget $targetWidgetId in state $srcId")
 				1 -> widgetParser.addFixedWidgetId(targetWidgetId, possibleTargets.first().id)
@@ -97,14 +97,18 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 			log(" parse file ${contentPath.toUri()} (${widgets.size} widgets)")
 
 			widgets.forEach { w -> // add the parsed widget to temporary set AND initialize the parent property
-				add(Widget(w.properties.copy().apply{ // TODO these values should go into constructor as soon as uid computation is adapted to use annotated values only
-					xpath = w.xpath
-					idHash = w.idHash
-					uncoveredCoord = w.uncoveredCoord
-					hasActableDescendant = w.hasActableDescendant
-				}, w.uidImgId).apply {
-					parentId = w.parentId
-				}) //!!! Widget.copy does not yield a new reference for WidgetData !
+				//FIXME repair to get proper verification
+				add(w)
+//				add(Widget(w.properties.copy()
+//						/*.apply{ // FIXME these values should go into constructor as soon as uid computation is adapted to use annotated values only
+//					xpath = w.xpath
+//					idHash = w.idHash
+//					uncoveredCoord = w.uncoveredCoord
+//					hasActableDescendant = w.hasActableDescendant
+//				}*/
+//				, w.uidImgId).apply {
+//					parentId = w.parentId
+//				}) //!!! Widget.copy does not yield a new reference for UiElementProperties !
 			}
 		} else widgets
 
@@ -141,13 +145,14 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 
 	private fun computeActableDescendent(widgets: Collection<Widget>){
 		val toProcess: LinkedList<ConcreteId> = LinkedList()
-		widgets.filter { it.properties.actable && it.parentId != null }.forEach {
+		widgets.filter { it.isInteractive && it.parentId != null }.forEach {
 			toProcess.add(it.parentId!!) }
 		var i=0
 		while (i<toProcess.size){
 			val n = toProcess[i++]
 			widgets.find { it.id == n }?.run {
-				this.properties.hasActableDescendant = true
+				//FIXME this value is supposed to be computed on pc side like this function only, probably on widget generation
+//				this.properties.hasActableDescendant = true
 				if(parentId != null && !toProcess.contains(parentId!!)) toProcess.add(parentId!!)
 			}
 		}

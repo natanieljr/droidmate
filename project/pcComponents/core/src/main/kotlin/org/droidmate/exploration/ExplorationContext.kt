@@ -168,7 +168,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	//TODO it may be more performing to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
 	// this could be nicely combined with the highlighting feature of the (numbered) img trace
 	suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keyboard/icon widgets available
-		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.canBeActedUpon }).isEmpty()
+		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.isInteractive }).isEmpty()
 	}
 
 	/**

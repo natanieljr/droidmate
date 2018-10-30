@@ -1,11 +1,11 @@
-package org.droidmate.explorationModel.loader
+package org.droidmate.explorationModel.retention.loading
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import org.droidmate.deviceInterface.guimodel.P
 import org.droidmate.explorationModel.*
+import org.droidmate.explorationModel.Widget.Companion.emptyWidget
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.asConcreteId
 import org.droidmate.explorationModel.config.asUUID
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import org.droidmate.explorationModel.P
 import kotlin.collections.HashMap
 
 internal abstract class WidgetParserI<T>: ParserI<T, Widget> {
@@ -41,11 +42,11 @@ internal abstract class WidgetParserI<T>: ParserI<T, Widget> {
 
 	protected suspend fun computeWidget(line: List<String>,id: ConcreteId): Widget {
 		log("compute widget $id")
-		if(!isActive) return Widget() // if there was already an error the parsing may be canceled -> stop here
+		if(!isActive) return emptyWidget // if there was already an error the parsing may be canceled -> stop here
 
 		return Widget.fromString(line,customWidgetIndicies).also { widget ->
 			verify("ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id",{id == widget.id}){
-				idMapping[id] = widget.id //FIXME remove Widget.fromString WidgetData.pId assert
+				idMapping[id] = widget.id
 			}
 			model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
 		}

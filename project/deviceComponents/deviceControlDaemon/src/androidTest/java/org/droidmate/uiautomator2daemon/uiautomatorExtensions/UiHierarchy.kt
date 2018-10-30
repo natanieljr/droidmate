@@ -13,8 +13,8 @@ import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.uiautomator2daemon.exploration.debugT
-import org.droidmate.deviceInterface.guimodel.WidgetData
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.util.*
@@ -30,11 +30,11 @@ object UiHierarchy : UiParser() {
 
 	private var nActions = 0
 	private var ut = 0L
-	suspend fun fetch(device: UiDevice): List<WidgetData> = debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
+	suspend fun fetch(device: UiDevice): List<UiElementPropertiesI> = debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
 		deviceW = device.displayWidth
 		deviceH = device.displayHeight
 		appArea = computeAppArea()
-		val nodes = LinkedList<WidgetData>()
+		val nodes = LinkedList<UiElementPropertiesI>()
 
 		try {
 			device.getNonSystemRootNodes().let {

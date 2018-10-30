@@ -29,12 +29,11 @@ import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
 import org.slf4j.LoggerFactory
 import java.io.Serializable
-import org.droidmate.deviceInterface.guimodel.WidgetData
 
 
 open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val topNodePackageName: String,
-                                              val widgets: List<WidgetData>,
+                                              val widgets: List<UiElementPropertiesI>,
                                               val launchableMainActivityName: String,
                                               val androidLauncherPackageName: String, //TODO instead use directly isHomeScreen property (not get function)
                                               val androidPackageName: String,
@@ -46,8 +45,8 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
                                               val appSize: Pair<Int,Int>, // FIXME
 		// we will need the boundaries of each non system window (appWindow:bounds,pkg,id) to know the scrollable area dimensions, as recomputing may be too expensive/annoying
 		// alternatively we can transfer window scrolling/navigate to widget to the device implementation and thus should not need this info anymore
-		// then we may store the widget->window id information on the device side (currently WidgetData) for faster mapping (instead of looking into the UiHierarchy)
-                                              val statusBarSize: Int
+		// then we may store the widget->window id information on the device side (currently UiElementProperties) for faster mapping (instead of looking into the UiHierarchy)
+		                                          val statusBarSize: Int
 ) : Serializable {
 
 	var throwable: Throwable? = null
@@ -124,7 +123,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			}
 		}}
 
-		fun create(uiHierarchy: Deferred<List<WidgetData>>, uiDump: String, launchableActivity: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
+		fun create(uiHierarchy: Deferred<List<UiElementPropertiesI>>, uiDump: String, launchableActivity: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
 			DeviceResponse(windowHierarchyDump = uiDump,
 					topNodePackageName = widgets.findLast { !it.packageName.startsWith("com.google.android.inputmethod.latin") } // avoid the keyboard to be falesly recognized as packagename

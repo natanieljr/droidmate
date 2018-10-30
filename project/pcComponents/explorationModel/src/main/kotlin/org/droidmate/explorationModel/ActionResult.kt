@@ -85,7 +85,7 @@ data class ActionResult(val action: ExplorationAction,
 
 							return debugT("create all widgets unconfined", {
 								// some times much faster then sequential but some timesl a few fousand ns slower but in average seams faster
-								it.map { async(Unconfined) { Widget.fromUiNode(it, img, config) } } // iterates over each WidgetData and creates Widget object collect all these elements as set
+								it.map { async(Unconfined) { Widget.fromUiNode(it, img, config) } } // iterates over each element and creates Widget object collect all these elements as set
 										.map { runBlocking { it.await() } }
 							}, { timeP += it })
 									.also {
@@ -95,7 +95,7 @@ data class ActionResult(val action: ExplorationAction,
 
 							// funny sequential seams faster than parallel approach
 //					debugT("create all widgets default dispatch",{
-//					it.map { async{Widget.fromWidgetData(it, img, config)} } // iterates over each WidgetData and creates Widget object collect all these elements as set
+//					it.map { async{Widget.fromWidgetData(it, img, config)} } // iterates over each UiElementProperties and creates Widget object collect all these elements as set
 //						.map { it.await() }
 //					})
 						}

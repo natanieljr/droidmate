@@ -1,4 +1,4 @@
-package org.droidmate.explorationModel.loader
+package org.droidmate.explorationModel.retention.loading
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.produce

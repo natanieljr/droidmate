@@ -1,4 +1,4 @@
-package org.droidmate.explorationModel.loader
+package org.droidmate.explorationModel.retention.loading
 
 import com.natpryce.konfig.CommandLineOption
 import com.natpryce.konfig.getValue

@@ -32,7 +32,7 @@ import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.Model
 import org.droidmate.exploration.modelFeatures.ActionPlaybackFeature
-import org.droidmate.explorationModel.loader.ModelParser
+import org.droidmate.explorationModel.retention.loading.ModelParser
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import java.lang.Integer.max
 import java.nio.file.Path
@@ -108,8 +108,8 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 			this == null -> Pair(0.0, null) // no match possible
 			state.widgets.any { it.id == this.id } -> Pair(1.0, this) // we have a perfect match
 			else -> // possibly it is a match but we can't be 100% sure
-				state.widgets.find { it.canBeActedUpon && it.uid == this.uid }	?.let { Pair(0.6, it) } // prefer uid match over property equivalence
-						?: state.widgets.find { it.canBeActedUpon && it.propertyId == this.propertyId }?.let{ Pair(0.5, it) }
+				state.widgets.find { it.isInteractive && it.uid == this.uid }	?.let { Pair(0.6, it) } // prefer uid match over property equivalence
+						?: state.widgets.find { it.isInteractive && it.propertyId == this.propertyId }?.let{ Pair(0.5, it) }
 						?:	Pair(0.0, null) // no match found
 		}
 	}

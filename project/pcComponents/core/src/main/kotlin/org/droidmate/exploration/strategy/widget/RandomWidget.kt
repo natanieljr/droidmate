@@ -184,11 +184,11 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
 
-		while (!chosenWidget.canBeActedUpon) {
+		while (!chosenWidget.isInteractive) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		logger.debug("Chosen widget info: $widget: ${widget.canBeActedUpon}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
+		logger.debug("Chosen widget info: $widget: ${widget.isInteractive}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
 
 		val actionList = if (randomScroll)
 			widget.availableActions()
