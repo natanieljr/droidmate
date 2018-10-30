@@ -25,7 +25,7 @@
 package org.droidmate.exploration.strategy.login
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.click
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy

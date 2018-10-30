@@ -84,7 +84,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 						"Device returned DeviceResponse with non-null throwable, indicating something went horribly wrong on the A(V)D.\n" +
 								"Exception: $response \n" +
 								"Cause: ${response.cause ?: ""}" +
-								"Trace: ${response.stackTrace.joinToString("\n")} \n" +
+								"ExplorationTrace: ${response.stackTrace.joinToString("\n")} \n" +
 								"The exception is given as a cause of this one. If it doesn't have enough information, " +
 								"try inspecting the logcat output of the A(V)D. ",
 						response)
@@ -250,7 +250,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		}
 		catch(e: ApkExplorationException){
 			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}")
-			log.error("Trace: ${e.stackTrace}")
+			log.error("ExplorationTrace: ${e.stackTrace}")
 
 			return emptyList()
 		}

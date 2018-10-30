@@ -3,9 +3,9 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.deviceInterface.exploration.*
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.center
-import org.droidmate.explorationModel.widgetTargets
+import org.droidmate.explorationModel.interaction.widgetTargets
 
 /**
  * These are the new interface functions to interact with any widget.

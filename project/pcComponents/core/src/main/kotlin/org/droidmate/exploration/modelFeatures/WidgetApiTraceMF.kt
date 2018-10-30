@@ -7,9 +7,9 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.ActionData
-import org.droidmate.explorationModel.StateData
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import java.nio.file.Files
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -25,7 +25,7 @@ class WidgetApiTraceMF : ModelFeature() {
         val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
         sb.append(header)
 
-        context.actionTrace.getActions().forEachIndexed { actionNr, record ->
+        context.explorationTrace.getActions().forEachIndexed { actionNr, record ->
             if (record.actionType.isClick()) {
                 val text = runBlocking { context.getState(record.resState)?.let { getActionWidget(record, it) } }
                 val logs = record.deviceLogs
@@ -41,7 +41,7 @@ class WidgetApiTraceMF : ModelFeature() {
         Files.write(reportFile, sb.toString().toByteArray())
     }
 
-    private fun getActionWidget(actionResult: ActionData, state: StateData): Widget? {
+    private fun getActionWidget(actionResult: Interaction, state: StateData): Widget? {
         return if (actionResult.actionType.isClick()) {
 
             getWidgetWithTextFromAction(actionResult.targetWidget!!, state)

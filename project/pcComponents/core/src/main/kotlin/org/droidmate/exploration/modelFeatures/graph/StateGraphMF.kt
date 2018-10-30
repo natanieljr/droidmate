@@ -5,12 +5,12 @@ import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.deviceInterface.exploration.isLaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
-import org.droidmate.explorationModel.ActionData
-import org.droidmate.explorationModel.ActionData.Companion.ActionDataFields
-import org.droidmate.explorationModel.StateData
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.Interaction.Companion.ActionDataFields
+import org.droidmate.explorationModel.interaction.StateData
 import kotlin.coroutines.experimental.CoroutineContext
 
-class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData, ActionData> =
+class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData, Interaction> =
 		                                             Graph(StateData.emptyState,
 				                                             stateComparison = { a, b -> a.uid == b.uid },
 				                                             labelComparison = { a, b ->
@@ -19,7 +19,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 					                                             val bData = b.actionString(fields)
 
 					                                             aData == bData
-				                                             })) : ModelFeature(), IGraph<StateData, ActionData> by graph {
+				                                             })) : ModelFeature(), IGraph<StateData, Interaction> by graph {
 
 
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StateGraphMF"), parent = job)
@@ -35,7 +35,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 		else
 			context.getState(lastAction.prevState) ?: StateData.emptyState
 
-		val prevLabel = ActionData.emptyWithWidget(lastAction.targetWidget)
+		val prevLabel = Interaction.emptyWithWidget(lastAction.targetWidget)
 
 		// Try to update a previous label (from prevState to emptyState) if it exists, otherwise add a new one
 		if (prevLabel.targetWidget != null)
@@ -46,7 +46,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 		// Add all available widgets as transitions to an emptyState,
 		// After an action this transition is updated
 		newState.actionableWidgets.forEach {
-			this.add(newState, null, ActionData.emptyWithWidget(it), updateIfExists = false)
+			this.add(newState, null, Interaction.emptyWithWidget(it), updateIfExists = false)
 		}
 	}
 

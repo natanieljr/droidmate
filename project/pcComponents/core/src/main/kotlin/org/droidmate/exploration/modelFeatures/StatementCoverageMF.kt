@@ -30,9 +30,9 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.ActionData
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.explorationModel.StateData
+import org.droidmate.explorationModel.interaction.StateData
 import org.droidmate.misc.deleteDir
 import java.io.IOException
 import java.nio.file.Files
@@ -86,7 +86,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 		instrumentationMap = getInstrumentation(modelCfg.appName)
 	}
 
-	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: StateData, newState: StateData) {
 		// must wait for the action before reading the logcat data
 		deferredAction.await()
 

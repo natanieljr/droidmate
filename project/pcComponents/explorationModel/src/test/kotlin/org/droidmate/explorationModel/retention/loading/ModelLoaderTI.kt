@@ -7,6 +7,9 @@ import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.config.idFromString
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -14,21 +17,21 @@ import java.util.*
 
 /** test interface for the model loader, which cannot be done with mockito due to coroutine incompatibility */
 internal interface ModelLoaderTI{
-	var testTraces: List<Collection<ActionData>>
+	var testTraces: List<Collection<Interaction>>
 	var testStates: Collection<StateData>
 
-	fun execute(testTraces: List<Collection<ActionData>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeatureI> = LinkedList()): Model
+	fun execute(testTraces: List<Collection<Interaction>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeatureI> = LinkedList()): Model
 	suspend fun parseWidget(widget: Widget): Widget?
 
 	/** REMARK these are state dependend => use very carefully in Unit-Tests */
-//	val actionParser: suspend (List<String>) -> Pair<ActionData, StateData>
+//	val actionParser: suspend (List<String>) -> Pair<Interaction, StateData>
 	suspend fun parseState(stateId: ConcreteId): StateData
 
 }
 
 class TestReader(config: ModelConfig): ContentReader(config){
 	lateinit var testStates: Collection<StateData>
-	lateinit var testTraces: List<Collection<ActionData>>
+	lateinit var testTraces: List<Collection<Interaction>>
 	private val traceContents: (idx: Int) -> List<String> = { idx ->
 		testTraces[idx].map { actionData -> actionData.actionString().also { log(it) } } }
 
@@ -77,12 +80,12 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(conf
 	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks) }
 
 	/** custom test environment */
-//	override val actionParser: suspend (List<String>) -> Pair<ActionData, StateData> = processor
-//	override val actionParser: suspend (List<String>) -> Pair<ActionData, StateData> = { args -> processor(args).await() }
+//	override val actionParser: suspend (List<String>) -> Pair<Interaction, StateData> = processor
+//	override val actionParser: suspend (List<String>) -> Pair<Interaction, StateData> = { args -> processor(args).await() }
 	override var testStates: Collection<StateData>
 		get() = reader.testStates
 		set(value) { reader.testStates = value}
-	override var testTraces: List<Collection<ActionData>>
+	override var testTraces: List<Collection<Interaction>>
 		get() = reader.testTraces
 		set(value) { reader.testTraces = value}
 
@@ -94,7 +97,7 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(conf
 		}
 	})
 
-	override fun execute(testTraces: List<Collection<ActionData>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeatureI>): Model {
+	override fun execute(testTraces: List<Collection<Interaction>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeatureI>): Model {
 //		logcat(testActions.)
 		this.testTraces = testTraces
 		this.testStates = testStates

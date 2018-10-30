@@ -27,8 +27,8 @@ package org.droidmate.exploration.strategy
 
 import kotlinx.coroutines.experimental.*
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.explorationModel.ActionResult
-import org.droidmate.explorationModel.StateData
+import org.droidmate.explorationModel.interaction.ActionResult
+import org.droidmate.explorationModel.interaction.StateData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.misc.debugOutput
@@ -63,7 +63,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 	private var activeStrategy: ISelectableExplorationStrategy? = null
 
 	/**
-	 * Number of elapsed actionTrace
+	 * Number of elapsed explorationTrace
 	 */
 	private var actionNr: Int = 0
 

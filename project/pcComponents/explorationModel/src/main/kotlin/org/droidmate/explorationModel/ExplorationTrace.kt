@@ -29,129 +29,21 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.sendBlocking
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.exploration.*
-import org.droidmate.explorationModel.Trace.Companion.computeData
 import org.droidmate.explorationModel.config.*
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep
+import org.droidmate.explorationModel.interaction.*
 import java.io.File
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.properties.Delegates
 
-typealias DeviceLog = TimeFormattedLogMessageI
-typealias DeviceLogs = List<DeviceLog>
-@Suppress("DataClassPrivateConstructor")
-data class ActionData constructor(val actionType: String, val targetWidget: Widget?,
-                                  val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
-                                  val successful: Boolean, val exception: String,
-                                  val resState: ConcreteId, val deviceLogs: DeviceLogs = emptyList(),
-                                  private val sep:String, val data: String="") {
-
-	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
-	            deviceLogs: DeviceLogs, exception: String, successful: Boolean, resState: ConcreteId, sep:String)
-			: this(action.name, widgetTargets.pollFirst(),
-			startTimestamp, endTimestamp, successful, exception.toString(), resState, deviceLogs, sep, computeData(action))
-
-	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
-			: this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId, sep) {
-		prevState = prevStateId
-	}
-
-	/** used for ActionQueue entries */
-	constructor(action: ExplorationAction, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
-			: this(action.name, if(action.hasWidgetTarget) widgetTargets.pollFirst() else null, res.startTimestamp,
-			res.endTimestamp, deviceLogs = res.deviceLogs, exception = res.exception.toString(), successful = res.successful,
-			resState = resStateId, sep = sep, data = computeData(action)) {
-		prevState = prevStateId
-	}
-
-	/** used for ActionQueue sart/end ActionData */
-	constructor(actionName:String, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
-			: this(actionName, null, res.startTimestamp,
-			res.endTimestamp, deviceLogs = res.deviceLogs, exception = res.exception.toString(), successful = res.successful,
-			resState = resStateId, sep = sep) {
-		prevState = prevStateId
-	}
-
-
-	lateinit var prevState: ConcreteId
-
-	/**
-	 * Time the strategy pool took to select a strategy and a create an action
-	 * (used to measure overhead for new exploration strategies)
-	 */
-	val decisionTime: Long by lazy { ChronoUnit.MILLIS.between(startTimestamp, endTimestamp) }
-
-	@JvmOverloads
-	fun actionString(chosenFields: Array<ActionDataFields> = ActionDataFields.values()): String = chosenFields.joinToString(separator = sep) {
-		when (it) {
-			ActionDataFields.Action -> actionType
-			ActionDataFields.StartTime -> startTimestamp.toString()
-			ActionDataFields.EndTime -> endTimestamp.toString()
-			ActionDataFields.Exception -> exception
-			ActionDataFields.SuccessFul -> successful.toString()
-			ActionDataFields.PrevId -> prevState.dumpString()
-			ActionDataFields.DstId -> resState.dumpString()
-			ActionDataFields.WId -> targetWidget?.run { id.dumpString() } ?: "null"
-			ActionDataFields.Data -> data
-		}
-	}
-
-	companion object {
-//		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):ActionData =
-//				ActionData(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
-
-		@JvmStatic
-		fun createFromString(e: List<String>, target: Widget?, contentSeparator: String): ActionData = ActionData(
-				actionType = e[ActionDataFields.Action.ordinal], targetWidget = target, startTimestamp = LocalDateTime.parse(e[ActionDataFields.StartTime.ordinal]),
-				endTimestamp = LocalDateTime.parse(e[ActionDataFields.EndTime.ordinal]), successful = e[ActionDataFields.SuccessFul.ordinal].toBoolean(),
-				exception = e[ActionDataFields.Exception.ordinal], resState = idFromString(e[ActionDataFields.DstId.ordinal]), sep = contentSeparator
-				, data = e[ActionDataFields.Data.ordinal]
-		).apply { prevState = idFromString(e[ActionDataFields.PrevId.ordinal]) }
-
-		@JvmStatic
-		val empty: ActionData by lazy {
-			ActionData("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
-			).apply { prevState = emptyId }
-		}
-
-		@JvmStatic
-		fun emptyWithWidget(widget: Widget?): ActionData =
-			ActionData("EMPTY", widget, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
-			).apply { prevState = emptyId }
-
-
-		@JvmStatic val header:(String)-> String = { sep -> ActionDataFields.values().joinToString(separator = sep) { it.header } }
-		@JvmStatic val widgetIdx = ActionDataFields.WId.ordinal
-		@JvmStatic val resStateIdx = ActionDataFields.DstId.ordinal
-		@JvmStatic val srcStateIdx = ActionDataFields.PrevId.ordinal
-
-		enum class ActionDataFields(var header: String = "") { PrevId("Source State"), Action, WId("Interacted Widget"),
-			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception, Data;
-
-			init {
-				if (header == "") header = name
-			}
-		}
-	}
-
-	override fun toString(): String {
-		@Suppress("ReplaceSingleLineLet")
-		return "$actionType: widget[${targetWidget?.let { it.dataString("\t") }}]:\n${prevState.dumpString()}->${resState.dumpString()}"
-	}
-}
-
-var widgetTargets = LinkedList<Widget>()  //TODO this should probably be in the model or trace instead
-
-class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), private val config: ModelConfig, modelJob: Job, val id:UUID) {
+class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), private val config: ModelConfig, modelJob: Job, val id:UUID) {
 	private val date by lazy { "${timestamp()}_${hashCode()}" }
 
 	private val processorJob = Job(parent = modelJob)
 	private val actionProcessorJob = Job(parent = modelJob)
-	private val trace = CollectionActor(LinkedList<ActionData>(), "TraceActor").create(actionProcessorJob)
+	private val trace = CollectionActor(LinkedList<Interaction>(), "TraceActor").create(actionProcessorJob)
 	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionProcessor"), parent = actionProcessorJob)
 
 	private val targets: MutableList<Widget?> = LinkedList()
@@ -198,25 +90,25 @@ class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), p
 	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { actionRes, oldState, dstState ->
 		{
 			if(widgetTargets.isNotEmpty())
-				assert(oldState.widgets.containsAll(widgetTargets)) {"ERROR on Trace generation, tried to add action for widgets $widgetTargets which do not exist in the source state $oldState"}
+				assert(oldState.widgets.containsAll(widgetTargets)) {"ERROR on ExplorationTrace generation, tried to add action for widgets $widgetTargets which do not exist in the source state $oldState"}
 
 			debugT("create actionData", {
 				if(actionRes.action is ActionQueue)
 					actionRes.action.actions.map {
-						ActionData(it, res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep])
+						Interaction(it, res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep])
 					}.also {
-						P_addAction(ActionData(ActionQueue.startName, res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
+						P_addAction(Interaction(ActionQueue.startName, res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
 						P_addAll(it)
-						P_addAction(ActionData(ActionQueue.endName, res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
+						P_addAction(Interaction(ActionQueue.endName, res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]))
 					}
-				else ActionData(res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]).also {
+				else Interaction(res = actionRes, prevStateId = oldState.stateId, resStateId = dstState.stateId, sep = config[sep]).also {
 					debugT("add action", { P_addAction(it) })
 				}
 				widgetTargets.clear()
 			})
 //					.also {
-//						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId) {"ERROR ActionData was created wrong $it for $actionRes in $oldState"}
-//						assert(it.targetWidget == actionRes.action.widget) {"ERROR in ActionData instantiation wrong targetWidget ${it.targetWidget} instead of ${actionRes.action.widget}"}
+//						assert(it.prevState == oldState.stateId && it.resState == dstState.stateId) {"ERROR Interaction was created wrong $it for $actionRes in $oldState"}
+//						assert(it.targetWidget == actionRes.action.widget) {"ERROR in Interaction instantiation wrong targetWidget ${it.targetWidget} instead of ${actionRes.action.widget}"}
 //
 ////						println("DEBUG: $it")
 //					}
@@ -240,22 +132,22 @@ class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), p
 
     fun addWatcher(mf: ModelFeatureI) = watcher.add(mf)
 
-	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
-	 * this function is purposely not called for the whole ActionData set, such that we can issue all watcher updates
+	/** this function is used by the ModelLoader which creates Interaction objects from dumped data
+	 * this function is purposely not called for the whole Interaction set, such that we can issue all watcher updates
 	 * if no watchers are registered use [updateAll] instead
-	 * ASSUMPTION only one co-routine is simultaneously working on this Trace object*/
-	internal suspend fun update(action: ActionData, dstState: StateData) {
+	 * ASSUMPTION only one co-routine is simultaneously working on this ExplorationTrace object*/
+	internal suspend fun update(action: Interaction, dstState: StateData) {
 		size += 1
 		lastActionType = action.actionType
 		trace.send(Add(action))
 		this.newState = Triple(dstState, widgetTargets, EmptyAction)
 	}
 
-	/** this function is used by the ModelLoader which creates ActionData objects from dumped data
+	/** this function is used by the ModelLoader which creates Interaction objects from dumped data
 	 * to update the whole trace at once
 	 * ASSUMPTION no watchers are to be notified
 	 */
-	internal suspend fun updateAll(actions: List<ActionData>, latestState: StateData){
+	internal suspend fun updateAll(actions: List<Interaction>, latestState: StateData){
 		size += actions.size
 		lastActionType = actions.last().actionType
 		trace.send(AddAll(actions))
@@ -283,32 +175,32 @@ class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), p
 	/** this directly accesses the [trace] and therefore uses synchronization.
 	 * It could be probably optimized with and channel/actor approach instead, if necessary.
 	 */
-	private fun P_addAction(action: ActionData) = trace.sendBlocking(Add(action))  // this does never actually block the sending since the capacity is unlimited
-	private fun P_addAll(actions:List<ActionData>) = trace.sendBlocking(AddAll(actions))  // this does never actually block the sending since the capacity is unlimited
+	private fun P_addAction(action: Interaction) = trace.sendBlocking(Add(action))  // this does never actually block the sending since the capacity is unlimited
+	private fun P_addAll(actions:List<Interaction>) = trace.sendBlocking(AddAll(actions))  // this does never actually block the sending since the capacity is unlimited
 
 	//FIXME the run Blockings should be replaced with non-thread blocking coroutineScope
 	// -> requires suspend propagation in many places
 	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
-	fun getActions(): List<ActionData> = runBlocking{coroutineScope<List<ActionData>> {
+	fun getActions(): List<Interaction> = runBlocking{coroutineScope<List<Interaction>> {
 		processorJob.joinChildren()
 		return@coroutineScope trace.S_getAll()
 	}}
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within co-routines to make complete use of suspendable feature */
-	suspend fun P_getActions(): List<ActionData>{
+	suspend fun P_getActions(): List<Interaction>{
 		processorJob.joinChildren() // ensure the last action was already added
 		return trace.getAll()
 	}
 
-	suspend fun last(): ActionData? {
+	suspend fun last(): Interaction? {
 		processorJob.joinChildren() // ensure the last action was already added
 		return trace.getOrNull { it.lastOrNull() }
 	}
 
 	/** get the element at index [i] if it exists and null otherwise */
-	suspend fun getAt(i:Int): ActionData?{
+	suspend fun getAt(i:Int): Interaction?{
 		processorJob.joinChildren() // ensure the last action was already added
-		return trace.getOrNull { (it as LinkedList<ActionData>).let{ list ->
+		return trace.getOrNull { (it as LinkedList<Interaction>).let{ list ->
 			if(list.indices.contains(i))
 				list[i]
 			else {
@@ -333,12 +225,12 @@ class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), p
 	/** this process is not waiting for the currently processed action, therefore this method should be only
 	 * used if at least 2 actions were already executed. Otherwise you should prefer 'getAt(0)'
 	 */
-	fun first(): ActionData = runBlocking { trace.getOrNull { it.first() } ?: ActionData.empty }
+	fun first(): Interaction = runBlocking { trace.getOrNull { it.first() } ?: Interaction.empty }
 
 	//FIXME ensure that the latest dump is not overwritten due to scheduling issues, for example by using a nice buffered channel only keeping the last value offer
 	suspend fun dump(config: ModelConfig = this.config) = dumpMutex.withLock {
 		File(config.traceFile(id.toString())).bufferedWriter().use { out ->
-			out.write(ActionData.header(config[sep]))
+			out.write(Interaction.header(config[sep]))
 			out.newLine()
 			// ensure that our trace is complete before dumping it by calling blocking getActions
 			P_getActions().forEach { action ->
@@ -362,7 +254,7 @@ class Trace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), p
 	}
 
 	override fun equals(other: Any?): Boolean {
-		return(other as? Trace)?.let {
+		return(other as? ExplorationTrace)?.let {
 			val t = other.getActions()
 			getActions().foldIndexed(true) { i, res, a -> res && a == t[i] }
 		} ?: false

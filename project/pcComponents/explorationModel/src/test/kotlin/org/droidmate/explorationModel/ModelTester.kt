@@ -16,7 +16,7 @@
 // * test cases:
 // * - UiElementProperties UID computation
 // * - Widget UID computation
-// * - dump-String computations of: Widget & ActionData
+// * - dump-String computations of: Widget & Interaction
 // * - actionData creation/ model update for mocked ActionResult
 // * (- ignore edit-field mechanism)
 // * (- re-identification of State for ignored properties variations)

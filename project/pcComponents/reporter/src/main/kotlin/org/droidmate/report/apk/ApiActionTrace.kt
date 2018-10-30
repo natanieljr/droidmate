@@ -41,7 +41,7 @@ class ApiActionTrace @JvmOverloads constructor(private val fileName: String = "a
 		var lastActivity = ""
 		var currActivity = data.apk.launchableMainActivityName
 
-		data.actionTrace.getActions().forEachIndexed { actionNr, record ->
+		data.explorationTrace.getActions().forEachIndexed { actionNr, record ->
 
 			if (record.actionType .isPressBack())
 				currActivity = lastActivity

@@ -68,6 +68,6 @@ class ActionPlaybackFeature(val storedModel: Model,
 	}
 
 	companion object {
-		private const val header = "Trace;Action"
+		private const val header = "ExplorationTrace;Action"
 	}
 }

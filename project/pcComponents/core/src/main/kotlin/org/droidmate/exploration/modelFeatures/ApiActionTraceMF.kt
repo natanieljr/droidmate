@@ -25,7 +25,7 @@ class ApiActionTraceMF : ModelFeature() {
         var lastActivity = ""
         var currActivity = context.apk.launchableMainActivityName
 
-        context.actionTrace.getActions().forEachIndexed { actionNr, record ->
+        context.explorationTrace.getActions().forEachIndexed { actionNr, record ->
 
             if (record.actionType.isPressBack())
                 currActivity = lastActivity

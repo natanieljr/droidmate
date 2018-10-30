@@ -14,9 +14,9 @@
 //	val testWidgetDumpString: String
 //}
 //
-//typealias TestAction = ActionData
+//typealias TestAction = Interaction
 //@JvmOverloads fun createTestAction(targetWidget: Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"): TestAction
-//		= ActionData(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";").apply {
+//		= Interaction(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";").apply {
 //	prevState = oldState
 //}
 ///*

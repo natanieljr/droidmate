@@ -31,6 +31,9 @@ import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.config.idFromString
+import org.droidmate.explorationModel.interaction.ActionResult
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.retention.loading.ModelParser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -49,7 +52,7 @@ internal operator fun UUID.plus(uuid: UUID?): UUID {
 /** s_* should be only used in sequential eContext as it currently does not handle parallelism*/
 @Suppress("MemberVisibilityCanBePrivate")
 class Model private constructor(val config: ModelConfig) {
-	private val paths = LinkedList<Trace>()
+	private val paths = LinkedList<ExplorationTrace>()
 	/** debugging counter do not use it in productive code, instead access the respective element set */
 	private var nWidgets = 0
 	/** debugging counter do not use it in productive code, instead access the respective element set */
@@ -58,8 +61,8 @@ class Model private constructor(val config: ModelConfig) {
 	val modelDumpJob = Job()
 
 
-	fun initNewTrace(watcher: LinkedList<ModelFeatureI>,id: UUID = UUID.randomUUID()): Trace {
-		return Trace(watcher, config, modelJob, id).also { actionTrace ->
+	fun initNewTrace(watcher: LinkedList<ModelFeatureI>,id: UUID = UUID.randomUUID()): ExplorationTrace {
+		return ExplorationTrace(watcher, config, modelJob, id).also { actionTrace ->
 			addTrace(actionTrace)
 		}
 	}
@@ -104,8 +107,8 @@ class Model private constructor(val config: ModelConfig) {
 	}
 
 	@Suppress("unused")
-	fun getPaths(): List<Trace> = paths
-	fun addTrace(t: Trace) = paths.add(t)
+	fun getPaths(): List<ExplorationTrace> = paths
+	fun addTrace(t: ExplorationTrace) = paths.add(t)
 
 	/** use this function to find widgets with a specific [ConcreteId]
 	 * REMARK if @widgets is set you have to ensure synchronization for this set on your own
@@ -129,7 +132,7 @@ class Model private constructor(val config: ModelConfig) {
 
 	private var uTime: Long = 0
 	/** update the model with any [action] executed as part of an execution [trace] **/
-	fun S_updateModel(action: ActionResult, trace: Trace) = runBlocking {
+	fun S_updateModel(action: ActionResult, trace: ExplorationTrace) = runBlocking {
 		measureTimeMillis {
 			var s: StateData? = null
 			measureTimeMillis {

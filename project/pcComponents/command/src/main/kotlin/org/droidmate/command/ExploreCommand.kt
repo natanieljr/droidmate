@@ -63,7 +63,7 @@ import org.droidmate.deviceInterface.exploration.EmptyAction
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.*
-import org.droidmate.explorationModel.ActionResult
+import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
@@ -79,7 +79,7 @@ import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.tools.*
 import org.droidmate.deviceInterface.exploration.GlobalAction
-import org.droidmate.explorationModel.EmptyActionResult
+import org.droidmate.explorationModel.interaction.EmptyActionResult
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

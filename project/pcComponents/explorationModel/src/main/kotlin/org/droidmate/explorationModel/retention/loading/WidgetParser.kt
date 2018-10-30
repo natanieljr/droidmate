@@ -5,7 +5,7 @@ import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.explorationModel.*
-import org.droidmate.explorationModel.Widget.Companion.emptyWidget
+import org.droidmate.explorationModel.interaction.Widget.Companion.emptyWidget
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.asConcreteId
 import org.droidmate.explorationModel.config.asUUID
@@ -16,6 +16,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import org.droidmate.explorationModel.P
+import org.droidmate.explorationModel.interaction.Widget
 import kotlin.collections.HashMap
 
 internal abstract class WidgetParserI<T>: ParserI<T, Widget> {
@@ -36,7 +37,7 @@ internal abstract class WidgetParserI<T>: ParserI<T, Widget> {
 	/**
 	 * when compatibility mode is enabled this list will contain the mapping oldId->newlyComputedId
 	 * to transform the model to the current (newer) id computation.
-	 * This mapping is supposed to be used to adapt the action targets in the trace parser (ActionData entries)
+	 * This mapping is supposed to be used to adapt the action targets in the trace parser (Interaction entries)
 	 */
 	private val idMapping: ConcurrentHashMap<ConcreteId, ConcreteId> = ConcurrentHashMap()
 

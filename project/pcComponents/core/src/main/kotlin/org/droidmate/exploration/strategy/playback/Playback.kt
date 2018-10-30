@@ -28,12 +28,14 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
-import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.Model
 import org.droidmate.exploration.modelFeatures.ActionPlaybackFeature
 import org.droidmate.explorationModel.retention.loading.ModelParser
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import java.lang.Integer.max
 import java.nio.file.Path
 
@@ -43,8 +45,8 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	private var traceIdx = 0
 	private var actionIdx = 0
 	protected lateinit var model : Model
-	private var lastSkipped: ActionData = ActionData.empty
-	protected var toExecute: ActionData = ActionData.empty
+	private var lastSkipped: Interaction = Interaction.empty
+	protected var toExecute: Interaction = Interaction.empty
 
 
 	private val watcher: ActionPlaybackFeature by lazy {
@@ -68,11 +70,11 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		return runBlocking { model.getState(lastAction.resState)!!.isAppHasStoppedDialogBox }
 	}
 
-	private fun getNextTraceAction(peek: Boolean = false): ActionData {
+	private fun getNextTraceAction(peek: Boolean = false): Interaction {
 		model.let { m ->
 			m.getPaths()[traceIdx].let { currentTrace ->
 				if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
-					if(m.getPaths().size == traceIdx + 1) return ActionData.empty  // this may happen on a peek for next action on the end of the trace
+					if(m.getPaths().size == traceIdx + 1) return Interaction.empty  // this may happen on a peek for next action on the end of the trace
 					return m.getPaths()[traceIdx + 1].first().also {
 						if (!peek) {
 							traceIdx += 1
@@ -103,7 +105,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	}
 
 	/** checking if we can actually trigger the widget of our recorded trace */
-	private fun Widget?.canExecute(state: StateData): Pair<Double,Widget?> {
+	private fun Widget?.canExecute(state: StateData): Pair<Double, Widget?> {
 		return when{
 			this == null -> Pair(0.0, null) // no match possible
 			state.widgets.any { it.id == this.id } -> Pair(1.0, this) // we have a perfect match
@@ -148,7 +150,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 									}
 								}
 							} == true) {
-						lastSkipped = ActionData.empty  // we execute it now so do not try to do so again
+						lastSkipped = Interaction.empty  // we execute it now so do not try to do so again
 						if(action.isClick()){
 							logger.info("trigger previously skipped action")
 							prevEquiv.second!!.click()

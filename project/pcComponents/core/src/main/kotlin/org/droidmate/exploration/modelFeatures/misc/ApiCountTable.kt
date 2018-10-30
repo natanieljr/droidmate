@@ -27,7 +27,7 @@ package org.droidmate.exploration.modelFeatures.misc
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.ActionData
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.report.misc.CountsPartitionedByTimeTable
 import java.time.Duration
 import java.util.*
@@ -57,9 +57,9 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 		 * Map<time, List<(action,api)>> is for each timestamp the list of the triggered action with the observed api*/
 		private val ExplorationContext.apisByTime
 			get() =
-				LinkedList<Pair<ActionData, IApiLogcatMessage>>().apply {
+				LinkedList<Pair<Interaction, IApiLogcatMessage>>().apply {
 					// create a list of (widget.id,IApiLogcatMessage)
-					actionTrace.getActions().forEach { action ->
+					explorationTrace.getActions().forEach { action ->
 						// collect all apiLogs over the whole trace
 						action.deviceLogs.forEach { add(Pair(action, ApiLogcatMessage.from(it))) }
 					}

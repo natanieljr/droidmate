@@ -76,7 +76,7 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
 							actions.add(strategy.decide(inputData))
 			}
 
-			// Expected order of actionTrace:
+			// Expected order of explorationTrace:
 			assertTrue(actions[0] is ResetAppExplorationAction)
 			assertTrue(actions[1] is ClickExplorationAction)
 			assertTrue(actions[2] is ClickExplorationAction)

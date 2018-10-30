@@ -14,7 +14,7 @@ import org.droidmate.deviceInterface.exploration.ActionQueue
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.LaunchApp
-import org.droidmate.explorationModel.ActionResult
+import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -41,7 +41,7 @@ private fun performAction(action: ExplorationAction, app: IApk, device: IRobustD
 }
 
 @Throws(DeviceException::class)
-fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult{
+fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult {
 	logs = MissingDeviceLogs
 	snapshot = DeviceResponse.empty
 	exception = DeviceExceptionMissing()
@@ -67,7 +67,7 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult{
 		log.trace("$name.run(app=${app.fileName}, device) - DONE")
 	} catch (e: DeviceException) {
 		exception = e
-		log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device actionTrace of ${this}. " +
+		log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device explorationTrace of ${this}. " +
 				"Returning failed ${javaClass.simpleName} with the exception assigned to a field.")
 	}
 	val endTime = LocalDateTime.now()

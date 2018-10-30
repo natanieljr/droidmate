@@ -32,7 +32,7 @@ import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.Swipe
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.config.emptyId
 import org.droidmate.exploration.modelFeatures.ActionCounterMF
 import org.droidmate.exploration.modelFeatures.BlackListMF

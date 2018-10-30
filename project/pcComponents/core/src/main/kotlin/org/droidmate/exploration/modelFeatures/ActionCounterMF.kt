@@ -29,8 +29,8 @@ import kotlinx.coroutines.experimental.CoroutineName
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.joinChildren
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.explorationModel.StateData
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.experimental.CoroutineContext

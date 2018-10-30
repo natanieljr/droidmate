@@ -23,14 +23,15 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.explorationModel
+package org.droidmate.explorationModel.interaction
 
-import org.droidmate.explorationModel.Widget.Companion.widgetHeader
+import org.droidmate.explorationModel.interaction.Widget.Companion.widgetHeader
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.config.dumpString
 import org.droidmate.explorationModel.config.emptyUUID
+import org.droidmate.explorationModel.plus
 import java.awt.Rectangle
 import java.io.File
 import java.util.*

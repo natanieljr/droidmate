@@ -267,7 +267,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 			verifyProcessOnGuiStateReturnsWidgetExplorationAction(strategy, explorationLog, gs) // 2nd exploration forward: widget click
 			verifyProcessOnGuiStateReturnsResetExplorationAction(strategy, explorationLog, gs) // 3rd exploration forward: reset
 
-			// At this point all 8 actionTrace have been executed.
+			// At this point all 8 explorationTrace have been executed.
 
 			verifyProcessOnGuiStateReturnsTerminateExplorationAction(strategy, explorationLog, gs)
 	}*/

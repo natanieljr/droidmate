@@ -25,7 +25,7 @@
 package org.droidmate.report.apk
 
 import org.droidmate.deviceInterface.exploration.isClick
-import org.droidmate.explorationModel.ActionData
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.plot
 import org.droidmate.misc.withExtension
@@ -61,7 +61,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 		val reportData: HashMap<Long, Pair<Int, Int>> = HashMap()
 
 		// Ignore app start
-		val records = data.actionTrace.getActions().drop(1)
+		val records = data.explorationTrace.getActions().drop(1)
 		val nrActions = records.size
 		val startTimeStamp = records.first().startTimestamp
 
@@ -101,7 +101,7 @@ class EffectiveActions @JvmOverloads constructor(private val pixelDensity: Int =
 
 	// Currently used in child projects
 	@Suppress("MemberVisibilityCanBePrivate")
-	fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
+	fun actionWasEffective(prevAction: Interaction, currAction: Interaction): Boolean {
 
 		return if ((!prevAction.actionType.isClick()) ||
 				(! currAction.actionType.isClick()))

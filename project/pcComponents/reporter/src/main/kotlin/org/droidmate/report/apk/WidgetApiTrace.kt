@@ -28,9 +28,9 @@ package org.droidmate.report.apk
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.deviceInterface.exploration.isClick
-import org.droidmate.explorationModel.ActionData
-import org.droidmate.explorationModel.StateData
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import java.nio.file.Path
@@ -41,7 +41,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 		val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
 		sb.append(header)
 
-		data.actionTrace.getActions().forEachIndexed { actionNr, record ->
+		data.explorationTrace.getActions().forEachIndexed { actionNr, record ->
 			if (record.actionType.isClick()) {
 				val text = runBlocking { data.getState(record.resState)?.let { getActionWidget(record, it) } }
 				val logs = record.deviceLogs
@@ -57,7 +57,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 		Files.write(reportFile, sb.toString().toByteArray())
 	}
 
-	private fun getActionWidget(actionResult: ActionData, state: StateData): Widget? {
+	private fun getActionWidget(actionResult: Interaction, state: StateData): Widget? {
 		return if (actionResult.actionType.isClick()) {
 
 			getWidgetWithTextFromAction(actionResult.targetWidget!!, state)

@@ -62,7 +62,7 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
 		val actionBasedTerminate : SelectorFunction = { context, pool, bundle ->
 			val maxActions = bundle!![0] .toString().toInt()
-			if (context.actionTrace.size == maxActions) {
+			if (context.explorationTrace.size == maxActions) {
 				logger.debug("Maximum number of actions reached. Returning 'Terminate'")
 				pool.getFirstInstanceOf(Terminate::class.java)
 			}
@@ -123,10 +123,10 @@ class StrategySelector constructor(val priority: Int,
 		val intervalReset: SelectorFunction = { context, pool, bundle ->
 			val interval = bundle!![0].toString().toInt()
 
-			val lastReset = context.actionTrace.P_getActions()
+			val lastReset = context.explorationTrace.P_getActions()
 					.indexOfLast { it -> it.actionType == LaunchApp.name }
 
-			val currAction = context.actionTrace.size
+			val currAction = context.explorationTrace.size
 			val diff = currAction - lastReset
 
 			if (diff > interval){
@@ -175,7 +175,7 @@ class StrategySelector constructor(val priority: Int,
 			val random = bundleArray[1] as Random
 			val value = random.nextDouble()
 
-			val lastLaunchDistance = with(context.actionTrace.getActions()) {
+			val lastLaunchDistance = with(context.explorationTrace.getActions()) {
 				size-lastIndexOf(findLast{ !it.actionType.isQueueEnd() })
 			}
 			if ((lastLaunchDistance <=3 ) || (value > probability))
@@ -216,7 +216,7 @@ class StrategySelector constructor(val priority: Int,
 			if (!context.explorationCanMoveOn()){
 				val lastActionType = context.getLastActionType()
 				val (lastLaunchDistance,secondLast) = with(
-						context.actionTrace.getActions().filterNot {
+						context.explorationTrace.getActions().filterNot {
 							it.actionType.isQueueStart()|| it.actionType.isQueueEnd() }
 				){
 					lastIndexOf(findLast{ it.actionType.isLaunchApp() }).let{ launchIdx ->
@@ -290,7 +290,7 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
 		val explorationExhausted: SelectorFunction = { context, pool, _ ->
 			// wait for at least two actions to allow for second fetch after launch for slow/non-synchronized apps
-			val exhausted = context.actionTrace.size>2 && context.areAllWidgetsExplored()
+			val exhausted = context.explorationTrace.size>2 && context.areAllWidgetsExplored()
 
 			if (exhausted)
 				pool.getFirstInstanceOf(Terminate::class.java)

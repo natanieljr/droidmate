@@ -26,7 +26,7 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.modelFeatures.EventProbabilityMF
 
 /**

@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Widget
 import java.io.Serializable
 
 /**

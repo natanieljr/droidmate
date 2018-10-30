@@ -35,7 +35,7 @@ class ActionTrace @JvmOverloads constructor(private val fileName: String = "acti
 		val header = "actionNr\tType\tdecisionTime\tscreenshot\n"
 		sb.append(header)
 
-		data.actionTrace.getActions().forEachIndexed { actionNr, record ->
+		data.explorationTrace.getActions().forEachIndexed { actionNr, record ->
 			sb.appendln("$actionNr\t${record.actionType}\t${record.decisionTime}}")
 		}
 

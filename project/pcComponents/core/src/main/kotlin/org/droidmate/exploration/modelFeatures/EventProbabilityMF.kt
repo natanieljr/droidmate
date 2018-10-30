@@ -31,8 +31,8 @@ import kotlinx.coroutines.experimental.newCoroutineContext
 import kotlinx.coroutines.experimental.runBlocking
 import kotlinx.coroutines.experimental.sync.Mutex
 import org.apache.commons.lang3.StringUtils
-import org.droidmate.explorationModel.StateData
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.strategy.AbstractStrategy
 import org.droidmate.exploration.strategy.ResourceManager
 import weka.classifiers.trees.RandomForest

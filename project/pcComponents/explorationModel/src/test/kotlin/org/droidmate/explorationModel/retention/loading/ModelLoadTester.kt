@@ -57,7 +57,7 @@
 //
 //	@Ignore
 //	@Test fun loadMultipleActionsTest(){
-//		val actions = LinkedList<ActionData>().apply {
+//		val actions = LinkedList<Interaction>().apply {
 //			add(createTestAction(nextState = testState.stateId, actionType = "ResetAppExplorationAction"))
 //			for(i in 1..5)
 //				add(createTestAction(oldState = testState.stateId, nextState = testState.stateId, actionType = "$i test action", targetWidget = testWidget))

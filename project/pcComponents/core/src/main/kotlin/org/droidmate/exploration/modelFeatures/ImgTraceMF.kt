@@ -32,8 +32,8 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.explorationModel.StateData
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.misc.deleteDir
 import java.awt.*
@@ -85,7 +85,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 
 var shapeColor: Color = Color.red
 var textColor: Color = Color.magenta
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffset: List<Int>){
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>){
 	stateImg.createGraphics().apply{
 		stroke = BasicStroke(10F)
 		font = Font("TimesRoman", Font.PLAIN, 60)
@@ -112,7 +112,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffs
 		}
 	}
 }
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>,idxOffset: Int = 0)
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0)
 	= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset })
 
 

@@ -5,6 +5,7 @@ import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.dumpString
+import org.droidmate.explorationModel.interaction.Widget
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation

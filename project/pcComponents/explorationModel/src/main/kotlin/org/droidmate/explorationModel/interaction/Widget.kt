@@ -23,13 +23,17 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.explorationModel
+package org.droidmate.explorationModel.interaction
 
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.deviceInterface.exploration.Persistent
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
+import org.droidmate.explorationModel.DummyProperties
+import org.droidmate.explorationModel.P
 import org.droidmate.explorationModel.config.*
+import org.droidmate.explorationModel.plus
 import org.droidmate.explorationModel.retention.StringCreator.createPropertyString
+import org.droidmate.explorationModel.toUUID
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.File
@@ -63,7 +67,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyId] (and possibly [imgId]) */
 	val id by lazy { computeConcreteId() }
-	val visibleText: String by lazy { computeVisibleText(text,contentDesc) }
+	val visibleText: String by lazy { computeVisibleText(text, contentDesc) }
 	val bounds: Rectangle by lazy { Rectangle(properties.boundsX, properties.boundsY, properties.boundsWidth, properties.boundsHeight) }
 	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 
@@ -187,7 +191,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 		 */
 		@JvmStatic
 		fun computeId(w: UiElementPropertiesI, screenImg: BufferedImage? = null, isCut: Boolean = false): Pair<UUID,UUID?> =
-				computeVisibleText(w.text,w.contentDesc).trim().let { visibleText ->
+				computeVisibleText(w.text, w.contentDesc).trim().let { visibleText ->
 					when {
 						w.isInputField -> when {
 							w.contentDesc.isNotBlank() -> Pair(w.contentDesc.toUUID(),null)

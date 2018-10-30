@@ -86,7 +86,7 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 
 	/**
 	 * Apk with "real" uiautomator-daemon. This apk will be deployed be on the android (virtual) device
-	 * to enable GUI actionTrace execution.
+	 * to enable GUI explorationTrace execution.
 	 */
 	lateinit var uiautomator2DaemonTestApk: Path
 

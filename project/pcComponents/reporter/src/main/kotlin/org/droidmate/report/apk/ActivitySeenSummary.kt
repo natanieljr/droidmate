@@ -46,7 +46,7 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
 		// Always see the main activity
 		activitySeenMap.put(currActivity, 1)
 
-		data.actionTrace.getActions().forEach { record ->
+		data.explorationTrace.getActions().forEach { record ->
 
 			if (record.actionType.isPressBack())
 				currActivity = lastActivity

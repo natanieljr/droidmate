@@ -7,6 +7,9 @@ import org.droidmate.deviceInterface.exploration.isTextInsert
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.idFromString
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.retention.loading.WidgetParserI.Companion.computeWidgetIndicies
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,7 +27,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 	/**
 	 * when compatibility mode is enabled this list will contain the mapping oldId->newlyComputedId
 	 * to transform the model to the current (newer) id computation.
-	 * This mapping is supposed to be used to adapt the action targets in the trace parser (ActionData entries)
+	 * This mapping is supposed to be used to adapt the action targets in the trace parser (Interaction entries)
 	 */
 	private val idMapping: ConcurrentHashMap<ConcreteId, ConcreteId> = ConcurrentHashMap()
 //	override fun logcat(msg: String) {	}
@@ -39,7 +42,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 		log("parse absent state $id")
 		P_S_process(id, scope)
 	}	}
-	private val rightActionType: (Widget,actionType: String)->Boolean = { w,t ->
+	private val rightActionType: (Widget, actionType: String)->Boolean = { w, t ->
 		w.enabled && when{
 			t.isClick() -> w.clickable || w.checked != null
 			t.isLongClick() -> w.longClickable
@@ -50,20 +53,20 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 
 	/** parse the result state of the given actionData and verify that the targetWidget (if any) is contained in the src state */
 	private suspend fun parseState(actionData: List<String>): T{
-		val resId = idFromString(actionData[ActionData.resStateIdx])
+		val resId = idFromString(actionData[Interaction.resStateIdx])
 		log("parse result State: $resId")
 		// parse the result state with the contained widgets and queue them to make them available to other coroutines
 		val resState = queue.computeIfAbsent(resId, currentScope(parseIfAbsent))
 
-		val targetWidgetId = widgetParser.fixedWidgetId(actionData[ActionData.widgetIdx])	?: return resState
+		val targetWidgetId = widgetParser.fixedWidgetId(actionData[Interaction.widgetIdx])	?: return resState
         log("validate for target widget $targetWidgetId")
-		val srcId = idFromString(actionData[ActionData.srcStateIdx])
+		val srcId = idFromString(actionData[Interaction.srcStateIdx])
 		verify("ERROR could not find target widget $targetWidgetId in source state $srcId", {
 
             log("wait for srcState $srcId")
 				getElem(queue.computeIfAbsent(srcId, currentScope(parseIfAbsent))).widgets.any { it.id == targetWidgetId }
 		}){ // repair function
-			val actionType = actionData[ActionData.Companion.ActionDataFields.Action.ordinal]
+			val actionType = actionData[Interaction.Companion.ActionDataFields.Action.ordinal]
 			var srcS = queue[srcId]
 			while(srcS == null) { // due to concurrency the value is not yet written to queue -> wait a bit
 				delay(1)
@@ -82,7 +85,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 		}
 		return resState
 	}
-	protected suspend fun computeState(stateId: ConcreteId): StateData{
+	protected suspend fun computeState(stateId: ConcreteId): StateData {
         log("\ncompute state $stateId")
 		val(contentPath,isHomeScreen,topPackage) = reader.getStateFile(stateId)
 		if(!widgetParser.indiciesComputed.get()) {

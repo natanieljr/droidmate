@@ -28,7 +28,7 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.deviceInterface.exploration.isLaunchApp
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.config.emptyUUID
 import java.util.*
@@ -41,7 +41,7 @@ val ExplorationContext.uniqueActionableWidgets: Set<Widget>
 
 val ExplorationContext.uniqueClickedWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {
-		actionTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
+		explorationTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
 	}
 
 //TODO not sure about the original intention of this function
@@ -50,13 +50,13 @@ val ExplorationContext.uniqueApis: Set<IApiLogcatMessage>
 
 val ExplorationContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
 	get() = mutableSetOf<Pair<UUID, IApiLogcatMessage>>().apply {
-		actionTrace.getActions().forEach { action ->
+		explorationTrace.getActions().forEach { action ->
 			action.deviceLogs.forEach{ add(Pair(action.targetWidget?.uid ?: emptyUUID, ApiLogcatMessage.from(it))) }
 		}
 	}
 
 val ExplorationContext.resetActionsCount: Int
-	get() = actionTrace.getActions().count { it.actionType.isLaunchApp() }
+	get() = explorationTrace.getActions().count { it.actionType.isLaunchApp() }
 
 val ExplorationContext.apkFileNameWithUnderscoresForDots: String
 	get() = apk.fileName.replace(".", "_")

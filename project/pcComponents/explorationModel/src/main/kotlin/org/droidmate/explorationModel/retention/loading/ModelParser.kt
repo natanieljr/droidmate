@@ -12,6 +12,9 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.*
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -35,7 +38,7 @@ object ModelParser{
 }
 
 // FIXME watcher state restoration requires eContext.onUpdate function & model.onUpdate currently only onActionUpdate is supported
-internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<ActionData, StateData>> {
+internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, StateData>> {
 	abstract val config: ModelConfig
 	abstract val reader: ContentReader
 	abstract val stateParser: StateParserI<S, W>
@@ -49,7 +52,7 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<ActionData, StateDa
 	override val model by lazy{ Model.emptyModel(config) }
 	private val jobName by lazy{ "ModelParsing ${config.appName}(${config.baseDir})" }
 	protected val actionParseJobName: (List<String>)->String = { actionS ->
-		"actionParser ${actionS[ActionData.Companion.ActionDataFields.Action.ordinal]}:${actionS[ActionData.srcStateIdx]}->${actionS[ActionData.resStateIdx]}"}
+		"actionParser ${actionS[Interaction.Companion.ActionDataFields.Action.ordinal]}:${actionS[Interaction.srcStateIdx]}->${actionS[Interaction.resStateIdx]}"}
 
 	fun loadModel(watcher: LinkedList<ModelFeatureI> = LinkedList()): Model {
 		// the very first state of any trace is always an empty state which is automatically added on Model initialization
@@ -126,12 +129,12 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<ActionData, StateDa
 	}
 
 	/** parse the action this function is called in the processor either asynchronous (Deferred) or sequential (blocking) */
-	suspend fun parseAction(actionS: List<String>): Pair<ActionData, StateData> {
+	suspend fun parseAction(actionS: List<String>): Pair<Interaction, StateData> {
 		if(enablePrint) println("\n\t ---> parse action $actionS")
 		val resState = stateParser.processor(actionS).getState()
-		val targetWidgetId = widgetParser.fixedWidgetId(actionS[ActionData.widgetIdx])
+		val targetWidgetId = widgetParser.fixedWidgetId(actionS[Interaction.widgetIdx])
 
-		val srcId = idFromString(actionS[ActionData.srcStateIdx])
+		val srcId = idFromString(actionS[Interaction.srcStateIdx])
 		val srcState = stateParser.queue.getOrDefault(srcId,currentScope(stateParser.parseIfAbsent)(srcId)).getState()
 		val targetWidget = targetWidgetId?.let { tId ->
 			srcState.widgets.find { it.id == tId } ?: run{
@@ -140,14 +143,14 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<ActionData, StateDa
 			}
 		}
 		val fixedActionS = mutableListOf<String>().apply { addAll(actionS) }
-		fixedActionS[ActionData.resStateIdx] = resState.stateId.dumpString()
-		fixedActionS[ActionData.srcStateIdx] = srcState.stateId.dumpString()  //do NOT use local val srcId as that may be the old id
+		fixedActionS[Interaction.resStateIdx] = resState.stateId.dumpString()
+		fixedActionS[Interaction.srcStateIdx] = srcState.stateId.dumpString()  //do NOT use local val srcId as that may be the old id
 
 		if(actionS!=fixedActionS)
 			println("id's changed due to automatic repair new action is \n $fixedActionS\n instead of \n $actionS")
 
-		return Pair(ActionData.createFromString(fixedActionS, targetWidget, config[ConfigProperties.ModelProperties.dump.sep]), resState)
-				.also { log("\n computed TRACE ${actionS[ActionData.resStateIdx]}: ${it.first.actionString()}") }
+		return Pair(Interaction.createFromString(fixedActionS, targetWidget, config[ConfigProperties.ModelProperties.dump.sep]), resState)
+				.also { log("\n computed TRACE ${actionS[Interaction.resStateIdx]}: ${it.first.actionString()}") }
 	}
 
 	@Suppress("ReplaceSingleLineLet")
@@ -190,13 +193,13 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<ActionData, StateDa
 internal open class ModelParserP(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
                                  override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true,
                                  override val enableChecks: Boolean)
-	: ModelParserI<Deferred<Pair<ActionData, StateData>>, Deferred<StateData>, Deferred<Widget>>() {
+	: ModelParserI<Deferred<Pair<Interaction, StateData>>, Deferred<StateData>, Deferred<Widget>>() {
 	override val isSequential: Boolean = true
 
 	override val widgetParser by lazy { WidgetParserP(model, parentJob, compatibilityMode, enableChecks) }
 	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks) }
 
-	override val processor: suspend(s: List<String>) -> Deferred<Pair<ActionData, StateData>> = { actionS ->
+	override val processor: suspend(s: List<String>) -> Deferred<Pair<Interaction, StateData>> = { actionS ->
 		currentScope { async(CoroutineName(actionParseJobName(actionS))) { parseAction(actionS) } }
 	}
 
@@ -204,20 +207,20 @@ internal open class ModelParserP(override val config: ModelConfig, override val 
 		StateData.emptyState.let{ stateParser.queue[it.stateId] = runBlocking{ async(CoroutineName("empty State")) { it } } }
 	}
 
-	override suspend fun getElem(e: Deferred<Pair<ActionData, StateData>>): Pair<ActionData, StateData> = e.await()
+	override suspend fun getElem(e: Deferred<Pair<Interaction, StateData>>): Pair<Interaction, StateData> = e.await()
 
 }
 
 private class ModelParserS(override val config: ModelConfig, override val reader: ContentReader = ContentReader(config),
                            override val compatibilityMode: Boolean = false, override val enablePrint: Boolean = true,
                            override val enableChecks: Boolean)
-	: ModelParserI<Pair<ActionData, StateData>, StateData, Widget>() {
+	: ModelParserI<Pair<Interaction, StateData>, StateData, Widget>() {
 	override val isSequential: Boolean = true
 
 	override val widgetParser by lazy { WidgetParserS(model, parentJob, compatibilityMode, enableChecks) }
 	override val stateParser  by lazy { StateParserS(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks) }
 
-	override val processor: suspend (List<String>) -> Pair<ActionData, StateData> = { actionS:List<String> ->
+	override val processor: suspend (List<String>) -> Pair<Interaction, StateData> = { actionS:List<String> ->
 		parseAction(actionS)
 	}
 
@@ -225,6 +228,6 @@ private class ModelParserS(override val config: ModelConfig, override val reader
 		StateData.emptyState.let{ stateParser.queue[it.stateId] = it }
 	}
 
-	override suspend fun getElem(e: Pair<ActionData, StateData>): Pair<ActionData, StateData> = e
+	override suspend fun getElem(e: Pair<Interaction, StateData>): Pair<Interaction, StateData> = e
 
 }

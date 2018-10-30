@@ -23,7 +23,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.explorationModel
+package org.droidmate.explorationModel.interaction
 
 import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.async
@@ -32,6 +32,8 @@ import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.EmptyAction
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.debugT
+import org.droidmate.explorationModel.measurePerformance
 import java.awt.Rectangle
 import java.io.ByteArrayInputStream
 import java.io.Serializable
@@ -75,7 +77,7 @@ data class ActionResult(val action: ExplorationAction,
 		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
 
 //		val img:BufferedImage? =
-		(if(screenshot.isNotEmpty()) debugT("img file read", { ImageIO.read(ByteArrayInputStream(this.screenshot)) },inMillis = true) else null)
+		(if(screenshot.isNotEmpty()) debugT("img file read", { ImageIO.read(ByteArrayInputStream(this.screenshot)) }, inMillis = true) else null)
 		.let { img ->
 					guiSnapshot.let { g ->
 						debugT(" \n filter device objects",

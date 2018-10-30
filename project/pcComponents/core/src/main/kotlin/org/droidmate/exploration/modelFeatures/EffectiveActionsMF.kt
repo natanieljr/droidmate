@@ -5,11 +5,11 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.newCoroutineContext
 import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.ActionData
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.misc.withExtension
 import org.droidmate.report.misc.plot
-import org.droidmate.explorationModel.StateData
-import org.droidmate.explorationModel.Widget
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.temporal.ChronoUnit
@@ -52,7 +52,7 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
         val reportData: HashMap<Long, Pair<Int, Int>> = HashMap()
 
         // Ignore app start
-        val records = context.actionTrace.getActions().drop(1)
+        val records = context.explorationTrace.getActions().drop(1)
         val nrActions = records.size
         val startTimeStamp = records.first().startTimestamp
 
@@ -92,7 +92,7 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
 
     // Currently used in child projects
     @Suppress("MemberVisibilityCanBePrivate")
-    fun actionWasEffective(prevAction: ActionData, currAction: ActionData): Boolean {
+    fun actionWasEffective(prevAction: Interaction, currAction: Interaction): Boolean {
 
         return if ((!prevAction.actionType.isClick()) ||
                 (! currAction.actionType.isClick()))
