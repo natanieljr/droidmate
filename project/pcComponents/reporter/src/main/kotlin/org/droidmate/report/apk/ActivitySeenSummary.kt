@@ -25,8 +25,9 @@
 
 package org.droidmate.report.apk
 
-import org.droidmate.deviceInterface.guimodel.isLaunchApp
-import org.droidmate.deviceInterface.guimodel.isPressBack
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.deviceInterface.exploration.isLaunchApp
+import org.droidmate.deviceInterface.exploration.isPressBack
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
 import java.nio.file.Path
@@ -45,7 +46,7 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
 		// Always see the main activity
 		activitySeenMap.put(currActivity, 1)
 
-		data.actionTrace.getActions().forEach { record ->
+		data.explorationTrace.getActions().forEach { record ->
 
 			if (record.actionType.isPressBack())
 				currActivity = lastActivity
@@ -55,9 +56,9 @@ class ActivitySeenSummary @JvmOverloads constructor(private val fileName: String
 			if (currActivity == "")
 				currActivity = "<DEVICE HOME>"
 
-			val logs = record.deviceLogs.apiLogs
+			val apiLogs = record.deviceLogs.map {  ApiLogcatMessage.from(it) }
 
-			logs.filter { it.methodName.toLowerCase().startsWith("startactivit") }
+			apiLogs.filter {it.methodName.toLowerCase().startsWith("startactivit") }
 					.forEach { log ->
 						val intent = log.getIntents()
 						// format is: [ '[data=, component=<HERE>]', 'package ]

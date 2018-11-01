@@ -25,22 +25,23 @@
 package org.droidmate.report.misc
 
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.deviceInterface.guimodel.isLaunchApp
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.deviceInterface.exploration.isLaunchApp
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.statemodel.emptyUUID
+import org.droidmate.explorationModel.config.emptyUUID
 import java.util.*
 
 val ExplorationContext.uniqueActionableWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {	runBlocking {
-		getModel().getWidgets().filter { it.canBeActedUpon }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
+		getModel().getWidgets().filter { it.isInteractive }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
 				.forEach { add(it.value.first()) }
 	} }
 
 val ExplorationContext.uniqueClickedWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {
-		actionTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
+		explorationTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
 	}
 
 //TODO not sure about the original intention of this function
@@ -49,15 +50,13 @@ val ExplorationContext.uniqueApis: Set<IApiLogcatMessage>
 
 val ExplorationContext.uniqueEventApiPairs: Set<Pair<UUID, IApiLogcatMessage>>
 	get() = mutableSetOf<Pair<UUID, IApiLogcatMessage>>().apply {
-		actionTrace.getActions().forEach { action ->
-			action.deviceLogs.apiLogs.forEach{ api ->
-				add(Pair(action.targetWidget?.uid ?: emptyUUID, api))
-			}
+		explorationTrace.getActions().forEach { action ->
+			action.deviceLogs.forEach{ add(Pair(action.targetWidget?.uid ?: emptyUUID, ApiLogcatMessage.from(it))) }
 		}
 	}
 
 val ExplorationContext.resetActionsCount: Int
-	get() = actionTrace.getActions().count { it.actionType.isLaunchApp() }
+	get() = explorationTrace.getActions().count { it.actionType.isLaunchApp() }
 
 val ExplorationContext.apkFileNameWithUnderscoresForDots: String
 	get() = apk.fileName.replace(".", "_")

@@ -19,11 +19,11 @@
 
 package org.droidmate.uiautomator2daemon
 
-import org.droidmate.deviceInterface.DeviceCommand
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.communication.DeviceCommand
+import org.droidmate.uiautomator2daemon.exploration.DeviceDaemonException
+import org.droidmate.deviceInterface.exploration.DeviceResponse
 
 interface IUiAutomator2DaemonDriver {
-	@Throws(UiAutomatorDaemonException::class)
+	@Throws(DeviceDaemonException::class)
 	fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse
 }

@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.click
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy

@@ -229,7 +229,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		System.setProperty("logsDir", outputPath.toString())
 		assert(System.getProperty("logsDir") == outputPath.toString())
 
-		return ConfigurationBuilder.memoizedBuildConfiguration(config, fs)
+		return memoizedBuildConfiguration(config, fs)
 	}
 
 	companion object {
@@ -239,7 +239,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		private fun memoizedBuildConfiguration(cfg: Configuration, fs: FileSystem): ConfigurationWrapper {
 			log.debug("memoizedBuildConfiguration(args, fileSystem)")
 
-			return bindAndValidate( ConfigurationWrapper(cfg, fs) )
+			return bindAndValidate(ConfigurationWrapper(cfg, fs))
 		}
 
 		@JvmStatic
@@ -351,7 +351,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 					throw ConfigurationException("Unrecognized logging level. Given level: ${config[logLevel]}. Expected one of levels: info debug trace")
 			}
 			else{
-				rootLogger.warn("Logger is using ${rootLogger::class.java.simpleName} instead of ${ch.qos.logback.classic.Logger::class.java.simpleName}, cannot configure the log level.")
+				rootLogger.warn("Logger is using ${rootLogger::class.java.simpleName} instead of ${ch.qos.logback.classic.Logger::class.java.simpleName}, cannot configure the logcat level.")
 			}
 		}
 

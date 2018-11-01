@@ -27,7 +27,7 @@ package org.droidmate.report.apk
 
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.Reporter
-import org.droidmate.report.misc.apkFileNameWithUnderscoresForDots
+import org.droidmate.exploration.modelFeatures.misc.apkFileNameWithUnderscoresForDots
 import java.nio.file.Files
 import java.nio.file.Path
 

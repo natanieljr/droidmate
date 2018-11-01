@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.ActionResult
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.exploration.ExplorationContext
 
 /**
@@ -47,7 +47,7 @@ interface ISelectableExplorationStrategy {
 	fun registerListener(listener: IControlObserver)
 
 	/**
-	 * Update the []number of explored actionTrace][actionNr]
+	 * Update the []number of explored explorationTrace][actionNr]
 	 */
 	fun updateState(actionNr: Int, record: ActionResult)
 

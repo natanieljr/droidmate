@@ -30,7 +30,7 @@ import org.slf4j.MarkerFactory
 
 /**
  * <p>
- * Markers used by slf4j+logback loggers to log specific information.
+ * Markers used by slf4j+logback loggers to logcat specific information.
  * </p><p>
  *
  * See {@code logback.groovy} for details on logging.

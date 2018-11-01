@@ -25,10 +25,10 @@
 
 package org.droidmate.exploration.strategy
 
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.ActionData
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.exploration.statemodel.StateData
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.ActionResult
+import org.droidmate.explorationModel.interaction.StateData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.slf4j.Logger
@@ -88,7 +88,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 * Check if last performed action in the [eContext] was to reset the app
 	 * @return If the last action was a reset
 	 */
-	internal fun lastAction(): ActionData {
+	internal fun lastAction(): Interaction {
 		return this.eContext.getLastAction()
 	}
 
@@ -114,11 +114,11 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 *
 	 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
 	 */
-	fun getSecondLastAction(): ActionData {
+	fun getSecondLastAction(): Interaction {
 		if (this.eContext.getSize() < 2)
-			return ActionData.empty
+			return Interaction.empty
 
-		return this.eContext.actionTrace.getActions().dropLast(1).last()
+		return this.eContext.explorationTrace.getActions().dropLast(1).last()
 	}
 
 	override fun updateState(actionNr: Int, record: ActionResult) {

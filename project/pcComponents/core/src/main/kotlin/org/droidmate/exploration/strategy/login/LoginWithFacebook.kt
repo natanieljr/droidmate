@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.Widget
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
@@ -54,7 +54,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 					password = row.removePrefix("password=")
 			}
 		} catch (e: IOException) {
-			// Just log
+			// Just logcat
 			logger.error(e.message, e)
 		}
 
@@ -175,7 +175,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 	}
 
 	/*override fun mustPerformMoreActions(): Boolean {
-		// Between sign in and log in it's a single process, afterwards it may change depending on
+		// Between sign in and logcat in it's a single process, afterwards it may change depending on
 		// what facebook displays, therefore handle it on a case by case basis on getFitness method
 		return signInClicked && !loginClicked
 	}*/

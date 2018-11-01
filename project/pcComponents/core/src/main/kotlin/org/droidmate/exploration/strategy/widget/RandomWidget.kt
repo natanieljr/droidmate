@@ -27,16 +27,16 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.debug.debugT
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.deviceInterface.guimodel.Swipe
+import org.droidmate.misc.debugT
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.Swipe
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.statemodel.emptyId
-import org.droidmate.exploration.statemodel.features.ActionCounterMF
-import org.droidmate.exploration.statemodel.features.BlackListMF
-import org.droidmate.exploration.statemodel.features.listOfSmallest
+import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.explorationModel.config.emptyId
+import org.droidmate.exploration.modelFeatures.ActionCounterMF
+import org.droidmate.exploration.modelFeatures.BlackListMF
+import org.droidmate.exploration.modelFeatures.listOfSmallest
 import java.util.Random
 
 /**
@@ -184,11 +184,11 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
 
-		while (!chosenWidget.canBeActedUpon) {
+		while (!chosenWidget.isInteractive) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		logger.debug("Chosen widget info: $widget: ${widget.canBeActedUpon}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
+		logger.debug("Chosen widget info: $widget: ${widget.isInteractive}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
 
 		val actionList = if (randomScroll)
 			widget.availableActions()

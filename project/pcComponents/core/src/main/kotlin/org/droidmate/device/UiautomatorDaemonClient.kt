@@ -27,9 +27,9 @@ package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.deviceInterface.DeviceCommand
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.communication.DeviceCommand
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.DeviceConstants
 
 class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
                                           private val deviceSerialNumber: String,
@@ -70,7 +70,7 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 	private fun validateUiaDaemonServerStartLogcatMessages() {
 		val msgs = this.adbWrapper.waitForMessagesOnLogcat(
 				this.deviceSerialNumber,
-				UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG,
+				DeviceConstants.UIADAEMON_SERVER_START_TAG,
 				1,
 				this.startTimeout,
 				this.waitForInteractableTimeout)
@@ -79,16 +79,16 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 		// On Huawei devices many logs are disabled by default to increase performance,
 		// if this message appears it's ok, the relevant informaiton will still be logged.
 		//     int logctl_get(): open '/dev/hwlog_switch' fail -1, 13. Permission denied
-		//     Note: log switch off, only log_main and log_events will have logs!
+		//     Note: logcat switch off, only log_main and log_events will have logs!
 		var nrMessages = 1
-		if (msgs.joinToString(System.lineSeparator()).contains("Note: log switch off, only log_main and log_events will have logs!"))
+		if (msgs.joinToString(System.lineSeparator()).contains("Note: logcat switch off, only log_main and log_events will have logs!"))
 			nrMessages = 3
 
 		assert(msgs.size == nrMessages) {
-			"Expected exactly one message on logcat (with tag ${UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG}) " +
+			"Expected exactly one message on logcat (with tag ${DeviceConstants.UIADAEMON_SERVER_START_MSG}) " +
 					"confirming that uia-daemon server has started. Instead, got ${msgs.size} messages. Msgs:\n${msgs.joinToString(System.lineSeparator())}"
 		}
-		assert(msgs.last().contains(UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG))
+		assert(msgs.last().contains(DeviceConstants.UIADAEMON_SERVER_START_MSG))
 	}
 
 	override fun getUiaDaemonThreadIsNull(): Boolean = this.uiaDaemonThread == null

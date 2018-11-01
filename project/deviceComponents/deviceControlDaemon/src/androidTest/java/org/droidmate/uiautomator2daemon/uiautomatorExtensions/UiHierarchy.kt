@@ -13,8 +13,8 @@ import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.droidmate.uiautomator2daemon.debugT
-import org.droidmate.deviceInterface.guimodel.WidgetData
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
+import org.droidmate.uiautomator2daemon.exploration.debugT
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.util.*
@@ -30,11 +30,11 @@ object UiHierarchy : UiParser() {
 
 	private var nActions = 0
 	private var ut = 0L
-	suspend fun fetch(device: UiDevice): List<WidgetData> = debugT(" compute UiNodes avg= ${ut/(max(nActions,1)*1000000)}", {
+	suspend fun fetch(device: UiDevice): List<UiElementPropertiesI> = debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
 		deviceW = device.displayWidth
 		deviceH = device.displayHeight
 		appArea = computeAppArea()
-		val nodes = LinkedList<WidgetData>()
+		val nodes = LinkedList<UiElementPropertiesI>()
 
 		try {
 			device.getNonSystemRootNodes().let {
@@ -43,33 +43,35 @@ object UiHierarchy : UiParser() {
 					createBottomUp(root, parentXpath = "//", nodes = nodes)
 				}
 			}
-		} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date
+		} catch (e: Exception) {  // the accessibilityNode service may throw this if the node is no longer up-to-date
 			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}\n last widget was ${nodes.lastOrNull()}")
 		}
 
-		nodes.also { Log.d(LOGTAG,"#elems = ${it.size}")}
-	}, inMillis = true, timer = {ut += it; nActions+=1})
+		nodes.also { Log.d(LOGTAG, "#elems = ${it.size}") }
+	}, inMillis = true, timer = { ut += it; nActions += 1 })
 
 
-	fun getXml(device: UiDevice):String = 	debugT(" fetching gui Dump ", {StringWriter().use { out ->
-		device.waitForIdle()
+	fun getXml(device: UiDevice):String = debugT(" fetching gui Dump ", {
+		StringWriter().use { out ->
+			device.waitForIdle()
 
-		val serializer = Xml.newSerializer()
-		serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true)
-		serializer.setOutput(out)//, "UTF-8")
+			val serializer = Xml.newSerializer()
+			serializer.setFeature("http://xmlpull.org/v1/doc/modelFeatures.html#indent-output", true)
+			serializer.setOutput(out)//, "UTF-8")
 
-		serializer.startDocument("UTF-8", true)
-		serializer.startTag("", "hierarchy")
-		serializer.attribute("", "rotation", Integer.toString(device.displayRotation))
+			serializer.startDocument("UTF-8", true)
+			serializer.startTag("", "hierarchy")
+			serializer.attribute("", "rotation", Integer.toString(device.displayRotation))
 
-		device.apply(nodeDumper(serializer, device.displayWidth, device.displayHeight)
-		) { _-> serializer.endTag("", "node")}
+			device.apply(nodeDumper(serializer, device.displayWidth, device.displayHeight)
+			) { _ -> serializer.endTag("", "node") }
 
-		serializer.endTag("", "hierarchy")
-		serializer.endDocument()
-		serializer.flush()
-		out.toString()
-	}}, inMillis = true)
+			serializer.endTag("", "hierarchy")
+			serializer.endDocument()
+			serializer.flush()
+			out.toString()
+		}
+	}, inMillis = true)
 
 	/** check if this node fullfills the given condition and recursively check descendents if not **/
 	fun any(device: UiDevice, retry: Boolean=false, cond: SelectorCondition):Boolean{
@@ -146,7 +148,7 @@ object UiHierarchy : UiParser() {
 					else cancel()
 				}
 			}.run{ time += this
-				device.runWatchers() // to update the ui view?
+				device.runWatchers() // to update the exploration view?
 				if(!found && this<pollTime) delay(pollTime-this)
 				Log.d(LOGTAG,"$found single wait iteration $this")
 			}
@@ -159,9 +161,12 @@ object UiHierarchy : UiParser() {
 	suspend fun getScreenShot(delayForRetry:Long): Bitmap? {
 		var screenshot: Bitmap? = null
 		debugT("first screen-fetch attempt ", {
-			try{ screenshot = Screenshot.capture()?.bitmap }
-			catch (e: Exception){ Log.w(LOGTAG,"exception on screenshot-capture") }
-		},inMillis = true)
+			try {
+				screenshot = Screenshot.capture()?.bitmap
+			} catch (e: Exception) {
+				Log.w(LOGTAG, "exception on screenshot-capture")
+			}
+		}, inMillis = true)
 
 		if (screenshot == null){
 			Log.d(LOGTAG,"screenshot failed")
@@ -177,7 +182,7 @@ object UiHierarchy : UiParser() {
 	@JvmStatic private var t = 0.0
 	@JvmStatic private var c = 0
 	@JvmStatic
-	fun compressScreenshot(screenshot: Bitmap?): ByteArray = debugT("compress image avg = ${t/ max(1,c)}",{
+	fun compressScreenshot(screenshot: Bitmap?): ByteArray = debugT("compress image avg = ${t / max(1, c)}", {
 		var bytes = ByteArray(0)
 		val stream = ByteArrayOutputStream()
 		try {
@@ -192,7 +197,7 @@ object UiHierarchy : UiParser() {
 		}
 
 		bytes
-	}, inMillis = true, timer = { t += it / 1000000.0; c += 1})
+	}, inMillis = true, timer = { t += it / 1000000.0; c += 1 })
 
 }
 

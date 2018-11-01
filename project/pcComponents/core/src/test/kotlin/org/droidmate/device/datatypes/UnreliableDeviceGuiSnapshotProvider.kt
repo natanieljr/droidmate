@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.exploration.DeviceResponse
 
 class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: DeviceResponse) : IUnreliableDeviceGuiSnapshotProvider {
 	override fun provide(): DeviceResponse {
@@ -40,7 +40,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: Devic
 	}
 	// TODO Fix tests
 	/*companion object {
-			private val log = LoggerFactory.getLogger(UnreliableDeviceGuiSnapshotProvider::class.java)
+			private val logcat = LoggerFactory.getLogger(UnreliableDeviceGuiSnapshotProvider::class.java)
 	}
 
 	private val emptyGuiSnapshot = UiautomatorWindowDumpTestHelper.newEmptyWindowDump()
@@ -69,7 +69,7 @@ class UnreliableDeviceGuiSnapshotProvider(private val originalGuiSnapshot: Devic
 	}
 
 	override fun provide(): DeviceResponse {
-			log.trace("provide($currentGuiSnapshot)")
+			logcat.trace("provide($currentGuiSnapshot)")
 
 			val out = this.currentGuiSnapshot
 

@@ -27,14 +27,15 @@ package org.droidmate.report
 import com.konradjamrozik.Resource
 import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.apis.IApiLogcatMessage
-import org.droidmate.exploration.statemodel.ActionData
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.exploration.actions.DeviceExceptionMissing
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.misc.minutesAndSeconds
 import org.droidmate.misc.replaceVariable
-import org.droidmate.report.misc.resetActionsCount
+import org.droidmate.exploration.modelFeatures.misc.resetActionsCount
 import java.time.Duration
 
 class ApkSummary {
@@ -103,11 +104,11 @@ class ApkSummary {
 		private constructor(
 				data: ExplorationContext,
 				uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
-				uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData, IApiLogcatMessage>, Int>
+				uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<Interaction, IApiLogcatMessage>, Int>
 		) : this(
 				appPackageName = data.apk.packageName,
 				totalRunTime = data.getExplorationDuration(),
-				totalActionsCount = data.actionTrace.size,
+				totalActionsCount = data.explorationTrace.size,
 				totalResetsCount = data.resetActionsCount,
 				exception = data.exception,
 				uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
@@ -123,7 +124,7 @@ class ApkSummary {
 				uniqueEventApiPairsCount = uniqueEventApiPairsWithFirstTriggeringActionIndex.keys.size,
 				apiEventEntries = uniqueEventApiPairsWithFirstTriggeringActionIndex.map {
 					val (eventApiPair, firstIndex: Int) = it
-					val (event: ActionData, apiLog: IApiLogcatMessage) = eventApiPair
+					val (event: Interaction, apiLog: IApiLogcatMessage) = eventApiPair
 					ApiEventEntry(
 							ApiEntry(
 									time = Duration.between(data.explorationStartTime, apiLog.time),
@@ -139,21 +140,20 @@ class ApkSummary {
 		companion object {
 			val ExplorationContext.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
 				get() {
-					return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
-							extractItems = { it.deviceLogs.apiLogs },
+					return this.explorationTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
+							extractItems = { action -> action.deviceLogs.map { ApiLogcatMessage.from(it) as IApiLogcatMessage } },
 							extractUniqueString = { it.uniqueString }
 					)
 				}
 
-			val ExplorationContext.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<ActionData, IApiLogcatMessage>, Int>
+			val ExplorationContext.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<Interaction, IApiLogcatMessage>, Int>
 				get() {
 
-					return this.actionTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
-							extractItems = { it.deviceLogs.apiLogs.map { apiLog -> Pair(it, apiLog) } },
+					return this.explorationTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
+							extractItems = { action -> action.deviceLogs.map { apiLog -> Pair(action, ApiLogcatMessage.from(apiLog) as IApiLogcatMessage) } },
 							extractUniqueString = { (action, api) -> action.actionString() + "_" + api.uniqueString }
 					)
 				}
-
 		}
 	}
 

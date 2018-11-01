@@ -25,8 +25,8 @@
 
 package org.droidmate.exploration.strategy
 
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.explorationModel.interaction.ActionResult
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 
 interface IExplorationStrategy {
 

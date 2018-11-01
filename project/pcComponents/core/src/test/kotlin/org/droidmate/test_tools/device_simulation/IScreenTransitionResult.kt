@@ -24,11 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.apis.ITimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 
 interface IScreenTransitionResult {
 
 	val screen: IGuiScreen
 
-	val logs: List<ITimeFormattedLogcatMessage>
+	val logs: List<TimeFormattedLogMessageI>
 }

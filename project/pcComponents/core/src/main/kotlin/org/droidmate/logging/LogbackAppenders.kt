@@ -60,7 +60,7 @@ class LogbackAppenders {
 		}
 
 		// Adapted from http://groovy.codehaus.org/JN3515-Interception
-		// WARNING: possibly (not sure) this doesn't work on log methods residing in @Memoized method. Dunno why, AST transformation magic interferes?
+		// WARNING: possibly (not sure) this doesn't work on logcat methods residing in @Memoized method. Dunno why, AST transformation magic interferes?
 		@JvmStatic
 		fun changeThresholdLevelOfFirstFilter(appender: Appender<ILoggingEvent>, newLevel: Level) {
 			val filters = appender.copyOfAttachedFiltersList

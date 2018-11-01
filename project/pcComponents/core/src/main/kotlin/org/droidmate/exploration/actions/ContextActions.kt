@@ -3,7 +3,7 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.configuration.ConfigProperties
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
 
 /**
@@ -33,7 +33,7 @@ fun ExplorationContext.rotate(rotation: Int): ExplorationAction = RotateUI(rotat
  *
  * @param steps is the number of move steps sent to the system
  */
-fun ExplorationContext.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int=35): ExplorationAction = Swipe(start,end,steps)
+fun ExplorationContext.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int=35): ExplorationAction = Swipe(start, end, steps)
 
 /**
  * Create a list of actions which is sequentially executed on the device without any fetch in-between.
@@ -42,7 +42,7 @@ fun ExplorationContext.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int=35
  * Therefore you should only use it as the very first action of the queue or in combination with
  * non-app-specific actions like enable-WiFi.
  */
-@JvmOverloads fun ExplorationContext.queue(actions: List<ExplorationAction>,delay:Long=0) = ActionQueue(actions,delay)
+@JvmOverloads fun ExplorationContext.queue(actions: List<ExplorationAction>, delay:Long=0) = ActionQueue(actions, delay)
 
 //TODO enableWifi takes ~11s therefore we may consider to only do it once on exploration start instead
 fun ExplorationContext.resetApp(): ExplorationAction {

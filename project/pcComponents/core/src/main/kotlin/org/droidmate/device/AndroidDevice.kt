@@ -29,8 +29,6 @@ package org.droidmate.device
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.apis.TimeFormattedLogcatMessage
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
@@ -38,19 +36,19 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInt
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
-import org.droidmate.deviceInterface.DeviceCommand
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.ExecuteCommand
-import org.droidmate.deviceInterface.StopDaemonCommand
+import org.droidmate.device.logcat.TimeFormattedLogcatMessage
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.logcatLogFileName
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_packageName
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uia2Daemon_testPackageName
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.DeviceConstants.logcatLogFileName
+import org.droidmate.deviceInterface.DeviceConstants.uia2Daemon_packageName
+import org.droidmate.deviceInterface.DeviceConstants.uia2Daemon_testPackageName
+import org.droidmate.deviceInterface.communication.*
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.SimulationAdbClearPackage
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
@@ -86,7 +84,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 						"Device returned DeviceResponse with non-null throwable, indicating something went horribly wrong on the A(V)D.\n" +
 								"Exception: $response \n" +
 								"Cause: ${response.cause ?: ""}" +
-								"Trace: ${response.stackTrace.joinToString("\n")} \n" +
+								"ExplorationTrace: ${response.stackTrace.joinToString("\n")} \n" +
 								"The exception is given as a cause of this one. If it doesn't have enough information, " +
 								"try inspecting the logcat output of the A(V)D. ",
 						response)
@@ -158,7 +156,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 		log.trace("stopUiaDaemon(uiaDaemonThreadIsNull:$uiaDaemonThreadIsNull)")
 
-		this.issueCommand(StopDaemonCommand())
+		this.issueCommand(StopDaemonCommand)
 
 		if (uiaDaemonThreadIsNull)
 			assert(this.tcpClients.getUiaDaemonThreadIsNull())
@@ -171,12 +169,12 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun isAvailable(): Boolean {
-//    log.trace("isAvailable(${this.serialNumber})")
+//    logcat.trace("isAvailable(${this.serialNumber})")
 		return this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
 	}
 
 	override fun reboot() {
-//    log.trace("reboot(${this.serialNumber})")
+//    logcat.trace("reboot(${this.serialNumber})")
 		this.adbWrapper.reboot(this.serialNumber)
 	}
 
@@ -222,13 +220,13 @@ class AndroidDevice constructor(private val serialNumber: String,
 			throw UnexpectedIfElseFallthroughError()
 	}
 
-	override fun readLogcatMessages(messageTag: String): List<ITimeFormattedLogcatMessage> {
+	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
 		log.debug("readLogcatMessages(tag: $messageTag)")
 		val messages = adbWrapper.readMessagesFromLogcat(this.serialNumber, messageTag)
 		return messages.map { TimeFormattedLogcatMessage.from(it) }
 	}
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<ITimeFormattedLogcatMessage> {
+	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
 		log.debug("waitForLogcatMessages(tag: $messageTag, minMessagesCount: $minMessagesCount, waitTimeout: $waitTimeout, queryDelay: $queryDelay)")
 		val messages = adbWrapper.waitForMessagesOnLogcat(this.serialNumber, messageTag, minMessagesCount, waitTimeout, queryDelay)
 		log.debug("waitForLogcatMessages(): obtained messages: ${messages.joinToString(System.lineSeparator())}")
@@ -252,7 +250,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		}
 		catch(e: ApkExplorationException){
 			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}")
-			log.error("Trace: ${e.stackTrace}")
+			log.error("ExplorationTrace: ${e.stackTrace}")
 
 			return emptyList()
 		}
@@ -283,7 +281,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return out
 	}
 
-	override fun anyMonitorIsReachable(): Boolean =//    log.debug("anyMonitorIsReachable()")
+	override fun anyMonitorIsReachable(): Boolean =//    logcat.debug("anyMonitorIsReachable()")
 			this.tcpClients.anyMonitorIsReachable()
 
 	override fun clearLogcat() {

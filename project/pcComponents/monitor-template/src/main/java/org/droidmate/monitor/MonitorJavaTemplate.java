@@ -95,10 +95,10 @@ public class MonitorJavaTemplate
 	 * TCP server.
 	 * <p>
 	 * </p><p>
-	 * Each log is a 3 element array obeying following contract:<br/>
-	 * log[0]: process ID of the log<br/>
-	 * log[1]: timestamp of the log<br/>
-	 * log[2]: the payload of the log (method name, parameter values, stack trace, etc.)
+	 * Each logcat is a 3 element array obeying following contract:<br/>
+	 * logcat[0]: process ID of the logcat<br/>
+	 * logcat[1]: timestamp of the logcat<br/>
+	 * logcat[2]: the payload of the logcat (method name, parameter values, stack trace, etc.)
 	 * <p>
 	 * </p>
 	 *
@@ -182,8 +182,8 @@ public class MonitorJavaTemplate
 
 	private static String trimToLogSize(String paramString) {
         /*
-        Logcat buffer size is 4096 [1]. I have encountered a case in which intent's string extra has eaten up entire log line,
-        preventing the remaining parts of the log (in particular, stack trace) to be transferred to DroidMate,
+        Logcat buffer size is 4096 [1]. I have encountered a case in which intent's string extra has eaten up entire logcat line,
+        preventing the remaining parts of the logcat (in particular, stack trace) to be transferred to DroidMate,
         causing regex match fail. This is how the offending intent value looked like:
 
           intent:#Intent;action=com.picsart.studio.notification.action;S.extra.result.string=%7B%22response%22%3A%5B%7B%...
@@ -247,7 +247,7 @@ public class MonitorJavaTemplate
 
 	/**
 	 * <p>
-	 * Called by monitor code to log Android API calls. Calls to this methods are generated in:
+	 * Called by monitor code to logcat Android API calls. Calls to this methods are generated in:
 	 * <pre>
 	 * org.droidmate.monitor.RedirectionsGenerator#generateCtorCallsAndTargets(java.util.List)
 	 * org.droidmate.monitor.RedirectionsGenerator#generateMethodTargets(java.util.List)</pre>
@@ -516,7 +516,7 @@ public class MonitorJavaTemplate
 		private void failOnLogsFromMonitorTCPServerOrMonitorJavaTemplate(String msgPayload) {
 			if (msgPayload.contains(MonitorConstants.Companion.getTag_srv()) || msgPayload.contains(MonitorConstants.Companion.getTag_mjt()))
 				throw new AssertionError(
-								"Attempt to log a message whose payload contains " +
+								"Attempt to logcat a message whose payload contains " +
 												MonitorConstants.Companion.getTag_srv() + " or " + MonitorConstants.Companion.getTag_mjt() + ". The message payload: " + msgPayload);
 		}
 

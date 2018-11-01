@@ -78,6 +78,6 @@ class LogbackConstants {
 
 		val exceptions_log_path = "${LOGS_DIR_PATH}${File.separator}${appender_name_exceptions}"
 
-		val err_log_msg = "Please see $exceptions_log_path log for details."
+		val err_log_msg = "Please see $exceptions_log_path logcat for details."
 	}
 }

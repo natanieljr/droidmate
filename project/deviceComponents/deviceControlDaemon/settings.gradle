@@ -34,6 +34,6 @@
 
 rootProject.name = "deviceControlDaemon"
 
-include(":deviceDaemonLib")
+include(":deviceDaemonLib") // we use this instead of includeBuild as android gradle does not yet support nested composite and the highlighting would be screwed up anyway
 project(':deviceDaemonLib').projectDir = new File("../../deviceCommonLib/deviceDaemonLib/")
 

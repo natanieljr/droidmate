@@ -191,7 +191,7 @@ class NewCoverageCalculator {
 				.filter { !Files.isDirectory(it) }
 				.filter { it.fileName.toString().replace("mypix-", "mypix_") .startsWith(apkName.split(".").first()) }
 				.forEach { logFile ->
-					//println("Reading log file $logFile")
+					//println("Reading logcat file $logFile")
 
 					Files.lines(logFile)
 							.forEach { line ->

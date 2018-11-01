@@ -27,7 +27,7 @@ package org.droidmate.monitor
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import org.droidmate.apis.ApiMethodSignature
+import org.droidmate.device.apis.ApiMethodSignature
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 

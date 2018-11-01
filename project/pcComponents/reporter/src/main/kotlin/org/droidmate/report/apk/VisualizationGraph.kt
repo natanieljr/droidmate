@@ -29,10 +29,17 @@ import com.google.gson.*
 import com.konradjamrozik.Resource
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.deviceInterface.guimodel.*
+import org.droidmate.deviceInterface.exploration.isQueueEnd
+import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.statemodel.*
-import org.droidmate.exploration.statemodel.features.highlightWidget
+import org.droidmate.explorationModel.*
+import org.droidmate.exploration.modelFeatures.highlightWidget
+import org.droidmate.explorationModel.config.ConcreteId
+import org.droidmate.explorationModel.config.dumpString
+import org.droidmate.explorationModel.config.idFromString
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.misc.unzip
 import java.lang.reflect.Type
 import java.nio.file.*
@@ -60,16 +67,16 @@ class VisualizationGraph : ApkReport() {
 	private lateinit var targetStatesImgDir: Path
 
 	/**
-	 * Edge encapsulates an ActionData object, because the frontend cannot have multiple
+	 * Edge encapsulates an Interaction object, because the frontend cannot have multiple
 	 * edges for the same transitions. Therefore, the indices are stored and the corresponding
 	 * targetWidgets are mapped to the indices. E.g., for an Edge e1, the transition was taken
 	 * for the index 2 (nr. of action) with a button b1 and for the index 5 with a button b2.
-	 * In this case there are two ActionData objects which are represented as a single Edge
+	 * In this case there are two Interaction objects which are represented as a single Edge
 	 * object with two entries in the actionIndexWidgetMap map.
 	 */
-	inner class Edge(val actionData: ActionData) {
+	inner class Edge(val interaction: Interaction) {
 		val indices = HashSet<Int>()
-		val id = "${actionData.prevState.dumpString()} -> ${actionData.resState.dumpString()}"
+		val id = "${interaction.prevState.dumpString()} -> ${interaction.resState.dumpString()}"
 		val actionIndexWidgetMap = HashMap<Int, Widget?>()
 		fun addIndex(i: Int, w: Widget?) {  //FIXME this does not allow for all targets of WidgetQueue
 			indices.add(i)
@@ -84,12 +91,12 @@ class VisualizationGraph : ApkReport() {
 	 */
 	@Suppress("unused")
 	inner class Graph(val nodes: Set<StateData>,
-					  edges: List<Pair<Int, ActionData>>,
-					  val explorationStartTime: String,
-					  val explorationEndTime: String,
-					  val numberOfActions: Int,
-					  val numberOfStates: Int,
-					  val apk: IApk) {
+	                  edges: List<Pair<Int, Interaction>>,
+	                  val explorationStartTime: String,
+	                  val explorationEndTime: String,
+	                  val numberOfActions: Int,
+	                  val numberOfStates: Int,
+	                  val apk: IApk) {
 		private val edges: MutableList<Edge> = ArrayList()
 
 		// The graph in the frontend is not able to display multiple edges for the same transition,
@@ -103,11 +110,11 @@ class VisualizationGraph : ApkReport() {
 					val edge = Edge(a)
 					val entry = edgeMap[edge.id]
 					if (entry == null) {
-						edge.addIndex(idx, edge.actionData.targetWidget)
+						edge.addIndex(idx, edge.interaction.targetWidget)
 						edgeMap[edge.id] = edge
 						this.edges.add(edge)
 					} else {
-						entry.addIndex(idx, edge.actionData.targetWidget)
+						entry.addIndex(idx, edge.interaction.targetWidget)
 					}
 				}
 			}
@@ -166,7 +173,7 @@ class VisualizationGraph : ApkReport() {
 			obj.addProperty("title", stateId)
 			// Include all important properties to make the states searchable
 			val properties = arrayListOf(stateId, src.topNodePackageName, src.uid.toString(), src.configId.toString(), src.iEditId.toString())
-			obj.addProperty("content", properties.joinToString("\n"))
+			obj.addProperty("visibleText", properties.joinToString("\n"))
 
 			// Widgets
 			val widgets = JsonArray()
@@ -180,18 +187,18 @@ class VisualizationGraph : ApkReport() {
 	}
 
 	/**
-	 * Custom Json serializer to control the serialization for ActionData objects.
+	 * Custom Json serializer to control the serialization for Interaction objects.
 	 */
 	inner class EdgeAdapter : JsonSerializer<Edge> {
 		override fun serialize(src: Edge, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
 			val obj = JsonObject()
-			obj.addProperty("from", src.actionData.prevState.dumpString())
-			obj.addProperty("to", src.actionData.resState.dumpString())
-			obj.addProperty("actionType", src.actionData.actionType)
+			obj.addProperty("from", src.interaction.prevState.dumpString())
+			obj.addProperty("to", src.interaction.resState.dumpString())
+			obj.addProperty("actionType", src.interaction.actionType)
 			obj.addProperty("id", src.id)
-			obj.addProperty("propertyId", src.actionData.targetWidget?.propertyId.toString())
+			obj.addProperty("propertyId", src.interaction.targetWidget?.propertyId.toString())
 			obj.addProperty("title", src.id)
-			obj.addProperty("label", "${src.actionData.actionType} ${src.indices.joinToString(",", prefix = "<", postfix = ">")}")
+			obj.addProperty("label", "${src.interaction.actionType} ${src.indices.joinToString(",", prefix = "<", postfix = ">")}")
 			obj.add("targetWidgets", context.serialize(src.actionIndexWidgetMap))
 			return obj
 		}
@@ -270,7 +277,7 @@ class VisualizationGraph : ApkReport() {
 		obj.add("bounds", context.serialize(src?.bounds))
 		obj.addProperty("selected", src?.selected)
 		obj.addProperty("xpath", src?.xpath)
-		obj.addProperty("isLeaf", src?.isLeaf)
+		obj.addProperty("isLeaf", src?.isLeaf())
 
 		return obj
 	}
@@ -383,11 +390,11 @@ class VisualizationGraph : ApkReport() {
 		}
 	}
 
-	// copy highlighed images into the visualization directory and adjust actionData to be unified to same config Id
+	// copy highlighed images into the visualization directory and adjust interaction to be unified to same config Id
 	// FIXME it would be better to keep the information of original state configId's for the different actions to display this information
 	// for this we have to add an option for the Edge class to include/ignore configId's and change the visualization script
 	// to display such information properly (if possible with small images of the alternative config states in the selection view of a state)
-	private fun markTargets(model: Model, imgDir: Path): List<Pair<Int, ActionData>> {
+	private fun markTargets(model: Model, imgDir: Path): List<Pair<Int, Interaction>> {
 		val uidMap: MutableMap<UUID, ConcreteId> = HashMap()
 		var idx = 0
 		var isAQ = false

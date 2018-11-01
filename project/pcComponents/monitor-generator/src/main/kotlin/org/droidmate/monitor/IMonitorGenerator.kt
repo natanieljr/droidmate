@@ -25,7 +25,7 @@
 
 package org.droidmate.monitor
 
-import org.droidmate.apis.ApiMethodSignature
+import org.droidmate.device.apis.ApiMethodSignature
 
 interface IMonitorGenerator {
 	fun generate(signatures: List<ApiMethodSignature>): String

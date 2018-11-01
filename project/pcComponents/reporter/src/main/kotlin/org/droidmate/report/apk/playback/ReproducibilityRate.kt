@@ -26,7 +26,7 @@
 package org.droidmate.report.apk.playback
 
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.statemodel.features.ActionPlaybackFeature
+import org.droidmate.exploration.modelFeatures.ActionPlaybackFeature
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.report.misc.plot
 import org.droidmate.misc.withExtension

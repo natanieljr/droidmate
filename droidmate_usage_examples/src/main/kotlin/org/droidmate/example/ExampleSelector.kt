@@ -5,7 +5,7 @@ import org.droidmate.exploration.StrategySelector
 
 val mySelector: SelectorFunction = { context, pool, bundle ->
 	// Selectors are always invoked to define the strategy, they can also be used to register model
-	// features that need to be ready before the strategy starts
+	// modelFeatures that need to be ready before the strategy starts
 	val modelFeature = context.getOrCreateWatcher<ExampleModelFeature>()
 
 

@@ -78,7 +78,7 @@ appender(appender_name_stdStreams, FileAppender) {
 		// Reference:
 		// http://logback.qos.ch/manual/filters.html#GEventEvaluator
 		evaluator(GEventEvaluator) {
-			// Do not log TRACE from SysCmdExecutor, as it is too verbose.
+			// Do not logcat TRACE from SysCmdExecutor, as it is too verbose.
 			expression = "(e.loggerName.contains('$SysCmdExecutor.simpleName') && (e.level == TRACE))"
 		}
 		onMatch = DENY
@@ -96,7 +96,7 @@ appender(appender_name_master, LazyFileAppender) {
 	filter(MarkerFilter) { marker = Markers.appHealth; onMismatch = NEUTRAL; onMatch = ACCEPT }
 	filter(AllDroidmateMarkersFilter) { onMatch = DENY }
 
-	// Do not log TRACE from SysCmdExecutor, as it is too verbose.
+	// Do not logcat TRACE from SysCmdExecutor, as it is too verbose.
 	//
 	// Reference:
 	// http://logback.qos.ch/manual/filters.html#GEventEvaluator
@@ -107,7 +107,7 @@ appender(appender_name_master, LazyFileAppender) {
 		onMatch = DENY
 		onMismatch = NEUTRAL
 	}
-	// Do not log anything from zeroturnaround, for example org.zeroturnaround.exec.stream.StreamPumper
+	// Do not logcat anything from zeroturnaround, for example org.zeroturnaround.exec.stream.StreamPumper
 	filter(EvaluatorFilter) {
 		evaluator(GEventEvaluator) {
 			expression = "(e.loggerName.contains('zeroturnaround'))"
@@ -145,7 +145,7 @@ appender(appender_name_warnings, LazyFileAppender) {
 			onMatch = ACCEPT
 			onMismatch = NEUTRAL
 		}
-		/* We want to log INFO and higher level from appender attached to the root appender, so we know the execution context
+		/* We want to logcat INFO and higher level from appender attached to the root appender, so we know the execution context
 			 of the logs for current appender, including which apk is currently being explored. */
 		filter(ThresholdFilter) { level = INFO }
 		encoder(PatternLayoutEncoder) { pattern = pat_date_level_logger }
@@ -230,10 +230,10 @@ def mainAppenders = mainFileAppenders + [
 List loggersWithLazyFileAppenders = [
 				// We cannot refer here to the classes directly as they would make SLF4J create substitute loggers and thus, issue warning to stderr.
 				//@formatter:off
-				// Uncomment if a detailed SysCmdExecutor log is needed.
+				// Uncomment if a detailed SysCmdExecutor logcat is needed.
 //  [loggerName: "SysCmdExecutor",                                              additivity: false, pattern: pat_date_level],
 //  [loggerName: "org.droidmate.device.android_sdk.AaptWrapper",                       additivity: true,  pattern: pat_date_level],
-				// Has to be commented out to prevent it from polluting master log (prevented by additivity set to false)
+				// Has to be commented out to prevent it from polluting master logcat (prevented by additivity set to false)
 				[loggerName: "WidgetStrategy", additivity: false, pattern: pat_date_level, additionalAppenders: warnAppenders],
 //  [loggerName: "org.droidmate.exploration",                                   additivity: true,  pattern: pat_date_level_logger],//, additionalAppenders: warnAppenders],
 //  [loggerName: "org.droidmate.device",                                        additivity: true,  pattern: pat_date_level_logger]//, additionalAppenders: warnAppenders],
@@ -275,13 +275,13 @@ root(TRACE, mainAppenders + [
 
 // N00b reference for additivity: http://logback.qos.ch/manual/architecture.html#additivity
 
-// Ensure these loggers log to the given appenders even if the "exploration" package logger has additivity set to false.
+// Ensure these loggers logcat to the given appenders even if the "exploration" package logger has additivity set to false.
 //logger("org.droidmate.command.exploration.Exploration", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
 //logger("ExplorationStrategy", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
 //logger("org.droidmate.exploration.output", TRACE, mainAppenders - warnAppenders, /* additivity */ true)
 
 /* This line makes the special "monitor" logger send messages to the "monitor" appender. */
-// Additivity is set to false to stop the logs from "logger_name_monitor" from appearing in the master log (they would appear there as the "master_log" appender is attached to the root logger)
+// Additivity is set to false to stop the logs from "logger_name_monitor" from appearing in the master logcat (they would appear there as the "master_log" appender is attached to the root logger)
 // Turned off because the messages from "monitor" logger were huge (all API calls monitored, including their stack traces).
 logger(logger_name_monitor, TRACE, [] /*[appender_name_monitor] + warnAppenders*/, /* additivity */ false)
 

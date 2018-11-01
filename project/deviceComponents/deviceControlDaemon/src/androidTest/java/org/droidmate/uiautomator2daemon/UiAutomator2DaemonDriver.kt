@@ -33,13 +33,13 @@ import android.os.RemoteException
 import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.*
 import android.util.Log
-import org.droidmate.deviceInterface.DeviceCommand
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.ExecuteCommand
-import org.droidmate.deviceInterface.StopDaemonCommand
-import org.droidmate.deviceInterface.UiAutomatorDaemonException
+import org.droidmate.deviceInterface.communication.DeviceCommand
+import org.droidmate.deviceInterface.communication.ExecuteCommand
+import org.droidmate.deviceInterface.communication.StopDaemonCommand
 
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.uiautomator2daemon.exploration.*
 import kotlin.math.max
 
 /**
@@ -84,7 +84,7 @@ class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val
 	}
 
 	private var nActions = 0
-	@Throws(UiAutomatorDaemonException::class)
+	@Throws(DeviceDaemonException::class)
 	override fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse {
 		Log.v(uiaDaemon_logcatTag, "Executing device command: (${nActions-3}) $deviceCommand")
 
@@ -109,7 +109,7 @@ class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val
 	private var tFetch = 0L
 	private var tExec = 0L
 	private var et = 0.0
-	@Throws(UiAutomatorDaemonException::class)
+	@Throws(DeviceDaemonException::class)
 	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse =
 		deviceCommand.guiAction.let { action ->
 			debugT(" EXECUTE-TIME avg = ${et / max(1, nActions)}", {
@@ -122,17 +122,17 @@ class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val
 					tExec += it
 				})
 
-				if( !action.isFetch() ) // only fetch once even if the action was a FetchGUI action
-				debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, context, appPackageName, waitForIdleTimeout, afterAction = true) }, inMillis = true, timer = {
-//					if (action !is DeviceLaunchApp) {
+				if (!action.isFetch()) // only fetch once even if the action was a FetchGUI action
+					debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, context, appPackageName, waitForIdleTimeout, afterAction = true) }, inMillis = true, timer = {
+						//					if (action !is DeviceLaunchApp) {
 						tFetch += it
 //					}
 					})
 				else result as DeviceResponse
 			}, inMillis = true, timer = {
-//				if (action !is DeviceLaunchApp) {
-					et += it / 1000000.0
-					nActions += 1
+				//				if (action !is DeviceLaunchApp) {
+				et += it / 1000000.0
+				nActions += 1
 //				}
 			})
 		}

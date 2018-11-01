@@ -21,8 +21,8 @@ import java.util.*
  * Instrument statements in apk
  */
 class StatementInstrumenter(private val cfg: ConfigurationWrapper,
-							private val sysCmdExecutor: ISysCmdExecutor = SysCmdExecutor(),
-							private val jarsignerWrapper: IJarsignerWrapper = JarsignerWrapper(sysCmdExecutor,
+                            private val sysCmdExecutor: ISysCmdExecutor = SysCmdExecutor(),
+                            private val jarsignerWrapper: IJarsignerWrapper = JarsignerWrapper(sysCmdExecutor,
 									cfg.getPath(BuildConstants.jarsigner),
 									Resource("debug.keystore").extractTo(cfg.resourceDir))) {
 	private val allMethods = HashSet<String>()

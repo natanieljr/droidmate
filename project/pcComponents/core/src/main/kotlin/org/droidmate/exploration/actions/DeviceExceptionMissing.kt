@@ -29,7 +29,7 @@ import org.droidmate.device.android_sdk.DeviceException
 class DeviceExceptionMissing : DeviceException(defaultExceptionMessage) {
 	companion object {
 		private const val serialVersionUID: Long = 1
-		private val defaultExceptionMessage = "N/A (lack of ${DeviceException::class.java.simpleName})"
+		private const val defaultExceptionMessage = "N/A (no device exception available)"
 	}
 
 	override fun toString(): String {

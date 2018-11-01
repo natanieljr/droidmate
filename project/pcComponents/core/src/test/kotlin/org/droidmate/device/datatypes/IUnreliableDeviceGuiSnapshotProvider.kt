@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.device.datatypes
 
-import org.droidmate.deviceInterface.DeviceResponse
+import org.droidmate.deviceInterface.exploration.DeviceResponse
 
 
 interface IUnreliableDeviceGuiSnapshotProvider {

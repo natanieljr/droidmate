@@ -50,7 +50,7 @@ public class LazyFileAppender<E> : OutputStreamAppender<E>() {
 	var append = true
 
 	/**
-	 * The name of the active log file.
+	 * The name of the active logcat file.
 	 */
 	var fileName: String = ""
 
@@ -137,7 +137,7 @@ public class LazyFileAppender<E> : OutputStreamAppender<E>() {
 
 	/**
 	 * <p>
-	 * Sets and <i>opens</i> the file where the log output will go. The specified
+	 * Sets and <i>opens</i> the file where the logcat output will go. The specified
 	 * file must be writable.
 	 *
 	 * <p>
@@ -149,7 +149,7 @@ public class LazyFileAppender<E> : OutputStreamAppender<E>() {
 	 * its subclasses, set its properties one by one and then call start().</b>
 	 *
 	 * @param filename
-	 *          The path to the log file.
+	 *          The path to the logcat file.
 	 *
 	 * @return true if successful; false otherwise
 	 */

@@ -26,11 +26,12 @@
 package org.droidmate.exploration.strategy
 
 import kotlinx.coroutines.experimental.*
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.exploration.statemodel.StateData
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.explorationModel.interaction.ActionResult
+import org.droidmate.explorationModel.interaction.StateData
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
+import org.droidmate.misc.debugOutput
 import org.slf4j.LoggerFactory
 import java.lang.Math.max
 
@@ -62,7 +63,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 	private var activeStrategy: ISelectableExplorationStrategy? = null
 
 	/**
-	 * Number of elapsed actionTrace
+	 * Number of elapsed explorationTrace
 	 */
 	private var actionNr: Int = 0
 
@@ -180,11 +181,11 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 
 	override fun decide(result: ActionResult): ExplorationAction {
 
-		logger.debug("decide($result)")
+		if(debugOutput)
+			logger.debug("ActionResult: ${result.action} => #widgets=${result.guiSnapshot} ,exception = ${result.exception}")
 
 		assert(result.successful)
 
-		logger.debug("pool decide")
 		assert(!this.strategies.isEmpty())
 
 		if (this.hasControl())

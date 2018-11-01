@@ -2,8 +2,6 @@ package org.droidmate
 
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.ExplorationContext
-import org.droidmate.frontend.ExceptionHandler
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -14,7 +12,7 @@ internal fun setup(args: Array<String>): ConfigurationWrapper {
 	println(copyRight)
 
 	LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
-	log.info("Bootstrapping DroidMate: building ${org.droidmate.configuration.ConfigurationWrapper::class.java.simpleName} from args " +
+	log.info("Bootstrapping DroidMate: building ${ConfigurationWrapper::class.java.simpleName} from args " +
 			"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
 	log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
 
@@ -30,3 +28,4 @@ private val copyRight = """ |DroidMate, an automated execution generator for And
                   |
                   |email: jamrozik@st.cs.uni-saarland.de
                   |web: www.droidmate.org""".trimMargin()
+

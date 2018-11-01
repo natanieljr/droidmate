@@ -26,10 +26,10 @@ package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
-import org.droidmate.exploration.statemodel.Widget
-import org.droidmate.exploration.statemodel.features.ActionCounterMF
-import org.droidmate.exploration.statemodel.features.EventProbabilityMF
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.exploration.modelFeatures.ActionCounterMF
+import org.droidmate.exploration.modelFeatures.EventProbabilityMF
 
 /**
  * Exploration strategy which selects widgets following Fitness Proportionate Selection

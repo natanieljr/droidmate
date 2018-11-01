@@ -20,14 +20,14 @@
 package org.droidmate.uiautomator2daemon
 
 import android.util.Log
-import org.droidmate.deviceInterface.DeviceCommand
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.StopDaemonCommand
-import org.droidmate.deviceInterface.UiAutomatorDaemonException
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_MSG
+import org.droidmate.deviceInterface.communication.DeviceCommand
+import org.droidmate.deviceInterface.communication.StopDaemonCommand
+import org.droidmate.uiautomator2daemon.exploration.DeviceDaemonException
+import org.droidmate.deviceInterface.DeviceConstants.UIADAEMON_SERVER_START_MSG
 
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.UIADAEMON_SERVER_START_TAG
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.DeviceConstants.UIADAEMON_SERVER_START_TAG
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
+import org.droidmate.deviceInterface.exploration.DeviceResponse
 
 class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver: IUiAutomator2DaemonDriver)
 	: Uiautomator2DaemonTcpServerBase<DeviceCommand, DeviceResponse>(UIADAEMON_SERVER_START_TAG, UIADAEMON_SERVER_START_MSG) {
@@ -40,12 +40,12 @@ class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver:
 
 			return uiaDaemonDriver.executeCommand(deviceCommand)
 
-		} catch (e: UiAutomatorDaemonException) {
+		} catch (e: DeviceDaemonException) {
 			Log.e(uiaDaemon_logcatTag,"Server: Failed to execute command $deviceCommand and thus, obtain appropriate GuiState. Returning exception-DeviceResponse.", e)
 
 			return DeviceResponse.empty.apply { throwable = e }
 		} catch (t: Throwable) {
-			Log.wtf(uiaDaemon_logcatTag, "Server: Failed, with a non-${UiAutomatorDaemonException::class.java.simpleName} (!)," +
+			Log.wtf(uiaDaemon_logcatTag, "Server: Failed, with a non-${DeviceDaemonException::class.java.simpleName} (!)," +
 					"to execute command $deviceCommand and thus, obtain appropriate GuiState. Returning throwable-DeviceResponse.", t)
 
 			return DeviceResponse.empty.apply { throwable = t }

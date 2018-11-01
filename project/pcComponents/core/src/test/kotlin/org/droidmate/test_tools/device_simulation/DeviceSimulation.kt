@@ -24,9 +24,9 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.apis.ITimeFormattedLogcatMessage
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 
 class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuilder,
                                            override val packageName: String)*/ // TODO Fix tests
@@ -42,7 +42,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun getCurrentLogs(): List<ITimeFormattedLogcatMessage> {
+	override fun getCurrentLogs(): List<TimeFormattedLogMessageI> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -97,7 +97,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 					this.getCurrentScreen().getGuiSnapshot()
 	}
 
-	override fun getCurrentLogs(): List<ITimeFormattedLogcatMessage> {
+	override fun getCurrentLogs(): List<TimeFormattedLogMessageI> {
 			return if (this.currentTransitionResult == null)
 					ArrayList()
 			else

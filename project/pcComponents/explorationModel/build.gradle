@@ -1,0 +1,34 @@
+plugins {
+	id 'java'
+	id 'org.jetbrains.kotlin.jvm'
+}
+apply from: file("../../../versions.gradle")
+
+
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
+
+	// we need the jdk dependency instead of stdlib to have enhanced java features like tue 'use' function for try-with-resources
+	compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: project.ext.kotlin_version
+	compile 'com.natpryce:konfig:1.6.6.0'  // configuration library
+
+	testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+compileKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+	kotlinOptions.jvmTarget = "1.8"
+}
+kotlin {
+	experimental.coroutines "enable"
+}

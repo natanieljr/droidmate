@@ -26,22 +26,23 @@
 package org.droidmate.exploration
 
 import kotlinx.coroutines.experimental.*
-import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
-import org.droidmate.deviceInterface.guimodel.*
-import org.droidmate.deviceInterface.guimodel.isQueueEnd
-import org.droidmate.deviceInterface.guimodel.isQueueStart
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.statemodel.*
-import org.droidmate.exploration.statemodel.features.StatementCoverageMF
-import org.droidmate.exploration.statemodel.features.ModelFeature
-import org.droidmate.exploration.statemodel.features.CrashListMF
-import org.droidmate.exploration.statemodel.features.ImgTraceMF
+import org.droidmate.explorationModel.*
+import org.droidmate.exploration.modelFeatures.StatementCoverageMF
+import org.droidmate.exploration.modelFeatures.CrashListMF
+import org.droidmate.exploration.modelFeatures.ImgTraceMF
+import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.explorationModel.config.ConcreteId
+import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.interaction.*
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.misc.TimeProvider
 import org.slf4j.Logger
@@ -56,9 +57,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
                                                    val apk: IApk,
                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   private val watcher: LinkedList<ModelFeature> = LinkedList(),
+                                                   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
                                                    val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
-                                                   val actionTrace: Trace = _model.initNewTrace(watcher)) {
+                                                   val explorationTrace: ExplorationTrace = _model.initNewTrace(watcher)) {
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
@@ -67,9 +68,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
 			= ( findWatcher{ it is T } ?: T::class.java.newInstance().also { addWatcher(it) } ) as T
 
-	fun findWatcher(c: (ModelFeature)->Boolean) = watcher.find(c)
+	fun findWatcher(c: (ModelFeatureI)->Boolean) = watcher.find(c)
 
-	fun<T:ModelFeature> addWatcher(w: T){ actionTrace.addWatcher(w) }
+	fun<T:ModelFeature> addWatcher(w: T){ explorationTrace.addWatcher(w) }
 
 	val crashlist: CrashListMF = getOrCreateWatcher()
 	val exceptionIsPresent: Boolean
@@ -97,7 +98,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config))
 	}
 
-	fun getCurrentState(): StateData = actionTrace.currentState
+	fun getCurrentState(): StateData = explorationTrace.currentState
 	suspend fun getState(sId: ConcreteId) = _model.getState(sId)
 
 	/** filters out all crashing marked widgets from the actionable widgets of the current state **/
@@ -114,19 +115,30 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		apk.updateLaunchableActivityName(result.guiSnapshot.launchableMainActivityName)
 
 		assert(action.toString() == result.action.toString()) { "ERROR on ACTION-RESULT construction the wrong action was instantiated ${result.action} instead of $action"}
-		_model.S_updateModel(result, actionTrace)
-		this.also { context -> watcher.forEach { launch(it.context, parent = it.job) { it.onContextUpdate(context) } } }
+		_model.S_updateModel(result, explorationTrace)
+		this.also { context ->
+			watcher.forEach { feature ->
+				(feature as? ModelFeature)?.let {
+					launch(it.context, parent = it.job) { it.onContextUpdate(context) }
+				}
+			}
+		}
 	}
 
 	fun close() {
-		log.info("finishing context updates, dumping data and restarting features")
+		log.info("finishing context updates, dumping data and restarting modelFeatures")
 		dump()
 
 		// can use the same auxiliary job as the dump function, as it's already free
-		log.info("preparing features for next app")
-		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-finish"), parent = ModelFeature.auxiliaryJob) { it.onAppExplorationFinished(context) } } }
-
-		// wait until all features are restarted
+		log.info("preparing modelFeatures for next app")
+		this.also { context ->
+			watcher.forEach { feature ->
+				(feature as? ModelFeature)?.let {
+					launch(CoroutineName("eContext-finish"), parent = ModelFeature.auxiliaryJob) { it.onAppExplorationFinished(context) }
+				}
+			}
+		}
+		// wait until all modelFeatures are restarted
 		runBlocking {
 			ModelFeature.auxiliaryJob.joinChildren()
 			log.debug("DONE - app finished notification")
@@ -137,8 +149,15 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		log.info("dump models and watcher")
 		assert(!apk.launchableMainActivityName.isBlank()) { "launchableMainActivityName was ${apk.launchableMainActivityName}" }
 		_model.P_dumpModel(_model.config)
-		this.also { context -> watcher.forEach { launch(CoroutineName("eContext-dump"), parent = ModelFeature.auxiliaryJob) { it.dump(context) } } }
 
+		this.also { context ->
+			watcher.forEach { feature ->
+				launch(CoroutineName("eContext-dump"), parent = ModelFeature.auxiliaryJob) {
+				(feature as? ModelFeature)?.let {
+					 it.dump(context) }
+				} ?: feature.dump() // for features without exploration context (ModelFeatureI) instances
+			}
+		}
 		// wait until all dump's completed
 		runBlocking {
 			ModelFeature.auxiliaryJob.joinChildren()
@@ -150,7 +169,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	//TODO it may be more performing to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
 	// this could be nicely combined with the highlighting feature of the (numbered) img trace
 	suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keyboard/icon widgets available
-		return actionTrace.size>0 && actionTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.canBeActedUpon }).isEmpty()
+		return explorationTrace.size>0 && explorationTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.isInteractive }).isEmpty()
 	}
 
 	/**
@@ -158,14 +177,14 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	 *
 	 * @return If the eContext is empty
 	 */
-	fun isEmpty(): Boolean = actionTrace.size == 0
+	fun isEmpty(): Boolean = explorationTrace.size == 0
 	fun explorationCanMoveOn() = isEmpty() || // we are starting the app -> no terminate yet
 			(!getCurrentState().isHomeScreen && belongsToApp(getCurrentState()) && getCurrentState().actionableWidgets.isNotEmpty()) ||
 			getCurrentState().isRequestRuntimePermissionDialogBox
 
 
 	private fun assertLastGuiSnapshotIsHomeOrResultIsFailure() { runBlocking {
-		actionTrace.last()?.let {
+		explorationTrace.last()?.let {
 			assert(!it.successful || getCurrentState().isHomeScreen)
 		}
 	}}
@@ -183,10 +202,10 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	 *
 	 * @return Information of the last action performed or instance of [EmptyActionResult]
 	 */
-	fun getLastAction(): ActionData = runBlocking { actionTrace.last() } ?: ActionData.empty
+	fun getLastAction(): Interaction = runBlocking { explorationTrace.last() } ?: Interaction.empty
 	/** @returns the name of the last executed action.
 	 * This method should be preferred to [getLastAction] as it does not have to wait for any other co-routines. */
-	fun getLastActionType(): String = actionTrace.lastActionType
+	fun getLastActionType(): String = explorationTrace.lastActionType
 
 	/**
 	 * Get the exploration duration in milliseconds
@@ -209,9 +228,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
     	}
 
 	/**
-	 * Get the number of actionTrace which exist in the log
+	 * Get the number of explorationTrace which exist in the logcat
 	 */
-	fun getSize(): Int = actionTrace.size
+	fun getSize(): Int = explorationTrace.size
 
 	fun getModel(): Model {
 		return _model
@@ -220,7 +239,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	@Throws(DroidmateError::class)
 	fun verify() {
 		try {
-			assert(this.actionTrace.size > 0)
+			assert(this.explorationTrace.size > 0)
 			assert(this.explorationStartTime > LocalDateTime.MIN)
 			assert(this.explorationEndTime > LocalDateTime.MIN)
 
@@ -239,9 +258,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 	private fun assertLogsAreSortedByTime() {
-		val apiLogs = actionTrace.getActions()
+		val apiLogs = explorationTrace.getActions()
 				.mapQueueToSingleElement()
-				.flatMap { it.deviceLogs.apiLogs }
+				.flatMap { deviceLog -> deviceLog.deviceLogs.map { ApiLogcatMessage.from(it) } }
 
 		assert(explorationStartTime <= explorationEndTime)
 
@@ -249,11 +268,11 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		assert(ret)
 	}
 
-	private fun List<ActionData>.mapQueueToSingleElement(): List<ActionData>{
+	private fun List<Interaction>.mapQueueToSingleElement(): List<Interaction>{
 		var startQueue = 0
 		var endQueue = 0
 
-		val newList : MutableList<ActionData> = mutableListOf()
+		val newList : MutableList<Interaction> = mutableListOf()
 
 		this.forEach {
 			if (startQueue == endQueue)
@@ -277,9 +296,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 	private fun assertOnlyLastActionMightHaveDeviceException() {
-		// assert(actionTrace.getActions().dropLast(1).all { a -> a.successful })
+		// assert(explorationTrace.getActions().dropLast(1).all { a -> a.successful })
 
-		val actions = actionTrace.getActions().dropLast(1)
+		val actions = explorationTrace.getActions().dropLast(1)
 
 		/** Consider all elements within a ActionQueue as a single action for the assertion
 		    (-> consider only the ActionQueue end) */
@@ -321,9 +340,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		 *
 		 * </p>
 		 */
-		// KNOWN BUG I observed that sometimes exploration start time is more than 10 second later than first log time...
+		// KNOWN BUG I observed that sometimes exploration start time is more than 10 second later than first logcat time...
 		// ...I was unable to identify the reason for that. Two reasons come to mind:
-		// - the exploration log comes from previous exploration. This should not be possible because first logs are read at the end
+		// - the exploration logcat comes from previous exploration. This should not be possible because first logs are read at the end
 		// of first reset exploration action, and logcat is cleared at the beginning of such reset exploration action.
 		// Possible reason is that some logs from previous app exploration were pending to be output to logcat and have outputted
 		// moments after logcat was cleared.
@@ -343,39 +362,39 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	private fun warnIfExplorationStartTimeIsNotBeforeFirstLogTime(diff: TimeDiffWithTolerance, apkFileName: String) {
 		if (!this.isEmpty()) {
-			val firstActionWithLog = this.actionTrace.getActions().firstOrNull { it.deviceLogs.apiLogs.isNotEmpty() }
-			val firstLog = firstActionWithLog?.deviceLogs?.apiLogs?.firstOrNull()
+			val firstActionWithLog = this.explorationTrace.getActions().firstOrNull { it.deviceLogs.isNotEmpty() }
+			val firstLog = firstActionWithLog?.deviceLogs?.firstOrNull()
 			if (firstLog != null)
-				diff.warnIfBeyond(this.explorationStartTime, firstLog.time, "exploration start time", "first API log", apkFileName)
+				diff.warnIfBeyond(this.explorationStartTime, firstLog.time, "exploration start time", "first API logcat", apkFileName)
 		}
 	}
 
 	private fun warnIfLastLogTimeIsNotBeforeExplorationEndTime(diff: TimeDiffWithTolerance, apkFileName: String) {
 		if (!this.isEmpty()) {
-			val lastActionWithLog = this.actionTrace.getActions().lastOrNull { it.deviceLogs.apiLogs.isNotEmpty() }
-			val lastLog = lastActionWithLog?.deviceLogs?.apiLogs?.lastOrNull()
+			val lastActionWithLog = this.explorationTrace.getActions().lastOrNull { it.deviceLogs.isNotEmpty() }
+			val lastLog = lastActionWithLog?.deviceLogs?.lastOrNull()
 			if (lastLog != null)
-				diff.warnIfBeyond(lastLog.time, this.explorationEndTime, "last API log", "exploration end time", apkFileName)
+				diff.warnIfBeyond(lastLog.time, this.explorationEndTime, "last API logcat", "exploration end time", apkFileName)
 		}
 	}
 
 	private fun warnIfLogsAreNotAfterAction(diff: TimeDiffWithTolerance, apkFileName: String) {
-		actionTrace.getActions().forEach {
-			if (!it.deviceLogs.apiLogs.isEmpty()) {
+		explorationTrace.getActions().forEach {
+			if (!it.deviceLogs.isEmpty()) {
 				val actionTime = it.startTimestamp
-				val firstLogTime = it.deviceLogs.apiLogs.first().time
-				diff.warnIfBeyond(actionTime, firstLogTime, "action time", "first log time for action", apkFileName)
+				val firstLogTime = it.deviceLogs.first().time
+				diff.warnIfBeyond(actionTime, firstLogTime, "action time", "first logcat time for action", apkFileName)
 			}
 		}
 	}
 
 	private fun assertFirstActionIsLaunchApp() {
-		assert(actionTrace.getActions().subList(0,4).any { it.actionType.isLaunchApp() }// || actionTrace.first().actionType == PlaybackResetAction::class.simpleName
+		assert(explorationTrace.getActions().subList(0,4).any { it.actionType.isLaunchApp() }// || explorationTrace.first().actionType == PlaybackResetAction::class.simpleName
 		 )
 	}
 
 	private fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {
-		actionTrace.last()?.let {
+		explorationTrace.last()?.let {
 			assert(!it.successful || it.actionType == ActionType.Terminate.name)
 		}
 	}

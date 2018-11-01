@@ -75,7 +75,7 @@ def generateMonitor = { JavaExec je, List<String> args, File generatedMonitor ->
 	["main", "classpath", "standardOutput"].each { je."$it" = runTask."$it" }
 
 	je.args = args
-	// Output is not muted as we want to see in Gradle build log output
+	// Output is not muted as we want to see in Gradle build logcat output
 	//je.standardOutput = new ByteArrayOutputStream() // Mute the task stdout
 	je.outputs.file generatedMonitor
 

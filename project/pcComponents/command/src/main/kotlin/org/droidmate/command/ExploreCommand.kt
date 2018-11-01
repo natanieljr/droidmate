@@ -33,7 +33,6 @@ import org.droidmate.configuration.ConfigProperties.Exploration.apksLimit
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
-import org.droidmate.configuration.ConfigProperties.ModelProperties.path.cleanDirs
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
@@ -59,14 +58,14 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.deviceInterface.guimodel.ActionType
-import org.droidmate.deviceInterface.guimodel.EmptyAction
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ActionType
+import org.droidmate.deviceInterface.exploration.EmptyAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.*
-import org.droidmate.exploration.statemodel.ActionResult
-import org.droidmate.exploration.statemodel.Model
-import org.droidmate.exploration.statemodel.ModelConfig
+import org.droidmate.explorationModel.interaction.ActionResult
+import org.droidmate.explorationModel.Model
+import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
@@ -79,8 +78,9 @@ import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.tools.*
-import org.droidmate.deviceInterface.guimodel.GlobalAction
-import org.droidmate.exploration.statemodel.EmptyActionResult
+import org.droidmate.deviceInterface.exploration.GlobalAction
+import org.droidmate.explorationModel.interaction.EmptyActionResult
+import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -437,7 +437,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 		// Propagate exception if there was any
 		if (!result.successful)
-			explorationContext.exception = result.exception
+			explorationContext.exception = exception
 
 		explorationContext.explorationEndTime = TimeProvider.getNow()
 

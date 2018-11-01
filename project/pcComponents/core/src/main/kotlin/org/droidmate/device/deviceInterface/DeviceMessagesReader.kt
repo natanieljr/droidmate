@@ -25,8 +25,10 @@
 package org.droidmate.device.deviceInterface
 
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.apis.IApiLogcatMessage
 import org.droidmate.device.IExplorableAndroidDevice
+import org.droidmate.device.logcat.ApiLogsReader
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.device.logcat.IDeviceMessagesReader
 
 
 /**

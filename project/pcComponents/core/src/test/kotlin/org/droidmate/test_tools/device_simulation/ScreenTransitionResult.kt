@@ -25,10 +25,10 @@
 package org.droidmate.test_tools.device_simulation
 
 import com.google.common.base.MoreObjects
-import org.droidmate.apis.ITimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 
 class ScreenTransitionResult(override val screen: IGuiScreen,
-                             override val logs: List<ITimeFormattedLogcatMessage>) : IScreenTransitionResult {
+                             override val logs: List<TimeFormattedLogMessageI>) : IScreenTransitionResult {
 	override fun toString(): String {
 		return MoreObjects.toStringHelper(this)
 				.add("logs", logs.flatMap { it.messagePayload.map { it.toString().substring(0, 100) } })

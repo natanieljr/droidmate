@@ -36,7 +36,7 @@ import org.droidmate.misc.BuildConstants
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
 import org.droidmate.misc.Utils
-import org.droidmate.deviceInterface.UiautomatorDaemonConstants
+import org.droidmate.deviceInterface.DeviceConstants
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
@@ -203,7 +203,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	override fun forwardPort(deviceSerialNumber: String, port: Int) {
-//    log.trace("forwardPort(deviceSerialNumber:$deviceSerialNumber, port:$port)")
+//    logcat.trace("forwardPort(deviceSerialNumber:$deviceSerialNumber, port:$port)")
 
 		try {
 			val commandDescription = "Executing adb (Android Debug Bridge) to forward port $port to android device with s/n $deviceSerialNumber."
@@ -254,7 +254,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 					"-s", deviceSerialNumber,
 					/*
 Command line explanation:
--d      : Dumps the log to the screen and exits.
+-d      : Dumps the logcat to the screen and exits.
 -b main : Loads the "main" buffer.
 -v time : Sets the message output format to time (see [2]).
 *:s     : Suppresses all messages, besides the ones having messageTag.
@@ -347,17 +347,17 @@ Logcat reference:
 		try {
 			var timeLeftToQuery = waitTimeout
 			while (timeLeftToQuery >= 0 && readMessages.size < minMessagesCount) {
-//        log.verbose("waitForMessagesOnLogcat.sleep(queryDelay=$queryDelay)")
+//        logcat.verbose("waitForMessagesOnLogcat.sleep(queryDelay=$queryDelay)")
 				Thread.sleep(queryDelay.toLong())
 				timeLeftToQuery -= queryDelay
-//        log.verbose("waitForMessagesOnLogcat.readMessagesFromLogcat(messageTag=$messageTag) " +
+//        logcat.verbose("waitForMessagesOnLogcat.readMessagesFromLogcat(messageTag=$messageTag) " +
 //          "timeLeftToQuery=$timeLeftToQuery readMessages.size()=${readMessages.size()} minMessagesCount=$minMessagesCount")
 				readMessages = this.readMessagesFromLogcat(deviceSerialNumber, messageTag)
 			}
 		} catch (e: InterruptedException) {
 			throw AdbWrapperException(e)
 		}
-//    log.verbose("waitForMessagesOnLogcat loop finished. readMessages.size()=${readMessages.size()}")
+//    logcat.verbose("waitForMessagesOnLogcat loop finished. readMessages.size()=${readMessages.size()}")
 
 		if (readMessages.size < minMessagesCount) {
 			throw AdbWrapperException("Failed waiting for at least $minMessagesCount messages on logcat. " +
@@ -527,11 +527,11 @@ Logcat reference:
 	private fun startUiautomatorDaemonApi23(deviceSerialNumber: String, port: Int) {
 		val commandDescription = "Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
 
-		val uiaDaemonCmdLine = 	"-e ${UiautomatorDaemonConstants.uiaDaemonParam_tcpPort} $port " +
-								"-e ${UiautomatorDaemonConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
-								"-e ${UiautomatorDaemonConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]}"
+		val uiaDaemonCmdLine = 	"-e ${DeviceConstants.uiaDaemonParam_tcpPort} $port " +
+								"-e ${DeviceConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
+								"-e ${DeviceConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]}"
 
-		val testRunner = UiautomatorDaemonConstants.uia2Daemon_testPackageName + "/" + UiautomatorDaemonConstants.uia2Daemon_testRunner
+		val testRunner = DeviceConstants.uia2Daemon_testPackageName + "/" + DeviceConstants.uia2Daemon_testRunner
 		val failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
 
 		try {
@@ -564,7 +564,7 @@ Logcat reference:
 		if (Files.exists(destinationFilePath))
 			Files.delete(destinationFilePath)
 
-		val pulledFilePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + pulledFileName
+		val pulledFilePath = DeviceConstants.deviceLogcatLogDir_api23 + pulledFileName
 
 		val stdout = this.executeCommand(deviceSerialNumber, "", "Pull file (API23 compatibility)",
 				"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
@@ -577,7 +577,7 @@ Logcat reference:
 		assert(shellPackageName.isNotEmpty())
 
 		try {
-			val filePath = UiautomatorDaemonConstants.deviceLogcatLogDir_api23 + fileName
+			val filePath = DeviceConstants.deviceLogcatLogDir_api23 + fileName
 			this.executeCommand(deviceSerialNumber, "", "Delete file (API23 compatibility).",
 					"shell", "run-as", shellPackageName, "rm", filePath)
 		} catch (e: Exception) {

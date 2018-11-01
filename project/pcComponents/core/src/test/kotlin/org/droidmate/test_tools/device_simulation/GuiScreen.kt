@@ -24,8 +24,8 @@
 // web: www.droidmate.org
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.deviceInterface.DeviceResponse
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 
 /**
  * <p>
@@ -78,7 +78,7 @@ class GuiScreen /*constructor(private val internalId: String,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 	// TODO Fix tests
-	//private static final String packageAndroidLauncher = new DeviceConfigurationFactory(UiautomatorDaemonConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
+	//private static final String packageAndroidLauncher = new DeviceConfigurationFactory(DeviceConstants.DEVICE_DEFAULT).getConfiguration().getPackageAndroidLauncher()
 	/*companion object {
 			const val idHome = "home"
 			const val idChrome = "chrome"
@@ -245,7 +245,7 @@ class GuiScreen /*constructor(private val internalId: String,
 			assert(this.finishedBuilding)
 	}
 
-	private fun buildMonitorMessages(): List<ITimeFormattedLogcatMessage> {
+	private fun buildMonitorMessages(): List<TimeFormattedLogMessageI> {
 			return listOf(
 							TimeFormattedLogcatMessage.from(
 											this.timeGenerator!!.shiftAndGet(mapOf("milliseconds" to 1500)), // Milliseconds amount based on empirical evidence.

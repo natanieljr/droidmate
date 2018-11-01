@@ -24,9 +24,10 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
-import org.droidmate.apis.Api
-import org.droidmate.apis.IApi
-import org.droidmate.apis.IApiLogcatMessage
+import org.droidmate.device.apis.Api
+import org.droidmate.device.apis.IApi
+import org.droidmate.device.logcat.IApiLogcatMessage
+import org.droidmate.exploration.modelFeatures.misc.FilteredDeviceLogs
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -49,13 +50,13 @@ class FilteredDeviceLogs {
 	}
 
 	/**
-	 * Checks if given stack trace was obtained from a log to a call to socket &lt;init> made by Monitor TCP server
+	 * Checks if given stack trace was obtained from a logcat to a call to socket &lt;init> made by Monitor TCP server
 	 * ({@code org.droidmate.uiautomator_daemon.MonitorJavaTemplate.MonitorTCPServer}).
 	 *
 	 * This is done by checking if in the stack trace there is a frame with "org.droidmate.monitor.Monitor" prefix that
 	 * is not a call to method with prefix "redir" and is not a call to method "getStackTrace".
 	 *
-	 * Here is an example of a log of monitored API call to such method (with line breaks added for clarity):
+	 * Here is an example of a logcat of monitored API call to such method (with line breaks added for clarity):
 	 *
 	 * 2015-07-31 16:55:17.132 TRACE from monitor - 07-31 16:55:14.782 I/Adapted_Monitored_API_method_call(817):
 	 * TId: 1941
@@ -95,8 +96,8 @@ class FilteredDeviceLogs {
 	 * In this stack trace A calls B and B calls C. If API call B is also monitored, the monitoring might be redundant.
 	 * It indeed is redundant if B always calls C, which is monitored. In such case monitoring B in addition to C will result in
 	 * two API calls always being logged, with stack traces: A->B (for B) and A->B->C (for C). This is redundant.
-	 * It is not redundant if B does not always call C. In such cases sometimes there will be only log for B
-	 * (with stack trace A->B), without log for C.
+	 * It is not redundant if B does not always call C. In such cases sometimes there will be only logcat for B
+	 * (with stack trace A->B), without logcat for C.
 	 *
 	 * To determine monitored API calls which are possibly redundant, we look at the internal calls (i.e. all but the last one)
 	 * in the stack trace which are monitored. In the given example, we look at A and B (C is the last one).
@@ -133,7 +134,7 @@ class FilteredDeviceLogs {
 
 	/**
 	 * <p>
-	 * Checks if given stack trace was obtained from a log to a redundant API call and issues a warning if so.
+	 * Checks if given stack trace was obtained from a logcat to a redundant API call and issues a warning if so.
 	 * Redundant API calls should be no longer logged: they should have been since removed from the API list and thus, the
 	 * monitor. Thus, if such call is encountered, a warning is issued.
 	 * </p><p>
