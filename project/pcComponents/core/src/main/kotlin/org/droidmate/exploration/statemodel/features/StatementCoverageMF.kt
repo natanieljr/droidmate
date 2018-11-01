@@ -181,25 +181,31 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 			command.addAll(listOf("-t", readFrom))
 		}
 
-
 		val builder = ProcessBuilder(command)
+
+		// May block if output is not completely read
+		// - therefore redirect error stream
+		builder.redirectErrorStream(true)
 
 		val process = builder.start()
 
-		val inputReader = InputStreamReader(process.inputStream)
+		val reader = BufferedReader(InputStreamReader(process.inputStream))
 
 		// Fixed maximum time because sometimes the process is not stopping automatically
 		val success = process.waitFor(1.toLong(), TimeUnit.SECONDS)
 
-		val stdout = BufferedReader(inputReader).lines().toList()
 
-		if (success) {
+		val output = if (success) {
 			val exitVal = process.exitValue()
 			assert(exitVal == 0) { "Logcat process exited with error $exitVal." }
+			reader.readLines().toList()
+		} else {
+			// reader.readLines() blocks if process timed out (success = false)
+			listOf("")
 		}
 
 		process.destroy()
-		return stdout
+		return output
 	}
 
 	/**
