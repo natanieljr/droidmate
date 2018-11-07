@@ -24,8 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.droidmate.exploration.actions.pressBack
+import org.droidmate.exploration.actions.queue
 
 /**
  * Exploration strategy that presses the back button on the device.
@@ -36,6 +39,6 @@ import org.droidmate.exploration.actions.pressBack
  */
 object Back : AbstractStrategy() {
 	override fun internalDecide(): ExplorationAction {
-		return eContext.pressBack()
+		return eContext.queue(listOf(GlobalAction(ActionType.CloseKeyboard),eContext.pressBack()))
 	}
 }

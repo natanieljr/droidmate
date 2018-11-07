@@ -244,22 +244,6 @@ class RobustDevice : IRobustDevice {
 		return guiSnapshot
 	}
 
-	private fun DeviceResponse.isValid(): Boolean {
-		return if (this.screenshot.isNotEmpty()) {
-			try {
-				val maxWidth = this.widgets.filter { it.visible }.map { it.boundsX + it.boundsWidth }.max() ?: 0
-				val maxHeight = this.widgets.filter { it.visible }.map { it.boundsY + it.boundsHeight }.max() ?: 0
-
-				(maxWidth == 0 && maxHeight == 0) || ((maxWidth <= screenshotWidth) && (maxHeight <= screenshotHeight))
-			} catch (e: Exception) {
-				log.error("Invalid screenshot ${e.message}. Stacktrace: ${e.stackTrace}")
-				false
-			}
-		}
-		else
-			false
-	}
-
 	override fun perform(action: ExplorationAction): DeviceResponse {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
@@ -274,7 +258,7 @@ class RobustDevice : IRobustDevice {
 							"device.perform(action:$action)"
 					)
 				},
-				{ it.isValid() },
+				{ it.isSuccessfull },
 				deviceOperationAttempts,
 				deviceOperationDelay)
 	}

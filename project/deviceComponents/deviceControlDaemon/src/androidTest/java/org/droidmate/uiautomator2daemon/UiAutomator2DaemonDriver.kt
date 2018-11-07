@@ -25,14 +25,8 @@
 
 package org.droidmate.uiautomator2daemon
 
-import android.app.UiAutomation
-import android.content.Context
-
-import android.os.RemoteException
-
-import android.support.test.InstrumentationRegistry
-import android.support.test.uiautomator.*
 import android.util.Log
+import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.deviceInterface.communication.DeviceCommand
 import org.droidmate.deviceInterface.communication.ExecuteCommand
 import org.droidmate.deviceInterface.communication.StopDaemonCommand
@@ -40,48 +34,14 @@ import org.droidmate.deviceInterface.communication.StopDaemonCommand
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.uiautomator2daemon.exploration.*
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiAutomationEnvironment
 import kotlin.math.max
 
 /**
  * Decides if UiAutomator2DaemonDriver should wait for the window to go to idle state after each click.
  */
-class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val waitForInteractableTimeout: Long) : IUiAutomator2DaemonDriver {
-	private val device: UiDevice
-	private val context: Context
-	private val automation: UiAutomation
-	// Will be updated during the run, when the right command is sent
-	var appPackageName: String = ""
-
-	init {
-		interactableTimeout = waitForInteractableTimeout
-		idleTimeout = waitForIdleTimeout
-
-		// Disabling waiting for selector implicit timeout
-		val c = Configurator.getInstance()
-		c.waitForSelectorTimeout = 0L
-		c.uiAutomationFlags = UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES
-
-		// The instrumentation required to run uiautomator2-daemon is
-		// provided by the command: adb shell instrument <PACKAGE>/<RUNNER>
-		val instr = InstrumentationRegistry.getInstrumentation() ?: throw AssertionError()
-
-		this.automation = instr.uiAutomation
-		if (this.automation == null) throw AssertionError()
-
-		this.context = InstrumentationRegistry.getTargetContext()
-		if (context == null) throw AssertionError()
-
-		this.device = UiDevice.getInstance(instr)
-		if (device == null) throw AssertionError()
-
-		// Orientation is set initially to natural, however can be changed by action
-		try {
-			device.setOrientationNatural()
-			device.freezeRotation()
-		} catch (e: RemoteException) {
-			e.printStackTrace()
-		}
-	}
+class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeout: Long, enablePrintouts: Boolean = false) : IUiAutomator2DaemonDriver {
+	private val uiEnvironment: UiAutomationEnvironment = UiAutomationEnvironment(idleTimeout = waitForIdleTimeout, interactiveTimeout = waitForInteractiveTimeout, enablePrintouts = enablePrintouts)
 
 	private var nActions = 0
 	@Throws(DeviceDaemonException::class)
@@ -110,20 +70,21 @@ class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val
 	private var tExec = 0L
 	private var et = 0.0
 	@Throws(DeviceDaemonException::class)
-	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse =
+	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse = runBlocking {
 		deviceCommand.guiAction.let { action ->
 			debugT(" EXECUTE-TIME avg = ${et / max(1, nActions)}", {
 
 				Log.v(uiaDaemon_logcatTag, "Performing GUI action $action")
 
 				val result = debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
-					action.execute(device, context, automation, this)
+					action.execute(uiEnvironment)
 				}, inMillis = true, timer = {
 					tExec += it
 				})
+//TODO if the previous action was not successful we should return an "ActionFailed"-DeviceResponse
 
 				if (!action.isFetch()) // only fetch once even if the action was a FetchGUI action
-					debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(device, context, appPackageName, waitForIdleTimeout, afterAction = true) }, inMillis = true, timer = {
+					debugT("FETCH avg= ${tFetch / (max(nActions, 1) * 1000000)}", { fetchDeviceData(uiEnvironment, afterAction = true) }, inMillis = true, timer = {
 						//					if (action !is DeviceLaunchApp) {
 						tFetch += it
 //					}
@@ -135,5 +96,5 @@ class UiAutomator2DaemonDriver(private val waitForIdleTimeout: Long, private val
 				nActions += 1
 //				}
 			})
-		}
+		}}
 }

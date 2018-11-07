@@ -95,6 +95,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies.reset
 import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.configuration.ConfigProperties.Strategies.terminate
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.enablePrintOuts
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
@@ -197,6 +198,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(startTimeout, description = "How long DroidMate should wait, in milliseconds, for message on logcat confirming that UiAutomatorDaemonServer has started on android (virtual) device."),
 			CommandLineOption(waitForIdleTimeout, description = "Timeout for a device to be idle an operation."),
 			CommandLineOption(waitForInteractableTimeout, description = "Timeout for a widget to be available after an operation."),
+			CommandLineOption(enablePrintOuts, description = "Enable or disable debug and performance outputs on the device output (in the LogCat)."),
 			CommandLineOption(socketTimeout, description = "Socket timeout to communicate with the UiDaemonServer."),
 			CommandLineOption(basePort, description = "The base port for the communication with the devices. DroidMate communicates over this base port + device index.")
 			).first, fs)
@@ -372,7 +374,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			displayStyle.fieldSeparator = System.lineSeparator()
 
 			var configurationDump = ReflectionToStringBuilder(config, displayStyle).toString()
-			configurationDump = configurationDump.split(System.lineSeparator()).sorted().joinToString(System.lineSeparator())
+			configurationDump = configurationDump.split(System.lineSeparator()).asSequence().sorted().joinToString(System.lineSeparator())
 
 			log.info(runData, "--------------------------------------------------------------------------------")
 			log.info(runData, "")

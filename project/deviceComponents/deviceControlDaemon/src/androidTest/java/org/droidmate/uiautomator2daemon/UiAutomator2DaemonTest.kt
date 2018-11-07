@@ -23,6 +23,7 @@ import android.support.test.InstrumentationRegistry
 import android.support.test.filters.SdkSuppress
 import android.support.test.runner.AndroidJUnit4
 import android.util.Log
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_enablePrintOuts
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_waitForInteractableTimeout
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_waitForIdleTimeout
 import org.junit.Test
@@ -37,6 +38,8 @@ class UiAutomator2DaemonTest {
 
 	@Test
 	fun init() {
+
+		Log.d(uiaDaemon_logcatTag, "start device driver")
 		val extras = InstrumentationRegistry.getArguments()
 
 		val tcpPort = if (extras.containsKey(uiaDaemonParam_tcpPort))
@@ -54,7 +57,16 @@ class UiAutomator2DaemonTest {
 
 		Log.v(uiaDaemon_logcatTag, "$uiaDaemonParam_tcpPort=$tcpPort")
 
-		val uiAutomatorDaemonDriver = UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout)
+
+		val uiAutomatorDaemonDriver =
+				if(extras.containsKey(uiaDaemonParam_enablePrintOuts)) {
+					Log.d(uiaDaemon_logcatTag, "create automation")
+
+					UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout,
+							extras.get(uiaDaemonParam_enablePrintOuts).toString().toBoolean())
+				}
+				else UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout)
+
 		val uiAutomator2DaemonServer = UiAutomator2DaemonServer(uiAutomatorDaemonDriver)
 
 		Log.d(uiaDaemon_logcatTag, "uiAutomator2DaemonServer.start($tcpPort)")

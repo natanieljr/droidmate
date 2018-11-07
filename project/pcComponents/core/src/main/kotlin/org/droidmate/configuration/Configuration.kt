@@ -246,6 +246,7 @@ abstract class ConfigProperties {
 	object UiAutomatorServer : PropertyGroup() {
 		val waitForIdleTimeout by intType
 		val waitForInteractableTimeout by intType
+		val enablePrintOuts by booleanType
 		val startTimeout by intType
 		val socketTimeout by intType
 		val basePort by intType

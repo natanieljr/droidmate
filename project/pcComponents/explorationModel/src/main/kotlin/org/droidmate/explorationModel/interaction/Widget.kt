@@ -28,12 +28,9 @@ package org.droidmate.explorationModel.interaction
 import kotlinx.coroutines.experimental.launch
 import org.droidmate.deviceInterface.exploration.Persistent
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
-import org.droidmate.explorationModel.DummyProperties
-import org.droidmate.explorationModel.P
+import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.*
-import org.droidmate.explorationModel.plus
 import org.droidmate.explorationModel.retention.StringCreator.createPropertyString
-import org.droidmate.explorationModel.toUUID
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.io.File
@@ -68,7 +65,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyId] (and possibly [imgId]) */
 	val id by lazy { computeConcreteId() }
 	val visibleText: String by lazy { computeVisibleText(text, contentDesc) }
-	val bounds: Rectangle by lazy { Rectangle(properties.boundsX, properties.boundsY, properties.boundsWidth, properties.boundsHeight) }
+	val bounds: Rectangle by lazy { visibleBoundaries.firstOrNull()?.boundsRect() ?: Rectangle(0,0,0,0) }  // used for actions -> we are only interested in the visible area
 	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 
 	val isInteractive: Boolean by lazy { computeInteractive() }
@@ -86,7 +83,8 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	}
 	protected open fun computeConcreteId() = Pair(uid, propertyId+imgId)
 	protected open fun computeInteractive(): Boolean =
-			enabled && visible && ( isInputField || clickable || checked ?: false || longClickable || scrollable)
+			enabled && visible && visibleBoundaries.isNotEmpty()
+					&& ( isInputField || clickable || checked ?: false || longClickable || scrollable)
 	open fun isLeaf(): Boolean = childHashes.isEmpty()
 
 
@@ -163,10 +161,12 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 
 		private fun computeVisibleText(displayText: String, alternativeText: String) = "$displayText $alternativeText"
 
+		private fun org.droidmate.deviceInterface.exploration.Rectangle.boundsRect(): Rectangle
+			= Rectangle(leftX, topY, width, height)
 		@JvmStatic
 		private val UiElementPropertiesI.boundsRect: Rectangle
 			get() {
-				return Rectangle(this.boundsX, this.boundsY, this.boundsWidth, this.boundsHeight)
+				return with(boundaries){ boundsRect() }
 			}
 
 		/** widget creation */
@@ -223,7 +223,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 						.contentHashCode().toUUID()
 
 		fun fromUiNode(w: UiElementPropertiesI, screenImg: BufferedImage?, config: ModelConfig): Widget {
-			val widgetImg = if(w.visible && w.boundsWidth>0 && w.boundsHeight>0) screenImg?.getSubImage(w.boundsRect) else null
+			val widgetImg = if(w.visible && w.visibleBoundaries.isNotEmpty()) screenImg?.getSubImage(w.boundsRect) else null
 			widgetImg.let { wImg ->
 				lazy {
 					computeId(w, wImg, true)
@@ -273,9 +273,8 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	}
 
 	override fun toString(): String {
-		return "${uid}_$propertyId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, pos=${bounds.location}:dx=${bounds.width},dy=${bounds.height}]"
+		return "${uid}_$propertyId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, ${visibleOuterBounds(visibleBoundaries)}]"
 	}
-	/* end override */
 
 	/** all properties extracted from the device are supposed to be immutable, to guarantee reproducibility
 	 * if the developer wants a different semantic he has to implement his properties/functions on top */
@@ -296,15 +295,15 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	final override val scrollable: Boolean = properties.scrollable
 	final override val focused: Boolean? = properties.focused
 	final override val selected: Boolean = properties.selected
-	final override val boundsX: Int = properties.boundsX
-	final override val boundsY: Int = properties.boundsY
-	final override val boundsWidth: Int = properties.boundsWidth
-	final override val boundsHeight: Int = properties.boundsHeight
+	final override val boundaries = properties.boundaries
+	final override val visibleBoundaries: List<org.droidmate.deviceInterface.exploration.Rectangle> = properties.visibleBoundaries
 	final override val xpath: String = properties.xpath
 	final override val idHash: Int = properties.idHash
 	final override val parentHash: Int = properties.parentHash
 	final override val childHashes: List<Int> = properties.childHashes
 	final override val visible: Boolean = properties.visible
+	final override val hasUncoveredArea: Boolean = properties.hasUncoveredArea
 	/** end immutable ui-element properties */
+	/* end override */
 
 }

@@ -4,11 +4,13 @@ package org.droidmate.deviceInterface.exploration
 
 import java.io.Serializable
 
+private var counter = 0
 /** ExplorationActions which are send to the device,
  * the device control driver is then deciding how to execute them based on their type and parameters */
 sealed class ExplorationAction : Serializable {
 	open val name: String get() = this::class.java.simpleName
 	open val hasWidgetTarget = false
+	val id: Int = counter++
 
 	fun isTerminate() = name == ActionType.Terminate.name
 	fun isFetch() = name == ActionType.FetchGUI.name

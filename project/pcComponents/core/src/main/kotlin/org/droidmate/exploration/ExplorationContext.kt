@@ -85,7 +85,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	 *
 	 * Later on DroidMate might add the ability to scroll first to make invisible widgets visible.
 	 */
-	var deviceDisplayBounds: Rectangle? = null
+	var deviceDisplayBounds: Rectangle? = null  //FIXME this should not be necessary anymore
 	/** for debugging purpose only contains the last UiAutomator dump */
 	var lastDump: String = ""
 
@@ -102,10 +102,11 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	suspend fun getState(sId: ConcreteId) = _model.getState(sId)
 
 	/** filters out all crashing marked widgets from the actionable widgets of the current state **/
-	suspend fun nonCrashingWidgets() = getCurrentState().let{ s-> s.distinctTargets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
+	suspend fun nonCrashingWidgets() = getCurrentState().let{ s->
+		s.distinctTargets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
 
 	fun belongsToApp(state: StateData): Boolean {
-		return state.topNodePackageName == apk.packageName
+		return state.displayedWindows.any { it.pkgName == apk.packageName }
 	}
 
 	fun add(action: ExplorationAction, result: ActionResult) {
@@ -153,8 +154,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		this.also { context ->
 			watcher.forEach { feature ->
 				launch(CoroutineName("eContext-dump"), parent = ModelFeature.auxiliaryJob) {
-				(feature as? ModelFeature)?.let {
-					 it.dump(context) }
+					(feature as? ModelFeature)?.dump(context)
 				} ?: feature.dump() // for features without exploration context (ModelFeatureI) instances
 			}
 		}

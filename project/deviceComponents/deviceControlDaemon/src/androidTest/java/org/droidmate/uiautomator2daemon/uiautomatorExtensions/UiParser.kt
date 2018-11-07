@@ -1,17 +1,15 @@
+@file:Suppress("UsePropertyAccessSyntax")
+
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
-import android.app.Service
-import android.graphics.Point
 import android.graphics.Rect
-import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.NodeProcessor
 import android.support.test.uiautomator.getBounds
-import android.view.WindowManager
+import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
-import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.deviceInterface.communication.UiElementProperties
-import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiHierarchy.appArea
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
 
@@ -19,24 +17,30 @@ abstract class UiParser {
 
 	protected var deviceW: Int = 0
 	protected var deviceH: Int = 0
-	protected var rootIdx: Int = 0
-	protected suspend fun createBottomUp(node: AccessibilityNodeInfo, index: Int = 0, parentXpath: String, nodes: MutableList<UiElementPropertiesI>, parentH: Int = 0): UiElementPropertiesI? {
+	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
+	                                     parentXpath: String, nodes: MutableList<UiElementPropertiesI>,
+	                                     parentH: Int = 0): UiElementPropertiesI? {
 		if(!isActive) return null
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
-		val nChildren = node.childCount
-		// bottom-up strategy, process children first if they exist
-		val children = (0 until nChildren).map { i ->
-			createBottomUp(node.getChild(i),i, "$xPath/",nodes,xPath.hashCode()+rootIdx)
-		}
+		val nChildren = node.getChildCount()
 
-		return node.createWidget(xPath,children.filterNotNull(),parentH).also {
+		val children: List<UiElementPropertiesI?> = (0 until nChildren).map { i -> Pair(i,node.getChild(i)) }
+				//FIXME it seams that smaller index should be on top of higher index siblings but in case of custom drawingOrder a higher value should be prioritized [at least that's the case for eBay]
+//				.sortedBy { (i,node) -> it.drawingOrder } //TODO does in all cases ignoring drawingOrder and using child index work best?
+				.map { (i,childNode) ->		// bottom-up strategy, process children first (in drawingOrder) if they exist
+					if(childNode == null) debugOut("ERROR child nodes should never be null")
+					createBottomUp(w, childNode, i, "$xPath/",nodes,xPath.hashCode()+node.windowId).also {
+						childNode.recycle()  //recycle children as we requested instances via getChild which have to be released
+					}
+				}
+
+		return node.createWidget(w, xPath,children.filterNotNull(),parentH).also {
 			nodes.add(it)
-			node.recycle()
 		}
 	}
 
-	private fun AccessibilityNodeInfo.createWidget(xPath: String, children: List<UiElementPropertiesI>, parentH: Int): UiElementPropertiesI {
+	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementPropertiesI>, parentH: Int): UiElementPropertiesI {
 		val nodeRect: Rect = this.getBounds(deviceW, deviceH)
 		val props = LinkedList<String>()
 		props.add("actionList = ${this.actionList}")
@@ -44,8 +48,22 @@ abstract class UiParser {
 		props.add("hintText = ${this.hintText}")  // -> for edit fields
 		props.add("inputType = ${this.inputType}")
 		props.add("labelFor = ${this.labelFor}")
+		props.add("liveRegion = ${this.liveRegion}")
+
+		var uncoveredArea = true
+		// due to bottomUp strategy we will only get coordinates which are not overlapped by other UiElements
+		val visibleArea = if(!isEnabled || !isVisibleToUser) emptyList()
+				else nodeRect.visibleAxis(w.area).map { it.toRectangle() }.let { area ->
+					if (area.isEmpty()) {
+						val childrenC = children.flatMap { boundsList -> boundsList.visibleBoundaries } // allow the parent boundaries to contain all visible child coordinates
+
+						uncoveredArea = false
+						nodeRect.visibleAxisR(childrenC)
+					} else area
+				}
 
 		return UiElementProperties(
+				hasUncoveredArea = uncoveredArea,
 				metaInfo = props,
 				text = safeCharSeqToString(text),
 				contentDesc = safeCharSeqToString(contentDescription),
@@ -53,7 +71,7 @@ abstract class UiParser {
 				className = safeCharSeqToString(className),
 				packageName = safeCharSeqToString(packageName),
 				enabled = isEnabled,
-				isInputField = isEditable, // could be usefull for custom widget classes to identify input fields
+				isInputField = isEditable,
 				isPassword = isPassword,
 				clickable = isClickable,
 				longClickable = isLongClickable,
@@ -61,62 +79,22 @@ abstract class UiParser {
 				focused = if (isFocusable) isFocused else null,
 				scrollable = isScrollable,
 				selected = isSelected,
-				visible = isVisibleToUser && nodeRect.intersect(appArea), // visible if partially within app area
-				boundsX = nodeRect.left,
-				boundsY = nodeRect.top,
-				boundsHeight = nodeRect.height(),
-				boundsWidth = nodeRect.width(),
-//				isLeaf = childCount <= 0,
+				visible = isVisibleToUser,
+				boundaries = nodeRect.toRectangle(),
+				visibleBoundaries = visibleArea,
 				xpath = xPath,
-				idHash = xPath.hashCode() + rootIdx,
 				parentHash = parentH,
-//				hasActableDescendant = children.any { it.actable || it.hasActableDescendant },
 				childHashes = children.map { it.idHash },
-				isKeyboard = false,  //FIXME determine via new window analysis
+				isKeyboard = w.isKeyboard,
 				windowId = windowId
 		)
 	}
 
-	private fun Rect.x() = left
-	private fun Rect.y() = top
-
-	//FIXME should be done on PC side only (if required)
-	/**
-	 * we aim to prevent multiple clicks to the same uncoveredCoord area issued due to actable layout elements,
-	 * for that we identify the area where no actable child nodes are (if it exists)
-	 *
-	 * there are two potential cases for this scenario:
-	 * - the parent element is bigger covers more space than is occupied by its children
-	 * - a child has an actable area >0 but is itself not actable upon
+	/*
+	 * The display may contain decorative elements as the status and menu bar which.
+	 * We use this method to check if an element is invisible, since it is hidden by such decorative elements.
 	 */
-//	private fun AccessibilityNodeInfo.computeOverlays(children: Collection<UiElementProperties>, nodeRect: Rect):Pair<Int, Int>? {
-//		when{
-//			children.isEmpty() && actable -> return null // leafs cannot have uncovered children
-//			// the parent layer may have the actable flag for this child => propagate the uncovered
-//			children.isEmpty() ->
-//				return Pair(center(nodeRect.x(), nodeRect.width()), center(nodeRect.y(), nodeRect.height()))
-//		}
-//
-//		children.find { !it.actable && it.uncoveredCoord!=null }?.let {
-//			return it.uncoveredCoord
-//		}
-//				?: if(nodeRect.height()*nodeRect.width() > children.sumBy { it.boundsHeight*it.boundsWidth }){
-//					val uncoveredX = LinkedList<Int>().also { it.addAll(nodeRect.x()..(nodeRect.x()+nodeRect.width())) }
-//					val uncoveredY = LinkedList<Int>().also { it.addAll(nodeRect.y()..(nodeRect.x()+nodeRect.height())) }
-//					for(child in children){
-//						uncoveredX.removeAll(child.boundsX..(child.boundsX+child.boundsWidth))
-//						uncoveredY.removeAll(child.boundsY..(child.boundsY+child.boundsHeight))
-//					}
-//					if(uncoveredX.isNotEmpty() && uncoveredY.isNotEmpty()){
-//						return Pair(uncoveredX.first,uncoveredY.first)
-//					}
-//				}
-//	}
-
-	/**
-	 * The display may contain decorative elements as the status and menue bar which.
-	 * We use this method to check if an element is unvisible, since it is overlayed by such decorative elements.
-	 */
+	/* for now keep it here if we later need to recognize decor elements again, maybe to differentiate them from other system windows
 	fun computeAppArea():Rect{
 	// compute the height of the status bar, which determines the offset for any visible app element
 		var sH = 0
@@ -132,6 +110,7 @@ abstract class UiParser {
 
 		return Rect(0,sH,p.x,p.y)
 	}
+	*/
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
 			{ serializer: XmlSerializer, width: Int, height: Int ->

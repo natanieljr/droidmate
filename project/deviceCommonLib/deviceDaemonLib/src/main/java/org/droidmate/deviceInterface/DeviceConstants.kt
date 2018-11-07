@@ -60,6 +60,7 @@ object DeviceConstants {
 	const val uiaDaemonParam_tcpPort = "uiadaemon_server_tcp_port"
 	const val uiaDaemonParam_waitForIdleTimeout = "uiadaemon_wait_for_idle_timeout"
 	const val uiaDaemonParam_waitForInteractableTimeout = "uiadaemon_wait_for_interactable_timeout"
+	const val uiaDaemonParam_enablePrintOuts = "uiadaemon_enablePrintOuts"
 	const val uiaDaemonParam_socketTimeout = "uiadaemon_server_socket_timeout"
 
 	const val deviceLogcatLogDir_api23 = "/data/user/0/$uia2Daemon_packageName/files/"

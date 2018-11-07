@@ -37,6 +37,7 @@ import org.droidmate.explorationModel.config.emptyId
 import org.droidmate.exploration.modelFeatures.ActionCounterMF
 import org.droidmate.exploration.modelFeatures.BlackListMF
 import org.droidmate.exploration.modelFeatures.listOfSmallest
+import org.droidmate.misc.debugOutput
 import java.util.Random
 
 /**
@@ -188,19 +189,20 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		logger.debug("Chosen widget info: $widget: ${widget.isInteractive}\t${widget.clickable}\t${widget.checked}\t${widget.longClickable}\t${widget.scrollable}")
-
 		val actionList = if (randomScroll)
 			widget.availableActions()
 		else
 			widget.availableActions().filterNot { it is Swipe }
 
 		val maxVal = actionList.size
-
+	//FIXME this may give trouble with swipe-able only elements
 		assert(maxVal > 0) { "No actions can be performed on the widget $widget" }
 
 		val randomIdx = random.nextInt(maxVal)
-		return actionList[randomIdx]
+		return actionList[randomIdx].also {
+			if(debugOutput) logger.debug("[${it.id}] Chosen widget info: $widget: interactive=${widget.isInteractive}\tclickable=${widget.clickable}\tcheckable=${widget.checked}\tlong-clickable=${widget.longClickable}\tscrollable=${widget.scrollable}")
+
+		}
 	}
 
 	override fun chooseAction(): ExplorationAction {

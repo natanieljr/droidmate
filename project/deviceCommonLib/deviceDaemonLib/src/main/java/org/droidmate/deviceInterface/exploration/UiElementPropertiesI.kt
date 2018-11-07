@@ -6,8 +6,6 @@ import java.io.Serializable
 @Target( AnnotationTarget.PROPERTY) annotation class Persistent(val header: String, val ordinal: Int)
 
 interface UiElementPropertiesI : Serializable {		//FIXME load/create properties for these properties
-	val serialVersionUID: Long  // necessary for TCP communication, otherwise it would be computed by the class hash which may cause de-/serialization errors
-		get() = 5205083142890068067
 
 	fun copy(): UiElementPropertiesI {
 		TODO("if necessary should be implemented by instantiating class")
@@ -23,6 +21,7 @@ interface UiElementPropertiesI : Serializable {		//FIXME load/create properties 
 	@property:Persistent("Checkable", 10)
 	val checked: Boolean?
 	val resourceId: String
+	@property:Persistent("UI Class", 2)
 	val className: String
 	val packageName: String
 	val enabled: Boolean
@@ -34,21 +33,32 @@ interface UiElementPropertiesI : Serializable {		//FIXME load/create properties 
 	val focused: Boolean?
 	val selected: Boolean
 
-	/** REMARK: the bounds may lay outside of the screen boundaries, if the element is (partially) invisible */
-	val boundsX: Int
-	val boundsY: Int
-	val boundsWidth: Int
-	val boundsHeight: Int
-
 	val visible: Boolean
+	/** REMARK: the boundaries may lay outside of the screen boundaries, if the element is (partially) invisible.
+	 * This is necessary to compute potential scroll operations to navigate to this element (get it into the visible area) */
+	val boundaries: Rectangle
+	/** window and UiElement overlays are analyzed to determine if this element is accessible (partially on top)
+	 * ore hidden behind other elements (like menu bars).
+	 * If [hasUncoveredArea] is true these boundaries are uniquely covered by this UI element otherwise it may contain visible child coordinates
+	 */
+	@property:Persistent("Visible Area", 20)
+	val visibleBoundaries: List<Rectangle>
+	@property:Persistent("Covers Unique Area", 19)
+	val hasUncoveredArea: Boolean
 	val xpath: String
 
-	/** used internally to re-identify elements between device and pc (computed as hash code of the elements (customized) unique xpath) */
-	val idHash: Int
+	/** used internally to re-identify elements between device and pc
+	 * (computed as hash code of the elements (customized by +windowId) unique xpath) */
+	val idHash: Int // internally computed in UiElementProperties -> does not have to be persisted necessarily
 	val parentHash: Int
 	val childHashes: List<Int>
 
 	val metaInfo: List<String>
+
+	companion object {
+		// necessary for TCP communication, otherwise it would be computed by the class hash which may cause de-/serialization errors
+		const val serialVersionUID: Long = 5205083142890068067//		@JvmStatic
+	}
 
 }
 

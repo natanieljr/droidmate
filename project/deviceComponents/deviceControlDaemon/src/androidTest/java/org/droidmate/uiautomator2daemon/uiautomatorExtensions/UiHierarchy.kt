@@ -2,9 +2,9 @@
 
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
+import android.app.UiAutomation
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.support.test.runner.screenshot.Screenshot
 import android.support.test.uiautomator.*
 import android.util.Log
 import android.util.Xml
@@ -26,28 +26,30 @@ import kotlin.system.measureTimeMillis
 object UiHierarchy : UiParser() {
 	private const val LOGTAG = "droidmate/UiHierarchy"
 
-	var appArea: Rect = Rect()
-
 	private var nActions = 0
 	private var ut = 0L
-	suspend fun fetch(device: UiDevice): List<UiElementPropertiesI> = debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
+	suspend fun fetch(device: UiDevice, windows: List<DisplayedWindow>): List<UiElementPropertiesI>?
+			= debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
 		deviceW = device.displayWidth
 		deviceH = device.displayHeight
-		appArea = computeAppArea()
 		val nodes = LinkedList<UiElementPropertiesI>()
 
 		try {
-			device.getNonSystemRootNodes().let {
-				it.forEachIndexed { index: Int, root: AccessibilityNodeInfo ->
-					rootIdx = index
-					createBottomUp(root, parentXpath = "//", nodes = nodes)
-				}
+			//TODO check if this filters out all os windows but keeps permission request dialogues
+//			debugOut("windows to extract: ${windows.map { "${it.isExtracted()}-${it.w.pkgName}:${it.w.windowId}[${visibleOuterBounds(it.area)}]" }}")
+			windows.forEach {  w: DisplayedWindow ->
+				if (w.isExtracted() ){
+					w.area = LinkedList<Rect>().apply { w.initialArea.forEach { add(it) } }  //FIXME need to copy each element?
+					if(w.rootNode == null) debugOut("ERROR root should not be null")
+					check(w.rootNode != null) {"if extraction is enables we have to have a rootNode"}
+					createBottomUp(w, w.rootNode!!, parentXpath = "//", nodes = nodes)  //FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
+					Log.d(LOGTAG, "${w.w.pkgName}:${w.w.windowId} ${visibleOuterBounds(w.initialArea)} #elems = ${nodes.size}")				}
 			}
 		} catch (e: Exception) {  // the accessibilityNode service may throw this if the node is no longer up-to-date
 			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}\n last widget was ${nodes.lastOrNull()}")
+			return null
 		}
-
-		nodes.also { Log.d(LOGTAG, "#elems = ${it.size}") }
+nodes
 	}, inMillis = true, timer = { ut += it; nActions += 1 })
 
 
@@ -64,7 +66,7 @@ object UiHierarchy : UiParser() {
 			serializer.attribute("", "rotation", Integer.toString(device.displayRotation))
 
 			device.apply(nodeDumper(serializer, device.displayWidth, device.displayHeight)
-			) { _ -> serializer.endTag("", "node") }
+			) { serializer.endTag("", "node") }
 
 			serializer.endTag("", "hierarchy")
 			serializer.endDocument()
@@ -75,7 +77,7 @@ object UiHierarchy : UiParser() {
 
 	/** check if this node fullfills the given condition and recursively check descendents if not **/
 	fun any(device: UiDevice, retry: Boolean=false, cond: SelectorCondition):Boolean{
-		return findAndPerform(device, cond, retry) { _ -> true}
+		return findAndPerform(device, cond, retry) { true }
 	}
 
 	/** looks for a UiElement fulfilling [cond] and executes [action] on it.
@@ -84,6 +86,8 @@ object UiHierarchy : UiParser() {
 	@JvmOverloads fun findAndPerform(device: UiDevice, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
 		var found = false
 		var successfull = false
+
+		debugOut("called findAndPerform (which will process the accessibility node tree until condition)")
 
 		val processor:NodeProcessor = { node,_, xPath ->
 			when{
@@ -158,21 +162,24 @@ object UiHierarchy : UiParser() {
 		}
 	}
 
-	suspend fun getScreenShot(delayForRetry:Long): Bitmap? {
+	suspend fun getScreenShot(delayForRetry: Long, automation: UiAutomation): Bitmap? {
 		var screenshot: Bitmap? = null
 		debugT("first screen-fetch attempt ", {
 			try {
-				screenshot = Screenshot.capture()?.bitmap
+//				screenshot = Screenshot.capture()?.bitmap // REMARK we cannot use this method as it would screw up the window handles in the UiAutomation
+				screenshot = automation.takeScreenshot()
 			} catch (e: Exception) {
 				Log.w(LOGTAG, "exception on screenshot-capture")
 			}
 		}, inMillis = true)
 
-		if (screenshot == null){
-			Log.d(LOGTAG,"screenshot failed")
-			delay(delayForRetry)
-			screenshot = Screenshot.capture()?.bitmap
-		}
+		// a second try does not help it fails for *flag_secure* views
+//		if (screenshot == null){
+//			Log.d(LOGTAG,"screenshot failed")
+//			delay(delayForRetry)
+//			screenshot = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot()
+//
+//		}
 		return screenshot.also {
 			if (it == null)
 				Log.w(LOGTAG,"no screenshot available")
@@ -182,12 +189,12 @@ object UiHierarchy : UiParser() {
 	@JvmStatic private var t = 0.0
 	@JvmStatic private var c = 0
 	@JvmStatic
-	fun compressScreenshot(screenshot: Bitmap?): ByteArray = debugT("compress image avg = ${t / max(1, c)}", {
+	fun compressScreenshot(screenshot: Bitmap): ByteArray = debugT("compress image avg = ${t / max(1, c)}", {
 		var bytes = ByteArray(0)
 		val stream = ByteArrayOutputStream()
 		try {
-			screenshot?.setHasAlpha(false)
-			screenshot?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+			screenshot.setHasAlpha(false)
+			screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
 			stream.flush()
 
 			bytes = stream.toByteArray()

@@ -4,6 +4,7 @@ import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.ExplorationTrace
 import org.droidmate.explorationModel.config.ConcreteId
+import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.explorationModel.config.dumpString
 import org.droidmate.explorationModel.config.emptyId
 import org.droidmate.explorationModel.config.idFromString
@@ -23,7 +24,7 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: DeviceLogs, exception: String, successful: Boolean, resState: ConcreteId, sep:String)
-			: this(action.name, widgetTargets.pollFirst(),
+			: this(action.name+"-${action.id}", widgetTargets.pollFirst(),
 			startTimestamp, endTimestamp, successful, exception, resState, deviceLogs, sep, ExplorationTrace.computeData(action))
 
 	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)

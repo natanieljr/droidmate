@@ -2,6 +2,7 @@
 
 package org.droidmate.explorationModel
 
+import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import java.nio.charset.Charset
 import java.util.*
@@ -26,7 +27,7 @@ fun center(c:Int, d:Int):Int = c+(d/2)
 /** debug functions */
 
 internal const val debugOutput = false
-const val measurePerformance = false
+const val measurePerformance = true
 
 inline fun <T> nullableDebugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, inMillis: Boolean = false): T? {
 	var res: T? = null
@@ -46,7 +47,19 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 	return nullableDebugT(msg, block, timer, inMillis)!!
 }
 
+fun visibleOuterBounds(r: List<Rectangle>): Rectangle{
+	val p0 = r.firstOrNull()
+	val p1 = r.lastOrNull()
+	return Rectangle.create(p0?.leftX ?: 0, p0?.topY ?: 0, right = p1?.rightX ?: 0, bottom = p1?.bottomY ?: 0)
+}
+
+fun Collection<Rectangle>.firstCenter() = firstOrNull()?.center() ?: Pair(0,0)
+fun Collection<Rectangle>.firstOrEmpty() = firstOrNull() ?: Rectangle(0,0,0,0)
+
 object DummyProperties: UiElementPropertiesI {
+	override val hasUncoveredArea: Boolean = false
+	override val boundaries: Rectangle = Rectangle(0,0,0,0)
+	override val visibleBoundaries: List<Rectangle> = listOf(Rectangle(0,0,0,0))
 	override val metaInfo: List<String> = emptyList()
 	override val isKeyboard: Boolean = false
 	override val windowId: Int = 0
@@ -64,10 +77,6 @@ object DummyProperties: UiElementPropertiesI {
 	override val scrollable: Boolean = false
 	override val focused: Boolean? = null
 	override val selected: Boolean = false
-	override val boundsX: Int = 0
-	override val boundsY: Int = 0
-	override val boundsWidth: Int = 0
-	override val boundsHeight: Int = 0
 	override val visible: Boolean = false
 	override val xpath: String = "No-xPath"
 	override val idHash: Int = 0

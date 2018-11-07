@@ -274,7 +274,7 @@ class VisualizationGraph : ApkReport() {
 		obj.addProperty("scrollable", src?.scrollable)
 		obj.addProperty("checked", src?.checked)
 		obj.addProperty("focused", src?.focused)
-		obj.add("bounds", context.serialize(src?.bounds))
+		obj.add("visibleBoundaries", context.serialize(src?.visibleBoundaries))
 		obj.addProperty("selected", src?.selected)
 		obj.addProperty("xpath", src?.xpath)
 		obj.addProperty("isLeaf", src?.isLeaf())

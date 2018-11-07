@@ -3,9 +3,11 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.deviceInterface.exploration.*
+import org.droidmate.explorationModel.firstCenter
+import org.droidmate.explorationModel.firstOrEmpty
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.explorationModel.center
 import org.droidmate.explorationModel.interaction.widgetTargets
+import org.droidmate.misc.debugOutput
 
 /**
  * These are the new interface functions to interact with any widget.
@@ -54,10 +56,11 @@ fun Widget.setText(newContent: String, isVisible: Boolean = false, enableValidat
 }
 
 fun Widget.dragTo(x: Int, y: Int, stepSize: Int): ExplorationAction = TODO()
-fun Widget.swipeUp(stepSize: Int = this.bounds.height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), Pair(this.bounds.centerX.toInt(), this.bounds.y), stepSize, true)
-fun Widget.swipeDown(stepSize: Int = this.bounds.height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y), Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), stepSize, true)
-fun Widget.swipeLeft(stepSize: Int = this.bounds.width / 2): ExplorationAction = Swipe(Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), Pair(this.bounds.x, this.bounds.centerY.toInt()), stepSize, true)
-fun Widget.swipeRight(stepSize: Int = this.bounds.width / 2): ExplorationAction = Swipe(Pair(this.bounds.x, this.bounds.centerY.toInt()), Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), stepSize, true)
+//FIXME the center points may be overlayed by other elements, swiping the corners would be safer
+fun Widget.swipeUp(stepSize: Int = this.visibleBoundaries.firstOrEmpty().height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), Pair(this.bounds.centerX.toInt(), this.bounds.y), stepSize, true)
+fun Widget.swipeDown(stepSize: Int = this.visibleBoundaries.firstOrEmpty().height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y), Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), stepSize, true)
+fun Widget.swipeLeft(stepSize: Int = this.visibleBoundaries.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), Pair(this.bounds.x, this.bounds.centerY.toInt()), stepSize, true)
+fun Widget.swipeRight(stepSize: Int = this.visibleBoundaries.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.bounds.x, this.bounds.centerY.toInt()), Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), stepSize, true)
 
 /** navigate to this widget (which may be currently out of screen) and click it */
 fun Widget.navigateTo(action: (Widget) -> ExplorationAction): ExplorationAction {
@@ -68,18 +71,14 @@ fun Widget.navigateTo(action: (Widget) -> ExplorationAction): ExplorationAction 
 }
 
 /**
- * Used by RobustDevice which does not currently parse Widgets.
+ * Used by RobustDevice which does not currently create [Widget] objects.
  * This function should not be used anywhere else.
  */
-fun UiElementPropertiesI.click(): ExplorationAction {
-	val x = center(boundsX, boundsWidth)
-	val y = center(boundsY, boundsHeight)
+fun UiElementPropertiesI.click(): ExplorationAction = visibleBoundaries.firstCenter().let{ (x, y) ->
 	return Click(x, y)
 }
 
-fun Widget.clickCoordinate(): Pair<Int, Int> =
-//		uncoveredCoord ?:   //FIXME missing feature
-		Pair(bounds.centerX.toInt(), bounds.centerY.toInt())
+ fun Widget.clickCoordinate(): Pair<Int, Int> = visibleBoundaries.firstCenter()
 
 
 fun Widget.availableActions(): List<ExplorationAction>{
@@ -101,5 +100,7 @@ fun Widget.availableActions(): List<ExplorationAction>{
 		actionList.add(this.swipeLeft())
 	}
 
+	widgetTargets.clear() // ensure the target is only once in the list and not multiple times
+	widgetTargets.add(this)
 	return actionList
 }

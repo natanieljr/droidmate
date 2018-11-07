@@ -31,6 +31,7 @@ import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
+import org.droidmate.misc.debugOutput
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -246,7 +247,13 @@ class StrategySelector constructor(val priority: Int,
 						}
 					}
 				// by default, if it cannot explore, presses back
-					else -> pool.getFirstInstanceOf(Back::class.java)
+					else -> {
+						if(debugOutput) {//FIXME remove debug code
+							val t = context.getCurrentState()
+							val w = t.actionableWidgets
+						}
+						pool.getFirstInstanceOf(Back::class.java)
+					}
 				}
 			}
 			else{			// can move forwards

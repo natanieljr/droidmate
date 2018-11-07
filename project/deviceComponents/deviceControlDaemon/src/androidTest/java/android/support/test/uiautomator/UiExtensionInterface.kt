@@ -41,20 +41,24 @@ fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeP
 	try {
 		if(proceed)
 			(0 until nChildren).map { i ->
-				processTopDown(node.getChild(i), i, processor, postProcessor, "$xPath/")
+				node.getChild(i).let { child ->
+					processTopDown(child, i, processor, postProcessor, "$xPath/").also {
+						child.recycle()
+					}
+				}
 			}
 	} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date
 		Log.w("droidmate/UiDevice", "error child of $parentXpath node no longer available ${e.localizedMessage}")
 		node.refresh()
 	}
-	val res = postProcessor(node)
 
-	node.recycle()
-	return res
+	return postProcessor(node)
 }
 
 @Suppress("UsePropertyAccessSyntax")
-fun UiDevice.getNonSystemRootNodes():List<AccessibilityNodeInfo> = getWindowRoots().filterNot { it.packageName == osPkg }
+fun UiDevice.getNonSystemRootNodes():List<AccessibilityNodeInfo> = getWindowRootNodes().filterNot { it.packageName == osPkg }
+@Suppress("UsePropertyAccessSyntax")
+fun UiDevice.getWindowRootNodes() = getWindowRoots()
 
 fun UiDevice.longClick(x: Int, y: Int, timeout: Long)=
 	interactionController.longTapAndSync(x,y,timeout)

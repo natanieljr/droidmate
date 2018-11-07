@@ -31,29 +31,23 @@ import org.slf4j.LoggerFactory
 import java.io.Serializable
 
 
-open class DeviceResponse private constructor(val windowHierarchyDump: String,
-                                              val topNodePackageName: String,
-                                              val widgets: List<UiElementPropertiesI>,
-                                              val launchableMainActivityName: String,
-                                              val androidLauncherPackageName: String, //TODO instead use directly isHomeScreen property (not get function)
-                                              val androidPackageName: String,
-                                              val deviceDisplayWidth: Int,
-                                              val deviceDisplayHeight: Int,
-                                              val screenshot: ByteArray,
-                                              val screenshotWidth: Int,
-                                              val screenshotHeight: Int,
-                                              val appSize: Pair<Int,Int>, // FIXME
-		// we will need the boundaries of each non system window (appWindow:bounds,pkg,id) to know the scrollable area dimensions, as recomputing may be too expensive/annoying
-		// alternatively we can transfer window scrolling/navigate to widget to the device implementation and thus should not need this info anymore
-		// then we may store the widget->window id information on the device side (currently UiElementProperties) for faster mapping (instead of looking into the UiHierarchy)
-		                                          val statusBarSize: Int
+open class DeviceResponse private constructor(
+		val isSuccessfull: Boolean,
+		val windowHierarchyDump: String,
+		val widgets: List<UiElementPropertiesI>,
+		val launchableMainActivityName: String,
+		val isHomeScreen: Boolean,
+		val androidPackageName: String,
+		val deviceDisplayWidth: Int,
+		val deviceDisplayHeight: Int,
+		val screenshot: ByteArray,
+		val appWindows: List<AppWindow>	//  to know the scrollable area dimensions
 ) : Serializable {
 
 	var throwable: Throwable? = null
-	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
 
 	init {
-		assert(!this.topNodePackageName.isEmpty())
+		assert(!this.appWindows.isEmpty())
 	}
 
 	companion object {
@@ -61,18 +55,16 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 
 		@JvmStatic
 		val empty: DeviceResponse by lazy {
-			DeviceResponse("",
+			DeviceResponse( true,
 					"empty",
 					emptyList(),
 					"",
-					"",
+					false,
 					"",
 					0,
 					0,
 					ByteArray(0),
-					0,
-					0,
-					Pair(0, 0), 0)
+					emptyList())
 		}
 
 		/**
@@ -85,7 +77,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 		 * </p>
 		 */
 		@Suppress("KDocUnresolvedReference")
-		@JvmStatic
+		@JvmStatic  //FIXME there is probably a better way to automatically detect these package names
 		private val androidLauncher:(deviceModel: String)-> String by lazy {{ deviceModel:String ->
 			when {
 				deviceModel.startsWith("Google-Pixel XL/") -> "com.google.android.apps.nexuslauncher"
@@ -113,7 +105,7 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 
 		private val getLaunchableMainActivityName:(launchableMainActivity: String) -> String by lazy {{ launchableMainActivity: String -> launchableMainActivity }}
 
-		@JvmStatic
+		@JvmStatic  //FIXME such hardcoded criteria are too error prone
 		private val getAndroidPackageName:(deviceModel: String) -> String by lazy {{ deviceModel:String ->
 			when {
 				deviceModel.startsWith("OnePlus-A0001") -> "com.cyanogenmod.trebuchet"
@@ -123,19 +115,36 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 			}
 		}}
 
-		fun create(uiHierarchy: Deferred<List<UiElementPropertiesI>>, uiDump: String, launchableActivity: String, deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray, width: Int, height: Int, appArea: Pair<Int,Int>, sH: Int): DeviceResponse = runBlocking{
+		fun create( isSuccessfull: Boolean,
+		            uiHierarchy: Deferred<List<UiElementPropertiesI>>, uiDump: String, launchableActivity: String,
+		            deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray,
+		            appWindows: List<AppWindow>, focusedAppPackageName: String
+		): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
-			DeviceResponse(windowHierarchyDump = uiDump,
-					topNodePackageName = widgets.findLast { !it.packageName.startsWith("com.google.android.inputmethod.latin") } // avoid the keyboard to be falesly recognized as packagename
-							?.packageName ?: "No Widgets",
+
+			DeviceResponse( isSuccessfull = isSuccessfull&&appWindows.isNotEmpty(), windowHierarchyDump = uiDump,
 					widgets = widgets,
 					launchableMainActivityName = getLaunchableMainActivityName(launchableActivity),
-					androidLauncherPackageName = androidLauncher(deviceModel),
-					androidPackageName = getAndroidPackageName(deviceModel),
-					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot, screenshotWidth = width, screenshotHeight = height,
-					appSize = appArea, statusBarSize = sH)
+					isHomeScreen = appWindows.isEmpty() || focusedAppPackageName.startsWith( androidLauncher(deviceModel) ),  //FIXME why the check for text "Widgets"?
+					androidPackageName = getAndroidPackageName(deviceModel), //FIXME this should not be hardcoded as currently done
+					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot,
+					appWindows = appWindows)
 		}
 	}
+	//FIXME isHomescreen check if launcher present:
+	/*
+	private String getLauncherPackageName() {
+        // Create launcher Intent
+        final Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+
+        // Use PackageManager to get the launcher package name
+        PackageManager pm = InstrumentationRegistry.getContext().getPackageManager();
+        ResolveInfo resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        return resolveInfo.activityInfo.packageName;
+    }
+
+	 */
 
 	override fun toString(): String {
 		return when {
@@ -144,17 +153,17 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 //			this.isCompleteActionUsingDialogBox -> "<GUI state of \"Complete action using\" dialog box.>"
 			this.isSelectAHomeAppDialogBox -> "<GUI state of \"Select a home app\" dialog box.>"
 			this.isUseLauncherAsHomeDialogBox -> "<GUI state of \"Use Launcher as Home\" dialog box.>"
-			else -> "<GuiState pkg=$topNodePackageName Widgets count = ${widgets.size}>"
+			else -> "<GuiState windows=${appWindows.map { it.pkgName }} Widgets count = ${widgets.size}>"
 		}
 	}
 
-	val isHomeScreen: Boolean
-		get() = topNodePackageName.startsWith(androidLauncherPackageName) && !widgets.any { it.text == "Widgets" }
 
 	val isAppHasStoppedDialogBox: Boolean
-		get() = topNodePackageName == androidPackageName &&
-				(widgets.any { it.resourceId == "android:id/aerr_close" } &&
-						widgets.any { it.resourceId == "android:id/aerr_wait" })
+		get() = appWindows.any { appWindow ->
+			appWindow.pkgName == androidPackageName &&
+					(widgets.any { it.resourceId == "android:id/aerr_close" } &&
+							widgets.any { it.resourceId == "android:id/aerr_wait" })
+		}
 
 //	val isCompleteActionUsingDialogBox: Boolean
 //		get() = !isSelectAHomeAppDialogBox &&
@@ -163,14 +172,18 @@ open class DeviceResponse private constructor(val windowHierarchyDump: String,
 //				widgets.any { it.text == "Just once" }
 
 	val isSelectAHomeAppDialogBox: Boolean
-		get() = topNodePackageName == androidPackageName &&
-				widgets.any { it.text == "Just once" } &&
-				widgets.any { it.text == "Select a Home app" }
+		get() = appWindows.any { appWindow ->
+			appWindow.pkgName == androidPackageName &&
+					widgets.any { it.text == "Just once" } &&
+					widgets.any { it.text == "Select a Home app" }
+		}
 
 	val isUseLauncherAsHomeDialogBox: Boolean
-		get() = topNodePackageName == androidPackageName &&
-				widgets.any { it.text == "Use Launcher as Home" } &&
-				widgets.any { it.text == "Just once" } &&
-				widgets.any { it.text == "Always" }
+		get() = appWindows.any { appWindow ->
+			appWindow.pkgName == androidPackageName &&
+					widgets.any { it.text == "Use Launcher as Home" } &&
+					widgets.any { it.text == "Just once" } &&
+					widgets.any { it.text == "Always" }
+		}
 
 }

@@ -108,8 +108,8 @@ data class ActionResult(val action: ExplorationAction,
 	fun resultState(widgets: List<Widget>): StateData = resultState(lazyOf(widgets))
 	private fun resultState(widgets: Lazy<List<Widget>>): StateData {
 		return guiSnapshot.let { g ->
-			StateData(widgets, topNodePackageName = g.topNodePackageName,
-					isAppHasStoppedDialogBox = g.isAppHasStoppedDialogBox, isHomeScreen = g.isHomeScreen).apply { appArea = Rectangle(0,g.statusBarSize,g.appSize.first,g.appSize.second+g.statusBarSize) }
+			StateData(widgets, displayedWindows = g.appWindows,
+					isAppHasStoppedDialogBox = g.isAppHasStoppedDialogBox, isHomeScreen = g.isHomeScreen)
 		}
 	}
 }

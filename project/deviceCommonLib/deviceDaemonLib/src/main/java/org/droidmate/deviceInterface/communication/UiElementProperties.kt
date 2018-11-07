@@ -1,5 +1,6 @@
 package org.droidmate.deviceInterface.communication
 
+import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 
 // REMARK: this data class needs to stay in the communication library as the serializer will otherwise throw class def not found
@@ -19,23 +20,21 @@ data class UiElementProperties(
 		override val checked: Boolean?,
 		override val focused: Boolean?,
 		override val selected: Boolean,
-
-		override val boundsX: Int,
-		override val boundsY: Int,
-		override val boundsWidth: Int,
-		override val boundsHeight: Int,
-
+		override val boundaries: Rectangle,
 		override val visible: Boolean,
-		override val xpath: String = "noPath",
+		override val visibleBoundaries: List<Rectangle>,
+		override val xpath: String,
 		override val parentHash: Int,
 		override val childHashes: List<Int> = emptyList(),
-		override val idHash: Int,
 		override val isKeyboard: Boolean,
 		override val windowId: Int,
-		override val metaInfo: List<String>
+		override val metaInfo: List<String>,
+		override val hasUncoveredArea: Boolean
 ) : UiElementPropertiesI {
 
+	override val idHash: Int by lazy{ xpath.hashCode() + windowId }
 
+//TODO cleanup once parsing is repaired
 //	constructor(resId: String, xPath: String)
 //			: this("default",resourceId = resId,xpath = xPath)
 
@@ -44,8 +43,6 @@ data class UiElementProperties(
 //	override val propertyId: UUID by lazy{ _uid ?: (if(idHash!=0) idString+idHash.toString() else idString).toUUID() }  //FIXME move to WidgetI
 
 
-	companion object {
-//		@JvmStatic
 //		fun empty() = UiElementProperties(text = "EMPTY")
 
 //		@JvmStatic
@@ -65,7 +62,7 @@ data class UiElementProperties(
 //						idHash = line[P.HashId.idx(indexMap)].let{ it.toInt() }
 //				)
 
-	}
 }
+
 
 private val flag = { entry: String -> if (entry == "disabled") null else entry.toBoolean() }

@@ -25,6 +25,7 @@
 
 package org.droidmate.explorationModel.interaction
 
+import org.droidmate.deviceInterface.exploration.AppWindow
 import org.droidmate.explorationModel.interaction.Widget.Companion.widgetHeader
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep
@@ -40,7 +41,8 @@ import java.util.*
  * States have two components, the Id determined by its Widgets image, text and description and the ConfigId defined by the WidgetsProperties.
  ** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
 class StateData (private val _widgets: Lazy<Collection<Widget>>,
-                 val topNodePackageName: String = "",
+                 val displayedWindows: List<AppWindow> = emptyList(),
+                 val topNodePackageName: String = "",  //FIXME use visible appWindows here instead
                  val isHomeScreen: Boolean = false,
                  val isAppHasStoppedDialogBox: Boolean = false) {
 
@@ -48,7 +50,6 @@ class StateData (private val _widgets: Lazy<Collection<Widget>>,
 			topNodePackageName = topPackage, isHomeScreen=homeScreen)
 
 	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() } 	}
-	var appArea: Rectangle = Rectangle()
 
 	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
 	val isRequestRuntimePermissionDialogBox: Boolean	by lazy {
@@ -94,14 +95,17 @@ class StateData (private val _widgets: Lazy<Collection<Widget>>,
 	}
 
 	val actionableWidgets by lazy { widgets.filter { it.isInteractive } }
-	val distinctTargets by lazy { actionableWidgets.filter { it.isLeaf() || (it.isInteractive && !it.hasActableDescendant) //FIXME this is a bit stricter than the uncovered coordinate -> if we need it overwrite generateWidgets function
+	val distinctTargets by lazy { actionableWidgets.filter { !it.isKeyboard && (it.isLeaf() || (it.isInteractive //&& !it.hasActableDescendant
+			)) //FIXME this is a bit stricter than the uncovered coordinate -> if we need it overwrite generateWidgets function
 		//|| it.uncoveredCoord!=null
 	}}
 	val hasEdit: Boolean by lazy { widgets.any { it.isInputField } }
+	val focusedWindows: List<String> by lazy { displayedWindows.mapNotNull { if(it.hasInputFocus) it.pkgName else null } }
 
 	// for elements without text visibleText only the image is available which may introduce variance just due to sligh color differences, therefore
 	// non-text elements are only considered if they can be acted upon and don't have actable descendents
-	fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen && w.packageName == topNodePackageName && (w.hasContent() || (w.isLeaf() && w.isInteractive) || (w.isInteractive && !w.hasActableDescendant)
+	//TODO make this an open function, do we want to compare against apk.packageName or currently active/focused package?
+	fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen &&  focusedWindows.contains(w.packageName) && (w.hasContent() || (w.isLeaf() && w.isInteractive) || (w.isInteractive && !w.hasActableDescendant)
 			)).also { w.usedForStateId = it }
 	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text visibleText or it is a leaf) */
 	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)){ id + w.uid } else id

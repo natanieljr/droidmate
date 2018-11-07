@@ -528,8 +528,9 @@ Logcat reference:
 		val commandDescription = "Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
 
 		val uiaDaemonCmdLine = 	"-e ${DeviceConstants.uiaDaemonParam_tcpPort} $port " +
-								"-e ${DeviceConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
-								"-e ${DeviceConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]}"
+				"-e ${DeviceConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
+				"-e ${DeviceConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]} " +
+				"-e ${DeviceConstants.uiaDaemonParam_enablePrintOuts} ${cfg[ConfigProperties.UiAutomatorServer.enablePrintOuts]}"
 
 		val testRunner = DeviceConstants.uia2Daemon_testPackageName + "/" + DeviceConstants.uia2Daemon_testRunner
 		val failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
