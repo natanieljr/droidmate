@@ -225,6 +225,8 @@ class StrategySelector constructor(val priority: Int,
 						Pair( size-launchIdx, beforeLaunch)
 					}
 				}
+				val apkPkg = context.apk.packageName
+				val s = context.getCurrentState()
 				when {
 					lastActionType.isPressBack() -> { // if previous action was back, terminate
 						logger.debug("Cannot explore. Last action was back. Returning 'Reset'")
@@ -232,7 +234,7 @@ class StrategySelector constructor(val priority: Int,
 					}
 					lastLaunchDistance <=3 || context.getLastActionType().isFetch() -> { // since app reset is an ActionQueue of (Launch+EnableWifi), or we had a WaitForLaunch action
 						when {  // last action was reset
-							context.getCurrentState().isAppHasStoppedDialogBox -> {
+							s.isAppHasStoppedDialogBox -> {
 								logger.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
@@ -248,10 +250,6 @@ class StrategySelector constructor(val priority: Int,
 					}
 				// by default, if it cannot explore, presses back
 					else -> {
-						if(debugOutput) {//FIXME remove debug code
-							val t = context.getCurrentState()
-							val w = t.actionableWidgets
-						}
 						pool.getFirstInstanceOf(Back::class.java)
 					}
 				}

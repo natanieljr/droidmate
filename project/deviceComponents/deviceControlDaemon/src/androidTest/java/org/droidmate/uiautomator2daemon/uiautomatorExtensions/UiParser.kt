@@ -15,9 +15,7 @@ import java.util.*
 
 abstract class UiParser {
 
-	protected var deviceW: Int = 0
-	protected var deviceH: Int = 0
-	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
+	protected suspend fun createBottomUp(w: DisplayedWindow, dim: DisplayDimension, node: AccessibilityNodeInfo, index: Int = 0,
 	                                     parentXpath: String, nodes: MutableList<UiElementPropertiesI>,
 	                                     parentH: Int = 0): UiElementPropertiesI? {
 		if(!isActive) return null
@@ -25,23 +23,23 @@ abstract class UiParser {
 
 		val nChildren = node.getChildCount()
 
-		val children: List<UiElementPropertiesI?> = (0 until nChildren).map { i -> Pair(i,node.getChild(i)) }
-				//FIXME it seams that smaller index should be on top of higher index siblings but in case of custom drawingOrder a higher value should be prioritized [at least that's the case for eBay]
-//				.sortedBy { (i,node) -> it.drawingOrder } //TODO does in all cases ignoring drawingOrder and using child index work best?
+		val children: List<UiElementPropertiesI?> = (nChildren-1 downTo 0).map { i -> Pair(i,node.getChild(i)) }
+				//REMARK we use drawing order but sometimes there is a transparent layout in front of the elements, probably used by the apps to determine their app area (e.g. amazon), this has to be considered in the [visibleAxis] call for the window area
+				.sortedByDescending { (_,node) -> node.drawingOrder }
 				.map { (i,childNode) ->		// bottom-up strategy, process children first (in drawingOrder) if they exist
 					if(childNode == null) debugOut("ERROR child nodes should never be null")
-					createBottomUp(w, childNode, i, "$xPath/",nodes,xPath.hashCode()+node.windowId).also {
+					createBottomUp(w, dim, childNode, i, "$xPath/",nodes,xPath.hashCode()+node.windowId).also {
 						childNode.recycle()  //recycle children as we requested instances via getChild which have to be released
 					}
 				}
 
-		return node.createWidget(w, xPath,children.filterNotNull(),parentH).also {
+		return node.createWidget(w, dim, xPath,children.filterNotNull(),parentH).also {
 			nodes.add(it)
 		}
 	}
 
-	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementPropertiesI>, parentH: Int): UiElementPropertiesI {
-		val nodeRect: Rect = this.getBounds(deviceW, deviceH)
+	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, dim: DisplayDimension, xPath: String, children: List<UiElementPropertiesI>, parentH: Int): UiElementPropertiesI {
+		val nodeRect: Rect = this.getBounds(dim)
 		val props = LinkedList<String>()
 		props.add("actionList = ${this.actionList}")
 		props.add("drawingOrder = ${this.drawingOrder}")
@@ -53,13 +51,16 @@ abstract class UiParser {
 		var uncoveredArea = true
 		// due to bottomUp strategy we will only get coordinates which are not overlapped by other UiElements
 		val visibleArea = if(!isEnabled || !isVisibleToUser) emptyList()
-				else nodeRect.visibleAxis(w.area).map { it.toRectangle() }.let { area ->
+				else nodeRect.visibleAxis(w.area, isSingleElement = true).map { it.toRectangle() }.let { area ->
 					if (area.isEmpty()) {
 						val childrenC = children.flatMap { boundsList -> boundsList.visibleBoundaries } // allow the parent boundaries to contain all visible child coordinates
 
 						uncoveredArea = false
 						nodeRect.visibleAxisR(childrenC)
-					} else area
+					} else{
+						uncoveredArea = markedAsOccupied
+						area
+					}
 				}
 
 		return UiElementProperties(
@@ -135,7 +136,7 @@ abstract class UiParser {
 					serializer.attribute("", "password", java.lang.Boolean.toString(node.isPassword))
 					serializer.attribute("", "selected", java.lang.Boolean.toString(node.isSelected))
 					serializer.attribute("", "visible-to-user", java.lang.Boolean.toString(node.isVisibleToUser))
-					serializer.attribute("", "bounds", node.getBounds(width, height).toShortString())
+					serializer.attribute("", "bounds", node.getBounds(DisplayDimension(width, height)).toShortString())
 
 					/** custom attributes, usually not visible in the device-UiDump */
 					serializer.attribute("", "isInputField", java.lang.Boolean.toString(node.isEditable)) // could be usefull for custom widget classes to identify input fields

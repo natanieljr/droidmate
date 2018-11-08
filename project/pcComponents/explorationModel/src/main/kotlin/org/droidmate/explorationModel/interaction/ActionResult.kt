@@ -79,10 +79,12 @@ data class ActionResult(val action: ExplorationAction,
 //		val img:BufferedImage? =
 		(if(screenshot.isNotEmpty()) debugT("img file read", { ImageIO.read(ByteArrayInputStream(this.screenshot)) }, inMillis = true) else null)
 		.let { img ->
-					guiSnapshot.let { g ->
-						debugT(" \n filter device objects",
-								{ g.widgets.filterNot { deviceObjects.contains(it.xpath) } } // ignore the overall layout containing the Android Status-bar
-						).let {
+					guiSnapshot.let { g ->  //TODO check, but this should no longer be necessary
+//						debugT(" \n filter device objects",
+//								{ g.widgets.filterNot { deviceObjects.contains(it.xpath) } } // ignore the overall layout containing the Android Status-bar
+//						)
+								g.widgets
+										.let {
 							//					debugT(" widgets sequential", { it.map{ Widget.fromWidgetData(it,img,config)}} ,{ timeS += it })
 
 							return debugT("create all widgets unconfined", {

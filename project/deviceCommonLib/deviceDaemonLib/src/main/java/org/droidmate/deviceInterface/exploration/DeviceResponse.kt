@@ -38,8 +38,6 @@ open class DeviceResponse private constructor(
 		val launchableMainActivityName: String,
 		val isHomeScreen: Boolean,
 		val androidPackageName: String,
-		val deviceDisplayWidth: Int,
-		val deviceDisplayHeight: Int,
 		val screenshot: ByteArray,
 		val appWindows: List<AppWindow>	//  to know the scrollable area dimensions
 ) : Serializable {
@@ -61,8 +59,6 @@ open class DeviceResponse private constructor(
 					"",
 					false,
 					"",
-					0,
-					0,
 					ByteArray(0),
 					emptyList())
 		}
@@ -117,7 +113,7 @@ open class DeviceResponse private constructor(
 
 		fun create( isSuccessfull: Boolean,
 		            uiHierarchy: Deferred<List<UiElementPropertiesI>>, uiDump: String, launchableActivity: String,
-		            deviceModel: String, displayWidth: Int, displayHeight: Int, screenshot: ByteArray,
+		            deviceModel: String, screenshot: ByteArray,
 		            appWindows: List<AppWindow>, focusedAppPackageName: String
 		): DeviceResponse = runBlocking{
 			val widgets = uiHierarchy.await()
@@ -127,7 +123,7 @@ open class DeviceResponse private constructor(
 					launchableMainActivityName = getLaunchableMainActivityName(launchableActivity),
 					isHomeScreen = appWindows.isEmpty() || focusedAppPackageName.startsWith( androidLauncher(deviceModel) ),  //FIXME why the check for text "Widgets"?
 					androidPackageName = getAndroidPackageName(deviceModel), //FIXME this should not be hardcoded as currently done
-					deviceDisplayWidth = displayWidth, deviceDisplayHeight = displayHeight, screenshot = screenshot,
+					screenshot = screenshot,
 					appWindows = appWindows)
 		}
 	}

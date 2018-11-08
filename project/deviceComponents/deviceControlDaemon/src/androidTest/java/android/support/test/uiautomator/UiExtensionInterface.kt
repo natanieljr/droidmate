@@ -3,11 +3,12 @@ package android.support.test.uiautomator
 import android.graphics.Rect
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.DisplayDimension
 
 
-fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
+fun AccessibilityNodeInfo.getBounds(dim: DisplayDimension): Rect = when{
 	isVisibleToUser ->
-		AccessibilityNodeInfoHelper.getVisibleBoundsInScreen(this, width, height)
+		AccessibilityNodeInfoHelper.getVisibleBoundsInScreen(this, dim.width, dim.height)
 	else -> Rect().apply { getBoundsInScreen(this)}
 }
 
@@ -58,7 +59,7 @@ fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeP
 @Suppress("UsePropertyAccessSyntax")
 fun UiDevice.getNonSystemRootNodes():List<AccessibilityNodeInfo> = getWindowRootNodes().filterNot { it.packageName == osPkg }
 @Suppress("UsePropertyAccessSyntax")
-fun UiDevice.getWindowRootNodes() = getWindowRoots()
+fun UiDevice.getWindowRootNodes(): Array<out AccessibilityNodeInfo> = getWindowRoots()
 
 fun UiDevice.longClick(x: Int, y: Int, timeout: Long)=
 	interactionController.longTapAndSync(x,y,timeout)

@@ -48,9 +48,11 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 }
 
 fun visibleOuterBounds(r: List<Rectangle>): Rectangle{
-	val p0 = r.firstOrNull()
-	val p1 = r.lastOrNull()
-	return Rectangle.create(p0?.leftX ?: 0, p0?.topY ?: 0, right = p1?.rightX ?: 0, bottom = p1?.bottomY ?: 0)
+	val pl = r.minBy { it.leftX }
+	val pt = r.minBy { it.topY }
+	val pr = r.maxBy { it.rightX }
+	val pb = r.maxBy { it.bottomY }
+	return Rectangle.create(pl?.leftX ?: 0, pt?.topY ?: 0, right = pr?.rightX ?: 0, bottom = pb?.bottomY ?: 0)
 }
 
 fun Collection<Rectangle>.firstCenter() = firstOrNull()?.center() ?: Pair(0,0)

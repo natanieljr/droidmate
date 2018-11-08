@@ -28,10 +28,8 @@ object UiHierarchy : UiParser() {
 
 	private var nActions = 0
 	private var ut = 0L
-	suspend fun fetch(device: UiDevice, windows: List<DisplayedWindow>): List<UiElementPropertiesI>?
+	suspend fun fetch(dim:DisplayDimension, windows: List<DisplayedWindow>): List<UiElementPropertiesI>?
 			= debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
-		deviceW = device.displayWidth
-		deviceH = device.displayHeight
 		val nodes = LinkedList<UiElementPropertiesI>()
 
 		try {
@@ -42,7 +40,7 @@ object UiHierarchy : UiParser() {
 					w.area = LinkedList<Rect>().apply { w.initialArea.forEach { add(it) } }  //FIXME need to copy each element?
 					if(w.rootNode == null) debugOut("ERROR root should not be null")
 					check(w.rootNode != null) {"if extraction is enables we have to have a rootNode"}
-					createBottomUp(w, w.rootNode!!, parentXpath = "//", nodes = nodes)  //FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
+					createBottomUp(w, dim, w.rootNode!!, parentXpath = "//", nodes = nodes)  //FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
 					Log.d(LOGTAG, "${w.w.pkgName}:${w.w.windowId} ${visibleOuterBounds(w.initialArea)} #elems = ${nodes.size}")				}
 			}
 		} catch (e: Exception) {  // the accessibilityNode service may throw this if the node is no longer up-to-date
@@ -76,14 +74,20 @@ nodes
 	}, inMillis = true)
 
 	/** check if this node fullfills the given condition and recursively check descendents if not **/
-	fun any(device: UiDevice, retry: Boolean=false, cond: SelectorCondition):Boolean{
-		return findAndPerform(device, cond, retry) { true }
+	suspend fun any(env: UiAutomationEnvironment, retry: Boolean=false, cond: SelectorCondition):Boolean{
+		return findAndPerform(env, cond, retry) { true }
 	}
 
-	/** looks for a UiElement fulfilling [cond] and executes [action] on it.
+	@JvmOverloads
+	suspend fun findAndPerform(env: UiAutomationEnvironment, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean {
+		return findAndPerform(env.getAppRootNodes(),cond,retry,action)
+	}
+
+		/** looks for a UiElement fulfilling [cond] and executes [action] on it.
 	 * The search condition should be unique to avoid unwanted side-effects on other nodes which fulfill the same condition.
 	 */
-	@JvmOverloads fun findAndPerform(device: UiDevice, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
+	@JvmOverloads
+	suspend fun findAndPerform(roots: List<AccessibilityNodeInfo>, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
 		var found = false
 		var successfull = false
 
@@ -115,11 +119,15 @@ nodes
 				}
 			}
 		}
-		device.apply(processor)
+		roots.forEach { root ->
+			processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+		}
 		if(retry && !found) {
 			Log.d(LOGTAG,"didn't find target, try a second time")
 			runBlocking { delay(20) }
-			device.apply(processor)
+			roots.forEach { root ->
+				processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+			}
 		}
 		Log.d(LOGTAG,"found = $found")
 		return found && successfull
@@ -129,19 +137,19 @@ nodes
 	 * @return if the condition was fulfilled within timeout
 	 * */
 	@JvmOverloads
-	fun waitFor(device: UiDevice, timeout: Long = 10000, cond: SelectorCondition): Boolean{
-		return waitFor(device,timeout,10,cond)
+	fun waitFor(env: UiAutomationEnvironment, timeout: Long = 10000, cond: SelectorCondition): Boolean{
+		return waitFor(env,timeout,10,cond)
 	}
 	/** @param pollTime time intervall (in ms) to recheck the condition [cond] */
-	fun waitFor(device: UiDevice, timeout: Long, pollTime: Long, cond: SelectorCondition) = runBlocking{
+	fun waitFor(env: UiAutomationEnvironment, timeout: Long, pollTime: Long, cond: SelectorCondition) = runBlocking{
 		// lookup should only take less than 100ms (avg 50-80ms) if the UiAutomator did not screw up
-		val scanTimeout = 100 // this is the maximal number of mili seconds, which is spend for each lookup in the hierarchy
+		val scanTimeout = 100 // this is the maximal number of milliseconds, which is spend for each lookup in the hierarchy
 		var time = 0.0
 		var found = false
 
 		while(!found && time<timeout){
 			measureTimeMillis {
-				with(async { any(device, retry=false, cond=cond) }) {
+				with(async { any(env, retry=false, cond=cond) }) {
 					var i = 0
 					while(!isCompleted && i<scanTimeout){
 						delay(10)
@@ -152,7 +160,7 @@ nodes
 					else cancel()
 				}
 			}.run{ time += this
-				device.runWatchers() // to update the exploration view?
+				env.device.runWatchers() // to update the exploration view?
 				if(!found && this<pollTime) delay(pollTime-this)
 				Log.d(LOGTAG,"$found single wait iteration $this")
 			}

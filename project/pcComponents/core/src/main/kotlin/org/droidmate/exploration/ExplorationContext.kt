@@ -77,15 +77,6 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		get() = exception !is DeviceExceptionMissing
 
 	var exception: DeviceException = DeviceExceptionMissing()
-	/**
-	 * A rectangle representing visible device display. This is the same visible display from whose
-	 * GUI structure this widget was parsed.
-	 *
-	 * The field is necessary to determine if at least one pixel of the widget is within the visible display and so, can be clicked.
-	 *
-	 * Later on DroidMate might add the ability to scroll first to make invisible widgets visible.
-	 */
-	var deviceDisplayBounds: Rectangle? = null  //FIXME this should not be necessary anymore
 	/** for debugging purpose only contains the last UiAutomator dump */
 	var lastDump: String = ""
 
@@ -111,7 +102,6 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	fun add(action: ExplorationAction, result: ActionResult) {
 		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
-		deviceDisplayBounds = Rectangle(result.guiSnapshot.deviceDisplayWidth, result.guiSnapshot.deviceDisplayHeight)
 		lastDump = result.guiSnapshot.windowHierarchyDump
 		apk.updateLaunchableActivityName(result.guiSnapshot.launchableMainActivityName)
 

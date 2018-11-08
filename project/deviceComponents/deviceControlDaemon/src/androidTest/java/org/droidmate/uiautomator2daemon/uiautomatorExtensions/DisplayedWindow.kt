@@ -17,32 +17,32 @@ data class DisplayedWindow(val w: AppWindow,
                            val initialArea: List<Rect>,
 //                           var area: MutableList<Rect>,
                       var rootNode: AccessibilityNodeInfo?, val isKeyboard: Boolean,
-                      val layer: Int, val bounds: Rect) {
+                      val layer: Int, val bounds: Rect, val windowType:Int) {
 
 	var area: MutableList<Rect> = mutableListOf()
 	fun isExtracted() = rootNode != null
+	fun isApp() = windowType == AccessibilityWindowInfo.TYPE_APPLICATION
 
 	companion object {
-		operator fun invoke(wInfo: AccessibilityWindowInfo, uncoveredCoordinates: MutableList<Rect>,
-		                    keyboardPkgs: List<String>): DisplayedWindow{
-			val outRect = Rect()
-			wInfo.getBoundsInScreen(outRect)
+		operator fun invoke(wInfo: AccessibilityWindowInfo, uncoveredCoordinates: MutableList<Rect>, outRect: Rect,
+		                    deviceRoot: AccessibilityNodeInfo? = null): DisplayedWindow{
 
-			val root: AccessibilityNodeInfo? = wInfo.root // REMARK: do not recycle root nodes, only instances requested via getChild
+			val root: AccessibilityNodeInfo? = deviceRoot ?: wInfo.root // REMARK: do not recycle root nodes, only instances requested via getChild
 			// compute which points on the screen are occupied by this window (and are not occupied by a higher layer window)
 			debugOut("start window visibility computation for ${root?.packageName} $outRect" +
 					"type=${wInfo.type} "
 // title=${wInfo.title} desc=${root.contentDescription}, ${wInfo.isAccessibilityFocused}, ${wInfo.isFocused}, ${wInfo.layer}, ${wInfo.isActive}
 					, debug)
 			val area = outRect.visibleAxis(uncoveredCoordinates)
-			debugOut("create ${wInfo.id} $area")
+			debugOut("create ${wInfo.id} $area", debug)
 			return DisplayedWindow(
 					AppWindow(wInfo.id, root?.packageName?.toString()?:"systemWindow_WithoutRoot", wInfo.isFocused, wInfo.isAccessibilityFocused, visibleOuterBounds(area)),
 					area,
 					isKeyboard = wInfo.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD, //keyboardPkgs.contains(root?.packageName),
 					rootNode = if(wInfo.type == AccessibilityWindowInfo.TYPE_APPLICATION || wInfo.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) root else null,
 					layer = wInfo.layer,
-					bounds = outRect
+					bounds = outRect,
+					windowType = wInfo.type
 			).also {
 //				wInfo.recycle()
 			}

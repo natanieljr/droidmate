@@ -273,7 +273,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	}
 
 	override fun toString(): String {
-		return "${uid}_$propertyId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, ${visibleOuterBounds(visibleBoundaries)}]"
+		return "interactive=$isInteractive-${uid}_$propertyId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, ${visibleOuterBounds(visibleBoundaries)}]"
 	}
 
 	/** all properties extracted from the device are supposed to be immutable, to guarantee reproducibility

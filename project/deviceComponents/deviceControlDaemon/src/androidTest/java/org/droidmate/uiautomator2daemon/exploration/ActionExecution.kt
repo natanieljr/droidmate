@@ -82,8 +82,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				ActionType.FetchGUI -> fetchDeviceData(env = env, afterAction = false)
 				ActionType.Terminate -> false /* should never be transferred to the device */
 				ActionType.PressEnter -> env.device.pressEnter()
-				ActionType.CloseKeyboard ->
-					if (UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
+				ActionType.CloseKeyboard -> 	if (env.isKeyboardOpen()) //(UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
 						env.device.pressBack()
 					else false
 			}.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
@@ -91,7 +90,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 			val idMatch: SelectorCondition = { _, xPath ->
 				idHash == xPath.hashCode() + rootIndex
 			}
-			UiHierarchy.findAndPerform(env.device, idMatch) { nodeInfo ->
+			UiHierarchy.findAndPerform(env, idMatch) { nodeInfo ->
 				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
@@ -148,101 +147,106 @@ private var cnt = 0
 private var wt = 0.0
 private var wc = 0
 private const val debugFetch = false
+private val actableRefetch = {w: UiElementPropertiesI -> w.clickable || w.longClickable || w.isInputField}
 suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean = true): DeviceResponse = coroutineScope{
 	debugOut("start fetch execution",debugFetch)
-	val windows: List<DisplayedWindow> = debugT("compute windows",  { env.getDisplayedWindows()}, inMillis = true)
-	val focusedWindow = windows.filter { it.isExtracted() && !it.isKeyboard }.let { appWindows ->
-		( appWindows.firstOrNull{ it.w.hasFocus || it.w.hasInputFocus } ?: appWindows.firstOrNull())
+	env.lastWindows.firstOrNull { it.isExtracted() && !it.isKeyboard }?.let {
+		env.device.waitForWindowUpdate(it.w.pkgName, env.interactiveTimeout) //wait sync on focused window
 	}
-	val focusedAppPkg = focusedWindow	?.w?.pkgName.also {
-		env.device.waitForWindowUpdate(it, env.interactiveTimeout) //wait sync on focused window
-	} ?: "no AppWindow detected"
 
-	debugOut("determined focused window $focusedAppPkg inputF=${focusedWindow?.w?.hasInputFocus}, focus=${focusedWindow?.w?.hasFocus}")
-	debugT("wait for IDLE avg = ${time / max(1, cnt)} ms", {
-		env.device.waitForIdle(env.idleTimeout)
-		Log.d(logTag,"check if we have a webView")
-		if (afterAction && UiHierarchy.any(env.device, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
-			Log.d(logTag, "WebView detected wait for interactive element with different package name")
-			UiHierarchy.waitFor(env.device, interactableTimeout, actableAppElem)
+		debugT("wait for IDLE avg = ${time / max(1, cnt)} ms", {
+			env.device.waitForIdle(env.idleTimeout)
+			Log.d(logTag,"check if we have a webView")
+			if (afterAction && UiHierarchy.any(env, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
+				Log.d(logTag, "WebView detected wait for interactive element with different package name")
+				UiHierarchy.waitFor(env, interactableTimeout, actableAppElem)
+			}
+		}, inMillis = true,
+				timer = {
+					Log.d(logTag, "time=${it / 1000000}")
+					time += it / 1000000
+					cnt += 1
+				}) // this sometimes really sucks in perfomance but we do not yet have any reliable alternative
+
+	//REMARK keep the order of first wait for windowUpdate, then wait for idle, then extract windows to minimize synchronization issues with opening/closing keyboard windows
+		var windows: List<DisplayedWindow> = debugT("compute windows",  { env.getDisplayedWindows()}, inMillis = true)
+		val focusedWindow = windows.filter { it.isExtracted() && !it.isKeyboard }.let { appWindows ->
+			( appWindows.firstOrNull{ it.w.hasFocus || it.w.hasInputFocus } ?: appWindows.firstOrNull())
 		}
-	}, inMillis = true,
-			timer = {
-				Log.d(logTag, "time=${it / 1000000}")
-				time += it / 1000000
-				cnt += 1
-			}) // this sometimes really sucks in perfomance but we do not yet have any reliable alternative
+		val focusedAppPkg = focusedWindow	?.w?.pkgName ?: "no AppWindow detected"
+		debugOut("determined focused window $focusedAppPkg inputF=${focusedWindow?.w?.hasInputFocus}, focus=${focusedWindow?.w?.hasFocus}")
 
+		debugOut("returned to fetch method",debugFetch)
+		var isSuccessful = true
 
-
-	debugOut("returned to fetch method",debugFetch)
-	var isSuccessful = true
-
-	debugOut("started async img capture",debugFetch)
-	val uiHierarchy = async{
-		debugOut("start element extraction",debugFetch)
-		UiHierarchy.fetch(env.device, windows).let{
-			if(it == null || it.none { w -> w.clickable || w.longClickable || w.isInputField } ) {
-				Log.d(logTag, "first ui extraction failed, start a second try")
-				UiHierarchy.fetch(env.device, debugT("compute windows",  { env.getDisplayedWindows()}, inMillis = true) )  //retry once for the case that AccessibilityNode tree was not yet stable
-			}else it
-		}	 ?:
-		emptyList<UiElementPropertiesI>()	.also { isSuccessful = false }
-	}
+		debugOut("started async img capture",debugFetch)
+		val uiHierarchy = async{
+			debugOut("start element extraction",debugFetch)
+			UiHierarchy.fetch(env.lastDisplayDimension, windows).let{
+				if(it == null || it.none (actableRefetch) ) {
+					Log.d(logTag, "first ui extraction failed, start a second try")
+					windows = debugT("compute windows",  { env.getDisplayedWindows()}, inMillis = true)
+					UiHierarchy.fetch(env.lastDisplayDimension, windows )  //retry once for the case that AccessibilityNode tree was not yet stable
+				}else it
+			}.also {
+				debugOut("INTERACTIVE Element in UI = ${it?.any (actableRefetch)}")
+			} ?:
+			emptyList<UiElementPropertiesI>()	.also { isSuccessful = false }
+		}
 //			val xmlDump = runBlocking { UiHierarchy.getXml(device) }
 
-	debugOut("started async ui extraction",debugFetch)
-	val imgProcess = async {
-		uiHierarchy.await() // we want the ui fetch first as it is fast but will likely solve synchronization issues
-		val img = async{
-			debugOut("start img capture",debugFetch)
-			nullableDebugT("img capture time", {
-				//FIXME we need a better detection when the screen was rendered maybe via WindowContentChanged event
+		debugOut("started async ui extraction",debugFetch)
+		val imgProcess = async {
+			uiHierarchy.await() // we want the ui fetch first as it is fast but will likely solve synchronization issues
+			val img = async{
+				debugOut("start img capture",debugFetch)
+				nullableDebugT("img capture time", {
+					//FIXME we need a better detection when the screen was rendered maybe via WindowContentChanged event
 //			delay(env.idleTimeout) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
-				UiHierarchy.getScreenShot(env.idleTimeout, env.automation).also {
-					isSuccessful = it.isValid(windows)
-				}
-			}, inMillis = true)
-		} // could maybe use Espresso View.DecorativeView to fetch screenshot instead
+					UiHierarchy.getScreenShot(env.idleTimeout, env.automation).also {
+						isSuccessful = it.isValid(windows)
+					}
+				}, inMillis = true)
+			} // could maybe use Espresso View.DecorativeView to fetch screenshot instead
 //TODO the compress is to be removed for delayed img transmission
-		img.await()?.let{  s ->
-			UiHierarchy.compressScreenshot(s).apply {
-				s.recycle()
-			}
-		} ?: ByteArray(0) // if we couldn't capture screenshots
-				.also { Log.w(logTag,"create empty image") }
-	}
-	debugOut("compute img pixels",debugFetch)
-	val imgPixels = debugT("wait for screen avg = ${wt / max(1, wc)}",
-			{
-				imgProcess.await()
-			}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
+			img.await()?.let{  s ->
+				UiHierarchy.compressScreenshot(s).apply {
+					s.recycle()
+				}
+			} ?: ByteArray(0) // if we couldn't capture screenshots
+					.also { Log.w(logTag,"create empty image") }
+		}
+		debugOut("compute img pixels",debugFetch)
+		val imgPixels = debugT("wait for screen avg = ${wt / max(1, wc)}",
+				{
+					imgProcess.await()
+				}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
 
-	debugOut("determine launch-able main activity for pkg=${env.appPackageName}",debugFetch)
-	val launachableMainActivity = try {
-		env.context.packageManager.getLaunchIntentForPackage(env.appPackageName).component.className
-	} catch (e: IllegalStateException) {
-		""
-	}
+		debugOut("determine launch-able main activity for pkg=${env.appPackageName}",debugFetch)
+		val launachableMainActivity = try {
+			env.context.packageManager.getLaunchIntentForPackage(env.appPackageName).component.className
+		} catch (e: IllegalStateException) {
+			""
+		}
 
-	debugOut("create device response $deviceModel",debugFetch)
+		debugOut("create device response $deviceModel",debugFetch)
 
-	env.lastResponse = debugT("compute UI-dump", {
-		DeviceResponse.create( isSuccessfull = isSuccessful, uiHierarchy = uiHierarchy,
-				uiDump =
-				"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
-						", because (currently) we would have to traverse the tree a second time"
+		env.lastResponse = debugT("compute UI-dump", {
+			DeviceResponse.create( isSuccessfull = isSuccessful, uiHierarchy = uiHierarchy,
+					uiDump =
+					"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
+							", because (currently) we would have to traverse the tree a second time"
 //									xmlDump
-				, launchableActivity = launachableMainActivity,
-				deviceModel = deviceModel,
-				displayWidth = env.device.displayWidth, displayHeight = env.device.displayHeight,
-				screenshot = imgPixels,
-				appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
-				focusedAppPackageName = focusedAppPkg
-		)
-	}, inMillis = true)
+					, launchableActivity = launachableMainActivity,
+					deviceModel = deviceModel,
+					screenshot = imgPixels,
+					appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
+					focusedAppPackageName = focusedAppPkg
+			)
+		}, inMillis = true)
 
-	return@coroutineScope env.lastResponse
+		return@coroutineScope env.lastResponse
+
 }
 
 private val deviceModel: String by lazy {
@@ -301,7 +305,7 @@ private fun UiDevice.launchApp(appPackageName: String, env: UiAutomationEnvironm
 				waitTime)
 
 		runBlocking { delay(launchActivityDelay) }
-		success = UiHierarchy.waitFor(this, interactableTimeout, actableAppElem)
+		success = UiHierarchy.waitFor(env, interactableTimeout, actableAppElem)
 		// mute audio after app launch (for very annoying apps we may need a contentObserver listening on audio setting changes)
 		val audio = env.context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 		audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE,0)

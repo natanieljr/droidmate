@@ -12,9 +12,10 @@ fun Rect.toRectangle() = Rectangle(left, top, width(), height())
 fun Rectangle.toRect() = Rect(leftX,topY,rightX,bottomY)
 
 data class Coordinate(val x:Int, val y: Int)
-fun Rect.visibleAxis(uncovered: MutableCollection<Rect>): List<Rect>{
+var markedAsOccupied = true
+fun Rect.visibleAxis(uncovered: MutableCollection<Rect>, isSingleElement: Boolean = false): List<Rect>{
 	if(uncovered.isEmpty()) return emptyList()
-
+	markedAsOccupied = true
 	val newR = LinkedList<Rect>()
 	var changed = false
 	val del = LinkedList<Rect>()
@@ -22,7 +23,12 @@ fun Rect.visibleAxis(uncovered: MutableCollection<Rect>): List<Rect>{
 		val r = Rect()
 		if(r.setIntersect(this,it)) {
 			changed = true
-			del.add(it)
+			if(!isSingleElement || r!= it){  // try detect elements which are for some reason rendered 'behind' an transparent layout element
+				del.add(it)
+			}else{
+				markedAsOccupied = false
+			}
+			// this probably is done by the apps to determine their visible app areas
 			newR.apply{ // add surrounding ones areas
 				add(Rect(it.left,it.top,it.right,r.top-1))// above intersection
 				add(Rect(it.left,r.top,r.left-1,r.bottom))  // left from intersection
@@ -66,7 +72,7 @@ operator fun Coordinate.rangeTo(c: Coordinate): Collection<Coordinate> {
 }
 
 fun visibleOuterBounds(r: Collection<Rect>): Rectangle{
-	debugOut("bounds for $r")
+	debugOut("bounds for $r", false)
 	val p0 = r.firstOrNull()
 	val p1 = r.lastOrNull()
 	return Rect(p0?.left ?: 0, p0?.top ?: 0, p1?.right ?: 0, p1?.bottom ?: 0).toRectangle()
