@@ -167,7 +167,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		val uncoveredC = LinkedList<Rect>().apply { add(Rect(0,0,displayDim.width,displayDim.height)) }
 //		/*
 		if(lastDisplayDimension == displayDim){
-			var canReuse = true
+			var canReuse = windows.size >= lastWindows.size // necessary since otherwise disappearing soft-keyboards would mark part of the app screen as invisible
 			var c = 0
 			while (canReuse && c<lastWindows.size && c<windows.size){
 				with(lastWindows[c]) {
