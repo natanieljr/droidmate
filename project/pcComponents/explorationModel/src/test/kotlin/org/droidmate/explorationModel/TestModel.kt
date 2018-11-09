@@ -42,7 +42,7 @@
 //		override val boundsWidth: Int = 0,
 //		override val boundsHeight: Int = 0,
 //
-//		override val visible: Boolean = false,
+//		override val definedAsVisible: Boolean = false,
 //		private val _uid: UUID? = null,  // for copy/transform function only to transfer old pId values
 //
 //		override val xpath: String = "noPath",
@@ -60,7 +60,7 @@
 ////				packageName = "package-mock",
 ////				enabled = true,
 ////				clickable = true,
-////				visible = true,
+////				definedAsVisible = true,
 ////				boundsX = 11,
 ////				boundsY = 136,
 ////				boundsWidth = 81,

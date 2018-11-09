@@ -4,18 +4,18 @@ package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
-import android.support.test.uiautomator.getBounds
-import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.experimental.NonCancellable.isActive
 import org.droidmate.deviceInterface.communication.UiElementProperties
+import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
+import org.droidmate.deviceInterface.exploration.visibleOuterBounds
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
 
 abstract class UiParser {
 
-	protected suspend fun createBottomUp(w: DisplayedWindow, dim: DisplayDimension, node: AccessibilityNodeInfo, index: Int = 0,
+	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
 	                                     parentXpath: String, nodes: MutableList<UiElementPropertiesI>,
 	                                     parentH: Int = 0): UiElementPropertiesI? {
 		if(!isActive) return null
@@ -25,36 +25,38 @@ abstract class UiParser {
 
 		val children: List<UiElementPropertiesI?> = (nChildren-1 downTo 0).map { i -> Pair(i,node.getChild(i)) }
 				//REMARK we use drawing order but sometimes there is a transparent layout in front of the elements, probably used by the apps to determine their app area (e.g. amazon), this has to be considered in the [visibleAxis] call for the window area
-				.sortedByDescending { (_,node) -> node.drawingOrder }
+				.sortedByDescending { (i,node) -> if(api>=24) node.drawingOrder else i }
 				.map { (i,childNode) ->		// bottom-up strategy, process children first (in drawingOrder) if they exist
 					if(childNode == null) debugOut("ERROR child nodes should never be null")
-					createBottomUp(w, dim, childNode, i, "$xPath/",nodes,xPath.hashCode()+node.windowId).also {
+					createBottomUp(w, childNode, i, "$xPath/",nodes,xPath.hashCode()+node.windowId).also {
 						childNode.recycle()  //recycle children as we requested instances via getChild which have to be released
 					}
 				}
 
-		return node.createWidget(w, dim, xPath,children.filterNotNull(),parentH).also {
+		return node.createWidget(w, xPath,children.filterNotNull(),parentH).also {
 			nodes.add(it)
 		}
 	}
 
-	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, dim: DisplayDimension, xPath: String, children: List<UiElementPropertiesI>, parentH: Int): UiElementPropertiesI {
-		val nodeRect: Rect = this.getBounds(dim)
+	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementPropertiesI>, parentH: Int): UiElementPropertiesI {
+		val nodeRect = Rect()
+		this.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 		val props = LinkedList<String>()
+
 		props.add("actionList = ${this.actionList}")
-		props.add("drawingOrder = ${this.drawingOrder}")
-		props.add("hintText = ${this.hintText}")  // -> for edit fields
+		if(api>=24)	props.add("drawingOrder = ${this.drawingOrder}")
+		if(api>=27)		props.add("hintText = ${this.hintText}")  // -> for edit fields
 		props.add("inputType = ${this.inputType}")
 		props.add("labelFor = ${this.labelFor}")
 		props.add("liveRegion = ${this.liveRegion}")
 
+		//TODO compute visible boundaries within app window based on own uncovered & children-visibleBounds
 		var uncoveredArea = true
 		// due to bottomUp strategy we will only get coordinates which are not overlapped by other UiElements
-		val visibleArea = if(!isEnabled || !isVisibleToUser) emptyList()
+		val visibleAreas = if(!isEnabled || !isVisibleToUser) emptyList()
 				else nodeRect.visibleAxis(w.area, isSingleElement = true).map { it.toRectangle() }.let { area ->
 					if (area.isEmpty()) {
-						val childrenC = children.flatMap { boundsList -> boundsList.visibleBoundaries } // allow the parent boundaries to contain all visible child coordinates
-
+						val childrenC = children.flatMap { boundsList -> boundsList.visibleAreas } // allow the parent boundaries to contain all definedAsVisible child coordinates
 						uncoveredArea = false
 						nodeRect.visibleAxisR(childrenC)
 					} else{
@@ -62,8 +64,18 @@ abstract class UiParser {
 						area
 					}
 				}
+		val visibleBounds: Rectangle = when {
+			visibleAreas.isEmpty() -> Rectangle(0,0,0,0)  // no uncovered area means this node cannot be visible
+			children.isEmpty() -> visibleAreas.visibleOuterBounds() // we have a leaf node, our visible bounds is defined per visibleAreas
+			else -> with(LinkedList<Rectangle>()){
+				addAll(visibleAreas)
+				addAll(children.map { it.visibleBounds })
+				visibleOuterBounds()
+			}
+		}
 
 		return UiElementProperties(
+				visibleBounds = visibleBounds,
 				hasUncoveredArea = uncoveredArea,
 				metaInfo = props,
 				text = safeCharSeqToString(text),
@@ -80,14 +92,14 @@ abstract class UiParser {
 				focused = if (isFocusable) isFocused else null,
 				scrollable = isScrollable,
 				selected = isSelected,
-				visible = isVisibleToUser,
+				definedAsVisible = isVisibleToUser,
 				boundaries = nodeRect.toRectangle(),
-				visibleBoundaries = visibleArea,
+				visibleAreas = visibleAreas,
 				xpath = xPath,
 				parentHash = parentH,
 				childHashes = children.map { it.idHash },
 				isKeyboard = w.isKeyboard,
-				windowId = windowId
+				windowLayer = w.layer
 		)
 	}
 
@@ -97,7 +109,7 @@ abstract class UiParser {
 	 */
 	/* for now keep it here if we later need to recognize decor elements again, maybe to differentiate them from other system windows
 	fun computeAppArea():Rect{
-	// compute the height of the status bar, which determines the offset for any visible app element
+	// compute the height of the status bar, which determines the offset for any definedAsVisible app element
 		var sH = 0
 		val resources = InstrumentationRegistry.getInstrumentation().context.resources
 		val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
@@ -116,6 +128,9 @@ abstract class UiParser {
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
 			{ serializer: XmlSerializer, width: Int, height: Int ->
 				{ node: AccessibilityNodeInfo, index: Int, _ ->
+					val nodeRect = Rect()
+					node.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
+
 					serializer.startTag("", "node")
 					if (!nafExcludedClass(node))
 						serializer.attribute("", "NAF", java.lang.Boolean.toString(true))
@@ -135,10 +150,10 @@ abstract class UiParser {
 					serializer.attribute("", "long-clickable", java.lang.Boolean.toString(node.isLongClickable))
 					serializer.attribute("", "password", java.lang.Boolean.toString(node.isPassword))
 					serializer.attribute("", "selected", java.lang.Boolean.toString(node.isSelected))
-					serializer.attribute("", "visible-to-user", java.lang.Boolean.toString(node.isVisibleToUser))
-					serializer.attribute("", "bounds", node.getBounds(DisplayDimension(width, height)).toShortString())
+					serializer.attribute("", "definedAsVisible-to-user", java.lang.Boolean.toString(node.isVisibleToUser))
+					serializer.attribute("", "bounds", nodeRect.toShortString())
 
-					/** custom attributes, usually not visible in the device-UiDump */
+					/** custom attributes, usually not definedAsVisible in the device-UiDump */
 					serializer.attribute("", "isInputField", java.lang.Boolean.toString(node.isEditable)) // could be usefull for custom widget classes to identify input fields
 					/** experimental */
 //		serializer.attribute("", "canOpenPopup", java.lang.Boolean.toString(node.canOpenPopup()))

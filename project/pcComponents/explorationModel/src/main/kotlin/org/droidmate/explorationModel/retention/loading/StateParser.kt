@@ -87,7 +87,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 	}
 	protected suspend fun computeState(stateId: ConcreteId): StateData {
         log("\ncompute state $stateId")
-		val(contentPath,isHomeScreen,topPackage) = reader.getStateFile(stateId)
+		val(contentPath,isHomeScreen) = reader.getStateFile(stateId)
 		if(!widgetParser.indiciesComputed.get()) {
 			widgetParser.setCustomWidgetIndicies( computeWidgetIndicies(reader.getHeader(contentPath)) )
 			widgetParser.indiciesComputed.set(true)
@@ -117,7 +117,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 
 		var ns: StateData
 		return if (widgetSet.isNotEmpty()) {
-			StateData.fromFile(widgetSet, homeScreen = isHomeScreen, topPackage = topPackage).also { newState ->
+			StateData.fromFile(widgetSet, homeScreen = isHomeScreen).also { newState ->
 				ns = newState
 
 				verify("ERROR different set of widgets used for UID computation used", {
@@ -134,7 +134,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 						val lOnly = lS.minus(nS)
 						if (!uidC){
 							logger.warn("ERROR different set of widgets used for UID computation used \n ${nOnly.map { it.id }}\n instead of \n ${lOnly.map { it.id }}")
-							ns = StateData.fromFile(widgetSet, newState.isHomeScreen, newState.topNodePackageName)
+							ns = StateData.fromFile(widgetSet, newState.isHomeScreen)
 						}
 						uidC && correctId
 					} else correctId

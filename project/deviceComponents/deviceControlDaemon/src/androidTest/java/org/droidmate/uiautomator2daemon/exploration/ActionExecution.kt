@@ -170,11 +170,6 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 
 	//REMARK keep the order of first wait for windowUpdate, then wait for idle, then extract windows to minimize synchronization issues with opening/closing keyboard windows
 		var windows: List<DisplayedWindow> = debugT("compute windows",  { env.getDisplayedWindows()}, inMillis = true)
-		val focusedWindow = windows.filter { it.isExtracted() && !it.isKeyboard }.let { appWindows ->
-			( appWindows.firstOrNull{ it.w.hasFocus || it.w.hasInputFocus } ?: appWindows.firstOrNull())
-		}
-		val focusedAppPkg = focusedWindow	?.w?.pkgName ?: "no AppWindow detected"
-		debugOut("determined focused window $focusedAppPkg inputF=${focusedWindow?.w?.hasInputFocus}, focus=${focusedWindow?.w?.hasFocus}")
 
 		debugOut("returned to fetch method",debugFetch)
 		var isSuccessful = true
@@ -182,11 +177,11 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 		debugOut("started async img capture",debugFetch)
 		val uiHierarchy = async{
 			debugOut("start element extraction",debugFetch)
-			UiHierarchy.fetch(env.lastDisplayDimension, windows).let{
+			UiHierarchy.fetch(windows).let{
 				if(it == null || it.none (actableRefetch) ) {
 					Log.d(logTag, "first ui extraction failed, start a second try")
 					windows = debugT("compute windows",  { env.getDisplayedWindows()}, inMillis = true)
-					UiHierarchy.fetch(env.lastDisplayDimension, windows )  //retry once for the case that AccessibilityNode tree was not yet stable
+					UiHierarchy.fetch( windows )  //retry once for the case that AccessibilityNode tree was not yet stable
 				}else it
 			}.also {
 				debugOut("INTERACTIVE Element in UI = ${it?.any (actableRefetch)}")
@@ -194,6 +189,11 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 			emptyList<UiElementPropertiesI>()	.also { isSuccessful = false }
 		}
 //			val xmlDump = runBlocking { UiHierarchy.getXml(device) }
+	val focusedWindow = windows.filter { it.isExtracted() && !it.isKeyboard }.let { appWindows ->
+		( appWindows.firstOrNull{ it.w.hasFocus || it.w.hasInputFocus } ?: appWindows.firstOrNull())
+	}
+	val focusedAppPkg = focusedWindow	?.w?.pkgName ?: "no AppWindow detected"
+	debugOut("determined focused window $focusedAppPkg inputF=${focusedWindow?.w?.hasInputFocus}, focus=${focusedWindow?.w?.hasFocus}")
 
 		debugOut("started async ui extraction",debugFetch)
 		val imgProcess = async {
@@ -202,7 +202,7 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 				debugOut("start img capture",debugFetch)
 				nullableDebugT("img capture time", {
 					//FIXME we need a better detection when the screen was rendered maybe via WindowContentChanged event
-//			delay(env.idleTimeout) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
+//			delay(env.idleTimeout/2) // try to ensure rendering really was complete (avoid half-transparent overlays or getting 'load-screens')
 					UiHierarchy.getScreenShot(env.idleTimeout, env.automation).also {
 						isSuccessful = it.isValid(windows)
 					}
@@ -222,42 +222,31 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 					imgProcess.await()
 				}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
 
-		debugOut("determine launch-able main activity for pkg=${env.appPackageName}",debugFetch)
-		val launachableMainActivity = try {
-			env.context.packageManager.getLaunchIntentForPackage(env.appPackageName).component.className
-		} catch (e: IllegalStateException) {
-			""
-		}
-
-		debugOut("create device response $deviceModel",debugFetch)
-
 		env.lastResponse = debugT("compute UI-dump", {
-			DeviceResponse.create( isSuccessfull = isSuccessful, uiHierarchy = uiHierarchy,
+			DeviceResponse.create( isSuccessful = isSuccessful, uiHierarchy = uiHierarchy,
 					uiDump =
 					"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
 							", because (currently) we would have to traverse the tree a second time"
 //									xmlDump
-					, launchableActivity = launachableMainActivity,
-					deviceModel = deviceModel,
+					, launchedActivity = env.launchedMainActivity,
 					screenshot = imgPixels,
 					appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
-					focusedAppPackageName = focusedAppPkg
+					isHomeScreen = windows.count { it.isApp() } ==1 && windows.any { it.isLauncher && it.isApp() }
 			)
 		}, inMillis = true)
 
 		return@coroutineScope env.lastResponse
 
 }
-
-private val deviceModel: String by lazy {
-		Log.d(DeviceConstants.uiaDaemon_logcatTag, "getDeviceModel()")
-		val model = Build.MODEL
-		val manufacturer = Build.MANUFACTURER
-		val api = Build.VERSION.SDK_INT
-		val fullModelName = "$manufacturer-$model/$api"
-		Log.d(DeviceConstants.uiaDaemon_logcatTag, "Device model: $fullModelName")
-		fullModelName
-	}
+//
+//private val deviceModel: String by lazy {
+//		Log.d(DeviceConstants.uiaDaemon_logcatTag, "getDeviceModel()")
+//		val model = Build.MODEL
+//		val manufacturer = Build.MANUFACTURER
+//		val fullModelName = "$manufacturer-$model/$api"
+//		Log.d(DeviceConstants.uiaDaemon_logcatTag, "Device model: $fullModelName")
+//		fullModelName
+//	}
 
 private fun UiDevice.verifyCoordinate(x:Int,y:Int){
 	assert(x in 0..(displayWidth - 1)) { "Error on click coordinate invalid x:$x" }
@@ -287,14 +276,20 @@ private fun UiDevice.minimizeMaximize(){
 }
 
 private fun UiDevice.launchApp(appPackageName: String, env: UiAutomationEnvironment, launchActivityDelay: Long, waitTime: Long): Boolean {
-	// Update environment
-	env.appPackageName = appPackageName
 	var success = false
 	// Launch the app
 	val intent = env.context.packageManager
 			.getLaunchIntentForPackage(appPackageName)
 	// Clear out any previous instances
 	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+
+	// Update environment
+	env.launchedMainActivity = try {
+		intent.component.className
+	} catch (e: IllegalStateException) {
+		""
+	}
+	debugOut("determined launch-able main activity for pkg=${env.launchedMainActivity}",debugFetch)
 
 	measureTimeMillis {
 

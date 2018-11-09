@@ -37,7 +37,6 @@ import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.StateData
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.config.ConfigProperties
-import org.droidmate.explorationModel.visibleOuterBounds
 import org.droidmate.misc.deleteDir
 import java.awt.BasicStroke
 import java.awt.Color
@@ -82,17 +81,17 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		if(prevState.widgets.isEmpty()) return  // no widgets exist which we could highlight
 
 		val stateImg = ImageIO.read(targetFile)
-		val visibleAppElems = prevState.widgets.filter { !it.isKeyboard && it.visibleBoundaries.isNotEmpty() }
+		val visibleAppElements = prevState.widgets.filter { !it.isKeyboard && it.visibleAreas.isNotEmpty() }
 		textColor = Color.white
 		shapeColor = Color.LIGHT_GRAY
-		highlightWidget(stateImg, visibleAppElems.filter { !it.hasUncoveredArea }, 0)
+		highlightWidget(stateImg, visibleAppElements.filter { !it.hasUncoveredArea }, 0)
 		shapeColor = Color.GRAY
-		highlightWidget(stateImg, visibleAppElems.filter { it.hasUncoveredArea }, 0)
+		highlightWidget(stateImg, visibleAppElements.filter { it.hasUncoveredArea }, 0)
 
 
 		textColor = Color.orange
 		shapeColor = Color.orange
-		highlightWidget(stateImg, prevState.actionableWidgets, 0, visibleAppElems)
+		highlightWidget(stateImg, prevState.actionableWidgets, 0)
 
 		if(targetWidgets.isNotEmpty()) {
 			shapeColor = Color.red
@@ -103,32 +102,26 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 }
 
-fun Widget.completeVisibleBounds(visibleWidgets: List<Widget>): List<Rectangle>{
-	val areas = LinkedList<Rectangle>().apply { this.addAll(visibleBoundaries) }
-	visibleWidgets.forEach { if(it.parentHash==idHash) areas.addAll(it.visibleBoundaries)}
-	return areas
-}
-
 var shapeColor: Color = Color.red
 var textColor: Color = Color.magenta
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>, visibleWidgets: List<Widget> = emptyList()){
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>){
 	stateImg.createGraphics().apply{
 		stroke = BasicStroke(10F)
 		font = Font("TimesRoman", Font.PLAIN, 60)
 
-		val targetsPerAction = targetWidgets.mapIndexed{ i,t -> Pair(idxOffset[i],t)}.groupBy { it.first }
+		val targetsPerAction = targetWidgets.asSequence().mapIndexed{ i, t -> Pair(idxOffset[i],t)}.groupBy { it.first }
 
 		val targetCounter: MutableMap<ConcreteId,LinkedList<Pair<Int,Int>>> = HashMap() // used to compute offsets in the number string
 		// compute the list of indicies for each widget-target (for labeling)
 		targetsPerAction.forEach{ (idx, targets) ->
 			targets.forEachIndexed{ index, (_,t) ->
-				targetCounter.compute(t.id) { _, indicies -> (indicies ?: LinkedList()).apply { add(Pair(idx,index)) }}
+				targetCounter.compute(t.id) { _, indices -> (indices ?: LinkedList()).apply { add(Pair(idx,index)) }}
 			}
 		}
 		// highlight all targets and add text labels
 		targetWidgets.forEach{ w: Widget ->
 			paint = shapeColor// reset color for next shape drawing
-			with(visibleOuterBounds(w.completeVisibleBounds(visibleWidgets))) {
+			with(w.visibleBounds) {
 				drawOval(this)
 				// draw the label number for the element
 				val text = targetCounter[w.id]!!.joinToString(separator = ", ") { if (it.first != 0) "${it.first}.${it.second}" else "${it.second}" }
@@ -140,8 +133,8 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 		}
 	}
 }
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0, visibleWidgets: List<Widget> = emptyList())
-	= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset }, visibleWidgets)
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0)
+	= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset })
 
 private fun Int.resize() = if(this<5) 10 else this
 

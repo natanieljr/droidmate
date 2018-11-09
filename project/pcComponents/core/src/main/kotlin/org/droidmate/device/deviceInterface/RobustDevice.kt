@@ -43,6 +43,7 @@ import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
+import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.imgDump.widgets
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
@@ -190,6 +191,16 @@ class RobustDevice : IRobustDevice {
 				0)
 	}
 
+	private fun DeviceResponse.isSelectAHomeAppDialogBox(): Boolean =
+			widgets.any { it.text == "Just once" } &&
+					widgets.any { it.text == "Select a Home app" }
+
+	private fun DeviceResponse.isUseLauncherAsHomeDialogBox(): Boolean =
+			widgets.any { it.text == "Use Launcher as Home" } &&
+					widgets.any { it.text == "Just once" } &&
+					widgets.any { it.text == "Always" }
+
+
 	override fun ensureHomeScreenIsDisplayed(): DeviceResponse {
 		var guiSnapshot = this.getExplorableGuiSnapshot()
 		if (guiSnapshot.isHomeScreen)
@@ -197,9 +208,11 @@ class RobustDevice : IRobustDevice {
 
 		Utils.retryOnFalse({
 			if (!guiSnapshot.isHomeScreen) {
-				guiSnapshot = when {
-					guiSnapshot.isSelectAHomeAppDialogBox -> closeSelectAHomeAppDialogBox(guiSnapshot)
-					guiSnapshot.isUseLauncherAsHomeDialogBox -> closeUseLauncherAsHomeDialogBox(guiSnapshot)
+				guiSnapshot = when {  //FIXME what are these, are they even still useful?
+					guiSnapshot.isSelectAHomeAppDialogBox() ->
+						closeSelectAHomeAppDialogBox(guiSnapshot)
+					guiSnapshot.isUseLauncherAsHomeDialogBox() ->
+						closeUseLauncherAsHomeDialogBox(guiSnapshot)
 					else -> {
 						perform(GlobalAction(ActionType.PressHome))
 					}
@@ -225,12 +238,12 @@ class RobustDevice : IRobustDevice {
 		perform(launcherWidget.click())
 
 		var guiSnapshot = this.getExplorableGuiSnapshot()
-		if (guiSnapshot.isSelectAHomeAppDialogBox) {
+		if (guiSnapshot.isSelectAHomeAppDialogBox()) {
 			val justOnceWidget = guiSnapshot.widgets.single { it.text == "Just once" }
 			perform(justOnceWidget.click())
 			guiSnapshot = this.getExplorableGuiSnapshot()
 		}
-		assert(!guiSnapshot.isSelectAHomeAppDialogBox)
+		assert(!guiSnapshot.isSelectAHomeAppDialogBox())
 
 		return guiSnapshot
 	}
@@ -240,7 +253,7 @@ class RobustDevice : IRobustDevice {
 		perform(justOnceWidget.click())
 
 		val guiSnapshot = this.getExplorableGuiSnapshot()
-		assert(!guiSnapshot.isUseLauncherAsHomeDialogBox)
+		assert(!guiSnapshot.isUseLauncherAsHomeDialogBox())
 		return guiSnapshot
 	}
 
@@ -258,7 +271,7 @@ class RobustDevice : IRobustDevice {
 							"device.perform(action:$action)"
 					)
 				},
-				{ it.isSuccessfull },
+				{ it.isSuccessful },
 				deviceOperationAttempts,
 				deviceOperationDelay)
 	}
@@ -279,12 +292,16 @@ class RobustDevice : IRobustDevice {
 		return guiSnapshot
 	}
 
+	private fun DeviceResponse.isAppHasStoppedDialogBox(): Boolean =
+			widgets.any { it.resourceId == "android:id/aerr_close" } &&
+					widgets.any { it.resourceId == "android:id/aerr_wait" }
+
 	@Throws(DeviceException::class)
 	private fun closeANRIfNecessary(guiSnapshot: DeviceResponse): DeviceResponse {
-		if (!guiSnapshot.isAppHasStoppedDialogBox)
+		if (!guiSnapshot.isAppHasStoppedDialogBox())
 			return guiSnapshot
 
-		assert(guiSnapshot.isAppHasStoppedDialogBox)
+		assert(guiSnapshot.isAppHasStoppedDialogBox())
 		var targetWidget = guiSnapshot.widgets.firstOrNull { it.text == "OK" } ?:
 			guiSnapshot.widgets.first { it.resourceId == "android:id/aerr_close" }
 		assert(targetWidget.enabled)
@@ -298,7 +315,7 @@ class RobustDevice : IRobustDevice {
 			device.perform(targetWidget.click())
 			out = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 
-			if (out.isAppHasStoppedDialogBox) {
+			if (out.isAppHasStoppedDialogBox()) {
 				targetWidget = guiSnapshot.widgets.firstOrNull { it.text == "OK" } ?:
 						guiSnapshot.widgets.first { it.resourceId == "android:id/aerr_close" }
 				log.debug("ANR encountered - again. Failed to properly close it even though its OK widget was enabled.")

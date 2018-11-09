@@ -47,24 +47,16 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 	return nullableDebugT(msg, block, timer, inMillis)!!
 }
 
-fun visibleOuterBounds(r: List<Rectangle>): Rectangle{
-	val pl = r.minBy { it.leftX }
-	val pt = r.minBy { it.topY }
-	val pr = r.maxBy { it.rightX }
-	val pb = r.maxBy { it.bottomY }
-	return Rectangle.create(pl?.leftX ?: 0, pt?.topY ?: 0, right = pr?.rightX ?: 0, bottom = pb?.bottomY ?: 0)
-}
-
 fun Collection<Rectangle>.firstCenter() = firstOrNull()?.center() ?: Pair(0,0)
 fun Collection<Rectangle>.firstOrEmpty() = firstOrNull() ?: Rectangle(0,0,0,0)
 
 object DummyProperties: UiElementPropertiesI {
+	override val visibleBounds: Rectangle = Rectangle(0,0,0,0)
 	override val hasUncoveredArea: Boolean = false
 	override val boundaries: Rectangle = Rectangle(0,0,0,0)
-	override val visibleBoundaries: List<Rectangle> = listOf(Rectangle(0,0,0,0))
+	override val visibleAreas: List<Rectangle> = listOf(Rectangle(0,0,0,0))
 	override val metaInfo: List<String> = emptyList()
 	override val isKeyboard: Boolean = false
-	override val windowId: Int = 0
 	override val text: String = "Dummy-Widget"
 	override val contentDesc: String = "No-contentDesc"
 	override val checked: Boolean? = null
@@ -79,7 +71,7 @@ object DummyProperties: UiElementPropertiesI {
 	override val scrollable: Boolean = false
 	override val focused: Boolean? = null
 	override val selected: Boolean = false
-	override val visible: Boolean = false
+	override val definedAsVisible: Boolean = false
 	override val xpath: String = "No-xPath"
 	override val idHash: Int = 0
 	override val parentHash: Int = 0

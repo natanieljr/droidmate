@@ -7,7 +7,6 @@ import org.droidmate.explorationModel.firstCenter
 import org.droidmate.explorationModel.firstOrEmpty
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.interaction.widgetTargets
-import org.droidmate.misc.debugOutput
 
 /**
  * These are the new interface functions to interact with any widget.
@@ -20,12 +19,12 @@ import org.droidmate.misc.debugOutput
 
 /**
  * issue a click to [this.uncoveredCoord] if it exists and to the bounderies center otherwise.
- * The whidget has to be clickable and enabled. If it is not visible this method will throw an exception
+ * The whidget has to be clickable and enabled. If it is not definedAsVisible this method will throw an exception
  * (you should use [navigateTo] instead).
  */
 @JvmOverloads
 fun Widget.click(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
-	if (!(visible || isVisible) || !enabled || !clickable)
+	if (!(definedAsVisible || isVisible) || !enabled || !clickable)
 		throw RuntimeException("ERROR: tried to click non-actable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
@@ -33,7 +32,7 @@ fun Widget.click(delay: Long = 0, isVisible: Boolean = false): ExplorationAction
 
 @JvmOverloads
 fun Widget.tick(isVisible: Boolean = false): ExplorationAction {
-	if (!(visible || isVisible) || !enabled)
+	if (!(definedAsVisible || isVisible) || !enabled)
 		throw RuntimeException("ERROR: tried to tick non-actable (checkbox) Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Click(x, y, true) }
@@ -41,7 +40,7 @@ fun Widget.tick(isVisible: Boolean = false): ExplorationAction {
 
 @JvmOverloads
 fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
-	if (!(visible || isVisible) || !enabled || !longClickable)
+	if (!(definedAsVisible || isVisible) || !enabled || !longClickable)
 		throw RuntimeException("ERROR: tried to long-click non-actable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> LongClick(x, y, true, delay) }
@@ -49,7 +48,7 @@ fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAc
 
 @JvmOverloads
 fun Widget.setText(newContent: String, isVisible: Boolean = false, enableValidation: Boolean = true): ExplorationAction {
-	if (enableValidation && (!(visible || isVisible) || !enabled || !isInputField))
+	if (enableValidation && (!(definedAsVisible || isVisible) || !enabled || !isInputField))
 		throw RuntimeException("ERROR: tried to enter text on non-actable Widget $this")
 	widgetTargets.add(this)
 	return TextInsert(this.idHash, newContent, true)
@@ -57,14 +56,14 @@ fun Widget.setText(newContent: String, isVisible: Boolean = false, enableValidat
 
 fun Widget.dragTo(x: Int, y: Int, stepSize: Int): ExplorationAction = TODO()
 //FIXME the center points may be overlayed by other elements, swiping the corners would be safer
-fun Widget.swipeUp(stepSize: Int = this.visibleBoundaries.firstOrEmpty().height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), Pair(this.bounds.centerX.toInt(), this.bounds.y), stepSize, true)
-fun Widget.swipeDown(stepSize: Int = this.visibleBoundaries.firstOrEmpty().height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y), Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), stepSize, true)
-fun Widget.swipeLeft(stepSize: Int = this.visibleBoundaries.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), Pair(this.bounds.x, this.bounds.centerY.toInt()), stepSize, true)
-fun Widget.swipeRight(stepSize: Int = this.visibleBoundaries.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.bounds.x, this.bounds.centerY.toInt()), Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), stepSize, true)
+fun Widget.swipeUp(stepSize: Int = this.visibleAreas.firstOrEmpty().height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), Pair(this.bounds.centerX.toInt(), this.bounds.y), stepSize, true)
+fun Widget.swipeDown(stepSize: Int = this.visibleAreas.firstOrEmpty().height / 2): ExplorationAction = Swipe(Pair(this.bounds.centerX.toInt(), this.bounds.y), Pair(this.bounds.centerX.toInt(), this.bounds.y + this.bounds.height), stepSize, true)
+fun Widget.swipeLeft(stepSize: Int = this.visibleAreas.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), Pair(this.bounds.x, this.bounds.centerY.toInt()), stepSize, true)
+fun Widget.swipeRight(stepSize: Int = this.visibleAreas.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.bounds.x, this.bounds.centerY.toInt()), Pair(this.bounds.x + this.bounds.width, this.bounds.centerY.toInt()), stepSize, true)
 
 /** navigate to this widget (which may be currently out of screen) and click it */
 fun Widget.navigateTo(action: (Widget) -> ExplorationAction): ExplorationAction {
-	if (visible)
+	if (definedAsVisible)
 		return action(this)
 
 	TODO()
@@ -74,11 +73,11 @@ fun Widget.navigateTo(action: (Widget) -> ExplorationAction): ExplorationAction 
  * Used by RobustDevice which does not currently create [Widget] objects.
  * This function should not be used anywhere else.
  */
-fun UiElementPropertiesI.click(): ExplorationAction = visibleBoundaries.firstCenter().let{ (x, y) ->
+fun UiElementPropertiesI.click(): ExplorationAction = visibleAreas.firstCenter().let{ (x, y) ->
 	return Click(x, y)
 }
 
- fun Widget.clickCoordinate(): Pair<Int, Int> = visibleBoundaries.firstCenter()
+ fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter()
 
 
 fun Widget.availableActions(): List<ExplorationAction>{

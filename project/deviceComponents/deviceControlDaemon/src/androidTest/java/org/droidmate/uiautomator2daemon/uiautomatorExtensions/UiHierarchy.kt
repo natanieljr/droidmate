@@ -28,7 +28,7 @@ object UiHierarchy : UiParser() {
 
 	private var nActions = 0
 	private var ut = 0L
-	suspend fun fetch(dim:DisplayDimension, windows: List<DisplayedWindow>): List<UiElementPropertiesI>?
+	suspend fun fetch(windows: List<DisplayedWindow>): List<UiElementPropertiesI>?
 			= debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
 		val nodes = LinkedList<UiElementPropertiesI>()
 
@@ -36,11 +36,11 @@ object UiHierarchy : UiParser() {
 			//TODO check if this filters out all os windows but keeps permission request dialogues
 //			debugOut("windows to extract: ${windows.map { "${it.isExtracted()}-${it.w.pkgName}:${it.w.windowId}[${visibleOuterBounds(it.area)}]" }}")
 			windows.forEach {  w: DisplayedWindow ->
-				if (w.isExtracted() ){
+				if (w.isExtracted() && !w.isLauncher){  // for now we are not interested in the Launcher elements
 					w.area = LinkedList<Rect>().apply { w.initialArea.forEach { add(it) } }  //FIXME need to copy each element?
 					if(w.rootNode == null) debugOut("ERROR root should not be null")
 					check(w.rootNode != null) {"if extraction is enables we have to have a rootNode"}
-					createBottomUp(w, dim, w.rootNode!!, parentXpath = "//", nodes = nodes)  //FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
+					createBottomUp(w, w.rootNode!!, parentXpath = "//", nodes = nodes)  //FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
 					Log.d(LOGTAG, "${w.w.pkgName}:${w.w.windowId} ${visibleOuterBounds(w.initialArea)} #elems = ${nodes.size}")				}
 			}
 		} catch (e: Exception) {  // the accessibilityNode service may throw this if the node is no longer up-to-date

@@ -58,14 +58,14 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 
 	@property:Persistent("Unique Id",0)
 	val uid: UUID by lazy { computeUId() }
-	/** id to characterize the current 'configuration' of an element, e.g. is it visible, checked etc */
+	/** id to characterize the current 'configuration' of an element, e.g. is it definedAsVisible, checked etc */
 	val propertyId: UUID by lazy { computePropertyId() }
 	val imgId by lazy{  uidImgId.value.second } //FIXME this should be a constructor parameter instead
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyId] (and possibly [imgId]) */
 	val id by lazy { computeConcreteId() }
 	val visibleText: String by lazy { computeVisibleText(text, contentDesc) }
-	val bounds: Rectangle by lazy { visibleBoundaries.firstOrNull()?.boundsRect() ?: Rectangle(0,0,0,0) }  // used for actions -> we are only interested in the visible area
+	val bounds: Rectangle by lazy { visibleAreas.firstOrNull()?.boundsRect() ?: Rectangle(0,0,0,0) }  // used for actions -> we are only interested in the definedAsVisible area
 	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 
 	val isInteractive: Boolean by lazy { computeInteractive() }
@@ -83,7 +83,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	}
 	protected open fun computeConcreteId() = Pair(uid, propertyId+imgId)
 	protected open fun computeInteractive(): Boolean =
-			enabled && visible && visibleBoundaries.isNotEmpty()
+			enabled && definedAsVisible && visibleAreas.isNotEmpty()
 					&& ( isInputField || clickable || checked ?: false || longClickable || scrollable)
 	open fun isLeaf(): Boolean = childHashes.isEmpty()
 
@@ -139,7 +139,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 				P.LongClickable -> longClickable.toString()
 				P.Selected -> selected.toString()
 				P.IsPassword -> isPassword.toString()
-				P.Visible -> visible.toString()
+				P.Visible -> definedAsVisible.toString()
 //				P.IsLeaf -> isLeaf.toString()
 				P.PackageName -> packageName
 //				P.Coord -> uncoveredCoord?.let { it.first.toString()+","+it.second.toString() } ?: "null"
@@ -166,7 +166,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 		@JvmStatic
 		private val UiElementPropertiesI.boundsRect: Rectangle
 			get() {
-				return with(boundaries){ boundsRect() }
+				return with(visibleBounds){ boundsRect() }
 			}
 
 		/** widget creation */
@@ -203,9 +203,9 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 							if (ignoreNumbers.isNotEmpty()) Pair(ignoreNumbers.toUUID(),null)
 							else Pair(visibleText.toUUID(),null)
 						}
-						else -> screenImg?.let {  // we have an Widget without any visible text
+						else -> screenImg?.let {  // we have an Widget without any definedAsVisible text
 							val imgId = when {
-								!w.visible || w.isInputField || w.checked != null -> null  // edit-fields would often have a cursor if focused which should only reflect in the propertyId but not in the unique-id
+								!w.definedAsVisible || w.isInputField || w.checked != null -> null  // edit-fields would often have a cursor if focused which should only reflect in the propertyId but not in the unique-id
 								isCut -> idOfImgCut(screenImg)
 								else -> idOfImgCut(it.getSubImage(w.boundsRect))
 							}
@@ -223,7 +223,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 						.contentHashCode().toUUID()
 
 		fun fromUiNode(w: UiElementPropertiesI, screenImg: BufferedImage?, config: ModelConfig): Widget {
-			val widgetImg = if(w.visible && w.visibleBoundaries.isNotEmpty()) screenImg?.getSubImage(w.boundsRect) else null
+			val widgetImg = if(w.definedAsVisible && w.visibleAreas.isNotEmpty()) screenImg?.getSubImage(w.boundsRect) else null
 			widgetImg.let { wImg ->
 				lazy {
 					computeId(w, wImg, true)
@@ -273,14 +273,11 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	}
 
 	override fun toString(): String {
-		return "interactive=$isInteractive-${uid}_$propertyId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, ${visibleOuterBounds(visibleBoundaries)}]"
+		return "interactive=$isInteractive-${uid}_$propertyId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, $visibleBounds]"
 	}
 
-	/** all properties extracted from the device are supposed to be immutable, to guarantee reproducibility
-	 * if the developer wants a different semantic he has to implement his properties/functions on top */
-
+	final override val visibleBounds: org.droidmate.deviceInterface.exploration.Rectangle = properties.visibleBounds
 	final override val isKeyboard: Boolean = properties.isKeyboard
-	final override val windowId: Int = properties.windowId
 	final override val text: String = properties.text
 	final override val contentDesc: String = properties.contentDesc
 	final override val checked: Boolean? = properties.checked
@@ -296,12 +293,12 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	final override val focused: Boolean? = properties.focused
 	final override val selected: Boolean = properties.selected
 	final override val boundaries = properties.boundaries
-	final override val visibleBoundaries: List<org.droidmate.deviceInterface.exploration.Rectangle> = properties.visibleBoundaries
+	final override val visibleAreas: List<org.droidmate.deviceInterface.exploration.Rectangle> = properties.visibleAreas
 	final override val xpath: String = properties.xpath
 	final override val idHash: Int = properties.idHash
 	final override val parentHash: Int = properties.parentHash
 	final override val childHashes: List<Int> = properties.childHashes
-	final override val visible: Boolean = properties.visible
+	final override val definedAsVisible: Boolean = properties.definedAsVisible
 	final override val hasUncoveredArea: Boolean = properties.hasUncoveredArea
 	/** end immutable ui-element properties */
 	/* end override */

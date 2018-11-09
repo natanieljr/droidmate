@@ -162,7 +162,7 @@ class VisualizationGraph : ApkReport() {
 			// The frontend needs a property 'id', use the stateId for this
 			obj.addProperty("id", stateId)
 			obj.addProperty("stateId", stateId)
-			obj.addProperty("topNodePackageName", src.topNodePackageName)
+//			obj.addProperty("topNodePackageName", src.topNodePackageName)
 			obj.addProperty("shape", "image")
 			obj.addProperty("image", getImgPath(stateId))
 			obj.addProperty("uid", src.uid.toString())
@@ -172,7 +172,8 @@ class VisualizationGraph : ApkReport() {
 			obj.addProperty("isHomeScreen", src.isHomeScreen)
 			obj.addProperty("title", stateId)
 			// Include all important properties to make the states searchable
-			val properties = arrayListOf(stateId, src.topNodePackageName, src.uid.toString(), src.configId.toString(), src.iEditId.toString())
+			val properties = arrayListOf(stateId, //src.topNodePackageName,
+					src.uid.toString(), src.configId.toString(), src.iEditId.toString())
 			obj.addProperty("visibleText", properties.joinToString("\n"))
 
 			// Widgets
@@ -238,7 +239,7 @@ class VisualizationGraph : ApkReport() {
 			val obj = JsonObject()
 			obj.addProperty("path", src.path.toString())
 			obj.addProperty("packageName", src.packageName)
-			obj.addProperty("launchableMainActivityName", src.launchableMainActivityName)
+			obj.addProperty("launchedMainActivityName", src.launchableMainActivityName)
 			obj.addProperty("applicationLabel", src.applicationLabel)
 			obj.addProperty("fileName", src.fileName)
 			obj.addProperty("fileNameWithoutExtension", src.fileNameWithoutExtension)
@@ -268,13 +269,13 @@ class VisualizationGraph : ApkReport() {
 		obj.addProperty("packageName", src?.packageName)
 		obj.addProperty("isPassword", src?.isPassword)
 		obj.addProperty("enabled", src?.enabled)
-		obj.addProperty("visible", src?.visible)
+		obj.addProperty("definedAsVisible", src?.definedAsVisible)
 		obj.addProperty("clickable", src?.clickable)
 		obj.addProperty("longClickable", src?.longClickable)
 		obj.addProperty("scrollable", src?.scrollable)
 		obj.addProperty("checked", src?.checked)
 		obj.addProperty("focused", src?.focused)
-		obj.add("visibleBoundaries", context.serialize(src?.visibleBoundaries))
+		obj.add("visibleAreas", context.serialize(src?.visibleAreas))
 		obj.addProperty("selected", src?.selected)
 		obj.addProperty("xpath", src?.xpath)
 		obj.addProperty("isLeaf", src?.isLeaf())

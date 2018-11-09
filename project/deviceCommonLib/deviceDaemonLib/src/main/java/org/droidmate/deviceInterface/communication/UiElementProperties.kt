@@ -21,18 +21,20 @@ data class UiElementProperties(
 		override val focused: Boolean?,
 		override val selected: Boolean,
 		override val boundaries: Rectangle,
-		override val visible: Boolean,
-		override val visibleBoundaries: List<Rectangle>,
+		override val definedAsVisible: Boolean,
+		override val visibleAreas: List<Rectangle>,
 		override val xpath: String,
 		override val parentHash: Int,
 		override val childHashes: List<Int> = emptyList(),
 		override val isKeyboard: Boolean,
-		override val windowId: Int,
+		/** only used on device to compute a unique but deterministic value for idHash, which is based on the current UI-Hierarchy */
+		val windowLayer: Int,
 		override val metaInfo: List<String>,
-		override val hasUncoveredArea: Boolean
+		override val hasUncoveredArea: Boolean,
+		override val visibleBounds: Rectangle
 ) : UiElementPropertiesI {
 
-	override val idHash: Int by lazy{ xpath.hashCode() + windowId }
+	override val idHash: Int by lazy{ xpath.hashCode() + windowLayer }
 
 //TODO cleanup once parsing is repaired
 //	constructor(resId: String, xPath: String)
@@ -51,7 +53,7 @@ data class UiElementProperties(
 //				UiElementProperties(text = line[P.Text.idx(indexMap)], clickable = line[P.Clickable.idx(indexMap)].toBoolean(), longClickable =
 //				line[P.LongClickable.idx(indexMap)].toBoolean(), scrollable = line[P.Scrollable.idx(indexMap)].toBoolean(),
 //						isPassword = line[P.IsPassword.idx(indexMap)].toBoolean(), enabled = line[P.Enabled.idx(indexMap)].toBoolean(),
-//						selected = line[P.Selected.idx(indexMap)].toBoolean(), visible = line[P.Visible.idx(indexMap)].toBoolean(), checked =
+//						selected = line[P.Selected.idx(indexMap)].toBoolean(), definedAsVisible = line[P.Visible.idx(indexMap)].toBoolean(), checked =
 //				flag(line[P.Checked.idx(indexMap)]), focused = flag(line[P.Focused.idx(indexMap)]), boundsX = line[P.BoundsX.idx(indexMap)].toInt(),
 //						boundsY = line[P.BoundsY.idx(indexMap)].toInt(), boundsWidth = line[P.BoundsWidth.idx(indexMap)].toInt(),
 //						boundsHeight = line[P.BoundsHeight.idx(indexMap)].toInt(), contentDesc = line[P.Desc.idx(indexMap)],

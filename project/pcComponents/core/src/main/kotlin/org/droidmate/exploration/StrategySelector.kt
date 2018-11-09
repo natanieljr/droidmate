@@ -31,7 +31,6 @@ import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
-import org.droidmate.misc.debugOutput
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -225,6 +224,7 @@ class StrategySelector constructor(val priority: Int,
 						Pair( size-launchIdx, beforeLaunch)
 					}
 				}
+				@Suppress("UNUSED_VARIABLE")  // it is here for debugging purposes of an conditional breakpoint
 				val apkPkg = context.apk.packageName
 				val s = context.getCurrentState()
 				when {

@@ -31,7 +31,7 @@
 ////		val emptyWidget = Widget()
 ////		expect(parentData.propertyId, UiElementProperties.empty().toString().replaceAfter("_uid",")").replace(", _uid","").toUUID())  // quickFix due to new UiElementProperties constructor
 ////		expect(emptyWidget.propertyId, parentData.propertyId)
-//////		expect(emptyWidget.uid, parentData.visibleText.toUUID())  //FIXME visible text compare on Widget instead
+//////		expect(emptyWidget.uid, parentData.visibleText.toUUID())  //FIXME definedAsVisible text compare on Widget instead
 ////		expect(parentWidget.id.dumpString(),"ba2b45bd-c11e-3a4a-ae86-aab2ac693cbb_ad50bfd4-2f22-3d8d-b716-fa93641caa1c")
 ////
 ////		expect(testWidgetData.propertyId, UUID.fromString("a24a0a9f-6bdc-3726-81f0-97f4011ee3b1"))

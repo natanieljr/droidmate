@@ -25,7 +25,6 @@
 
 package org.droidmate.explorationModel.interaction
 
-import org.droidmate.deviceInterface.exploration.AppWindow
 import org.droidmate.explorationModel.interaction.Widget.Companion.widgetHeader
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep
@@ -33,36 +32,38 @@ import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.config.dumpString
 import org.droidmate.explorationModel.config.emptyUUID
 import org.droidmate.explorationModel.plus
-import java.awt.Rectangle
 import java.io.File
 import java.util.*
 
 /**
  * States have two components, the Id determined by its Widgets image, text and description and the ConfigId defined by the WidgetsProperties.
  ** be aware that the list of widgets is not guaranteed to be sorted in any specific order*/
-class StateData (private val _widgets: Lazy<Collection<Widget>>,
-                 val displayedWindows: List<AppWindow> = emptyList(),
-                 val topNodePackageName: String = "",  //FIXME use visible appWindows here instead
-                 val isHomeScreen: Boolean = false,
-                 val isAppHasStoppedDialogBox: Boolean = false) {
+open class StateData (_widgets: Lazy<Collection<Widget>>, //TODO instead we probably want widgets as deferred value
+                 //val displayedWindows: List<AppWindow> = emptyList(), // for now we do not need it, so we will probably remove it from DeviceResponse
+                 val isHomeScreen: Boolean = false) {
 
-	constructor(widgets: Collection<Widget>, homeScreen:Boolean, topPackage: String) : this(lazyOf(widgets),
-			topNodePackageName = topPackage, isHomeScreen=homeScreen)
+	constructor(widgets: Collection<Widget>, homeScreen:Boolean) : this(lazyOf(widgets),
+			isHomeScreen=homeScreen)
 
 	val widgets by lazy { _widgets.value.sortedBy { it.id.dumpString() } 	}
 
-	private val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
+	@Suppress("SpellCheckingInspection")
+	val isAppHasStoppedDialogBox: Boolean by lazy {
+		widgets.any { it.resourceId == "android:id/aerr_close" } &&
+				widgets.any { it.resourceId == "android:id/aerr_wait" }
+	}
+
 	val isRequestRuntimePermissionDialogBox: Boolean	by lazy {
 		widgets.any { // identify if we have a permission request
 			it.resourceId == resIdRuntimePermissionDialog  ||
 					// handle cases for apps who 'customize' this request and use own resourceIds e.g. Home-Depot
-			when(it.text.toUpperCase()) {
+					when(it.text.toUpperCase()) {
 						"ALLOW", "DENY", "DON'T ALLOW" -> true
 						else -> false
-			}
+					}
 		}
-		// check that we have a ok or allow button
-		&& widgets.any{it.text.toUpperCase().let{ wText -> wText == "ALLOW" || wText == "OK" } }
+				// check that we have a ok or allow button
+				&& widgets.any{it.text.toUpperCase().let{ wText -> wText == "ALLOW" || wText == "OK" } }
 	}
 
 //  constructor(widgets: Collection<Widget>, topNodePackageName:String, androidLauncherPackageName:String,
@@ -74,76 +75,81 @@ class StateData (private val _widgets: Lazy<Collection<Widget>>,
 //      isAppHasStoppedDialogBox,isRequestRuntimePermissionDialogBox,isCompleteActionUsingDialogBox,
 //      isSelectAHomeAppDialogBox,isUseLauncherAsHomeDialogBox)
 
-	// ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
-	private val lazyIds: Lazy<ConcreteId> =
-			lazy {
-				widgets.fold(Pair(emptyUUID, emptyUUID)) { (id, configId), widget ->  // e.g. keyboard elements have a different package-name and are therefore ignored for uid computation
-					// however different selectable auto-completion proposes are only 'rendered' such that we have to include the img id to ensure different state configuration id's if these are different
-					Pair(addRelevantId(id, widget), configId + widget.uid + widget.id.second)
+		// ignore nonInteractive parent views from ID computations to better re-identify state unique ids but consider them for the configIds
+		private val lazyIds: Lazy<ConcreteId> =
+				lazy {
+					widgets.fold(Pair(emptyUUID, emptyUUID)) { (id, configId), widget ->  // e.g. keyboard elements have a different package-name and are therefore ignored for uid computation
+						// however different selectable auto-completion proposes are only 'rendered' such that we have to include the img id to ensure different state configuration id's if these are different
+						Pair(addRelevantId(id, widget), configId + widget.uid + widget.id.second)
+					}
+				}
+
+		val uid: UUID by lazy { lazyIds.value.first }
+		val configId: UUID by lazy { lazyIds.value.second }
+		val stateId by lazy {
+			ConcreteId(uid, configId)
+		}
+		/** id computed like uid while ignoring all edit fields */
+		val iEditId: UUID by lazy {
+			//lazyIds.value.third
+			widgets.fold(emptyUUID) { iEdit, widget -> addRelevantNonEdit(iEdit, widget) }
+		}
+
+		val actionableWidgets by lazy { widgets.filter { it.isInteractive } }
+		val distinctTargets by lazy { actionableWidgets.filter { !it.isKeyboard && (it.isLeaf() || (it.isInteractive //&& !it.hasActableDescendant
+				)) //FIXME this is a bit stricter than the uncovered coordinate -> if we need it overwrite generateWidgets function
+			//|| it.uncoveredCoord!=null
+		}}
+		val hasEdit: Boolean by lazy { widgets.any { it.isInputField } }
+//	val focusedWindows: List<String> by lazy { displayedWindows.mapNotNull { if(it.hasInputFocus) it.pkgName else null } }
+
+		// for elements without text visibleText only the image is available which may introduce variance just due to sligh color differences, therefore
+		// non-text elements are only considered if they can be acted upon and don't have actable descendents
+		//TODO make this an open function, do we want to compare against apk.packageName or currently active/focused package?
+		fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen //&&  focusedWindows.contains(w.packageName)
+				&& (w.hasContent() || (w.isLeaf() && w.isInteractive) || (w.isInteractive && !w.hasActableDescendant)
+				)).also { w.usedForStateId = it }
+		/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text visibleText or it is a leaf) */
+		private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)){ id + w.uid } else id
+
+		private fun addRelevantNonEdit(id: UUID, w: Widget): UUID = if (w.isInputField) addRelevantId(id, w) else id
+
+		/** determine which UID this state would have, if it ignores [widgets] for the id computation
+		 * this is used to identify consequent states where interacted edit fields are to be ignored
+		 * for UID computation (instead the initial edit field UID will be restored) */
+		fun idWhenIgnoring(widgets: Collection<Widget>): UUID = widgets.fold(emptyUUID) { id, w ->
+			if (!widgets.contains(w)) addRelevantId(id, w) else id
+		}
+
+		val hasActionableWidgets by lazy{ actionableWidgets.isNotEmpty() }
+
+		/** write CSV
+		 *
+		 * [uid] => state_id as file name
+		 */
+		fun dump(config: ModelConfig) {
+			File(config.widgetFile(stateId,isHomeScreen//,topNodePackageName
+			)).bufferedWriter().use { all ->
+				all.write(widgetHeader(config[sep]))
+
+				widgets.sortedBy { it.uid }.forEach {
+					all.newLine()
+					all.write(it.dataString(config[sep]))
 				}
 			}
-
-	val uid: UUID by lazy { lazyIds.value.first }
-	val configId: UUID by lazy { lazyIds.value.second }
-	val stateId by lazy {
-		ConcreteId(uid, configId)
-	}
-	/** id computed like uid while ignoring all edit fields */
-	val iEditId: UUID by lazy {
-		//lazyIds.value.third
-		widgets.fold(emptyUUID) { iEdit, widget -> addRelevantNonEdit(iEdit, widget) }
-	}
-
-	val actionableWidgets by lazy { widgets.filter { it.isInteractive } }
-	val distinctTargets by lazy { actionableWidgets.filter { !it.isKeyboard && (it.isLeaf() || (it.isInteractive //&& !it.hasActableDescendant
-			)) //FIXME this is a bit stricter than the uncovered coordinate -> if we need it overwrite generateWidgets function
-		//|| it.uncoveredCoord!=null
-	}}
-	val hasEdit: Boolean by lazy { widgets.any { it.isInputField } }
-	val focusedWindows: List<String> by lazy { displayedWindows.mapNotNull { if(it.hasInputFocus) it.pkgName else null } }
-
-	// for elements without text visibleText only the image is available which may introduce variance just due to sligh color differences, therefore
-	// non-text elements are only considered if they can be acted upon and don't have actable descendents
-	//TODO make this an open function, do we want to compare against apk.packageName or currently active/focused package?
-	fun isRelevantForId(w: Widget): Boolean = (!isHomeScreen &&  focusedWindows.contains(w.packageName) && (w.hasContent() || (w.isLeaf() && w.isInteractive) || (w.isInteractive && !w.hasActableDescendant)
-			)).also { w.usedForStateId = it }
-	/** this function is used to add any widget.uid if it fulfills specific criteria (i.e. it belongs to the app, can be acted upon, has text visibleText or it is a leaf) */
-	private fun addRelevantId(id: UUID, w: Widget): UUID = if (isRelevantForId(w)){ id + w.uid } else id
-
-	private fun addRelevantNonEdit(id: UUID, w: Widget): UUID = if (w.isInputField) addRelevantId(id, w) else id
-
-	/** determine which UID this state would have, if it ignores [widgets] for the id computation
-	 * this is used to identify consequent states where interacted edit fields are to be ignored
-	 * for UID computation (instead the initial edit field UID will be restored) */
-	fun idWhenIgnoring(widgets: Collection<Widget>): UUID = widgets.fold(emptyUUID) { id, w ->
-		if (!widgets.contains(w)) addRelevantId(id, w) else id
-	}
-
-	val hasActionableWidgets by lazy{ actionableWidgets.isNotEmpty() }
-
-	/** write CSV
-	 *
-	 * [uid] => state_id as file name
-	 */
-	fun dump(config: ModelConfig) {
-		File(config.widgetFile(stateId,isHomeScreen,topNodePackageName)).bufferedWriter().use { all ->
-			all.write(widgetHeader(config[sep]))
-
-			widgets.sortedBy { it.uid }.forEach {
-				all.newLine()
-				all.write(it.dataString(config[sep]))
-			}
 		}
-	}
 
-	companion object {
-		// this is basically extending the primary constructor
+		companion object {
+			private const val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
+
+			// this is basically extending the primary constructor
 //    @JvmStatic operator fun invoke(widgets: Set<Widget>): StateData = StateData(widgets.toList()//.sortedBy { it.uid.dumpString() }
 //    )
 
 		// to load the model from previously stored files
 		@JvmStatic
-		fun fromFile(widgets: Collection<Widget>, homeScreen:Boolean, topPackage: String): StateData = StateData(widgets, homeScreen = homeScreen, topPackage = topPackage)
+		fun fromFile(widgets: Collection<Widget>, homeScreen:Boolean): StateData = StateData(widgets, homeScreen = homeScreen//, topPackage = topPackage
+		)
 
 		/** dummy element if a state has to be given but no widget data is available */
 		@JvmStatic
@@ -160,18 +166,19 @@ class StateData (private val _widgets: Lazy<Collection<Widget>>,
 
 	}
 
-	override fun equals(other: Any?): Boolean {
-		return when (other) {
-			is StateData -> uid == other.uid && configId == other.configId
-			else -> false
+		override fun equals(other: Any?): Boolean {
+			return when (other) {
+				is StateData -> uid == other.uid && configId == other.configId
+				else -> false
+			}
 		}
-	}
 
-	override fun hashCode(): Int {
-		return uid.hashCode() + configId.hashCode()
-	}
+		override fun hashCode(): Int {
+			return uid.hashCode() + configId.hashCode()
+		}
 
-	override fun toString(): String {
-		return "StateData[${stateId.dumpString()}, widgets=${widgets.size}]"
-	}
+		override fun toString(): String {
+			return "StateData[${stateId.dumpString()}, widgets=${widgets.size}]"
+		}
+
 }

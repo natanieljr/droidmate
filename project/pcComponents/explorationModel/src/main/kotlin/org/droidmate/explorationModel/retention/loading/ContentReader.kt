@@ -28,11 +28,12 @@ open class ContentReader(val config: ModelConfig){
 		}
 	}
 
-	open fun getStateFile(stateId: ConcreteId): Triple<Path,Boolean,String>{
+	open fun getStateFile(stateId: ConcreteId): Pair<Path,Boolean>{
 		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).use { it.toList() }.first {
 			it.fileName.toString().startsWith( stateId.dumpString()+ ModelConfig.defaultWidgetSuffix) }
 		return contentPath.fileName.toString().let {
-			Triple(contentPath, it.contains("HS"), it.substring(it.indexOf("_PN-")+4,it.indexOf(config[ConfigProperties.ModelProperties.dump.stateFileExtension])))
+			Pair(contentPath, it.contains("HS")//, it.substring(it.indexOf("_PN")+4,it.indexOf(config[ConfigProperties.ModelProperties.dump.stateFileExtension]))
+			)
 		}
 	}
 

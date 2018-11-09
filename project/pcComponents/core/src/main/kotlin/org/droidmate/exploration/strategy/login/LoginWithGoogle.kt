@@ -90,7 +90,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 	/*override fun mustPerformMoreActions(): Boolean {
 		return !eContext.getCurrentState().widgets
 				.any {
-					it.visible &&
+					it.definedAsVisible &&
 							it.resourceId == RES_ID_ACCOUNT
 				}
 	}*/

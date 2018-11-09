@@ -54,12 +54,12 @@ class TestReader(config: ModelConfig): ContentReader(config){
 		}
 	}
 
-	override fun getStateFile(stateId: ConcreteId): Triple<Path, Boolean, String>{
+	override fun getStateFile(stateId: ConcreteId): Pair<Path, Boolean>{
 		val s = testStates.find { s -> s.stateId == stateId }
 		if(s == null)
 			println("debug error")
 		return s!!.let{
-			Triple(Paths.get(config.widgetFile(stateId,it.isHomeScreen,it.topNodePackageName)),it.isHomeScreen,it.topNodePackageName)
+			Pair(Paths.get(config.widgetFile(stateId,it.isHomeScreen)),it.isHomeScreen)
 		}
 	}
 

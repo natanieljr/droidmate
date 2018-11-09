@@ -15,6 +15,7 @@ import android.support.test.uiautomator.UiDevice
 import android.support.test.uiautomator.getBounds
 import android.support.test.uiautomator.getWindowRootNodes
 import android.view.WindowManager
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import android.view.inputmethod.InputMethodManager
 import kotlinx.coroutines.experimental.delay
@@ -32,9 +33,9 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 	val automation: UiAutomation
 	val device: UiDevice
 	val context: Context
-	val keyboardPkgs: List<String> by lazy { computeKeyboardPkgs() }
+	private val keyboardPkgs: List<String> by lazy { computeKeyboardPkgs() }
 	// Will be updated during the run, when the right command is sent (i.e. on AppLaunch)
-	var appPackageName: String = ""
+	var launchedMainActivity: String = ""
 	var lastResponse: DeviceResponse = DeviceResponse.empty
 
 	var lastWindows : List<DisplayedWindow> private set
@@ -78,7 +79,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 	private fun computeKeyboardPkgs(): List<String>{
 		val inputMng = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 		return inputMng.inputMethodList.map { it.packageName }.also {
-			debugOut("computed keyboard packages $it", false)
+			debugOut("computed keyboard packages $it")
 		}
 	}
 
@@ -92,30 +93,32 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		return DisplayDimension(p.x,p.y)
 	}
 
-	private fun selectKeyboardRoot(minY:Int): SelectorCondition {
+	private fun selectKeyboardRoot(minY:Int, width: Int, height: Int): SelectorCondition {
 		return {node,_ ->
-			val b = node.getBounds(lastDisplayDimension)
+			val b = node.getBounds(width,height)
 			debugOut("check $b")
 					b.top>minY
 	}}
+
+	private fun AccessibilityNodeInfo.isKeyboard() = keyboardPkgs.contains(this.packageName)
 
 	private suspend fun processWindows(w: AccessibilityWindowInfo, uncoveredC: MutableList<Rect>):DisplayedWindow?{
 		debugOut("process ${w.id}", debug)
 		var outRect = Rect()
 		// REMARK we wait that the app AND keyboard root nodes are available for synchronization reasons
-		// otherwise we may extract an app widget as visible which would have been hidden behind the input window
+		// otherwise we may extract an app widget as definedAsVisible which would have been hidden behind the input window
 		if(w.root == null && w.type == AccessibilityWindowInfo.TYPE_APPLICATION || w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD){
 			val deviceRoots = device.getWindowRootNodes()
 			val root = deviceRoots.find{ it.windowId == w.id}
 			if(root != null){ // this is usually the case for input methods (i.e. the keyboard window)
 				root.getBoundsInParent(outRect)
-				if(w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) {
+				if(root.isKeyboard()) {
 					uncoveredC.firstOrNull()?.let { r ->
 						outRect.intersect(r)
 						if (outRect == r){  // wrong keyboard boundaries reported
 							debugOut("try to handle soft keyboard in front with $outRect")
-							UiHierarchy.findAndPerform(listOf(root),selectKeyboardRoot(r.top+1),retry = false,
-									action = { node -> outRect = node.getBounds(lastDisplayDimension ); true })
+							UiHierarchy.findAndPerform(listOf(root),selectKeyboardRoot(r.top+1,r.width(),r.height()),retry = false,
+									action = { node -> outRect = node.getBounds(r.width(),r.height() ); true })
 						}
 					}
 				}
@@ -127,7 +130,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 ////					return null
 ////				}
 				debugOut("warn use device root for ${w.id} ${root.packageName}[$outRect] uncovered = $uncoveredC ${w.type}")
-				return DisplayedWindow(w, uncoveredC, outRect, root)
+				return DisplayedWindow(w, uncoveredC, outRect, root.isKeyboard(), root)
 			}
 			debugOut("warn no root for ${w.id} ${deviceRoots.map { "${it.packageName}" +" wId=${it.window?.id}"}}")
 			return null
@@ -138,7 +141,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 			return null
 		}
 		debugOut("process window ${w.id} ${w.root?.packageName ?: "no ROOT!! type=${w.type}"}", true)
-		return DisplayedWindow(w, uncoveredC, outRect)
+		return DisplayedWindow(w, uncoveredC, outRect, w.root?.isKeyboard()?:false)
 	}
 
 	private fun DisplayedWindow.canReuseFor(newW: AccessibilityWindowInfo): Boolean{
@@ -150,7 +153,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 			if(!it) 		debugOut("extracted = ${isExtracted()}; newW = ${newW.layer}, $b")
 		}
 	}
-	var lastDisplayDimension = DisplayDimension(0,0)
+	private var lastDisplayDimension = DisplayDimension(0,0)
 
 	suspend fun getDisplayedWindows(): List<DisplayedWindow> {
 		debugOut("compute displayCoordinates", false)
@@ -204,7 +207,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		return processedWindows.values.toList().also { displayedWindows ->
 			lastDisplayDimension = displayDim // store results to be potentially reused
 			lastWindows = displayedWindows
-			debugOut("-- done displayed window computation [#windows = ${displayedWindows.size}] ${displayedWindows.map { "${it.w.windowId}:(${it.layer})${it.w.pkgName}[${it.initialArea}]" }}" )
+			debugOut("-- done displayed window computation [#windows = ${displayedWindows.size}] ${displayedWindows.joinToString(separator = ";\t ") { "${it.w.windowId}:(${it.layer})${it.w.pkgName}[${it.initialArea}] isK=${it.isKeyboard} isE=${it.isExtracted()}" }}" )
 		}
 	}
 

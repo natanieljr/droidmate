@@ -3,13 +3,12 @@ package android.support.test.uiautomator
 import android.graphics.Rect
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
-import org.droidmate.uiautomator2daemon.uiautomatorExtensions.DisplayDimension
 
 
-fun AccessibilityNodeInfo.getBounds(dim: DisplayDimension): Rect = when{
-	isVisibleToUser ->
-		AccessibilityNodeInfoHelper.getVisibleBoundsInScreen(this, dim.width, dim.height)
-	else -> Rect().apply { getBoundsInScreen(this)}
+fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
+	isEnabled && isVisibleToUser ->
+		AccessibilityNodeInfoHelper.getVisibleBoundsInScreen(this, width, height)
+	else -> Rect().apply { getBoundsInScreen(this)} // this may lead to negative coordinates/width/height values
 }
 
 /** @return true if children should be recursively traversed */

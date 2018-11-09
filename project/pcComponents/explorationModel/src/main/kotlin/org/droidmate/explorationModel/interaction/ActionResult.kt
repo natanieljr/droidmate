@@ -88,7 +88,7 @@ data class ActionResult(val action: ExplorationAction,
 							//					debugT(" widgets sequential", { it.map{ Widget.fromWidgetData(it,img,config)}} ,{ timeS += it })
 
 							return debugT("create all widgets unconfined", {
-								// some times much faster then sequential but some timesl a few fousand ns slower but in average seams faster
+								// some times much faster then sequential but some times a few fousand ns slower but in average seams faster
 								it.map { async(Unconfined) { Widget.fromUiNode(it, img, config) } } // iterates over each element and creates Widget object collect all these elements as set
 										.map { runBlocking { it.await() } }
 							}, { timeP += it })
@@ -110,8 +110,8 @@ data class ActionResult(val action: ExplorationAction,
 	fun resultState(widgets: List<Widget>): StateData = resultState(lazyOf(widgets))
 	private fun resultState(widgets: Lazy<List<Widget>>): StateData {
 		return guiSnapshot.let { g ->
-			StateData(widgets, displayedWindows = g.appWindows,
-					isAppHasStoppedDialogBox = g.isAppHasStoppedDialogBox, isHomeScreen = g.isHomeScreen)
+			StateData(widgets, //displayedWindows = g.appWindows,
+					isHomeScreen = g.isHomeScreen)
 		}
 	}
 }

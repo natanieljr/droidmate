@@ -1,9 +1,12 @@
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.graphics.Rect
+import android.os.Build
 import android.util.Log
 import org.droidmate.deviceInterface.exploration.Rectangle
 import java.util.*
+
+val api = Build.VERSION.SDK_INT
 
 data class DisplayDimension(val width :Int, val height: Int)
 
@@ -28,7 +31,7 @@ fun Rect.visibleAxis(uncovered: MutableCollection<Rect>, isSingleElement: Boolea
 			}else{
 				markedAsOccupied = false
 			}
-			// this probably is done by the apps to determine their visible app areas
+			// this probably is done by the apps to determine their definedAsVisible app areas
 			newR.apply{ // add surrounding ones areas
 				add(Rect(it.left,it.top,it.right,r.top-1))// above intersection
 				add(Rect(it.left,r.top,r.left-1,r.bottom))  // left from intersection

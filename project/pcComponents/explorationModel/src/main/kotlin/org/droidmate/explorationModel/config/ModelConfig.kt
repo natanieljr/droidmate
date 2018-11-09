@@ -67,8 +67,8 @@ class ModelConfig private constructor(path: Path,
 
 	private val idPath: (Path, String, String, String) -> String = { baseDir, id, postfix, fileExtension -> baseDir.toString() + "${File.separator}$id$postfix$fileExtension" }
 
-	val widgetFile: (ConcreteId, Boolean, String) -> String = { id, isHomeScreen, topPackageName ->
-		statePath(id, postfix = defaultWidgetSuffix +(if(isHomeScreen) "_HS" else "") + "_PN-$topPackageName") }
+	val widgetFile: (ConcreteId, Boolean) -> String = { id, isHomeScreen 	->
+		statePath(id, postfix = defaultWidgetSuffix +(if(isHomeScreen) "_HS" else "") + "_PN") }
 	fun statePath(id: ConcreteId, postfix: String = "", fileExtension: String = config[stateFileExtension]): String {
 		return idPath(stateDst, id.dumpString(), postfix, fileExtension)
 	}

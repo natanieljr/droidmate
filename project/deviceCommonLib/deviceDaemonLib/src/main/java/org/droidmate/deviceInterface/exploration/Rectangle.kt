@@ -41,3 +41,11 @@ data class Rectangle(val leftX:Int, val topY:Int, val width: Int, val height: In
 		private const val serialVersionUID: Long = -1394915106 // this is "CustomRectangle".hashCode but it only has to be unique
 	}
 }
+
+fun List<Rectangle>.visibleOuterBounds(): Rectangle = with(filter { it.isNotEmpty() }){
+	val pl = minBy { it.leftX }
+	val pt = minBy { it.topY }
+	val pr = maxBy { it.rightX }
+	val pb = maxBy { it.bottomY }
+	return Rectangle.create(pl?.leftX ?: 0, pt?.topY ?: 0, right = pr?.rightX ?: 0, bottom = pb?.bottomY ?: 0)
+}

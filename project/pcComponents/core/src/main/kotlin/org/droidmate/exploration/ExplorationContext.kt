@@ -47,7 +47,6 @@ import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.misc.TimeProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.awt.Rectangle
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
@@ -97,13 +96,13 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		s.distinctTargets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
 
 	fun belongsToApp(state: StateData): Boolean {
-		return state.displayedWindows.any { it.pkgName == apk.packageName }
+		return state.widgets.any { it.packageName == apk.packageName }
 	}
 
 	fun add(action: ExplorationAction, result: ActionResult) {
 		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
 		lastDump = result.guiSnapshot.windowHierarchyDump
-		apk.updateLaunchableActivityName(result.guiSnapshot.launchableMainActivityName)
+		apk.updateLaunchableActivityName(result.guiSnapshot.launchedMainActivityName)
 
 		assert(action.toString() == result.action.toString()) { "ERROR on ACTION-RESULT construction the wrong action was instantiated ${result.action} instead of $action"}
 		_model.S_updateModel(result, explorationTrace)
@@ -138,7 +137,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	fun dump() {
 		log.info("dump models and watcher")
-		assert(!apk.launchableMainActivityName.isBlank()) { "launchableMainActivityName was ${apk.launchableMainActivityName}" }
+		assert(!apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was ${apk.launchableMainActivityName}" }
 		_model.P_dumpModel(_model.config)
 
 		this.also { context ->
