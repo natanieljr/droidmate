@@ -9,8 +9,6 @@ import android.support.test.uiautomator.*
 import android.util.Log
 import android.util.Xml
 import android.view.accessibility.AccessibilityNodeInfo
-import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking

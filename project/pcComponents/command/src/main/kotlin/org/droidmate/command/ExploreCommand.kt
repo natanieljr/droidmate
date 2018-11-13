@@ -59,7 +59,6 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.*
@@ -398,6 +397,22 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	private val imgTransfer = CoroutineScope(Dispatchers.Default+ Job() + CoroutineName("device image pull"))
+
+	private fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice){
+		debugT("image transfer should take no time on main thread", {
+			imgTransfer.launch {
+				// pull the image from device, store it in the image directory defined in ModelConfig and remove it on device
+				val fileName = "$actionId.jpg"
+				val dstFile = targetDir.resolve(fileName)
+				var c = 0
+				do {          // try for up to 3 times to pull a screenshot image
+					delay(2000)// the device is going to need some time to compress the image, if the image is time critical you should disable delayed fetch
+					device.pullFile(fileName, dstFile)
+				} while (c++ < 3 && !File(dstFile.toString()).exists())
+			}
+		}, inMillis = true)
+
+	}
 	private fun explorationLoop(app: IApk, device: IRobustDevice): ExplorationContext {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
@@ -424,18 +439,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				result = action.run(app, device)
 
 				if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch])
-					debugT("image transfer should take no time on main thread", {
-						imgTransfer.launch {
-							// pull the image from device, store it in the image directory defined in ModelConfig and remove it on device
-							val fileName = "${action.id}.jpg"
-							val dstFile = explorationContext.getModel().config.imgDst.resolve(fileName)
-							var c = 0
-							do {          // try for up to 3 times to pull a screenshot image
-								delay(2000)// the device is going to need some time to compress the image, if the image is time critical you should disable delayed fetch
-								device.pullFile(fileName, dstFile)
-							} while (c++ < 3 && !File(dstFile.toString()).exists())
-						}
-					}, inMillis = true)
+					pullScreenShot(action.id,explorationContext.getModel().config.imgDst, device)
 
 				explorationContext.update(action, result)
 				// update strategy
@@ -448,7 +452,16 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			}
 
 		}finally {
-			runBlocking {
+			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) runBlocking {
+				// having one pull in the end does not really seam to make a performance difference right now
+//				val fileName = "${action.id}.jpg"
+//				val dstFile = explorationContext.getModel().config.imgDst.resolve(fileName)
+//				var c = 0
+//				do {          // try for up to 3 times to pull a screenshot image
+//					// instead of intermittent transfer pull the whole image directory in the end of this exploration
+//					device.pullFile("", explorationContext.getModel().config.imgDst)
+//				} while (c++ < 3 && !File(dstFile.toString()).exists())
+
 				imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
 			} // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
 		}

@@ -7,19 +7,20 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
 import android.view.accessibility.AccessibilityNodeInfo
-import kotlinx.coroutines.NonCancellable.isActive
+import kotlinx.coroutines.isActive
 import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.visibleOuterBounds
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
+import kotlin.coroutines.coroutineContext
 
 abstract class UiParser {
 
 	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
 	                                     parentXpath: String, nodes: MutableList<UiElementProperties>, img: Bitmap?,
 	                                     parentH: Int = 0): UiElementProperties? {
-//		if(!isActive) return null //TODO still experimental
+		if(!coroutineContext.isActive) return null
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
 		val nChildren = node.getChildCount()

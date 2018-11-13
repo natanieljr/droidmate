@@ -104,11 +104,11 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		shapeColor = Color.orange
 		highlightWidget(stateImg, prevState.actionableWidgets.filter {  !it.visibleAreas.isComplete() && !it.isKeyboard }, 0)
 
-//		if(targetWidgets.isNotEmpty()) {
-//			shapeColor = Color.red
-//			textColor = Color.magenta
-//			highlightWidget(stateImg, targetWidgets, step)
-//		}
+		if(targetWidgets.isNotEmpty()) {
+			shapeColor = Color.red
+			textColor = Color.magenta
+			highlightWidget(stateImg, targetWidgets, step)
+		}
 		ImageIO.write(stateImg,"png",targetFile)
 	}
 }
