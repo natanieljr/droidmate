@@ -264,7 +264,7 @@ class GuiScreen /*constructor(private val internalId: String,
 
 	override fun toString(): String {
 			return MoreObjects.toStringHelper(this)
-							.add("uid", internalId)
+							.update("uid", internalId)
 							.toString()
 	}
 

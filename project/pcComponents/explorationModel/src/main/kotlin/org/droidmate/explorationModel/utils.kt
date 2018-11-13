@@ -51,6 +51,7 @@ fun Collection<Rectangle>.firstCenter() = firstOrNull()?.center() ?: Pair(0,0)
 fun Collection<Rectangle>.firstOrEmpty() = firstOrNull() ?: Rectangle(0,0,0,0)
 
 object DummyProperties: UiElementPropertiesI {
+	override val imgId: Int = 0
 	override val visibleBounds: Rectangle = Rectangle(0,0,0,0)
 	override val hasUncoveredArea: Boolean = false
 	override val boundaries: Rectangle = Rectangle(0,0,0,0)

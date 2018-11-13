@@ -31,7 +31,10 @@ data class UiElementProperties(
 		val windowLayer: Int,
 		override val metaInfo: List<String>,
 		override val hasUncoveredArea: Boolean,
-		override val visibleBounds: Rectangle
+		override val visibleBounds: Rectangle,
+		override val imgId: Int,
+//		override val isInBackground: Boolean,
+		val allSubAreas: List<Rectangle>
 ) : UiElementPropertiesI {
 
 	override val idHash: Int by lazy{ xpath.hashCode() + windowLayer }
@@ -63,6 +66,11 @@ data class UiElementProperties(
 ////						uncoveredCoord = line[P.Coord.idx(indexMap)].let{ if(it=="null") null else with(it.split(",")){ kotlin.Pair(get(0).toInt(), get(1).toInt()) }},
 //						idHash = line[P.HashId.idx(indexMap)].let{ it.toInt() }
 //				)
+
+	companion object {
+		// necessary for TCP communication, otherwise it would be computed by the class hash which may cause de-/serialization errors
+		const val serialVersionUID: Long = 5205083142890068067//		@JvmStatic
+	}
 
 }
 

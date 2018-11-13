@@ -144,7 +144,7 @@ fun Map<Long, Iterable<String>>.countsPartitionedByTime(
 	return this
 			.mapKeys {
 				// KNOWN BUG got here time with relation to exploration start of -25, but it should be always > 0.
-				// The currently applied workaround is to add 100 milliseconds.
+				// The currently applied workaround is to update 100 milliseconds.
 				it.key + 100L
 			}
 			.accumulate()

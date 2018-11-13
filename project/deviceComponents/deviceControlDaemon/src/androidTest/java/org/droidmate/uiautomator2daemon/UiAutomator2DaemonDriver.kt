@@ -24,14 +24,12 @@
 // web: www.droidmate.org
 
 package org.droidmate.uiautomator2daemon
-
 import android.util.Log
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
 import org.droidmate.deviceInterface.communication.DeviceCommand
 import org.droidmate.deviceInterface.communication.ExecuteCommand
 import org.droidmate.deviceInterface.communication.StopDaemonCommand
-
-import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.uiautomator2daemon.exploration.*
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiAutomationEnvironment
@@ -40,8 +38,10 @@ import kotlin.math.max
 /**
  * Decides if UiAutomator2DaemonDriver should wait for the window to go to idle state after each click.
  */
-class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeout: Long, enablePrintouts: Boolean = false) : IUiAutomator2DaemonDriver {
-	private val uiEnvironment: UiAutomationEnvironment = UiAutomationEnvironment(idleTimeout = waitForIdleTimeout, interactiveTimeout = waitForInteractiveTimeout, enablePrintouts = enablePrintouts)
+class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeout: Long, imgQuality: Int,
+                               delayedImgTransfer: Boolean,
+                               enablePrintouts: Boolean = false) : IUiAutomator2DaemonDriver {
+	private val uiEnvironment: UiAutomationEnvironment = UiAutomationEnvironment(idleTimeout = waitForIdleTimeout, interactiveTimeout = waitForInteractiveTimeout, imgQuality = imgQuality, delayedImgTransfer = delayedImgTransfer, enablePrintouts = enablePrintouts)
 
 	private var nActions = 0
 	@Throws(DeviceDaemonException::class)
@@ -77,6 +77,7 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 				Log.v(uiaDaemon_logcatTag, "Performing GUI action $action")
 
 				val result = debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
+					lastId = action.id
 					action.execute(uiEnvironment)
 				}, inMillis = true, timer = {
 					tExec += it

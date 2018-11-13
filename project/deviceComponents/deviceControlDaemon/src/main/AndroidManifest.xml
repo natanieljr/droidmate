@@ -8,12 +8,16 @@ This file is necessary because of gradle 'com.android.application' plugin.
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 		  xmlns:tools="http://schemas.android.com/tools" package="org.droidmate.uiautomator2daemon">
+	<!-- storage permission for on phone screenshot storage, modify audio to mute audio during test and wifi/internet for obvious reasons -->
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-	<application android:allowBackup="false" tools:ignore="GoogleAppIndexingWarning">
+	<application android:allowBackup="true" tools:ignore="GoogleAppIndexingWarning">
 		<service
 				android:name="uiautomator2daemon"
 				android:exported="true" tools:ignore="ExportedService">

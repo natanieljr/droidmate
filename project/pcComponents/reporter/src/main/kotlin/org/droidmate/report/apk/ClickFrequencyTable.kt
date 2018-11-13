@@ -65,7 +65,7 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
 					explorationTrace.getActions().forEachIndexed { idx, action ->
 						size.let { nSeenBefore -> runBlocking {
 							// the size of the set of widgets seen until step idx
-							getState(action.resState)?.widgets?.map { it.uid }?.let { addAll(it) }  // add the unique ids of widgets seen in the new state
+							getState(action.resState)?.widgets?.map { it.uid }?.let { addAll(it) }  // update the unique ids of widgets seen in the new state
 							res.put(idx, size - nSeenBefore)  // this is the number of newly explored widgets
 						} }
 					}

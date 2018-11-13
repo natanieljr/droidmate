@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 /**
  * Created by liyc on 6/1/16.
- * Helper class to add to target APK
+ * Helper class to update to target APK
  */
 public class CoverageHelper {
     private static HashMap<String, Integer> reachedCounts = new HashMap<String, Integer>();

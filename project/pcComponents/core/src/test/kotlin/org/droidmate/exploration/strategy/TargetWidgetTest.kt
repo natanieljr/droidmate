@@ -58,7 +58,7 @@ class TargetWidgetTest : DroidmateTestCase() {
 
 	private fun createTestWidgetList(): List<ITargetWidget> {
 			val testData = ArrayList<ITargetWidget>()
-			testData.add(TargetWidget(this.createWidget("Widget1")))
+			testData.update(TargetWidget(this.createWidget("Widget1")))
 
 			val dependencyWidget3 = TargetWidget(
 							this.createWidget("Widget3"))
@@ -68,7 +68,7 @@ class TargetWidgetTest : DroidmateTestCase() {
 							this.createWidget("Widget5"))
 			val dependencyWidget2 = TargetWidget(
 							this.createWidget("Widget2"), dependencyWidget4, dependencyWidget5)
-			testData.add(dependencyWidget2)
+			testData.update(dependencyWidget2)
 
 			// Check initialization
 			for (target in testData) {

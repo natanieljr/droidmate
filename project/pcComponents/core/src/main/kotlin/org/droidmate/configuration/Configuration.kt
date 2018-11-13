@@ -247,6 +247,8 @@ abstract class ConfigProperties {
 		val waitForIdleTimeout by intType
 		val waitForInteractableTimeout by intType
 		val enablePrintOuts by booleanType
+		val delayedImgFetch by booleanType
+		val imgQuality by intType
 		val startTimeout by intType
 		val socketTimeout by intType
 		val basePort by intType

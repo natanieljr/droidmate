@@ -85,7 +85,7 @@ class ExplorationTest : DroidmateTestCase() {
 
 							// Act
 							val explData = exploration.run(deployedApk, RobustDevice(device, cfg))
-							outData.add(explData.result)
+							outData.update(explData.result)
 							explData.exception as Any
 					}
 			}

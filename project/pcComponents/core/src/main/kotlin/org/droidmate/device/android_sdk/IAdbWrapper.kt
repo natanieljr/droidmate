@@ -97,10 +97,10 @@ interface IAdbWrapper {
 	//void stopUiautomatorDaemon(deviceSerialNumber: String) throws AdbWrapperException
 
 	@Throws(AdbWrapperException::class)
-	fun removeFileApi23(deviceSerialNumber: String, fileName: String, shellPackageName: String)
+	fun removeFileApi23(deviceSerialNumber: String, filePath: String, shellPackageName: String)
 
 	@Throws(AdbWrapperException::class)
-	fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: Path, shellPackageName: String)
+	fun pullFileApi23(deviceSerialNumber: String, pulledFilePath: String, destinationFilePath: Path, shellPackageName: String)
 
 	@Throws(AdbWrapperException::class)
 	fun takeScreenshot(deviceSerialNumber: String, targetPath: String)

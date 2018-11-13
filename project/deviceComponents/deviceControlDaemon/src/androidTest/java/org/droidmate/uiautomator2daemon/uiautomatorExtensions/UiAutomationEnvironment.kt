@@ -2,12 +2,16 @@
 
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Instrumentation
 import android.app.Service
 import android.app.UiAutomation
 import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
+import android.os.Environment
 import android.os.RemoteException
 import android.support.test.InstrumentationRegistry
 import android.support.test.uiautomator.Configurator
@@ -18,18 +22,23 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import android.view.inputmethod.InputMethodManager
-import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.delay
+import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.uiautomator2daemon.exploration.measurePerformance
+import org.droidmate.uiautomator2daemon.exploration.nullableDebugT
+import java.io.File
 import java.util.*
+import java.util.jar.Manifest
 import kotlin.collections.HashMap
 
 private const val debug = false
 
-data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveTimeout: Long = 1000, val enablePrintouts: Boolean) {
+data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveTimeout: Long = 1000, val imgQuality: Int,
+                                   val delayedImgTransfer: Boolean, val enablePrintouts: Boolean) {
 	// The instrumentation required to run uiautomator2-daemon is
 	// provided by the command: adb shell instrument <PACKAGE>/<RUNNER>
-	private val instr: Instrumentation = InstrumentationRegistry.getInstrumentation() ?: throw AssertionError(" could not get instrumentation")
+	val instr: Instrumentation = InstrumentationRegistry.getInstrumentation() ?: throw AssertionError(" could not get instrumentation")
 	val automation: UiAutomation
 	val device: UiDevice
 	val context: Context
@@ -39,6 +48,8 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 	var lastResponse: DeviceResponse = DeviceResponse.empty
 
 	var lastWindows : List<DisplayedWindow> private set
+
+	val imgDir: File
 	init {
 		lastWindows = emptyList()
 		// setting logcat debug/performance prints according to specified DM-2 configuration
@@ -67,6 +78,15 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		this.device = UiDevice.getInstance(instr)
 		if (device == null) throw AssertionError(" could not determine UI-Device")
 
+		if(delayedImgTransfer && context.checkSelfPermission(WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+			debugOut("warn we have no storage permission, we may not be able to store & fetch screenshots")
+		}
+		imgDir =
+				Environment.getExternalStorageDirectory().resolve("DM-2/images")
+//				File(DeviceConstants.imgPath)
+		imgDir.deleteRecursively()  // delete content from previous explorations
+		if(!imgDir.exists()) imgDir.mkdirs()
+
 		try {
 			// Orientation is set initially to natural, however can be changed by action
 			device.setOrientationNatural()
@@ -79,13 +99,13 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 	private fun computeKeyboardPkgs(): List<String>{
 		val inputMng = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
 		return inputMng.inputMethodList.map { it.packageName }.also {
-			debugOut("computed keyboard packages $it")
+			debugOut("computed keyboard packages $it", debug)
 		}
 	}
 
 	//FIXME for some reason this does not report the pixels of the system navigation bar in the bottom of the display
 	private fun getDisplayDimension(): DisplayDimension {
-		debugOut("get display dimmension",false)
+		debugOut("get display dimension",false)
 		val p = Point()
 		(InstrumentationRegistry.getInstrumentation().context.getSystemService(Service.WINDOW_SERVICE) as WindowManager)
 				.defaultDisplay.getSize(p)
@@ -96,14 +116,18 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 	private fun selectKeyboardRoot(minY:Int, width: Int, height: Int): SelectorCondition {
 		return {node,_ ->
 			val b = node.getBounds(width,height)
-			debugOut("check $b")
+			debugOut("check $b",false)
 					b.top>minY
 	}}
 
 	private fun AccessibilityNodeInfo.isKeyboard() = keyboardPkgs.contains(this.packageName)
 
+	val captureScreen: ()-> Bitmap? = { nullableDebugT("img capture time", {
+		UiHierarchy.getScreenShot(idleTimeout, automation)
+	}, inMillis = true) }
+
 	private suspend fun processWindows(w: AccessibilityWindowInfo, uncoveredC: MutableList<Rect>):DisplayedWindow?{
-		debugOut("process ${w.id}", debug)
+		debugOut("process ${w.id}", false)
 		var outRect = Rect()
 		// REMARK we wait that the app AND keyboard root nodes are available for synchronization reasons
 		// otherwise we may extract an app widget as definedAsVisible which would have been hidden behind the input window
@@ -112,24 +136,18 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 			val root = deviceRoots.find{ it.windowId == w.id}
 			if(root != null){ // this is usually the case for input methods (i.e. the keyboard window)
 				root.getBoundsInParent(outRect)
+				// this is necessary since newly appearing keyboards may otherwise take the whole screen and thus screw up our visibility analysis
 				if(root.isKeyboard()) {
 					uncoveredC.firstOrNull()?.let { r ->
 						outRect.intersect(r)
 						if (outRect == r){  // wrong keyboard boundaries reported
-							debugOut("try to handle soft keyboard in front with $outRect")
+							debugOut("try to handle soft keyboard in front with $outRect", debug)
 							UiHierarchy.findAndPerform(listOf(root),selectKeyboardRoot(r.top+1,r.width(),r.height()),retry = false,
 									action = { node -> outRect = node.getBounds(r.width(),r.height() ); true })
 						}
 					}
 				}
-				// this is necessary since newly appearing keyboards may otherwise take the whole screen and thus screw up our visibility analysis
-//				val uncoveredDiff by lazy { uncoveredC.firstOrNull()?.let{ r ->  // simple equality check does not work as r.top is likely outRect.top+1
-//					r.top -outRect.top + r.left - outRect.left+ r.right - outRect.right + r.bottom -outRect.bottom } ?: 1 }
-////				if(w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD	&& uncoveredDiff <= 0){
-////					debugOut("warn cannot reuse keyboard root ${w.id} ${root.packageName}[$outRect] diff=$uncoveredDiff")
-////					return null
-////				}
-				debugOut("warn use device root for ${w.id} ${root.packageName}[$outRect] uncovered = $uncoveredC ${w.type}")
+				debugOut("warn use device root for ${w.id} ${root.packageName}[$outRect] uncovered = $uncoveredC ${w.type}", debug)
 				return DisplayedWindow(w, uncoveredC, outRect, root.isKeyboard(), root)
 			}
 			debugOut("warn no root for ${w.id} ${deviceRoots.map { "${it.packageName}" +" wId=${it.window?.id}"}}")
@@ -140,7 +158,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 			debugOut("warn empty application window")
 			return null
 		}
-		debugOut("process window ${w.id} ${w.root?.packageName ?: "no ROOT!! type=${w.type}"}", true)
+		debugOut("process window ${w.id} ${w.root?.packageName ?: "no ROOT!! type=${w.type}"}", debug)
 		return DisplayedWindow(w, uncoveredC, outRect, w.root?.isKeyboard()?:false)
 	}
 
@@ -150,7 +168,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		return w.windowId == newW.id && layer == newW.layer
 				&& bounds == b
 				&& (!isExtracted() || newW.root != null).also {
-			if(!it) 		debugOut("extracted = ${isExtracted()}; newW = ${newW.layer}, $b")
+			if(!it) 		debugOut("extracted = ${isExtracted()}; newW = ${newW.layer}, $b", debug)
 		}
 	}
 	private var lastDisplayDimension = DisplayDimension(0,0)
@@ -176,16 +194,16 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 				with(lastWindows[c]) {
 					val newW = windows[c++]
 					val cnd = canReuseFor(newW)
-					if(w.windowId == newW.id && !cnd) debugOut("try to reuse $this for ${newW.id}")
+					if(w.windowId == newW.id && !cnd) debugOut("try to reuse $this for ${newW.id}", debug)
 					if (cnd) {
-						debugOut("can reuse window ${w.windowId} ${w.pkgName} ${w.boundaries}")
+						debugOut("can reuse window ${w.windowId} ${w.pkgName} ${w.boundaries}", debug)
 						processedWindows[w.windowId] = this.apply { if(isExtracted()) rootNode = newW.root }
 					}
 					else canReuse = false // no guarantees after we have one mismatching window
 				}
 			}
 			if (!canReuse){ // wo could only partially reuse windows or none
-				if(processedWindows.isNotEmpty()) debugOut("only partial reuse was possible")
+				if(processedWindows.isNotEmpty()) debugOut("only partial reuse was possible", debug)
 				processedWindows.values.forEach { it.bounds.visibleAxis(uncoveredC) } // then we need to mark the (reused) displayed window area as occupied
 			}
 		}
@@ -207,7 +225,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		return processedWindows.values.toList().also { displayedWindows ->
 			lastDisplayDimension = displayDim // store results to be potentially reused
 			lastWindows = displayedWindows
-			debugOut("-- done displayed window computation [#windows = ${displayedWindows.size}] ${displayedWindows.joinToString(separator = ";\t ") { "${it.w.windowId}:(${it.layer})${it.w.pkgName}[${it.initialArea}] isK=${it.isKeyboard} isE=${it.isExtracted()}" }}" )
+			debugOut("-- done displayed window computation [#windows = ${displayedWindows.size}] ${displayedWindows.joinToString(separator = ";\t ") { "${it.w.windowId}:(${it.layer})${it.w.pkgName}[${it.w.boundaries}] isK=${it.isKeyboard} isE=${it.isExtracted()} ${it.initialArea}" }}" )
 		}
 	}
 

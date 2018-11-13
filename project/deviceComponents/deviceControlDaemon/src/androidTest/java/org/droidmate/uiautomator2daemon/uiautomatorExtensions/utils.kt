@@ -1,10 +1,18 @@
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
 import android.util.Log
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import org.droidmate.deviceInterface.exploration.Rectangle
+import java.nio.ByteBuffer
 import java.util.*
+
+val backgroundScope = CoroutineScope(Dispatchers.Default + CoroutineName("background") + Job())   //same dispatcher as GlobalScope.launch
 
 val api = Build.VERSION.SDK_INT
 
@@ -14,17 +22,21 @@ fun Rect.toRectangle() = Rectangle(left, top, width(), height())
 
 fun Rectangle.toRect() = Rect(leftX,topY,rightX,bottomY)
 
+fun Rectangle.contains(r: Rectangle) =
+		r.isNotEmpty() && leftX<=r.leftX && topY<=r.topY && rightX>=r.rightX && bottomY>=r.bottomY
+
+
 data class Coordinate(val x:Int, val y: Int)
 var markedAsOccupied = true
 fun Rect.visibleAxis(uncovered: MutableCollection<Rect>, isSingleElement: Boolean = false): List<Rect>{
-	if(uncovered.isEmpty()) return emptyList()
+	if(uncovered.isEmpty() || this.isEmpty) return emptyList()
 	markedAsOccupied = true
 	val newR = LinkedList<Rect>()
 	var changed = false
 	val del = LinkedList<Rect>()
 	return uncovered.mapNotNull {
 		val r = Rect()
-		if(r.setIntersect(this,it)) {
+		if(!it.isEmpty && r.setIntersect(this,it) && !r.isEmpty) {
 			changed = true
 			if(!isSingleElement || r!= it){  // try detect elements which are for some reason rendered 'behind' an transparent layout element
 				del.add(it)
@@ -52,9 +64,10 @@ fun Rect.visibleAxis(uncovered: MutableCollection<Rect>, isSingleElement: Boolea
  * meaning it has no own 'uncovered' coordinates, then there is no need to modify the input list
  */
 fun Rect.visibleAxisR(uncovered: Collection<Rectangle>): List<Rectangle>{
+	if (this.isEmpty) return emptyList()
 	return uncovered.mapNotNull {
 		val r = Rect()
-		if(r.setIntersect(this,it.toRect())) {
+		if(!it.isEmpty() && r.setIntersect(this,it.toRect()) && !r.isEmpty) {
 			r.toRectangle()
 		} else null
 	}.also { res -> //(uncovered is not modified)
@@ -74,12 +87,33 @@ operator fun Coordinate.rangeTo(c: Coordinate): Collection<Coordinate> {
 	}
 }
 
-fun visibleOuterBounds(r: Collection<Rect>): Rectangle{
-	debugOut("bounds for $r", false)
-	val p0 = r.firstOrNull()
-	val p1 = r.lastOrNull()
-	return Rect(p0?.left ?: 0, p0?.top ?: 0, p1?.right ?: 0, p1?.bottom ?: 0).toRectangle()
+fun visibleOuterBounds(r: Collection<Rect>): Rectangle = with(r.filter { !it.isEmpty }){
+	val pl = minBy { it.left }
+	val pt = minBy { it.top }
+	val pr = maxBy { it.right }
+	val pb = maxBy { it.bottom }
+	return Rectangle.create(pl?.left ?: 0, pt?.top ?: 0, right = pr?.right ?: 0, bottom = pb?.bottom ?: 0)
 }
+
+fun bitmapToBytes(bm: Bitmap):ByteArray{
+	val h = bm.height
+	val size = bm.rowBytes * h
+	val buffer = ByteBuffer.allocate(size*4)  // *4 since each pixel is is 4 byte big
+	bm.copyPixelsToBuffer(buffer)
+//		val config = Bitmap.Config.valueOf(bm.getConfig().name)
+
+	return buffer.array()
+}
+
+@Suppress("unused") // keep it here for now, it may become usefull later on
+fun bytesToBitmap(b: ByteArray, width: Int, height: Int): Bitmap {
+	val config= Bitmap.Config.ARGB_8888  // should be the value from above 'val config = ..' call
+	val bm = Bitmap.createBitmap(width, height, config)
+	val buffer = ByteBuffer.wrap(b)
+	bm.copyPixelsFromBuffer(buffer)
+	return bm
+}
+
 
 var debugEnabled = true
 fun debugOut(msg: String, enabled: Boolean = true){

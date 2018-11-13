@@ -60,7 +60,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 	val uid: UUID by lazy { computeUId() }
 	/** id to characterize the current 'configuration' of an element, e.g. is it definedAsVisible, checked etc */
 	val propertyId: UUID by lazy { computePropertyId() }
-	val imgId by lazy{  uidImgId.value.second } //FIXME this should be a constructor parameter instead
+//	val imgId by lazy{  uidImgId.value.second } //FIXME this should be a constructor parameter instead
 	/** A widget mainly consists of two parts, [uid] encompasses the identifying one [image,Text,Description] used for unique identification
 	 * and the modifiable properties, like checked, focused etc. identified via [propertyId] (and possibly [imgId]) */
 	val id by lazy { computeConcreteId() }
@@ -276,6 +276,8 @@ open class Widget internal constructor(properties: UiElementPropertiesI, val uid
 		return "interactive=$isInteractive-${uid}_$propertyId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, $visibleBounds]"
 	}
 
+//	final override val isInBackground: Boolean = properties.isInBackground
+	final override val imgId: Int = properties.imgId
 	final override val visibleBounds: org.droidmate.deviceInterface.exploration.Rectangle = properties.visibleBounds
 	final override val isKeyboard: Boolean = properties.isKeyboard
 	final override val text: String = properties.text

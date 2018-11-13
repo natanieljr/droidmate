@@ -62,13 +62,13 @@ class ExplorationOutput2Builder {
 
 			this.currentlyBuiltApkOut2.verify()
 
-			builtOutput.add(currentlyBuiltApkOut2)
+			builtOutput.update(currentlyBuiltApkOut2)
 	}
 
 	private fun actRes(attributes: Map<String, Any>) {
 			val runnableAction = buildRunnableAction(attributes)
 			val result = buildActionResult(attributes)
-			currentlyBuiltApkOut2.add(runnableAction, result)
+			currentlyBuiltApkOut2.update(runnableAction, result)
 	}
 
 	private fun buildRunnableAction(attributes: Map<String, Any>): RunnableExplorationAction {

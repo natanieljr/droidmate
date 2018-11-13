@@ -48,6 +48,9 @@ internal operator fun UUID.plus(uuid: UUID?): UUID {
 	return if(uuid == null) this
 	else UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
 }
+internal operator fun UUID.plus(id: Int): UUID {
+	return UUID(this.mostSignificantBits + id, this.leastSignificantBits + id)
+}
 
 /** s_* should be only used in sequential eContext as it currently does not handle parallelism*/
 @Suppress("MemberVisibilityCanBePrivate")

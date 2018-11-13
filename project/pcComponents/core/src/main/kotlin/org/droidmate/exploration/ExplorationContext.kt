@@ -99,7 +99,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		return state.widgets.any { it.packageName == apk.packageName }
 	}
 
-	fun add(action: ExplorationAction, result: ActionResult) {
+	fun update(action: ExplorationAction, result: ActionResult) {
 		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
 		lastDump = result.guiSnapshot.windowHierarchyDump
 		apk.updateLaunchableActivityName(result.guiSnapshot.launchedMainActivityName)

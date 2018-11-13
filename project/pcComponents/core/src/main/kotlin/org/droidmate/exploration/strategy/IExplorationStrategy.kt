@@ -32,6 +32,7 @@ interface IExplorationStrategy {
 
 	fun decide(result: ActionResult): ExplorationAction
 
+	@Deprecated("this should no longer be necessary as all updates are handled in the ExplorationContext and is going to be removed")
 	fun update(record: ActionResult)
 	fun close()
 }

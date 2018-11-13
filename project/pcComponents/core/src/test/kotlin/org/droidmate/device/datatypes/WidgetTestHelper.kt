@@ -108,7 +108,7 @@ class WidgetTestHelper {
 
 				val bounds: MutableList<List<Int>> = mutableListOf()
 				(0 until boundsCount).forEach { _ ->
-						bounds.add(arrayListOf(lowX, lowY, highX, highY))
+						bounds.update(arrayListOf(lowX, lowY, highX, highY))
 						lowX += 25
 						lowY += 35
 						highX = lowX + 20

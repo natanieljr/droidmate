@@ -45,7 +45,7 @@ interface UiElementPropertiesI : Serializable {		//FIXME load/create properties 
 	 * ------------------------------------------------------------ */
 
 	/**
-	 * These are the visible (outer) boundaries (including all definedAsVisible children and not only the unique covered area) for this element.
+	 * These are the visible (outer) boundaries (including all visible children and not only the unique covered area) for this element.
 	 * It is always empty if this element is not [enabled] or is not [definedAsVisible].
 	 * It can be used to determine the elements image if a screenshot exists or if an descendant is outside of this bounds,
 	 * to determine the area on which a swipe action can be executed to "navigate to" that "invisible" element.
@@ -105,6 +105,8 @@ interface UiElementPropertiesI : Serializable {		//FIXME load/create properties 
 	 * During exploration you should use [visibleBounds] instead to determine visibility. */
 	@property:Persistent("Is Enabled", 42)
 	val enabled: Boolean
+
+	val imgId: Int  // to support delayed image compression/transfer we have to do the imgId computation on device based on the captured bitmap
 
 	/** -----------------------------------------------------------
 	 * properties that should be only necessary during exploration for target selection

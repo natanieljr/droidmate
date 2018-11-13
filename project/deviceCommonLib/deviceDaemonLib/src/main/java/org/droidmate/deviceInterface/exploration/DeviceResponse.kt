@@ -25,8 +25,6 @@
 
 package org.droidmate.deviceInterface.exploration
 
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.runBlocking
 import java.io.Serializable
 
 
@@ -49,19 +47,17 @@ open class DeviceResponse private constructor(
 	companion object {
 
 		fun create(isSuccessful: Boolean,
-		           uiHierarchy: Deferred<List<UiElementPropertiesI>>, uiDump: String, launchedActivity: String,
+		           uiHierarchy: List<UiElementPropertiesI>, uiDump: String, launchedActivity: String,
 		           screenshot: ByteArray,
 		           appWindows: List<AppWindow>, isHomeScreen: Boolean
-		): DeviceResponse = runBlocking{
-			val widgets = uiHierarchy.await()
+		): DeviceResponse = DeviceResponse( isSuccessful = isSuccessful&&appWindows.isNotEmpty(),
+				windowHierarchyDump = uiDump,
+				widgets = uiHierarchy,
+				launchedMainActivityName = launchedActivity,
+				isHomeScreen = isHomeScreen,
+				screenshot = screenshot,
+				appWindows = appWindows)
 
-			DeviceResponse( isSuccessful = isSuccessful&&appWindows.isNotEmpty(), windowHierarchyDump = uiDump,
-					widgets = widgets,
-					launchedMainActivityName = launchedActivity,
-					isHomeScreen = isHomeScreen,
-					screenshot = screenshot,
-					appWindows = appWindows)
-		}
 
 		@JvmStatic
 		val empty: DeviceResponse by lazy {

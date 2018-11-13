@@ -26,6 +26,7 @@
 package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
+import kotlinx.coroutines.experimental.*
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
 import org.droidmate.configuration.ConfigProperties.Exploration.apkNames
@@ -58,9 +59,8 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.deviceInterface.exploration.ActionType
-import org.droidmate.deviceInterface.exploration.EmptyAction
-import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.DeviceConstants
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.interaction.ActionResult
@@ -78,11 +78,11 @@ import org.droidmate.report.Reporter
 import org.droidmate.report.Summary
 import org.droidmate.report.apk.*
 import org.droidmate.tools.*
-import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.droidmate.explorationModel.interaction.EmptyActionResult
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -397,6 +397,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
 	}
 
+	private val imgTransfer = CoroutineScope(Dispatchers.Default+ Job() + CoroutineName("device image pull"))
 	private fun explorationLoop(app: IApk, device: IRobustDevice): ExplorationContext {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
@@ -414,20 +415,42 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		var isFirst = true
 		val strategy: IExplorationStrategy = strategyProvider.invoke(explorationContext)
 
-		// Execute the exploration loop proper, starting with the values of initial reset action and its result.
-		while (isFirst || (result.successful && !action.isTerminate())) {
-			// decide for an action
-			action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
-			// execute action
-			result = action.run(app, device)
-			explorationContext.add(action, result)
-			// update strategy
-			strategy.update(result)
+		try {
+			// Execute the exploration loop proper, starting with the values of initial reset action and its result.
+			while (isFirst || (result.successful && !action.isTerminate())) {
+				// decide for an action
+				action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
+				// execute action
+				result = action.run(app, device)
 
-			if (isFirst) {
-				log.info("Initial action: $action")
-				isFirst = false
+				if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch])
+					debugT("image transfer should take no time on main thread", {
+						imgTransfer.launch {
+							// pull the image from device, store it in the image directory defined in ModelConfig and remove it on device
+							val fileName = "${action.id}.jpg"
+							val dstFile = explorationContext.getModel().config.imgDst.resolve(fileName)
+							var c = 0
+							do {          // try for up to 3 times to pull a screenshot image
+								delay(2000)// the device is going to need some time to compress the image, if the image is time critical you should disable delayed fetch
+								device.pullFile(fileName, dstFile)
+							} while (c++ < 3 && !File(dstFile.toString()).exists())
+						}
+					}, inMillis = true)
+
+				explorationContext.update(action, result)
+				// update strategy
+				strategy.update(result)
+
+				if (isFirst) {
+					log.info("Initial action: $action")
+					isFirst = false
+				}
 			}
+
+		}finally {
+			runBlocking {
+				imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
+			} // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
 		}
 
 		assert(!result.successful || action.isTerminate())

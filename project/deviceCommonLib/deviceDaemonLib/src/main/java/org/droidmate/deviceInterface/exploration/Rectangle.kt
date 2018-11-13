@@ -49,3 +49,25 @@ fun List<Rectangle>.visibleOuterBounds(): Rectangle = with(filter { it.isNotEmpt
 	val pb = maxBy { it.bottomY }
 	return Rectangle.create(pl?.leftX ?: 0, pt?.topY ?: 0, right = pr?.rightX ?: 0, bottom = pb?.bottomY ?: 0)
 }
+
+fun List<Rectangle>.isComplete():Boolean{
+	if(size<2) return true
+	var complete=true
+//FIXME we may have non rectangle overall form i.e. a smaller area is connected to a bigger one
+//	-> use current algo to determine rectangle area and filter all elements not in this list
+// for the elements not in list check if attached to big rectangle of first step
+	// if not connected choose biggest inter-connected area, problem here is e.g. walmart shopping cart has non-continious areas or need to allow for "small" distance (like x=90 on pixel)
+
+	val areas = filter{ isNotEmpty() }.asSequence()
+
+	// we cannot find a neighbor for the outer areas with maxX or maxY
+	val maxX = areas.maxBy { it.rightX }?.rightX ?: -1
+	val maxY = areas.maxBy { it.bottomY }?.bottomY ?: -1
+	areas.forEach { r ->
+		if(!complete) return false
+		complete = (if(r.rightX<maxX) areas.any {
+			(it.leftX-r.rightX).let { it<5 && it>-5 } } else true )
+				&& (if(r.bottomY<maxY) areas.any{ (it.topY-r.bottomY).let { it<5 && it>-5 } } else true )
+	}
+	return complete
+}

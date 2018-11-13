@@ -9,10 +9,12 @@ import android.support.test.uiautomator.*
 import android.util.Log
 import android.util.Xml
 import android.view.accessibility.AccessibilityNodeInfo
-import kotlinx.coroutines.experimental.NonCancellable.isActive
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.NonCancellable.isActive
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.uiautomator2daemon.exploration.debugT
 import java.io.ByteArrayOutputStream
@@ -28,20 +30,23 @@ object UiHierarchy : UiParser() {
 
 	private var nActions = 0
 	private var ut = 0L
-	suspend fun fetch(windows: List<DisplayedWindow>): List<UiElementPropertiesI>?
+	suspend fun fetch(windows: List<DisplayedWindow>, img: Bitmap?): List<UiElementPropertiesI>?
 			= debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
-		val nodes = LinkedList<UiElementPropertiesI>()
+		val nodes = LinkedList<UiElementProperties>()
 
 		try {
+
+			val validImg = img.isValid(windows)// we cannot use an error prone image for ui extraction -> rather work without it completely
 			//TODO check if this filters out all os windows but keeps permission request dialogues
 //			debugOut("windows to extract: ${windows.map { "${it.isExtracted()}-${it.w.pkgName}:${it.w.windowId}[${visibleOuterBounds(it.area)}]" }}")
 			windows.forEach {  w: DisplayedWindow ->
 				if (w.isExtracted() && !w.isLauncher){  // for now we are not interested in the Launcher elements
-					w.area = LinkedList<Rect>().apply { w.initialArea.forEach { add(it) } }  //FIXME need to copy each element?
+					w.area = LinkedList<Rect>().apply { w.initialArea.forEach { add(it) } }
 					if(w.rootNode == null) debugOut("ERROR root should not be null")
-					check(w.rootNode != null) {"if extraction is enables we have to have a rootNode"}
-					createBottomUp(w, w.rootNode!!, parentXpath = "//", nodes = nodes)  //FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
-					Log.d(LOGTAG, "${w.w.pkgName}:${w.w.windowId} ${visibleOuterBounds(w.initialArea)} #elems = ${nodes.size}")				}
+					check(w.rootNode != null) {"if extraction is enabled we have to have a rootNode"}
+					createBottomUp(w, w.rootNode!!, parentXpath = "//", nodes = nodes, img = if(validImg) img else null)
+					Log.d(LOGTAG, "${w.w.pkgName}:${w.w.windowId} ${visibleOuterBounds(w.initialArea)} " +
+							"#elems = ${nodes.size} ${w.initialArea} empty=${w.initialArea.isEmpty()}")				}
 			}
 		} catch (e: Exception) {  // the accessibilityNode service may throw this if the node is no longer up-to-date
 			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}\n last widget was ${nodes.lastOrNull()}")
@@ -73,7 +78,7 @@ nodes
 		}
 	}, inMillis = true)
 
-	/** check if this node fullfills the given condition and recursively check descendents if not **/
+	/** check if this node fulfills the given condition and recursively check descendents if not **/
 	suspend fun any(env: UiAutomationEnvironment, retry: Boolean=false, cond: SelectorCondition):Boolean{
 		return findAndPerform(env, cond, retry) { true }
 	}
@@ -96,7 +101,7 @@ nodes
 		val processor:NodeProcessor = { node,_, xPath ->
 			when{
 				found -> false // we already found our target and performed our action -> stop searching
-				!isActive -> {Log.w(LOGTAG,"process became inactive"); false}
+//				!isActive -> {Log.w(LOGTAG,"process became inactive"); false} //TODO this is still experimental
 				!node.isVisibleToUser -> {
 //					Log.d(LOGTAG,"node $xPath is invisible")
 					false}
@@ -170,7 +175,7 @@ nodes
 		}
 	}
 
-	suspend fun getScreenShot(delayForRetry: Long, automation: UiAutomation): Bitmap? {
+	fun getScreenShot(delayForRetry: Long, automation: UiAutomation): Bitmap? {
 		var screenshot: Bitmap? = null
 		debugT("first screen-fetch attempt ", {
 			try {
@@ -214,6 +219,25 @@ nodes
 		bytes
 	}, inMillis = true, timer = { t += it / 1000000.0; c += 1 })
 
+
+	private val windowFilter: (window:DisplayedWindow, value: Int) -> Int = { w,v -> if( w.isExtracted() ) v else 0 }
+	private val windowWidth: (DisplayedWindow?)->Int = { window -> window?.w?.boundaries?.let{ windowFilter(window,it.leftX + it.width) } ?: 0 }
+	private val windowHeight: (DisplayedWindow?)->Int = { window -> window?.w?.boundaries?.let{ windowFilter(window,it.topY + it.height) } ?: 0 }
+	fun Bitmap?.isValid(appWindows:List<DisplayedWindow>): Boolean {
+		return if (this != null) {
+			try {
+				val maxWidth = windowWidth(appWindows.maxBy(windowWidth))
+				val maxHeight = windowHeight(appWindows.maxBy(windowHeight))
+
+				(maxWidth == 0 && maxHeight == 0) || ((maxWidth <= this.width) && (maxHeight <= this.height))
+			} catch (e: Exception) {
+				Log.e(LOGTAG, "Error on screen validation ${e.message}. Stacktrace: ${e.stackTrace}")
+				false
+			}
+		}
+		else
+			false
+	}
 }
 
 

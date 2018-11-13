@@ -30,8 +30,7 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.NonCancellable.isActive
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.deviceInterface.exploration.Rectangle
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.StateData
@@ -51,6 +50,7 @@ import javax.imageio.ImageIO
 import kotlin.collections.HashMap
 import kotlin.coroutines.experimental.CoroutineContext
 
+var lastId = 0
 /** use this function to create a sequence of screen images in which the interacted target is highlighted by a red boarder */
 class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ImgTraceMF"), parent = job)
@@ -68,14 +68,15 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		if(!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
 
 		val step = i.incrementAndGet()-1
-		val screenFile = java.io.File(cfg.statePath(prevState.stateId, fileExtension = ".png"))
+		val screenFile = java.io.File(cfg.imgDst.resolve("$lastId.jpg").toString())
+		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")
+		lastId = action.id
 
 		while(isActive && !screenFile.exists()) delay(100)
 		while(isActive && !screenFile.canRead()) delay(100)
 		if(!isActive) return
 		if(!screenFile.exists()) return // thread was canceled but no file to process is ready yet
 
-		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step-${action.id}-$action.png")
 
 		screenFile.copyTo(targetFile, overwrite = true) // copy file to trace directory
 		if(prevState.widgets.isEmpty()) return  // no widgets exist which we could highlight
@@ -83,21 +84,31 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		val stateImg = ImageIO.read(targetFile)
 		val visibleAppElements = prevState.widgets.filter { !it.isKeyboard && it.visibleAreas.isNotEmpty() }
 		textColor = Color.white
-		shapeColor = Color.LIGHT_GRAY
-		highlightWidget(stateImg, visibleAppElements.filter { !it.hasUncoveredArea }, 0)
-		shapeColor = Color.GRAY
-		highlightWidget(stateImg, visibleAppElements.filter { it.hasUncoveredArea }, 0)
+//		shapeColor = Color.LIGHT_GRAY
+//		highlightWidget(stateImg, visibleAppElements.filter { !it.hasUncoveredArea }, 0)
+//		shapeColor = Color.GRAY
+//		highlightWidget(stateImg, visibleAppElements.filter { it.hasUncoveredArea }, 0)
 
+		shapeColor = Color.black
+		highlightWidget(stateImg, prevState.actionableWidgets.filter { it.isKeyboard }, 0)
 
-		textColor = Color.orange
+//		textColor = Color.red
+		shapeColor = Color.gray
+		highlightWidget(stateImg, visibleAppElements.filter { !it.isKeyboard }, 0)
+
+		textColor = Color.cyan
+		shapeColor = Color.cyan
+		highlightWidget(stateImg, prevState.actionableWidgets.filter {  it.visibleAreas.isComplete() && !it.isKeyboard }, 0)
+
+		textColor = Color.green
 		shapeColor = Color.orange
-		highlightWidget(stateImg, prevState.actionableWidgets, 0)
+		highlightWidget(stateImg, prevState.actionableWidgets.filter {  !it.visibleAreas.isComplete() && !it.isKeyboard }, 0)
 
-		if(targetWidgets.isNotEmpty()) {
-			shapeColor = Color.red
-			textColor = Color.magenta
-			highlightWidget(stateImg, targetWidgets, step)
-		}
+//		if(targetWidgets.isNotEmpty()) {
+//			shapeColor = Color.red
+//			textColor = Color.magenta
+//			highlightWidget(stateImg, targetWidgets, step)
+//		}
 		ImageIO.write(stateImg,"png",targetFile)
 	}
 }
@@ -112,15 +123,19 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 		val targetsPerAction = targetWidgets.asSequence().mapIndexed{ i, t -> Pair(idxOffset[i],t)}.groupBy { it.first }
 
 		val targetCounter: MutableMap<ConcreteId,LinkedList<Pair<Int,Int>>> = HashMap() // used to compute offsets in the number string
-		// compute the list of indicies for each widget-target (for labeling)
+		// compute the list of indices for each widget-target (for labeling)
 		targetsPerAction.forEach{ (idx, targets) ->
 			targets.forEachIndexed{ index, (_,t) ->
 				targetCounter.compute(t.id) { _, indices -> (indices ?: LinkedList()).apply { add(Pair(idx,index)) }}
 			}
 		}
-		// highlight all targets and add text labels
+		// highlight all targets and update text labels
 		targetWidgets.forEach{ w: Widget ->
 			paint = shapeColor// reset color for next shape drawing
+
+			stroke = BasicStroke(1F)
+			w.visibleAreas.forEach { drawOval(it) }
+			stroke = BasicStroke(10F)
 			with(w.visibleBounds) {
 				drawOval(this)
 				// draw the label number for the element
@@ -130,6 +145,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 				drawString(text, leftX + (width / 10), topY + (height / 10))
 			}
 			font = Font("TimesRoman", Font.PLAIN, 60) // reset font to bigger font
+			shapeColor = shapeColor.darker()
 		}
 	}
 }
@@ -139,5 +155,5 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 private fun Int.resize() = if(this<5) 10 else this
 
 fun Graphics.drawOval(bounds: Rectangle){
-	this.drawOval(bounds.leftX,bounds.topY,bounds.width.resize(),bounds.height.resize())
+	this.drawRect(bounds.leftX,bounds.topY,bounds.width,bounds.height)
 }

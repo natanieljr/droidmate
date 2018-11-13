@@ -1,11 +1,12 @@
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
 import android.graphics.Rect
+import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import org.droidmate.deviceInterface.exploration.AppWindow
 
-private const val debug = true
+private const val debug = false
 
 /** on device we need additional information to compute UiElement visibility this information is wrapped within this class.
  * It is the Callers responsibility to recycle [root] when it is no longer needed.

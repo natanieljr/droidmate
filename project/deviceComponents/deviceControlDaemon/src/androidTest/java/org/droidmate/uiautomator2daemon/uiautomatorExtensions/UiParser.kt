@@ -2,13 +2,14 @@
 
 package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
 import android.view.accessibility.AccessibilityNodeInfo
-import kotlinx.coroutines.experimental.NonCancellable.isActive
+import kotlinx.coroutines.NonCancellable.isActive
 import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.Rectangle
-import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.deviceInterface.exploration.visibleOuterBounds
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
@@ -16,29 +17,31 @@ import java.util.*
 abstract class UiParser {
 
 	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
-	                                     parentXpath: String, nodes: MutableList<UiElementPropertiesI>,
-	                                     parentH: Int = 0): UiElementPropertiesI? {
-		if(!isActive) return null
+	                                     parentXpath: String, nodes: MutableList<UiElementProperties>, img: Bitmap?,
+	                                     parentH: Int = 0): UiElementProperties? {
+//		if(!isActive) return null //TODO still experimental
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
 		val nChildren = node.getChildCount()
 
-		val children: List<UiElementPropertiesI?> = (nChildren-1 downTo 0).map { i -> Pair(i,node.getChild(i)) }
+		//FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
+		val children: List<UiElementProperties?> = (nChildren-1 downTo 0).map { i -> Pair(i,node.getChild(i)) }
 				//REMARK we use drawing order but sometimes there is a transparent layout in front of the elements, probably used by the apps to determine their app area (e.g. amazon), this has to be considered in the [visibleAxis] call for the window area
 				.sortedByDescending { (i,node) -> if(api>=24) node.drawingOrder else i }
 				.map { (i,childNode) ->		// bottom-up strategy, process children first (in drawingOrder) if they exist
 					if(childNode == null) debugOut("ERROR child nodes should never be null")
-					createBottomUp(w, childNode, i, "$xPath/",nodes,xPath.hashCode()+node.windowId).also {
+					createBottomUp(w, childNode, i, "$xPath/",nodes, img,xPath.hashCode()+node.windowId).also {
 						childNode.recycle()  //recycle children as we requested instances via getChild which have to be released
 					}
 				}
 
-		return node.createWidget(w, xPath,children.filterNotNull(),parentH).also {
+		return node.createWidget(w, xPath, children.filterNotNull(), img, parentH).also {
 			nodes.add(it)
 		}
 	}
 
-	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementPropertiesI>, parentH: Int): UiElementPropertiesI {
+	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementProperties>,
+	                                               img: Bitmap?, parentH: Int): UiElementProperties {
 		val nodeRect = Rect()
 		this.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 		val props = LinkedList<String>()
@@ -49,8 +52,8 @@ abstract class UiParser {
 		props.add("inputType = ${this.inputType}")
 		props.add("labelFor = ${this.labelFor}")
 		props.add("liveRegion = ${this.liveRegion}")
+		props.add("windowId = ${this.windowId}")
 
-		//TODO compute visible boundaries within app window based on own uncovered & children-visibleBounds
 		var uncoveredArea = true
 		// due to bottomUp strategy we will only get coordinates which are not overlapped by other UiElements
 		val visibleAreas = if(!isEnabled || !isVisibleToUser) emptyList()
@@ -64,9 +67,15 @@ abstract class UiParser {
 						area
 					}
 				}
+//		val subBounds = LinkedList<Rectangle>().apply {
+//			if(uncoveredArea) addAll(visibleAreas)
+//			addAll(children.flatMap { it.allSubAreas })
+//		}
 		val visibleBounds: Rectangle = when {
 			visibleAreas.isEmpty() -> Rectangle(0,0,0,0)  // no uncovered area means this node cannot be visible
-			children.isEmpty() -> visibleAreas.visibleOuterBounds() // we have a leaf node, our visible bounds is defined per visibleAreas
+			children.isEmpty() -> {
+				visibleAreas.visibleOuterBounds()
+			}
 			else -> with(LinkedList<Rectangle>()){
 				addAll(visibleAreas)
 				addAll(children.map { it.visibleBounds })
@@ -75,6 +84,11 @@ abstract class UiParser {
 		}
 
 		return UiElementProperties(
+				imgId = computeImgId(img,visibleBounds),
+				allSubAreas = emptyList(),//subBounds,
+//				isInBackground = visibleBounds.isNotEmpty() && (
+//						!subBounds.isComplete()
+//						),
 				visibleBounds = visibleBounds,
 				hasUncoveredArea = uncoveredArea,
 				metaInfo = props,
@@ -101,6 +115,16 @@ abstract class UiParser {
 				isKeyboard = w.isKeyboard,
 				windowLayer = w.layer
 		)
+	}
+
+	private fun computeImgId(img: Bitmap?, b: Rectangle): Int {
+		if (img == null || b.isEmpty()) return 0
+		val subImg = Bitmap.createBitmap(b.width, b.height, Bitmap.Config.ARGB_8888)
+		val c = Canvas(subImg)
+		c.drawBitmap(img, b.toRect(), Rect(0,0,b.width,b.height),null)
+		// now subImg contains all its pixel of the area specified by b
+		// convert the image into byte array to determine a deterministic hash value
+		return bitmapToBytes(subImg).contentHashCode()
 	}
 
 	/*
@@ -223,4 +247,5 @@ abstract class UiParser {
 		}
 		return false
 	}
+
 }

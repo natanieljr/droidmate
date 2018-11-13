@@ -14,7 +14,7 @@ class Example {
 				val cfg = ExplorationAPI.config(args)
 
 				// Some random example value
-				// Create the strategy and add it to the list of default strategies on Droidmate
+				// Create the strategy and update it to the list of default strategies on Droidmate
 				val someId = 10
 				val myStrategy = ExampleStrategy(someId)
 

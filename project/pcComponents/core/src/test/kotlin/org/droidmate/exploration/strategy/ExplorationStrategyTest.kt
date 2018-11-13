@@ -64,7 +64,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 					val record = ActionResult(action, LocalDateTime.now(), LocalDateTime.now())
 //                    .apply { this.state = ctx }
 					val runnable = RunnableResetAppExplorationAction(action as ResetAppExplorationAction, LocalDateTime.now(), false)
-					explorationLog.add(runnable, record)
+					explorationLog.update(runnable, record)
 					strategy.update(record)
 
 					return record
@@ -93,7 +93,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 					assert(action is ClickExplorationAction)
 
 					val runnable = RunnableWidgetExplorationAction(action as ClickExplorationAction, LocalDateTime.now(), false)
-					explorationLog.add(runnable, record)
+					explorationLog.update(runnable, record)
 					strategy.update(record)
 
 					if (w == null)
@@ -109,7 +109,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 					assert(action is TerminateExplorationAction)
 
 					val runnable = RunnableTerminateExplorationAction(action as TerminateExplorationAction, LocalDateTime.now(), false)
-					explorationLog.add(runnable, record)
+					explorationLog.update(runnable, record)
 					strategy.update(record)
 					assert(action == newTerminateExplorationAction())
 			}
@@ -122,7 +122,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 
 					val record = memoryRecordFromAction(action, gs)
 					val runnable = RunnableResetAppExplorationAction(action as ResetAppExplorationAction, LocalDateTime.now(), false)
-					explorationLog.add(runnable, record)
+					explorationLog.update(runnable, record)
 					strategy.update(record)
 					assert(action == newResetAppExplorationAction())
 			}
@@ -134,7 +134,7 @@ class ExplorationStrategyTest : DroidmateTestCase() {
 
 					val record = memoryRecordFromAction(action, gs)
 					val runnable = RunnablePressBackExplorationAction(action as PressBackExplorationAction, LocalDateTime.now(), false)
-					explorationLog.add(runnable, record)
+					explorationLog.update(runnable, record)
 					strategy.update(record)
 					assert(action == newPressBackExplorationAction())
 			}

@@ -52,6 +52,26 @@ import kotlin.math.max
 
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
+	override fun pullFile(fileName: String, dstPath: Path, srcPath: String) {
+		Utils.retryOnException(
+				{ this.device.pullFile(fileName,dstPath,srcPath) },
+				{},
+				DeviceException::class,
+				deviceOperationAttempts,
+				deviceOperationDelay,
+				"device.pullFile"
+		)	}
+
+	override fun removeFile(fileName: String, srcPath: String) {
+		Utils.retryOnException(
+				{ this.device.removeFile(fileName,srcPath) },
+				{},
+				DeviceException::class,
+				deviceOperationAttempts,
+				deviceOperationDelay,
+				"device.removeFile()"
+		)	}
+
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(RobustDevice::class.java) }
 

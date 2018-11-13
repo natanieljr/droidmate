@@ -28,8 +28,8 @@ rootProject.name = 'droidmate-2'
 enableFeaturePreview('STABLE_PUBLISHING') //  for later gradle 5 compatibility
 
 // right now this is probably not even necessary due to our strange deploy hacks in core/deviceControlDaemon.gradle
-include("project:deviceComponents") // to include the build of the android modules (this probably requires a dependency to the library publish task before 'DeviceControlDaemon' can be compiled)
-// for proper android code highlighting we have to add the settings file (i.e. from deviceControlDaemon) via attach gradle project or open it as its own project
+//include("project:deviceComponents") // to include the build of the android modules (this probably requires a dependency to the library publish task before 'DeviceControlDaemon' can be compiled)
+// for proper android code highlighting we have to update the settings file (i.e. from deviceControlDaemon) via attach gradle project or open it as its own project
 
 include(
 		"project:pcComponents", // use this to identify all child projects

@@ -530,7 +530,9 @@ Logcat reference:
 		val uiaDaemonCmdLine = 	"-e ${DeviceConstants.uiaDaemonParam_tcpPort} $port " +
 				"-e ${DeviceConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
 				"-e ${DeviceConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]} " +
-				"-e ${DeviceConstants.uiaDaemonParam_enablePrintOuts} ${cfg[ConfigProperties.UiAutomatorServer.enablePrintOuts]}"
+				"-e ${DeviceConstants.uiaDaemonParam_enablePrintOuts} ${cfg[ConfigProperties.UiAutomatorServer.enablePrintOuts]} " +
+				"-e ${DeviceConstants.uiaDaemonParam_delayedImgFetch} ${cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]} " +
+				"-e ${DeviceConstants.uiaDaemonParam_imgQuality} ${cfg[ConfigProperties.UiAutomatorServer.imgQuality]}"
 
 		val testRunner = DeviceConstants.uia2Daemon_testPackageName + "/" + DeviceConstants.uia2Daemon_testRunner
 		val failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
@@ -558,32 +560,40 @@ Logcat reference:
 		}
 	}
 
-	override fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: Path, shellPackageName: String) {
-		assert(pulledFileName.isNotEmpty())
+	override fun pullFileApi23(deviceSerialNumber: String, pulledFilePath: String, destinationFilePath: Path, shellPackageName: String) {
+		assert(pulledFilePath.isNotEmpty())
 		assert(shellPackageName.isNotEmpty())
 
 		if (Files.exists(destinationFilePath))
 			Files.delete(destinationFilePath)
 
-		val pulledFilePath = DeviceConstants.deviceLogcatLogDir_api23 + pulledFileName
+		if(pulledFilePath.endsWith("logcat.txt")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is
+			val stdout = this.executeCommand(deviceSerialNumber, "", "Pull logcat from stdout (API23 compatibility)",
+					"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
+			Files.write(destinationFilePath, stdout.toByteArray())
+		}else{
+			val commandDescription = "Executing adb to pull $pulledFilePath on Android Device with s/n $deviceSerialNumber."
+			try {
+				sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
+						"-s", deviceSerialNumber,
+						"pull", pulledFilePath, destinationFilePath.toAbsolutePath().toString())
+			}catch (e: SysCmdExecutorException){
+				log.warn("adb pull failed",e) // this is likely to happen if the file does not exist (yet) on device
+			}
+		}
 
-		val stdout = this.executeCommand(deviceSerialNumber, "", "Pull file (API23 compatibility)",
-				"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
-
-		Files.write(destinationFilePath, stdout.toByteArray())
 	}
 
-	override fun removeFileApi23(deviceSerialNumber: String, fileName: String, shellPackageName: String) {
-		assert(fileName.isNotEmpty())
+	override fun removeFileApi23(deviceSerialNumber: String, filePath: String, shellPackageName: String) {
+		assert(filePath.isNotEmpty())
 		assert(shellPackageName.isNotEmpty())
 
 		try {
-			val filePath = DeviceConstants.deviceLogcatLogDir_api23 + fileName
 			this.executeCommand(deviceSerialNumber, "", "Delete file (API23 compatibility).",
 					"shell", "run-as", shellPackageName, "rm", filePath)
 		} catch (e: Exception) {
 			// Logcat file does not exist on new devices, therefore it crashes on the first attempt
-			if (!fileName.contains("droidmate_logcat"))
+			if (!filePath.contains("droidmate_logcat"))
 				throw e
 		}
 	}

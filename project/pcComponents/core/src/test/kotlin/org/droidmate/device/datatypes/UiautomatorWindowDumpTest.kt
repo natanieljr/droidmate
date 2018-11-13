@@ -32,7 +32,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.MethodSorters
 
-// WISH add test checking that widget.canBeClicked or not, depending if it intersects with visible device display bounds.
+// WISH update test checking that widget.canBeClicked or not, depending if it intersects with visible device display bounds.
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
 class UiautomatorWindowDumpTest : DroidmateTestCase() {

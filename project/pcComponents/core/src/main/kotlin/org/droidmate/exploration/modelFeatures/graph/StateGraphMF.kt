@@ -37,7 +37,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 
 		val prevLabel = Interaction.emptyWithWidget(lastAction.targetWidget)
 
-		// Try to update a previous label (from prevState to emptyState) if it exists, otherwise add a new one
+		// Try to update a previous label (from prevState to emptyState) if it exists, otherwise update a new one
 		if (prevLabel.targetWidget != null)
 			this.update(sourceState, StateData.emptyState, newState, prevLabel, lastAction) ?: this.add(sourceState, newState, lastAction)
 		else

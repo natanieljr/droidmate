@@ -131,10 +131,10 @@ class AdbWrapperStub : IAdbWrapper {
 	override fun startUiautomatorDaemon(deviceSerialNumber: String, port: Int) {
 	}
 
-	override fun removeFileApi23(deviceSerialNumber: String, fileName: String, shellPackageName: String) {
+	override fun removeFileApi23(deviceSerialNumber: String, filePath: String, shellPackageName: String) {
 	}
 
-	override fun pullFileApi23(deviceSerialNumber: String, pulledFileName: String, destinationFilePath: Path, shellPackageName: String) {
+	override fun pullFileApi23(deviceSerialNumber: String, pulledFilePath: String, destinationFilePath: Path, shellPackageName: String) {
 
 	}
 

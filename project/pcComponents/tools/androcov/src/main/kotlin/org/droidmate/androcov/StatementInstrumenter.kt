@@ -73,7 +73,7 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 		Options.v().set_output_format(Options.output_format_dex)
 
 		val processDirs = ArrayList<String>()
-		//processDirs.add(cfg.apksDirPath.toString())
+		//processDirs.update(cfg.apksDirPath.toString())
 		processDirs.add(apk.absolutePath)
 
 		// NOTE: If you change the CoverageHelper.java class, recompile it!

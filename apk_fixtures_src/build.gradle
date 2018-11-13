@@ -10,7 +10,7 @@
 //
 // www.droidmate.org
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Top-level build file where you can update configuration options common to all sub-projects/modules.
 
 buildscript {
 	// Reference: http://stackoverflow.com/a/35186295/986533

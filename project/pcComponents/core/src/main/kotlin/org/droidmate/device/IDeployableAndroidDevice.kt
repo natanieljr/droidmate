@@ -27,6 +27,7 @@ package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
+import org.droidmate.deviceInterface.DeviceConstants
 
 import java.nio.file.Path
 
@@ -36,6 +37,10 @@ interface IDeployableAndroidDevice {
 
 	@Throws(DeviceException::class)
 	fun pushFile(jar: Path, targetFileName: String)
+
+	fun pullFile(fileName:String, dstPath: Path, srcPath: String = DeviceConstants.imgPath)
+
+	fun removeFile(fileName:String,srcPath: String = DeviceConstants.imgPath)
 
 	@Throws(DeviceException::class)
 	fun removeJar(jar: Path)

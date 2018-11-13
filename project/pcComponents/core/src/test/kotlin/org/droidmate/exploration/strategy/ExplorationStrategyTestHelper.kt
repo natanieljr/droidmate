@@ -49,13 +49,13 @@ class ExplorationStrategyTestHelper {
 		/*@JvmStatic
 		fun getResetStrategies(cfg: Configuration): List<ISelectableExplorationStrategy> {
 			val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
-			strategies.add(InitialReset())
-			strategies.add(AppCrashedReset())
-			strategies.add(CannotExploreReset())
+			strategies.update(InitialReset())
+			strategies.update(AppCrashedReset())
+			strategies.update(CannotExploreReset())
 
 			// Interval reset
 			if (cfg.resetEveryNthExplorationForward > 0)
-				strategies.add(IntervalReset(cfg.resetEveryNthExplorationForward))
+				strategies.update(IntervalReset(cfg.resetEveryNthExplorationForward))
 
 			return strategies
 		}*/

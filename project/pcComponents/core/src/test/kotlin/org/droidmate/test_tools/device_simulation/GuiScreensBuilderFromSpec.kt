@@ -41,7 +41,7 @@ class GuiScreensBuilderFromSpec(private val timeGenerator: ITimeGenerator,
 					matcher.forEach { m ->
 							val edge = LabeledEdge(m.groups[1]!!.value, m.groups[2]!!.value, m.groups[3]!!.value)
 							assert(edge.source !in GuiScreen.reservedIds)
-							specEdges.add(edge)
+							specEdges.update(edge)
 					}
 
 					assert(specEdges.size > 0, { "Expected to have at least one spec edge defined." })

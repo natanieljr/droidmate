@@ -11,7 +11,7 @@ object ConfigProperties {
 		object path : PropertyGroup() {
 			val defaultBaseDir by uriType
 			val statesSubDir by uriType
-			val widgetsSubDir by uriType
+			val imagesSubDir by uriType
 			val cleanDirs by booleanType
 		}
 

@@ -19,11 +19,17 @@
 
 package org.droidmate.uiautomator2daemon
 
+import android.os.Build
 import android.support.test.InstrumentationRegistry
 import android.support.test.filters.SdkSuppress
 import android.support.test.runner.AndroidJUnit4
 import android.util.Log
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_delayedImgFetch
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_enablePrintOuts
+import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_imgQuality
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_waitForInteractableTimeout
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_waitForIdleTimeout
 import org.junit.Test
@@ -31,10 +37,41 @@ import org.junit.runner.RunWith
 
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemonParam_tcpPort
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.backgroundScope
+import android.support.test.InstrumentationRegistry.getInstrumentation
+import org.droidmate.deviceInterface.DeviceConstants
+import org.junit.Before
+
 
 @RunWith(AndroidJUnit4::class)
-@SdkSuppress(minSdkVersion = 18)
+@SdkSuppress(minSdkVersion = 19)
 class UiAutomator2DaemonTest {
+
+	@Before
+	fun grantPermissions() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+		{
+			getInstrumentation().uiAutomation.executeShellCommand(
+					"pm grant " + DeviceConstants.uia2Daemon_packageName
+							+ " android.permission.WRITE_EXTERNAL_STORAGE")
+			getInstrumentation().uiAutomation.executeShellCommand(  // for whatever reason 'write' storage is not enough to write files to /sdcard
+					"pm grant " + DeviceConstants.uia2Daemon_packageName
+							+ " android.permission.READ_EXTERNAL_STORAGE")
+			getInstrumentation().uiAutomation.executeShellCommand(
+					"pm grant " + DeviceConstants.uia2Daemon_packageName
+							+ " android.permission.MODIFY_AUDIO_SETTINGS")
+
+			getInstrumentation().uiAutomation.executeShellCommand(
+					"pm grant ${DeviceConstants.uia2Daemon_packageName}.test"
+							+ " android.permission.WRITE_EXTERNAL_STORAGE")
+			getInstrumentation().uiAutomation.executeShellCommand(  // for whatever reason 'write' storage is not enough to write files to /sdcard
+					"pm grant ${DeviceConstants.uia2Daemon_packageName}.test"
+							+ " android.permission.READ_EXTERNAL_STORAGE")
+			getInstrumentation().uiAutomation.executeShellCommand(
+					"pm grant ${DeviceConstants.uia2Daemon_packageName}.test"
+							+ " android.permission.MODIFY_AUDIO_SETTINGS")
+		}
+	}
 
 	@Test
 	fun init() {
@@ -54,6 +91,12 @@ class UiAutomator2DaemonTest {
 			extras.get(uiaDaemonParam_waitForInteractableTimeout).toString().toLong()
 		else
 			-1
+		val enableDelayedImgFetch = if(extras.containsKey(uiaDaemonParam_delayedImgFetch))
+			extras.get(uiaDaemonParam_delayedImgFetch).toString().toBoolean()
+		else false
+		val imgQuality = if(extras.containsKey(uiaDaemonParam_imgQuality))
+			extras.get(uiaDaemonParam_imgQuality).toString().toInt()
+		else 100
 
 		Log.v(uiaDaemon_logcatTag, "$uiaDaemonParam_tcpPort=$tcpPort")
 
@@ -63,9 +106,10 @@ class UiAutomator2DaemonTest {
 					Log.d(uiaDaemon_logcatTag, "create automation")
 
 					UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout,
+							imgQuality, enableDelayedImgFetch,
 							extras.get(uiaDaemonParam_enablePrintOuts).toString().toBoolean())
 				}
-				else UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout)
+				else UiAutomator2DaemonDriver(waitForIdleTimeout, waitForInteractableTimeout, imgQuality, enableDelayedImgFetch)
 
 		val uiAutomator2DaemonServer = UiAutomator2DaemonServer(uiAutomatorDaemonDriver)
 
@@ -85,6 +129,9 @@ class UiAutomator2DaemonTest {
 		try {
 			// Postpone process termination until the server thread finishes.
 			serverThread.join()
+			runBlocking {
+				backgroundScope.coroutineContext[Job]!!.cancelAndJoin()
+			}
 		} catch (e: InterruptedException) {
 			Log.wtf(uiaDaemon_logcatTag, e)
 		}

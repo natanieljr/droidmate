@@ -32,7 +32,7 @@ import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.du
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.defaultBaseDir
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.statesSubDir
-import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.widgetsSubDir
+import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.imagesSubDir
 import org.droidmate.explorationModel.config.ConfigProperties.Output.outputDir
 import java.io.File
 import java.nio.file.Files
@@ -52,16 +52,16 @@ class ModelConfig private constructor(path: Path,
 
 	val baseDir = path.resolve(appName)  // directory path where the model file(s) should be stored
 	val stateDst = baseDir.resolve(config[statesSubDir].path)       // each state gets an own file named according to UUID in this directory
-	val widgetImgDst = baseDir.resolve(config[widgetsSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
-	val widgetNonInteractiveImgDst = widgetImgDst.resolve(nonInteractiveDir)
+	val imgDst = baseDir.resolve(config[imagesSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
+//	val widgetNonInteractiveImgDst = imgDst.resolve(nonInteractiveDir)
 
 	init {  // initialize directories (clear them if cleanDirs is enabled)
 		if (!isLoadC){
 			if (config[cleanDirs]) (baseDir).toFile().deleteRecursively()
 			Files.createDirectories((baseDir))
 			Files.createDirectories((stateDst))
-			Files.createDirectories((widgetImgDst))
-			Files.createDirectories((widgetNonInteractiveImgDst))
+			Files.createDirectories((imgDst))
+//			Files.createDirectories((widgetNonInteractiveImgDst))
 		}
 	}
 
@@ -74,7 +74,7 @@ class ModelConfig private constructor(path: Path,
 	}
 
 	fun widgetImgPath(id: UUID, postfix: String = "", fileExtension: String = ".png", interactive: Boolean): String {
-		val baseDir = if (interactive) widgetImgDst else widgetImgDst.resolve(nonInteractiveDir)
+		val baseDir = if (interactive) imgDst else imgDst.resolve(nonInteractiveDir)
 		return idPath(baseDir, id.toString(), postfix, fileExtension)
 	}
 
@@ -82,7 +82,7 @@ class ModelConfig private constructor(path: Path,
 
 	companion object {
 		const val defaultWidgetSuffix = "_AllWidgets"
-		private const val nonInteractiveDir = "nonInteractive"
+		private const val nonInteractiveDir = "widgets-nonInteractive"
 
 		private val resourceConfig by lazy {
 			ConfigurationProperties.fromResource("runtime/defaultModelConfig.properties")

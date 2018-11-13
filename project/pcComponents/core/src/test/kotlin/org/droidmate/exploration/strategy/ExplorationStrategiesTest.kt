@@ -71,9 +71,9 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
 					// Only in the last should the termination criterion be met
 					assertTrue(i <= nrOfActions || actions.last() is TerminateExplorationAction)
 					if (i == 0)
-							actions.add(strategy.decide(EmptyActionResult()))
+							actions.update(strategy.decide(EmptyActionResult()))
 					else
-							actions.add(strategy.decide(inputData))
+							actions.update(strategy.decide(inputData))
 			}
 
 			// Expected order of explorationTrace:
@@ -247,16 +247,16 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
 //        state = explorationLog.getState(EmptyGuiStatus())
 			var record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
 //                .apply { this.state = state }
-			explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
+			explorationLog.update(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 
 			val backStrategy = RandomBack(cfg)
 			backStrategy.initialize(explorationLog)
 			record = ActionResult(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
 //                .apply { this.state = state }
-			explorationLog.add(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
+			explorationLog.update(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
 			record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
 //                .apply { this.state = state }
-			explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
+			explorationLog.update(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 //        state = explorationLog.getState(guiState)
 			fitness = strategy.getFitness(widgetContext)
 			assertTrue(fitness == StrategyPriority.TERMINATE)
@@ -289,13 +289,13 @@ class ExplorationStrategiesTest : DroidmateTestCase() {
 			widgetContext = EmptyWidgetContext()//explorationLog.getState(EmptyGuiStatus())
 			var record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
 //                .apply { this.state = state }
-			explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
+			explorationLog.update(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 			record = ActionResult(backStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
 //                .apply { this.state = state }
-			explorationLog.add(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
+			explorationLog.update(RunnablePressBackExplorationAction(record.action as PressBackExplorationAction, LocalDateTime.now(), false), record)
 			record = ActionResult(resetStrategy.decide(widgetContext), LocalDateTime.now(), LocalDateTime.now(), screenshot = URI.create("test://"))
 //                .apply { this.state = state }
-			explorationLog.add(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
+			explorationLog.update(RunnableResetAppExplorationAction(record.action as ResetAppExplorationAction, LocalDateTime.now(), false), record)
 
 			// Must be executed
 //        state = explorationLog.getState(guiState)

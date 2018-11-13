@@ -37,6 +37,7 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeo
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
 import org.droidmate.device.logcat.TimeFormattedLogcatMessage
+import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.BuildConstants
@@ -49,6 +50,7 @@ import org.droidmate.deviceInterface.communication.*
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.SimulationAdbClearPackage
+import org.droidmate.explorationModel.config.ConfigProperties
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
@@ -119,6 +121,16 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun pushFile(jar: Path, targetFileName: String) {
 		log.debug("pushFile($jar, $targetFileName)")
 		adbWrapper.pushFile(serialNumber, jar, targetFileName)
+	}
+
+	override fun pullFile(fileName:String, dstPath: Path, srcPath: String){
+		log.debug("pullFile $fileName from $srcPath to $dstPath")
+		adbWrapper.pullFileApi23(serialNumber,srcPath+fileName,dstPath, uia2Daemon_packageName)
+	}
+
+	override fun removeFile(fileName:String,srcPath: String){
+		log.debug("remove device file $fileName from $srcPath")
+		adbWrapper.removeFileApi23(serialNumber,srcPath+fileName, uia2Daemon_packageName)
 	}
 
 	override fun hasPackageInstalled(packageName: String): Boolean {
@@ -207,17 +219,17 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 		log.debug("removeLogcatLogFile()")
 		if (cfg[apiVersion] == ConfigurationWrapper.api23)
-			this.adbWrapper.removeFileApi23(this.serialNumber, logcatLogFileName, uia2Daemon_packageName)
+			this.adbWrapper.removeFileApi23(this.serialNumber, DeviceConstants.deviceLogcatLogDir_api23+logcatLogFileName, uia2Daemon_packageName)
 		else
-			throw UnexpectedIfElseFallthroughError()
+			throw UnexpectedIfElseFallthroughError("configured api version does not match ConfigurationWrapper.api23")
 	}
 
 	override fun pullLogcatLogFile() {
 		log.debug("pullLogcatLogFile()")
 		if (cfg[apiVersion] == ConfigurationWrapper.api23)
-			this.adbWrapper.pullFileApi23(this.serialNumber, logcatLogFileName, cfg.getPath(LogbackUtils.getLogFilePath("logcat.txt")), uia2Daemon_packageName)
+			this.adbWrapper.pullFileApi23(this.serialNumber, DeviceConstants.deviceLogcatLogDir_api23+logcatLogFileName, cfg.getPath(LogbackUtils.getLogFilePath("logcat.txt")), uia2Daemon_packageName)
 		else
-			throw UnexpectedIfElseFallthroughError()
+			throw UnexpectedIfElseFallthroughError("configured api version does not match ConfigurationWrapper.api23")
 	}
 
 	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {

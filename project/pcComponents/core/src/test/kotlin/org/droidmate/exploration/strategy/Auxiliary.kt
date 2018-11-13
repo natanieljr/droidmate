@@ -43,11 +43,11 @@ object Auxiliary {
 	fun createTestWidgets(): List<OldWidget> {
 			val result = ArrayList<OldWidget>()
 
-			result.add(Auxiliary.createWidget("Widget0", true))
-			result.add(Auxiliary.createWidget("Widget1", false))
-			result.add(Auxiliary.createWidget("Widget2", true))
-			result.add(Auxiliary.createWidget("Widget3", false))
-			result.add(Auxiliary.createWidget("Widget4", true))
+			result.update(Auxiliary.createWidget("Widget0", true))
+			result.update(Auxiliary.createWidget("Widget1", false))
+			result.update(Auxiliary.createWidget("Widget2", true))
+			result.update(Auxiliary.createWidget("Widget3", false))
+			result.update(Auxiliary.createWidget("Widget4", true))
 
 			return result
 	}
@@ -81,7 +81,7 @@ object Auxiliary {
 			// Button About has no dependency
 			widgets.stream()
 							.filter { p -> p.text == "About" }
-							.forEach { p -> testData.add(TargetWidget(p)) }
+							.forEach { p -> testData.update(TargetWidget(p)) }
 
 			// Other has order GPS/Tracker
 			val targetDep = widgets.stream()
@@ -94,7 +94,7 @@ object Auxiliary {
 							.orElse(null)
 			widgets.stream()
 							.filter { p -> p.text == "Tracker" }
-							.forEach { p -> testData.add(TargetWidget(p, dep1)) }
+							.forEach { p -> testData.update(TargetWidget(p, dep1)) }
 
 			return testData
 	}

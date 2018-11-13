@@ -100,8 +100,8 @@ class VisualizationGraph : ApkReport() {
 		private val edges: MutableList<Edge> = ArrayList()
 
 		// The graph in the frontend is not able to display multiple edges for the same transition,
-		// therefore add here the indices and check if the same transition was taken before, if yes
-		// then just add the index to the already added edge
+		// therefore update here the indices and check if the same transition was taken before, if yes
+		// then just update the index to the already added edge
 		init {
 //			val tmpEdges = edges.map { Edge(it) }
 			val edgeMap = HashMap<String, Edge>()
@@ -393,7 +393,7 @@ class VisualizationGraph : ApkReport() {
 
 	// copy highlighed images into the visualization directory and adjust interaction to be unified to same config Id
 	// FIXME it would be better to keep the information of original state configId's for the different actions to display this information
-	// for this we have to add an option for the Edge class to include/ignore configId's and change the visualization script
+	// for this we have to update an option for the Edge class to include/ignore configId's and change the visualization script
 	// to display such information properly (if possible with small images of the alternative config states in the selection view of a state)
 	private fun markTargets(model: Model, imgDir: Path): List<Pair<Int, Interaction>> {
 		val uidMap: MutableMap<UUID, ConcreteId> = HashMap()

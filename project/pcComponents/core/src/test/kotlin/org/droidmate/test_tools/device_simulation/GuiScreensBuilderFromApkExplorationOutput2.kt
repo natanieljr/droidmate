@@ -84,7 +84,7 @@ class GuiScreensBuilderFromApkExplorationOutput2(private val output: Exploration
 							is PressBackExplorationAction -> { /* Do nothing */ }
 							is TerminateExplorationAction -> {
 									assert(i == output.logRecords.size - 1)
-									// Do not add any transition: all GuiScreens already know how to transition on device explorationTrace resulting from
+									// Do not update any transition: all GuiScreens already know how to transition on device explorationTrace resulting from
 									// this exploration action.
 							}
 							else -> throw UnexpectedIfElseFallthroughError(

@@ -45,6 +45,14 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
                              private val exceptionSpecs: List<IExceptionSpec> = ArrayList(),
                              unreliableSimulation: Boolean = false)*/ // TODO Fix tests
 	: IAndroidDevice {
+	override fun pullFile(fileName: String, dstPath: Path, srcPath: String) {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
+	override fun removeFile(fileName: String, srcPath: String) {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
 	override fun isApkInstalled(apkPackageName: String): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
