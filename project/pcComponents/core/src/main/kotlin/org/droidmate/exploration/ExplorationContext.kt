@@ -30,7 +30,6 @@ import org.droidmate.apis.ApiLogcatMessageListExtensions
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.guimodel.*
 import org.droidmate.deviceInterface.guimodel.isQueueEnd
@@ -92,7 +91,6 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 			this.verify()
 		if (_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
 		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config))
-		watcher.add(CurrentActivityMF(cfg))
 	}
 
 	fun getCurrentState(): StateData = actionTrace.currentState
