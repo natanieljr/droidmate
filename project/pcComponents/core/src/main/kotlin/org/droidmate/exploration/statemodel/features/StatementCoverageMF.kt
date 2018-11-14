@@ -58,8 +58,8 @@ import java.util.concurrent.TimeUnit
  * Model feature to monitor the statement coverage by processing and optional instrumentation file and actively
  * monitor and parse the logcat in order to calculate the coverage.
  */
-class StatementCoverageMF(private val cfg: ConfigurationWrapper,
-						  private val modelCfg: ModelConfig) : ModelFeature() {
+class StatementCoverageMF(cfg: ConfigurationWrapper,
+						  private val modelCfg: ModelConfig) : AdbBasedMF(cfg) {
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
 	private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
@@ -171,8 +171,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	}
 
 	private fun executeCommand(): List<String> {
-		val command = mutableListOf(cfg.adbCommand, "-s", cfg.deviceSerialNumber,
-				"logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
+		val command = mutableListOf("logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
 
 		// AdbWrapper does not work with Apache-Exec 1.3 because it uses Runtime.exec
 		// Returns the following error: Captured stderr: -t ""2018-09-18 13:48:53.735"" not in time format
@@ -181,25 +180,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 			command.addAll(listOf("-t", readFrom))
 		}
 
-
-		val builder = ProcessBuilder(command)
-
-		val process = builder.start()
-
-		val inputReader = InputStreamReader(process.inputStream)
-
-		// Fixed maximum time because sometimes the process is not stopping automatically
-		val success = process.waitFor(1.toLong(), TimeUnit.SECONDS)
-
-		val stdout = BufferedReader(inputReader).lines().toList()
-
-		if (success) {
-			val exitVal = process.exitValue()
-			assert(exitVal == 0) { "Logcat process exited with error $exitVal." }
-		}
-
-		process.destroy()
-		return stdout
+		return runAdbCommand(command)
 	}
 
 	/**

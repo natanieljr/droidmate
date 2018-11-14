@@ -38,10 +38,7 @@ import org.droidmate.deviceInterface.guimodel.isQueueStart
 import org.droidmate.errors.DroidmateError
 import org.droidmate.exploration.actions.*
 import org.droidmate.exploration.statemodel.*
-import org.droidmate.exploration.statemodel.features.StatementCoverageMF
-import org.droidmate.exploration.statemodel.features.ModelFeature
-import org.droidmate.exploration.statemodel.features.CrashListMF
-import org.droidmate.exploration.statemodel.features.ImgTraceMF
+import org.droidmate.exploration.statemodel.features.*
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.droidmate.misc.TimeProvider
 import org.slf4j.Logger
@@ -95,6 +92,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 			this.verify()
 		if (_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
 		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config))
+		watcher.add(CurrentActivityMF(cfg))
 	}
 
 	fun getCurrentState(): StateData = actionTrace.currentState
