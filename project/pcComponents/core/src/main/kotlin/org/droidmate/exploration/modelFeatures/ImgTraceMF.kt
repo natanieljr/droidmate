@@ -81,7 +81,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		screenFile.copyTo(targetFile, overwrite = true) // copy file to trace directory
 		if(prevState.widgets.isEmpty()) return  // no widgets exist which we could highlight
 
-		val stateImg = ImageIO.read(targetFile)
+		val stateImg = ImageIO.read(targetFile) ?: return
 		val visibleAppElements = prevState.widgets.filter { !it.isKeyboard && it.visibleAreas.isNotEmpty() }
 		textColor = Color.white
 //		shapeColor = Color.LIGHT_GRAY

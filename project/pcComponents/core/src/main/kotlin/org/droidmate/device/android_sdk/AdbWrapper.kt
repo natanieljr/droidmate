@@ -579,7 +579,7 @@ Logcat reference:
 						"-s", deviceSerialNumber,
 						"pull", pulledFilePath, destinationFilePath.toAbsolutePath().toString())
 			}catch (e: SysCmdExecutorException){
-				log.warn("adb pull failed",e) // this is likely to happen if the file does not exist (yet) on device
+				log.warn("adb pull failed (AdbWrapper)",e.message) // this is likely to happen if the file does not exist (yet) on device
 			}
 		}
 

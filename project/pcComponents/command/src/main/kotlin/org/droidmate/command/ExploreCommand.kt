@@ -354,7 +354,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					device.restartUiaDaemon(false)
 				}
 			}
-
+			if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) runBlocking{ // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
+				imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
+			} // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
 			allApksExplorationExceptions
 		}
 	}
@@ -438,7 +440,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				// execute action
 				result = action.run(app, device)
 
-				if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch])
+				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch])
 					pullScreenShot(action.id,explorationContext.getModel().config.imgDst, device)
 
 				explorationContext.update(action, result)
@@ -450,9 +452,10 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					isFirst = false
 				}
 			}
-
-		}finally {
-			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) runBlocking {
+			assert(!result.successful || action.isTerminate())
+		}
+		finally {
+//			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
 				// having one pull in the end does not really seam to make a performance difference right now
 //				val fileName = "${action.id}.jpg"
 //				val dstFile = explorationContext.getModel().config.imgDst.resolve(fileName)
@@ -461,15 +464,11 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 //					// instead of intermittent transfer pull the whole image directory in the end of this exploration
 //					device.pullFile("", explorationContext.getModel().config.imgDst)
 //				} while (c++ < 3 && !File(dstFile.toString()).exists())
+//			}
 
-				imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
-			} // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
+			strategy.close()
+			explorationContext.close()
 		}
-
-		assert(!result.successful || action.isTerminate())
-
-		strategy.close()
-		explorationContext.close()
 
 		// Propagate exception if there was any
 		if (!result.successful)

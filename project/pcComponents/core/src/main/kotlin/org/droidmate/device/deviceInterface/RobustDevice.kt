@@ -52,15 +52,8 @@ import kotlin.math.max
 
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
-	override fun pullFile(fileName: String, dstPath: Path, srcPath: String) {
-		Utils.retryOnException(
-				{ this.device.pullFile(fileName,dstPath,srcPath) },
-				{},
-				DeviceException::class,
-				deviceOperationAttempts,
-				deviceOperationDelay,
-				"device.pullFile"
-		)	}
+	override fun pullFile(fileName: String, dstPath: Path, srcPath: String) =
+		this.device.pullFile(fileName,dstPath,srcPath)  // pull may fail because we try to fetch images which were not possible to capture -> no retry here
 
 	override fun removeFile(fileName: String, srcPath: String) {
 		Utils.retryOnException(

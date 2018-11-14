@@ -225,7 +225,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		return processedWindows.values.toList().also { displayedWindows ->
 			lastDisplayDimension = displayDim // store results to be potentially reused
 			lastWindows = displayedWindows
-			debugOut("-- done displayed window computation [#windows = ${displayedWindows.size}] ${displayedWindows.joinToString(separator = ";\t ") { "${it.w.windowId}:(${it.layer})${it.w.pkgName}[${it.w.boundaries}] isK=${it.isKeyboard} isE=${it.isExtracted()} ${it.initialArea}" }}" )
+			debugOut("-- done displayed window computation [#windows = ${displayedWindows.size}] ${displayedWindows.joinToString(separator = ";\t ") { "${it.w.windowId}:(${it.layer})${it.w.pkgName}[${it.w.boundaries}] isK=${it.isKeyboard} isL=${it.isLauncher} isE=${it.isExtracted()} ${it.initialArea}" }}" )
 		}
 	}
 
