@@ -30,8 +30,8 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.StateData
 import org.droidmate.misc.deleteDir
 import java.io.IOException
@@ -44,22 +44,19 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.BufferedReader
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.streams.toList
-import java.io.InputStreamReader
-import java.util.concurrent.TimeUnit
 
 
 /**
  * Model feature to monitor the statement coverage by processing and optional instrumentation file and actively
  * monitor and parse the logcat in order to calculate the coverage.
  */
-class StatementCoverageMF(private val cfg: ConfigurationWrapper,
-                          private val modelCfg: ModelConfig) : ModelFeature() {
+class StatementCoverageMF(cfg: ConfigurationWrapper,
+						  private val modelCfg: ModelConfig) : AdbBasedMF(cfg) {
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
 	private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
@@ -79,7 +76,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	private var counter = 0
 
 	init {
-		job = Job(parent = (this.job)) // We don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
+		job = Job(parent = (this.job)) // We don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 		logcatOutputDir.deleteDir()
 		Files.createDirectories(logcatOutputDir)
 
@@ -171,8 +168,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 	}
 
 	private fun executeCommand(): List<String> {
-		val command = mutableListOf(cfg.adbCommand, "-s", cfg.deviceSerialNumber,
-				"logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
+		val command = mutableListOf("logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
 
 		// AdbWrapper does not work with Apache-Exec 1.3 because it uses Runtime.exec
 		// Returns the following error: Captured stderr: -t ""2018-09-18 13:48:53.735"" not in time format
@@ -181,31 +177,7 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 			command.addAll(listOf("-t", readFrom))
 		}
 
-		val builder = ProcessBuilder(command)
-
-		// May block if output is not completely read
-		// - therefore redirect error stream
-		builder.redirectErrorStream(true)
-
-		val process = builder.start()
-
-		val reader = BufferedReader(InputStreamReader(process.inputStream))
-
-		// Fixed maximum time because sometimes the process is not stopping automatically
-		val success = process.waitFor(1.toLong(), TimeUnit.SECONDS)
-
-
-		val output = if (success) {
-			val exitVal = process.exitValue()
-			assert(exitVal == 0) { "Logcat process exited with error $exitVal." }
-			reader.readLines().toList()
-		} else {
-			// reader.readLines() blocks if process timed out (success = false)
-			listOf("")
-		}
-
-		process.destroy()
-		return output
+		return runAdbCommand(command)
 	}
 
 	/**
@@ -219,8 +191,8 @@ class StatementCoverageMF(private val cfg: ConfigurationWrapper,
 		val output = executeCommand()
 
 		output.filter { it.contains("[androcov]")
-						&& !it.contains("CoverageHelper")
-						&& it > lastReadStatement }
+				&& !it.contains("CoverageHelper")
+				&& it > lastReadStatement }
 				.forEach { line ->
 					val parts = line.split("uuid=".toRegex(), 2).toTypedArray()
 
