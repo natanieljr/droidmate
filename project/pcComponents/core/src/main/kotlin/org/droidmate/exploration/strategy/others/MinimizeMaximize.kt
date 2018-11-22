@@ -5,7 +5,7 @@ import org.droidmate.exploration.actions.minimizeMaximize
 import org.droidmate.exploration.strategy.AbstractStrategy
 
 class MinimizeMaximize : AbstractStrategy() {
-	override fun internalDecide(): ExplorationAction {
+	override suspend fun internalDecide(): ExplorationAction {
 		return eContext.minimizeMaximize()
 	}
 }

@@ -121,7 +121,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 		}
 	}
 
-	override fun chooseAction(): ExplorationAction {
+	override suspend fun chooseAction(): ExplorationAction {
 		return if (eContext.getCurrentState().isRequestRuntimePermissionDialogBox) {
 			val widget = eContext.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }

@@ -179,7 +179,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		this.updateStrategiesState(record)
 	}
 
-	override fun decide(result: ActionResult): ExplorationAction {
+	override suspend fun decide(result: ActionResult): ExplorationAction {
 
 		if(debugOutput)
 			logger.debug("ActionResult: ${result.action} => #widgets=${result.guiSnapshot} ,exception = ${result.exception}")

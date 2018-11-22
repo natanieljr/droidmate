@@ -14,7 +14,7 @@ class ActionTraceMF : ModelFeature() {
         val header = "actionNr\tType\tdecisionTime\tscreenshot\n"
         sb.append(header)
 
-        context.explorationTrace.getActions().forEachIndexed { actionNr, record ->
+        context.explorationTrace.P_getActions().forEachIndexed { actionNr, record ->
             sb.appendln("$actionNr\t${record.actionType}\t${record.decisionTime}}")
         }
 

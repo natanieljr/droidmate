@@ -114,11 +114,11 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 *
 	 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
 	 */
-	fun getSecondLastAction(): Interaction {
+	suspend fun getSecondLastAction(): Interaction {
 		if (this.eContext.getSize() < 2)
 			return Interaction.empty
 
-		return this.eContext.explorationTrace.getActions().dropLast(1).last()
+		return this.eContext.explorationTrace.P_getActions().dropLast(1).last()
 	}
 
 	override fun updateState(actionNr: Int, record: ActionResult) {
@@ -133,7 +133,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		this.listeners.add(listener)
 	}
 
-	override fun decide(): ExplorationAction {
+	override suspend fun decide(): ExplorationAction {
 		val action = this.internalDecide()
 
 		this.handleControl()
@@ -158,7 +158,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	/**
 	 * Selects an action to be executed based on the [current widget context][currentState]
 	 */
-	abstract fun internalDecide(): ExplorationAction
+	abstract suspend fun internalDecide(): ExplorationAction
 
 	companion object {
 		val logger: Logger by lazy { LoggerFactory.getLogger(ExplorationStrategy::class.java) }

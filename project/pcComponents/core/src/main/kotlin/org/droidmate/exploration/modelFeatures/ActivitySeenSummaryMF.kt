@@ -25,7 +25,7 @@ class ActivitySeenSummaryMF : ModelFeature() {
         // Always see the main activity
         activitySeenMap.put(currActivity, 1)
 
-        context.explorationTrace.getActions().forEach { record ->
+        context.explorationTrace.P_getActions().forEach { record ->
 
             if (record.actionType.isPressBack())
                 currActivity = lastActivity

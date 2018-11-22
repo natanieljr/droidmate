@@ -196,7 +196,7 @@ class StrategySelector constructor(val priority: Int,
 				terminate = false
 			}
 
-			override fun internalDecide(): ExplorationAction {
+			override suspend fun internalDecide(): ExplorationAction {
 				return when{
 					cnt++ < 2 ->{
 						runBlocking {  delay(5000) }

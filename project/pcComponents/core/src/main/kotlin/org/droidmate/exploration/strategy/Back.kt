@@ -38,7 +38,7 @@ import org.droidmate.exploration.actions.queue
  * @author Nataniel P. Borges Jr.
  */
 object Back : AbstractStrategy() {
-	override fun internalDecide(): ExplorationAction {
+	override suspend fun internalDecide(): ExplorationAction {
 		return eContext.queue(listOf(GlobalAction(ActionType.CloseKeyboard),eContext.pressBack()))
 	}
 }

@@ -59,7 +59,7 @@ interface ISelectableExplorationStrategy {
 	 *
 	 * @return Exploration action to be sent to the device (has to be supported by DroidMate)
 	 */
-	fun decide(): ExplorationAction
+	suspend fun decide(): ExplorationAction
 
 	/**
 	 * Update state after receiving notification that a new target has been found.

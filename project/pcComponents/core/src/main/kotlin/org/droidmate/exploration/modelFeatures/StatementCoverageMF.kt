@@ -48,8 +48,6 @@ import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import kotlin.streams.toList
-import java.io.InputStreamReader
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
 
@@ -84,10 +82,7 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
 		instrumentationMap = getInstrumentation(modelCfg.appName)
 	}
 
-	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: State, newState: State) {
-		// must wait for the action before reading the logcat data
-		deferredAction.await()
-
+	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
 		// Prevent multiple runs of this feature, otherwise logcat may crash
 		try {
 			mutex.lock()

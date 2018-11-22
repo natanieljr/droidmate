@@ -48,7 +48,7 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
         val reportData: HashMap<Long, Pair<Int, Int>> = HashMap()
 
         // Ignore app start
-        val records = context.explorationTrace.getActions().drop(1)
+        val records = context.explorationTrace.P_getActions().drop(1)
         val nrActions = records.size
         val startTimeStamp = records.first().startTimestamp
 
