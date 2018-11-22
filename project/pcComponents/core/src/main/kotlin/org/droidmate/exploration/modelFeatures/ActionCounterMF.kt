@@ -25,26 +25,22 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.joinChildren
-import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.explorationModel.interaction.StateData
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 /** ASSUMPTION:
  * job.join is called between on each information poll
  * alternatively an actor could be implemented*/
 class ActionCounterMF : ModelFeature() {
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionCounterMF"), parent = job)
-	init{
-		job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-	}
+	// we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
+	override val coroutineContext: CoroutineContext = CoroutineName("ActionCounter")+Job()
 
-	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData): Unit =
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State, newState: State): Unit =
 			targetWidgets.forEach { target ->
 				prevState.uid.let { sId ->
 					target.let { w -> pCnt.compute(w.packageName) { _, c -> c?.inc() ?: 1 } }
@@ -63,15 +59,15 @@ class ActionCounterMF : ModelFeature() {
 	private val pCnt = ConcurrentHashMap<String, Int>()
 
 	@Suppress("unused")
-	suspend fun unexplored(s: StateData): Set<Widget> {
-		job.joinChildren()
+	suspend fun unexplored(s: State): Set<Widget> {
+		this.join()
 		return numExplored(s).filter { it.value == 0 }.keys  // collect all widgets which are not in our action counter => not interacted with
 	}
 
 	/** determine the number of unique states explored so far */
 	@Suppress("unused")
 	suspend fun numStates():Int{
-		job.joinChildren()
+		this.join()
 		return sCnt.size
 	}
 
@@ -81,8 +77,8 @@ class ActionCounterMF : ModelFeature() {
 	 *
 	 * @return map of the widget.uid to the number of interactions from state-eContext [s]
 	 */
-	suspend fun numExplored(s: StateData): Map<Widget, Int> {
-		job.joinChildren()
+	suspend fun numExplored(s: State): Map<Widget, Int> {
+		this.join()
 		return s.actionableWidgets.map {
 			it to it.uid.cntForState(s.uid)//(wCnt[w.uid]?.get(s.uid)?:0)
 		}.toMap()
@@ -91,8 +87,8 @@ class ActionCounterMF : ModelFeature() {
 	/** determine how often any widget was explored in the eContext of the given state [s] for the given subset of widgets [selection]
 	 * @return map of the widget.uid to the number of interactions from state-eContext [s]
 	 */
-	suspend fun numExplored(s: StateData, selection: Collection<Widget>): Map<Widget, Int> {
-		job.joinChildren()
+	suspend fun numExplored(s: State, selection: Collection<Widget>): Map<Widget, Int> {
+		this.join()
 		return selection.map {
 			it to it.uid.cntForState(s.uid)//(wCnt[w.uid]?.get(s.uid)?:0)
 		}.toMap()
@@ -102,13 +98,13 @@ class ActionCounterMF : ModelFeature() {
 	/** @return how often widget.uid was triggered in the given state-eContext **/
 	@Suppress("unused")
 	suspend fun widgetCntForState(wId: UUID, sId: UUID): Int {
-		job.joinChildren()
+		this.join()
 		return wId.cntForState(sId)
 	}
 
 	/** @return how often the widget.uid was triggered other all states **/
 	suspend fun widgetCnt(wId: UUID): Int {
-		job.joinChildren()
+		this.join()
 		return wCnt.sumCounter(wId)
 	}
 

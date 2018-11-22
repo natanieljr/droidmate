@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.playback
 
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
@@ -34,7 +34,7 @@ import org.droidmate.exploration.modelFeatures.ActionPlaybackFeature
 import org.droidmate.explorationModel.retention.loading.ModelParser
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import java.lang.Integer.max
 import java.nio.file.Path
@@ -58,7 +58,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	override fun initialize(memory: ExplorationContext) {
 		super.initialize(memory)
 
-		model = ModelParser.loadModel(ModelConfig(modelDir, eContext.apk.packageName, true))
+		model = runBlocking{ ModelParser.loadModel(ModelConfig(modelDir, eContext.apk.packageName, true)) }
 	}
 
 	private fun isComplete(): Boolean {
@@ -92,11 +92,11 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 
 
 	/** determine if the state is similar enough to execute a back action by computing how many relevant widgets are similar */
-	private fun StateData.similarity(other: StateData): Double {
+	private fun State.similarity(other: State): Double {
 		val otherWidgets = other.widgets
 		val candidates = this.widgets.filter{this.isRelevantForId(it)}
 		val mappedWidgets = candidates.map { w ->
-			if (otherWidgets.any { it.uid == w.uid || it.propertyId == w.propertyId })
+			if (otherWidgets.any { it.uid == w.uid || it.configId == w.configId })
 				1
 			else
 				0
@@ -105,13 +105,13 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	}
 
 	/** checking if we can actually trigger the widget of our recorded trace */
-	private fun Widget?.canExecute(state: StateData): Pair<Double, Widget?> {
+	private fun Widget?.canExecute(state: State): Pair<Double, Widget?> {
 		return when{
 			this == null -> Pair(0.0, null) // no match possible
 			state.widgets.any { it.id == this.id } -> Pair(1.0, this) // we have a perfect match
 			else -> // possibly it is a match but we can't be 100% sure
 				state.widgets.find { it.isInteractive && it.uid == this.uid }	?.let { Pair(0.6, it) } // prefer uid match over property equivalence
-						?: state.widgets.find { it.isInteractive && it.propertyId == this.propertyId }?.let{ Pair(0.5, it) }
+						?: state.widgets.find { it.isInteractive && it.configId == this.configId }?.let{ Pair(0.5, it) }
 						?:	Pair(0.0, null) // no match found
 		}
 	}
@@ -146,7 +146,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 								model.getState(lastSkipped.resState)?.run {
 									actionableWidgets.any {
 										peekAction.targetWidget == null || it.uid == peekAction.targetWidget!!.uid
-												|| it.propertyId == peekAction.targetWidget!!.uid
+												|| it.configId == peekAction.targetWidget!!.uid
 									}
 								}
 							} == true) {

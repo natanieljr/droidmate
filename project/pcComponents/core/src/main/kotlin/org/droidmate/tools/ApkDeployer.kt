@@ -43,7 +43,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 		private val log by lazy { LoggerFactory.getLogger(ApkDeployer::class.java) }
 	}
 
-	override fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: (IApk) -> Any): List<ApkExplorationException> {
+	override suspend fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: suspend (IApk) -> Any): List<ApkExplorationException> {
 		log.debug("withDeployedApk(device, $apk.fileName, computation)")
 
 		val apkExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()

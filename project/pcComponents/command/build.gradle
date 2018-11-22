@@ -69,8 +69,3 @@ dependencies {
 apply from: file("test.gradle")
 
 apply from: project(":project:pcComponents").file("debug.gradle")
-kotlin {
-	experimental {
-		coroutines "enable"
-	}
-}

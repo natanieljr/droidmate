@@ -25,60 +25,54 @@
 
 package org.droidmate.explorationModel
 
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.joinChildren
+import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 /**
  * this class contains three different observer methods to keep track of model changes.
  * the Feature should try to follow the least principle policy and prefer [onNewInteracted] over the alternatives
+ * onAppExplorationFinished are calling cancel and join so your function should override it if any data is to be persisted
  */
 @Suppress("unused", "UNUSED_ANONYMOUS_PARAMETER")
-abstract class ModelFeatureI {
+abstract class ModelFeatureI : CoroutineScope {
+
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ModelFeatureI::class.java) }
-		/** dump and onAppExplorationFinished are waiting for other job's completion, therefore they need their own independent job,
-		 * the eContext.dump and eContext.close wait for the children of this job */
-		@JvmStatic val auxiliaryJob = Job()
 	}
 
-	/** used in the strategy to ensure that the updating coroutine function already finished.
-	 * calling job.joinChildren() will wait for all currently running [onNewAction] and update instances to complete
-	 * independent modelFeatures should start their own child-job e.g. `init { job = Job(parent = (this.job)) }`
+	/** may be used in the strategy to ensure that the updating coroutine function already finished.
+	 * your ModelFeature should override this function if it requires any synchronization
+	 *
+	 * WARNING: this method should not be called form within the model feature (unless running in a different job), otherwise it will cause a deadlock
 	 */
-	var job = Job()
+	open suspend fun join() = coroutineContext[Job]?.children?.forEach { it.join() }  // we do not join the parent job as it usually does not complete until this feature is canceled
+
+	open suspend fun cancelAndJoin() { if(coroutineContext.isActive) coroutineContext[Job]?.cancelAndJoin() }
 
 	/** the eContext in which the update tasks of the class are going to be started,
 	 * for performance reasons they should run within the same pool for each feature
 	 * e.g. `newCoroutineContext(context = CoroutineName("FeatureNameMF"), parent = job)`
-	 * or you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread*/
-	abstract val context: CoroutineContext
-
-	/** this method is called to away for all modelFeatures to be processed
-	 * this method gives access to the complete [context] inclusive other ModelFeatures
-	 *
-	 * WARNING: this method should not be called form within the model feature (unless running in a different job), otherwise it will cause a deadlock
+	 * or you can use `newSingleThreadContext("MyOwnThread")` to ensure that your update methods get its own thread
+	 * However, you should not use the main thread dispatcher or you may end up in deadlock situations.
+	 * (Simply using the default dispatcher is fine)
 	 */
-	suspend fun await(){
-		job.joinChildren()
-	}
-
+	abstract override val coroutineContext: CoroutineContext
 
 	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
 	 * this function may be used instead of update for simpler access to the action and result state.
 	 * The [targetWidgets] belong to the actions with hasWidgetTarget = true and are in the same order as they appeared
 	 * in the actionqueue.
 	 **/
-	open suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State, newState: State) { /* do nothing [to be overwritten] */
 	}
 
 	/** called whenever an action or actionqueue was executed on [targetWidgets] the device resulting in [newState]
@@ -89,21 +83,24 @@ abstract class ModelFeatureI {
 	 * WARNING: this method only gets `EmptyAction` when loading an already existing model
 	 **/
 	open suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction,
-	                                 targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
+	                                 targetWidgets: List<Widget>, prevState: State, newState: State) {
 		/* do nothing [to be overwritten] */
 	}
 
-
-	// TODO check if an additional method with (targets,actions:ExplorationAction) would prove usefull
+	// TODO check if an additional method with (targets,actions:ExplorationAction) would prove useful
 
 	/** called whenever a new action was executed on the device resulting in [newState]
 	 * this function may be used instead of update for simpler access to the action and result state.
 	 *
 	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional timeout to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
-	open suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: StateData, newState: StateData) { /* do nothing [to be overwritten] */
+	open suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: State, newState: State) { /* do nothing [to be overwritten] */
 	} // FIXME in case of an ActionQueue this will not work properly
 
-	open fun dump() {
+	/** can be used to persist any data during Exploration whenever ExplorationContext.dump is called.
+	 * The exploration never waits for this method to complete, as it is launched in an independent scope.
+	 * Therefore, it is your features responsibility to guarantee that your last state is persisted, e.g. by implementing [cancelAndJoin].
+	 */
+	open suspend fun dump() {
 	}
 
 }

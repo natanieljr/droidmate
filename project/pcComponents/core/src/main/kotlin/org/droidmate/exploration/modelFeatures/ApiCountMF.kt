@@ -1,21 +1,16 @@
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.misc.ApiCountTable
 import org.droidmate.exploration.modelFeatures.misc.TableDataFile
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class ApiCountMF(private val includePlots: Boolean = true) : ModelFeature() {
 
-    override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ApiCountMF"), parent = job)
-    init{
-        job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-    }
+    override val coroutineContext: CoroutineContext = CoroutineName("ApiCountMF")
 
-    override suspend fun dump(context: ExplorationContext) {
+    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
         val dataTable = ApiCountTable(context)
         val reportPath = context.getModel().config.baseDir.resolve("apiCount.txt")
         val report = TableDataFile(dataTable, reportPath)

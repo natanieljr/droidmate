@@ -18,6 +18,8 @@ dependencies {
 
 	// we need the jdk dependency instead of stdlib to have enhanced java features like tue 'use' function for try-with-resources
 	compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: project.ext.kotlin_version
+	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}" // because we need reflection to get annotated property values
+	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 	compile 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
 	testCompile group: 'junit', name: 'junit', version: '4.12'
@@ -28,7 +30,4 @@ compileKotlin {
 }
 compileTestKotlin {
 	kotlinOptions.jvmTarget = "1.8"
-}
-kotlin {
-	experimental.coroutines "enable"
 }

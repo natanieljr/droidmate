@@ -25,15 +25,12 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.joinChildren
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.Model
 import java.nio.file.Files
-import kotlin.collections.HashSet
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 /**
  * This model is used by the playback class to identify actions which could not be replayed.
@@ -41,18 +38,14 @@ import kotlin.coroutines.experimental.CoroutineContext
  */
 class ActionPlaybackFeature(val storedModel: Model,
 							val skippedActions: MutableSet<Pair<Int,Int>> = HashSet()) : ModelFeature() {
-	init{
-		job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-	}
 
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("EventProbabilityMF"), parent = job)
-
+	override val coroutineContext: CoroutineContext = CoroutineName("EventProbabilityMF") + Job()
 	fun addNonReplayableActions(traceIdx: Int, actionIdx: Int){
 		skippedActions.add(Pair(traceIdx, actionIdx))
 	}
 
-	override suspend fun dump(context: ExplorationContext) {
-		job.joinChildren()
+	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+		this.join()
 
 		val sb = StringBuilder()
 		sb.appendln(header)

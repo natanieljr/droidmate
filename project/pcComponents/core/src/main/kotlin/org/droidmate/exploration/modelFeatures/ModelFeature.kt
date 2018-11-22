@@ -25,7 +25,7 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.cancelAndJoin
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.ModelFeatureI
 import org.slf4j.Logger
@@ -40,9 +40,6 @@ abstract class ModelFeature: ModelFeatureI() {
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ModelFeature::class.java) }
-		/** dump and onAppExplorationFinished are waiting for other job's completion, therefore they need their own independent job,
-		 * the eContext.dump and eContext.close wait for the children of this job */
-		@JvmStatic val auxiliaryJob = Job()
 	}
 
 	/** this is called after the model was completely updated with the new action and state
@@ -53,18 +50,14 @@ abstract class ModelFeature: ModelFeatureI() {
 	open suspend fun onContextUpdate(context: ExplorationContext) { /* do nothing [to be overwritten] */
 	}
 
-
-	// TODO check if an additional method with (targets,actions:ExplorationAction) would prove usefull
-
-
 	/** this method is called on each call to [ExplorationContext].close(), executed after [ModelFeature].dump()
-	 * this method should call `job.joinChildren()` to ensure all updates have been applied before restarting the feature state
 	 */
 	open suspend fun onAppExplorationFinished(context: ExplorationContext) {  /* do nothing [to be overwritten] */
 	}
 
 	/** this method is called on each call to [ExplorationContext].dump()
-	 * this method should call `job.joinChildren()` to wait for all updates to be applied before persisting the modelFeatures state
+	 * The exploration never waits for this method to complete, as it is launched in the context of [ExplorationContext.retention].
+	 * Therefore, it is your features responsibility to guarantee that your last state is persisted, e.g. by implementing [cancelAndJoin].
 	 */
 	open suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */
 	}

@@ -137,7 +137,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 		this.deviceIsSetup = false
 
 		if (device.isAvailable()) {
-			log.trace("Tearing down.")
+			log.debug("Tearing down.")
 			// device.pullLogcatLogFile()
 			logcatMonitor.terminate()
 

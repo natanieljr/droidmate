@@ -1,22 +1,24 @@
 package org.droidmate.explorationModel.retention.loading
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.deviceInterface.exploration.isLongClick
 import org.droidmate.deviceInterface.exploration.isTextInsert
 import org.droidmate.explorationModel.*
-import org.droidmate.explorationModel.config.ConcreteId
-import org.droidmate.explorationModel.config.idFromString
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.explorationModel.retention.loading.WidgetParserI.Companion.computeWidgetIndicies
+import org.droidmate.explorationModel.retention.loading.WidgetParserI.Companion.computeWidgetIndices
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
-internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
+internal abstract class StateParserI<T,W>: ParserI<T, State>{
+	var headerRenaming: Map<String,String> = emptyMap()
 	abstract val widgetParser: WidgetParserI<W>
 	abstract val reader: ContentReader
 
@@ -33,15 +35,16 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 //	override fun logcat(msg: String) {	}
 
 	/** parse the state either asynchronous (Deferred) or sequential (blocking) */
-	abstract fun P_S_process(id: ConcreteId, scope: CoroutineScope): T
+	@Suppress("FunctionName")
+	abstract fun P_S_process(id: ConcreteId, coroutineContext: CoroutineContext): T
 
-	override val processor: suspend (actionData: List<String>) -> T = {  parseState(it) }
+	override val processor: suspend (s: List<String>, scope: CoroutineScope) -> T = { s,_ -> parseState(s) }
 
-	internal val parseIfAbsent: (CoroutineScope)->(ConcreteId)->T =	{
-		scope->{ id ->
+	internal val parseIfAbsent: (CoroutineContext) -> (ConcreteId)->T =	{ context ->{ id ->
 		log("parse absent state $id")
-		P_S_process(id, scope)
-	}	}
+		P_S_process(id,context)
+	}}
+
 	private val rightActionType: (Widget, actionType: String)->Boolean = { w, t ->
 		w.enabled && when{
 			t.isClick() -> w.clickable || w.checked != null
@@ -53,18 +56,19 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 
 	/** parse the result state of the given actionData and verify that the targetWidget (if any) is contained in the src state */
 	private suspend fun parseState(actionData: List<String>): T{
-		val resId = idFromString(actionData[Interaction.resStateIdx])
+
+		val resId = ConcreteId.fromString(actionData[Interaction.resStateIdx])!!
 		log("parse result State: $resId")
 		// parse the result state with the contained widgets and queue them to make them available to other coroutines
-		val resState = queue.computeIfAbsent(resId, currentScope(parseIfAbsent))
+		val resState = queue.computeIfAbsent(resId, parseIfAbsent(coroutineContext))
 
 		val targetWidgetId = widgetParser.fixedWidgetId(actionData[Interaction.widgetIdx])	?: return resState
         log("validate for target widget $targetWidgetId")
-		val srcId = idFromString(actionData[Interaction.srcStateIdx])
+		val srcId = ConcreteId.fromString(actionData[Interaction.srcStateIdx])!!
 		verify("ERROR could not find target widget $targetWidgetId in source state $srcId", {
 
             log("wait for srcState $srcId")
-				getElem(queue.computeIfAbsent(srcId, currentScope(parseIfAbsent))).widgets.any { it.id == targetWidgetId }
+				getElem(queue.computeIfAbsent(srcId, parseIfAbsent(coroutineContext))).widgets.any { it.id == targetWidgetId }
 		}){ // repair function
 			val actionType = actionData[Interaction.Companion.ActionDataFields.Action.ordinal]
 			var srcS = queue[srcId]
@@ -73,7 +77,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 				srcS = queue[srcId]
 			}
 			val possibleTargets = getElem(srcS).widgets.filter {
-				it.uid == targetWidgetId.first && it.isInteractive && rightActionType(it,actionType)}
+				it.uid == targetWidgetId.uid && it.isInteractive && rightActionType(it,actionType)}
 			when(possibleTargets.size){
 				0 -> throw IllegalStateException("cannot re-compute targetWidget $targetWidgetId in state $srcId")
 				1 -> widgetParser.addFixedWidgetId(targetWidgetId, possibleTargets.first().id)
@@ -85,46 +89,39 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 		}
 		return resState
 	}
-	protected suspend fun computeState(stateId: ConcreteId): StateData {
-        log("\ncompute state $stateId")
+	protected suspend fun computeState(stateId: ConcreteId): State {
+		log("\ncompute state $stateId")
 		val(contentPath,isHomeScreen) = reader.getStateFile(stateId)
-		if(!widgetParser.indiciesComputed.get()) {
-			widgetParser.setCustomWidgetIndicies( computeWidgetIndicies(reader.getHeader(contentPath)) )
-			widgetParser.indiciesComputed.set(true)
+		if(!widgetParser.indicesComputed.get()) {
+			widgetParser.setCustomWidgetIndices( computeWidgetIndices(reader.getHeader(contentPath), headerRenaming) )
+			widgetParser.indicesComputed.set(true)
 		}
-		val widgets = reader.processLines(path = contentPath, lineProcessor = widgetParser.processor)
-				.map{ widgetParser.getElem(it) }
-		computeActableDescendent(widgets) // required to correctly compute if this state is to be used for the StateId or not
-
-		val widgetSet = if(enableChecks) mutableSetOf<Widget>().apply {	// create the set of contained elements (widgets)
-			log(" parse file ${contentPath.toUri()} (${widgets.size} widgets)")
-
-			widgets.forEach { w -> // add the parsed widget to temporary set AND initialize the parent property
-				//FIXME repair to get proper verification
-				add(w)
-//				add(Widget(w.properties.copy()
-//						/*.apply{ // FIXME these values should go into constructor as soon as uid computation is adapted to use annotated values only
-//					xpath = w.xpath
-//					idHash = w.idHash
-//					uncoveredCoord = w.uncoveredCoord
-//					hasActableDescendant = w.hasActableDescendant
-//				}*/
-//				, w.uidImgId).apply {
-//					parentId = w.parentId
-//				}) //!!! Widget.copy does not yield a new reference for UiElementProperties !
+		val uiProperties = reader.processLines(path = contentPath, lineProcessor = widgetParser.processor)
+				.map { (id,e) -> id to widgetParser.getElem(id to e)	}
+		uiProperties.groupBy { it.second.idHash }.forEach {
+			if(it.value.size>1){
+				//FIXME that may happen for old models and will destroy the parent/child mapping, so for 'old' models we would have to parse the parentId instead
+				logger.error("ambiguous idHash elements found, this will result in model inconsistencies (${it.value})")
 			}
-		} else widgets
+		}
+		debugOut("${uiProperties.map { it.first.toString()+": HashId = ${it.second.idHash}" }}",false)
+		val widgets = model.generateWidgets(uiProperties.associate { (_,e) ->  e.idHash to e }).also {
+			it.forEach { w -> uiProperties.find { p -> p.second.idHash == w.idHash }!!.let{ (id,_) ->
+				verify("ERROR on widget parsing inconsistent ID created ${w.id} instead of $id",{id == w.id}) {
+					idMapping[id] = w.id
+				}
+			}}
+		}
+		model.addWidgets(widgets)
 
-		var ns: StateData
-		return if (widgetSet.isNotEmpty()) {
-			StateData.fromFile(widgetSet, homeScreen = isHomeScreen).also { newState ->
-				ns = newState
+		return if (widgets.isNotEmpty()) {
+			model.parseState(widgets, isHomeScreen).also { newState ->
 
 				verify("ERROR different set of widgets used for UID computation used", {
 					val correctId = stateId == newState.stateId
 					if (!correctId)
 						logger.warn("ERROR on state parsing inconsistent UUID created ${newState.stateId} instead of $stateId")
-					val lS = widgets.filter { it.usedForStateId }
+					val lS = emptyList<Widget>()//widgets.filter { it.usedForStateId }
 					if (lS.isNotEmpty()) {
 						val nS = newState.widgets.filter {
 							newState.isRelevantForId(it)   // IMPORTANT: use this call instead of accessing usedForState property because the later is only initialized after the pId is accessed
@@ -134,62 +131,46 @@ internal abstract class StateParserI<T,W>: ParserI<T, StateData> {
 						val lOnly = lS.minus(nS)
 						if (!uidC){
 							logger.warn("ERROR different set of widgets used for UID computation used \n ${nOnly.map { it.id }}\n instead of \n ${lOnly.map { it.id }}")
-							ns = StateData.fromFile(widgetSet, newState.isHomeScreen)
 						}
 						uidC && correctId
 					} else correctId
 				}) {
-					idMapping[stateId] = ns.stateId
+					idMapping[stateId] = newState.stateId
 				}
-				model.addState(ns)
+				model.addState(newState)
 			}
-		} else StateData.emptyState
+		} else State.emptyState
 	}
 
-	private fun computeActableDescendent(widgets: Collection<Widget>){
-		val toProcess: LinkedList<ConcreteId> = LinkedList()
-		widgets.filter { it.isInteractive && it.parentId != null }.forEach {
-			toProcess.add(it.parentId!!) }
-		var i=0
-		while (i<toProcess.size){
-			val n = toProcess[i++]
-			widgets.find { it.id == n }?.run {
-				//FIXME this value is supposed to be computed on pc side like this function only, probably on widget generation
-//				this.properties.hasActableDescendant = true
-				if(parentId != null && !toProcess.contains(parentId!!)) toProcess.add(parentId!!)
-			}
-		}
-	}
+	fun fixedStateId(idString: String) = ConcreteId.fromString(idString).let{	idMapping[it] ?: it }
 
-	fun fixedStateId(idString: String) = idFromString(idString).let{	idMapping[it] ?: it }
 }
 
 internal class StateParserS(override val widgetParser: WidgetParserS,
                             override val reader: ContentReader,
                             override val model: Model,
-                            override val parentJob: Job? = null,
                             override val compatibilityMode: Boolean,
-                            override val enableChecks: Boolean) : StateParserI<StateData, Widget>(){
-	override val queue: MutableMap<ConcreteId, StateData> = HashMap()
+                            override val enableChecks: Boolean) : StateParserI<State, UiElementPropertiesI>(){
+	override val queue: MutableMap<ConcreteId, State> = HashMap()
 
-	override fun P_S_process(id: ConcreteId, scope: CoroutineScope): StateData = runBlocking(scope.coroutineContext +CoroutineName("blocking compute State $id")) { computeState(id) }
+	override fun P_S_process(id: ConcreteId, coroutineContext: CoroutineContext): State = runBlocking { computeState(id) }
 
-	override suspend fun getElem(e: StateData): StateData = e
+	override suspend fun getElem(e: State): State = e
 }
 
 internal class StateParserP(override val widgetParser: WidgetParserP,
                             override val reader: ContentReader,
                             override val model: Model,
-                            override val parentJob: Job? = null,
                             override val compatibilityMode: Boolean,
-                            override val enableChecks: Boolean) : StateParserI<Deferred<StateData>, Deferred<Widget>>(){
-	override val queue: MutableMap<ConcreteId, Deferred<StateData>> = ConcurrentHashMap()
+                            override val enableChecks: Boolean)
+	: StateParserI<Deferred<State>, Deferred<UiElementPropertiesI>>(){
+	override val queue: MutableMap<ConcreteId, Deferred<State>> = ConcurrentHashMap()
 
-	override fun P_S_process(id: ConcreteId, scope: CoroutineScope): Deferred<StateData> =	scope.async(CoroutineName("parseWidget $id")){
-        log("parallel compute state $id")
+	override fun P_S_process(id: ConcreteId, coroutineContext: CoroutineContext): Deferred<State> =	CoroutineScope(coroutineContext+Job()).async(CoroutineName("parseWidget $id")){
+		log("parallel compute state $id")
 		computeState(id)
 	}
 
-	override suspend fun getElem(e: Deferred<StateData>): StateData =
+	override suspend fun getElem(e: Deferred<State>): State =
 			e.await()
 }

@@ -25,20 +25,11 @@
 
 package org.droidmate.explorationModel.interaction
 
-import kotlinx.coroutines.experimental.Unconfined
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.EmptyAction
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.explorationModel.debugT
-import org.droidmate.explorationModel.measurePerformance
-import java.awt.Rectangle
-import java.io.ByteArrayInputStream
 import java.io.Serializable
 import java.time.LocalDateTime
-import javax.imageio.ImageIO
 
 /**
  * Interface for a eContext record which stores the performed action, alongside the GUI state before the action
@@ -52,10 +43,10 @@ import javax.imageio.ImageIO
  * @param guiSnapshot Device snapshot after executing the action
  * @param exception Exception during execution which crashed the action (if any), or MissingDeviceException (otherwise)
  * @param screenshot Path to the screenshot (taken after the action was executed)
- *
+ *expl
  * @author Nataniel P. Borges Jr.
  */
-data class ActionResult(val action: ExplorationAction,
+class ActionResult(val action: ExplorationAction,
                         val startTimestamp: LocalDateTime,
                         val endTimestamp: LocalDateTime,
                         val deviceLogs: List<DeviceLog> = emptyList(),
@@ -72,51 +63,5 @@ data class ActionResult(val action: ExplorationAction,
 	val successful: Boolean
 		get() = exception == "N/A (no device exception available)"  //fixme this should probably be a const in common lib
 
-	/** this method should be exclusively used for StateData generation */
-	fun getWidgets(config: ModelConfig): List<Widget> {
-		val deviceObjects = setOf("//android.widget.FrameLayout[1]", "//android.widget.FrameLayout[1]/android.widget.FrameLayout[1]")
-
-//		val img:BufferedImage? =
-		(if(screenshot.isNotEmpty()) debugT("img file read", {
-			ImageIO.read(ByteArrayInputStream(this.screenshot)) }, inMillis = true) else null)
-		.let { img ->
-					guiSnapshot.let { g ->  //TODO check, but this should no longer be necessary
-//						debugT(" \n filter device objects",
-//								{ g.widgets.filterNot { deviceObjects.contains(it.xpath) } } // ignore the overall layout containing the Android Status-bar
-//						)
-								g.widgets
-										.let {
-							//					debugT(" widgets sequential", { it.map{ Widget.fromWidgetData(it,img,config)}} ,{ timeS += it })
-
-							return debugT("create all widgets unconfined", {
-								// some times much faster then sequential but some times a few fousand ns slower but in average seams faster
-								it.map { async(Unconfined) { Widget.fromUiNode(it, img, config) } } // iterates over each element and creates Widget object collect all these elements as set
-										.map { runBlocking { it.await() } }
-							}, { timeP += it })
-									.also {
-										if (measurePerformance)
-											println("===> sumS=${timeS / 1000000.0} \t sumP=${timeP / 1000000.0}")
-									}
-
-							// funny sequential seams faster than parallel approach
-//					debugT("create all widgets default dispatch",{
-//					it.map { async{Widget.fromWidgetData(it, img, config)} } // iterates over each UiElementProperties and creates Widget object collect all these elements as set
-//						.map { it.await() }
-//					})
-						}
-					}
-				}
-	}
-
-	fun resultState(widgets: List<Widget>): StateData = resultState(lazyOf(widgets))
-	private fun resultState(widgets: Lazy<List<Widget>>): StateData {
-		return guiSnapshot.let { g ->
-			StateData(widgets, //displayedWindows = g.appWindows,
-					isHomeScreen = g.isHomeScreen)
-		}
-	}
 }
 val EmptyActionResult = ActionResult(EmptyAction, LocalDateTime.MIN, LocalDateTime.MIN)
-
-private var timeS: Long = 0
-private var timeP: Long = 0

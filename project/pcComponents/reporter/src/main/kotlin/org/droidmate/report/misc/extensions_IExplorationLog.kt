@@ -24,13 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate.report.misc
 
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.deviceInterface.exploration.isLaunchApp
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.config.emptyUUID
+import org.droidmate.explorationModel.emptyUUID
 import java.util.*
 
 val ExplorationContext.uniqueActionableWidgets: Set<Widget>

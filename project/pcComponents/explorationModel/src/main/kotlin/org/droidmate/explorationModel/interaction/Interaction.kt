@@ -2,12 +2,10 @@ package org.droidmate.explorationModel.interaction
 
 import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.explorationModel.ConcreteId
+import org.droidmate.explorationModel.ConcreteId.Companion.fromString
 import org.droidmate.explorationModel.ExplorationTrace
-import org.droidmate.explorationModel.config.ConcreteId
-import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep
-import org.droidmate.explorationModel.config.dumpString
-import org.droidmate.explorationModel.config.emptyId
-import org.droidmate.explorationModel.config.idFromString
+import org.droidmate.explorationModel.emptyId
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -20,12 +18,12 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
                                    val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
                                    val successful: Boolean, val exception: String,
                                    val resState: ConcreteId, val deviceLogs: DeviceLogs = emptyList(),
-                                   private val sep:String, val data: String="") {
+                                   private val sep:String, val data: String="", val meta: String = "") {
 
 	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
 	            deviceLogs: DeviceLogs, exception: String, successful: Boolean, resState: ConcreteId, sep:String)
-			: this(action.name+"-${action.id}", widgetTargets.pollFirst(),
-			startTimestamp, endTimestamp, successful, exception, resState, deviceLogs, sep, ExplorationTrace.computeData(action))
+			: this(action.name, widgetTargets.pollFirst(),
+			startTimestamp, endTimestamp, successful, exception, resState, deviceLogs, sep, ExplorationTrace.computeData(action), action.id.toString())
 
 	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
 			: this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId, sep) {
@@ -65,9 +63,9 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
 			ActionDataFields.EndTime -> endTimestamp.toString()
 			ActionDataFields.Exception -> exception
 			ActionDataFields.SuccessFul -> successful.toString()
-			ActionDataFields.PrevId -> prevState.dumpString()
-			ActionDataFields.DstId -> resState.dumpString()
-			ActionDataFields.WId -> targetWidget?.run { id.dumpString() } ?: "null"
+			ActionDataFields.PrevId -> prevState.toString()
+			ActionDataFields.DstId -> resState.toString()
+			ActionDataFields.WId -> targetWidget?.id.toString()
 			ActionDataFields.Data -> data
 		}
 	}
@@ -75,14 +73,14 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
 	companion object {
 //		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):Interaction =
 //				Interaction(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
-
+//TODO use same mechanism as for Widget instead, and make this an open class
 		@JvmStatic
 		fun createFromString(e: List<String>, target: Widget?, contentSeparator: String): Interaction = Interaction(
 				actionType = e[ActionDataFields.Action.ordinal], targetWidget = target, startTimestamp = LocalDateTime.parse(e[ActionDataFields.StartTime.ordinal]),
 				endTimestamp = LocalDateTime.parse(e[ActionDataFields.EndTime.ordinal]), successful = e[ActionDataFields.SuccessFul.ordinal].toBoolean(),
-				exception = e[ActionDataFields.Exception.ordinal], resState = idFromString(e[ActionDataFields.DstId.ordinal]), sep = contentSeparator
+				exception = e[ActionDataFields.Exception.ordinal], resState = fromString(e[ActionDataFields.DstId.ordinal])!!, sep = contentSeparator
 				, data = e[ActionDataFields.Data.ordinal]
-		).apply { prevState = idFromString(e[ActionDataFields.PrevId.ordinal]) }
+		).apply { prevState = fromString(e[ActionDataFields.PrevId.ordinal])!! }
 
 		@JvmStatic
 		val empty: Interaction by lazy {
@@ -112,7 +110,7 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
 
 	override fun toString(): String {
 		@Suppress("ReplaceSingleLineLet")
-		return "$actionType: widget[${targetWidget?.let { it.dataString("\t") }}]:\n${prevState.dumpString()}->${resState.dumpString()}"
+		return "$actionType: widget[${targetWidget?.let { it.toString() }}]:\n$prevState->$resState"
 	}
 }
 

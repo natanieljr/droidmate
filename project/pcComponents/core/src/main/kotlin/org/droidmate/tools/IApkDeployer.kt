@@ -34,5 +34,5 @@ import org.droidmate.device.IDeployableAndroidDevice
  */
 interface IApkDeployer {
 
-	fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: (IApk) -> Any): List<ApkExplorationException>
+	suspend fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: suspend (IApk) -> Any): List<ApkExplorationException>
 }

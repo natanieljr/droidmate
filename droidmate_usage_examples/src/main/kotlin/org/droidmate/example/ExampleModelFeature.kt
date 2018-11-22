@@ -1,14 +1,14 @@
 package org.droidmate.example
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.newCoroutineContext
 import org.droidmate.explorationModel.ActionData
 import org.droidmate.explorationModel.StateData
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 class ExampleModelFeature: ModelFeature(){
 	// Prevents this feature from blocking the execution of others

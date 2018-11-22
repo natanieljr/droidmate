@@ -1,39 +1,35 @@
 package org.droidmate.explorationModel.retention.loading
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.NonCancellable.isActive
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.explorationModel.*
-import org.droidmate.explorationModel.interaction.Widget.Companion.emptyWidget
-import org.droidmate.explorationModel.config.ConcreteId
-import org.droidmate.explorationModel.config.asConcreteId
-import org.droidmate.explorationModel.config.asUUID
-import org.droidmate.explorationModel.plus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import org.droidmate.explorationModel.P
 import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.explorationModel.retention.AnnotatedProperty
+import org.droidmate.explorationModel.retention.StringCreator
+import org.droidmate.explorationModel.retention.StringCreator.annotatedProperties
+import org.droidmate.explorationModel.retention.getValue
 import kotlin.collections.HashMap
 
-internal abstract class WidgetParserI<T>: ParserI<T, Widget> {
-	var indiciesComputed: AtomicBoolean = AtomicBoolean(false)
+internal abstract class WidgetParserI<T>: ParserI<Pair<ConcreteId,T>, UiElementPropertiesI> {
+	var indicesComputed: AtomicBoolean = AtomicBoolean(false)
 	/** temporary map of all processed widgets for state parsing */
-	abstract val queue: MutableMap<Int, T>
-	private var customWidgetIndicies: Map<P,Int> = P.defaultIndicies
-	private val lock = Mutex()  // to guard the indicy setter
+	abstract val queue: MutableMap<ConcreteId, T>
+	private var customWidgetIndices: Map<AnnotatedProperty, Int> = StringCreator.defaultMap
+	private val lock = Mutex()  // to guard the indices setter
 
     override val logger: Logger = LoggerFactory.getLogger(javaClass)
 
 
-    suspend fun setCustomWidgetIndicies(m: Map<P,Int>){
-		lock.withLock { customWidgetIndicies = m }
+    suspend fun setCustomWidgetIndices(m: Map<AnnotatedProperty, Int>){
+		lock.withLock { customWidgetIndices = m }
 	}
 
-//	override fun logcat(msg: String) {	}
 	/**
 	 * when compatibility mode is enabled this list will contain the mapping oldId->newlyComputedId
 	 * to transform the model to the current (newer) id computation.
@@ -41,81 +37,78 @@ internal abstract class WidgetParserI<T>: ParserI<T, Widget> {
 	 */
 	private val idMapping: ConcurrentHashMap<ConcreteId, ConcreteId> = ConcurrentHashMap()
 
-	protected suspend fun computeWidget(line: List<String>,id: ConcreteId): Widget {
+	protected fun computeWidget(line: List<String>, id: ConcreteId): Pair<ConcreteId,UiElementPropertiesI> {
 		log("compute widget $id")
-		if(!isActive) return emptyWidget // if there was already an error the parsing may be canceled -> stop here
-
-		return Widget.fromString(line,customWidgetIndicies).also { widget ->
-			verify("ERROR on widget parsing inconsistent ID created ${widget.id} instead of $id",{id == widget.id}){
-				idMapping[id] = widget.id
-			}
-			model.S_addWidget(widget)  // add the widget to the model if it didn't exist yet
-		}
+		return id to StringCreator.parsePropertyString(line, customWidgetIndices)
 	}
 
-	abstract fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): T
-	private suspend fun parseWidget(line: List<String>): T = currentScope{
+	@Suppress("FunctionName")
+	abstract fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): Pair<ConcreteId,T>
+
+	private fun parseWidget(line: List<String>, scope: CoroutineScope): Pair<ConcreteId,T> {
 		log("parse widget $line")
-		val wConfigId = UUID.fromString(line[Widget.idIdx.second]) + line[P.ImgId.idx(customWidgetIndicies)].asUUID()
-		val id = Pair((UUID.fromString(line[Widget.idIdx.first])), wConfigId)
+		val idProperty = StringCreator.widgetProperties.find { it.property == Widget::id }
+		check(idProperty != null)
+		val id = idProperty.parseValue(line, customWidgetIndices).getValue() as ConcreteId
 
-		return queue.computeIfAbsent(line.toTypedArray().contentHashCode()){
-            log("parse absent widget $id")
-			P_S_process(line,id, this)
+		return id to queue.computeIfAbsent(id){
+			log("parse absent widget properties for $id")
+			P_S_process(line,id, scope).second
 		}
 	}
-	override val processor: suspend (List<String>) -> T = { parseWidget(it) }
+	override val processor: suspend (s: List<String>, scope: CoroutineScope) -> Pair<ConcreteId, T> = { s,cs -> parseWidget(s,cs) }
 
-	fun fixedWidgetId(idString: String) = idString.asConcreteId()?.let{	idMapping[it] ?: it }
+	fun fixedWidgetId(idString: String) = ConcreteId.fromString(idString)?.let{	idMapping[it] ?: it }
 	fun addFixedWidgetId(oldId: ConcreteId, newId: ConcreteId) { idMapping[oldId] = newId }
 
 	companion object {
 
 		/**
 		 * this function can be used to automatically adapt the property indicies in the persistated file
-		 * if header.size contains not all possible entries of [P] the respective entries cannot be set in the created Widget.
+		 * if header.size contains not all persistent entries the respective entries cannot be set in the created Widget.
 		 * Optionally a map of oldName->newName can be given to automatically infere renamed header entries
 		 */
-		@JvmStatic fun computeWidgetIndicies(header: List<String>, renamed: Map<String,String> = emptyMap()): Map<P,Int>{
-			if(header.size!= P.values().size){
-				val missing = P.values().filter { !header.contains(it.name) }
+		@JvmStatic fun computeWidgetIndices(header: List<String>, renamed: Map<String,String> = emptyMap()): Map<AnnotatedProperty, Int>{
+			if(header.size!= StringCreator.annotatedProperties.count()){
+				val missing = StringCreator.annotatedProperties.filter { !header.contains(it.annotation.header) && !renamed.containsValue(it.annotation.header) }
 				println("WARN the given Widget File does not specify all available properties," +
-						"this may lead to different Widget properties and may require to be parsed in compatibility mode\n missing entries: $missing")
+						"this may lead to different Widget properties and may require to be parsed in compatibility mode\n missing entries: ${missing.toList()}")
 			}
-			val mapping = HashMap<P,Int>()
+			val mapping = HashMap<AnnotatedProperty, Int>()
 			header.forEachIndexed { index, s ->
 				val key = renamed[s] ?: s
-				P.values().find { it.header == key }?.let{  // if the entry is no longer in P we simply ignore it
+				annotatedProperties.find { it.annotation.header == key }?.let{  // if the entry is no longer in P we simply ignore it
 					mapping[it] = index
 					true  // need to return something such that ?: print is not called
-				} ?: println("WARN entry $key is no longer containd in the widget properties")
+				} ?: println("WARN entry '$key' is no longer contained in the widget properties")
 			}
 			return mapping
 		}
 	}
 }
 
-internal class WidgetParserS(override val model: Model, override val parentJob: Job? = null,
-                             override val compatibilityMode: Boolean,
-                             override val enableChecks: Boolean): WidgetParserI<Widget>(){
+internal class WidgetParserS(override val model: Model,
+                             override val compatibilityMode: Boolean = false,
+                             override val enableChecks: Boolean = true): WidgetParserI<UiElementPropertiesI>(){
 
-	override fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): Widget = runBlocking(scope.coroutineContext+CoroutineName("parseWidget $id")) { computeWidget(s,id) }
+	override fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): Pair<ConcreteId,UiElementPropertiesI> = runBlocking{ computeWidget(s,id) }
 
-	override suspend fun getElem(e: Widget): Widget = e
+	override suspend fun getElem(e: Pair<ConcreteId, UiElementPropertiesI>): UiElementPropertiesI = e.second
 
-	override val queue: MutableMap<Int, Widget> = HashMap()
+	override val queue: MutableMap<ConcreteId, UiElementPropertiesI> = HashMap()
 }
 
-internal class WidgetParserP(override val model: Model, override val parentJob: Job? = null,
-                             override val compatibilityMode: Boolean,
-                             override val enableChecks: Boolean): WidgetParserI<Deferred<Widget>>(){
+internal class WidgetParserP(override val model: Model,
+                             override val compatibilityMode: Boolean = false,
+                             override val enableChecks: Boolean = true): WidgetParserI<Deferred<UiElementPropertiesI>>(){
 
-	override fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): Deferred<Widget> =
-			scope.async(CoroutineName("parseWidget $id")){
-		computeWidget(s,id)
+
+	override fun P_S_process(s: List<String>, id: ConcreteId, scope: CoroutineScope): Pair<ConcreteId,Deferred<UiElementPropertiesI>>
+			= id to scope.async(CoroutineName("parseWidget $id")){
+		computeWidget(s,id).second
 	}
 
-	override suspend fun getElem(e: Deferred<Widget>): Widget = e.await()
+	override suspend fun getElem(e: Pair<ConcreteId,Deferred<UiElementPropertiesI>>): UiElementPropertiesI = e.second.await()
 
-	override val queue: MutableMap<Int, Deferred<Widget>> = ConcurrentHashMap()
+	override val queue: MutableMap<ConcreteId, Deferred<UiElementPropertiesI>> = ConcurrentHashMap()
 }

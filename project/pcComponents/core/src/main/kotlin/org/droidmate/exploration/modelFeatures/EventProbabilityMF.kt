@@ -25,16 +25,14 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.newCoroutineContext
-import kotlinx.coroutines.experimental.runBlocking
-import kotlinx.coroutines.experimental.sync.Mutex
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import org.apache.commons.lang3.StringUtils
-import org.droidmate.explorationModel.interaction.StateData
-import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.strategy.AbstractStrategy
 import org.droidmate.exploration.strategy.ResourceManager
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import weka.classifiers.trees.RandomForest
 import weka.core.DenseInstance
 import weka.core.Instance
@@ -42,17 +40,14 @@ import weka.core.Instances
 import weka.core.converters.ConverterUtils
 import java.io.InputStream
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class EventProbabilityMF(modelName: String,
 							  arffName: String,
 							  protected val useClassMembershipProbability: Boolean) : ModelFeature() {
-	init{
-		job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-	}
 
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("EventProbabilityMF"), parent = job)
+	override val coroutineContext: CoroutineContext = CoroutineName("EventProbabilityMF")
 
 	/**
 	 * Weka classifier with pre-trained model
@@ -99,7 +94,7 @@ open class EventProbabilityMF(modelName: String,
 		return model
 	}
 
-	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State, newState: State) {
 		try {
 			mutex.lock()
 			wekaInstances.delete()
@@ -182,7 +177,7 @@ open class EventProbabilityMF(modelName: String,
 	 *
 	 * @receiver [Widget]
 	 */
-	protected fun Widget.toWekaInstance(state: StateData, model: Instances): Instance {
+	protected fun Widget.toWekaInstance(state: State, model: Instances): Instance {
 		val attributeValues = DoubleArray(5)
 
 		attributeValues[0] = model.getNominalIndex(0, this.getRefinedType())
@@ -212,7 +207,7 @@ open class EventProbabilityMF(modelName: String,
 
 	protected val widgetProbability = mutableMapOf<UUID, Double>() // probability of each widget having an event
 
-	open fun getProbabilities(state: StateData): Map<Widget, Double> {
+	open fun getProbabilities(state: State): Map<Widget, Double> {
 		try {
 			runBlocking{ mutex.lock() }
 			val data = state.actionableWidgets

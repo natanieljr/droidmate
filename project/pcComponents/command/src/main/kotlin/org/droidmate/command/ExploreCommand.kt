@@ -26,7 +26,7 @@
 package org.droidmate.command
 
 import com.konradjamrozik.isRegularFile
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
 import org.droidmate.configuration.ConfigProperties.Exploration.apkNames
@@ -266,7 +266,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			log.warn("No input apks found. Terminating.")
 			return false
 		}
-
 		if (apks.any { !it.inlined }) {
 			if (runOnNotInlined) {
 				log.info("Not inlined input apks have been detected, but DroidMate was instructed to run anyway. Continuing with execution.")
@@ -329,40 +328,41 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
 	                                   apks: List<Apk>,
-	                                   out: MutableList<ExplorationContext>): List<ExplorationException> {
-		return this.deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
+	                                   out: MutableList<ExplorationContext>): List<ExplorationException>{
+		return deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
+			runBlocking{
+				val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
 
-			val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
+				var encounteredApkExplorationsStoppingException = false
 
-			var encounteredApkExplorationsStoppingException = false
+				apks.forEachIndexed { i, apk ->
+					if (!encounteredApkExplorationsStoppingException) {
+						log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
 
-			apks.forEachIndexed { i, apk ->
-				if (!encounteredApkExplorationsStoppingException) {
-					log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
+						allApksExplorationExceptions +=
+								apkDeployer.withDeployedApk(device, apk) { deployedApk ->
+									tryExploreOnDeviceAndSerialize(deployedApk, device, out)
+								}
 
-					allApksExplorationExceptions +=
-							this.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
-								tryExploreOnDeviceAndSerialize(deployedApk, device, out)
-							}
+						if (allApksExplorationExceptions.any { it.shouldStopFurtherApkExplorations() }) {
+							log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
+							encounteredApkExplorationsStoppingException = true
+						}
 
-					if (allApksExplorationExceptions.any { it.shouldStopFurtherApkExplorations() }) {
-						log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
-						encounteredApkExplorationsStoppingException = true
+						// Just preventative measures for ensuring healthiness of the device connection.
+						device.restartUiaDaemon(false)
 					}
-
-					// Just preventative measures for ensuring healthiness of the device connection.
-					device.restartUiaDaemon(false)
 				}
+				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
+					imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
+				allApksExplorationExceptions
 			}
-			if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) runBlocking{ // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
-				imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
-			} // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
-			allApksExplorationExceptions
-		}
+		}  // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
 	}
 
-	@Throws(DeviceException::class)
-	private fun tryExploreOnDeviceAndSerialize(
+
+@Throws(DeviceException::class)
+	private suspend fun tryExploreOnDeviceAndSerialize(
 			deployedApk: IApk, device: IRobustDevice, out: MutableList<ExplorationContext>) {
 		val fallibleApkOut2 = this.run(deployedApk, device)
 
@@ -375,7 +375,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			throw fallibleApkOut2.exception!!
 	}
 
-	private fun run(app: IApk, device: IRobustDevice): Failable<ExplorationContext, DeviceException> {
+	private suspend fun run(app: IApk, device: IRobustDevice): Failable<ExplorationContext, DeviceException> {
 		log.info("run(${app.packageName}, device)")
 
 		device.resetTimeSync()
@@ -398,7 +398,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
 	}
 
-	private val imgTransfer = CoroutineScope(Dispatchers.Default+ Job() + CoroutineName("device image pull"))
+	private val imgTransfer = CoroutineScope(Dispatchers.Default+ SupervisorJob() + CoroutineName("device image pull"))
 
 	private fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice){
 		debugT("image transfer should take no time on main thread", {
@@ -415,7 +415,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		}, inMillis = true)
 
 	}
-	private fun explorationLoop(app: IApk, device: IRobustDevice): ExplorationContext {
+	private suspend fun explorationLoop(app: IApk, device: IRobustDevice): ExplorationContext {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
 		// Use the received exploration eContext (if any) otherwise construct the object that
@@ -453,7 +453,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				}
 			}
 			assert(!result.successful || action.isTerminate())
-		}
+			assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }		}
 		finally {
 //			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
 				// having one pull in the end does not really seam to make a performance difference right now

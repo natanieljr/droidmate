@@ -23,13 +23,11 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import android.view.inputmethod.InputMethodManager
 import kotlinx.coroutines.delay
-import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.uiautomator2daemon.exploration.measurePerformance
 import org.droidmate.uiautomator2daemon.exploration.nullableDebugT
 import java.io.File
 import java.util.*
-import java.util.jar.Manifest
 import kotlin.collections.HashMap
 
 private const val debug = false
@@ -123,7 +121,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 	private fun AccessibilityNodeInfo.isKeyboard() = keyboardPkgs.contains(this.packageName)
 
 	val captureScreen: ()-> Bitmap? = { nullableDebugT("img capture time", {
-		UiHierarchy.getScreenShot(idleTimeout, automation)
+		UiHierarchy.getScreenShot(automation)
 	}, inMillis = true) }
 
 	private suspend fun processWindows(w: AccessibilityWindowInfo, uncoveredC: MutableList<Rect>):DisplayedWindow?{

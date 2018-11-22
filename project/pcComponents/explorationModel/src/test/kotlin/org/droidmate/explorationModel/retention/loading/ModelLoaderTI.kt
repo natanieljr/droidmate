@@ -1,42 +1,42 @@
 package org.droidmate.explorationModel.retention.loading
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.produce
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.produce
 import org.droidmate.explorationModel.*
-import org.droidmate.explorationModel.config.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.explorationModel.config.idFromString
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.explorationModel.retention.StringCreator
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import kotlin.coroutines.coroutineContext
 
 
 /** test interface for the model loader, which cannot be done with mockito due to coroutine incompatibility */
 internal interface ModelLoaderTI{
 	var testTraces: List<Collection<Interaction>>
-	var testStates: Collection<StateData>
+	var testStates: Collection<State>
 
-	fun execute(testTraces: List<Collection<Interaction>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeatureI> = LinkedList()): Model
+	fun execute(testTraces: List<Collection<Interaction>>, testStates: Collection<State>, watcher: LinkedList<ModelFeatureI> = LinkedList()): Model
 	suspend fun parseWidget(widget: Widget): Widget?
 
 	/** REMARK these are state dependend => use very carefully in Unit-Tests */
-//	val actionParser: suspend (List<String>) -> Pair<Interaction, StateData>
-	suspend fun parseState(stateId: ConcreteId): StateData
+//	val actionParser: suspend (List<String>) -> Pair<Interaction, State>
+	suspend fun parseState(stateId: ConcreteId): State
 
 }
 
 class TestReader(config: ModelConfig): ContentReader(config){
-	lateinit var testStates: Collection<StateData>
+	lateinit var testStates: Collection<State>
 	lateinit var testTraces: List<Collection<Interaction>>
 	private val traceContents: (idx: Int) -> List<String> = { idx ->
 		testTraces[idx].map { actionData -> actionData.actionString().also { log(it) } } }
 
 	private fun headerPlusString(s:List<String>,skip: Long):List<String> = LinkedList<String>().apply {
-		add(Widget.widgetHeader(config[ConfigProperties.ModelProperties.dump.sep]))
+		add(StringCreator.widgetHeader(config[ConfigProperties.ModelProperties.dump.sep]))
 		addAll(s)
 	}.let {
 		it.subList(skip.toInt(),it.size)
@@ -49,8 +49,8 @@ class TestReader(config: ModelConfig): ContentReader(config){
 				traceContents(name.removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).toInt())
 			name.contains("fa5d6ec4-129e-cde6-cfbf-eb837096de60_829a5484-73d6-ba71-57fc-d143d1cecaeb") ->
 				headerPlusString(debugString.split("\n"), skip)
-			else ->
-				headerPlusString(testStates.find { s -> s.stateId == idFromString(name.removeSuffix(ModelConfig.defaultWidgetSuffix)) }!!.widgetsDump(config[ConfigProperties.ModelProperties.dump.sep]),skip)
+			else -> TODO()
+//				headerPlusString(testStates.find { s -> s.stateId == fromString(name.removeSuffix(ModelConfig.defaultWidgetSuffix)) }!!.widgetsDump(config[ConfigProperties.ModelProperties.dump.sep]),skip)
 		}
 	}
 
@@ -65,6 +65,7 @@ class TestReader(config: ModelConfig): ContentReader(config){
 
 }
 
+@ExperimentalCoroutinesApi
 internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(config,enableChecks = true), ModelLoaderTI {
 
 	/** creating test environment */
@@ -76,20 +77,20 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(conf
 	override fun log(msg: String) = println("TestModelLoader[${Thread.currentThread().name}] $msg")
 
 	/** implementing ModelParser default methods */
-	override val widgetParser by lazy { WidgetParserP(model,parentJob, compatibilityMode, enableChecks) }
-	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, parentJob, compatibilityMode, enableChecks) }
+	override val widgetParser by lazy { WidgetParserP(model, compatibilityMode, enableChecks) }
+	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, compatibilityMode, enableChecks) }
 
 	/** custom test environment */
-//	override val actionParser: suspend (List<String>) -> Pair<Interaction, StateData> = processor
-//	override val actionParser: suspend (List<String>) -> Pair<Interaction, StateData> = { args -> processor(args).await() }
-	override var testStates: Collection<StateData>
+//	override val actionParser: suspend (List<String>) -> Pair<Interaction, State> = processor
+//	override val actionParser: suspend (List<String>) -> Pair<Interaction, State> = { args -> processor(args).await() }
+	override var testStates: Collection<State>
 		get() = reader.testStates
 		set(value) { reader.testStates = value}
 	override var testTraces: List<Collection<Interaction>>
 		get() = reader.testTraces
 		set(value) { reader.testTraces = value}
 
-	override fun traceProducer() = GlobalScope.produce(Dispatchers.Default, capacity = 5, block = {
+	override suspend fun traceProducer() = GlobalScope.produce(Dispatchers.Default, capacity = 5, block = {
 		log("Produce trace paths")
 		testTraces.forEach { log(it.toString() + "\n") }
 		for (i in 0 until testTraces.size) {
@@ -97,17 +98,17 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(conf
 		}
 	})
 
-	override fun execute(testTraces: List<Collection<Interaction>>, testStates: Collection<StateData>, watcher: LinkedList<ModelFeatureI>): Model {
+	override fun execute(testTraces: List<Collection<Interaction>>, testStates: Collection<State>, watcher: LinkedList<ModelFeatureI>): Model {
 //		logcat(testActions.)
 		this.testTraces = testTraces
 		this.testStates = testStates
-		return loadModel(watcher)
+		return runBlocking { loadModel(watcher) }
 	}
 
-	override suspend fun parseWidget(widget: Widget): Widget? =
-			widgetParser.getElem( widgetParser.processor(widget.splittedDumpString(config[ConfigProperties.ModelProperties.dump.sep])) )
+	override suspend fun parseWidget(widget: Widget): Widget? = TODO()
+//			widgetParser.getElem( widgetParser.processor(widget.splittedDumpString(config[ConfigProperties.ModelProperties.dump.sep])) )
 
-	override suspend fun parseState(stateId: ConcreteId): StateData = stateParser.getElem( currentScope(stateParser.parseIfAbsent)(stateId) )
+	override suspend fun parseState(stateId: ConcreteId): State = stateParser.getElem( stateParser.parseIfAbsent(coroutineContext)(stateId) )
 }
 
 private const val debugString = "881086d0-66da-39d3-89a7-3ef465ab4971;ccff4dcd-b1ec-3ebf-b2e0-8757b1f8119f;android.view.ViewGroup;true;;;null;true;true;true;false;false;disabled;false;false;false;789;63;263;263;;//android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.LinearLayout[1]/android.widget.HorizontalScrollView[1]/android.widget.LinearLayout[1]/android.view.ViewGroup[4];false;ch.bailu.aat\n" +

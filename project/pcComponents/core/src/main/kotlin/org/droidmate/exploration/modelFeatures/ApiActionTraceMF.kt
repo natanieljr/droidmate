@@ -1,23 +1,18 @@
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.deviceInterface.exploration.isLaunchApp
 import org.droidmate.deviceInterface.exploration.isPressBack
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class ApiActionTraceMF : ModelFeature() {
 
-    override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ApiActionTraceMF"), parent = job)
-    init{
-        job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-    }
+    override val coroutineContext: CoroutineContext = CoroutineName("ApiActionTraceMF")
 
-    override suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */
+    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
         val sb = StringBuilder()
         val header = "actionNr\tactivity\taction\tapi\tuniqueStr\n"
         sb.append(header)

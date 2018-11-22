@@ -173,7 +173,7 @@ nodes
 		}
 	}
 
-	fun getScreenShot(delayForRetry: Long, automation: UiAutomation): Bitmap? {
+	fun getScreenShot(automation: UiAutomation): Bitmap? {
 		var screenshot: Bitmap? = null
 		debugT("first screen-fetch attempt ", {
 			try {
@@ -183,14 +183,6 @@ nodes
 				Log.w(LOGTAG, "exception on screenshot-capture")
 			}
 		}, inMillis = true)
-
-		// a second try does not help it fails for *flag_secure* views
-//		if (screenshot == null){
-//			Log.d(LOGTAG,"screenshot failed")
-//			delay(delayForRetry)
-//			screenshot = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot()
-//
-//		}
 		return screenshot.also {
 			if (it == null)
 				Log.w(LOGTAG,"no screenshot available")

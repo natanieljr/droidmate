@@ -72,18 +72,10 @@ repositories {
 	mavenCentral()
 }
 
-/**
- * This build.script is executed twice, once from normal build and once from uiautomator2-daemon build. The applied script
- * allows to install to local maven repo and so can be applied only once. ":project:pcComponents" doesn't exist when calling this script
- * For more details why such strange setup, see settings.gradle in uiautoamtor2-daemon.
- */
-//if (findProject(":project:pcComponents"))
-
 dependencies {
 	api "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
 	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
 	compile 'org.slf4j:slf4j-api:1.7.25'
-	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 }
 
 compileKotlin {
@@ -96,8 +88,4 @@ compileTestKotlin {
 		jvmTarget = project.ext.javaVersion
 	}
 }
-kotlin {
-	experimental {
-		coroutines "enable"
-	}
-}
+

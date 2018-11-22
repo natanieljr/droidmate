@@ -25,59 +25,56 @@
 
 package org.droidmate.explorationModel
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.sendBlocking
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.config.*
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.sep
 import org.droidmate.explorationModel.interaction.*
 import java.io.File
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 
 class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutableListOf(), private val config: ModelConfig, modelJob: Job, val id:UUID) {
 	private val date by lazy { "${timestamp()}_${hashCode()}" }
 
-	private val processorJob = Job(parent = modelJob)
-	private val actionProcessorJob = Job(parent = modelJob)
-	private val trace = CollectionActor(LinkedList<Interaction>(), "TraceActor").create(actionProcessorJob)
-	private val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ActionProcessor"), parent = actionProcessorJob)
+	//TODO check if we don't simply want an concurrent readable collection instead
+	private val trace = CollectionActor(LinkedList<Interaction>(), "TraceActor").create() //FIXME should be called on this scope or ModelScope
 
 	private val targets: MutableList<Widget?> = LinkedList()
 	/** used for special id creation of interacted edit fields, map< iEditId -> (state -> collection<widget> )> */
-	private val editFields: MutableMap<UUID, LinkedList<Pair<StateData, Widget>>> = mutableMapOf()
+	private val editFields: MutableMap<UUID, LinkedList<Pair<State, Widget>>> = mutableMapOf()
 
 	/** this property is set in the end of the trace update and notifies all watchers for changes */
-	private val initialState: Triple<StateData, List<Widget>, ExplorationAction> = Triple(StateData.emptyState, emptyList(), EmptyAction)
+	private val initialState: Triple<State, List<Widget>, ExplorationAction> = Triple(State.emptyState, emptyList(), EmptyAction)
 	private var newState by Delegates.observable(initialState) { _, (srcState,_), (dstState,targets, explorationAction) ->
 		notifyObserver(srcState, dstState, targets, explorationAction)
 		internalUpdate(srcState = srcState, targets = targets)
 	}
 
 	/** observable delegates do not support co-routines within the lambda function therefore this method*/
-	private fun notifyObserver(old: StateData, new: StateData, targets: List<Widget>, explorationAction: ExplorationAction) {
+	private fun notifyObserver(old: State, new: State, targets: List<Widget>, explorationAction: ExplorationAction) {
 		watcher.forEach {
-			launch(it.context, parent = it.job) { it.onNewInteracted(id, targets, old, new) }
+			it.launch { it.onNewInteracted(id, targets, old, new) }
 			val actionIndex = size - 1
 			assert(actionIndex >= 0){"ERROR the action-trace size was not properly updated"}
-			launch(it.context, parent = it.job) { it.onNewInteracted(id, actionIndex, explorationAction, targets, old, new) }
+			it.launch { it.onNewInteracted(id, actionIndex, explorationAction, targets, old, new) }
 
-			val action =
-					async(it.context) {
-						getAt(actionIndex)!!
+			val action = it.async(start = CoroutineStart.LAZY) { //TODO 'now' an easy fix would to have the last action in this method call as it is no longer asynchronous computed
+						getAt(actionIndex) ?: Interaction.empty.also { println("WARN: synchronization issue action $actionIndex was not in trace (onNewAction)") }
 					}
 
-			launch(it.context, parent = it.job) {
+			it.launch {
 				it.onNewAction(id, action, old, new)
 			}
 		}
 	}
 
 	/** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
-	private fun internalUpdate(srcState: StateData, targets: List<Widget>) {
+	private fun internalUpdate(srcState: State, targets: List<Widget>) {
 		this.targets.addAll(targets)
 		targets.forEach {
 			if (it.isInputField) editFields.compute(srcState.iEditId) { _, stateMap ->
@@ -87,8 +84,7 @@ class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutable
 		}
 	}
 
-	private val actionProcessor: (ActionResult, StateData, StateData) -> suspend CoroutineScope.() -> Unit = { actionRes, oldState, dstState ->
-		{
+	private fun actionProcessor(actionRes: ActionResult, oldState: State, dstState: State) {
 			if(widgetTargets.isNotEmpty())
 				assert(oldState.widgets.containsAll(widgetTargets)) {"ERROR on ExplorationTrace generation, tried to add action for widgets $widgetTargets which do not exist in the source state $oldState"}
 
@@ -113,18 +109,19 @@ class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutable
 ////						println("DEBUG: $it")
 //					}
 		}
-	}
 
 	/*************** public interface ******************/
 
-	fun update(action: ActionResult, dstState: StateData) {
+	fun update(action: ActionResult, dstState: State) {
 		size += 1
 		lastActionType = if(action.action is ActionQueue) action.action.actions.lastOrNull()?.name ?:"empty queue"  else action.action.name
 		// we did not update this.dstState yet, therefore it contains the now 'old' state
 
 		val actionTargets = widgetTargets.toList()  // we may have an action queue and therefore multiple targets in the same state
 		this.newState.first.let{ oldState ->
-			launch(context, block = actionProcessor(action, oldState, dstState), parent = processorJob)
+//			launch(block =
+			debugT("action processing", {actionProcessor(action, oldState, dstState)},inMillis = true)
+//			)
 		}
 
 		debugT("set dstState", { this.newState = Triple(dstState, actionTargets, action.action) })
@@ -136,7 +133,7 @@ class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutable
 	 * this function is purposely not called for the whole Interaction set, such that we can issue all watcher updates
 	 * if no watchers are registered use [updateAll] instead
 	 * ASSUMPTION only one co-routine is simultaneously working on this ExplorationTrace object*/
-	internal suspend fun update(action: Interaction, dstState: StateData) {
+	internal suspend fun update(action: Interaction, dstState: State) {
 		size += 1
 		lastActionType = action.actionType
 		trace.send(Add(action))
@@ -147,7 +144,7 @@ class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutable
 	 * to update the whole trace at once
 	 * ASSUMPTION no watchers are to be notified
 	 */
-	internal suspend fun updateAll(actions: List<Interaction>, latestState: StateData){
+	internal suspend fun updateAll(actions: List<Interaction>, latestState: State){
 		size += actions.size
 		lastActionType = actions.last().actionType
 		trace.send(AddAll(actions))
@@ -162,7 +159,7 @@ class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutable
 	var size: Int = 0 // avoid timeout from trace access and just count how many actions were created
 	var lastActionType: String = ""
 
-	val interactedEditFields: Map<UUID, List<Pair<StateData, Widget>>> get() = editFields
+	val interactedEditFields: Map<UUID, List<Pair<State, Widget>>> get() = editFields
 
 	fun unexplored(candidates: List<Widget>): List<Widget> = candidates.filterNot { w ->
 		targets.any {
@@ -182,43 +179,37 @@ class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mutable
 	// -> requires suspend propagation in many places
 	/** use this function only on the critical execution path otherwise use [P_getActions] instead */
 	fun getActions(): List<Interaction> = runBlocking{coroutineScope<List<Interaction>> {
-		processorJob.joinChildren()
 		return@coroutineScope trace.S_getAll()
 	}}
 	@Suppress("MemberVisibilityCanBePrivate")
 	/** use this method within co-routines to make complete use of suspendable feature */
 	suspend fun P_getActions(): List<Interaction>{
-		processorJob.joinChildren() // ensure the last action was already added
 		return trace.getAll()
 	}
 
 	suspend fun last(): Interaction? {
-		processorJob.joinChildren() // ensure the last action was already added
 		return trace.getOrNull { it.lastOrNull() }
 	}
 
 	/** get the element at index [i] if it exists and null otherwise */
-	suspend fun getAt(i:Int): Interaction?{
-		processorJob.joinChildren() // ensure the last action was already added
-		return trace.getOrNull { (it as LinkedList<Interaction>).let{ list ->
+	suspend fun getAt(i:Int): Interaction? = trace.getOrNull { (it as LinkedList<Interaction>).let{ list ->
 			if(list.indices.contains(i))
 				list[i]
 			else {
 				println("Index: $i \t Size: ${list.size}")
-				throw RuntimeException("Here!!!")
+				println("FIXME synchronization bug element is not in trace list") //-> does not seam to happen any more
+				list.lastOrNull()
 				// null
 			}
-		} }
+		}
 	}
 
 	/** this has to access a co-routine actor prefer using [size] if synchronization is not critical */
 	suspend fun isEmpty(): Boolean{
-		processorJob.joinChildren() // ensure the last action was already added
 		return trace.get { it.isEmpty() }
 	}
 	/** this has to access a co-routine actor prefer using [size] if synchronization is not critical */
 	suspend fun isNotEmpty(): Boolean{
-		processorJob.joinChildren() // ensure the last action was already added
 		return trace.get { it.isNotEmpty() }
 	}
 

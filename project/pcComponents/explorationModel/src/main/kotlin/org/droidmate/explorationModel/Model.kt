@@ -25,238 +25,163 @@
 
 package org.droidmate.explorationModel
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.sendBlocking
-import org.droidmate.explorationModel.config.ConcreteId
+import kotlinx.coroutines.*
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.explorationModel.config.idFromString
-import org.droidmate.explorationModel.interaction.ActionResult
-import org.droidmate.explorationModel.interaction.StateData
-import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.explorationModel.interaction.*
 import org.droidmate.explorationModel.retention.loading.ModelParser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.*
-import kotlin.collections.HashSet
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 import kotlin.system.measureTimeMillis
 
-internal operator fun UUID.plus(uuid: UUID?): UUID {
-	return if(uuid == null) this
-	else UUID(this.mostSignificantBits + uuid.mostSignificantBits, this.leastSignificantBits + uuid.mostSignificantBits)
-}
-internal operator fun UUID.plus(id: Int): UUID {
-	return UUID(this.mostSignificantBits + id, this.leastSignificantBits + id)
-}
 
-/** s_* should be only used in sequential eContext as it currently does not handle parallelism*/
-@Suppress("MemberVisibilityCanBePrivate")
-class Model private constructor(val config: ModelConfig) {
+/**
+ * we implement CoroutineScope this allows us to implicitly wait for all child jobs (launch/async) started in this scope
+ * any direct call of launch/async is in this scope and will be waited for at the end of this lifecycle (end of exploration)
+ * meanwhile we use currentScope or coroutineScope/supervisorScope to directly wait for child jobs before returning from a function call
+ */
+open class Model private constructor(val config: ModelConfig): CoroutineScope {
+
 	private val paths = LinkedList<ExplorationTrace>()
-	/** debugging counter do not use it in productive code, instead access the respective element set */
-	private var nWidgets = 0
-	/** debugging counter do not use it in productive code, instead access the respective element set */
-	private var nStates = 0
-	val modelJob = Job()
-	val modelDumpJob = Job()
+	/** non-mutable view of all traces contained within this model */
+	fun getPaths(): List<ExplorationTrace> = paths
 
-
-	fun initNewTrace(watcher: LinkedList<ModelFeatureI>,id: UUID = UUID.randomUUID()): ExplorationTrace {
-		return ExplorationTrace(watcher, config, modelJob, id).also { actionTrace ->
-			addTrace(actionTrace)
+/**---------------------------------- public interface --------------------------------------------------------------**/
+	open fun initNewTrace(watcher: LinkedList<ModelFeatureI>,id: UUID = UUID.randomUUID()): ExplorationTrace {
+		return ExplorationTrace(watcher, config, coroutineContext[Job]!!, id).also { actionTrace ->
+			paths.add(actionTrace)
 		}
 	}
 
-	private val states = CollectionActor(HashSet<StateData>(), "StateActor").create(modelJob)
-	/** @return a view to the data (suspending function) */
-	suspend fun getStates(): Set<StateData> = states.getAll<StateData,Set<StateData>>()
-	@Suppress("unused")
-			/** @return a view to the data (blocking function) */
-	fun S_getStates(): Set<StateData> = runBlocking{ states.getAll<StateData,Set<StateData>>() }
+	// we use supervisorScope for the dumping, such that cancellation and exceptions are only propagated downwards
+	// meaning if a dump process fails the overall model process is not affected
+	open suspend fun dumpModel(config: ModelConfig): Job = this.launch(CoroutineName("Model-dump")+backgroundJob){
+		getStates().let { states ->
+			debugOut("dump Model with ${states.size}")
+			states.forEach { s -> launch(CoroutineName("state-dump ${s.uid}")) { s.dump(config) } }
+		}
+		paths.forEach { t -> launch(CoroutineName("trace-dump")) { t.dump(config) } }
+	}
 
-	suspend fun addState(s: StateData){
+	private var uTime: Long = 0
+	/** update the model with any [action] executed as part of an execution [trace] **/
+	suspend fun updateModel(action: ActionResult, trace: ExplorationTrace) {
+		measureTimeMillis {
+			storeScreenShot(action)
+			val widgets = generateWidgets(action, trace).also{ addWidgets(it) }
+			val newState = generateState(action, widgets).also{ addState(it) }
+			trace.update(action, newState)
+
+			if (config[ConfigProperties.ModelProperties.dump.onEachAction]) {
+				this.launch(CoroutineName("state-dump")) { newState.dump(config) }  //TODO the launch may be on state/trace object instead
+				this.launch(CoroutineName("trace-dump")) { trace.dump(config) }
+			}
+		}.let {
+			debugOut("model update took $it millis")
+			uTime += it
+			debugOut("---------- average model update time ${uTime / trace.size} ms overall ${uTime / 1000.0} seconds --------------")
+		}
+	}
+
+	/**--------------------------------- concurrency utils ------------------------------------------------------------**/
+	//we need + Job()  to be able to CancelAndJoin this context, otherwise we can ONLY cancel this scope or its children
+	override val coroutineContext: CoroutineContext = CoroutineName("ModelScope")+Job() //we do not define a dispatcher, this means Dispatchers.Default is automatically used (a pool of worker threads)
+
+	/** this job can be used for any coroutine context which is not essential for the main model process.
+	 * In particular we use it to invoke background processes for model or img dump
+	 */
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected val backgroundJob = SupervisorJob()
+	/** This will notify all children that this scope is to be canceled (which is an cooperative mechanism, mechanism all non-terminating spawned children have to check this flag).
+	 * Moreover, this will propagate the cancellation to our model-actors and join all structural child coroutines of this scope.
+	 */
+	suspend fun cancelAndJoin() = coroutineContext[Job]!!.cancelAndJoin()
+
+	private val states = CollectionActor(HashSet<State>(), "StateActor").create()
+	/** @return a view to the data (suspending function) */
+	suspend fun getStates(): Set<State> = states.getAll()
+
+	/** should be used only by model loader/parser */
+	internal suspend fun addState(s: State){
 		nStates +=1
 		states.send(Add(s))
 	}
 
-	suspend fun getState(id: ConcreteId): StateData?{
-//		println("call getStates")
+	suspend fun getState(id: ConcreteId): State?{
 		val states = getStates()
-//		println("[${Thread.currentThread().name}] retrieved ${states.size} states")
 		return states.find { it.stateId == id }
 	}
 
+	private val widgets = CollectionActor(HashSet<Widget>(), "WidgetActor").create()
 
-	private val widgets = CollectionActor(HashSet<Widget>(), "WidgetActor").create(modelJob)
-
-	suspend fun getWidgets(): Set<Widget>{
+	suspend fun getWidgets(): Set<Widget>{  //TODO instead we could have the list of seen interactive widgets here (potentially with the count of interactions)
 		return CompletableDeferred<Collection<Widget>>().let{ response ->
 			widgets.send(GetAll(response))
 			response.await() as Set
 		}
 	}
 
-	fun S_addWidget(w: Widget) {
-		nWidgets +=1
-		widgets.sendBlocking(Add(w))
-	}
-
-	suspend fun addWidgets(w: Collection<Widget>) {
+	/** adding a value to the actor is non blocking and should not take much time */
+	internal suspend fun addWidgets(w: Collection<Widget>) {
 		nWidgets += w.size
 		widgets.send(AddAll(w))
 	}
 
-	@Suppress("unused")
-	fun getPaths(): List<ExplorationTrace> = paths
-	fun addTrace(t: ExplorationTrace) = paths.add(t)
+	/** -------------------------------------- protected generator methods --------------------------------------------**/
 
-	/** use this function to find widgets with a specific [ConcreteId]
-	 * REMARK if @widgets is set you have to ensure synchronization for this set on your own
-	 * if it is not set it will automatically use the models widget actor
+	/** used on model update to instantiate a new state for the current UI screen */
+	protected open fun generateState(action: ActionResult, widgets: Collection<Widget>): State =
+			with(action.guiSnapshot) { State(widgets, isHomeScreen) }
+
+	/** used by ModelParser to create [State] object from persisted data */
+	internal open fun parseState(widgets: Collection<Widget>, isHomeScreen: Boolean): State =
+			State(widgets, isHomeScreen)
+
+	private fun generateWidgets(action: ActionResult, @Suppress("UNUSED_PARAMETER") trace: ExplorationTrace): Collection<Widget>{
+		val elements: Map<Int, UiElementPropertiesI> = action.guiSnapshot.widgets.associateBy { it.idHash }
+		return generateWidgets(elements)
+	}
+
+	/** used on model update to compute the list of UI elements contained in the current UI screen ([State]).
+	 *  used by ModelParser to create [Widget] object from persisted data
 	 */
-    @Deprecated("to be removed")
-	suspend inline fun findWidgetOrElse(id: String, widgets: Collection<Widget>? = null, crossinline otherwise: (ConcreteId) -> Widget?): Widget? {
-		return if (id == "null") null
-		else idFromString(id).let {
-			(widgets ?: getWidgets()).let{ widgets -> widgets.find { w -> w.id == it } ?: otherwise(it) }
+	internal open fun generateWidgets(elements: Map<Int, UiElementPropertiesI>): Collection<Widget>{
+		val widgets = HashMap<Int,Widget>()
+		val workQueue = LinkedList<UiElementPropertiesI>().apply {
+			addAll(elements.values.filter { it.parentHash == 0 })  // add all roots to the work queue
 		}
-	}
-
-	fun P_dumpModel(config: ModelConfig) = launch(CoroutineName("Model-dump"),parent = modelDumpJob) {
-		getStates().let{ states ->
-			println("dump Model with ${states.size}")
-			states.forEach { s -> launch(CoroutineName("state-dump ${s.uid}"),parent = coroutineContext[Job]) { s.dump(config) } }
-		}
-		paths.forEach { t -> launch(CoroutineName("trace-dump"),parent = coroutineContext[Job]) { t.dump(config) } }
-	}
-
-	private var uTime: Long = 0
-	/** update the model with any [action] executed as part of an execution [trace] **/
-	fun S_updateModel(action: ActionResult, trace: ExplorationTrace) = runBlocking {
-		measureTimeMillis {
-			var s: StateData? = null
-			measureTimeMillis {
-				s = computeNewState(action, trace.interactedEditFields)
-			}//.let { println("state computation takes $it millis for ${s!!.widgets.size}") }
-			s?.also { newState ->
-				launch { newState.widgets } // initialize the widgets in parallel
-				trace.update(action, newState)
-
-				if (config[ConfigProperties.ModelProperties.dump.onEachAction]) {
-					launch(CoroutineName("state-dump"),parent = modelDumpJob) { newState.dump(config) }
-					launch(CoroutineName("trace-dump"),parent = modelDumpJob) { trace.dump(config) }
-				}
-
-				if (config[ConfigProperties.ModelProperties.imgDump.states]) launch(CoroutineName("screen-dump"),parent = modelDumpJob) {
-					action.screenshot.let { 	// if there is any screen-shot write it to the state extraction directory
-						if(it.isNotEmpty())
-							java.io.File(config.statePath(newState.stateId,  fileExtension = ".png")).let { file ->
-								Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-							}
-                        else logger.warn("No Screenshot available for ${newState.stateId}")
-						//DEBUG
-//						java.io.File(config.statePath(newState.stateId, postfix = "$nStates", fileExtension = ".png")).let { file ->
-//							Files.write(file.toPath(), it, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-//						}
-					}
-				}
-
-				debugT("${newState.widgets.size} widget adding ", {
-					addWidgets(newState.widgets)
-				}, inMillis = true)
-
-				// this can occasionally take much time, therefore we use an actor for it as well
-				debugT("state adding", { addState(newState) }, inMillis = true)
+		check(elements.isEmpty() || workQueue.isNotEmpty()){"ERROR we don't have any roots something went wrong on UiExtraction"}
+		while (workQueue.isNotEmpty()){
+			with(workQueue.pollFirst()){
+				val parent = if(parentHash != 0) widgets[parentHash]!!.id else null
+				widgets[idHash] = Widget(this, parent)
+				childHashes.forEach {
+					check(elements[it]!=null){"ERROR no element with hashId $it in working queue"}
+					workQueue.add(elements[it]!!) } //FIXME if null we can try to find element.parentId = this.idHash !IN workQueue as repair function, but why does it happen at all
 			}
-		}.let {
-//			println("model update took $it millis")
-			uTime += it
-//			println("---------- average model update time ${uTime / trace.size} ms overall ${uTime / 1000.0} seconds --------------")
 		}
+		check(widgets.size==elements.size){"ERROR not all UiElements were generated correctly in the model ${elements.filter { !widgets.containsKey(it.key) }}"}
+		assert(elements.all { e -> widgets.values.any { it.idHash == e.value.idHash } }){ "ERROR not all UiElements were generated correctly in the model ${elements.filter { !widgets.containsKey(it.key) }}" }
+		return widgets.values
 	}
 
-	private fun computeNewState(action: ActionResult, @Suppress("UNUSED_PARAMETER") interactedEF: Map<UUID, List<Pair<StateData, Widget>>>): StateData {
-		debugT("compute Widget set ", { action.getWidgets(config) })  // compute all widgets existing in the current state
-				.let { widgets ->
-					widgets.forEach { widget ->  // Initialize the parent ID. It's first necessary to have all widgets  converted before being able to link them.
-						widget.parentId = widgets.firstOrNull {
-							it.idHash == widget.parentHash
-						}?.id
-					}
-					debugT("compute result State for ${widgets.size}\n", { action.resultState(widgets) }).let { state ->
-						// revise state if it contains previously interacted edit fields
-
-						//FIXME this is currently buggy anyway and issues concurrent modification exception
-//						return debugT("special widget handling", {
-//							if (state.hasEdit) interactedEF[state.iEditId]?.let {
-//								action.resultState(lazy { handleEditFields(state, it) })
-//							} ?: state
-//							else state
-//						})
-//					return s!! //}
-				return state
-					}
-				}
+	/**---------------------------------------- private methods -------------------------------------------------------**/
+	private fun storeScreenShot(action: ActionResult) = this.launch(CoroutineName("screenShot-dump")+backgroundJob){
+		if(action.screenshot.isNotEmpty())
+			Files.write(config.imgDst.resolve("${action.action.id}.jpg"), action.screenshot
+					, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
 	}
-
-//	val editTask = {state:StateData,(iUid, widgets):Pair<UUID,List<Widget>> ->
-//		if (state.idWhenIgnoring(widgets) == iUid &&
-//				widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
-//			state.widgets.map { w -> w.apply { uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
-//		else null
-//	}
-	/** check for all edit fields of the state if we already interacted with them and thus potentially changed their text property, if so overwrite the uid to the original one (before we interacted with it) */
-	/* TODO instead of modifying, we simply re-create widgets and states
-	private val handleEditFields: (StateData, List<Pair<StateData, Widget>>) -> List<Widget> = { state, interactedEF ->
-		//		async {
-		// different states may coincidentally have the same iEditId => grouping and check which (if any) is the same conceptional state as [state]
-		debugT("candidate computation", {
-			synchronized(interactedEF) {
-				interactedEF.groupBy { it.first }.map { (s, pairs) ->
-					pairs.map { it.second }.let { widgets -> s.idWhenIgnoring(widgets) to widgets }
-				}
-			}
-		})
-				.let { candidates ->
-
-					//			debugT("parallel edit field",{
-//				runBlocking {
-//					it.map { //(iUid, widgets) ->
-//						async {	editTask(state,it) }
-//					}.mapNotNull { it.await() }
-//				}
-//			})
-//			debugT("parallel edit unconfined",{
-//				runBlocking {
-//					it.map { //(iUid, widgets) ->
-//						async(Unconfined) {	editTask(state,it) }
-//					}.mapNotNull { it.await() }
-//				}
-//			})
-//FIXME same issue for Password fields?
-					debugT("sequential edit field", {
-						// faster then parallel alternatives
-						candidates.fold(state.widgets, { res, (iUid, widgets) ->
-							// determine which candidate matches the current [state] and replace the respective widget.uid`s
-							if (state.idWhenIgnoring(widgets) == iUid &&
-									widgets.all { candidate -> state.widgets.any { it.xpath == candidate.xpath } })
-								state.widgets.map { w -> w.apply {
-									uid = widgets.find { it.uid == w.uid }?.uid ?: w.uid } } // replace with initial uid
-							else res // contain different elements => wrong state candidate
-						})
-					})
-				}
-//		}
-	}
-	// */
 
 	companion object {
         val logger: Logger by lazy { LoggerFactory.getLogger(this::class.java) }
 		@JvmStatic
-		fun emptyModel(config: ModelConfig): Model = Model(config).apply { runBlocking { addState(StateData.emptyState) }}
+		fun emptyModel(config: ModelConfig): Model = Model(config).apply { runBlocking { addState(State.emptyState) }}
 
 		/**
 		 * use this method to load a specific app model from its dumped data
@@ -267,18 +192,36 @@ class Model private constructor(val config: ModelConfig) {
 		 */
 		@Suppress("unused")
 		@JvmStatic fun loadAppModel(appName: String, watcher: LinkedList<ModelFeatureI> = LinkedList())
-				= ModelParser.loadModel(ModelConfig(appName = appName, isLoadC = true), watcher)
+				= runBlocking { ModelParser.loadModel(ModelConfig(appName = appName, isLoadC = true), watcher) }
 
+		/** debug method **/
 		@JvmStatic
-		suspend fun main(args: Array<String>) {
-			val test = ModelParser.loadModel(ModelConfig(path = Paths.get("src/main", "out", "playback"), appName = "testModel", isLoadC = true))//loadAppModel("loadTest")
-			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
-			test.getPaths().first().getActions().forEach { a ->
-				println("ACTION: " + a.actionString())
+		fun main(args: Array<String>) {
+
+			println("runBlocking: ${Thread.currentThread()}")
+
+			val t = Model.emptyModel(ModelConfig("someApp"))
+			t.launch {
+				println("ModelScope.launch: ${Thread.currentThread()}")
 			}
+			t.coroutineContext.cancel()
+			val active = t.isActive
+			println(active)
+
+//			val test = ModelParser.loadModel(ModelConfig(path = Paths.get("src/main", "out", "playback"), appName = "testModel", isLoadC = true))//loadAppModel("loadTest")
+//			runBlocking { println("$test #widgets=${test.getWidgets().size} #states=${test.getStates().size} #paths=${test.getPaths().size}") }
+//			test.getPaths().first().getActions().forEach { a ->
+//				println("ACTION: " + a.actionString())
+//			}
 		}
 
 	} /** end COMPANION **/
+
+	/*********** debugging parameters *********************************/
+	/** debugging counter do not use it in productive code, instead access the respective element set */
+	private var nWidgets = 0
+	/** debugging counter do not use it in productive code, instead access the respective element set */
+	private var nStates = 0
 
 	/**
 	 * this only shows how often the addState or addWidget function was called, but if identical id's were added multiple

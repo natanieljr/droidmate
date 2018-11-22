@@ -25,7 +25,7 @@
 package org.droidmate.exploration.modelFeatures.misc
 
 import com.google.common.collect.Table
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.report.misc.buildTable
 import java.util.*

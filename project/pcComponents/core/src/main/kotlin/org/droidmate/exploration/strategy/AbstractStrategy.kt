@@ -28,7 +28,7 @@ package org.droidmate.exploration.strategy
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.ActionResult
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
 import org.slf4j.Logger
@@ -60,7 +60,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	protected lateinit var eContext: ExplorationContext
 		private set
 
-	protected val currentState: StateData get() = eContext.getCurrentState()
+	protected val currentState: State get() = eContext.getCurrentState()
 
 	/**
 	 * Number of the current action being performed

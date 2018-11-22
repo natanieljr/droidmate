@@ -1,11 +1,9 @@
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
 import org.droidmate.configuration.ConfigurationWrapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.coroutines.experimental.CoroutineContext
 
 @Suppress("unused")
 /**
@@ -14,7 +12,7 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Output example: mFocusedActivity: ActivityRecord{b959d7e u0 com.addressbook/.AddressBookActivity t21414}
  */
 class CurrentActivityMF(cfg: ConfigurationWrapper): AdbBasedMF(cfg){
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("CurrentActivityMF"), parent = job)
+	override val coroutineContext = CoroutineName("CurrentActivityMF")
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(CurrentActivityMF::class.java) }
 

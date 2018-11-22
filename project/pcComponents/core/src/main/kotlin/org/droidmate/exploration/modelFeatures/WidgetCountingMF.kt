@@ -25,8 +25,6 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.joinChildren
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -36,9 +34,6 @@ abstract class WidgetCountingMF : ModelFeature() {
 	// records how often a specific widget was selected and from which state-eContext (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt: ConcurrentHashMap<UUID, MutableMap<UUID, Int>> = ConcurrentHashMap()
 
-	init {
-		job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-	}
 
 	/**
 	 * this function is used to increase the counter of a specific widget with [wId] in the eContext of [stateId]
@@ -58,12 +53,12 @@ abstract class WidgetCountingMF : ModelFeature() {
 	}
 
 	suspend fun isBlacklisted(wId: UUID, threshold: Int = 1): Boolean {
-		job.joinChildren() // wait that all updates are applied before changing the counter value
+		join()
 		return wCnt.sumCounter(wId) >= threshold
 	}
 
 	suspend fun isBlacklistedInState(wId: UUID, sId: UUID, threshold: Int = 1): Boolean {
-		job.joinChildren() // wait that all updates are applied before changing the counter value
+		join()
 		return wCnt.getCounter(wId, sId) >= threshold
 	}
 
@@ -71,7 +66,7 @@ abstract class WidgetCountingMF : ModelFeature() {
 	 * job.joinChildren() before dumping to ensure that all updating co-routines completed
 	 */
 	suspend fun dump(file: Path){
-		job.joinChildren() // wait that all updates are applied before changing the counter value
+		join()
 		val out = StringBuffer()
 		out.appendln(header)
 			wCnt.toSortedMap(compareBy { it.toString() }).forEach { wMap ->

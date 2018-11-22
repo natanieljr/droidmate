@@ -1,15 +1,15 @@
 //package org.droidmate.explorationModel
 //
-//import org.droidmate.deviceInterface.guimodel.UiElementProperties
+//import org.droidmate.deviceInterface.guimodel.UiElementP
 //import org.droidmate.explorationModel.config.ConcreteId
 //import org.droidmate.explorationModel.config.dumpString
 //import org.droidmate.explorationModel.config.emptyId
 //import java.time.LocalDateTime
 //
 //interface TestModel{
-////	val parentData: UiElementProperties get() = UiElementProperties.empty()
+////	val parentData: UiElementP get() = UiElementP.empty()
 ////	val parentWidget: Widget get() = Widget(parentData)
-//	val testWidgetData: UiElementProperties
+//	val testWidgetData: UiElementP
 ////	val testWidget: Widget get() = Widget(testWidgetData).apply { parentId = parentWidget.id }
 //	val testWidgetDumpString: String
 //}
@@ -48,12 +48,12 @@
 //		override val xpath: String = "noPath",
 //		override val parentHash: Int = 0,
 //		override val childHashes: List<Int> = emptyList(), override val idHash: Int = 0, override val isKeyboard: Boolean, override val windowId: Boolean
-//): UiElementProperties
+//): UiElementP
 //
 // */
 //class DefaultTestModel: TestModel {
 ////	override val testWidgetData by lazy{
-////		UiElementProperties(text = "text-mock",
+////		UiElementP(text = "text-mock",
 ////				contentDesc = "description-mock",
 ////				resourceId = "resourceId-mock",
 ////				className = "class-mock",
@@ -73,7 +73,7 @@
 //	override val testWidget: Widget by lazy{ super.testWidget }
 //	override val parentWidget: Widget by lazy{ super.parentWidget }
 //
-//	override val testWidgetDumpString = "5a3d425d-66bc-38d5-a375-07e0b682e0ba;${testWidgetData.propertyId};class-mock;"+
+//	override val testWidgetDumpString = "5a3d425d-66bc-38d5-a375-07e0b682e0ba;${testWidgetData.configId};class-mock;"+
 //			"true;null;text-mock;description-mock;${parentWidget.id.dumpString()};true;true;true;false;false;disabled;"+
 //			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock;null;false;0"
 //}

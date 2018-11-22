@@ -22,7 +22,7 @@ import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
 var idleTimeout: Long = 100
-var interactableTimeout: Long = 1000
+var interactiveTimeout: Long = 1000
 
 var measurePerformance =	true
 
@@ -52,13 +52,13 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 	val result: Any = when(this) { // REMARK this has to be an assignment for when to check for exhaustiveness
 		is Click -> {
 			env.device.verifyCoordinate(x, y)
-			env.device.click(x, y, interactableTimeout).apply {
+			env.device.click(x, y, interactiveTimeout).apply {
 				runBlocking { delay(delay) }
 			}
 		}
 		is LongClick -> {
 			env.device.verifyCoordinate(x, y)
-			env.device.longClick(x, y, interactableTimeout).apply {
+			env.device.longClick(x, y, interactiveTimeout).apply {
 				runBlocking { delay(delay) }
 			}
 		}
@@ -83,7 +83,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				ActionType.CloseKeyboard -> 	if (env.isKeyboardOpen()) //(UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
 						env.device.pressBack()
 					else false
-			}.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
+			}//.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
 			val idMatch: SelectorCondition = { _, xPath ->
 				idHash == xPath.hashCode() + rootIndex
@@ -93,7 +93,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
-					if(it) runBlocking { delay(idleTimeout) } // wait for display update
+//					if(it) runBlocking { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
 				} }.also {
 				Log.d(logTag,"action was successful=$it")
@@ -128,48 +128,46 @@ private suspend fun waitForSync(env: UiAutomationEnvironment, afterAction: Boole
 	}
 
 	debugT("wait for IDLE avg = ${time / max(1, cnt)} ms", {
-		env.device.waitForIdle(env.idleTimeout)
-		debugOut("check if we have a webView", debugFetch)
-		if (afterAction && UiHierarchy.any(env, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
-			debugOut("WebView detected wait for interactive element with different package name", debugFetch)
-			UiHierarchy.waitFor(env, interactableTimeout, actableAppElem)
-		}
+		env.automation.waitForIdle(100,env.idleTimeout)
+//		env.device.waitForIdle(env.idleTimeout) // this has a minimal delay of 500ms between events until the device is considered idle
 	}, inMillis = true,
 			timer = {
 				Log.d(logTag, "time=${it / 1000000}")
 				time += it / 1000000
 				cnt += 1
 			}) // this sometimes really sucks in performance but we do not yet have any reliable alternative
+		debugOut("check if we have a webView", debugFetch)
+		if (afterAction && UiHierarchy.any(env, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
+			debugOut("WebView detected wait for interactive element with different package name", debugFetch)
+			UiHierarchy.waitFor(env, interactiveTimeout, actableAppElem)
+		}
 }
 
 
 /** compressing an image no matter the quality, takes long time therefore the option of storing these asynchronous
  * and transferring them later is available via configuration
  */
-private fun getOrStoreImgPixels(bm: Bitmap?, env: UiAutomationEnvironment): ByteArray{
-	if(bm == null) return ByteArray(0).also { // if we couldn't capture screenshots
-			Log.w(logTag,"create empty image") }
-
-	if(env.delayedImgTransfer){
-		backgroundScope.launch{ // we could use an actor getting id and bitmap via channel, instead of starting another coroutine each time
-//		val t = Context.getFilesDir
-//			val file = File(DeviceConstants.imgPath+ lastId+".jpg")
-//			val os = BufferedOutputStream(FileOutputStream(file))
-			debugOut("create screenshot for action $lastId")
-		val os = FileOutputStream(env.imgDir.absolutePath+ "/"+lastId+".jpg")
-			bm.compress(Bitmap.CompressFormat.JPEG, env.imgQuality, os)
-			os.close()
+private fun getOrStoreImgPixels(bm: Bitmap?, env: UiAutomationEnvironment): ByteArray = debugT("wait for screen avg = ${wt / max(1, wc)}",{
+	when{ // if we couldn't capture screenshots
+		bm == null ->{
+			Log.w(logTag,"create empty image")
+			ByteArray(0)
 		}
-		return ByteArray(0)
+		env.delayedImgTransfer ->{
+			backgroundScope.launch{ // we could use an actor getting id and bitmap via channel, instead of starting another coroutine each time
+				debugOut("create screenshot for action $lastId")
+				val os = FileOutputStream(env.imgDir.absolutePath+ "/"+lastId+".jpg")
+				bm.compress(Bitmap.CompressFormat.JPEG, env.imgQuality, os)
+				os.close()
+				bm.recycle()
+			}
+			ByteArray(0)
+		}
+		else -> UiHierarchy.compressScreenshot(bm).also{ _ ->
+			bm.recycle()
+		}
 	}
-
-	return debugT("wait for screen avg = ${wt / max(1, wc)}",
-				{
-					//				bitmapToBytes(s) //FIXME this does not seam to be compatible with the default BufferedImage library on pc side
-					UiHierarchy.compressScreenshot(bm)
-				}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
-	//TODO when delayed transfer tested add 						bm.recycle() at end
-}
+}, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
 
 private var time: Long = 0
 private var cnt = 0
@@ -213,20 +211,18 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 	debugOut("compute img pixels",debugFetch)
 	val imgPixels =	getOrStoreImgPixels(img,env)
 
-	env.lastResponse = debugT("compute UI-dump", {
-		DeviceResponse.create( isSuccessful = isSuccessful, uiHierarchy = uiHierarchy,
-				uiDump =
-				"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
-						", because (currently) we would have to traverse the tree a second time"
+	env.lastResponse = DeviceResponse.create( isSuccessful = isSuccessful, uiHierarchy = uiHierarchy,
+			uiDump =
+			"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
+					", because (currently) we would have to traverse the tree a second time"
 //									xmlDump
-				, launchedActivity = env.launchedMainActivity,
-				screenshot = imgPixels,
-				appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
-				isHomeScreen = windows.count { it.isApp() }.let { nAppW ->
-					nAppW == 0 || (nAppW==1 && windows.any { it.isLauncher && it.isApp() })
-				}
-		)
-	}, inMillis = true)
+			, launchedActivity = env.launchedMainActivity,
+			screenshot = imgPixels,
+			appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
+			isHomeScreen = windows.count { it.isApp() }.let { nAppW ->
+				nAppW == 0 || (nAppW==1 && windows.any { it.isLauncher && it.isApp() })
+			}
+	)
 
 	return@coroutineScope env.lastResponse
 }
@@ -293,14 +289,14 @@ private fun UiDevice.launchApp(appPackageName: String, env: UiAutomationEnvironm
 				waitTime)
 
 		runBlocking { delay(launchActivityDelay) }
-		success = UiHierarchy.waitFor(env, interactableTimeout, actableAppElem)
+		success = UiHierarchy.waitFor(env, interactiveTimeout, actableAppElem)
 		// mute audio after app launch (for very annoying apps we may need a contentObserver listening on audio setting changes)
 		val audio = env.context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 		audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE,0)
 		audio.adjustStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_MUTE,0)
 		audio.adjustStreamVolume(AudioManager.STREAM_ALARM, AudioManager.ADJUST_MUTE,0)
 
-	}.also { Log.d(logTag, "load-time $it millis") }
+	}.also { Log.d(logTag, "TIME: load-time $it millis") }
 	return success
 }
 
