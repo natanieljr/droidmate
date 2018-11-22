@@ -27,18 +27,16 @@ package org.droidmate.report.apk
 
 import com.google.gson.*
 import com.konradjamrozik.Resource
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.exploration.isQueueEnd
 import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.highlightWidget
-import org.droidmate.explorationModel.config.ConcreteId
-import org.droidmate.explorationModel.config.dumpString
-import org.droidmate.explorationModel.config.idFromString
+import org.droidmate.explorationModel.ConcreteId.Companion.fromString
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.misc.unzip
 import java.lang.reflect.Type
@@ -76,7 +74,7 @@ class VisualizationGraph : ApkReport() {
 	 */
 	inner class Edge(val interaction: Interaction) {
 		val indices = HashSet<Int>()
-		val id = "${interaction.prevState.dumpString()} -> ${interaction.resState.dumpString()}"
+		val id = "${interaction.prevState} -> ${interaction.resState}"
 		val actionIndexWidgetMap = HashMap<Int, Widget?>()
 		fun addIndex(i: Int, w: Widget?) {  //FIXME this does not allow for all targets of WidgetQueue
 			indices.add(i)
@@ -90,7 +88,7 @@ class VisualizationGraph : ApkReport() {
 	 * general information.
 	 */
 	@Suppress("unused")
-	inner class Graph(val nodes: Set<StateData>,
+	inner class Graph(val nodes: Set<State>,
 	                  edges: List<Pair<Int, Interaction>>,
 	                  val explorationStartTime: String,
 	                  val explorationEndTime: String,
@@ -153,12 +151,12 @@ class VisualizationGraph : ApkReport() {
 	}
 
 	/**
-	 * Custom Json serializer to control the serialization for StateData objects.
+	 * Custom Json serializer to control the serialization for State objects.
 	 */
-	inner class StateDataAdapter : JsonSerializer<StateData> {
-		override fun serialize(src: StateData, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+	inner class StateDataAdapter : JsonSerializer<State> {
+		override fun serialize(src: State, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
 			val obj = JsonObject()
-			val stateId = src.stateId.dumpString()
+			val stateId = src.stateId.toString()
 			// The frontend needs a property 'id', use the stateId for this
 			obj.addProperty("id", stateId)
 			obj.addProperty("stateId", stateId)
@@ -174,7 +172,7 @@ class VisualizationGraph : ApkReport() {
 			// Include all important properties to make the states searchable
 			val properties = arrayListOf(stateId, //src.topNodePackageName,
 					src.uid.toString(), src.configId.toString(), src.iEditId.toString())
-			obj.addProperty("visibleText", properties.joinToString("\n"))
+			obj.addProperty("nlpText", properties.joinToString("\n"))
 
 			// Widgets
 			val widgets = JsonArray()
@@ -193,11 +191,11 @@ class VisualizationGraph : ApkReport() {
 	inner class EdgeAdapter : JsonSerializer<Edge> {
 		override fun serialize(src: Edge, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
 			val obj = JsonObject()
-			obj.addProperty("from", src.interaction.prevState.dumpString())
-			obj.addProperty("to", src.interaction.resState.dumpString())
+			obj.addProperty("from", src.interaction.prevState.toString())
+			obj.addProperty("to", src.interaction.resState.toString())
 			obj.addProperty("actionType", src.interaction.actionType)
 			obj.addProperty("id", src.id)
-			obj.addProperty("propertyId", src.interaction.targetWidget?.propertyId.toString())
+			obj.addProperty("configId", src.interaction.targetWidget?.configId.toString())
 			obj.addProperty("title", src.id)
 			obj.addProperty("label", "${src.interaction.actionType} ${src.indices.joinToString(",", prefix = "<", postfix = ">")}")
 			obj.add("targetWidgets", context.serialize(src.actionIndexWidgetMap))
@@ -257,10 +255,10 @@ class VisualizationGraph : ApkReport() {
 	private fun convertWidget(src: Widget?, context: JsonSerializationContext): JsonObject {
 		val obj = JsonObject()
 
-		val id = src?.id?.dumpString()
+		val id = src?.id?.toString()
 		obj.addProperty("id", id)
 		obj.addProperty("uid", src?.uid.toString())
-		obj.addProperty("propertyId", src?.propertyId.toString())
+		obj.addProperty("configId", src?.configId.toString())
 		obj.addProperty("image", getImgPath(id))
 		obj.addProperty("text", src?.text)
 		obj.addProperty("contentDesc", src?.contentDesc)
@@ -313,7 +311,7 @@ class VisualizationGraph : ApkReport() {
 	private fun getCustomGsonBuilder(): Gson {
 		val gsonBuilder = GsonBuilder().setPrettyPrinting()
 
-		gsonBuilder.registerTypeAdapter(StateData::class.java, StateDataAdapter())
+		gsonBuilder.registerTypeAdapter(State::class.java, StateDataAdapter())
 		gsonBuilder.registerTypeAdapter(Edge::class.java, EdgeAdapter())
 		gsonBuilder.registerTypeAdapter(IApk::class.java, IApkAdapter())
 		gsonBuilder.registerTypeAdapter(Widget::class.java, WidgetAdapter())
@@ -412,22 +410,22 @@ class VisualizationGraph : ApkReport() {
 					}
 				}
 			}
-			.groupBy { (_, it) -> it.prevState.first }.flatMap { (uid, indexedActions) ->
-				var imgFile = imgDir.resolve("${indexedActions.first().second.prevState.dumpString()}.png").toFile()
+			.groupBy { (_, it) -> it.prevState.uid }.flatMap { (uid, indexedActions) ->
+				var imgFile = imgDir.resolve("${indexedActions.first().second.prevState.toString()}.png").toFile()
 				if (!imgFile.exists()) {
 					imgFile = Files.list(imgDir).filter { it.fileName.startsWith(uid.toString()) && it.fileName.endsWith(".png") }.findFirst().orElseGet { Paths.get("Error") }.toFile()
 				}
 				val img = if (imgFile.exists()) ImageIO.read(imgFile) else null
 				if (!imgFile.exists() || img == null) indexedActions// if we cannot find a source img we are not touching the actions
 				else {
-					uidMap[uid] = idFromString(imgFile.name.replace(".png", ""))
-					val configId = uidMap[uid]!!.second
+					uidMap[uid] = fromString(imgFile.name.replace(".png", ""))!!
+					val configId = uidMap[uid]!!.configId
 					val targets = indexedActions.filter { (_, action) -> action.targetWidget != null }
 					highlightWidget(img, targets.map { it.second.targetWidget!! }, targets.map { it.first }) // highlight each action in img
-					ImageIO.write(img, "png", imgDir.resolve("${ConcreteId(uid, configId).dumpString()}.png").toFile())
+					ImageIO.write(img, "png", imgDir.resolve("${ConcreteId(uid, configId)}.png").toFile())
 					// manipulate the action datas to replace config-id's
 					indexedActions.map { (i, action) ->
-						Pair(i, action.copy(resState = uidMap.getOrDefault(action.resState.first, action.resState)).apply { prevState = ConcreteId(uid, configId) })
+						Pair(i, action.copy(resState = uidMap.getOrDefault(action.resState.uid, action.resState)).apply { prevState = ConcreteId(uid, configId) })
 					}
 				}
 			}

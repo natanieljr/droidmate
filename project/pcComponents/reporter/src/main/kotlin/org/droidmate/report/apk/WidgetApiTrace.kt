@@ -25,11 +25,11 @@
 
 package org.droidmate.report.apk
 
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.ExplorationContext
 import java.nio.file.Files
@@ -57,7 +57,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 		Files.write(reportFile, sb.toString().toByteArray())
 	}
 
-	private fun getActionWidget(actionResult: Interaction, state: StateData): Widget? {
+	private fun getActionWidget(actionResult: Interaction, state: State): Widget? {
 		return if (actionResult.actionType.isClick()) {
 
 			getWidgetWithTextFromAction(actionResult.targetWidget!!, state)
@@ -65,7 +65,7 @@ class WidgetApiTrace(private val fileName: String = "widget_api_trace.txt") : Ap
 			null
 	}
 
-	private fun getWidgetWithTextFromAction(widget: Widget, state: StateData): Widget {
+	private fun getWidgetWithTextFromAction(widget: Widget, state: State): Widget {
 		// If has Text
 		if (widget.text.isNotEmpty())
 			return widget

@@ -46,13 +46,13 @@ class TargetWidgetTest : DroidmateTestCase() {
 	}
 	// TODO Fix tests
 	/*private fun createWidget(id: String): Widget {
-			return UiElementProperties.defaultProperties.toMutableMap().apply {
-					replace(UiElementProperties::id.name,id)
-					replace(UiElementProperties::packageName.name,"STUB!")
-					replace(UiElementProperties::bounds.name,Rectangle(1, 1, 5, 5))
-					replace(UiElementProperties::enabled.name,true)
-					replace(UiElementProperties::clickable.name,true)
-			}.let{ Widget(UiElementProperties(it)) }
+			return UiElementP.defaultProperties.toMutableMap().apply {
+					replace(UiElementP::id.name,id)
+					replace(UiElementP::packageName.name,"STUB!")
+					replace(UiElementP::bounds.name,Rectangle(1, 1, 5, 5))
+					replace(UiElementP::enabled.name,true)
+					replace(UiElementP::clickable.name,true)
+			}.let{ Widget(UiElementP(it)) }
 //        w.deviceDisplayBounds = Rectangle(100, 100)
 	}
 

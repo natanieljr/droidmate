@@ -25,14 +25,14 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.sync.Mutex
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
 import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.misc.deleteDir
 import java.io.IOException
 import java.nio.file.Files
@@ -47,8 +47,10 @@ import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
-import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.streams.toList
+import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 
 /**
@@ -61,7 +63,7 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
 	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
 	private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StatementCoverageMF"), parent = job)
+	override val coroutineContext: CoroutineContext = CoroutineName("StatementCoverageMF") + Job()
 
 	private val instrumentationDir = Paths.get(modelCfg[statementCoverageDir].toString()).toAbsolutePath()
 	private val logcatOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(modelCfg.appName)
@@ -76,14 +78,13 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
 	private var counter = 0
 
 	init {
-		job = Job(parent = (this.job)) // We don't want to wait for other features (or having them wait for us), therefore create our own (child) job
 		logcatOutputDir.deleteDir()
 		Files.createDirectories(logcatOutputDir)
 
 		instrumentationMap = getInstrumentation(modelCfg.appName)
 	}
 
-	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: State, newState: State) {
 		// must wait for the action before reading the logcat data
 		deferredAction.await()
 
@@ -231,8 +232,9 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
 		return logcatOutputDir.resolve("${modelCfg.appName}-logcat-%04d".format(counter))
 	}
 
-	override suspend fun dump(context: ExplorationContext) {
-		job.joinChildren()
+
+	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+		this.join()
 
 		val sb = StringBuilder()
 		sb.appendln(header)

@@ -1,27 +1,22 @@
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
 import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.misc.withExtension
 import org.droidmate.report.misc.plot
-import org.droidmate.explorationModel.interaction.StateData
-import org.droidmate.explorationModel.interaction.Widget
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeature() {
 
-    override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("EffectiveActionsMF"), parent = job)
-    init{
-        job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-    }
+    override val coroutineContext: CoroutineContext = CoroutineName("EffectiveActionsMF")
 
     /**
      * Keep track of effective actions during exploration
@@ -30,7 +25,7 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
     private var totalActions = 0
     private var effectiveActions = 0
 
-    override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
+    override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State, newState: State) {
         totalActions++
         if (prevState != newState)
             effectiveActions++
@@ -44,7 +39,8 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
         return effectiveActions
     }
 
-    override suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */
+
+    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
         val sb = StringBuilder()
         val header = "Time_Seconds\tTotal_Actions\tTotal_Effective\n"
         sb.append(header)

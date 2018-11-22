@@ -1,6 +1,6 @@
 //package org.droidmate.explorationModel.retention.loading
 //
-//import kotlinx.coroutines.experimental.runBlocking
+//import kotlinx.coroutines.runBlocking
 //import org.droidmate.explorationModel.TestI
 //import org.junit.FixMethodOrder
 //import org.junit.Test
@@ -16,7 +16,7 @@
 //private val config = ModelConfig("JUnit", true)
 //
 ///** verify the ModelLoader correctly initializes/loads a model by using
-// * - mocked model (mock the dump-file visibleText read)
+// * - mocked model (mock the dump-file nlpText read)
 // * - loading real model dump files & verifying resulting model
 // * - dumping and loading the same model => verify equality
 // * - test watcher are correctly updated during model loading
@@ -26,8 +26,8 @@
 //@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 //@RunWith(JUnit4::class)
 //class ModelLoadTester: TestI, TestModel by DefaultTestModel(), ModelLoaderTI by ModelLoaderT(config) {
-//	private val testState = StateData(setOf(testWidget), homeScreen = false, topPackage = testWidget.packageName)
-//	private val states = listOf(testState, StateData.emptyState)
+//	private val testState = State(setOf(testWidget), homeScreen = false, topPackage = testWidget.packageName)
+//	private val states = listOf(testState, State.emptyState)
 //
 //	@Test
 //	fun widgetParsingTest() = runBlocking{
@@ -82,7 +82,7 @@
 ////		testTraces = emptyList()
 ////		testStates = emptyList()
 ////		val state = runBlocking{
-////			parseState(idFromString("fa5d6ec4-129e-cde6-cfbf-eb837096de60_829a5484-73d6-ba71-57fc-d143d1cecaeb")) }
+////			parseState(fromString("fa5d6ec4-129e-cde6-cfbf-eb837096de60_829a5484-73d6-ba71-57fc-d143d1cecaeb")) }
 ////		println(state)
 ////	}
 //	//test dumped state f7acfd36-d72b-3b6b-cd0f-79f635234be5, 3243aafc-d785-0cc4-07a6-27bc357d1d3e

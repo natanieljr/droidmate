@@ -48,9 +48,4 @@ shadowJar {
 // make this jar to the
 //jar.baseName = rootProject.name
 
-kotlin {
-	experimental {
-		coroutines "enable"
-	}
-}
 

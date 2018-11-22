@@ -31,12 +31,6 @@ evaluationDependsOn(':project:pcComponents:commonLib')
 compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:commonLib:testClasses')
 dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
 
-kotlin {
-	experimental {
-		coroutines 'enable'
-	}
-}
-
 repositories {
 	mavenLocal()
 }

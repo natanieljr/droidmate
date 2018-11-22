@@ -1,17 +1,16 @@
 package org.droidmate.exploration.modelFeatures.graph
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
 import org.droidmate.deviceInterface.exploration.isLaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.Interaction.Companion.ActionDataFields
-import org.droidmate.explorationModel.interaction.StateData
-import kotlin.coroutines.experimental.CoroutineContext
+import org.droidmate.explorationModel.interaction.State
+import kotlin.coroutines.CoroutineContext
 
-class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData, Interaction> =
-		                                             Graph(StateData.emptyState,
+class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, Interaction> =
+		                                             Graph(State.emptyState,
 				                                             stateComparison = { a, b -> a.uid == b.uid },
 				                                             labelComparison = { a, b ->
 					                                             val fields = arrayOf(ActionDataFields.Action, ActionDataFields.WId, ActionDataFields.Exception, ActionDataFields.SuccessFul)
@@ -19,10 +18,10 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 					                                             val bData = b.actionString(fields)
 
 					                                             aData == bData
-				                                             })) : ModelFeature(), IGraph<StateData, Interaction> by graph {
+				                                             })) : ModelFeature(), IGraph<State, Interaction> by graph {
 
 
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("StateGraphMF"), parent = job)
+	override val coroutineContext: CoroutineContext = CoroutineName("StateGraphMF")
 
 	override suspend fun onContextUpdate(context: ExplorationContext) {
 		val lastAction = context.getLastAction()
@@ -33,13 +32,13 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<StateData
 		val sourceState = if (lastAction.actionType.isLaunchApp())
 			root.data
 		else
-			context.getState(lastAction.prevState) ?: StateData.emptyState
+			context.getState(lastAction.prevState) ?: State.emptyState
 
 		val prevLabel = Interaction.emptyWithWidget(lastAction.targetWidget)
 
 		// Try to update a previous label (from prevState to emptyState) if it exists, otherwise update a new one
 		if (prevLabel.targetWidget != null)
-			this.update(sourceState, StateData.emptyState, newState, prevLabel, lastAction) ?: this.add(sourceState, newState, lastAction)
+			this.update(sourceState, State.emptyState, newState, prevLabel, lastAction) ?: this.add(sourceState, newState, lastAction)
 		else
 			this.add(sourceState, newState, lastAction)
 

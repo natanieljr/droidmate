@@ -25,23 +25,22 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.joinChildren
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import java.nio.file.Files
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class CrashListMF : WidgetCountingMF() {
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("CrashListMF"), parent = job)
+	override val coroutineContext: CoroutineContext = CoroutineName("CrashListMF")+ Job()
 
 	private val crashes: MutableMap<Interaction, String> = mutableMapOf()
 
-	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: State, newState: State) {
 		val actionData = deferredAction.await()
 
 		if (newState.isAppHasStoppedDialogBox) {
@@ -51,11 +50,12 @@ class CrashListMF : WidgetCountingMF() {
 		}
 	}
 
-	override suspend fun dump(context: ExplorationContext) {
-		job.joinChildren() // wait that all updates are applied before changing the counter value
+
+	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+		join() // wait that all updates are applied before changing the counter value
 		val out = StringBuffer()
 		out.appendln(header)
-		crashes.toSortedMap(compareBy { it.prevState.first })
+		crashes.toSortedMap(compareBy { it.prevState.uid })
 				.forEach { crash ->
 					val actionData = crash.key
 					val exception = crash.value

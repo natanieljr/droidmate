@@ -6,6 +6,7 @@ import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 // REMARK: this data class needs to stay in the communication library as the serializer will otherwise throw class def not found
 /** this is only supposed to be used internally in the device communication interface (in device driver and for serializer read) */
 data class UiElementProperties(
+		override val idHash: Int,
 		override val text: String,
 		override val contentDesc: String,
 		override val resourceId: String,
@@ -27,8 +28,6 @@ data class UiElementProperties(
 		override val parentHash: Int,
 		override val childHashes: List<Int> = emptyList(),
 		override val isKeyboard: Boolean,
-		/** only used on device to compute a unique but deterministic value for idHash, which is based on the current UI-Hierarchy */
-		val windowLayer: Int,
 		override val metaInfo: List<String>,
 		override val hasUncoveredArea: Boolean,
 		override val visibleBounds: Rectangle,
@@ -36,8 +35,6 @@ data class UiElementProperties(
 //		override val isInBackground: Boolean,
 		val allSubAreas: List<Rectangle>
 ) : UiElementPropertiesI {
-
-	override val idHash: Int by lazy{ xpath.hashCode() + windowLayer }
 
 //TODO cleanup once parsing is repaired
 //	constructor(resId: String, xPath: String)

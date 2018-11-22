@@ -26,6 +26,7 @@
 package org.droidmate.explorationModel.config
 
 import com.natpryce.konfig.*
+import org.droidmate.explorationModel.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.stateFileExtension
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.traceFileExtension
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.dump.traceFilePrefix
@@ -38,8 +39,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 class ModelConfig private constructor(path: Path,
@@ -50,10 +49,9 @@ class ModelConfig private constructor(path: Path,
 
 	constructor(path: Path, appName: String, isLoadC: Boolean = false): this(path.toAbsolutePath(), appName, resourceConfig, isLoadC)
 
-	val baseDir = path.resolve(appName)  // directory path where the model file(s) should be stored
-	val stateDst = baseDir.resolve(config[statesSubDir].path)       // each state gets an own file named according to UUID in this directory
-	val imgDst = baseDir.resolve(config[imagesSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
-//	val widgetNonInteractiveImgDst = imgDst.resolve(nonInteractiveDir)
+	val baseDir: Path = path.resolve(appName)  // directory path where the model file(s) should be stored
+	val stateDst: Path = baseDir.resolve(config[statesSubDir].path)       // each state gets an own file named according to UUID in this directory
+	val imgDst: Path = baseDir.resolve(config[imagesSubDir].path)  // the images for the app widgets are stored in this directory (for report/debugging purpose only)
 
 	init {  // initialize directories (clear them if cleanDirs is enabled)
 		if (!isLoadC){
@@ -61,7 +59,6 @@ class ModelConfig private constructor(path: Path,
 			Files.createDirectories((baseDir))
 			Files.createDirectories((stateDst))
 			Files.createDirectories((imgDst))
-//			Files.createDirectories((widgetNonInteractiveImgDst))
 		}
 	}
 
@@ -70,9 +67,10 @@ class ModelConfig private constructor(path: Path,
 	val widgetFile: (ConcreteId, Boolean) -> String = { id, isHomeScreen 	->
 		statePath(id, postfix = defaultWidgetSuffix +(if(isHomeScreen) "_HS" else "") + "_PN") }
 	fun statePath(id: ConcreteId, postfix: String = "", fileExtension: String = config[stateFileExtension]): String {
-		return idPath(stateDst, id.dumpString(), postfix, fileExtension)
+		return idPath(stateDst, id.toString(), postfix, fileExtension)
 	}
 
+	@Deprecated("to be removed")
 	fun widgetImgPath(id: UUID, postfix: String = "", fileExtension: String = ".png", interactive: Boolean): String {
 		val baseDir = if (interactive) imgDst else imgDst.resolve(nonInteractiveDir)
 		return idPath(baseDir, id.toString(), postfix, fileExtension)
@@ -99,19 +97,3 @@ class ModelConfig private constructor(path: Path,
 
 	} /** end COMPANION **/
 }
-
-//TODO this should go into a utils file instead
-val emptyUUID: UUID = UUID.nameUUIDFromBytes(byteArrayOf())
-fun String.asUUID(): UUID? = if(this == "null") null else UUID.fromString(this)
-fun String.asConcreteId(): ConcreteId? = if(this == "null") null else idFromString(this)
-typealias ConcreteId = Pair<UUID, UUID>
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun ConcreteId.toString() = "${first}_$second"  // mainly for nicer debugging strings
-fun idFromString(s: String): ConcreteId = s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
-/** custom dumpString method used for model dump & load **/
-fun ConcreteId.dumpString() = "${first}_$second"
-val emptyId = ConcreteId(emptyUUID, emptyUUID)
-
-private const val datePattern = "ddMM-HHmmss"
-internal fun timestamp(): String = DateTimeFormatter.ofPattern(datePattern).format(LocalDateTime.now())
-

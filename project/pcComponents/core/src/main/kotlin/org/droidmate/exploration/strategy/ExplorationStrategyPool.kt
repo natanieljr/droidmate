@@ -25,10 +25,10 @@
 
 package org.droidmate.exploration.strategy
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.ActionResult
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.misc.debugOutput
@@ -102,7 +102,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 
 	private val selectorThreadPool = newFixedThreadPoolContext (max(Runtime.getRuntime().availableProcessors()-1,1),name="SelectorsThread")
 	/**
-	 * Selects an exploration strategy to [handle control to][handleControl], given the [current UI][StateData].
+	 * Selects an exploration strategy to [handle control to][handleControl], given the [current UI][State].
 	 * The selected strategy is the one with best fitness.
 	 *
 	 * If more than one exploration strategies have the same fitness, choose the first one.
@@ -184,7 +184,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		if(debugOutput)
 			logger.debug("ActionResult: ${result.action} => #widgets=${result.guiSnapshot} ,exception = ${result.exception}")
 
-		assert(result.successful)
+//		assert(result.successful) //FIXME no assert, instead use error handling/e.g. re-fetching or notify strategy of failed action
 
 		assert(!this.strategies.isEmpty())
 

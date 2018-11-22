@@ -1,26 +1,21 @@
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.newCoroutineContext
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.runBlocking
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.deviceInterface.exploration.isClick
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import java.nio.file.Files
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class WidgetApiTraceMF : ModelFeature() {
 
-    override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("WidgetApiTraceMF"), parent = job)
-    init{
-        job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-    }
+    override val coroutineContext: CoroutineContext = CoroutineName("WidgetApiTraceMF")
 
-    override suspend fun dump(context: ExplorationContext) {
+    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
         val sb = StringBuilder()
         val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
         sb.append(header)
@@ -41,7 +36,7 @@ class WidgetApiTraceMF : ModelFeature() {
         Files.write(reportFile, sb.toString().toByteArray())
     }
 
-    private fun getActionWidget(actionResult: Interaction, state: StateData): Widget? {
+    private fun getActionWidget(actionResult: Interaction, state: State): Widget? {
         return if (actionResult.actionType.isClick()) {
 
             getWidgetWithTextFromAction(actionResult.targetWidget!!, state)
@@ -49,7 +44,7 @@ class WidgetApiTraceMF : ModelFeature() {
             null
     }
 
-    private fun getWidgetWithTextFromAction(widget: Widget, state: StateData): Widget {
+    private fun getWidgetWithTextFromAction(widget: Widget, state: State): Widget {
         // If has Text
         if (widget.text.isNotEmpty())
             return widget

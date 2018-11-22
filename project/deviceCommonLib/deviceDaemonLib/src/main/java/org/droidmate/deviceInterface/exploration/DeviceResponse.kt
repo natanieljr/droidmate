@@ -40,9 +40,6 @@ open class DeviceResponse private constructor(
 
 	var throwable: Throwable? = null
 
-	init {
-		assert(!this.appWindows.isEmpty())
-	}
 
 	companion object {
 

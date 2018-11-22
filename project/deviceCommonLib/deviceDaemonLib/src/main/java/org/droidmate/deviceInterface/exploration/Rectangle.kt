@@ -34,11 +34,16 @@ data class Rectangle(val leftX:Int, val topY:Int, val width: Int, val height: In
 	val rightX by lazy{ leftX + width }
 	val bottomY by lazy{ topY + height }
 
-	fun center() = Pair(leftX + width/2, topY + height/2)
+	val center by lazy{ Pair(leftX + width/2, topY + height/2) }
+
+	override fun toString(): String = "$leftX$toStringSeparator$topY$toStringSeparator$width$toStringSeparator$height"
 
 	companion object {
+		const val toStringSeparator = ":"
 		fun create(left:Int, top:Int, right: Int, bottom: Int) = Rectangle(left,top,width = right-left, height = bottom-top)
 		private const val serialVersionUID: Long = -1394915106 // this is "CustomRectangle".hashCode but it only has to be unique
+
+		fun empty() = Rectangle(0,0,0,0)
 	}
 }
 

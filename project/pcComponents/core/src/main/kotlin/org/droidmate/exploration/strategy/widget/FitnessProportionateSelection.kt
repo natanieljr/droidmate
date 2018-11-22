@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.Widget

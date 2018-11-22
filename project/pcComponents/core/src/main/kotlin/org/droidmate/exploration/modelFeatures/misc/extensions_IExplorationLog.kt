@@ -24,11 +24,11 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.modelFeatures.misc
 
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.explorationModel.config.emptyUUID
 import org.droidmate.deviceInterface.exploration.isLaunchApp
+import org.droidmate.explorationModel.emptyUUID
 import org.droidmate.explorationModel.interaction.DeviceLog
 import java.util.*
 

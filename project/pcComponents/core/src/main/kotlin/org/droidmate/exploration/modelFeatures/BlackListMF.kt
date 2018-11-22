@@ -25,24 +25,23 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.newCoroutineContext
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Deferred
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.LaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.StateData
+import org.droidmate.explorationModel.interaction.State
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class BlackListMF: WidgetCountingMF() {
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("BlackListMF"), parent = job)
+	override val coroutineContext: CoroutineContext = CoroutineName("BlackListMF")
 
-	private var lastActionableState: StateData = StateData.emptyState
+	private var lastActionableState: State = State.emptyState
 
 	/** used to keep track of the last state before we got stuck */
-	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: State, newState: State) {
 		if(prevState.isHomeScreen || !isStuck(deferredAction.await().actionType)) this.lastActionableState = prevState
 	}
 
@@ -67,7 +66,8 @@ class BlackListMF: WidgetCountingMF() {
 		}
 	}
 
-	override suspend fun dump(context: ExplorationContext) {
+
+	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
 		dump(context.getModel().config.baseDir.resolve("lastBlacklist.txt"))
 	}
 }

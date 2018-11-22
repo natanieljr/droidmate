@@ -17,6 +17,8 @@ import kotlin.coroutines.coroutineContext
 
 abstract class UiParser {
 
+	/** used for parentHash and idHash computation of [UiElementProperties] */
+	private fun computeIdHash(xPath: String, window: DisplayedWindow) = xPath.hashCode() + window.layer
 	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
 	                                     parentXpath: String, nodes: MutableList<UiElementProperties>, img: Bitmap?,
 	                                     parentH: Int = 0): UiElementProperties? {
@@ -24,6 +26,7 @@ abstract class UiParser {
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
 		val nChildren = node.getChildCount()
+		val idHash= computeIdHash(xPath,w)
 
 		//FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
 		val children: List<UiElementProperties?> = (nChildren-1 downTo 0).map { i -> Pair(i,node.getChild(i)) }
@@ -31,18 +34,18 @@ abstract class UiParser {
 				.sortedByDescending { (i,node) -> if(api>=24) node.drawingOrder else i }
 				.map { (i,childNode) ->		// bottom-up strategy, process children first (in drawingOrder) if they exist
 					if(childNode == null) debugOut("ERROR child nodes should never be null")
-					createBottomUp(w, childNode, i, "$xPath/",nodes, img,xPath.hashCode()+node.windowId).also {
+					createBottomUp(w, childNode, i, "$xPath/",nodes, img, parentH = idHash).also {
 						childNode.recycle()  //recycle children as we requested instances via getChild which have to be released
 					}
 				}
 
-		return node.createWidget(w, xPath, children.filterNotNull(), img, parentH).also {
+		return node.createWidget(w, xPath, children.filterNotNull(), img, idHash = idHash, parentH = parentH).also {
 			nodes.add(it)
 		}
 	}
 
 	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementProperties>,
-	                                               img: Bitmap?, parentH: Int): UiElementProperties {
+	                                               img: Bitmap?, idHash: Int, parentH: Int): UiElementProperties {
 		val nodeRect = Rect()
 		this.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 		val props = LinkedList<String>()
@@ -85,6 +88,7 @@ abstract class UiParser {
 		}
 
 		return UiElementProperties(
+				idHash = idHash,
 				imgId = computeImgId(img,visibleBounds),
 				allSubAreas = emptyList(),//subBounds,
 //				isInBackground = visibleBounds.isNotEmpty() && (
@@ -113,8 +117,7 @@ abstract class UiParser {
 				xpath = xPath,
 				parentHash = parentH,
 				childHashes = children.map { it.idHash },
-				isKeyboard = w.isKeyboard,
-				windowLayer = w.layer
+				isKeyboard = w.isKeyboard
 		)
 	}
 
@@ -151,7 +154,7 @@ abstract class UiParser {
 	*/
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
-			{ serializer: XmlSerializer, width: Int, height: Int ->
+			{ serializer: XmlSerializer, _: Int, _: Int ->
 				{ node: AccessibilityNodeInfo, index: Int, _ ->
 					val nodeRect = Rect()
 					node.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen

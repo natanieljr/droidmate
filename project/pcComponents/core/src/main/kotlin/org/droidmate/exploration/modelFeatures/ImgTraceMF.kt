@@ -25,17 +25,17 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.experimental.CoroutineName
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.NonCancellable.isActive
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.newCoroutineContext
-import org.droidmate.deviceInterface.exploration.*
-import org.droidmate.explorationModel.config.ConcreteId
-import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.explorationModel.interaction.StateData
-import org.droidmate.explorationModel.interaction.Widget
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.Rectangle
+import org.droidmate.deviceInterface.exploration.isComplete
+import org.droidmate.explorationModel.ConcreteId
 import org.droidmate.explorationModel.config.ConfigProperties
+import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.misc.deleteDir
 import java.awt.BasicStroke
 import java.awt.Color
@@ -48,22 +48,21 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
 import kotlin.collections.HashMap
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 var lastId = 0
 /** use this function to create a sequence of screen images in which the interacted target is highlighted by a red boarder */
 class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ImgTraceMF"), parent = job)
+	override val coroutineContext: CoroutineContext = CoroutineName("ImgTraceMF")
 
 	private val targetDir = (cfg.baseDir.resolve("ModelFeatures/imgTrace"))
 	init {
-		job = Job(parent = (this.job)) // we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
 		targetDir.deleteDir()
 		Files.createDirectories(targetDir)
 	}
 
 	var i: AtomicInteger = AtomicInteger(0)
-	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: StateData, newState: StateData) {
+	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State, newState: State) {
 		// check if we have any screenshots to process
 		if(!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
 
@@ -72,8 +71,8 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")
 		lastId = action.id
 
-		while(isActive && !screenFile.exists()) delay(100)
-		while(isActive && !screenFile.canRead()) delay(100)
+		while(coroutineContext.isActive && !screenFile.exists()) delay(100)
+		while(coroutineContext.isActive && !screenFile.canRead()) delay(100)
 		if(!isActive) return
 		if(!screenFile.exists()) return // thread was canceled but no file to process is ready yet
 
@@ -82,7 +81,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 		if(prevState.widgets.isEmpty()) return  // no widgets exist which we could highlight
 
 		val stateImg = ImageIO.read(targetFile) ?: return
-		val visibleAppElements = prevState.widgets.filter { !it.isKeyboard && it.visibleAreas.isNotEmpty() }
+		val visibleAppElements = prevState.widgets.filter { !it.isKeyboard && it.canInteractWith }
 		textColor = Color.white
 //		shapeColor = Color.LIGHT_GRAY
 //		highlightWidget(stateImg, visibleAppElements.filter { !it.hasUncoveredArea }, 0)

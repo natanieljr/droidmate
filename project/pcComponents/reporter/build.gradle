@@ -47,9 +47,5 @@ configureTest([project, ['**/ReporterTestSuite.class']])
 repositories {
 	mavenCentral()
 }
-kotlin {
-	experimental {
-		coroutines "enable"
-	}
-}
+
 

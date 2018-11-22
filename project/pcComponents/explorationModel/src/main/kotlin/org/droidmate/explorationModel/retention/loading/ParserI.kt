@@ -1,24 +1,20 @@
 package org.droidmate.explorationModel.retention.loading
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.CoroutineScope
 import org.droidmate.explorationModel.Model
+import org.droidmate.explorationModel.debugOut
 import org.slf4j.Logger
-import kotlin.coroutines.experimental.EmptyCoroutineContext
 
-internal interface ParserI<T,out R> {
-	val parentJob: Job?
+internal interface ParserI<T,out R>{
 	val model: Model
 
-	val processor: suspend (s: List<String>) -> T
+	val processor: suspend (s: List<String>, scope: CoroutineScope) -> T
 	suspend fun getElem(e: T): R
 
 	val logger: Logger
-	@Suppress("UNUSED_PARAMETER")
+	val enableDebug get() = false
 	fun log(msg: String)
-	{}
-//		 = logger.debug("[${Thread.currentThread().name}] $msg")
-
-	fun newContext(name: String) = GlobalScope.newCoroutineContext(CoroutineName(name) + (parentJob ?: EmptyCoroutineContext))
+		 = debugOut("[${Thread.currentThread().name}] $msg", enableDebug)
 
 	val compatibilityMode: Boolean
 	val enableChecks: Boolean

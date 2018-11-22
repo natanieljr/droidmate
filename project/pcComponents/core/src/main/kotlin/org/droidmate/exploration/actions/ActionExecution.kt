@@ -1,7 +1,7 @@
 package org.droidmate.exploration.actions
 
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.droidmate.misc.debugT
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
