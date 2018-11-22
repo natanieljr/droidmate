@@ -155,7 +155,7 @@ public class LazyFileAppender<E> : OutputStreamAppender<E>() {
 	 */
 	@Throws(IOException::class)
 	private fun openFile(filename: String): Boolean {
-		var successful = false
+		var successful: Boolean
 		synchronized(lock)
 		{
 			val file = File(filename)
