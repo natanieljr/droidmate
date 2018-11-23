@@ -205,7 +205,7 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 		}
 	}
 
-	override fun chooseAction(): ExplorationAction {
+	override suspend fun chooseAction(): ExplorationAction {
 		if (eContext.isEmpty())
 			return eContext.resetApp() // very first action -> start the app via reset
 		// Repeat previous action is last action was to click on a runtime permission dialog

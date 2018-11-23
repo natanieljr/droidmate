@@ -34,7 +34,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 /**
  * this class contains three different observer methods to keep track of model changes.
@@ -93,8 +92,8 @@ abstract class ModelFeatureI : CoroutineScope {
 	 * this function may be used instead of update for simpler access to the action and result state.
 	 *
 	 * If possible the use of [onNewInteracted] should be preferred instead, since the action computation may introduce an additional timeout to this computation. Meanwhile [onNewInteracted] is directly ready to run.*/
-	open suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<Interaction>, prevState: State, newState: State) { /* do nothing [to be overwritten] */
-	} // FIXME in case of an ActionQueue this will not work properly
+	open suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) { /* do nothing [to be overwritten] */
+	}
 
 	/** can be used to persist any data during Exploration whenever ExplorationContext.dump is called.
 	 * The exploration never waits for this method to complete, as it is launched in an independent scope.

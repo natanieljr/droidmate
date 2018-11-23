@@ -20,7 +20,7 @@ class WidgetApiTraceMF : ModelFeature() {
         val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
         sb.append(header)
 
-        context.explorationTrace.getActions().forEachIndexed { actionNr, record ->
+        context.explorationTrace.P_getActions().forEachIndexed { actionNr, record ->
             if (record.actionType.isClick()) {
                 val text = runBlocking { context.getState(record.resState)?.let { getActionWidget(record, it) } }
                 val logs = record.deviceLogs

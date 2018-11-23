@@ -4,7 +4,7 @@ import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.actions.*
 
 class DFS: GraphBasedExploration(){
-	override fun chooseAction(): ExplorationAction {
+	override suspend fun chooseAction(): ExplorationAction {
 		val nextEdge = graph.edges(currentState)
 				.firstOrNull { it.destination == null &&
 						it.label.targetWidget != null &&

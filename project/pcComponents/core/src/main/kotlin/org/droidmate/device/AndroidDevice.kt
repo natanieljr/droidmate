@@ -210,7 +210,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun startUiaDaemon() {
-		assert(!this.uiaDaemonIsRunning()) { "UIAutomatorDaemon is not running." }
+//		assert(!this.uiaDaemonIsRunning()) { "UIAutomatorDaemon is not running." }  //FIXME sometimes this fails
 		this.clearLogcat()
 		this.tcpClients.startUiaDaemon()
 	}

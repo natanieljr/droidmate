@@ -33,7 +33,7 @@ import org.droidmate.exploration.actions.terminateApp
  * @author Nataniel P. Borges Jr.
  */
 object Terminate : AbstractStrategy() {
-	override fun internalDecide(): ExplorationAction {
+	override suspend fun internalDecide(): ExplorationAction {
 		return terminateApp()
 	}
 }

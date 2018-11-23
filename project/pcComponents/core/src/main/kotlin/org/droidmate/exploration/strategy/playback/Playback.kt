@@ -70,7 +70,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		return runBlocking { model.getState(lastAction.resState)!!.isAppHasStoppedDialogBox }
 	}
 
-	private fun getNextTraceAction(peek: Boolean = false): Interaction {
+	private suspend fun getNextTraceAction(peek: Boolean = false): Interaction {
 		model.let { m ->
 			m.getPaths()[traceIdx].let { currentTrace ->
 				if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
@@ -116,7 +116,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		}
 	}
 
-	private fun getNextAction(): ExplorationAction {
+	private suspend fun getNextAction(): ExplorationAction {
 
 		// All traces completed. Finish
 		if (isComplete())
@@ -223,7 +223,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 //				.sum()
 	}*/
 
-	override fun internalDecide(): ExplorationAction {
+	override suspend fun internalDecide(): ExplorationAction {
 		val allWidgetsBlackListed = this.updateState()  //FIXME this function does not work anymore use the Blacklist or Crashlist Model Features instead
 		if (allWidgetsBlackListed)
 			this.notifyAllWidgetsBlacklisted()
@@ -245,7 +245,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		}
 	}
 
-	override fun chooseAction(): ExplorationAction {
+	override suspend fun chooseAction(): ExplorationAction {
 		if( !eContext.isEmpty() && eContext.getCurrentState().isAppHasStoppedDialogBox && ! supposedToBeCrash()
 			&& !getNextTraceAction(peek = true).actionType.isLaunchApp())
 			handleReplayCrash()

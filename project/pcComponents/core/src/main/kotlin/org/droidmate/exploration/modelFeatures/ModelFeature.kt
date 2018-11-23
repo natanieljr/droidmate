@@ -48,7 +48,7 @@ abstract class ModelFeature: ModelFeatureI() {
 	 * WARNING: this method is not triggered when loading an already existing model
 	 */
 	open suspend fun onContextUpdate(context: ExplorationContext) { /* do nothing [to be overwritten] */
-	}
+	} // TODO we do not really need onContext update, the MF using this could easily avoid the need by tracking action targets on its own
 
 	/** this method is called on each call to [ExplorationContext].close(), executed after [ModelFeature].dump()
 	 */

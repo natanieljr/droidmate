@@ -25,6 +25,8 @@
 
 package org.droidmate.exploration.modelFeatures
 
+import org.droidmate.deviceInterface.exploration.isQueueStart
+import org.droidmate.explorationModel.interaction.Interaction
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -34,7 +36,7 @@ abstract class WidgetCountingMF : ModelFeature() {
 	// records how often a specific widget was selected and from which state-eContext (widget.uid -> Map<state.uid -> numActions>)
 	private val wCnt: ConcurrentHashMap<UUID, MutableMap<UUID, Int>> = ConcurrentHashMap()
 
-
+	protected fun List<Interaction>.firstEntry() = first { !it.actionType.isQueueStart() }
 	/**
 	 * this function is used to increase the counter of a specific widget with [wId] in the eContext of [stateId]
 	 * if there is no entry yet for the given widget id, the counter value is initialized to 1

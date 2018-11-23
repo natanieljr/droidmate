@@ -37,7 +37,6 @@ import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.system.measureTimeMillis
 
 
@@ -54,7 +53,8 @@ open class Model private constructor(val config: ModelConfig): CoroutineScope {
 
 /**---------------------------------- public interface --------------------------------------------------------------**/
 	open fun initNewTrace(watcher: LinkedList<ModelFeatureI>,id: UUID = UUID.randomUUID()): ExplorationTrace {
-		return ExplorationTrace(watcher, config, coroutineContext[Job]!!, id).also { actionTrace ->
+	widgetTargets.clear() // ensure that this list is cleared even if we had an exception on previous apk exploration
+	return ExplorationTrace(watcher, config, id).also { actionTrace ->
 			paths.add(actionTrace)
 		}
 	}
