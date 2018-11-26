@@ -74,6 +74,11 @@ open class Interaction (
 
 	companion object {
 
+		@JvmStatic val actionTypeIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::actionType }
+		@JvmStatic val widgetIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::targetWidget }
+		@JvmStatic val resStateIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::resState }
+		@JvmStatic val srcStateIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::prevState }
+
 		@JvmStatic
 		fun computeData(e: ExplorationAction):String = when(e){
 			is TextInsert -> e.text
@@ -88,11 +93,6 @@ open class Interaction (
 					"root action", emptyId, prevState = emptyId)
 		}
 
-		@JvmStatic val actionTypeIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::actionType }
-		@JvmStatic val widgetIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::targetWidget }
-		@JvmStatic val resStateIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::resState }
-		@JvmStatic val srcStateIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::prevState }
-
 		@Deprecated("to be removed in next version")
 		enum class ActionDataFields(var header: String = "") { PrevId("Source State"), Action, WId("Interacted Widget"),
 			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception, Data;
@@ -102,7 +102,6 @@ open class Interaction (
 			}
 		}
 	}
-
 
 	override fun toString(): String {
 		@Suppress("ReplaceSingleLineLet")

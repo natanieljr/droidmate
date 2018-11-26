@@ -94,7 +94,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	/** determine if the state is similar enough to execute a back action by computing how many relevant widgets are similar */
 	private fun State.similarity(other: State): Double {
 		val otherWidgets = other.widgets
-		val candidates = this.widgets.filter{this.isRelevantForId(it)}
+		val candidates = this.visibleTargets
 		val mappedWidgets = candidates.map { w ->
 			if (otherWidgets.any { it.uid == w.uid || it.configId == w.configId })
 				1
