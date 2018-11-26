@@ -5,6 +5,8 @@ package org.droidmate.explorationModel
 import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.explorationModel.ConcreteId.Companion.fromString
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.Widget
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

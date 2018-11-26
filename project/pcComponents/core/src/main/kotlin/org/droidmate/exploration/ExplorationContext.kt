@@ -101,13 +101,13 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 	suspend fun update(action: ExplorationAction, result: ActionResult) {
-		lastTarget = widgetTargets.lastOrNull() // this may be used by some strategies or ModelFeatures
 		lastDump = result.guiSnapshot.windowHierarchyDump
 		apk.updateLaunchableActivityName(result.guiSnapshot.launchedMainActivityName)
 
 		assert(action.toString() == result.action.toString()) { "ERROR on ACTION-RESULT construction the wrong action was instantiated ${result.action} instead of $action"}
 		_model.updateModel(result, explorationTrace)
 		this.also { context ->
+			lastTarget = explorationTrace.getExploredWidgets().lastOrNull() // this may be used by some strategies or ModelFeatures
 			watcher.forEach { feature ->
 				(feature as? ModelFeature)?.let {
 					it.launch { it.onContextUpdate(context) }

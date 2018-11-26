@@ -6,7 +6,7 @@ import java.io.Serializable
 @Target( AnnotationTarget.PROPERTY) annotation class Persistent(val header: String, val ordinal: Int, val type:PType = PType.String)
 
 enum class PType{
-	DeactivatableFlag, Boolean, Rectangle, Int, RectangleList, String, IntList, ConcreteId
+	DeactivatableFlag, Boolean, Rectangle, Int, RectangleList, String, IntList, ConcreteId, DateTime
 }
 
 interface UiElementPropertiesI : Serializable {		//FIXME load/create properties for these properties

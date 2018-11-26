@@ -33,7 +33,7 @@ class TestReader(config: ModelConfig): ContentReader(config){
 	lateinit var testStates: Collection<State>
 	lateinit var testTraces: List<Collection<Interaction>>
 	private val traceContents: (idx: Int) -> List<String> = { idx ->
-		testTraces[idx].map { actionData -> actionData.actionString().also { log(it) } } }
+		testTraces[idx].map { actionData -> 	StringCreator.createActionString(actionData, ";").also { log(it) } } }
 
 	private fun headerPlusString(s:List<String>,skip: Long):List<String> = LinkedList<String>().apply {
 		add(StringCreator.widgetHeader(config[ConfigProperties.ModelProperties.dump.sep]))

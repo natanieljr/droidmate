@@ -3,10 +3,10 @@
 package org.droidmate.exploration.actions
 
 import org.droidmate.deviceInterface.exploration.*
+import org.droidmate.explorationModel.ExplorationTrace.Companion.widgetTargets
 import org.droidmate.explorationModel.firstCenter
 import org.droidmate.explorationModel.firstOrEmpty
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.explorationModel.interaction.widgetTargets
 
 /**
  * These are the new interface functions to interact with any widget.

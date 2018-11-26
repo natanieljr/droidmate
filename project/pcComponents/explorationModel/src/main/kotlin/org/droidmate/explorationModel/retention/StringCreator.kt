@@ -6,16 +6,22 @@ import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.Widget
+import java.time.LocalDateTime
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
+
+var debugParsing = false
+
+typealias WidgetProperty = AnnotatedProperty<UiElementPropertiesI>
 
 typealias PropertyValue = Pair<String, Any?>
 fun PropertyValue.getPropertyName() = this.first
 fun PropertyValue.getValue() = this.second
 
-data class AnnotatedProperty(val property: KProperty1<out UiElementPropertiesI, *>, val annotation: Persistent){
+data class AnnotatedProperty<R>(val property: KProperty1<out R, *>, val annotation: Persistent){
 	private fun String.getListElements(): List<String> = substring(1,length-1)// remove the list brackets '[ .. ]'
 			.split(",").filter { it.trim().isNotBlank() } // split into separate list elements
 
@@ -25,7 +31,7 @@ data class AnnotatedProperty(val property: KProperty1<out UiElementPropertiesI, 
 	}
 
 	@Suppress("IMPLICIT_CAST_TO_ANY")
-	fun parseValue(values: List<String>, indexMap: Map<AnnotatedProperty,Int>): PropertyValue {
+	fun parseValue(values: List<String>, indexMap: Map<AnnotatedProperty<R>,Int>): PropertyValue {
 		val s = indexMap[this]?.let{ values[it].trim() }
 		debugOut("parse $s of type ${annotation.type}", false)
 		return property.name to when (annotation.type) {
@@ -37,6 +43,7 @@ data class AnnotatedProperty(val property: KProperty1<out UiElementPropertiesI, 
 			PType.String -> s?: "NOT PERSISTED"
 			PType.IntList -> s?.getListElements()?.map { it.trim().toInt() } ?: emptyList<Int>()
 			PType.ConcreteId -> if(s == null) emptyId else ConcreteId.fromString(s)
+			PType.DateTime -> LocalDateTime.parse(s)
 		}
 	}
 
@@ -46,49 +53,84 @@ data class AnnotatedProperty(val property: KProperty1<out UiElementPropertiesI, 
 }
 
 object StringCreator {
-	internal fun createPropertyString(pv: Any?):String =
-			when(pv){
-				is DeactivatableFlag -> pv?.toString() ?: "disabled"
+	internal fun createPropertyString(t: PType, pv: Any?):String =
+			when{
+				t == PType.DeactivatableFlag -> pv?.toString() ?: "disabled"
+				t == PType.ConcreteId && pv is Widget? -> pv?.id.toString() // necessary for [Interaction.targetWidget]
 				else -> pv.toString()
 			}
 
-	private inline fun<reified R> processProperty(w: Widget, crossinline body:(Sequence<Pair<AnnotatedProperty, String>>)->R): R =
-			body(annotatedProperties.map { p ->
+	private inline fun<reified T,reified R> Sequence<AnnotatedProperty<T>>.processProperty(o: T, crossinline body:(Sequence<Pair<AnnotatedProperty<T>, String>>)->R): R =
+			body(this.map { p:AnnotatedProperty<T> ->
 				//			val annotation: Persistent = annotatedProperty.annotations.find { it is Persistent } as Persistent
-				Pair(p,StringCreator.createPropertyString(p.property.call(w)))  // determine the actual values to be stored and transform them into string format
+				Pair(p,StringCreator.createPropertyString(p.annotation.type,p.property.call(o)))  // determine the actual values to be stored and transform them into string format
 						.also{ (p,s) ->
-							assert(p.property.call(w)==p.parseValue(listOf(s), mapOf(p to 0)).getValue()) {
-								"ERROR generated string cannot be parsed to the correct value"
+							if(debugParsing) {
+								val v = p.property.call(o)
+								val parsed = p.parseValue(listOf(s), mapOf(p to 0)).getValue()
+								val validString =
+										if (p.property.name == Interaction::targetWidget.name) ((v as? Widget)?.id == parsed)
+										else v == parsed
+								assert(validString) { "ERROR generated string cannot be parsed to the correct value ${p.property.name}: has value $v but parsed value is $parsed" }
 							}
 						}
 			})
 
 	fun createPropertyString(w: Widget,sep: String): String =
-			processProperty(w){
+			annotatedProperties.processProperty(w){
+				it.joinToString(sep) { (_,valueString) -> valueString }
+			}
+	fun createActionString(a: Interaction, sep: String): String =
+			actionProperties.processProperty(a){
 				it.joinToString(sep) { (_,valueString) -> valueString }
 			}
 
 
 	/** [indexMap] has to contain the correct index in the string [values] list for each property */
-	internal fun parsePropertyString(values: List<String>, indexMap: Map<AnnotatedProperty,Int>): UiElementP{
-		val propertyValues: Sequence<Pair<String, Any?>> = baseAnnotations//.filter { indexMap.containsKey(it) } // we allow for default values for missing properties
-				.map{ it.parseValue(values, indexMap) }
-		return UiElementP(	propertyValues.toMap()	)
-	}
+	internal inline fun<reified T> Sequence<AnnotatedProperty<T>>.parsePropertyString(values: List<String>, indexMap: Map<AnnotatedProperty<T>,Int>): Map<String, Any?> =
+		this//.filter { indexMap.containsKey(it) } // we allow for default values for missing properties
+				.map{ it.parseValue(values, indexMap) }.toMap()
 
-	private val baseAnnotations: Sequence<AnnotatedProperty> by lazy {
+
+	internal fun parseWidgetPropertyString(values: List<String>, indexMap: Map<WidgetProperty,Int>): UiElementP
+	= UiElementP(	baseAnnotations.parsePropertyString(values,indexMap) )
+
+	internal fun parseActionPropertyString(values: List<String>, target: Widget?,
+	                                       indexMap: Map<AnnotatedProperty<Interaction>, Int> = defaultActionMap): Interaction
+			= with(actionProperties.parsePropertyString(values,indexMap)){
+		Interaction( targetWidget = target,
+				actionType = get(Interaction::actionType.name) as String,
+				startTimestamp = get(Interaction::startTimestamp.name) as LocalDateTime,
+				endTimestamp = get(Interaction::endTimestamp.name) as LocalDateTime,
+				successful = get(Interaction::successful.name) as Boolean,
+				exception = get(Interaction::exception.name) as String,
+				prevState = get(Interaction::prevState.name) as ConcreteId,
+				resState = get(Interaction::resState.name) as ConcreteId,
+				data = get(Interaction::data.name) as String
+		)}
+
+	private val baseAnnotations: Sequence<WidgetProperty> by lazy {
 		UiElementPropertiesI::class.declaredMemberProperties.mapNotNull { property ->
 			property.findAnnotation<Persistent>()?.let { annotation -> AnnotatedProperty(property, annotation) }
 		}.asSequence()
 	}
 
-	val widgetProperties: Sequence<AnnotatedProperty> by lazy {
-		Widget::class.declaredMemberProperties.mapNotNull { property ->
+	@JvmStatic
+	val actionProperties: Sequence<AnnotatedProperty<Interaction>> by lazy{
+		Interaction::class.declaredMemberProperties.mapNotNull { property ->
 			property.findAnnotation<Persistent>()?.let{ annotation -> AnnotatedProperty(property,annotation) }
+		}.sortedBy { (_,annotation) -> annotation.ordinal }.asSequence()
+	}
+
+	@JvmStatic
+	val widgetProperties: Sequence<WidgetProperty> by lazy {
+		Widget::class.declaredMemberProperties.mapNotNull { property ->
+			property.findAnnotation<Persistent>()?.let{ annotation -> WidgetProperty(property,annotation) }
 		}.asSequence()
 	}
 
-	val annotatedProperties: Sequence<AnnotatedProperty> by lazy {
+	@JvmStatic
+	val annotatedProperties: Sequence<WidgetProperty> by lazy {
 		widgetProperties.plus( baseAnnotations ).sortedBy { (_,annotation) -> annotation.ordinal }.asSequence()
 	}
 
@@ -98,14 +140,20 @@ object StringCreator {
 	val widgetHeader: (String)->String = { sep -> annotatedProperties.joinToString(sep) { it.annotation.header }}
 
 	@JvmStatic
-	val defaultMap: Map<AnnotatedProperty, Int> = annotatedProperties.mapIndexed{ i, p -> Pair(p,i)}.toMap()
+	val actionHeader: (String)->String = { sep -> actionProperties.joinToString(sep) { it.annotation.header }}
+
+	@JvmStatic
+	val defaultMap: Map<WidgetProperty, Int> = annotatedProperties.mapIndexed{ i, p -> Pair(p,i)}.toMap()
+
+	@JvmStatic
+	val defaultActionMap = actionProperties.mapIndexed{ i, p -> Pair(p,i)}.toMap()
 
 	@JvmStatic fun main(args: Array<String>) {
 		val sep = ";\t"
 		val s = createPropertyString(Widget.emptyWidget,sep)
 		println(s)
 		println("-------- create value map")
-		val vMap: Map<AnnotatedProperty, Int> = widgetHeader(sep).split(sep).associate { h ->
+		val vMap: Map<WidgetProperty, Int> = widgetHeader(sep).split(sep).associate { h ->
 //			println("find $h")
 			val i = annotatedProperties.indexOfFirst { it.annotation.header.trim() == h.trim() }
 			Pair(annotatedProperties.elementAt(i),i)
@@ -117,7 +165,7 @@ object StringCreator {
 						"= ${it.key.parseValue(s.split(sep),verifyProperties)}" }}")
 
 		println("-------- create widget property")
-		val wp = parsePropertyString(s.split(sep),vMap)
+		val wp = parseWidgetPropertyString(s.split(sep),vMap)
 		println(wp)
 		val w = Model.emptyModel(ModelConfig("someApp")).generateWidgets(mapOf(wp.idHash to wp))
 		println(createPropertyString(w.first(),sep))

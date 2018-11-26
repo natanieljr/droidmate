@@ -1,53 +1,54 @@
 package org.droidmate.explorationModel.interaction
 
 import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
-import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.ConcreteId
-import org.droidmate.explorationModel.ConcreteId.Companion.fromString
-import org.droidmate.explorationModel.ExplorationTrace
 import org.droidmate.explorationModel.emptyId
+import org.droidmate.explorationModel.retention.StringCreator
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 typealias DeviceLog = TimeFormattedLogMessageI
 typealias DeviceLogs = List<DeviceLog>
 
 @Suppress("DataClassPrivateConstructor")
-data class Interaction constructor(val actionType: String, val targetWidget: Widget?,
-                                   val startTimestamp: LocalDateTime, val endTimestamp: LocalDateTime,
-                                   val successful: Boolean, val exception: String,
-                                   val resState: ConcreteId, val deviceLogs: DeviceLogs = emptyList(),
-                                   private val sep:String, val data: String="", val meta: String = "") {
+open class Interaction (
+		@property:Persistent("Action", 1) val actionType: String,
+		@property:Persistent("Interacted Widget", 2, PType.ConcreteId) val targetWidget: Widget?,
+		@property:Persistent("StartTime", 4, PType.DateTime) val startTimestamp: LocalDateTime,
+		@property:Persistent("EndTime", 5, PType.DateTime) val endTimestamp: LocalDateTime,
+		@property:Persistent("SuccessFul", 6, PType.Boolean) val successful: Boolean,
+		@property:Persistent("Exception", 7) val exception: String,
+		@property:Persistent("Source State", 0, PType.ConcreteId) val prevState: ConcreteId,
+		@property:Persistent("Resulting State", 3, PType.ConcreteId) val resState: ConcreteId,
+		@property:Persistent("Data", 8) val data: String = "",
+		val deviceLogs: DeviceLogs = emptyList(),
+		@Suppress("unused") val meta: String = "") {
 
-	constructor(action: ExplorationAction, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
-	            deviceLogs: DeviceLogs, exception: String, successful: Boolean, resState: ConcreteId, sep:String)
-			: this(action.name, widgetTargets.pollFirst(),
-			startTimestamp, endTimestamp, successful, exception, resState, deviceLogs, sep, ExplorationTrace.computeData(action), action.id.toString())
-
-	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
-			: this(res.action, res.startTimestamp, res.endTimestamp, res.deviceLogs, res.exception, res.successful, resStateId, sep) {
-		prevState = prevStateId
-	}
+	constructor(res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, target: Widget?)
+			: this(actionType = res.action.name, targetWidget = target,
+			startTimestamp = res.startTimestamp, endTimestamp = res.endTimestamp, successful = res.successful,
+			exception = res.exception, prevState = prevStateId, resState = resStateId, data = computeData(res.action),
+			deviceLogs = res.deviceLogs,	meta = res.action.id.toString())
 
 	/** used for ActionQueue entries */
-	constructor(action: ExplorationAction, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
-			: this(action.name, if(action.hasWidgetTarget) widgetTargets.pollFirst() else null, res.startTimestamp,
-			res.endTimestamp, deviceLogs = res.deviceLogs, exception = res.exception, successful = res.successful,
-			resState = resStateId, sep = sep, data = ExplorationTrace.computeData(action)) {
-		prevState = prevStateId
-	}
+	constructor(action: ExplorationAction, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, target: Widget?)
+			: this(action.name, target, res.startTimestamp,
+			res.endTimestamp, successful = res.successful, exception = res.exception, prevState = prevStateId,
+			resState = resStateId, data = computeData(action), deviceLogs = res.deviceLogs)
 
-	/** used for ActionQueue sart/end Interaction */
-	constructor(actionName:String, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId, sep: String)
+	/** used for ActionQueue start/end Interaction */
+	internal constructor(actionName:String, res: ActionResult, prevStateId: ConcreteId, resStateId: ConcreteId)
 			: this(actionName, null, res.startTimestamp,
-			res.endTimestamp, deviceLogs = res.deviceLogs, exception = res.exception, successful = res.successful,
-			resState = resStateId, sep = sep) {
-		prevState = prevStateId
-	}
+			res.endTimestamp, successful = res.successful, exception = res.exception, prevState = prevStateId,
+			resState = resStateId, deviceLogs = res.deviceLogs)
 
+	/** used for parsing from string */
+	constructor(actionType: String, target: Widget?, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
+	            successful: Boolean, exception: String, resState: ConcreteId, prevState: ConcreteId)
+			: this(actionType = actionType, targetWidget = target, startTimestamp = startTimestamp, endTimestamp = endTimestamp,
+			successful = successful, exception = exception, prevState = prevState, resState = resState)
 
-	lateinit var prevState: ConcreteId
 
 	/**
 	 * Time the strategy pool took to select a strategy and a create an action
@@ -56,7 +57,8 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
 	val decisionTime: Long by lazy { ChronoUnit.MILLIS.between(startTimestamp, endTimestamp) }
 
 	@JvmOverloads
-	fun actionString(chosenFields: Array<ActionDataFields> = ActionDataFields.values()): String = chosenFields.joinToString(separator = sep) {
+	@Deprecated("to be removed", ReplaceWith("StringCreator.createActionString(a: Interaction, sep: String)"))
+	fun actionString(chosenFields: Array<ActionDataFields> = ActionDataFields.values(), sep: String = ";"): String = chosenFields.joinToString(separator = sep) {
 		when (it) {
 			ActionDataFields.Action -> actionType
 			ActionDataFields.StartTime -> startTimestamp.toString()
@@ -71,34 +73,27 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
 	}
 
 	companion object {
-//		@JvmStatic operator fun invoke(res:ActionResult, resStateId:ConcreteId, prevStateId: ConcreteId):Interaction =
-//				Interaction(res.action,res.startTimestamp,res.endTimestamp,res.deviceLogs,res.screenshot,res.exception,res.successful,resStateId).apply { prevState = prevStateId }
-//TODO use same mechanism as for Widget instead, and make this an open class
-		@JvmStatic
-		fun createFromString(e: List<String>, target: Widget?, contentSeparator: String): Interaction = Interaction(
-				actionType = e[ActionDataFields.Action.ordinal], targetWidget = target, startTimestamp = LocalDateTime.parse(e[ActionDataFields.StartTime.ordinal]),
-				endTimestamp = LocalDateTime.parse(e[ActionDataFields.EndTime.ordinal]), successful = e[ActionDataFields.SuccessFul.ordinal].toBoolean(),
-				exception = e[ActionDataFields.Exception.ordinal], resState = fromString(e[ActionDataFields.DstId.ordinal])!!, sep = contentSeparator
-				, data = e[ActionDataFields.Data.ordinal]
-		).apply { prevState = fromString(e[ActionDataFields.PrevId.ordinal])!! }
 
 		@JvmStatic
-		val empty: Interaction by lazy {
-			Interaction("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
-			).apply { prevState = emptyId }
+		fun computeData(e: ExplorationAction):String = when(e){
+			is TextInsert -> e.text
+			is Swipe -> "${e.start.first},${e.start.second} TO ${e.end.first},${e.end.second}"
+			is RotateUI -> e.rotation.toString()
+			else -> ""
 		}
 
 		@JvmStatic
-		fun emptyWithWidget(widget: Widget?): Interaction =
-			Interaction("EMPTY", widget, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, sep = ";"  //FIXME sep should be read from eContext instead
-			).apply { prevState = emptyId }
+		val empty: Interaction by lazy {
+			Interaction("EMPTY", null, LocalDateTime.MIN, LocalDateTime.MIN, true,
+					"root action", emptyId, prevState = emptyId)
+		}
 
+		@JvmStatic val actionTypeIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::actionType }
+		@JvmStatic val widgetIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::targetWidget }
+		@JvmStatic val resStateIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::resState }
+		@JvmStatic val srcStateIdx = StringCreator.actionProperties.indexOfFirst { it.property == Interaction::prevState }
 
-		@JvmStatic val header:(String)-> String = { sep -> ActionDataFields.values().joinToString(separator = sep) { it.header } }
-		@JvmStatic val widgetIdx = ActionDataFields.WId.ordinal
-		@JvmStatic val resStateIdx = ActionDataFields.DstId.ordinal
-		@JvmStatic val srcStateIdx = ActionDataFields.PrevId.ordinal
-
+		@Deprecated("to be removed in next version")
 		enum class ActionDataFields(var header: String = "") { PrevId("Source State"), Action, WId("Interacted Widget"),
 			DstId("Resulting State"), StartTime, EndTime, SuccessFul, Exception, Data;
 
@@ -108,10 +103,14 @@ data class Interaction constructor(val actionType: String, val targetWidget: Wid
 		}
 	}
 
+
 	override fun toString(): String {
 		@Suppress("ReplaceSingleLineLet")
 		return "$actionType: widget[${targetWidget?.let { it.toString() }}]:\n$prevState->$resState"
 	}
-}
 
-var widgetTargets = LinkedList<Widget>()  //TODO this should probably be in the model or trace instead
+	fun copy(prevState: ConcreteId, resState: ConcreteId): Interaction
+		= Interaction(actionType = actionType, targetWidget = targetWidget, startTimestamp = startTimestamp,
+			endTimestamp = endTimestamp, successful = successful, exception = exception,
+			prevState = prevState, resState = resState, data = data, deviceLogs = deviceLogs, meta = meta)
+}

@@ -11,11 +11,16 @@ import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
+import org.droidmate.deviceInterface.exploration.isClick
+import org.droidmate.deviceInterface.exploration.isLongClick
+import org.droidmate.deviceInterface.exploration.isTextInsert
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.ConcreteId.Companion.fromString
 import org.droidmate.explorationModel.config.*
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.explorationModel.retention.StringCreator
 import org.droidmate.explorationModel.retention.StringCreator.headerFor
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,6 +47,8 @@ object ModelParser{
 }
 
 internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>>{
+//	override 	val enableDebug get() = true
+
 	abstract val config: ModelConfig
 	abstract val reader: ContentReader
 	abstract val stateParser: StateParserI<S, W>
@@ -53,7 +60,7 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>
 
 	override val model by lazy{ Model.emptyModel(config) }
 	protected val actionParseJobName: (List<String>)->String = { actionS ->
-		"actionParser ${actionS[Interaction.Companion.ActionDataFields.Action.ordinal]}:${actionS[Interaction.srcStateIdx]}->${actionS[Interaction.resStateIdx]}"}
+		"actionParser ${actionS[Interaction.srcStateIdx]}->${actionS[Interaction.resStateIdx]}"}
 
 	// watcher state restoration for ModelFeatureI should be automatically handled via trace.updateAll (these are independent from the explorationContext)
 	suspend fun loadModel(watcher: LinkedList<ModelFeatureI> = LinkedList(), customHeaderMap: Map<String,String> = emptyMap()): Model = withContext(CoroutineName("ModelParsing ${config.appName}(${config.baseDir})")+Job()){
@@ -76,7 +83,8 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>
 	}
 	abstract suspend fun addEmptyState()
 
-	protected open suspend fun traceProducer() = coroutineScope { produce<Path>(context = CoroutineName("trace Producer"), capacity = 5) {
+	protected open suspend fun traceProducer() = coroutineScope {
+		produce<Path>(context = CoroutineName("trace Producer"), capacity = 5) {
 		logger.trace("PRODUCER CALL")
 		Files.list(Paths.get(config.baseDir.toUri())).use { s ->
 			s.filter { it.fileName.toString().startsWith(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]) }
@@ -97,7 +105,9 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>
 			if(enablePrint) logger.info("\nprocess TracePath $tracePath")
 			val traceId =
 					try {
-						UUID.fromString(tracePath.fileName.toString().removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).removeSuffix(config[ConfigProperties.ModelProperties.dump.traceFileExtension]))
+						UUID.fromString(tracePath.fileName.toString()
+								.removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix])
+								.removeSuffix(config[ConfigProperties.ModelProperties.dump.traceFileExtension]))
 					}catch(e:IllegalArgumentException){ // tests do not use valid UUIDs but rather int indices
 						emptyUUID
 					}
@@ -119,19 +129,39 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>
 		}
 	}
 
-	/** parse the action this function is called in the processor either asynchronous (Deferred) or sequential (blocking) */
+	/** parse a single action this function is called in the processor either asynchronous (Deferred) or sequential (blocking) */
 	suspend fun parseAction(actionS: List<String>, scope: CoroutineScope): Pair<Interaction, State> {
 		if(enablePrint) println("\n\t ---> parse action $actionS")
-		val resState = stateParser.processor(actionS, scope).getState()
+		val resId = ConcreteId.fromString(actionS[Interaction.resStateIdx])!!
+		val resState = stateParser.queue.computeIfAbsent(resId, stateParser.parseIfAbsent(coroutineContext)).getState()
 		val targetWidgetId = widgetParser.fixedWidgetId(actionS[Interaction.widgetIdx])
 
 		val srcId = fromString(actionS[Interaction.srcStateIdx])!!
-		val srcState = stateParser.queue.getOrDefault(srcId,stateParser.parseIfAbsent(coroutineContext)(srcId)).getState()
-		val targetWidget = targetWidgetId?.let { tId ->
-			srcState.widgets.find { it.id == tId } ?: run{
-				logger.warn("ERROR target widget $tId cannot be found in src state")
-				null
+		val srcState = stateParser.queue.computeIfAbsent(srcId,stateParser.parseIfAbsent(coroutineContext)).getState()
+		verify("ERROR could not find target widget $targetWidgetId in source state $srcId", {
+
+			log("wait for srcState $srcId")
+			targetWidgetId == null || srcState.widgets.any { it.id == targetWidgetId }
+		}){ // repair function
+			val actionType = actionS[Interaction.actionTypeIdx]
+			var srcS = stateParser.queue[srcId]
+			while(srcS == null) { // due to concurrency the value is not yet written to queue -> wait a bit
+				delay(5)
+				srcS = stateParser.queue[srcId]
 			}
+			val possibleTargets = srcState.widgets.filter {
+				targetWidgetId!!.uid == it.uid && it.isInteractive && rightActionType(it,actionType)}
+			when(possibleTargets.size){
+				0 -> throw IllegalStateException("cannot re-compute targetWidget $targetWidgetId in state $srcId")
+				1 -> widgetParser.addFixedWidgetId(targetWidgetId!!, possibleTargets.first().id)
+				else -> {
+					println("WARN there are multiple options for the interacted target widget we just chose the first one")
+					widgetParser.addFixedWidgetId(targetWidgetId!!, possibleTargets.first().id)
+				}
+			}
+		}
+		val targetWidget = widgetParser.fixedWidgetId(targetWidgetId)?.let { tId ->
+			srcState.widgets.find { it.id == tId }
 		}
 		val fixedActionS = mutableListOf<String>().apply { addAll(actionS) }
 		fixedActionS[Interaction.resStateIdx] = resState.stateId.toString()
@@ -140,9 +170,20 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>
 		if(actionS!=fixedActionS)
 			println("id's changed due to automatic repair new action is \n $fixedActionS\n instead of \n $actionS")
 
-		return Pair(Interaction.createFromString(fixedActionS, targetWidget, config[ConfigProperties.ModelProperties.dump.sep]), resState)
-				.also { log("\n computed TRACE ${actionS[Interaction.resStateIdx]}: ${it.first.actionString()}") }
+		return Pair(StringCreator.parseActionPropertyString(fixedActionS, targetWidget), resState)
+				.also { (action,_) ->
+					log("\n computed TRACE ${actionS[Interaction.resStateIdx]}: $action")
+		}
 	}
+	private val rightActionType: (Widget, actionType: String)->Boolean = { w, t ->
+		w.enabled && when{
+			t.isClick() -> w.clickable || w.checked != null
+			t.isLongClick() -> w.longClickable
+			t.isTextInsert() -> w.isInputField
+			else -> false
+		}
+	}
+
 
 	@Suppress("ReplaceSingleLineLet")
 	suspend fun S.getState() = this.let{ e ->  stateParser.getElem(e) }
@@ -165,6 +206,7 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>
 			).first
 			val config = ModelConfig(cfg[appName], true, cfg = cfg)
 			//REMARK old models are most likely not compatible, since the idHash may not be unique (probably some bug on UI extraction)
+			@Suppress("UNUSED_VARIABLE")
 			val headerMap = mapOf(
 					"HashId" to headerFor(UiElementPropertiesI::idHash)!!,
 					"widget class" to headerFor(UiElementPropertiesI::className)!!,
@@ -187,19 +229,19 @@ internal abstract class ModelParserI<T,S,W>: ParserI<T, Pair<Interaction, State>
 
 			val m =
 			//				loadModel(config, autoFix = false, sequential = true)
-					runBlocking { ModelParser.loadModel(config, autoFix = false, sequential = false, enablePrint = false//, customHeaderMap = headerMap
-					)}
+					runBlocking { ModelParser.loadModel(config, autoFix = false, sequential = true, enablePrint = false//, customHeaderMap = headerMap
+					)}.also { println(it) }
 			println("performance test")
 			var ts =0L
 			var tp =0L
 			runBlocking {
 				repeat(10) {
 					debugT("load time sequential", { ModelParserS(config).loadModel() },
-							timer = { ts += it / 1000000 },
-							inMillis = true)
+							timer = { time -> ts += time / 1000000 },
+							inMillis = true).also { time -> println(time) }
 					debugT("load time parallel", { ModelParserP(config).loadModel() },
-							timer = { tp += it / 1000000 },
-							inMillis = true)
+							timer = { time -> tp += time / 1000000 },
+							inMillis = true).also { time -> println(time) }
 				}
 			}
 			println(" overall time \nsequential = $ts avg=${ts/10000.0} \nparallel = $tp avg=${tp/10000.0}")

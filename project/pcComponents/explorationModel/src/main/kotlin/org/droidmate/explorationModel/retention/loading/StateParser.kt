@@ -38,57 +38,13 @@ internal abstract class StateParserI<T,W>: ParserI<T, State>{
 	@Suppress("FunctionName")
 	abstract fun P_S_process(id: ConcreteId, coroutineContext: CoroutineContext): T
 
-	override val processor: suspend (s: List<String>, scope: CoroutineScope) -> T = { s,_ -> parseState(s) }
+	override val processor: suspend (s: List<String>, scope: CoroutineScope) -> T = { _,_ -> TODO("not necessary anymore") }
 
 	internal val parseIfAbsent: (CoroutineContext) -> (ConcreteId)->T =	{ context ->{ id ->
 		log("parse absent state $id")
 		P_S_process(id,context)
 	}}
 
-	private val rightActionType: (Widget, actionType: String)->Boolean = { w, t ->
-		w.enabled && when{
-			t.isClick() -> w.clickable || w.checked != null
-			t.isLongClick() -> w.longClickable
-			t.isTextInsert() -> w.isInputField
-			else -> false
-		}
-	}
-
-	/** parse the result state of the given actionData and verify that the targetWidget (if any) is contained in the src state */
-	private suspend fun parseState(actionData: List<String>): T{
-
-		val resId = ConcreteId.fromString(actionData[Interaction.resStateIdx])!!
-		log("parse result State: $resId")
-		// parse the result state with the contained widgets and queue them to make them available to other coroutines
-		val resState = queue.computeIfAbsent(resId, parseIfAbsent(coroutineContext))
-
-		val targetWidgetId = widgetParser.fixedWidgetId(actionData[Interaction.widgetIdx])	?: return resState
-        log("validate for target widget $targetWidgetId")
-		val srcId = ConcreteId.fromString(actionData[Interaction.srcStateIdx])!!
-		verify("ERROR could not find target widget $targetWidgetId in source state $srcId", {
-
-            log("wait for srcState $srcId")
-				getElem(queue.computeIfAbsent(srcId, parseIfAbsent(coroutineContext))).widgets.any { it.id == targetWidgetId }
-		}){ // repair function
-			val actionType = actionData[Interaction.Companion.ActionDataFields.Action.ordinal]
-			var srcS = queue[srcId]
-			while(srcS == null) { // due to concurrency the value is not yet written to queue -> wait a bit
-				delay(1)
-				srcS = queue[srcId]
-			}
-			val possibleTargets = getElem(srcS).widgets.filter {
-				it.uid == targetWidgetId.uid && it.isInteractive && rightActionType(it,actionType)}
-			when(possibleTargets.size){
-				0 -> throw IllegalStateException("cannot re-compute targetWidget $targetWidgetId in state $srcId")
-				1 -> widgetParser.addFixedWidgetId(targetWidgetId, possibleTargets.first().id)
-				else -> {
-					println("WARN there are multiple options for the interacted target widget we just chose the first one")
-					widgetParser.addFixedWidgetId(targetWidgetId, possibleTargets.first().id)
-				}
-			}
-		}
-		return resState
-	}
 	protected suspend fun computeState(stateId: ConcreteId): State {
 		log("\ncompute state $stateId")
 		val(contentPath,isHomeScreen) = reader.getStateFile(stateId)

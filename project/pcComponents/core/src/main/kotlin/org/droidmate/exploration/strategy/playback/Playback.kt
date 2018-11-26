@@ -231,7 +231,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		return chooseAction()
 	}
 
-	/** reset the []actionIdx] to the position of the last reset or 0 if none exists
+	/** reset the []actionTypeIdx] to the position of the last reset or 0 if none exists
 	 * (action 0 should always be a reset to start the app) */
 	private fun handleReplayCrash(){
 		logger.info("handle app crash on replay")

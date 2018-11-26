@@ -4,9 +4,12 @@ import kotlinx.coroutines.CoroutineName
 import org.droidmate.deviceInterface.exploration.isLaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.explorationModel.emptyId
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.Interaction.Companion.ActionDataFields
 import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
+import java.time.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
 class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, Interaction> =
@@ -19,6 +22,9 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, In
 
 					                                             aData == bData
 				                                             })) : ModelFeature(), IGraph<State, Interaction> by graph {
+	private fun emptyWithWidget(widget: Widget?): Interaction =
+			Interaction("EMPTY", widget, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, //FIXME sep should be read from eContext instead
+					prevState = emptyId)
 
 
 	override val coroutineContext: CoroutineContext = CoroutineName("StateGraphMF")
@@ -34,7 +40,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, In
 		else
 			context.getState(lastAction.prevState) ?: State.emptyState
 
-		val prevLabel = Interaction.emptyWithWidget(lastAction.targetWidget)
+		val prevLabel = emptyWithWidget(lastAction.targetWidget)
 
 		// Try to update a previous label (from prevState to emptyState) if it exists, otherwise update a new one
 		if (prevLabel.targetWidget != null)
@@ -45,7 +51,7 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, In
 		// Add all available widgets as transitions to an emptyState,
 		// After an action this transition is updated
 		newState.actionableWidgets.forEach {
-			this.add(newState, null, Interaction.emptyWithWidget(it), updateIfExists = false)
+			this.add(newState, null, emptyWithWidget(it), updateIfExists = false)
 		}
 	}
 

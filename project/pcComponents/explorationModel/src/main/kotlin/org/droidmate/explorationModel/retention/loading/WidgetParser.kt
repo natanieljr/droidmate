@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.explorationModel.retention.AnnotatedProperty
 import org.droidmate.explorationModel.retention.StringCreator
 import org.droidmate.explorationModel.retention.StringCreator.annotatedProperties
+import org.droidmate.explorationModel.retention.WidgetProperty
 import org.droidmate.explorationModel.retention.getValue
 import kotlin.collections.HashMap
 
@@ -20,13 +20,13 @@ internal abstract class WidgetParserI<T>: ParserI<Pair<ConcreteId,T>, UiElementP
 	var indicesComputed: AtomicBoolean = AtomicBoolean(false)
 	/** temporary map of all processed widgets for state parsing */
 	abstract val queue: MutableMap<ConcreteId, T>
-	private var customWidgetIndices: Map<AnnotatedProperty, Int> = StringCreator.defaultMap
+	private var customWidgetIndices: Map<WidgetProperty, Int> = StringCreator.defaultMap
 	private val lock = Mutex()  // to guard the indices setter
 
     override val logger: Logger = LoggerFactory.getLogger(javaClass)
 
 
-    suspend fun setCustomWidgetIndices(m: Map<AnnotatedProperty, Int>){
+    suspend fun setCustomWidgetIndices(m: Map<WidgetProperty, Int>){
 		lock.withLock { customWidgetIndices = m }
 	}
 
@@ -39,7 +39,7 @@ internal abstract class WidgetParserI<T>: ParserI<Pair<ConcreteId,T>, UiElementP
 
 	protected fun computeWidget(line: List<String>, id: ConcreteId): Pair<ConcreteId,UiElementPropertiesI> {
 		log("compute widget $id")
-		return id to StringCreator.parsePropertyString(line, customWidgetIndices)
+		return id to StringCreator.parseWidgetPropertyString(line, customWidgetIndices)
 	}
 
 	@Suppress("FunctionName")
@@ -59,6 +59,7 @@ internal abstract class WidgetParserI<T>: ParserI<Pair<ConcreteId,T>, UiElementP
 	override val processor: suspend (s: List<String>, scope: CoroutineScope) -> Pair<ConcreteId, T> = { s,cs -> parseWidget(s,cs) }
 
 	fun fixedWidgetId(idString: String) = ConcreteId.fromString(idString)?.let{	idMapping[it] ?: it }
+	fun fixedWidgetId(idString:ConcreteId?) = idString?.let{	idMapping[it] ?: it }
 	fun addFixedWidgetId(oldId: ConcreteId, newId: ConcreteId) { idMapping[oldId] = newId }
 
 	companion object {
@@ -68,13 +69,13 @@ internal abstract class WidgetParserI<T>: ParserI<Pair<ConcreteId,T>, UiElementP
 		 * if header.size contains not all persistent entries the respective entries cannot be set in the created Widget.
 		 * Optionally a map of oldName->newName can be given to automatically infere renamed header entries
 		 */
-		@JvmStatic fun computeWidgetIndices(header: List<String>, renamed: Map<String,String> = emptyMap()): Map<AnnotatedProperty, Int>{
+		@JvmStatic fun computeWidgetIndices(header: List<String>, renamed: Map<String,String> = emptyMap()): Map<WidgetProperty, Int>{
 			if(header.size!= StringCreator.annotatedProperties.count()){
 				val missing = StringCreator.annotatedProperties.filter { !header.contains(it.annotation.header) && !renamed.containsValue(it.annotation.header) }
 				println("WARN the given Widget File does not specify all available properties," +
 						"this may lead to different Widget properties and may require to be parsed in compatibility mode\n missing entries: ${missing.toList()}")
 			}
-			val mapping = HashMap<AnnotatedProperty, Int>()
+			val mapping = HashMap<WidgetProperty, Int>()
 			header.forEachIndexed { index, s ->
 				val key = renamed[s] ?: s
 				annotatedProperties.find { it.annotation.header == key }?.let{  // if the entry is no longer in P we simply ignore it

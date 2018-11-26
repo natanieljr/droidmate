@@ -425,7 +425,7 @@ class VisualizationGraph : ApkReport() {
 					ImageIO.write(img, "png", imgDir.resolve("${ConcreteId(uid, configId)}.png").toFile())
 					// manipulate the action datas to replace config-id's
 					indexedActions.map { (i, action) ->
-						Pair(i, action.copy(resState = uidMap.getOrDefault(action.resState.uid, action.resState)).apply { prevState = ConcreteId(uid, configId) })
+						Pair(i, action.copy(prevState = ConcreteId(uid, configId), resState = uidMap.getOrDefault(action.resState.uid, action.resState)))
 					}
 				}
 			}
