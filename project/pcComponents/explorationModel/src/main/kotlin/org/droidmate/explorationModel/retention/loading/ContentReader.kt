@@ -33,7 +33,7 @@ open class ContentReader(val config: ModelConfig){
 
 	open fun getStateFile(stateId: ConcreteId): Pair<Path,Boolean>{
 		val contentPath = Files.list(Paths.get(config.stateDst.toUri())).use { it.toList() }.first {
-			it.fileName.toString().startsWith( stateId.toString()+ ModelConfig.defaultWidgetSuffix) }
+			it.fileName.toString().startsWith( stateId.toString()) }
 		return Pair(contentPath, contentPath.fileName.toString().contains("HS")//, it.substring(it.indexOf("_PN")+4,it.indexOf(config[ConfigProperties.ModelProperties.dump.stateFileExtension]))
 		)
 	}

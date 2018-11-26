@@ -65,7 +65,7 @@ class ModelConfig private constructor(path: Path,
 	private val idPath: (Path, String, String, String) -> String = { baseDir, id, postfix, fileExtension -> baseDir.toString() + "${File.separator}$id$postfix$fileExtension" }
 
 	val widgetFile: (ConcreteId, Boolean) -> String = { id, isHomeScreen 	->
-		statePath(id, postfix = defaultWidgetSuffix +(if(isHomeScreen) "_HS" else "") + "_PN") }
+		statePath(id, postfix = (if(isHomeScreen) "_HS" else "") ) }
 	fun statePath(id: ConcreteId, postfix: String = "", fileExtension: String = config[stateFileExtension]): String {
 		return idPath(stateDst, id.toString(), postfix, fileExtension)
 	}
@@ -79,7 +79,6 @@ class ModelConfig private constructor(path: Path,
 	val traceFile = { traceId: String -> "$baseDir${File.separator}${config[traceFilePrefix]}$traceId${config[traceFileExtension]}" }
 
 	companion object {
-		const val defaultWidgetSuffix = "_AllWidgets"
 		private const val nonInteractiveDir = "widgets-nonInteractive"
 
 		private val resourceConfig by lazy {

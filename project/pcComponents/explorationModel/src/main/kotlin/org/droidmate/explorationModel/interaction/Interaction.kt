@@ -45,9 +45,9 @@ open class Interaction (
 
 	/** used for parsing from string */
 	constructor(actionType: String, target: Widget?, startTimestamp: LocalDateTime, endTimestamp: LocalDateTime,
-	            successful: Boolean, exception: String, resState: ConcreteId, prevState: ConcreteId)
+	            successful: Boolean, exception: String, resState: ConcreteId, prevState: ConcreteId, data: String = "")
 			: this(actionType = actionType, targetWidget = target, startTimestamp = startTimestamp, endTimestamp = endTimestamp,
-			successful = successful, exception = exception, prevState = prevState, resState = resState)
+			successful = successful, exception = exception, prevState = prevState, resState = resState, data = data)
 
 
 	/**

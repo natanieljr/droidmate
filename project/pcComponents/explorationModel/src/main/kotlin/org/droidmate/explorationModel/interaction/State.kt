@@ -104,12 +104,15 @@ open class State (_widgets: Collection<Widget>, val isHomeScreen: Boolean = fals
 		File( config.widgetFile(stateId,isHomeScreen) ).bufferedWriter().use { all ->
 			all.write(StringCreator.widgetHeader(config[sep]))
 
-			widgets.sortedBy { it.uid }.forEach {
+			widgets.forEach {
 				all.newLine()
-				all.write( StringCreator.createPropertyString(it, config[sep]))
+				all.write( StringCreator.createPropertyString(it, config[sep]) )
 			}
 		}
 	}
+
+	/** used by our tests to verify correct widget-string representations */
+	internal fun widgetsDump(sep: String) = widgets.map{ StringCreator.createPropertyString(it, sep) }
 
 	companion object {
 		private const val resIdRuntimePermissionDialog = "com.android.packageinstaller:id/dialog_container"
