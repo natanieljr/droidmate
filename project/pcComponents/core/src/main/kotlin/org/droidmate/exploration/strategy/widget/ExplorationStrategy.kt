@@ -40,10 +40,6 @@ abstract class ExplorationStrategy : AbstractStrategy() {
 	override suspend fun internalDecide(): ExplorationAction {
 		assert(eContext.explorationCanMoveOn()) {"Selected and explore action, but exploration cannot proceed."}
 
-		val allWidgetsBlackListed = eContext.getCurrentState().actionableWidgets.isEmpty() // || TODO Blacklist
-		if (allWidgetsBlackListed)
-			this.notifyAllWidgetsBlacklisted()
-
 		return chooseAction()
 	}
 

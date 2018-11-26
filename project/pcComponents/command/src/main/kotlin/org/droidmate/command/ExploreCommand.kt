@@ -444,8 +444,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					pullScreenShot(action.id,explorationContext.getModel().config.imgDst, device)
 
 				explorationContext.update(action, result)
-				// update strategy
-				strategy.update(result)
 
 				if (isFirst) {
 					log.info("Initial action: $action")

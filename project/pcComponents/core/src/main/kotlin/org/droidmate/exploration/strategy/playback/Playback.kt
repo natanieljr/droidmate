@@ -224,10 +224,6 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	}*/
 
 	override suspend fun internalDecide(): ExplorationAction {
-		val allWidgetsBlackListed = this.updateState()  //FIXME this function does not work anymore use the Blacklist or Crashlist Model Features instead
-		if (allWidgetsBlackListed)
-			this.notifyAllWidgetsBlacklisted()
-
 		return chooseAction()
 	}
 

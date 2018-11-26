@@ -27,7 +27,6 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
@@ -44,11 +43,6 @@ import org.slf4j.LoggerFactory
 abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	override val uniqueStrategyName: String = javaClass.simpleName
 	/**
-	 * List of observers to be notified when widgets get blacklisted or
-	 * when a target is found
-	 */
-	override val listeners = ArrayList<IControlObserver>()
-	/**
 	 * if this parameter is true we can invoke a strategy without registering it, this should be only used for internal
 	 * default strategies from our selector functions like Reset,Back etc.
 	 */
@@ -61,20 +55,6 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		private set
 
 	protected val currentState: State get() = eContext.getCurrentState()
-
-	/**
-	 * Number of the current action being performed
-	 */
-	protected var actionNr: Int = 0
-		private set
-
-	/**
-	 * Return the execution control to the [listeners]
-	 */
-	private fun handleControl() {
-		for (listener in this.listeners)
-			listener.takeControl(this)
-	}
 
 	/**
 	 * Check if this is the first time an action will be performed ([eContext] is empty)
@@ -93,23 +73,6 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	}
 
 	/**
-	 * Notify all [listeners] that all widgets on this screen are blacklisted
-	 */
-	protected fun notifyAllWidgetsBlacklisted() {
-		this.listeners.forEach { listener -> listener.notifyAllWidgetsBlacklisted() }
-	}
-
-	/**
-	 * Notify all [listeners] that an exploration target has been found
-	 *
-	 * @param targetWidget Widget that has been found
-	 * @param result Exploration action that triggered the target
-	 */
-	protected fun notifyTargetFound(targetWidget: ITargetWidget, result: ActionResult) {
-		this.listeners.forEach { listener -> listener.onTargetFound(this, targetWidget, result) }
-	}
-
-	/**
 	 * Get action before the last one.
 	 *
 	 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
@@ -121,29 +84,14 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		return this.eContext.explorationTrace.P_getActions().dropLast(1).last()
 	}
 
-	override fun updateState(actionNr: Int, record: ActionResult) {
-		this.actionNr = actionNr
-	}
-
 	override fun initialize(memory: ExplorationContext) {
 		this.eContext = memory
-	}
-
-	override fun registerListener(listener: IControlObserver) {
-		this.listeners.add(listener)
 	}
 
 	override suspend fun decide(): ExplorationAction {
 		val action = this.internalDecide()
 
-		this.handleControl()
-
 		return action
-	}
-
-	override fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-	                           result: ActionResult) {
-		// By default does nothing
 	}
 
 	override fun equals(other: Any?): Boolean {

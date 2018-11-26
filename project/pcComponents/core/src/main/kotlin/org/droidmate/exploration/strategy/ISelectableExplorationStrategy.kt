@@ -25,7 +25,6 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.exploration.ExplorationContext
 
 /**
@@ -35,21 +34,9 @@ import org.droidmate.exploration.ExplorationContext
  */
 interface ISelectableExplorationStrategy {
 	val uniqueStrategyName: String
-	val listeners: ArrayList<IControlObserver>
 	val noContext: Boolean
 
 	fun initialize(memory: ExplorationContext)
-
-	/**
-	 * Add a new [listener] to receive execution flow back, as well as to receive notification about
-	 * found targets and blacklisted widgets
-	 */
-	fun registerListener(listener: IControlObserver)
-
-	/**
-	 * Update the []number of explored explorationTrace][actionNr]
-	 */
-	fun updateState(actionNr: Int, record: ActionResult)
 
 	/**
 	 * Selects an exploration action based on the [current GUI](currentState).
@@ -60,16 +47,6 @@ interface ISelectableExplorationStrategy {
 	 * @return Exploration action to be sent to the device (has to be supported by DroidMate)
 	 */
 	suspend fun decide(): ExplorationAction
-
-	/**
-	 * Update state after receiving notification that a new target has been found.
-	 *
-	 * @param strategy Exploration strategy that interacted with the target
-	 * @param satisfiedWidget Exploration's target that has been found
-	 * @param result ExplorationAction performed on the target, alongside its results
-	 */
-	fun onTargetFound(strategy: ISelectableExplorationStrategy, satisfiedWidget: ITargetWidget,
-	                  result: ActionResult)
 
 	override fun equals(other: Any?): Boolean
 	override fun hashCode(): Int

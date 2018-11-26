@@ -28,7 +28,6 @@ package org.droidmate.exploration.strategy
 import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.ActionResult
-import org.droidmate.explorationModel.interaction.State
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.misc.debugOutput
@@ -43,7 +42,7 @@ import java.lang.Math.max
  */
 class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStrategy>,
                               private val selectors: List<StrategySelector>,
-                              private val memory: ExplorationContext) : IExplorationStrategy, IControlObserver {
+                              private val memory: ExplorationContext) : IExplorationStrategy {
 
 	companion object {
 		@JvmStatic
@@ -57,52 +56,14 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 	 */
 	private val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
 
-	/**
-	 * Strategy which is currently active
-	 */
-	private var activeStrategy: ISelectableExplorationStrategy? = null
-
-	/**
-	 * Number of elapsed explorationTrace
-	 */
-	private var actionNr: Int = 0
-
-	/**
-	 * Are all widgets blacklisted
-	 */
-	private var allWidgetsBlackListed = false
-
 	val size: Int
 		get() = this.strategies.size
 
 	// endregion
 
-	// region control handling
-
-	/**
-	 * Checks if the execution control is with the strategy pool or with an internal strategy
-	 *
-	 * @return If the strategy pool is responsible for choosing a new exploration strategy
-	 */
-	private fun hasControl(): Boolean {
-		return this.activeStrategy == null
-	}
-
-	/**
-	 * Givers control to an internal exploration strategy given the current UI
-	 */
-	private fun handleControl() {
-		ExplorationStrategyPool.logger.debug("Attempting to handle control to exploration strategy")
-		assert(this.hasControl())
-		this.activeStrategy = this.selectStrategy()
-
-		assert(!this.hasControl())
-		ExplorationStrategyPool.logger.debug("Control handled to strategy ${this.activeStrategy!!}")
-	}
-
 	private val selectorThreadPool = newFixedThreadPoolContext (max(Runtime.getRuntime().availableProcessors()-1,1),name="SelectorsThread")
 	/**
-	 * Selects an exploration strategy to [handle control to][handleControl], given the [current UI][State].
+	 * Selects an exploration strategy to execute, given the current UI state.
 	 * The selected strategy is the one with best fitness.
 	 *
 	 * If more than one exploration strategies have the same fitness, choose the first one.
@@ -114,7 +75,6 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		val mem = this.memory
 		val pool = this
 		val bestStrategy =
-			//runBlocking(newSingleThreadContext("SelectorsThread")) { // to make it single threaded
 			runBlocking(selectorThreadPool){
 				selectors
 						.sortedBy { it.priority }
@@ -132,14 +92,6 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		return bestStrategy.second.getCompleted()!!
 	}
 
-	override fun takeControl(strategy: ISelectableExplorationStrategy) {
-		ExplorationStrategyPool.logger.debug("Receiving back control from strategy $strategy")
-		assert(this.strategies.contains(strategy) || strategy.noContext)
-		this.activeStrategy = null
-	}
-
-	// endregion
-
 	// region initialization
 
 
@@ -156,7 +108,6 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 			return false
 		}
 
-		strategy.registerListener(this)
 		strategy.initialize(this.memory)
 		this.strategies.add(strategy)
 
@@ -164,20 +115,6 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 	}
 
 	//endregion
-
-	/**
-	 * Notify the internal strategies to update their state
-	 */
-	private fun updateStrategiesState(record: ActionResult) {
-		for (strategy in this.strategies)
-			strategy.updateState(this.actionNr, record)
-	}
-
-	override fun update(record: ActionResult) {
-		this.actionNr++
-
-		this.updateStrategiesState(record)
-	}
 
 	override suspend fun decide(result: ActionResult): ExplorationAction {
 
@@ -188,35 +125,14 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 
 		assert(!this.strategies.isEmpty())
 
-		if (this.hasControl())
-			this.handleControl()
-		else
-			logger.debug("Control is currently with strategy ${this.activeStrategy}")
+		val activeStrategy = this.selectStrategy()
+		logger.debug("Control is currently with strategy $activeStrategy")
 
-		val s = this.activeStrategy!!	// this val is necessary since .decide() may set this.activeStrategy to null already
-		val selectedAction = this.activeStrategy!!.decide()
-		// for non-registered strategies hand back control to this pool
-		if(s.noContext) this.activeStrategy = null
+		val selectedAction = activeStrategy.decide()
 
 		logger.info("(${this.memory.getSize()}) $selectedAction")
 
 		return selectedAction
-	}
-
-	override fun notifyAllWidgetsBlacklisted() {
-		this.allWidgetsBlackListed = true
-	}
-
-	override fun onTargetFound(strategy: ISelectableExplorationStrategy, targetWidget: ITargetWidget,
-	                           result: ActionResult) {
-		this.strategies.forEach { it.onTargetFound(strategy, targetWidget, result) }
-	}
-
-	fun clear() {
-		this.strategies.clear()
-		this.activeStrategy = null
-		this.actionNr = 0
-		this.allWidgetsBlackListed = false
 	}
 
 	override fun close(){

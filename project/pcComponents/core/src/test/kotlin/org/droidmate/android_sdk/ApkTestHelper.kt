@@ -44,7 +44,7 @@ class ApkTestHelper {
 		}
 
 		@JvmStatic
-		fun build(packageName: String, launchableActivityName: String, applicationLabel: String): Apk {
+		fun build(packageName: String, applicationLabel: String): Apk {
 			val path = Paths.get("/path/to/$packageName.apk")
 			return Apk(
 					path,
