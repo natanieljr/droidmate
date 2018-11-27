@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.*
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiParser.Companion.computeIdHash
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector.actableAppElem
 import org.droidmate.uiautomator2daemon.uiautomatorExtensions.UiSelector.isWebView
 import java.io.FileOutputStream
@@ -85,8 +86,9 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 					else false
 			}//.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
-			val idMatch: SelectorCondition = { _, xPath ->
-				idHash == xPath.hashCode() + rootIndex
+			val idMatch: SelectorCondition = { n: AccessibilityNodeInfo, xPath ->
+				val layer = env.lastWindows.find { it.w.windowId == n.windowId }?.layer ?: n.window?.layer
+				layer != null && idHash == computeIdHash(xPath, layer)
 			}
 			UiHierarchy.findAndPerform(env, idMatch) { nodeInfo ->
 				// do this for API Level above 19 (exclusive)

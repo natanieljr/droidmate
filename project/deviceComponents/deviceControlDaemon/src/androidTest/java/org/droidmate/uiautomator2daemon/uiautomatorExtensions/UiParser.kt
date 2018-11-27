@@ -17,8 +17,12 @@ import kotlin.coroutines.coroutineContext
 
 abstract class UiParser {
 
-	/** used for parentHash and idHash computation of [UiElementProperties] */
-	private fun computeIdHash(xPath: String, window: DisplayedWindow) = xPath.hashCode() + window.layer
+	companion object {
+		fun computeIdHash(xPath: String, layer: Int) = xPath.hashCode() + layer
+		/** used for parentHash and idHash computation of [UiElementProperties] */
+		private fun computeIdHash(xPath: String, window: DisplayedWindow) = computeIdHash(xPath, window.layer)
+	}
+
 	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
 	                                     parentXpath: String, nodes: MutableList<UiElementProperties>, img: Bitmap?,
 	                                     parentH: Int = 0): UiElementProperties? {

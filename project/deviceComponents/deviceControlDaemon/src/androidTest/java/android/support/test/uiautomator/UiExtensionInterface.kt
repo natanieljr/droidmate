@@ -15,17 +15,15 @@ fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
 typealias NodeProcessor = (rootNode: AccessibilityNodeInfo, index: Int, xPath: String)	-> Boolean
 typealias PostProcessor<T> = (rootNode: AccessibilityNodeInfo)	-> T
 const val osPkg = "com.android.systemui"
-var rootIndex:Int = 0
+
 inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline postProcessor: PostProcessor<T>): List<T> =
 	getNonSystemRootNodes().mapIndexed { index,root: AccessibilityNodeInfo ->
-		rootIndex = index
 		processTopDown(root,processor = processor,postProcessor = postProcessor)
 	}
 
 fun UiDevice.apply(processor: NodeProcessor){
 	try{
 		getNonSystemRootNodes().mapIndexed { index, root: AccessibilityNodeInfo ->
-			rootIndex = index
 			processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
 		}
 	}catch(e: Exception){
