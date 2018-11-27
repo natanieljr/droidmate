@@ -4,9 +4,6 @@ package org.droidmate.explorationModel
 
 import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
-import org.droidmate.explorationModel.ConcreteId.Companion.fromString
-import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.Widget
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -83,6 +80,8 @@ internal class UiElementP( properties: Map<String,Any?>) : UiElementPropertiesI 
 	override val metaInfo: List<String> = emptyList()
 
 	override val isKeyboard: Boolean by properties
+	override val hintText: String by properties
+	override val inputType: Int by properties
 	override val text: String by properties
 	override val contentDesc: String by properties
 	override val resourceId: String by properties
@@ -110,6 +109,8 @@ internal class UiElementP( properties: Map<String,Any?>) : UiElementPropertiesI 
 }
 
 object DummyProperties: UiElementPropertiesI {
+	override val hintText: String = "Dummy-hintText"
+	override val inputType: Int = 0
 	override val imgId: Int = 0
 	override val visibleBounds: Rectangle = Rectangle(0,0,0,0)
 	override val hasUncoveredArea: Boolean = false

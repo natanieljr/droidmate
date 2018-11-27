@@ -26,12 +26,12 @@ class ModelTester: TestI, TestModel by DefaultTestModel() {
 	@Test
 	fun widgetUidTest(){
 		val emptyWidget = Widget.emptyWidget
-		expect(parentWidget.configId.toString(), "5a116021-8aa6-370a-aa94-03ab99745b25")  // quickFix due to new UiElementP constructor
+		expect(parentWidget.configId.toString(), "655be249-a31d-33b1-9f77-566cc3bef242")  // quickFix due to new UiElementP constructor
 		expect(emptyWidget.configId, parentWidget.configId)
-		expect(parentWidget.id.toString(),"269e17d0-32f9-3d14-bdab-ab2c6c8f100e_${parentWidget.configId}")
+		expect(parentWidget.id.toString(),"3a1ac1a7-1301-368c-9d59-d025a743531c_${parentWidget.configId}")
 		expect(testWidget.parentId, emptyWidget.id)
 
-		expect(testWidget.configId, UUID.fromString("defcef0e-5a90-38a2-a77d-b62d34e93723"))
+		expect(testWidget.configId, UUID.fromString("845d7969-31c5-392a-b7be-f6ab2f4f565b"))
 	}
 
 	@Test

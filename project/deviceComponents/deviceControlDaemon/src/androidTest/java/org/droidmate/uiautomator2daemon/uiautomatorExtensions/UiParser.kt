@@ -18,7 +18,7 @@ import kotlin.coroutines.coroutineContext
 abstract class UiParser {
 
 	companion object {
-		fun computeIdHash(xPath: String, layer: Int) = xPath.hashCode() + layer
+		fun computeIdHash(xPath: String, windowLayer: Int) = xPath.hashCode() + windowLayer
 		/** used for parentHash and idHash computation of [UiElementProperties] */
 		private fun computeIdHash(xPath: String, window: DisplayedWindow) = computeIdHash(xPath, window.layer)
 	}
@@ -56,8 +56,6 @@ abstract class UiParser {
 
 		props.add("actionList = ${this.actionList}")
 		if(api>=24)	props.add("drawingOrder = ${this.drawingOrder}")
-		if(api>=27)		props.add("hintText = ${this.hintText}")  // -> for edit fields
-		props.add("inputType = ${this.inputType}")
 		props.add("labelFor = ${this.labelFor}")
 		props.add("liveRegion = ${this.liveRegion}")
 		props.add("windowId = ${this.windowId}")
@@ -102,6 +100,8 @@ abstract class UiParser {
 				hasUncoveredArea = uncoveredArea,
 				metaInfo = props,
 				text = safeCharSeqToString(text),
+				hintText = if(api>=27) safeCharSeqToString(hintText) else "",
+				inputType = inputType,
 				contentDesc = safeCharSeqToString(contentDescription),
 				resourceId = safeCharSeqToString(viewIdResourceName),
 				className = safeCharSeqToString(className),

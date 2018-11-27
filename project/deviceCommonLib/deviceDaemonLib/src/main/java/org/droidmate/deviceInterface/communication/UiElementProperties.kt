@@ -33,7 +33,9 @@ data class UiElementProperties(
 		override val visibleBounds: Rectangle,
 		override val imgId: Int,
 //		override val isInBackground: Boolean,
-		val allSubAreas: List<Rectangle>
+		val allSubAreas: List<Rectangle>,
+		override val hintText: String,
+		override val inputType: Int
 ) : UiElementPropertiesI {
 
 //TODO cleanup once parsing is repaired

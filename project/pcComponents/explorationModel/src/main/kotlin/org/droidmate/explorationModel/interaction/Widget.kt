@@ -65,9 +65,11 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 	@Suppress("MemberVisibilityCanBePrivate")
 	val isVisible by lazy{ visibleBounds.isNotEmpty() }
 
+	val hasParent get() = parentHash != 0
+
 	/**------------------------------- open function default implementations ------------------------------------------**/
 
-	open val nlpText: String by lazy { "$text $contentDesc".replace("\\s+", " ").splitOnCaseSwitch().trim() }
+	open val nlpText: String by lazy { "$hintText $text $contentDesc".replace("\\s+", " ").splitOnCaseSwitch().trim() }
 
 	open fun isLeaf(): Boolean = childHashes.isEmpty()
 
@@ -103,7 +105,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 	 */
 	protected open fun computePropertyId(): UUID {
 		val relevantProperties = listOf(enabled, definedAsVisible, visibleBounds, text, checked, focused, selected, clickable, longClickable,
-				scrollable, isInputField, imgId, xpath, idHash) // REMARK we need the xpath/idHash here because this information is not encoded in the uid IF we have some text or resourceId, but on state parsing we need the correct idHash/parentHash to reconstruct the Widget object, this is currently expressed via config id but could be handled by changing the widget-parser queue as well
+				scrollable, isInputField, imgId, xpath, idHash, childHashes) // REMARK we need the xpath/idHash here because this information is not encoded in the uid IF we have some text or resourceId, but on state parsing we need the correct idHash/parentHash to reconstruct the Widget object, this is currently expressed via config id but could be handled by changing the widget-parser queue as well
 		return relevantProperties.joinToString("<;>").toUUID()
 	}
 
@@ -149,7 +151,9 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 	final override val imgId: Int = properties.imgId
 	final override val visibleBounds: org.droidmate.deviceInterface.exploration.Rectangle = properties.visibleBounds
 	final override val isKeyboard: Boolean = properties.isKeyboard
+	final override val inputType: Int = properties.inputType
 	final override val text: String = properties.text
+	final override val hintText: String = properties.hintText
 	final override val contentDesc: String = properties.contentDesc
 	final override val checked: DeactivatableFlag = properties.checked
 	final override val resourceId: String = properties.resourceId

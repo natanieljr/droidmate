@@ -39,6 +39,7 @@ import org.droidmate.explorationModel.retention.StringCreator
 import org.droidmate.explorationModel.retention.StringCreator.createActionString
 import java.io.File
 import java.util.*
+import kotlin.collections.HashSet
 import kotlin.properties.Delegates
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -50,6 +51,8 @@ open class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mu
 	protected val trace = CollectionActor(LinkedList<Interaction>(), "TraceActor").create()
 
 	private val targets: MutableList<Widget> = LinkedList()
+	/** store all text values we inserted into input fields. This can be used to recognize fields we already acted upon */
+	private val textInsers = HashSet<String>()
 
 	data class RecentState(val state: State, val interactionTargets: List<Widget>, val action: ExplorationAction, val interactions: List<Interaction>)
 	/** this property is set in the end of the trace update and notifies all watchers for changes */
@@ -57,7 +60,7 @@ open class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mu
 			by Delegates.observable(RecentState(State.emptyState, emptyList(), EmptyAction, emptyList())) { _, last, recent ->
 				notifyObserver(old = last.state, new = recent.state, targets = recent.interactionTargets,
 						explorationAction = recent.action, interactions = recent.interactions)
-				internalUpdate(srcState = last.state, interactedTargets = recent.interactionTargets)
+				internalUpdate(srcState = last.state, interactedTargets = recent.interactionTargets, interactions = recent.interactions)
 			}
 		private set
 
@@ -75,7 +78,10 @@ open class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mu
 	}
 
 	/** used to keep track of all widgets interacted with, i.e. the edit fields which require special care in uid computation */
-	protected open fun internalUpdate(srcState: State, interactedTargets: List<Widget>) {
+	protected open fun internalUpdate(srcState: State, interactedTargets: List<Widget>, interactions: List<Interaction>) {
+		interactions.forEach {
+			if(it.actionType.isTextInsert()) textInsers.add(it.data)  // keep track of all inserted text values
+		}
 		this.targets.addAll(interactedTargets)
 	}
 
@@ -149,6 +155,8 @@ open class ExplorationTrace(private val watcher: MutableList<ModelFeatureI> = mu
 	fun unexplored(candidates: List<Widget>): List<Widget> = candidates.filterNot { w ->
 		targets.any { w.uid == it.uid	}
 	}
+
+	fun insertedTextValues(): Set<String> = textInsers
 
 	fun getExploredWidgets(): List<Widget> = targets
 

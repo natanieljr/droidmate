@@ -26,8 +26,19 @@ interface UiElementPropertiesI : Serializable {		//FIXME load/create properties 
 	@property:Persistent("Displayed Text", 5)
 	val text: String
 
-	@property:Persistent("Alternative Text", 6)
+	/** often used to render the initial (hint) text within input fields */
+	@property:Persistent("Hint Text", 6)
+	val hintText: String
+
+	@property:Persistent("Alternative Text", 7)
 	val contentDesc: String
+
+	/**
+	 * This is the value as given by android.text.InputType and can be used to generate more specific input strings for input fields.
+	 * Requires Android.API 27+
+	 * */
+	@property:Persistent("Input-Type", 8, PType.Int)
+	val inputType: Int
 
 	@property:Persistent("Resource Id", 42)
 	val resourceId: String

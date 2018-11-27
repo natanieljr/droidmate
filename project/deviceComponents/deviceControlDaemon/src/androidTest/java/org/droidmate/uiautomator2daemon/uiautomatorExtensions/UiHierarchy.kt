@@ -109,7 +109,7 @@ nodes
 				found = cond(node,xPath).also { isFound ->
 					if(isFound){
 						successfull = action(node).run { if(retry && !this){
-							Log.d(LOGTAG,"action failed on $node\n with id ${xPath.hashCode()+rootIndex}, try a second time")
+							Log.d(LOGTAG,"action failed on $node\n with id ${computeIdHash(xPath,node.window.layer)}, try a second time")
 							runBlocking { delay(20) }
 							action(node)
 							}else this

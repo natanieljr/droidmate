@@ -161,11 +161,13 @@ open class Model private constructor(val config: ModelConfig): CoroutineScope {
 				val parent = if(parentHash != 0) widgets[parentHash]!!.id else null
 				widgets[idHash] = Widget(this, parent)
 				childHashes.forEach {
-					check(elements[it]!=null){"ERROR no element with hashId $it in working queue"}
-					workQueue.add(elements[it]!!) } //FIXME if null we can try to find element.parentId = this.idHash !IN workQueue as repair function, but why does it happen at all
+//					check(elements[it]!=null){"ERROR no element with hashId $it in working queue"}
+					if(elements[it] == null)
+						logger.warn("could not find child with id $it of widget $this ")
+					else workQueue.add(elements[it]!!) } //FIXME if null we can try to find element.parentId = this.idHash !IN workQueue as repair function, but why does it happen at all
 			}
 		}
-		check(widgets.size==elements.size){"ERROR not all UiElements were generated correctly in the model ${elements.filter { !widgets.containsKey(it.key) }}"}
+		check(widgets.size==elements.size){"ERROR not all UiElements were generated correctly in the model ${elements.filter { !widgets.containsKey(it.key) }.values}"}
 		assert(elements.all { e -> widgets.values.any { it.idHash == e.value.idHash } }){ "ERROR not all UiElements were generated correctly in the model ${elements.filter { !widgets.containsKey(it.key) }}" }
 		return widgets.values
 	}
