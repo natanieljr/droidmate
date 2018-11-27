@@ -39,6 +39,7 @@ import org.droidmate.exploration.modelFeatures.listOfSmallest
 import org.droidmate.explorationModel.emptyId
 import org.droidmate.misc.debugOutput
 import java.util.Random
+import kotlin.streams.asSequence
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
@@ -49,7 +50,8 @@ import java.util.Random
  */
 open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 												  private val biased: Boolean = true,
-												  private val randomScroll: Boolean = true) : ExplorationStrategy() {
+												  private val randomScroll: Boolean = true,
+                         private val dictionary: List<String> = emptyList()) : ExplorationStrategy() {
 
 	protected var random = Random(randomSeed)
 		private set
@@ -76,7 +78,7 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 					// Has last action
 					this.eContext.lastTarget != null &&
 					// Has a state that is not a runtime permission
-					eContext.getModel().let { runBlocking { it.getStates() } }
+					runBlocking { eContext.getModel().getStates() }
 							.filterNot { it.stateId == emptyId && it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&
 					// Can re-execute the same action
@@ -102,7 +104,8 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	}
 
 	protected open fun getAvailableWidgets(): List<Widget> {
-		return currentState.actionableWidgets
+		return currentState.visibleTargets.filter { w ->	!w.isKeyboard
+				&& (!w.isInputField || !eContext.explorationTrace.insertedTextValues().contains(w.text)) }  // ignore input fields we already filled
 	}
 
 	/** use this function to filter potential candidates against previously blacklisted widgets
@@ -112,21 +115,19 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	 */
 	protected open suspend fun excludeBlacklisted(candidates: List<Widget>, tInState: Int = 1, tOverall: Int = 2, block: (listedInsState: List<Widget>, blacklisted: List<Widget>) -> List<Widget>): List<Widget> =
 			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, tInState) }.let { noBlacklistedInState ->
-				noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, tOverall) }.let { noBlacklisted ->
-					block(noBlacklistedInState, noBlacklisted)
-				}
+				block(noBlacklistedInState, noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, tOverall) })
 			}
 
 
 	private fun List<Widget>.chooseRandomly(): ExplorationAction {
 		if (this.isEmpty())
 			return eContext.resetApp()
-		return chooseActionForWidget(this[random.nextInt(this.size)])
+		return chooseActionForWidget( this[random.nextInt(this.size)] )
 	}
 
 	open suspend fun computeCandidates(): Collection<Widget> = debugT("blacklist computation", {
-		val nonCrashing = super.eContext.nonCrashingWidgets()
-		excludeBlacklisted(super.eContext.nonCrashingWidgets()) { noBlacklistedInState, noBlacklisted ->
+		val nonCrashing = with(eContext){ getAvailableWidgets().nonCrashingWidgets() }
+		excludeBlacklisted(nonCrashing) { noBlacklistedInState, noBlacklisted ->
 			when {
 				noBlacklisted.isNotEmpty() -> noBlacklisted
 				noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
@@ -182,17 +183,29 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 			chooseRandomly()
 	}
 
+	protected open fun randomString(): String{
+		if(dictionary.isNotEmpty()) return dictionary[random.nextInt(dictionary.size-1)]
+
+		@Suppress("SpellCheckingInspection") val source = "abcdefghijklmnopqrstuvwxyz"
+		return random.ints( random.nextInt(20).toLong()+3, 0, source.length)
+				.asSequence()
+				.map(source::get)
+				.joinToString("")
+	}
+
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
+		val editFields = currentState.widgets.filter { it.isInputField }
 
 		while (!chosenWidget.isInteractive) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
 		}
 
-		val actionList = if (randomScroll)
-			widget.availableActions()
-		else
-			widget.availableActions().filterNot { it is Swipe }
+		val actionList = when{
+			widget.isInputField ->	listOf(widget.setText(randomString()))
+			randomScroll -> widget.availableActions()
+			else -> widget.availableActions().filterNot { it is Swipe }
+		}
 
 		val maxVal = actionList.size
 	//FIXME this may give trouble with swipe-able only elements
@@ -200,8 +213,9 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 
 		val randomIdx = random.nextInt(maxVal)
 		return actionList[randomIdx].also {
-			if(debugOutput) logger.debug("[${it.id}] Chosen widget info: $widget: interactive=${widget.isInteractive}\tclickable=${widget.clickable}\tcheckable=${widget.checked}\tlong-clickable=${widget.longClickable}\tscrollable=${widget.scrollable}")
-
+			if(debugOutput) logger.debug("[A${it.id}] Chosen widget info: $widget: keyboard=${widget.isKeyboard}" +
+					"clickable=${widget.clickable}\tcheckable=${widget.checked}\tlong-clickable=${widget.longClickable}\t" +
+					"scrollable=${widget.scrollable}")
 		}
 	}
 

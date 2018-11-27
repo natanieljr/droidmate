@@ -93,8 +93,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	suspend fun getState(sId: ConcreteId) = _model.getState(sId)
 
 	/** filters out all crashing marked widgets from the actionable widgets of the current state **/
-	suspend fun nonCrashingWidgets() = getCurrentState().let{ s->
-		s.visibleTargets.filterNot { crashlist.isBlacklistedInState(it.uid,s.uid) } }
+	suspend fun Collection<Widget>.nonCrashingWidgets() = filterNot { crashlist.isBlacklistedInState(it.uid,getCurrentState().uid) }
 
 	fun belongsToApp(state: State): Boolean {
 		return state.widgets.any { it.packageName == apk.packageName }
