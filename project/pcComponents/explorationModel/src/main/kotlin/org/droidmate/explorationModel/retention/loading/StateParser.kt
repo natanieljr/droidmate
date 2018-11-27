@@ -2,20 +2,28 @@ package org.droidmate.explorationModel.retention.loading
 
 import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
-import org.droidmate.deviceInterface.exploration.isClick
-import org.droidmate.deviceInterface.exploration.isLongClick
-import org.droidmate.deviceInterface.exploration.isTextInsert
-import org.droidmate.explorationModel.*
-import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.ConcreteId
+import org.droidmate.explorationModel.Model
+import org.droidmate.explorationModel.debugOut
 import org.droidmate.explorationModel.interaction.State
-import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.explorationModel.retention.loading.WidgetParserI.Companion.computeWidgetIndices
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.MutableMap
+import kotlin.collections.associate
+import kotlin.collections.emptyMap
+import kotlin.collections.find
+import kotlin.collections.forEach
+import kotlin.collections.get
+import kotlin.collections.groupBy
+import kotlin.collections.isNotEmpty
+import kotlin.collections.map
+import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 internal abstract class StateParserI<T,W>: ParserI<T, State>{
 	var headerRenaming: Map<String,String> = emptyMap()
@@ -74,22 +82,7 @@ internal abstract class StateParserI<T,W>: ParserI<T, State>{
 			model.parseState(widgets, isHomeScreen).also { newState ->
 
 				verify("ERROR different set of widgets used for UID computation used", {
-					val correctId = stateId == newState.stateId
-					if (!correctId)
-						logger.warn("ERROR on state parsing inconsistent UUID created ${newState.stateId} instead of $stateId")
-					val lS = emptyList<Widget>()//widgets.filter { it.usedForStateId }
-					if (lS.isNotEmpty()) {
-						val nS = newState.widgets.filter {
-							newState.isRelevantForId(it)   // IMPORTANT: use this call instead of accessing usedForState property because the later is only initialized after the pId is accessed
-						}
-						val uidC = nS.containsAll(lS) && lS.containsAll(nS)
-						val nOnly = nS.minus(lS)
-						val lOnly = lS.minus(nS)
-						if (!uidC){
-							logger.warn("ERROR different set of widgets used for UID computation used \n ${nOnly.map { it.id }}\n instead of \n ${lOnly.map { it.id }}")
-						}
-						uidC && correctId
-					} else correctId
+					stateId == newState.stateId
 				}) {
 					idMapping[stateId] = newState.stateId
 				}

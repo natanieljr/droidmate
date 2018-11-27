@@ -2,6 +2,7 @@ package org.droidmate.explorationModel.retention.loading
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.produce
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ModelConfig
@@ -17,14 +18,15 @@ import kotlin.coroutines.coroutineContext
 
 /** test interface for the model loader, which cannot be done with mockito due to coroutine incompatibility */
 internal interface ModelLoaderTI{
+	val sep: String
 	var testTraces: List<Collection<Interaction>>
 	var testStates: Collection<State>
 
 	fun execute(testTraces: List<Collection<Interaction>>, testStates: Collection<State>, watcher: LinkedList<ModelFeatureI> = LinkedList()): Model
-	suspend fun parseWidget(widget: Widget): Widget?
+	suspend fun parseWidget(widget: Widget): UiElementPropertiesI?
 
-	/** REMARK these are state dependend => use very carefully in Unit-Tests */
-//	val actionParser: suspend (List<String>) -> Pair<Interaction, State>
+	/** REMARK these are state dependent => use very carefully in Unit-Tests */
+	val actionParser: suspend (List<String>,CoroutineScope) -> Pair<Interaction, State>
 	suspend fun parseState(stateId: ConcreteId): State
 
 }
@@ -49,8 +51,10 @@ class TestReader(config: ModelConfig): ContentReader(config){
 				traceContents(name.removePrefix(config[ConfigProperties.ModelProperties.dump.traceFilePrefix]).toInt())
 			name.contains("fa5d6ec4-129e-cde6-cfbf-eb837096de60_829a5484-73d6-ba71-57fc-d143d1cecaeb") ->
 				headerPlusString(debugString.split("\n"), skip)
-			else -> TODO()
-//				headerPlusString(testStates.find { s -> s.stateId == fromString(name.removeSuffix(ModelConfig.defaultWidgetSuffix)) }!!.widgetsDump(config[ConfigProperties.ModelProperties.dump.sep]),skip)
+			else ->
+				headerPlusString( testStates.find { s ->
+					s.stateId == ConcreteId.fromString(name.removeSuffix(config[ConfigProperties.ModelProperties.dump.traceFileExtension])) }!!
+						.widgetsDump(config[ConfigProperties.ModelProperties.dump.sep]),skip)
 		}
 	}
 
@@ -67,6 +71,7 @@ class TestReader(config: ModelConfig): ContentReader(config){
 
 @ExperimentalCoroutinesApi
 internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(config,enableChecks = true), ModelLoaderTI {
+	override val sep: String= config[ConfigProperties.ModelProperties.dump.sep]
 
 	/** creating test environment */
 	override val enableChecks: Boolean = true
@@ -81,8 +86,8 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(conf
 	override val stateParser  by lazy { StateParserP(widgetParser, reader, model, compatibilityMode, enableChecks) }
 
 	/** custom test environment */
-//	override val actionParser: suspend (List<String>) -> Pair<Interaction, State> = processor
-//	override val actionParser: suspend (List<String>) -> Pair<Interaction, State> = { args -> processor(args).await() }
+//	override val actionParser: suspend (List<String>,CoroutineScope) -> Pair<Interaction, State> = processor
+	override val actionParser: suspend (List<String>,CoroutineScope) -> Pair<Interaction, State> = { args,scope -> processor(args,scope).await() }
 	override var testStates: Collection<State>
 		get() = reader.testStates
 		set(value) { reader.testStates = value}
@@ -105,8 +110,9 @@ internal class ModelLoaderT(override val config: ModelConfig): ModelParserP(conf
 		return runBlocking { loadModel(watcher) }
 	}
 
-	override suspend fun parseWidget(widget: Widget): Widget? = TODO()
-//			widgetParser.getElem( widgetParser.processor(widget.splittedDumpString(config[ConfigProperties.ModelProperties.dump.sep])) )
+	override suspend fun parseWidget(widget: Widget): UiElementPropertiesI? = widgetParser.getElem( widgetParser.processor(
+				StringCreator.createPropertyString(widget, sep).split(sep), CoroutineScope(coroutineContext)
+		))
 
 	override suspend fun parseState(stateId: ConcreteId): State = stateParser.getElem( stateParser.parseIfAbsent(coroutineContext)(stateId) )
 }

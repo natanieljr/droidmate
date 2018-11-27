@@ -165,13 +165,12 @@ class VisualizationGraph : ApkReport() {
 			obj.addProperty("image", getImgPath(stateId))
 			obj.addProperty("uid", src.uid.toString())
 			obj.addProperty("configId", src.configId.toString())
-			obj.addProperty("iEditId", src.iEditId.toString())
 			obj.addProperty("hasEdit", src.hasEdit)
 			obj.addProperty("isHomeScreen", src.isHomeScreen)
 			obj.addProperty("title", stateId)
 			// Include all important properties to make the states searchable
 			val properties = arrayListOf(stateId, //src.topNodePackageName,
-					src.uid.toString(), src.configId.toString(), src.iEditId.toString())
+					src.uid.toString(), src.configId.toString())
 			obj.addProperty("nlpText", properties.joinToString("\n"))
 
 			// Widgets

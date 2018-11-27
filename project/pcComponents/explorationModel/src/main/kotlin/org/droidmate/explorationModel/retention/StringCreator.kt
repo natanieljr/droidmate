@@ -109,7 +109,7 @@ object StringCreator {
 				data = get(Interaction::data.name) as String
 		)}
 
-	private val baseAnnotations: Sequence<WidgetProperty> by lazy {
+	internal val baseAnnotations: Sequence<WidgetProperty> by lazy {
 		UiElementPropertiesI::class.declaredMemberProperties.mapNotNull { property ->
 			property.findAnnotation<Persistent>()?.let { annotation -> AnnotatedProperty(property, annotation) }
 		}.asSequence()

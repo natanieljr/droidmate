@@ -20,7 +20,8 @@ data class ConcreteId(val uid: UUID, val configId: UUID) {
 	override fun toString(): String = "${uid}_$configId"
 
 	companion object {
-		fun fromString(s: String): ConcreteId? = if(s == "null") null else s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
+		fun fromString(s: String): ConcreteId? =
+				if(s == "null") null else s.split("_").let { ConcreteId(UUID.fromString(it[0]), UUID.fromString(it[1])) }
 	}
 }
 

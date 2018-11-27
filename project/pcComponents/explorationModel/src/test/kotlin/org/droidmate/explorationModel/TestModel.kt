@@ -1,79 +1,51 @@
-//package org.droidmate.explorationModel
-//
-//import org.droidmate.deviceInterface.guimodel.UiElementP
-//import org.droidmate.explorationModel.config.ConcreteId
-//import org.droidmate.explorationModel.config.dumpString
-//import org.droidmate.explorationModel.config.emptyId
-//import java.time.LocalDateTime
-//
-//interface TestModel{
-////	val parentData: UiElementP get() = UiElementP.empty()
-////	val parentWidget: Widget get() = Widget(parentData)
-//	val testWidgetData: UiElementP
-////	val testWidget: Widget get() = Widget(testWidgetData).apply { parentId = parentWidget.id }
-//	val testWidgetDumpString: String
-//}
-//
-//typealias TestAction = Interaction
-//@JvmOverloads fun createTestAction(targetWidget: Widget?=null, oldState: ConcreteId = emptyId, nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION"): TestAction
-//		= Interaction(actionType, targetWidget, LocalDateTime.MIN, LocalDateTime.MIN, true, "test action", nextState, sep = ";").apply {
-//	prevState = oldState
-//}
-///*
-//TestProperties(
-//		override val text: String,
-//		override val contentDesc: String ="",
-//		override val resourceId: String ="",
-//		override val className: String ="",
-//		override val packageName: String ="",
-//		override val enabled: Boolean = false,
-//		override val isInputField: Boolean = false,
-//		override val isPassword: Boolean = false,
-//		override val clickable: Boolean = false,
-//		override val longClickable: Boolean = false,
-//		override val scrollable: Boolean = false,
-//		override val checked: Boolean? = null,
-//		override val focused: Boolean? = null,
-//		override val selected: Boolean = false,
-//
-//		/** important the bounds may lay outside of the screen bounderies, if the element is (partially) invisible */
-//		override val boundsX: Int = 0,
-//		override val boundsY: Int = 0,
-//		override val boundsWidth: Int = 0,
-//		override val boundsHeight: Int = 0,
-//
-//		override val definedAsVisible: Boolean = false,
-//		private val _uid: UUID? = null,  // for copy/transform function only to transfer old pId values
-//
-//		override val xpath: String = "noPath",
-//		override val parentHash: Int = 0,
-//		override val childHashes: List<Int> = emptyList(), override val idHash: Int = 0, override val isKeyboard: Boolean, override val windowId: Boolean
-//): UiElementP
-//
-// */
-//class DefaultTestModel: TestModel {
-////	override val testWidgetData by lazy{
-////		UiElementP(text = "text-mock",
-////				contentDesc = "description-mock",
-////				resourceId = "resourceId-mock",
-////				className = "class-mock",
-////				packageName = "package-mock",
-////				enabled = true,
-////				clickable = true,
-////				definedAsVisible = true,
-////				boundsX = 11,
-////				boundsY = 136,
-////				boundsWidth = 81,
-////				boundsHeight = 51,
-////				isLeaf = true
-////		)
-////	}
-//
-//	// per default we don't want to re-generate the widgets on each access, therefore make them persistent values
-//	override val testWidget: Widget by lazy{ super.testWidget }
-//	override val parentWidget: Widget by lazy{ super.parentWidget }
-//
-//	override val testWidgetDumpString = "5a3d425d-66bc-38d5-a375-07e0b682e0ba;${testWidgetData.configId};class-mock;"+
-//			"true;null;text-mock;description-mock;${parentWidget.id.dumpString()};true;true;true;false;false;disabled;"+
-//			"false;disabled;false;false;11;136;81;51;resourceId-mock;;true;package-mock;null;false;0"
-//}
+package org.droidmate.explorationModel
+
+import org.droidmate.deviceInterface.exploration.Rectangle
+import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
+import org.droidmate.explorationModel.interaction.*
+import org.droidmate.explorationModel.retention.StringCreator
+import org.droidmate.explorationModel.retention.StringCreator.parsePropertyString
+import java.time.LocalDateTime
+
+internal interface TestModel{
+	val parentData: UiElementPropertiesI get() = DummyProperties
+	val parentWidget: Widget get() = Widget(parentData, null)
+	val testWidgetData: UiElementPropertiesI
+	val testWidget: Widget get() = Widget(testWidgetData, parentWidget.id)
+	val testWidgetDumpString: String
+}
+
+typealias TestAction = Interaction
+@JvmOverloads fun createTestAction(targetWidget: Widget?=null, oldState: ConcreteId = emptyId,
+                                   nextState: ConcreteId = emptyId, actionType:String = "TEST_ACTION",
+                                   data: String = ""): TestAction
+		= Interaction(actionType = actionType, target = targetWidget, startTimestamp = LocalDateTime.MIN, data = data,
+		endTimestamp = LocalDateTime.MIN, successful = true, exception = "test action", prevState = oldState, resState = nextState)
+
+
+internal class DefaultTestModel: TestModel {
+	override val testWidgetData by lazy{
+		val properties = StringCreator.createPropertyString(parentWidget,";").split(";")
+		val namePropMap = StringCreator.baseAnnotations.parsePropertyString(properties, StringCreator.defaultMap).toMutableMap()
+		namePropMap[Widget::text.name] = "text-mock"
+		namePropMap[Widget::contentDesc.name] = "description-mock"
+		namePropMap[Widget::resourceId.name] = "resourceId-mock"
+		namePropMap[Widget::className.name] = "class-mock"
+		namePropMap[Widget::packageName.name] = "package-mock"
+		namePropMap[Widget::enabled.name] = true
+		namePropMap[Widget::clickable.name] = true
+		namePropMap[Widget::definedAsVisible.name] = true
+		namePropMap[Widget::boundaries.name] = Rectangle(11,136,81,51)
+		namePropMap[Widget::visibleAreas.name] = listOf(Rectangle(11,136,81,51))
+		namePropMap[Widget::visibleBounds.name] = Rectangle(11,136,81,51)
+		UiElementP(namePropMap)
+	}
+
+	// per default we don't want to re-generate the widgets on each access, therefore make them persistent values
+	override val testWidget: Widget by lazy{ super.testWidget }
+	override val parentWidget: Widget by lazy{ super.parentWidget }
+
+	override val testWidgetDumpString = "f875d52c-f9ef-31fb-897e-04434b2ef74e_defcef0e-5a90-38a2-a77d-b62d34e93723;" +
+			"class-mock;text-mock;description-mock;disabled;false;11:136:81:51;11:136:81:51;[];true;true;true;disabled;" +
+			"0;0;false;false;false;false;package-mock;0;resourceId-mock;false;false;[11:136:81:51];No-xPath"
+}
