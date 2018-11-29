@@ -31,9 +31,6 @@ class LogbackUtils {
 	companion object {
 		@JvmStatic
 		fun getLogFilePath(logName: String): String = "${LogbackConstants.LOGS_DIR_PATH}${File.separator}$logName"
-
-		@JvmStatic
-		fun getLogFilePathForLastElement(className: String): String = getLogFilePath("${className.substring(className.lastIndexOf(".") + 1)}.txt")
 	}
 }
 

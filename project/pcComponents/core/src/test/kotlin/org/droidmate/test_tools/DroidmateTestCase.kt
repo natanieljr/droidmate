@@ -25,9 +25,7 @@
 
 package org.droidmate.test_tools
 
-import ch.qos.logback.classic.Level
 import junit.framework.TestCase
-import org.droidmate.logging.LogbackAppenders
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.droidmate.misc.BuildConstants
 import org.junit.Before
@@ -55,13 +53,8 @@ open class DroidmateTestCase : TestCase() {
 //    println "Done waiting!"
 //  }
 	companion object {
-		@JvmStatic
-		private val stdoutAppendersLogLevelForTesting: Level = Level.ERROR
-
 		init {
 			Locale.setDefault(BuildConstants.locale)
-			// WISH maybe better solution is to use @Rule: https://edgblog.wordpress.com/2013/10/21/a-junit-rule-to-turn-test-logging-onoff/
-			LogbackAppenders.setThresholdLevelOfStdStreamsAppenders(stdoutAppendersLogLevelForTesting)
 		}
 	}
 
