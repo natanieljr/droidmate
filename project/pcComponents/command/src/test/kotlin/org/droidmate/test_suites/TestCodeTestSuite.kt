@@ -22,13 +22,12 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.test_suites
 
-import org.droidmate.logging.LogbackAppendersTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
 @RunWith(Suite::class)
-@Suite.SuiteClasses(
-		LogbackAppendersTest::class)
+@Suite.SuiteClasses()
 class TestCodeTestSuite

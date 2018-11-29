@@ -50,11 +50,6 @@ subprojects {
 				// This line makes IntelliJ navigate to sources instead of external jar.
 				testCompileOnly files { project(dependency).sourceSets.test.kotlin.srcDirs }
 			}
-		} else if (lang == "groovy") {
-			target.dependencies {
-				// As line above, but for groovy, not kotlin.
-				testCompileOnly files { project(dependency).sourceSets.test.groovy.srcDirs }
-			}
 		} else
 			assert false: "Unsupported language of dependency. The language: $lang"
 
