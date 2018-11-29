@@ -23,10 +23,15 @@
 //
 // web: www.droidmate.org
 
+repositories {
+	mavenCentral()
+	maven { url = "http://jitpack.io" }
+}
+
 dependencies {
-	// This includes the jar ca.mcgill.sable:soot:3.1.0
-	// so we don't rely on changes of the development branch
-	compile fileTree(dir: 'libs', include: ['*.jar'])
+	// We use the Soot version 3.0.1, because we had trouble with Soot 3.1.0.
+	// Soot 3.1.0 was not able to instrument wikihowapp or reddit.
+	compile "ca.mcgill.sable:soot:3.0.1"
 	compile 'org.json:json:20160212'
 
 	compile project(":project:pcComponents:core")

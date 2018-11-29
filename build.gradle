@@ -15,7 +15,7 @@ buildscript {
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
 		classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1' // for jitpack gradle support?
-		}
+	}
 }
 
 apply from: file("${rootProject.projectDir}/versions.gradle")
@@ -33,10 +33,12 @@ allprojects {
 
     repositories {
 //		mavenLocal()
-        mavenCentral()
-        jcenter()
-
         maven { url = 'https://jitpack.io' }
+        jcenter()
+        mavenCentral()
+
+        maven { url = "https://soot-build.cs.upb.de/nexus/repository/soot-release/" }
+        maven { url = "https://soot-build.cs.upb.de/nexus/repository/soot-snapshot/" }
     }
 
     apply plugin: 'java'
