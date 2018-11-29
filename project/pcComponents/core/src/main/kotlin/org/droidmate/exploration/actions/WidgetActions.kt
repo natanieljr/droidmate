@@ -6,7 +6,6 @@ import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.ExplorationTrace.Companion.widgetTargets
 import org.droidmate.explorationModel.firstCenter
 import org.droidmate.explorationModel.firstOrEmpty
-import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 
 /**
@@ -62,55 +61,15 @@ fun Widget.swipeDown(stepSize: Int = this.visibleAreas.firstOrEmpty().height / 2
 fun Widget.swipeLeft(stepSize: Int = this.visibleAreas.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.visibleBounds.leftX + this.visibleBounds.width, this.visibleBounds.center.second), Pair(this.visibleBounds.leftX, this.visibleBounds.center.second), stepSize, true)
 fun Widget.swipeRight(stepSize: Int = this.visibleAreas.firstOrEmpty().width / 2): ExplorationAction = Swipe(Pair(this.visibleBounds.leftX, this.visibleBounds.center.second), Pair(this.visibleBounds.leftX + this.visibleBounds.width, this.visibleBounds.center.second), stepSize, true)
 
-/** navigate to this widget (which may be currently out of screen) and click it */
-fun State.navigateTo(w: Widget, action: (Widget) -> ExplorationAction): ExplorationAction? {
-	if (w.isVisible)
-		return action(w)
-	// 1) the element is not visible, therefore we traverse the parent structure until we find a visible ancestor (wa)
-	// 2) the visible bounds of this ancestor will determine the region we can use to swipe within
-	// 3) compute the number of swipes necessary to 'scroll' the element into the visible area
-	// 4) compute the 'new' boundary parameters for w and create a new widget (nw) with the properties as w is going to have them after the scroll actions
-	// 5) create an action queue with these swipes + the result from @param action(nw)
-
-	val widgetMap: Map<Int, Widget> = widgets.associateBy { it.idHash }
-	var wa: Widget? = null
-	var waId: Int = w.parentHash
-	var hasAncestor = w.hasParent
-	while(hasAncestor && wa==null){
-
-		widgetMap[waId].let { a: Widget? ->
-			when{
-				a == null -> {
-					println("ERROR invalid state could not find parentHash $waId within this state $stateId")
-					return null
-				}
-				a.isVisible -> wa = a
-				else -> {
-					hasAncestor = a.hasParent
-					waId = a.parentHash
-				}
-			}
-		}
-	}
-	if(wa == null){
-		println("INFO cannot navigate to widget ${w.id} as it has no visible parent")
-		return null
-	}
-	// we have found a visible ancestor (wa) (1)
-
-
-	TODO()
-}
 
 /**
  * Used by RobustDevice which does not currently create [Widget] objects.
  * This function should not be used anywhere else.
  */
-fun UiElementPropertiesI.click(): ExplorationAction = visibleAreas.firstCenter().let{ (x, y) ->
-	return Click(x, y)
-}
+fun UiElementPropertiesI.click(): ExplorationAction = (visibleAreas.firstCenter()
+		?: visibleBounds.center).let{ (x,y) -> Click(x,y) }
 
- fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter()
+ fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter() ?: visibleBounds.center
 
 
 fun Widget.availableActions(): List<ExplorationAction>{

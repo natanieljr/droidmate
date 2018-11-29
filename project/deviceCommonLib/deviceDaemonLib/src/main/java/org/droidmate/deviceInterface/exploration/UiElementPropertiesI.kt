@@ -9,11 +9,7 @@ enum class PType{
 	DeactivatableFlag, Boolean, Rectangle, Int, RectangleList, String, IntList, ConcreteId, DateTime
 }
 
-interface UiElementPropertiesI : Serializable {		//FIXME load/create properties for these properties
-
-	fun copy(): UiElementPropertiesI {
-		TODO("if necessary should be implemented by instantiating class")
-	}
+interface UiElementPropertiesI : Serializable {
 
 	/** -----------------------------------------------------------
 	 * (potentially) used for default unique id computation

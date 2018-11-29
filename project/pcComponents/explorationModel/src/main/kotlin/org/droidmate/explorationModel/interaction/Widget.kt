@@ -27,12 +27,12 @@ package org.droidmate.explorationModel.interaction
 
 import org.droidmate.deviceInterface.exploration.PType
 import org.droidmate.deviceInterface.exploration.Persistent
+import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
-import org.droidmate.explorationModel.ConcreteId
-import org.droidmate.explorationModel.DeactivatableFlag
-import org.droidmate.explorationModel.DummyProperties
-import org.droidmate.explorationModel.toUUID
+import org.droidmate.explorationModel.*
+import org.droidmate.explorationModel.retention.StringCreator
 import java.util.*
+import kotlin.collections.HashMap
 
 open class Widget internal constructor(properties: UiElementPropertiesI,
                                        val parentId: ConcreteId?): UiElementPropertiesI {
@@ -63,7 +63,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 	val canInteractWith: Boolean by lazy { isVisible && isInteractive }
 
 	@Suppress("MemberVisibilityCanBePrivate")
-	val isVisible by lazy{ visibleBounds.isNotEmpty() }
+	val isVisible by lazy{ definedAsVisible 	&& visibleBounds.isNotEmpty() }
 
 	val hasParent get() = parentHash != 0
 
@@ -74,7 +74,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 	open fun isLeaf(): Boolean = childHashes.isEmpty()
 
 	protected open fun computeInteractive(): Boolean =
-			enabled && definedAsVisible 	&& ( isInputField || clickable || checked ?: false || longClickable || scrollable)
+			enabled && ( isInputField || clickable || checked ?: false || longClickable || scrollable)
 
 	/**
 	 * @see computeUId
@@ -85,6 +85,7 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 	/** compute the widget.uid based on its visible natural language content/resourceId if it exists, or based on [uidString] otherwise */
 	protected open fun computeUId():UUID =	when {
 		!isKeyboard && isInputField -> when { 	// special care for EditText elements, as the input text will change the [text] property
+			hintText.isNotBlank() -> hintText.toUUID()
 			contentDesc.isNotBlank() -> contentDesc.toUUID()
 			resourceId.isNotBlank() -> resourceId.toUUID()
 			else -> uidString.toUUID()
@@ -141,9 +142,13 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 		return id.hashCode()
 	}
 
+	private fun String.ifNotEmpty(label:String) = if(isNotBlank()) "$label=$this" else ""
+
 	private val simpleClassName by lazy { className.substring(className.lastIndexOf(".") + 1) }
 	override fun toString(): String {
-		return "interactive=$isInteractive-${uid}_$configId:$simpleClassName[text=$text; contentDesc=$contentDesc, resourceId=$resourceId, $visibleBounds]"
+		return "interactive=$isInteractive-${uid}_$configId: $simpleClassName" +
+				"[${text.ifNotEmpty("text")} ${hintText.ifNotEmpty("hint")} ${contentDesc.ifNotEmpty("description")} " +
+				"${resourceId.ifNotEmpty("resId")}, inputType=$inputType $visibleBounds]"
 	}
 
 	/**----------------------------------- final properties from ui extraction -----------------------------------------*/
@@ -175,7 +180,18 @@ open class Widget internal constructor(properties: UiElementPropertiesI,
 	final override val childHashes: List<Int> = properties.childHashes
 	final override val definedAsVisible: Boolean = properties.definedAsVisible
 	final override val hasUncoveredArea: Boolean = properties.hasUncoveredArea
-	/** end immutable ui-element properties */
+
+	@JvmOverloads open fun copy(boundaries: Rectangle = this.boundaries, visibleBounds:Rectangle = this.visibleBounds,
+	                       defVisible:Boolean=this.definedAsVisible): Widget{
+		val properties: MutableMap<String,Any?> = HashMap()
+		StringCreator.annotatedProperties.forEach { p ->
+			properties[p.property.name] = p.property.call(this)
+		}
+		properties[this::boundaries.name] = boundaries
+		properties[this::visibleBounds.name] = visibleBounds
+		properties[this::definedAsVisible.name] = defVisible
+		return Widget(UiElementP(properties),parentId)
+	}
 	/* end override */
 
 }

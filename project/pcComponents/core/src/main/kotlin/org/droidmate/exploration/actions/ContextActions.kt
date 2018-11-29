@@ -5,6 +5,11 @@ package org.droidmate.exploration.actions
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.explorationModel.debugOut
+import org.droidmate.explorationModel.interaction.Widget
+import java.util.*
+import kotlin.math.abs
+import kotlin.math.min
 
 /**
  * These are the new interface functions to interact with the overall screen
@@ -50,3 +55,113 @@ fun ExplorationContext.resetApp(): ExplorationAction {
     return queue(listOf(LaunchApp(apk.packageName, cfg[ConfigProperties.Exploration.launchActivityDelay]), GlobalAction(ActionType.EnableWifi)))
 }
 fun terminateApp(): ExplorationAction = GlobalAction(ActionType.Terminate)
+
+/** navigate to widget [w] (which may be currently out of screen) and act upon it by calling [action]
+ *
+ * 1) if the element is not visible, we traverse the parent structure until we find a visible ancestor (wa)
+ * 2) the visible bounds of this ancestor will determine the region we can use to swipe within
+ * 3) compute the number of swipes necessary to 'scroll' the element into the visible area
+ * 4) compute the 'new' boundary parameters for w and create a new widget (nw) with the properties as w is going to have them after the scroll actions
+ * 5) create an action queue with these swipes + the result from @param action(nw)
+ *
+ * REMARK if keyboard open some buttons may simply not be scrollable to, but this should actually  not be an issue as long as our strategy does not click input fields
+ */
+fun ExplorationContext.navigateTo(w: Widget, action: (Widget) -> ExplorationAction): ExplorationAction? {
+	if (w.isVisible)
+		return action(w)
+
+	val widgetMap: Map<Int, Widget> = getCurrentState().widgets.associateBy { it.idHash }
+	var wa: Widget? = null
+	var waId: Int = w.parentHash
+	var hasAncestor = w.hasParent
+	while(hasAncestor && wa==null){
+		widgetMap[waId].let { a: Widget? ->
+			when{
+				a == null -> {
+					println("ERROR invalid state could not find parentHash $waId within this state ${getCurrentState().stateId}")
+					return null
+				}
+				a.isVisible -> wa = a
+				else -> {
+					hasAncestor = a.hasParent
+					waId = a.parentHash
+				}
+			}
+		}
+	}
+	if(wa == null){
+		debugOut("INFO cannot navigate to widget ${w.id} as it has no visible parent")
+		return null
+	}
+	if(wa!!.visibleBounds.contains(w.boundaries)){  // elements may be hidden behind their cousins on purpose
+		debugOut("INFO cannot navigate to widget ${w.id} since it is already in the visible area of its ancestor")
+		return null
+	}
+
+	// we have found a visible ancestor (wa) (1)
+	(wa!!.visibleBounds).let{ area ->// determine the target coordinate (ty,tx) we want to scroll into view (upper-left/lower-right corner)
+		val (dy,ny) = when{
+			w.boundaries.topY in area.topY .. area.bottomY -> Pair(0, w.boundaries.topY)  // is already (partially) visible
+			w.boundaries.topY > area.bottomY -> // the target is below the visible area
+				Pair(w.boundaries.bottomY-area.bottomY,area.bottomY-w.boundaries.height) // take the lower corner of the target widget and the new y is the upper left corner
+			else ->
+				Pair(-(area.topY-w.boundaries.topY), area.topY) // target is above the visible area, take the upper corner of the widget
+		}
+		val (dx,nx) =when{
+			w.boundaries.leftX in area.leftX .. area.rightX -> Pair(0, w.boundaries.leftX)  // is already (partially) visible
+			w.boundaries.leftX > area.rightX -> Pair(w.boundaries.rightX-area.rightX, area.rightX-w.boundaries.width) // the element is right from the visible area
+			else -> Pair(-(area.leftX-w.boundaries.leftX), area.leftX)
+		}
+
+
+		val actions = swipe(dx,dy,area)
+		val newBounds = Rectangle(nx,ny,w.boundaries.width,w.boundaries.height) // the position the widget should have after executing all swipes below
+		val newVisibleBounds = Rectangle(nx,ny, min(w.boundaries.width, area.rightX-nx), min(w.boundaries.height, area.bottomY-ny))
+		val newPosWidget = w.copy(boundaries = newBounds, visibleBounds = newVisibleBounds, defVisible=true)
+		// add the action on the (modified) widget
+		actions.add( action(newPosWidget) )
+		return ActionQueue(actions, delay = 1000)
+	}
+}
+
+/** this is a helping function to determine the number of swipes to have an overall swipe distance in width [distX] and height [distY]
+ * remark: swipe directions are a bit un-intuitive, e.g. swipe((0,0),(100,100)) will swipe UP and not down
+ * use negative values of [distX], [distY] to swipe left, up
+ * @param swipeOffset some apps have custom menu bars if we start the swipe on these the swipe will not work, for the end-coordinate that is no issue we can even leave the app area
+ *
+ * Some apps (e.g. amazon) hide elements with small high just outside of the visible area and change their properties when the user scrolls into the right direction.
+ * This method does not work for these cases, the only thing we could do is scroll and fetch until it is in the visible area,
+ * or maybe more generally check if there are out of area elements and if so try to scroll into their direction once (
+ * we probably would have to keep track of which elements we already saw).
+ */
+private fun ExplorationContext.swipe(distX:Int, distY:Int, area:Rectangle, swipeOffset: Int = 2):LinkedList<ExplorationAction>{
+	val actions = LinkedList<ExplorationAction>()
+	val (middleX,middleY) = area.center
+	// mDistX/Y is the maximal distance we can scroll into X/Y direction with the respective integer sign
+	val (sx,mDistX) = with(area) {
+		when {
+			distX == 0 -> Pair(middleX, 0) // if we do not have swipe right/left we start the swipe in the middle of the x coordinate
+			distX < 0 -> Pair(leftX + swipeOffset, width-swipeOffset) // swipe left
+			else -> Pair(width - swipeOffset, width-swipeOffset)
+		}
+	}
+	val (sy,mDistY) = with(area) {
+		when {
+			distY == 0 -> Pair(middleY,0)
+			distY < 0 -> Pair(topY + swipeOffset, height-swipeOffset) // swipe up
+			else -> Pair(height - swipeOffset, height-swipeOffset)
+		}
+	}
+
+	var dx = 0  // the distance we already swiped on the x/y axis
+	var dy = 0
+	while ((mDistX!=0 || mDistY!=0) && (dx!=distX || dy!=distY)){
+		val mx = (distX-dx).let{ distToX -> if(abs(distToX) < abs(mDistX)) distToX else mDistX}
+		dx += mx
+		val my = (distY-dy).let{ distToy -> if(abs(distToy) < abs(mDistY)) distToy else mDistY}
+		dy += my
+		actions.add(this.swipe(Pair(sx,sy), Pair(sx-mx,sy-my), steps = 10))
+	}
+
+	return actions
+}

@@ -53,7 +53,15 @@ abstract class UiParser {
 		val nodeRect = Rect()
 		this.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 		val props = LinkedList<String>()
+		val t = Rect()
+		this.getBoundsInParent(t)
+		if(nodeRect.height()<0 || nodeRect.width()<0) { // no idea why this happens but try to correct the width/height by using the second bounds property
+			nodeRect.right = nodeRect.left+t.width()
+			nodeRect.bottom = nodeRect.top+t.height()
+		}
 
+		props.add("origBounds (l,t,r,b)= $nodeRect")
+		props.add("boundsInParent= $t")
 		props.add("actionList = ${this.actionList}")
 		if(api>=24)	props.add("drawingOrder = ${this.drawingOrder}")
 		props.add("labelFor = ${this.labelFor}")

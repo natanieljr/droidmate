@@ -48,7 +48,12 @@ inline fun <T> debugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, 
 private const val logTag = DeviceConstants.deviceLogcatTagPrefix + "ActionExecution"
 
 var lastId = 0
+@Suppress("DEPRECATION")
 suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
+	val idMatch: (Int) -> SelectorCondition = {idHash ->{ n: AccessibilityNodeInfo, xPath ->
+		val layer = env.lastWindows.find { it.w.windowId == n.windowId }?.layer ?: n.window?.layer
+		layer != null && idHash == computeIdHash(xPath, layer)
+	}}
 	Log.d(logTag, "START execution ${toString()}")
 	val result: Any = when(this) { // REMARK this has to be an assignment for when to check for exhaustiveness
 		is Click -> {
@@ -86,11 +91,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 					else false
 			}//.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
-			val idMatch: SelectorCondition = { n: AccessibilityNodeInfo, xPath ->
-				val layer = env.lastWindows.find { it.w.windowId == n.windowId }?.layer ?: n.window?.layer
-				layer != null && idHash == computeIdHash(xPath, layer)
-			}
-			UiHierarchy.findAndPerform(env, idMatch) { nodeInfo ->
+			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
 				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
@@ -105,17 +106,19 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is LaunchApp -> {
 			env.device.launchApp(packageName, env, launchActivityDelay, timeout)
 		}
-		is Swipe -> {
-			val (x0,y0) = start
-			val (x1,y1) = end
-			env.device.verifyCoordinate(x0,y0)
-			env.device.verifyCoordinate(x1,y1)
-			env.device.swipe(x0, y0, x1, y1, 35)
+		is Swipe -> env.device.twoPointAction(start,end){
+			x0, y0, x1, y1 ->  env.device.swipe(x0, y0, x1, y1, stepSize)
 		}
+		is TwoPointerGesture ->	TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
+		is PinchIn -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
+		is PinchOut -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
+		is Scroll -> TODO()
 		is ActionQueue -> runBlocking {
 			var success = true
 			actions.forEach { it -> success = success &&
-					it.execute(env).apply{ delay(delay) } as Boolean }
+					it.execute(env).apply{ delay(delay)
+					getOrStoreImgPixels(env.captureScreen(),env)
+					} as Boolean }
 		}
 	}
 	Log.d(logTag, "END execution of ${toString()}")
@@ -242,6 +245,15 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 private fun UiDevice.verifyCoordinate(x:Int,y:Int){
 	assert(x in 0..(displayWidth - 1)) { "Error on click coordinate invalid x:$x" }
 	assert(y in 0..(displayHeight - 1)) { "Error on click coordinate invalid y:$y" }
+}
+
+private typealias twoPointStepableAction = (x0:Int,y0:Int,x1:Int,y1:Int)->Boolean
+private fun UiDevice.twoPointAction(start: Pair<Int,Int>, end: Pair<Int,Int>, action: twoPointStepableAction):Boolean{
+	val (x0,y0) = start
+	val (x1,y1) = end
+	verifyCoordinate(x0,y0)
+	verifyCoordinate(x1,y1)
+	return action(x0, y0, x1, y1)
 }
 
 private fun UiDevice.minimizeMaximize(){

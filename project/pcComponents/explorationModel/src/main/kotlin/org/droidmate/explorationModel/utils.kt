@@ -30,7 +30,7 @@ internal operator fun UUID.plus(id: Int): UUID {
 	return UUID(this.mostSignificantBits + id, this.leastSignificantBits + id)
 }
 
-fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toByteArray(Charset.forName("UTF-8")))
+fun String.toUUID(): UUID = UUID.nameUUIDFromBytes(trim().toLowerCase().toByteArray(Charset.forName("UTF-8")))
 fun Int.toUUID(): UUID = UUID.nameUUIDFromBytes(toString().toByteArray(Charset.forName("UTF-8")))
 fun center(c:Int, d:Int):Int = c+(d/2)
 
@@ -72,7 +72,7 @@ inline fun <T> debugT(msg: String, block: () -> T, timer: (Long) -> Unit = {}, i
 	return nullableDebugT(msg, block, timer, inMillis)!!
 }
 
-fun Collection<Rectangle>.firstCenter() = firstOrNull()?.center ?: Pair(0,0)
+fun Collection<Rectangle>.firstCenter() = firstOrNull()?.center
 fun Collection<Rectangle>.firstOrEmpty() = firstOrNull() ?: Rectangle(0,0,0,0)
 
 internal class UiElementP( properties: Map<String,Any?>) : UiElementPropertiesI {

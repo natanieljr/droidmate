@@ -195,7 +195,6 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 
 	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
 		var widget = chosenWidget
-		val editFields = currentState.widgets.filter { it.isInputField }
 
 		while (!chosenWidget.isInteractive) {
 			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
@@ -213,7 +212,7 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 
 		val randomIdx = random.nextInt(maxVal)
 		return actionList[randomIdx].also {
-			if(debugOutput) logger.debug("[A${it.id}] Chosen widget info: $widget: keyboard=${widget.isKeyboard}" +
+			if(debugOutput) logger.debug("[A${it.id}] Chosen widget info: $widget: keyboard=${widget.isKeyboard}\t" +
 					"clickable=${widget.clickable}\tcheckable=${widget.checked}\tlong-clickable=${widget.longClickable}\t" +
 					"scrollable=${widget.scrollable}")
 		}

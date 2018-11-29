@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import org.droidmate.deviceInterface.exploration.Rectangle
 import java.nio.ByteBuffer
 import java.util.*
+import kotlin.math.abs
 
 val backgroundScope = CoroutineScope(Dispatchers.Default + CoroutineName("background") + Job())   //same dispatcher as GlobalScope.launch
 
@@ -18,13 +19,9 @@ val api = Build.VERSION.SDK_INT
 
 data class DisplayDimension(val width :Int, val height: Int)
 
-fun Rect.toRectangle() = Rectangle(left, top, width(), height())
+fun Rect.toRectangle() = Rectangle(left, top, abs(width()), abs(height()))
 
 fun Rectangle.toRect() = Rect(leftX,topY,rightX,bottomY)
-
-fun Rectangle.contains(r: Rectangle) =
-		r.isNotEmpty() && leftX<=r.leftX && topY<=r.topY && rightX>=r.rightX && bottomY>=r.bottomY
-
 
 data class Coordinate(val x:Int, val y: Int)
 var markedAsOccupied = true
