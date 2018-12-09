@@ -6,7 +6,7 @@ stages:
 unitTestsUnix:
   stage: test
   tags:
-        - droidmate
+    - droidmate
   script:
     - chmod +x ./gradlew
     - echo "Running unit tests on Unix"
@@ -15,7 +15,20 @@ unitTestsUnix:
 unitTestsWindows:
   stage: test
   tags:
-        - droidmatewin
+    - droidmatewin
   script:
     - echo "Running unit tests on Windows"
     - ./gradlew clean build test
+
+job:on-schedule:
+  stage: test
+  tags:
+    - droidmate
+  only:
+    - schedules
+  script:
+    - echo "Running scheduled smoke tests on Unix"
+    - echo $RESOURCE_REPO
+    - echo $TESTING_SET
+    - echo $TESTING_DEVICE
+    - ./scripts/tester.py $RESOURCE_REPO $TESTING_SET $TESTING_DEVICE
