@@ -60,7 +60,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		c.waitForSelectorTimeout = 0L
 		c.setUiAutomationFlags( c.getUiAutomationFlags() or UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES )
 
-		automation = instr.getUiAutomation(c.uiAutomationFlags)
+		automation = if(api>=24) instr.getUiAutomation(c.uiAutomationFlags) else instr.uiAutomation
 
 		// Subscribe to window information, necessary to access the UiAutomation.windows
 //		val info = automation.serviceInfo

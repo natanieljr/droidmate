@@ -33,7 +33,8 @@ data class DisplayedWindow(val w: AppWindow,
 			// compute which points on the screen are occupied by this window (and are not occupied by a higher layer window)
 			debugOut("start window visibility computation for ${root?.packageName} $outRect" +
 					"type=${wInfo.type} " +
- "title='${wInfo.title}' desc='${root?.contentDescription}', accF=${wInfo.isAccessibilityFocused}, isF=${wInfo.isFocused}, ${wInfo.layer}, isActive=${wInfo.isActive}"
+      if(api>=24)"title='${wInfo.title}' " else "" +
+		 "desc='${root?.contentDescription}', accF=${wInfo.isAccessibilityFocused}, isF=${wInfo.isFocused}, ${wInfo.layer}, isActive=${wInfo.isActive}"
 					, debug)
 			val area = outRect.visibleAxis(uncoveredCoordinates)
 			debugOut("create ${wInfo.id} $area", debug)
@@ -45,7 +46,8 @@ data class DisplayedWindow(val w: AppWindow,
 					layer = wInfo.layer,
 					bounds = outRect,
 					windowType = wInfo.type,
-					isLauncher = wInfo.title?.contains("Launcher")?:false // REMARK for some devices isKeyboard may be true for the launcher window
+					isLauncher = (if(api>=24) wInfo.title?.contains("Launcher") else root?.packageName?.contains("android.launcher"))
+							?:false // REMARK for some devices isKeyboard may be true for the launcher window
 			).also {
 //				wInfo.recycle()
 			}
