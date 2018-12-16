@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.device.logcat
 
 import org.droidmate.device.android_sdk.DeviceException
@@ -38,7 +39,6 @@ import java.time.format.DateTimeFormatter
 /**
  * See {@link DeviceMessagesReader}
  */
-
 class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : IApiLogsReader {
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(ApiLogsReader::class.java) }

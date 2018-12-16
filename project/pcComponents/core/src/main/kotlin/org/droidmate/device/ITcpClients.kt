@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.device
 
-interface ITcpClients : IMonitorsClient, IUiautomatorDaemonClient
+interface ITcpClients : IApiMonitorClient, ICoverageMonitorClient, IUiautomatorDaemonClient

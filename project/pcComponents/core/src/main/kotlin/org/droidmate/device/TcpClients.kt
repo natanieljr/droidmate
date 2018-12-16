@@ -22,12 +22,14 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.device
 
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.deviceInterface.communication.DeviceCommand
 import org.droidmate.deviceInterface.exploration.DeviceResponse
+import java.lang.UnsupportedOperationException
 
 class TcpClients constructor(adbWrapper: IAdbWrapper,
                              deviceSerialNumber: String,
@@ -36,8 +38,13 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
                              uiautomatorDaemonTcpPort: Int,
                              uiautomatorDaemonServerServerStartTimeout: Int,
                              uiautomatorDaemonServerWaitForInteractableTimeout: Int,
-                             portOffset: Int) : ITcpClients {
-    private val monitorsClient: IMonitorsClient = MonitorsClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, portOffset)
+                             apiMonitorPort: Int,
+                             coverageMonitorPort: Int) : ITcpClients {
+
+    private val apiMonitorClient: IApiMonitorClient = ApiMonitorClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, apiMonitorPort)
+    private val coverageMonitorClient = CoverageMonitorClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, coverageMonitorPort)
+    private val monitorClients: List<IMonitorClient> = listOf(apiMonitorClient, coverageMonitorClient)
+
     private val uiautomatorClient: IUiautomatorDaemonClient = UiautomatorDaemonClient(
             adbWrapper,
             deviceSerialNumber,
@@ -46,17 +53,20 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
             uiautomatorDaemonServerServerStartTimeout,
             uiautomatorDaemonServerWaitForInteractableTimeout)
 
-	override fun anyMonitorIsReachable(): Boolean = monitorsClient.anyMonitorIsReachable()
+	override fun anyMonitorIsReachable(): Boolean = monitorClients.all { it.anyMonitorIsReachable() }
 
 	override fun closeMonitorServers() {
-		monitorsClient.closeMonitorServers()
+		monitorClients.forEach { it.closeMonitorServers() }
 	}
 
-	override fun getCurrentTime(): List<List<String>> = monitorsClient.getCurrentTime()
+	override fun getCurrentTime(): List<List<String>> = apiMonitorClient.getCurrentTime()
 
-	override fun getLogs(): List<List<String>> = monitorsClient.getLogs()
+	override fun getLogs(): List<List<String>> = apiMonitorClient.getLogs()
 
-	override fun getPort(): Int = monitorsClient.getPort()
+	override fun getStatements(): List<List<String>> = coverageMonitorClient.getStatements()
+
+    // There is no single port for TcpClients
+	override fun getPort(): Int = throw UnsupportedOperationException("Not supported for TcpClients.")
 
 	override fun getUiaDaemonThreadIsAlive(): Boolean = uiautomatorClient.getUiaDaemonThreadIsAlive()
 
@@ -80,6 +90,6 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
 	@Throws(DeviceException::class)
 	override fun forwardPorts() {
 		this.uiautomatorClient.forwardPort()
-		this.monitorsClient.forwardPorts()
+		monitorClients.forEach { it.forwardPorts() }
 	}
 }

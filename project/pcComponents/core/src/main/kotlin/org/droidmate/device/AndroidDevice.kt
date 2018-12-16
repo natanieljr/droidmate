@@ -54,6 +54,7 @@ import org.droidmate.explorationModel.config.ConfigProperties
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -94,12 +95,18 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	init {
-		// Port file can only be generated here because it depends on the device index
-		val portFile = File.createTempFile(BuildConstants.port_file_name, ".tmp")
-		portFile.writeText(Integer.toString(cfg.monitorPort))
-		portFile.deleteOnExit()
-		cfg.portFile = portFile.toPath().toAbsolutePath()
-		log.info("Using ${BuildConstants.port_file_name} located at ${cfg.portFile}")
+		// Port files can only be generated here because they depend on the device index
+		val monitorPortFile = File.createTempFile(BuildConstants.monitor_port_file_name, ".tmp")
+		monitorPortFile.writeText(Integer.toString(cfg.monitorPort))
+		monitorPortFile.deleteOnExit()
+		cfg.monitorPortFile = monitorPortFile.toPath().toAbsolutePath()
+		log.info("Using ${BuildConstants.monitor_port_file_name} located at ${cfg.monitorPortFile}")
+
+		val coveragePortFile = File.createTempFile(BuildConstants.coverage_port_file_name, ".tmp")
+		coveragePortFile.writeText(Integer.toString(cfg.coverageMonitorPort))
+		coveragePortFile.deleteOnExit()
+		cfg.coveragePortFile = coveragePortFile.toPath().toAbsolutePath()
+		log.info("Using ${BuildConstants.coverage_port_file_name} located at ${cfg.coveragePortFile}")
 	}
 
 	private val tcpClients: ITcpClients = TcpClients(
@@ -110,7 +117,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 			cfg.uiAutomatorPort,
 			cfg[startTimeout],
 			cfg[waitForInteractableTimeout],
-			cfg.monitorPort)
+			cfg.monitorPort,
+			cfg.coverageMonitorPort)
 
 	@Throws(DeviceException::class)
 	override fun pushFile(jar: Path) {
@@ -238,6 +246,27 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return messages.map { TimeFormattedLogcatMessage.from(it) }
 	}
 
+	override fun readStatements(): List<List<String>> {
+		log.debug("readStatements()")
+
+		try {
+			val messages = this.tcpClients.getStatements()
+
+			messages.forEach { msg ->
+				assert(msg.size == 3)
+				assert(msg[0].isNotEmpty())
+				assert(msg[1].isNotEmpty())
+			}
+
+			return messages
+		} catch (e: ApkExplorationException) {
+			log.error("Error reading statements from monitor TCP server. Proceeding with exploration ${e.message}")
+			log.error("Trace: ${e.stackTrace}")
+
+			return emptyList()
+		}
+	}
+
 	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
 		log.debug("waitForLogcatMessages(tag: $messageTag, minMessagesCount: $minMessagesCount, waitTimeout: $waitTimeout, queryDelay: $queryDelay)")
 		val messages = adbWrapper.waitForMessagesOnLogcat(this.serialNumber, messageTag, minMessagesCount, waitTimeout, queryDelay)
@@ -259,8 +288,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			}
 
 			return messages
-		}
-		catch(e: ApkExplorationException){
+		} catch (e: ApkExplorationException) {
 			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}")
 			log.error("ExplorationTrace: ${e.stackTrace}")
 
@@ -278,7 +306,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 		//assert(messages[0][2].isNotEmpty())
 
 		return LocalDateTime.parse(messages[0][0], DateTimeFormatter.ofPattern(MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale))
-
 	}
 
 	override fun appProcessIsRunning(appPackageName: String): Boolean {
@@ -359,7 +386,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 			throw UnexpectedIfElseFallthroughError()
 
 		this.pushFile(this.cfg.apiPoliciesFile, BuildConstants.api_policies_file_name)
-		this.pushFile(this.cfg.portFile, BuildConstants.port_file_name)
+		this.pushFile(this.cfg.monitorPortFile, BuildConstants.monitor_port_file_name)
+		this.pushFile(this.cfg.coveragePortFile, BuildConstants.coverage_port_file_name)
 	}
 
 	override fun reconnectAdb() {

@@ -29,228 +29,210 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.misc.deleteDir
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.time.Duration
-import java.time.Instant
-import kotlin.streams.toList
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
-
+import kotlin.streams.toList
 
 /**
- * Model feature to monitor the statement coverage by processing and optional instrumentation file and actively
- * monitor and parse the logcat in order to calculate the coverage.
+ * Model feature to monitor the statement coverage by processing an optional instrumentation file and fetching
+ * the statement data from the device.
  */
 class StatementCoverageMF(cfg: ConfigurationWrapper,
-						  private val modelCfg: ModelConfig) : AdbBasedMF(cfg) {
+                          private val modelCfg: ModelConfig,
+                          private val device: IExplorableAndroidDevice) : AdbBasedMF(cfg) {
 
-	private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
-	private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+    private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
-	override val coroutineContext: CoroutineContext = CoroutineName("StatementCoverageMF") + Job()
+    override val coroutineContext: CoroutineContext = CoroutineName("StatementCoverageMF") + Job()
 
-	private val instrumentationDir = Paths.get(modelCfg[statementCoverageDir].toString()).toAbsolutePath()
-	private val logcatOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(modelCfg.appName)
+    private val instrumentationDir = Paths.get(modelCfg[statementCoverageDir].toString()).toAbsolutePath()
+    private val statementsLogOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(modelCfg.appName)
 
-	private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
-	private val instrumentationMap: Map<String, String>
+    private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
+    private val instrumentationMap: Map<String, String>
 
-	private val mutex = Mutex()
+    private val mutex = Mutex()
 
-	private var lastReadStatement = ""
-	private var lastTime = Date.from(Instant.now())
-	private var counter = 0
+    private var counter = 0
 
-	init {
-		logcatOutputDir.deleteDir()
-		Files.createDirectories(logcatOutputDir)
+    init {
+        assert(statementsLogOutputDir.deleteDir())
+        Files.createDirectories(statementsLogOutputDir)
 
-		instrumentationMap = getInstrumentation(modelCfg.appName)
-	}
+        instrumentationMap = getInstrumentation(modelCfg.appName)
+    }
 
-	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
-		// Prevent multiple runs of this feature, otherwise logcat may crash
-		try {
-			mutex.lock()
-			readCoverageFromLogcat()
-		}
-		finally {
-			mutex.unlock()
-		}
-	}
+    override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
+        // Prevent concurrent problems
+        try {
+            mutex.lock()
+            updateCoverage()
+        } finally {
+            mutex.unlock()
+        }
+    }
 
-	/**
-	 * Returns a map which is used for the coverage calculation.
-	 */
-	private fun getInstrumentation(apkName: String): Map<String, String> {
-		return if (!Files.exists(instrumentationDir)) {
-			log.warn("Provided statementCoverageDir does not exist: $statementCoverageDir. DroidMate will monitor coverage will not be able to calculate coverage.")
-			emptyMap()
-		}
-		else {
-			val instrumentationFile = getInstrumentationFile(apkName)
+    /**
+     * Returns a map which is used for the coverage calculation.
+     */
+    private fun getInstrumentation(apkName: String): Map<String, String> {
+        return if (!Files.exists(instrumentationDir)) {
+            log.warn("Provided statementCoverageDir does not exist: ${modelCfg[statementCoverageDir]}." +
+                "DroidMate will monitor coverage, but won't be able to calculate the coverage.")
+            emptyMap()
+        } else {
+            val instrumentationFile = getInstrumentationFile(apkName)
 
-			if (instrumentationFile != null)
-				readInstrumentationFile(instrumentationFile)
-			else
-				emptyMap()
-		}
-	}
+            if (instrumentationFile != null)
+                readInstrumentationFile(instrumentationFile)
+            else {
+                log.warn("Provided statementCoverageDir (${modelCfg[statementCoverageDir]}) does not contain " +
+                    "the corresponding instrumentation file. DroidMate will monitor coverage, but won't be able" +
+                    "to calculate the coverage.")
+                emptyMap()
+            }
 
-	/**
-	 * Returns the the given instrumentation file corresponding to the passed [apkName].
-	 *
-	 * Example:
-	 * apkName = a2dp.Vol_137.apk
-	 * return: instrumentation-a2dp.Vol.json
-	 */
-	private fun getInstrumentationFile(apkName: String): Path? {
-		return Files.list(instrumentationDir)
-				.toList()
-				.firstOrNull{ it.fileName.toString().contains(apkName)
-						&& it.fileName.toString().endsWith(".apk.json")}
-	}
+        }
+    }
 
-	@Throws(IOException::class)
-	private fun readInstrumentationFile(instrumentationFile: Path): Map<String, String> {
-		val jsonData = String(Files.readAllBytes(instrumentationFile))
-		val jObj = JSONObject(jsonData)
+    /**
+     * Returns the the given instrumentation file corresponding to the passed [apkName].
+     * Returns null, if the instrumentation file is not present.
+     *
+     * Example:
+     * apkName = a2dp.Vol_137.apk
+     * return: instrumentation-a2dp.Vol.json
+     */
+    private fun getInstrumentationFile(apkName: String): Path? {
+        return Files.list(instrumentationDir)
+            .toList()
+            .find {
+                it.fileName.toString().contains(apkName)
+                    && it.fileName.toString().endsWith(".apk.json")
+            }
+    }
 
-		val jArr = JSONArray(jObj.getJSONArray("allMethods").toString())
+    @Throws(IOException::class)
+    private fun readInstrumentationFile(instrumentationFile: Path): Map<String, String> {
+        val jsonData = String(Files.readAllBytes(instrumentationFile))
+        val jObj = JSONObject(jsonData)
 
-		val l = "9946a686-9ef6-494f-b893-ac8b78efb667".length
-		val statements : MutableMap<String, String> = mutableMapOf()
-		(0 until jArr.length()).forEach { idx ->
-			val method = jArr[idx]
+        val jArr = JSONArray(jObj.getJSONArray("allMethods").toString())
 
-			if (!method.toString().contains("CoverageHelper")) {
-				val parts = method.toString().split("uuid=".toRegex(), 2).toTypedArray()
-				val uuid = parts.last()
+        val l = "9946a686-9ef6-494f-b893-ac8b78efb667".length
+        val statements: MutableMap<String, String> = mutableMapOf()
+        (0 until jArr.length()).forEach { idx ->
+            val method = jArr[idx]
 
-				assert(uuid.length == l) { "Invalid UUID $uuid $method" }
+            val parts = method.toString().split("uuid=".toRegex(), 2).toTypedArray()
+            val uuid = parts.last()
 
-				statements[uuid] = method.toString()
-			}
-		}
+            assert(uuid.length == l) { "Invalid UUID $uuid $method" }
 
-		return statements
-	}
+            statements[uuid] = method.toString()
+        }
 
-	/**
-	 * Returns the current measured coverage.
-	 * Note: Returns 0 if [instrumentationMap] is empty.
-	 */
-	@Suppress("MemberVisibilityCanBePrivate")
-	fun getCurrentCoverage(): Double {
-		return if (instrumentationMap.isEmpty()) {
-			0.0
-		} else {
-			executedStatementsMap.size / instrumentationMap.size.toDouble()
-		}
-	}
+        return statements
+    }
 
-	private fun executeCommand(): List<String> {
-		val command = mutableListOf("logcat", "-d", "-v", "threadtime", "-v", "year", "-s", "System.out")
+    /**
+     * Returns the current measured coverage.
+     * Note: Returns 0 if [instrumentationMap] is empty.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun getCurrentCoverage(): Double {
+        return if (instrumentationMap.isEmpty()) {
+            0.0
+        } else {
+            assert(executedStatementsMap.size <= instrumentationMap.size)
+            executedStatementsMap.size / instrumentationMap.size.toDouble()
+        }
+    }
 
-		// AdbWrapper does not work with Apache-Exec 1.3 because it uses Runtime.exec
-		// Returns the following error: Captured stderr: -t ""2018-09-18 13:48:53.735"" not in time format
-		if (lastReadStatement.isNotEmpty()) {
-			val readFrom = dateFormat.format(lastTime)
-			command.addAll(listOf("-t", readFrom))
-		}
+    /**
+     * Fetch the statement data form the device. Afterwards, it parses the data and updates [executedStatementsMap].
+     */
+    private fun updateCoverage() {
+        // Fetch the statement data from the device
+        val readStatements = device.readStatements()
 
-		return runAdbCommand(command)
-	}
+        readStatements
+            .forEach { statement ->
+                val statementStr = statement[1]
+                val parts = statementStr.split("uuid=".toRegex(), 2).toTypedArray()
 
-	/**
-	 * Starts executing a command in order to monitor the logcat if the previous command is already terminated.
-	 * Additionally, it parses the returned logcat output and updates [executedStatementsMap].
-	 */
-	private fun readCoverageFromLogcat() {
+                // Get uuid
+                assert(parts.size > 1)
+                val uuid = parts.last()
+                val timestamp = statement[0]
+                val tms = dateFormat.parse(timestamp)
 
-		val file = getLogFilename(counter)
+                // Add the statement if it wasn't executed before
+                val found = executedStatementsMap.containsKey(uuid)
 
-		val output = executeCommand()
+                if (!found /*&& instrumentationMap.containsKey(uuid)*/)
+                    executedStatementsMap[uuid] = tms
+            }
 
-		output.filter { it.contains("[androcov]")
-				&& !it.contains("CoverageHelper")
-				&& it > lastReadStatement }
-				.forEach { line ->
-					val parts = line.split("uuid=".toRegex(), 2).toTypedArray()
+        log.info("Current statement coverage: ${getCurrentCoverage()}. Encountered statements: ${executedStatementsMap.size}")
 
-					// Get uuid
-					val uuid = parts.last()
+        // Write the received content into a file
+        if (readStatements.isNotEmpty()) {
+            val file = getLogFilename(counter)
+            Files.write(file, readStatements.map { it[1] })
 
-					assert(parts.size > 1)
-					// Get timestamp
-					val logParts = parts[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-					val timestamp = logParts[0] + " " + logParts[1]
+            counter++
+        }
+    }
 
-					val tms = dateFormat.parse(timestamp)
+    /**
+     * Returns the logfile name depending on the [counter] in which the content is written into.
+     */
+    private fun getLogFilename(counter: Int): Path {
+        return statementsLogOutputDir.resolve("${modelCfg.appName}-statements-%04d".format(counter))
+    }
 
-					// Add the statement if it wasn't executed before
-					val found = executedStatementsMap.containsKey(uuid)
+    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+        this.join()
 
-					if (!found /*&& instrumentationMap.containsKey(uuid)*/)
-						executedStatementsMap[uuid] = tms
+        val sb = StringBuilder()
+        sb.appendln(header)
 
-					lastReadStatement = line
-					lastTime = tms
-				}
+        if (executedStatementsMap.isNotEmpty()) {
+            val sortedStatements = executedStatementsMap.entries
+                .sortedBy { it.value }
+            val initialDate = sortedStatements.first().value
 
-		log.info("Current statement coverage: ${getCurrentCoverage()}")
+            sortedStatements
+                .forEach {
+                    sb.appendln("${it.key};${Duration.between(initialDate.toInstant(), it.value.toInstant()).toMillis() / 1000}")
+                }
+        }
 
-		// Write the logcat content into a file
-		Files.write(file, output.toList())
+        val outputFile = context.getModel().config.baseDir.resolve("coverage.txt")
+        Files.write(outputFile, sb.lines())
+    }
 
-		counter++
-	}
-
-	/**
-	 * Returns the logfile name depending on the [counter] in which the logcat content is written into.
-	 */
-	private fun getLogFilename(counter: Int): Path {
-		return logcatOutputDir.resolve("${modelCfg.appName}-logcat-%04d".format(counter))
-	}
-
-
-	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
-		this.join()
-
-		val sb = StringBuilder()
-		sb.appendln(header)
-
-		if (executedStatementsMap.isNotEmpty()) {
-			val sortedStatements = executedStatementsMap.entries
-					.sortedBy { it.value }
-			val initialDate = sortedStatements.first().value
-
-			sortedStatements
-					.forEach {
-						sb.appendln("${it.key};${Duration.between(initialDate.toInstant(), it.value.toInstant()).toMillis() / 1000}")
-					}
-		}
-
-		val outputFile = context.getModel().config.baseDir.resolve("coverage.txt")
-		Files.write(outputFile, sb.lines())
-	}
-
-	companion object {
-		private const val header = "Statement;Time"
-	}
+    companion object {
+        private const val header = "Statement;Time"
+    }
 
 }

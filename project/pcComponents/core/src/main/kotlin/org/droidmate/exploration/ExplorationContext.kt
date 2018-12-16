@@ -29,6 +29,8 @@ import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
@@ -54,6 +56,7 @@ import kotlin.math.min
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper,
                                                    val apk: IApk,
+                                                   val device: IRobustDevice,
                                                    var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
@@ -86,7 +89,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
 		if (_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
-		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config))
+		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config, device))
 	}
 
 	fun getCurrentState(): State = explorationTrace.currentState

@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.device.deviceInterface
 
 import org.droidmate.device.android_sdk.DeviceException
@@ -72,9 +73,8 @@ class RobustDevice : IRobustDevice {
 		private var time = 0.0
 	}
 
-	private val ensureHomeScreenIsDisplayedAttempts = 3
-
 	private val device: IAndroidDevice
+
 	private val cfg: ConfigurationWrapper
 
 	private val messagesReader: IDeviceMessagesReader
@@ -93,6 +93,8 @@ class RobustDevice : IRobustDevice {
 
     private val deviceOperationAttempts: Int
     private val deviceOperationDelay: Int
+
+	private val ensureHomeScreenIsDisplayedAttempts = 3
 
 	constructor(device: IAndroidDevice, cfg: ConfigurationWrapper) : this(device,
 			cfg,
@@ -736,6 +738,17 @@ class RobustDevice : IRobustDevice {
                 "device.readLogcatMessages(messageTag:$messageTag)"
         )
     }
+
+	override fun readStatements(): List<List<String>> {
+		return Utils.retryOnException(
+			{ this.device.readStatements() },
+			{},
+			DeviceException::class,
+			deviceOperationAttempts,
+			deviceOperationDelay,
+			"device.readStatements()"
+		)
+	}
 
 	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
         return Utils.retryOnException(

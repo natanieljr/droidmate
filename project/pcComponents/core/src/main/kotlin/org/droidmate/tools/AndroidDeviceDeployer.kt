@@ -103,7 +103,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	/**
 	 * <p>
 	 * Setups android device for DroidMate purposes. Starts adb server if necessary, forwards ports, pushes uiautomator-daemon jar,
-	 * pushes monitor apk, pushes apiPoliciesFile, pushes portFile and starts uiautomator-daemon server.
+	 * pushes monitor apk, pushes apiPoliciesFile, monitorPortFile, coveragePortFile, and starts uiautomator-daemon server.
 	 *
 	 * </p><p>
 	 * Remember to call {@link #tryTearDown} when done with the device.
