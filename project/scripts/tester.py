@@ -78,7 +78,7 @@ def testAPKs(test_dir, droidmate_output_dir):
 
         print("Test %s" % apk)
         execute("./gradlew run --args='--Exploration-apksDir=%s --Output-outputDir=%s %s'"
-                % (test_dir, droidmate_output_dir, args))
+                % (tmp_test_dir, droidmate_output_dir, args))
 
 
 def main(testing_repo, testing_set, testing_device):

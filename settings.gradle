@@ -47,6 +47,10 @@ include(
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
 
+// Exclude the run tasks from monitor-generator and apk-inliner when 'run' is called on root level
+startParameter.excludedTaskNames << "project:pcComponents:monitor-generator:run"
+startParameter.excludedTaskNames << "project:pcComponents:tools:apk-inliner:run"
+
 project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib')
 //project(':deviceControlDaemon').projectDir = new File("project/deviceComponents/deviceControlDaemon/")
 
