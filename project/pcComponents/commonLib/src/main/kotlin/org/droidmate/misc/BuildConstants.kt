@@ -68,7 +68,9 @@ class BuildConstants {
 		@JvmStatic
 		val api_policies_file_name = safeGetProperty(properties, "api_policies_file_name")
 		@JvmStatic
-		val port_file_name = safeGetProperty(properties, "port_file_name")
+		val monitor_port_file_name = safeGetProperty(properties, "monitor_port_file_name")
+		@JvmStatic
+		val coverage_port_file_name = safeGetProperty(properties, "coverage_port_file_name")
 		@JvmStatic
 		val monitored_inlined_apk_fixture_api23_name = safeGetProperty(properties, "monitored_inlined_apk_fixture_api23_name")
 		@JvmStatic

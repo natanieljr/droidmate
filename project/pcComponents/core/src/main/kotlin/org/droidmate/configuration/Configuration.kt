@@ -46,6 +46,10 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 		cfg[ConfigProperties.ApiMonitorServer.basePort] + deviceSerialNumber.hashCode() % 999
 	}
 
+	val coverageMonitorPort by lazy {
+		monitorPort + 1
+	}
+
 	val uiAutomatorPort by lazy {
 		assert(deviceSerialNumber.isNotEmpty()) {"deviceSerialNumber should not be empty."}
 		cfg[ConfigProperties.UiAutomatorServer.basePort] + deviceSerialNumber.hashCode() % 999
@@ -99,7 +103,12 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	/**
 	 * File with the port for the monitor connection. This file will be deployed be on the android (virtual) device.
 	 */
-	lateinit var portFile: Path
+	lateinit var monitorPortFile: Path
+
+	/**
+	 * File with the port for the coverage monitoring connection. This file will be deployed be on the android (virtual) device.
+	 */
+	lateinit var coveragePortFile: Path
 
 	//endregion
 

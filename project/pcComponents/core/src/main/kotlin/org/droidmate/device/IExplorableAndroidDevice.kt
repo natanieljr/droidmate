@@ -43,6 +43,9 @@ interface IExplorableAndroidDevice {
 	fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI>
 
 	@Throws(DeviceException::class)
+	fun readStatements(): List<List<String>>
+
+	@Throws(DeviceException::class)
 	fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI>
 
 	@Throws(DeviceException::class)

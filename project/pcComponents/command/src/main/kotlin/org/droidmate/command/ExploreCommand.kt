@@ -421,7 +421,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, TimeProvider.getNow(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, device, TimeProvider.getNow(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 

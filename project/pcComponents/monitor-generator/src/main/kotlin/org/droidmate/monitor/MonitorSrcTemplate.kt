@@ -81,7 +81,7 @@ class MonitorSrcTemplate constructor(monitorSrcTemplatePath: Path, androidApi: A
 				it.replace("#POLICIES_FILE_PATH",
 						BuildConstants.AVD_dir_for_temp_files + BuildConstants.api_policies_file_name)
 				it.replace("#PORT_FILE_PATH",
-						BuildConstants.AVD_dir_for_temp_files + BuildConstants.port_file_name)
+						BuildConstants.AVD_dir_for_temp_files + BuildConstants.monitor_port_file_name)
 			}
 		}
 	}

@@ -124,7 +124,8 @@ val monitored_inlined_apk_fixture_api23_name = "${monitored_apk_fixture_api23_na
 const val monitor_api23_apk_name = "monitor_api23.apk"
 const val monitor_on_avd_apk_name = "monitor.apk"
 const val api_policies_file_name = "api_policies.txt"
-const val port_file_name = "port.tmp"
+const val monitor_port_file_name = "monitor_port.tmp"
+const val coverage_port_file_name = "coverage_port.tmp"
 /**
  * Denotes name of directory containing apk fixtures for testing. The handle to this path is expected to be obtained
  * in following ways:

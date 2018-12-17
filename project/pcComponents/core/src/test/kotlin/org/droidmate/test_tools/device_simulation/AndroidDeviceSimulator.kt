@@ -45,6 +45,10 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
                              private val exceptionSpecs: List<IExceptionSpec> = ArrayList(),
                              unreliableSimulation: Boolean = false)*/ // TODO Fix tests
 	: IAndroidDevice {
+	override fun readStatements(): List<List<String>> {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
 	override fun pullFile(fileName: String, dstPath: Path, srcPath: String) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}

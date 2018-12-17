@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.misc
 
 import java.util.*
@@ -64,6 +65,8 @@ class MonitorConstants {
 		val srvCmd_connCheck = "connCheck"
 		@JvmStatic
 		val srvCmd_get_logs = "getLogs"
+		@JvmStatic
+		val srvCmd_get_statements = "getStatements"
 		@JvmStatic
 		val srvCmd_get_time = "getTime"
 		@JvmStatic
