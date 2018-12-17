@@ -83,7 +83,7 @@ constructor(private val originalApkPath: Path, private val apkContentDir: Path, 
         try {
             val sysCmdExecutor = SysCmdExecutor()
             val cmdDescription = "Command for invoking the apk tool"
-            sysCmdExecutor.executeWithTimeout(cmdDescription, 10000, "java", "-jar", apkToolPath.toString(), *params)
+            sysCmdExecutor.execute(cmdDescription, "java", "-jar", apkToolPath.toString(), *params)
         } catch (e: Exception) {
             LOGGER.error("Error during ApkTool execution", e)
             throw RuntimeException(e)
