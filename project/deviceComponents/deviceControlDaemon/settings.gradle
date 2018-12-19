@@ -34,9 +34,9 @@
 
 rootProject.name = "deviceControlDaemon"
 
-def libDir = new File("../../deviceCommonLib/deviceDaemonLib/")
-if(libDir.exists()) {
+def libDir = "../../deviceCommonLib/deviceDaemonLib/"
+if(file("$libDir/build.gradle").exists()){
 	include(":deviceDaemonLib")
 	// we use this instead of includeBuild as android gradle does not yet support nested composite and the highlighting would be screwed up anyway
-	project(':deviceDaemonLib').projectDir = libDir
+	project(':deviceDaemonLib').projectDir = new File(libDir)
 }

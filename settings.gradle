@@ -46,17 +46,17 @@ include(
 		)
 def isIncludedBuild = gradle.parent != null
 if(!isIncludedBuild) {
-	def libDir = new File('project/deviceCommonLib/deviceDaemonLib')
-	if(libDir.exists()){
+	def libDir = 'project/deviceCommonLib/deviceDaemonLib'
+	if(file("$libDir/build.gradle").exists()){
 		include(":deviceDaemonLib")
 		// we use this instead of includeBuild as android gradle does not yet support nested composite and the highlighting would be screwed up anyway
-		project(':deviceDaemonLib').projectDir = libDir
+		project(':deviceDaemonLib').projectDir = new File(libDir)
 	}
 
-	def eModelDir = new File('project/pcComponents/explorationModel')
-	if(eModelDir.exists()){
+	def eModelDir = 'project/pcComponents/explorationModel'
+	if(file("$eModelDir/build.gradle").exists()){
 		include(":explorationModel")
-		project(':explorationModel').projectDir = eModelDir
+		project(':explorationModel').projectDir = new File(eModelDir)
 	}
 }
 
