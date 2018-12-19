@@ -1,10 +1,11 @@
 
 rootProject.name = 'core'
 def isIncludedBuild = gradle.parent != null
-if(!isIncludedBuild) {
-	includeBuild ('../../deviceCommonLib/deviceDaemonLib'){
+def libDir = '../../deviceCommonLib/deviceDaemonLib'
+if(!isIncludedBuild && file(libDir).exists()) {
+	includeBuild (libDir){
 		dependencySubstitution {
-			substitute module('org.droidmate:deviceDaemonLib') with project(':')
+			substitute module('com.github.hotzkow:platformInterfaceLib') with project(':')
 		}
 	}
 }

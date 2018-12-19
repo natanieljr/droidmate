@@ -15,6 +15,10 @@ This program is free software.
 Date of last full review of this document: 07 Aug 2018
 
 
+### Git SubModules
+the exploration model and deviceInterfaceLib are now separate git submodules, therefore you have to use
+`git submodule init` and `git submodule update` after cloning the DM-2 repository to checkout their source code.
+
 # Introduction 
 
 **DroidMate-2** is a platform to easily assist both developers and researchers to customize, develop and test new test generators.

@@ -38,7 +38,7 @@ buildscript {
 	}
 	dependencies {
 		classpath "com.android.tools.build:gradle:${project.ext.androidGradlePlugin_version}"
-		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
 	}
 }
 
@@ -79,6 +79,7 @@ repositories {
 	maven {
 		url "https://maven.google.com"
 	}
+	maven { url 'https://jitpack.io' }
 //	mavenLocal()
 }
 
@@ -86,16 +87,17 @@ configurations.all {
 	resolutionStrategy.dependencySubstitution {
 		def targetProject = findProject(":deviceDaemonLib")
 		if (targetProject != null) {
-			def substitution = substitute module("org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
+			def substitution = substitute module("com.github.hotzkow:platformInterfaceLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
 			if(substitution != null)
-				substitution because "the lib is not yet published independently such that the settings use include project but we want to allow for composite compatibility / versioning"
+				substitution because "use local git submodule for development instead of external dependency"
 		}
 	}
 }
 dependencies {
-	implementation group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
+//	implementation group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
+	implementation group:'com.github.hotzkow', name: 'platformInterfaceLib', version: "${project.ext.driverLib_version}"
 
-	//TODO check if we really need this as 'lint' is reporting the dependency as unecessary
+	//TODO check if we really need this as 'lint' is reporting the dependency as unnecessary
 	// Testing-only dependencies
 	// Force usage of support annotations in the test app, since it is internally used by the runner module.
 	//noinspection GradleDependency  // do not update right now or the build will fail

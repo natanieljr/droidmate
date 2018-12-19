@@ -60,11 +60,16 @@ allprojects {
 		resolutionStrategy.dependencySubstitution {
 			def targetProject = findProject(":deviceDaemonLib")
 			if (targetProject != null) {
-				def substitution = substitute module("org.droidmate:deviceDaemonLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
-				if(substitution != null)
-					substitution because "the lib is not yet published independently but the ci server cannot resolve includeBuild dependencies"
+				def substitution = substitute module("com.github.hotzkow:platformInterfaceLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
+				if(substitution != null) {
+//					println "use composite build directory (deviceLib) instead of artifact from server"
+					substitution because "use local git submodule for development instead of external dependency"
+				}
 			}
-			substitute module("org.droidmate:explorationModel") with project(":project:pcComponents:explorationModel")
+			if(findProject(":explorationModel") != null) {
+//				println "use composite build directory (explorationModel) instead of artifact from server"
+				substitute module("com.github.hotzkow:explorationModel") with project(":explorationModel")
+			}
 		}
 	}
 }

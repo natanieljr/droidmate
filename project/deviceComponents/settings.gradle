@@ -1,6 +1,9 @@
 rootProject.name = "deviceComponents"
 
-includeBuild('../deviceCommonLib/deviceDaemonLib')
+def libDir = new File("../deviceCommonLib/deviceDaemonLib")
+if( libDir.exists) {
+	includeBuild('../deviceCommonLib/deviceDaemonLib')
+}
 
 //includeBuild('deviceControlDaemon') // not working -> can't parse gradle module dependency
 ///*

@@ -28,7 +28,7 @@ rootProject.name = 'droidmate-2'
 enableFeaturePreview('STABLE_PUBLISHING') //  for later gradle 5 compatibility
 
 // right now this is probably not even necessary due to our strange deploy hacks in core/deviceControlDaemon.gradle
-//include("project:deviceComponents") // to include the build of the android modules (this probably requires a dependency to the library publish task before 'DeviceControlDaemon' can be compiled)
+include("project:deviceComponents") // to include the build of the android modules (this probably requires a dependency to the library publish task before 'DeviceControlDaemon' can be compiled)
 // for proper android code highlighting we have to update the settings file (i.e. from deviceControlDaemon) via attach gradle project or open it as its own project
 
 include(
@@ -42,16 +42,24 @@ include(
 		"project:pcComponents:reporter",
 		"project:pcComponents:command",
 		"project:pcComponents:API"
-		,"project:pcComponents:explorationModel"
-		,':deviceDaemonLib'
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
+def isIncludedBuild = gradle.parent != null
+if(!isIncludedBuild) {
+	def libDir = new File('project/deviceCommonLib/deviceDaemonLib')
+	if(libDir.exists()){
+		include(":deviceDaemonLib")
+		// we use this instead of includeBuild as android gradle does not yet support nested composite and the highlighting would be screwed up anyway
+		project(':deviceDaemonLib').projectDir = libDir
+	}
 
-// Exclude the run tasks from monitor-generator and apk-inliner when 'run' is called on root level
-startParameter.excludedTaskNames << "project:pcComponents:monitor-generator:run"
-startParameter.excludedTaskNames << "project:pcComponents:tools:apk-inliner:run"
+	def eModelDir = new File('project/pcComponents/explorationModel')
+	if(eModelDir.exists()){
+		include(":explorationModel")
+		project(':explorationModel').projectDir = eModelDir
+	}
+}
 
-project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/deviceDaemonLib')
 //project(':deviceControlDaemon').projectDir = new File("project/deviceComponents/deviceControlDaemon/")
 
 /** REMARKS for later reference: */
@@ -65,3 +73,7 @@ project(':deviceDaemonLib').projectDir = new File('project/deviceCommonLib/devic
 // !!!//includeBuild('project/deviceComponents')  // to include the build of the android modules (this probably requires a dependency to the library publish task)
 //=> NOPE destroys dependencies as well
 //}
+
+// Exclude the run tasks from monitor-generator and apk-inliner when 'run' is called on root level
+startParameter.excludedTaskNames << "project:pcComponents:monitor-generator:run"
+startParameter.excludedTaskNames << "project:pcComponents:tools:apk-inliner:run"

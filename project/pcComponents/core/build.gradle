@@ -32,12 +32,15 @@ compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:commonLib:testC
 dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
 
 repositories {
-	mavenLocal()
+	maven { url 'https://jitpack.io' }
+//	mavenLocal()
 }
 
 dependencies {
-	compile group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
-	compile group: 'org.droidmate', name: 'explorationModel', version: '1.0-SNAPSHOT'
+//	compile group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
+//	compile group: 'org.droidmate', name: 'explorationModel', version: '1.0-SNAPSHOT'
+	compile group:'com.github.hotzkow', name: 'platformInterfaceLib', version: "${project.ext.driverLib_version}"
+	compile 'com.github.hotzkow:explorationModel:1.0-RELEASE'
 
 	// jdk dependency necessary for kotlin/stream library used by ResourceManager
 	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
