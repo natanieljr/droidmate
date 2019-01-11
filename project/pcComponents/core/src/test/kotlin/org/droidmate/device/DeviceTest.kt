@@ -211,7 +211,7 @@ private fun withApkDeployedOnDevice(computation: (IRobustDevice, IApk) -> Any) {
 private fun getConfigurationApi23monitoredInlinedApk(): Configuration = ConfigurationForTests()
 				.setArgs(arrayListOf(
 								Configuration.pn_androidApi, Configuration.api23,
-								Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]"))
+								Configuration.pn_apksNames, "[$EnvironmentConstants.monitored_inlined_apk_fixture_api23_name]"))
 				.forDevice()
 				.get()
 

@@ -201,7 +201,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	@Test
 	fun `Explores monitored apk on a real device api23`() {
 			val args = ConfigurationForTests().forDevice().setArgs(arrayListOf(
-							Configuration.pn_apksNames, "[$BuildConstants.monitored_inlined_apk_fixture_api23_name]",
+							Configuration.pn_apksNames, "[$EnvironmentConstants.monitored_inlined_apk_fixture_api23_name]",
 							Configuration.pn_widgetIndexes, "[0, 1, 2, 2, 2]",
 							Configuration.pn_androidApi, Configuration.api23)).get().args
 
@@ -299,7 +299,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 * then the second one, then terminate the exploration.
 	 *
 	 * </p><p>
-	 * The test will make DroidMate output results to {@code BuildConstants.test_temp_dir_name}.
+	 * The test will make DroidMate output results to {@code EnvironmentConstants.test_temp_dir_name}.
 	 * To ensure logs are also output there, run this test with VM arg of {@code -DlogsDir="temp_dir_for_tests/logs"}.
 	 * Note that {@code logsDir} is defined in {@code org.droidmate.logging.LogbackConstants.getLogsDirPath}.
 	 *

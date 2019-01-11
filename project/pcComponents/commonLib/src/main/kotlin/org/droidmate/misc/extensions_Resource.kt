@@ -30,13 +30,13 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
- * Extracts a file in 'out/BuildConstants.dir_name_temp_extracted_resources'.
+ * Extracts a file in 'out/EnvironmentConstants.dir_name_temp_extracted_resources'.
  *
  * This should only be used for tests.
  */
 val Resource.extractedText: String
 	get() {
-		val resDir = Paths.get("out", BuildConstants.dir_name_temp_extracted_resources)
+		val resDir = Paths.get("out", EnvironmentConstants.dir_name_temp_extracted_resources)
 		val extractedFile = this.extractTo(resDir).toAbsolutePath()
 		return extractedFile.text
 	}

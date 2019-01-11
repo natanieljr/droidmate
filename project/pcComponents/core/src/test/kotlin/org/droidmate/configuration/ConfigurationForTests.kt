@@ -35,7 +35,7 @@ import org.droidmate.configuration.ConfigProperties.Output.outputDir
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Report.includePlots
 import org.droidmate.configuration.ConfigProperties.Selectors.randomSeed
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -108,8 +108,8 @@ class ConfigurationForTests() {
 
 	init {
 		val newData = mutableListOf(
-				outputDir.name, Paths.get(BuildConstants.test_temp_dir_name).toAbsolutePath().toString(),
-				reportDir.name, Paths.get(BuildConstants.test_temp_dir_name).toAbsolutePath().toString(),
+				outputDir.name, Paths.get(EnvironmentConstants.test_temp_dir_name).toAbsolutePath().toString(),
+				reportDir.name, Paths.get(EnvironmentConstants.test_temp_dir_name).toAbsolutePath().toString(),
 				runOnNotInlined.name, "true")
 		newData.addAll(zeroedTestConfig)
 		this.argsList = newData

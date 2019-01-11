@@ -25,7 +25,7 @@
 
 package org.droidmate.monitor
 
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -79,9 +79,9 @@ class MonitorSrcTemplate constructor(monitorSrcTemplatePath: Path, androidApi: A
 				genMethodsTargets
 			else {
 				it.replace("#POLICIES_FILE_PATH",
-						BuildConstants.AVD_dir_for_temp_files + BuildConstants.api_policies_file_name)
+						EnvironmentConstants.AVD_dir_for_temp_files + EnvironmentConstants.api_policies_file_name)
 				it.replace("#PORT_FILE_PATH",
-						BuildConstants.AVD_dir_for_temp_files + BuildConstants.monitor_port_file_name)
+						EnvironmentConstants.AVD_dir_for_temp_files + EnvironmentConstants.monitor_port_file_name)
 			}
 		}
 	}

@@ -36,7 +36,7 @@ import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.deviceInterface.RobustDevice
 import org.droidmate.logging.Markers
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.DroidmateException
 import org.droidmate.deviceInterface.DeviceConstants
 import org.slf4j.LoggerFactory
@@ -149,7 +149,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 					device.uninstallApk(DeviceConstants.uia2Daemon_packageName, true)
 				} else
 					throw UnexpectedIfElseFallthroughError()
-				device.removeJar(cfg.getPath(BuildConstants.monitor_on_avd_apk_name))
+				device.removeJar(cfg.getPath(EnvironmentConstants.monitor_on_avd_apk_name))
 			}
 		} else
 			log.trace("Device is not available. Skipping tear down.")

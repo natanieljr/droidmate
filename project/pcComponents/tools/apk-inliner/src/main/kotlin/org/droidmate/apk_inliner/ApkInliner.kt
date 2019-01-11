@@ -127,12 +127,12 @@ class ApkInliner constructor(private val sysCmdExecutor: ISysCmdExecutor,
 
 			return ApkInliner(sysCmdExecutor,
 					JarsignerWrapper(sysCmdExecutor,
-							cfg.getPath(BuildConstants.jarsigner),
+							EnvironmentConstants.jarsigner.toAbsolutePath(),
 							Resource("debug.keystore").extractTo(cfg.resourceDir)),
 					Jar(Resource("appguard-inliner.jar").extractTo(cfg.resourceDir)),
 					Dex(Resource("appguard-loader.dex").extractTo(cfg.resourceDir)),
 					"org.droidmate.monitor.Monitor",
-					BuildConstants.AVD_dir_for_temp_files + BuildConstants.monitor_on_avd_apk_name)
+					EnvironmentConstants.AVD_dir_for_temp_files + EnvironmentConstants.monitor_on_avd_apk_name)
 		}
 	}
 }

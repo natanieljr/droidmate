@@ -33,7 +33,7 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForD
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityTimeout
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
 import org.droidmate.misc.Utils
@@ -435,7 +435,7 @@ Logcat reference:
 			// http://developer.android.com/tools/testing/testing_ui.html#builddeploy
 			sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"push", jarFile.toAbsolutePath().toString(), BuildConstants.AVD_dir_for_temp_files + targetFileName)
+					"push", jarFile.toAbsolutePath().toString(), EnvironmentConstants.AVD_dir_for_temp_files + targetFileName)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb push ...' failed. Oh my.", e)
@@ -452,7 +452,7 @@ Logcat reference:
 			// Hint: to list files to manually check if the file was deleted, use: adb shell ls
 			sysCmdExecutor.execute(commandDescription, cfg.adbCommand,
 					"-s", deviceSerialNumber,
-					"shell", "rm", BuildConstants.AVD_dir_for_temp_files + jarFile.fileName.toString())
+					"shell", "rm", EnvironmentConstants.AVD_dir_for_temp_files + jarFile.fileName.toString())
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb shell rm ...' failed. Oh my.", e)

@@ -27,7 +27,7 @@ package org.droidmate.test_tools
 
 import junit.framework.TestCase
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.junit.Before
 import java.util.*
 
@@ -54,7 +54,7 @@ open class DroidmateTestCase : TestCase() {
 //  }
 	companion object {
 		init {
-			Locale.setDefault(BuildConstants.locale)
+			Locale.setDefault(EnvironmentConstants.locale)
 		}
 	}
 

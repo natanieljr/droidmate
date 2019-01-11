@@ -26,7 +26,7 @@
 // "unused" warning is suppressed because vals in this project are being used in the 'droidmate' project gradle build scripts
 // as well as in the 'droidmate' project itself. The "unused" warning doesn't properly recognize some of the usages.
 @file:Suppress("unused")
-
+//TODO ensure all gradle scripts using these constants get cleaned up and that they are only derived/used at runtime, then remove buildSrc alltogether
 package org.droidmate.buildsrc
 
 import com.konradjamrozik.OS

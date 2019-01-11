@@ -102,7 +102,7 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeo
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdleTimeout
 import org.droidmate.logging.Markers.Companion.runData
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -307,7 +307,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		private fun setupResourcesAndPaths(cfg: ConfigurationWrapper) {
 			cfg.droidmateOutputDirPath = cfg.getPath(cfg[outputDir]).toAbsolutePath()
 			cfg.resourceDir = cfg.droidmateOutputDirPath
-					.resolve(BuildConstants.dir_name_temp_extracted_resources)
+					.resolve(EnvironmentConstants.dir_name_temp_extracted_resources)
 			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath
 					.resolve(cfg[reportDir]).toAbsolutePath()
 			cfg.coverageReportDirPath = cfg.droidmateOutputDirPath
@@ -320,14 +320,14 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, "deviceControlDaemon-test.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
 
-			cfg.monitorApkApi23 = getResourcePath(cfg, BuildConstants.monitor_api23_apk_name).toAbsolutePath()
-			log.info("Using ${BuildConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
+			cfg.monitorApkApi23 = getResourcePath(cfg, EnvironmentConstants.monitor_api23_apk_name).toAbsolutePath()
+			log.info("Using ${EnvironmentConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
 
-			cfg.apiPoliciesFile = getResourcePath(cfg, BuildConstants.api_policies_file_name).toAbsolutePath()
-			log.info("Using ${BuildConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
+			cfg.apiPoliciesFile = getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()
+			log.info("Using ${EnvironmentConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
 
 			cfg.apksDirPath = if (cfg[useApkFixturesDir])
-				ResourcePath(BuildConstants.apk_fixtures).path.toAbsolutePath()
+				ResourcePath(EnvironmentConstants.apk_fixtures).path.toAbsolutePath()
 			else
 				cfg.getPath(cfg[apksDir]).toAbsolutePath()
 

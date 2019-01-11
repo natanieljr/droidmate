@@ -43,7 +43,7 @@ dependencies {
 	compile 'com.github.hotzkow:explorationModel:1.0-RELEASE'
 
 	// jdk dependency necessary for kotlin/stream library used by ResourceManager
-	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+	compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 
 	compile 'org.slf4j:slf4j-api:1.7.25'

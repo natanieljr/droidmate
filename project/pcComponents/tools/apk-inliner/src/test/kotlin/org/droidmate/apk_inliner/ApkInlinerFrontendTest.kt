@@ -27,7 +27,7 @@
 
 import com.konradjamrozik.ResourcePath
 import org.apache.commons.io.FileUtils
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,7 +49,7 @@ class ApkInlinerFrontendTest {
 	 */
 	@Test
 	fun inlineApk() {
-		val inputApkFixturesDir = ResourcePath(BuildConstants.apk_fixtures).path
+		val inputApkFixturesDir = ResourcePath(EnvironmentConstants.apk_fixtures).path
 		assert(Files.isDirectory(inputApkFixturesDir))
 		assert(Files.list(inputApkFixturesDir).count() == 1L)
 
@@ -68,9 +68,9 @@ class ApkInlinerFrontendTest {
 
 		ApkInlinerFrontend.handleException = { e -> throw e }
 		// Act
-		ApkInlinerFrontend.main(arrayOf(BuildConstants.apk_inliner_param_input,
+		ApkInlinerFrontend.main(arrayOf(EnvironmentConstants.apk_inliner_param_input,
 				inputDir.toAbsolutePath().toString(),
-				BuildConstants.apk_inliner_param_output_dir,
+				EnvironmentConstants.apk_inliner_param_output_dir,
 				outputDir.toAbsolutePath().toString()))
 
 		assert(Files.list(outputDir).count() == 1L)

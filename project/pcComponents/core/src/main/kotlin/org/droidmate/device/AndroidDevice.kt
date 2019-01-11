@@ -40,7 +40,7 @@ import org.droidmate.device.logcat.TimeFormattedLogcatMessage
 import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.logging.LogbackUtils
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
 import org.droidmate.deviceInterface.DeviceConstants.logcatLogFileName
@@ -50,11 +50,9 @@ import org.droidmate.deviceInterface.communication.*
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.SimulationAdbClearPackage
-import org.droidmate.explorationModel.config.ConfigProperties
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -96,17 +94,17 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	init {
 		// Port files can only be generated here because they depend on the device index
-		val monitorPortFile = File.createTempFile(BuildConstants.monitor_port_file_name, ".tmp")
+		val monitorPortFile = File.createTempFile(EnvironmentConstants.monitor_port_file_name, ".tmp")
 		monitorPortFile.writeText(Integer.toString(cfg.monitorPort))
 		monitorPortFile.deleteOnExit()
 		cfg.monitorPortFile = monitorPortFile.toPath().toAbsolutePath()
-		log.info("Using ${BuildConstants.monitor_port_file_name} located at ${cfg.monitorPortFile}")
+		log.info("Using ${EnvironmentConstants.monitor_port_file_name} located at ${cfg.monitorPortFile}")
 
-		val coveragePortFile = File.createTempFile(BuildConstants.coverage_port_file_name, ".tmp")
+		val coveragePortFile = File.createTempFile(EnvironmentConstants.coverage_port_file_name, ".tmp")
 		coveragePortFile.writeText(Integer.toString(cfg.coverageMonitorPort))
 		coveragePortFile.deleteOnExit()
 		cfg.coveragePortFile = coveragePortFile.toPath().toAbsolutePath()
-		log.info("Using ${BuildConstants.coverage_port_file_name} located at ${cfg.coveragePortFile}")
+		log.info("Using ${EnvironmentConstants.coverage_port_file_name} located at ${cfg.coveragePortFile}")
 	}
 
 	private val tcpClients: ITcpClients = TcpClients(
@@ -380,14 +378,14 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	override fun pushMonitorJar() {
 		if (cfg[apiVersion] == ConfigurationWrapper.api23) {
-			this.pushFile(this.cfg.monitorApkApi23, BuildConstants.monitor_on_avd_apk_name)
+			this.pushFile(this.cfg.monitorApkApi23, EnvironmentConstants.monitor_on_avd_apk_name)
 
 		} else
 			throw UnexpectedIfElseFallthroughError()
 
-		this.pushFile(this.cfg.apiPoliciesFile, BuildConstants.api_policies_file_name)
-		this.pushFile(this.cfg.monitorPortFile, BuildConstants.monitor_port_file_name)
-		this.pushFile(this.cfg.coveragePortFile, BuildConstants.coverage_port_file_name)
+		this.pushFile(this.cfg.apiPoliciesFile, EnvironmentConstants.api_policies_file_name)
+		this.pushFile(this.cfg.monitorPortFile, EnvironmentConstants.monitor_port_file_name)
+		this.pushFile(this.cfg.coveragePortFile, EnvironmentConstants.coverage_port_file_name)
 	}
 
 	override fun reconnectAdb() {

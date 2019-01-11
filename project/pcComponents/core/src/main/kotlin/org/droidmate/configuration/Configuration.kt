@@ -26,7 +26,7 @@
 package org.droidmate.configuration
 
 import com.natpryce.konfig.*
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import java.net.URI
 import java.nio.file.*
 import java.util.*
@@ -79,8 +79,8 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 
 	lateinit var resourceDir: Path
 
-	val aaptCommand = BuildConstants.aapt_command
-	val adbCommand = BuildConstants.adb_command
+	val aaptCommand = EnvironmentConstants.aapt_command
+	val adbCommand = EnvironmentConstants.adb_command
 
 	/**
 	 * Apk with uiautomator-daemon. This is a dummy package required only by instrumentation command (instrumentation target property)

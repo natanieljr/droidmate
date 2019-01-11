@@ -31,7 +31,7 @@ class functionsKtTest {
 	@Test
 	fun plots() {
 		// TODO Nataniel: Disabled because plots require GNUPLOT 5, which is not available on Travis-CI and so, it fails to build there
-		/*val testTempDir = Paths.get(BuildConstants.test_temp_dir_name)
+		/*val testTempDir = Paths.get(EnvironmentConstants.test_temp_dir_name)
 			plot(dataFilePath = Resource("plot_test_data_fixture.txt").extractTo(testTempDir).toAbsolutePath().toString(),
 							outputFilePath = testTempDir.resolve("plot_test_output.pdf").toAbsolutePath().toString())*/
 	}

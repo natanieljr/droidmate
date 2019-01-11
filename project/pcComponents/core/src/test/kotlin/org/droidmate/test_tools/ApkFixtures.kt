@@ -30,7 +30,7 @@ import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.misc.text
 import java.nio.file.Path
@@ -51,7 +51,7 @@ class ApkFixtures(aapt: IAaptWrapper) {
 
 	val Resource.extractedPath: Path
 		get() {
-			val resDir = Paths.get("out",BuildConstants.dir_name_temp_extracted_resources)
+			val resDir = Paths.get("out",EnvironmentConstants.dir_name_temp_extracted_resources)
 			return this.extractTo(resDir).toAbsolutePath()
 		}
 
@@ -66,7 +66,7 @@ class ApkFixtures(aapt: IAaptWrapper) {
 		}
 
 	init {
-		gui = Apk.build(aapt, Resource("${BuildConstants.apk_fixtures}/GuiApkFixture-debug.apk").extractedPath)
-		monitoredInlined_api23 = Apk.build(aapt, Resource("${BuildConstants.apk_fixtures}/${BuildConstants.monitored_inlined_apk_fixture_api23_name}").extractedPath)
+		gui = Apk.build(aapt, Resource("${EnvironmentConstants.apk_fixtures}/GuiApkFixture-debug.apk").extractedPath)
+		monitoredInlined_api23 = Apk.build(aapt, Resource("${EnvironmentConstants.apk_fixtures}/${EnvironmentConstants.monitored_inlined_apk_fixture_api23_name}").extractedPath)
 	}
 }

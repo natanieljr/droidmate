@@ -26,7 +26,7 @@
 package org.droidmate.monitor
 
 import com.konradjamrozik.ResourcePath
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.IConfiguration
 import java.nio.file.Files
 
@@ -50,14 +50,14 @@ class MonitorGeneratorResources constructor(args: Array<String>) : IConfiguratio
 		val monitorSrcOut: Path
 
 		if (this.androidApi == AndroidAPI.API_23) {
-			monitorSrcOut = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
+			monitorSrcOut = Paths.get(EnvironmentConstants.monitor_generator_output_relative_path_api23)
 		} else
 			throw IllegalStateException()
 
 		assert(Files.notExists(monitorSrcOut) || Files.isWritable(monitorSrcOut))
 		this.monitorSrcOutPath = monitorSrcOut
 
-		val monitorSrcTemplatePath = ResourcePath(BuildConstants.monitor_generator_res_name_monitor_template).path
+		val monitorSrcTemplatePath = ResourcePath(EnvironmentConstants.monitor_generator_res_name_monitor_template).path
 		this.monitorSrcTemplatePath = monitorSrcTemplatePath
 
 		val monitoredApis = ResourcePath("monitored_apis.json").path

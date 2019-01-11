@@ -68,6 +68,7 @@ generated_Monitor_api23.java
 instrumentation-logs
 out
 out.txt
+api_policies.txt
 **/test_artifacts/temp/
 temp_extracted_resources
 project/pcComponents/monitor-apk-scaffolding/libs_built/

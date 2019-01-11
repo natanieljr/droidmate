@@ -75,8 +75,8 @@ class MonitorConstants {
 		@JvmStatic
 		val monitor_time_formatter_pattern = "yyyy-MM-dd HH:mm:ss.SSS"
 		// !!! DUPLICATION WARNING !!! with org.droidmate.buildsrc.locale
-		// BuildConstants.getLocale() is not used here as monitor_time_formatter_locale is used in android device.
-		//public static final Locale monitor_time_formatter_locale  = BuildConstants.getLocale();
+		// EnvironmentConstants.getLocale() is not used here as monitor_time_formatter_locale is used in android device.
+		//public static final Locale monitor_time_formatter_locale  = EnvironmentConstants.getLocale();
 		@JvmStatic
 		val monitor_time_formatter_locale: Locale = Locale.US
 	}

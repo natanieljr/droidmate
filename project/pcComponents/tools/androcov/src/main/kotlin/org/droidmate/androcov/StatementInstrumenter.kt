@@ -51,7 +51,7 @@ import java.util.*
 class StatementInstrumenter(private val cfg: ConfigurationWrapper,
                             private val sysCmdExecutor: ISysCmdExecutor = SysCmdExecutor(),
                             private val jarsignerWrapper: IJarsignerWrapper = JarsignerWrapper(sysCmdExecutor,
-									cfg.getPath(BuildConstants.jarsigner),
+									EnvironmentConstants.jarsigner.toAbsolutePath(),
 									Resource("debug.keystore").extractTo(cfg.resourceDir))) {
 
 	companion object {
@@ -154,13 +154,13 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 		Options.v().set_process_dir(processDirs)
 
 		// Consider using set_android_jars instead of set_force_android_jar
-		Options.v().set_force_android_jar(BuildConstants.android_jar_api23)
+		Options.v().set_force_android_jar(EnvironmentConstants.android_jar_api23)
 		//soot.options.Options.v().set_android_jars()
 
 		Options.v().set_force_overwrite(true)
 		Scene.v().loadNecessaryClasses()
 
-		runtime = Runtime.v(Paths.get(BuildConstants.AVD_dir_for_temp_files + BuildConstants.coverage_port_file_name))
+		runtime = Runtime.v(Paths.get(EnvironmentConstants.AVD_dir_for_temp_files + EnvironmentConstants.coverage_port_file_name))
 		helperSootClasses = helperClasses.map { Scene.v().getSootClass("${Runtime.PACKAGE}.$it") }
 	}
 

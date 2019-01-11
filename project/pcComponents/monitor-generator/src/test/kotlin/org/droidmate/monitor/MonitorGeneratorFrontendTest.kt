@@ -25,7 +25,7 @@
 
 package org.droidmate.monitor
 
-import org.droidmate.misc.BuildConstants
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.text
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -46,7 +46,7 @@ class MonitorGeneratorFrontendTest {
 	 */
 	@Test
 	fun `Generates DroidMate monitor`() {
-		val actualMonitorJava = Paths.get(BuildConstants.monitor_generator_output_relative_path_api23)
+		val actualMonitorJava = Paths.get(EnvironmentConstants.monitor_generator_output_relative_path_api23)
 		assert(Files.notExists(actualMonitorJava) || Files.isWritable(actualMonitorJava))
 
 		MonitorGeneratorFrontend.handleException = { throw it }

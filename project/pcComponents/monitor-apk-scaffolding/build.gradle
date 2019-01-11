@@ -91,7 +91,7 @@ repositories {
 }
 
 dependencies {
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+	compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
 	implementation fileTree(dir: 'libs_built', include: ['*.jar'])
 	implementation fileTree(dir: 'libs_common', include: ['*.jar'])
