@@ -25,34 +25,31 @@ wrapper{
 }
 
 allprojects {
-    group = "org.droidmate"
-    version = "1.2-SNAPSHOT"
+	group = "org.droidmate"
+	version = "1.2-SNAPSHOT"
 
-    /* Merge all the build directories into one. */
+	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
 
-    repositories {
+	repositories {
 //		mavenLocal()
-        maven { url = 'https://jitpack.io' }
-        jcenter()
-        mavenCentral()
+		maven { url = 'https://jitpack.io' }
+		jcenter()
+		mavenCentral()
+	}
 
-        maven { url = "https://soot-build.cs.upb.de/nexus/repository/soot-release/" }
-        maven { url = "https://soot-build.cs.upb.de/nexus/repository/soot-snapshot/" }
-    }
+	apply plugin: 'java'
 
-    apply plugin: 'java'
-
-    task sourcesJar(type: Jar, dependsOn: "classes") {
-        classifier = 'sources'
-        from sourceSets.main.allJava
-        from sourceSets.main.allSource
-        from sourceSets.test.allSource
-    }
-    apply plugin: 'maven'
-    artifacts {
-        archives sourcesJar
-    }
+	task sourcesJar(type: Jar, dependsOn: "classes") {
+		classifier = 'sources'
+		from sourceSets.main.allJava
+		from sourceSets.main.allSource
+		from sourceSets.test.allSource
+	}
+	apply plugin: 'maven'
+	artifacts {
+		archives sourcesJar
+	}
 
 	apply from: file("${rootProject.projectDir}/versions.gradle")
 /* this is necessary as long as we do not publish the library into its own repository, since the CI server does not seam to support composite builds but only multi-project hierarchies */
@@ -114,10 +111,11 @@ jar {
 }
 
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
-apply plugin: 'maven-publish'
+apply plugin: 'maven-publish' //FIXME no longer working
 task resolveDependencies{ doFirst {
 	configurations.compile.resolvedConfiguration.resolvedArtifacts.eachWithIndex { resolvedArtifact, n ->
 
+		println "artifact: ${resolvedArtifact.name}"
 		if (resolvedArtifact.name != "all")
 			project.publishing {
 				publications {
