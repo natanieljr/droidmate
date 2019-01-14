@@ -1,6 +1,6 @@
 package org.droidmate.example
 
-import org.droidmate.deviceInterface.guimodel.ExplorationAction
+import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.actions.click
 import org.droidmate.exploration.actions.pressBack
 import org.droidmate.exploration.actions.resetApp
@@ -12,7 +12,7 @@ class ExampleStrategy(private val someId: Int): AbstractStrategy(){
 	private val modelFeature : ExampleModelFeature
 			get() = eContext.getOrCreateWatcher()
 
-	override fun internalDecide(): ExplorationAction {
+	override suspend fun internalDecide(): ExplorationAction {
 		return when {
 			eContext.isEmpty() -> eContext.resetApp()
 

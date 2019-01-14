@@ -1,35 +1,30 @@
 package org.droidmate.example
 
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.newCoroutineContext
-import org.droidmate.explorationModel.ActionData
-import org.droidmate.explorationModel.StateData
 import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.explorationModel.interaction.State
 import java.util.*
-import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.CoroutineContext
 
 class ExampleModelFeature: ModelFeature(){
 	// Prevents this feature from blocking the execution of others
-	override val context: CoroutineContext = newCoroutineContext(context = CoroutineName("ExampleModelFeature"), parent = job)
+	override val coroutineContext: CoroutineContext = CoroutineName("ExampleModelFeature")
 
-	init {
-		job = Job(parent = (this.job)) // We don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
-	}
 
-	override suspend fun onNewAction(traceId: UUID, deferredAction: Deferred<ActionData>, prevState: StateData, newState: StateData) {
-		val action = deferredAction.await()
+	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
+		super.onNewAction(traceId, interactions, prevState, newState)
+		val firstAction = interactions.first()
 
 		// Check [org.droidmate.explorationModel.modelFeatures.ModelFeature] for more notification possibilities
 		println("Transitioning from state $prevState to state $newState")
 
-		if (action.targetWidget != null)
-			println("Clicked widget: ${action.targetWidget}")
+		if (firstAction.targetWidget != null)
+			println("Clicked widget: ${firstAction.targetWidget}")
 
-		println("Triggered APIs: ${action.deviceLogs.apiLogs.joinToString { "${it.uniqueString}\n" }}")
+		println("Triggered APIs: ${firstAction.deviceLogs.joinToString { "$it\n" }}")
 
-		action.deviceLogs
+		firstAction.deviceLogs
 
 		count++
 	}
