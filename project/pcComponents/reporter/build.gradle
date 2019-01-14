@@ -27,25 +27,25 @@
   Because none of them are run on an Android Device, the classes in this project can and are compiled with Java 8.
 */
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-dependOnJunit(project)
-dependWithTest([project, ":project:pcComponents:core", "kotlin"])
-
-dependencies {
-
-	testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-	testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-
-	compile 'com.google.jimfs:jimfs:1.1'
-	compile 'com.google.code.gson:gson:2.8.5'
-}
-
-configureTest([project, ['**/ReporterTestSuite.class']])
-
 repositories {
 	mavenCentral()
 }
 
+dependWithTest([project, ":project:pcComponents:core", "kotlin"])
+
+dependencies {
+	api 'com.natpryce:konfig:1.6.6.0'  // configuration library
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.ext.coroutines_version}"
+
+	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
+		exclude group: "org.slf4j", module: "slf4j-simple"
+	}
+	implementation 'com.google.jimfs:jimfs:1.1'
+	implementation 'com.google.code.gson:gson:2.8.5'
+
+	testImplementation "org.jetbrains.kotlin:kotlin-test:${project.ext.kotlin_version}"
+	testImplementation "org.jetbrains.kotlin:kotlin-test-junit:${project.ext.kotlin_version}"
+
+}
+configureTest([project, ['**/ReporterTestSuite.class']])
 

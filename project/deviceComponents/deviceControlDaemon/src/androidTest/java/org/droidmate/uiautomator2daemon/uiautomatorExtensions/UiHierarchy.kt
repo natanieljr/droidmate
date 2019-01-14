@@ -197,7 +197,7 @@ nodes
 		val stream = ByteArrayOutputStream()
 		try {
 			screenshot.setHasAlpha(false)
-			screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream)
+			screenshot.compress(Bitmap.CompressFormat.JPEG, 100, stream)
 			stream.flush()
 
 			bytes = stream.toByteArray()

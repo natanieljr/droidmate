@@ -286,7 +286,7 @@ class VisualizationGraph : ApkReport() {
 	 * e.g. for the initial state or for states for which DroidMate could not acquire an
 	 * image.
 	 */
-	private fun getImgPath(id: String?): String {
+	private fun getImgPath(id: String?): String { // FIXME the image files are stored by their action number, lookup the exploration trace to determine which image belongs to which state (or if necessary add an model watcher for that)
 		return if (id != null
 			// Image is available
 			&& Files.list(targetStatesImgDir).use { list -> list.anyMatch { it.fileName.toString().startsWith(id) } }) {
@@ -294,7 +294,7 @@ class VisualizationGraph : ApkReport() {
 			Paths.get(".")
 				.resolve("img")
 				.resolve("states")
-				.resolve("$id.png")
+				.resolve("$id.jpg")
 				.toString()
 		} else
 			Paths.get(".")
@@ -358,7 +358,7 @@ class VisualizationGraph : ApkReport() {
 		targetStatesImgDir = targetImgDir.resolve("states")
 		Files.createDirectories(targetStatesImgDir)
 
-		copyFilteredFiles(model.config.stateDst, targetStatesImgDir, ".png")
+		copyFilteredFiles(model.config.imgDst, targetStatesImgDir, ".jpg")
 
 		val jsonFile = targetVisFolder.resolve("data.js")
 		val gson = getCustomGsonBuilder()
@@ -410,18 +410,18 @@ class VisualizationGraph : ApkReport() {
 				}
 			}
 			.groupBy { (_, it) -> it.prevState.uid }.flatMap { (uid, indexedActions) ->
-				var imgFile = imgDir.resolve("${indexedActions.first().second.prevState.toString()}.png").toFile()
+				var imgFile = imgDir.resolve("${indexedActions.first().second.prevState.toString()}.jpg").toFile()
 				if (!imgFile.exists()) {
-					imgFile = Files.list(imgDir).filter { it.fileName.startsWith(uid.toString()) && it.fileName.endsWith(".png") }.findFirst().orElseGet { Paths.get("Error") }.toFile()
+					imgFile = Files.list(imgDir).filter { it.fileName.startsWith(uid.toString()) && it.fileName.endsWith(".jpg") }.findFirst().orElseGet { Paths.get("Error") }.toFile()
 				}
 				val img = if (imgFile.exists()) ImageIO.read(imgFile) else null
 				if (!imgFile.exists() || img == null) indexedActions// if we cannot find a source img we are not touching the actions
 				else {
-					uidMap[uid] = fromString(imgFile.name.replace(".png", ""))!!
+					uidMap[uid] = fromString(imgFile.name.replace(".jpg", ""))!!
 					val configId = uidMap[uid]!!.configId
 					val targets = indexedActions.filter { (_, action) -> action.targetWidget != null }
 					highlightWidget(img, targets.map { it.second.targetWidget!! }, targets.map { it.first }) // highlight each action in img
-					ImageIO.write(img, "png", imgDir.resolve("${ConcreteId(uid, configId)}.png").toFile())
+					ImageIO.write(img, "jpg", imgDir.resolve("${ConcreteId(uid, configId)}.jpg").toFile())
 					// manipulate the action datas to replace config-id's
 					indexedActions.map { (i, action) ->
 						Pair(i, action.copy(prevState = ConcreteId(uid, configId), resState = uidMap.getOrDefault(action.resState.uid, action.resState)))

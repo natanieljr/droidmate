@@ -22,11 +22,6 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-dependencies {
-	compile project(":project:pcComponents:command")
-
-	compile 'com.natpryce:konfig:1.6.6.0'
-}
 
 buildscript {
 	repositories {
@@ -35,6 +30,12 @@ buildscript {
 	dependencies {
 		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'  // requires jcenter
 	}
+}
+
+dependencies {
+	compile project(":project:pcComponents:command")
+
+	api 'com.natpryce:konfig:1.6.6.0' // dependency as api since we expose the CommandLineOption to allow for extending configuration parameters
 }
 
 apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/

@@ -35,9 +35,13 @@ mainClassName = "org.droidmate.apk_inliner.ApkInlinerFrontend"
 dependencies {
 
 	compile project(":project:pcComponents:core")
-	compile project(":project:pcComponents:commonLib")
+	api 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
-	testCompile 'junit:junit:4.12'
+	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
+		exclude group: "org.slf4j", module: "slf4j-simple"
+	}
+
+	testImplementation 'junit:junit:4.12'
 
 }
 

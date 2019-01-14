@@ -37,18 +37,22 @@ dependencies {
 	// We use the Soot version 3.0.1, because we had trouble with Soot 3.1.0.
 	// Soot 3.1.0 was not able to instrument wikihowapp or reddit.
 //	implementation "ca.mcgill.sable:soot:3.0.1"
+	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
+		exclude group: "org.slf4j", module: "slf4j-simple"
+	}
+	implementation 'org.apache.commons:commons-lang3:3.8'
 
 	// Use the .jar for soot-infoflow-android and soot, because the repository does not work reliable.
 	implementation fileTree(dir: 'libs', include: ['*.jar'])
 //	compile "de.tud.sse:soot-infoflow-android:2.6.1"
-	
-	compile 'org.json:json:20160212'
-	compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
-	compile group: 'com.ximpleware', name: 'vtd-xml', version: '2.13.4'
+
+	implementation 'org.json:json:20160212'
+	implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+	implementation group: 'com.ximpleware', name: 'vtd-xml', version: '2.13.4'
 
 	compile project(":project:pcComponents:core")
-	compile project(":project:pcComponents:commonLib")
+	api 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
-	testCompile 'junit:junit:4.12'
+	testImplementation 'junit:junit:4.12'
 }
 

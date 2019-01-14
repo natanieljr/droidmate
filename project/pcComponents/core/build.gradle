@@ -31,31 +31,32 @@ evaluationDependsOn(':project:pcComponents:commonLib')
 compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:commonLib:testClasses')
 dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
 
-repositories {
-	maven { url 'https://jitpack.io' }
-//	mavenLocal()
-}
-
 dependencies {
+
 //	compile group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
 //	compile group: 'org.droidmate', name: 'explorationModel', version: '1.0-SNAPSHOT'
 	compile group:'com.github.hotzkow', name: 'platformInterfaceLib', version: "${project.ext.driverLib_version}"
-	compile 'com.github.hotzkow:explorationModel:1.0-RELEASE'
+	compile 'com.github.hotzkow:explorationModel:master-SNAPSHOT'
+	implementation 'com.natpryce:konfig:1.6.6.0'  // configuration library
+
+	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
+		exclude group: "org.slf4j", module: "slf4j-simple"
+	}
+	implementation 'org.apache.commons:commons-lang3:3.8'
 
 	// jdk dependency necessary for kotlin/stream library used by ResourceManager
-	compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-	compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 
-	compile 'org.slf4j:slf4j-api:1.7.25'
-	compile 'ch.qos.logback:logback-classic:1.2.3'
-	compile 'ch.qos.logback:logback-core:1.2.3'
+	implementation 'ch.qos.logback:logback-classic:1.2.3'
+	implementation 'ch.qos.logback:logback-core:1.2.3'
 	//compile 'net.sf.opencsv:opencsv:2.3'
-	compile 'org.json:json:20160212'
+	implementation 'org.json:json:20160212'
 
 	// Filesystem stubbing
-	compile 'com.google.jimfs:jimfs:1.1'
+	implementation 'com.google.jimfs:jimfs:1.1'
 
-	compile 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
+	implementation 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
 
 }
 
