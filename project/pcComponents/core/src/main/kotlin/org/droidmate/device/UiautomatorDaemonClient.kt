@@ -33,6 +33,7 @@ import org.droidmate.deviceInterface.DeviceConstants
 
 class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
                                           private val deviceSerialNumber: String,
+                                          tcpServerAddress: String,
                                           private val port: Int,
                                           socketTimeout: Int,
                                           private val startTimeout: Int,
@@ -48,7 +49,7 @@ class UiautomatorDaemonClient constructor(private val adbWrapper: IAdbWrapper,
 		}
 	}
 
-	private val client = TcpClientBase<DeviceCommand, DeviceResponse>(socketTimeout)
+	private val client = TcpClientBase<DeviceCommand, DeviceResponse>(tcpServerAddress, socketTimeout)
 
 	private var uiaDaemonThread: Thread? = null
 
