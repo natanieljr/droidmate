@@ -45,7 +45,7 @@ private val exeExt = if (OS.isWindows) ".exe" else ""
 
 //region Values directly based on system environment variables
 val java_home = "JAVA_HOME".asEnvDir
-private val android_sdk_dir = "ANDROID_HOME".asEnvDir
+val android_sdk_dir = "ANDROID_HOME".asEnvDir
 //endregion
 
 val jarsigner_relative_path = "bin/jarsigner$exeExt"
@@ -81,7 +81,7 @@ val debug = Files.list(android_sdk_dir).use {  file ->
 
 var anyVersion = ""
 private var minApi = Pair("",Int.MAX_VALUE)  //TODO do we really want the lowest from 23 and not the highest version?
-val androidVersions = Files.list(android_sdk_dir.resolveDir("platforms")).use{ file ->
+val androidVersions = Files.list(android_sdk_dir.resolve("platforms")).use{ file ->
 	println("available platforms versions: ")
 	file.forEach {
 		val fileName = it.fileName.toString()
@@ -93,11 +93,7 @@ val androidVersions = Files.list(android_sdk_dir.resolveDir("platforms")).use{ f
 	}
 }
 val availableVersion = if(minApi.first.isBlank()) anyVersion else minApi.first
-private val android_platform_dir_api23 =
-		android_sdk_dir.resolveDir("platforms/$availableVersion")
 
-val uiautomator_jar_api23 = android_platform_dir_api23.resolveRegularFile("uiautomator.jar")
-val android_jar_api23 = android_platform_dir_api23.resolveRegularFile("android.jar")
 val android_extras_m2repo = android_sdk_dir.resolveDir("extras/android/m2repository")
 //endregion
 

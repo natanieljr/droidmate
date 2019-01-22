@@ -51,7 +51,7 @@ dependencies {
 
 	testCompile 'junit:junit:4.12'
 
-	compileOnly files(BuildKt.android_jar_api23.toString())
+	compileOnly files(BuildKt.android_sdk_dir.resolve("platforms/android-23/android.jar").toString())
 
 	compile project(":project:pcComponents:commonLib")
 }
