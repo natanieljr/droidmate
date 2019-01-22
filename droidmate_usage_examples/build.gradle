@@ -27,7 +27,7 @@ dependencies {
 	 * and use this dependency to refer to the modified version (adjust version acordingly to yours) */
 //  api group:'org.droidmate', name: 'droidmate-2', version: "+"
 	/** when no modification to DM-2 we can refer to the most recent github version */
-	api 'com.github.uds-se.droidmate:API:master-SNAPSHOT' // android exploration platform
+	api 'com.github.uds-se:droidmate:API:master-SNAPSHOT' // android exploration platform
 
 
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
