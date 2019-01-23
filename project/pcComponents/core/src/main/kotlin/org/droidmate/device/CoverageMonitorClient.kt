@@ -33,6 +33,7 @@ import java.util.LinkedList
 class CoverageMonitorClient(socketTimeout: Int,
                             private val deviceSerialNumber: String,
                             private val adbWrapper: IAdbWrapper,
+                            serverAddress: String,
                             private val port: Int) : ICoverageMonitorClient {
 
     companion object {
@@ -40,7 +41,7 @@ class CoverageMonitorClient(socketTimeout: Int,
     }
 
     // remove this.getPorts from all methods
-    private val monitorTcpClient: ITcpClientBase<String, LinkedList<ArrayList<String>>> = TcpClientBase(socketTimeout)
+    private val monitorTcpClient: ITcpClientBase<String, LinkedList<ArrayList<String>>> = TcpClientBase(serverAddress, socketTimeout)
 
 
     override fun anyMonitorIsReachable(): Boolean {

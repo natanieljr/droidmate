@@ -37,12 +37,10 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable>
-	constructor(private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
+	constructor(private val serverAddress: String, private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
 	/*companion object {
 			private val logcat = LoggerFactory.getLogger(TcpClientBase::class.java)
 	}*/
-
-	private val serverAddress = "localhost"
 
 	@Suppress("UNCHECKED_CAST")
 	@Throws(TcpServerUnreachableException::class, DeviceException::class)
