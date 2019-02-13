@@ -94,6 +94,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.reset
 import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.configuration.ConfigProperties.Strategies.terminate
+import org.droidmate.configuration.ConfigProperties.TcpClient.serverAddress
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.delayedImgFetch
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.enablePrintOuts
@@ -126,6 +127,8 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(monitorSocketTimeout, description = "Socket timeout to communicate with the API monitor service."),
 			CommandLineOption(monitorUseLogcat, description = "Use logical for API logging instead of TCPServer (deprecated)."),
 			CommandLineOption(ConfigProperties.ApiMonitorServer.basePort, description = "The base port for the communication with the the API monitor service. DroidMate communicates over this base port + device index."),
+			// TcpClient
+			CommandLineOption(serverAddress, description = "Server address for tcp clients e.g. localhost."),
 			// ExecutionMode
 			CommandLineOption(inline, description = "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks. This flag cannot be combined with another execution mode."),
 			CommandLineOption(report, description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data. This flag cannot be combined with another execution mode."),

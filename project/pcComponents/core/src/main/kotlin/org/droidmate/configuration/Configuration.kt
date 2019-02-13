@@ -161,6 +161,10 @@ abstract class ConfigProperties {
 		val basePort by intType
 	}
 
+	object TcpClient : PropertyGroup() {
+		val serverAddress by stringType
+	}
+
 	object ExecutionMode : PropertyGroup() {
 		val inline by booleanType
 		val report by booleanType

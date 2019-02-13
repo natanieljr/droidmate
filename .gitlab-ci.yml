@@ -1,4 +1,4 @@
-image: timoguehring/droidmatedockerenv:latest
+image: timoguehring/droidmatedockerenv:CI
 
 stages:
   - test
@@ -31,4 +31,6 @@ job:on-schedule:
     - echo $RESOURCE_REPO
     - echo $TESTING_SET
     - echo $TESTING_DEVICE
-    - python ./project/scripts/tester.py $RESOURCE_REPO $TESTING_SET $TESTING_DEVICE
+    - echo $FARM_ADDRESS
+    - echo $FARM_AUTH_TOKEN
+    - python ./project/scripts/tester.py $RESOURCE_REPO $TESTING_SET $TESTING_DEVICE $FARM_ADDRESS $FARM_AUTH_TOKEN

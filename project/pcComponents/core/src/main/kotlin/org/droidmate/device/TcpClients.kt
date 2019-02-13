@@ -38,16 +38,26 @@ class TcpClients constructor(adbWrapper: IAdbWrapper,
                              uiautomatorDaemonTcpPort: Int,
                              uiautomatorDaemonServerServerStartTimeout: Int,
                              uiautomatorDaemonServerWaitForInteractableTimeout: Int,
+                             tcpServerAddress: String,
                              apiMonitorPort: Int,
                              coverageMonitorPort: Int) : ITcpClients {
 
-    private val apiMonitorClient: IApiMonitorClient = ApiMonitorClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, apiMonitorPort)
-    private val coverageMonitorClient = CoverageMonitorClient(monitorSocketTimeout, deviceSerialNumber, adbWrapper, coverageMonitorPort)
+    private val apiMonitorClient: IApiMonitorClient = ApiMonitorClient(monitorSocketTimeout,
+		deviceSerialNumber,
+		adbWrapper,
+		tcpServerAddress,
+		apiMonitorPort)
+    private val coverageMonitorClient = CoverageMonitorClient(monitorSocketTimeout,
+		deviceSerialNumber,
+		adbWrapper,
+        	tcpServerAddress,
+		coverageMonitorPort)
     private val monitorClients: List<IMonitorClient> = listOf(apiMonitorClient, coverageMonitorClient)
 
     private val uiautomatorClient: IUiautomatorDaemonClient = UiautomatorDaemonClient(
             adbWrapper,
             deviceSerialNumber,
+            tcpServerAddress,
             uiautomatorDaemonTcpPort,
             uiautomatorDaemonSocketTimeout,
             uiautomatorDaemonServerServerStartTimeout,
