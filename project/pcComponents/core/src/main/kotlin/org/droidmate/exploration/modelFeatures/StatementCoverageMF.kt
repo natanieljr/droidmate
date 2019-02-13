@@ -27,12 +27,12 @@ package org.droidmate.exploration.modelFeatures
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import org.droidmate.configuration.ConfigProperties.ModelProperties.Features.statementCoverageDir
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.explorationModel.config.ConfigProperties
+import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.FeatureDir
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.misc.deleteDir
 import org.json.JSONArray
@@ -55,16 +55,17 @@ import kotlin.streams.toList
  * the statement data from the device.
  */
 class StatementCoverageMF(cfg: ConfigurationWrapper,
-                          private val modelCfg: ModelConfig,
-                          private val device: IExplorableAndroidDevice) : AdbBasedMF(cfg) {
+                          private val config: ConfigurationWrapper,
+                          private val device: IExplorableAndroidDevice,
+                          private val appName: String) : AdbBasedMF(cfg) {
 
     private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
     override val coroutineContext: CoroutineContext = CoroutineName("StatementCoverageMF") + Job()
 
-    private val instrumentationDir = Paths.get(modelCfg[statementCoverageDir].toString()).toAbsolutePath()
-    private val statementsLogOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(modelCfg.appName)
+    private val instrumentationDir = Paths.get(config[ConfigProperties.ModelProperties.path.FeatureDir].toString()).toAbsolutePath()
+    private val statementsLogOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(appName)
 
     private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
     private val instrumentationMap: Map<String, String>
@@ -77,7 +78,7 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
         assert(statementsLogOutputDir.deleteDir())
         Files.createDirectories(statementsLogOutputDir)
 
-        instrumentationMap = getInstrumentation(modelCfg.appName)
+        instrumentationMap = getInstrumentation(appName)
     }
 
     override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
@@ -95,7 +96,7 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
      */
     private fun getInstrumentation(apkName: String): Map<String, String> {
         return if (!Files.exists(instrumentationDir)) {
-            log.warn("Provided statementCoverageDir does not exist: ${modelCfg[statementCoverageDir]}." +
+            log.warn("Provided Dir does not exist: ${config[FeatureDir]}." +
                 "DroidMate will monitor coverage, but won't be able to calculate the coverage.")
             emptyMap()
         } else {
@@ -104,7 +105,7 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
             if (instrumentationFile != null)
                 readInstrumentationFile(instrumentationFile)
             else {
-                log.warn("Provided statementCoverageDir (${modelCfg[statementCoverageDir]}) does not contain " +
+                log.warn("Provided Dir (${config[FeatureDir]}) does not contain " +
                     "the corresponding instrumentation file. DroidMate will monitor coverage, but won't be able" +
                     "to calculate the coverage.")
                 emptyMap()
@@ -207,7 +208,7 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
      * Returns the logfile name depending on the [counter] in which the content is written into.
      */
     private fun getLogFilename(counter: Int): Path {
-        return statementsLogOutputDir.resolve("${modelCfg.appName}-statements-%04d".format(counter))
+        return statementsLogOutputDir.resolve("$appName-statements-%04d".format(counter))
     }
 
     override suspend fun onAppExplorationFinished(context: ExplorationContext) {

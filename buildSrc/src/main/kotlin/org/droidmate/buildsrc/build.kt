@@ -29,10 +29,7 @@
 //TODO ensure all gradle scripts using these constants get cleaned up and that they are only derived/used at runtime, then remove buildSrc alltogether
 package org.droidmate.buildsrc
 
-import com.konradjamrozik.OS
-import com.konradjamrozik.asEnvDir
-import com.konradjamrozik.resolveDir
-import com.konradjamrozik.resolveRegularFile
+import com.konradjamrozik.*
 import org.zeroturnaround.exec.ProcessExecutor
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -78,21 +75,6 @@ val debug = Files.list(android_sdk_dir).use {  file ->
 		println("\t$fileName")
 	}
 }
-
-var anyVersion = ""
-private var minApi = Pair("",Int.MAX_VALUE)  //TODO do we really want the lowest from 23 and not the highest version?
-val androidVersions = Files.list(android_sdk_dir.resolve("platforms")).use{ file ->
-	println("available platforms versions: ")
-	file.forEach {
-		val fileName = it.fileName.toString()
-		anyVersion = fileName
-		println("\t$fileName")
-		val versionCmp = fileName.replace("android-","").toIntOrNull()
-		if(versionCmp!=null && versionCmp>=23 && versionCmp < minApi.second)
-			minApi = Pair(fileName,versionCmp)
-	}
-}
-val availableVersion = if(minApi.first.isBlank()) anyVersion else minApi.first
 
 val android_extras_m2repo = android_sdk_dir.resolveDir("extras/android/m2repository")
 //endregion

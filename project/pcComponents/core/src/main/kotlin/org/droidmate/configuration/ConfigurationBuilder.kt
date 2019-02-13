@@ -188,7 +188,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(playbackModelDir, description = "Directory of a previous exploration model. Required for playback."),
 			CommandLineOption(resetEvery, description = "Number of actions to automatically reset the exploration from its initial activity. Set to 0 to disable."),
 			CommandLineOption(actionLimit, description = "How many actions the GUI exploration strategy can conduct before terminating."),
-			CommandLineOption(timeLimit, description = "How long the exploration of any given apk should take, in seconds. If set to 0, instead actionsLimit will be used."),
+			CommandLineOption(timeLimit, description = "How long the exploration of any given apk should take, in milli seconds. If set to 0, instead actionsLimit will be used."),
 			CommandLineOption(randomSeed, description = "The seed for a random generator used by a random-clicking GUI exploration strategy. If null, a seed will be randomized."),
 			CommandLineOption(stopOnExhaustion, description = "Terminate exploration when all widgets have been explored at least 1x."),
 			CommandLineOption(ConfigProperties.Selectors.dfs, description = "Use Depth-First-Search strategy, if the strategy is registered."),

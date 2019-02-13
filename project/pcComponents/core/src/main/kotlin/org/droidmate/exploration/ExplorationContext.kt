@@ -30,7 +30,6 @@ import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
@@ -45,19 +44,19 @@ import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.*
 import org.droidmate.misc.TimeDiffWithTolerance
-import org.droidmate.misc.TimeProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.math.min
+import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
 
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper,
                                                    val apk: IApk,
                                                    val device: IRobustDevice,
-                                                   var explorationStartTime: LocalDateTime = LocalDateTime.MIN,
+                                                   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
                                                    val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
@@ -75,7 +74,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	fun<T:ModelFeature> addWatcher(w: T){ explorationTrace.addWatcher(w) }
 
-	val crashlist: CrashListMF = getOrCreateWatcher()
+	val crashlist: CrashListMF by lazy { getOrCreateWatcher<CrashListMF>() }
 	val exceptionIsPresent: Boolean
 		get() = exception !is DeviceExceptionMissing
 
@@ -88,8 +87,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	init {
 		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
-		if (_model.config[ConfigProperties.Core.debugMode]) watcher.add(ImgTraceMF(_model.config))
-		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, _model.config, device))
+		org.droidmate.misc.debugOutput = _model.config[debugMode] // disable debug ouptuts if not in debug mode
+		org.droidmate.misc.measurePerformance = _model.config[debugMode]
+		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, cfg, device, _model.config.appName))
 	}
 
 	fun getCurrentState(): State = explorationTrace.currentState
@@ -215,7 +215,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
         	return if (explorationEndTime > LocalDateTime.MIN) {
             		Duration.between(explorationStartTime, explorationEndTime)
         	} else {
-            		Duration.between(explorationStartTime, TimeProvider.getNow())
+            		Duration.between(explorationStartTime, LocalDateTime.now())
         	}
     	}
 

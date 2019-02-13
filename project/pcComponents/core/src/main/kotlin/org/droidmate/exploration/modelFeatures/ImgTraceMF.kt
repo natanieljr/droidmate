@@ -25,9 +25,7 @@
 
 package org.droidmate.exploration.modelFeatures
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.isComplete
@@ -63,52 +61,64 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 
 	var i: AtomicInteger = AtomicInteger(0)
 	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State, newState: State) {
-		// check if we have any screenshots to process
-		if(!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
+		try {
+			// check if we have any screenshots to process
+			if (!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
 
-		val step = i.incrementAndGet()-1
-		val screenFile = java.io.File(cfg.imgDst.resolve("$lastId.jpg").toString())
-		val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")
-		lastId = action.id
+			val step = i.incrementAndGet() - 1
+			val screenFile = java.io.File(cfg.imgDst.resolve("$lastId.jpg").toString())
+			val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")
+			lastId = action.id
 
-		while(coroutineContext.isActive && !screenFile.exists()) delay(100)
-		while(coroutineContext.isActive && !screenFile.canRead()) delay(100)
-		if(!isActive) return
-		if(!screenFile.exists()) return // thread was canceled but no file to process is ready yet
+			while (coroutineContext.isActive && !screenFile.exists()) delay(100)
+			while (coroutineContext.isActive && !screenFile.canRead()) delay(100)
+			if (!isActive) return
+			var t=0
+			while ( t<20 && (!screenFile.exists() || !screenFile.canRead())) {
+				t++; delay (300)
+			}  // wait until file was written in model-update
 
+			if (!screenFile.exists()) return // thread was canceled but no file to process is ready yet
 
-		screenFile.copyTo(targetFile, overwrite = true) // copy file to trace directory
-		if(prevState.widgets.isEmpty()) return  // no widgets exist which we could highlight
+			if (prevState.widgets.isEmpty()) return  // no widgets exist which we could highlight
+			withContext(Dispatchers.IO) {
+				screenFile.copyTo(targetFile, overwrite = true) // copy file to trace directory
 
-		val stateImg = ImageIO.read(targetFile) ?: return
-		val visibleAppElements = prevState.widgets.filter { !it.isKeyboard && it.canInteractWith }
-		textColor = Color.white
+				ImageIO.read(screenFile)?.let{ stateImg ->
+					val visibleAppElements = prevState.widgets.filter { !it.isKeyboard && it.canInteractWith }
+					textColor = Color.white
 //		shapeColor = Color.LIGHT_GRAY
 //		highlightWidget(stateImg, visibleAppElements.filter { !it.hasUncoveredArea }, 0)
 //		shapeColor = Color.GRAY
 //		highlightWidget(stateImg, visibleAppElements.filter { it.hasUncoveredArea }, 0)
 
-		shapeColor = Color.black
-		highlightWidget(stateImg, prevState.actionableWidgets.filter { it.isKeyboard }, 0)
+					shapeColor = Color.black
+					highlightWidget(stateImg, prevState.actionableWidgets.filter { it.isKeyboard }, 0)
 
 //		textColor = Color.red
-		shapeColor = Color.gray
-		highlightWidget(stateImg, visibleAppElements.filter { !it.isKeyboard }, 0)
+					shapeColor = Color.gray
+					highlightWidget(stateImg, visibleAppElements.filter { !it.isKeyboard }, 0)
 
-		textColor = Color.cyan
-		shapeColor = Color.cyan
-		highlightWidget(stateImg, prevState.actionableWidgets.filter {  it.visibleAreas.isComplete() && !it.isKeyboard }, 0)
+					textColor = Color.cyan
+					shapeColor = Color.cyan
+					highlightWidget(stateImg, prevState.actionableWidgets.filter { it.visibleAreas.isComplete() && !it.isKeyboard }, 0)
 
-		textColor = Color.green
-		shapeColor = Color.orange
-		highlightWidget(stateImg, prevState.actionableWidgets.filter {  !it.visibleAreas.isComplete() && !it.isKeyboard }, 0)
+					textColor = Color.green
+					shapeColor = Color.orange
+					highlightWidget(stateImg, prevState.actionableWidgets.filter { !it.visibleAreas.isComplete() && !it.isKeyboard }, 0)
 
-		if(targetWidgets.isNotEmpty()) {
-			shapeColor = Color.red
-			textColor = Color.magenta
-			highlightWidget(stateImg, targetWidgets, step)
+					if (targetWidgets.isNotEmpty()) {
+						shapeColor = Color.red
+						textColor = Color.magenta
+						highlightWidget(stateImg, targetWidgets, step)
+					}
+					ImageIO.write(stateImg, "png", targetFile)
+				}
+
+			}
+		}catch(e: Throwable){
+			log.error(e.localizedMessage)
 		}
-		ImageIO.write(stateImg,"png",targetFile)
 	}
 }
 
@@ -149,7 +159,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 	}
 }
 fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0)
-	= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset })
+		= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset })
 
 private fun Int.resize() = if(this<5) 10 else this
 

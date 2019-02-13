@@ -84,6 +84,7 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.LocalDateTime
 import java.util.*
 
 open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
@@ -421,7 +422,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, device, TimeProvider.getNow(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, device, LocalDateTime.now(), _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
@@ -440,8 +441,19 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				// execute action
 				result = action.run(app, device)
 
-				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch])
-					pullScreenShot(action.id,explorationContext.getModel().config.imgDst, device)
+				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) withContext(Dispatchers.IO) {
+					if(action is ActionQueue){
+						action.actions.forEachIndexed { i, a ->
+							if(i<action.actions.size-1 &&
+									((a is TextInsert && action.actions[i+1] is Click)
+											|| a is Swipe))
+								pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device)
+						}
+					}
+					// TODO if contains scroll additional screen capture + fetch
+					// ? if text input additional screen capture after insert action?
+					pullScreenShot(action.id, explorationContext.getModel().config.imgDst, device)
+				}
 
 				explorationContext.update(action, result)
 
@@ -472,7 +484,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		if (!result.successful)
 			explorationContext.exception = exception
 
-		explorationContext.explorationEndTime = TimeProvider.getNow()
+		explorationContext.explorationEndTime = LocalDateTime.now()
 
 		return explorationContext
 	}

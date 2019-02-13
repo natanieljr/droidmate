@@ -31,6 +31,7 @@ import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
+import org.droidmate.explorationModel.debugOut
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -74,15 +75,16 @@ class StrategySelector constructor(val priority: Int,
 		 * Terminate the exploration after a predefined elapsed time
 		 */
 		@JvmStatic
-		val timeBasedTerminate : SelectorFunction = { context, pool, bundle ->
+		val timeBasedTerminate : SelectorFunction = { context, _, bundle ->
 			val timeLimit = bundle!![0].toString().toInt()
 			if(timeLimit <= 0) null
 			else {
 				val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because eContext start time is not yet initialized
 
+				debugOut("remaining exploration time ${"%.1f".format((timeLimit-diff)/1000.0)}s")
 				if (diff >= timeLimit) {
 					logger.debug("Exploration time exhausted. Returning 'Terminate'")
-					pool.getFirstInstanceOf(Terminate::class.java)
+					Terminate
 				} else
 					null
 			}

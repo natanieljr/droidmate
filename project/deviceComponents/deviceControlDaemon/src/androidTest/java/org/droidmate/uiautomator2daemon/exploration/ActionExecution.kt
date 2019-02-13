@@ -115,10 +115,15 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is Scroll -> TODO()
 		is ActionQueue -> runBlocking {
 			var success = true
-			actions.forEach { it -> success = success &&
-					it.execute(env).apply{ delay(delay)
-					getOrStoreImgPixels(env.captureScreen(),env)
-					} as Boolean }
+			actions.forEachIndexed { i,action -> success = success &&
+					action.execute(env).also{
+						delay(delay)
+						if(i<actions.size-1 &&
+								((action is TextInsert && actions[i+1] is Click)
+										|| action is Swipe)) getOrStoreImgPixels(env.captureScreen(),env, action.id)
+					} as Boolean }.apply{
+				getOrStoreImgPixels(env.captureScreen(),env)
+			}
 		}
 	}
 	Log.d(logTag, "END execution of ${toString()}")
@@ -152,16 +157,16 @@ private suspend fun waitForSync(env: UiAutomationEnvironment, afterAction: Boole
 /** compressing an image no matter the quality, takes long time therefore the option of storing these asynchronous
  * and transferring them later is available via configuration
  */
-private fun getOrStoreImgPixels(bm: Bitmap?, env: UiAutomationEnvironment): ByteArray = debugT("wait for screen avg = ${wt / max(1, wc)}",{
+private fun getOrStoreImgPixels(bm: Bitmap?, env: UiAutomationEnvironment, actionId: Int = lastId): ByteArray = debugT("wait for screen avg = ${wt / max(1, wc)}",{
 	when{ // if we couldn't capture screenshots
 		bm == null ->{
 			Log.w(logTag,"create empty image")
 			ByteArray(0)
 		}
 		env.delayedImgTransfer ->{
-			backgroundScope.launch{ // we could use an actor getting id and bitmap via channel, instead of starting another coroutine each time
-				debugOut("create screenshot for action $lastId")
-				val os = FileOutputStream(env.imgDir.absolutePath+ "/"+lastId+".jpg")
+			backgroundScope.launch(Dispatchers.IO){ // we could use an actor getting id and bitmap via channel, instead of starting another coroutine each time
+				debugOut("create screenshot for action $actionId")
+				val os = FileOutputStream(env.imgDir.absolutePath+ "/"+actionId+".jpg")
 				bm.compress(Bitmap.CompressFormat.JPEG, env.imgQuality, os)
 				os.close()
 				bm.recycle()

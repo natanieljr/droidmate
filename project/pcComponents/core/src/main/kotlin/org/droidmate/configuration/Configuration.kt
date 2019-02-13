@@ -146,7 +146,6 @@ abstract class ConfigProperties {
 	object ModelProperties : PropertyGroup() {  //TODO move config back to core and resolve these properties from the explorationModel modul
 		object Features : PropertyGroup() {
 			val statementCoverage by booleanType
-			val statementCoverageDir by uriType
 		}
 
 	}
@@ -154,7 +153,6 @@ abstract class ConfigProperties {
 	object Core : PropertyGroup() {
 		val logLevel by stringType  // TODO we could use a nice enumType instead
 		val configPath by uriType
-		val debugMode by booleanType
 	}
 
 	object ApiMonitorServer : PropertyGroup() {
