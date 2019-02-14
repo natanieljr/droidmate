@@ -26,14 +26,16 @@ import org.droidmate.buildsrc.BuildKt
 
 task pullMonitorApk_api23(type: Copy, dependsOn: ":project:pcComponents:monitor-generator:build") { Copy copy ->
 
-	Project monitorGenerator = findProject(":project:pcComponents:monitor-generator")
-	def monitorApk = file(new File(monitorGenerator.buildDir, BuildKt.monitor_api23_apk_name))
+	def monitorGenerator = findProject(":project:pcComponents:monitor-generator")
+	if(monitorGenerator != null){
+		def monitorApk = file(new File(monitorGenerator.buildDir, BuildKt.monitor_api23_apk_name))
 
-	copy.from(monitorApk).into(coreResDir)
+		copy.from(monitorApk).into(coreResDir)
 
-	def resDir = new File(monitorGenerator.projectDir.parent, "resources")
-	def apiPolicies = file(new File(resDir, BuildKt.api_policies_file_name))
-	copy.from(apiPolicies).into(coreResDir)
+		def resDir = new File(monitorGenerator.projectDir.parent, "resources")
+		def apiPolicies = file(new File(resDir, BuildKt.api_policies_file_name))
+		copy.from(apiPolicies).into(coreResDir)
+	}
 }
 
 task cleanMonitorApk_api23(type: Delete) {

@@ -11,7 +11,7 @@ project.ext {
 	androidBuildToolsVersion = "28.0.3" // this is hardcoded in buildSrc/build.kt as well, TODO we should upgrade to 28 to support the newest gradle version
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 25
-	androidCompileSdkVersion = 27
+	androidCompileSdkVersion = 28
 
 	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = 'v0.2.4'

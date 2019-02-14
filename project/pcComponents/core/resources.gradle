@@ -26,11 +26,18 @@
 // Ensure BuildKt.monitored_apis_txt is available at runtime as a resource.
 processResources.configure { Copy copy -> copy.from(project(":project:pcComponents").file("resources")) }
 
-processResources.dependsOn(
-				"pullMonitorApk_api23",
-				"pullUiautomator2DaemonApk",
-				"pullUiautomator2DaemonTestApk"
-)
+if(findProject(":project:pcComponents:monitor-generator") != null) {
+	processResources.dependsOn(
+			"pullMonitorApk_api23",
+			"pullUiautomator2DaemonApk",
+			"pullUiautomator2DaemonTestApk"
+	)
+} else{
+	processResources.dependsOn(
+			"pullUiautomator2DaemonApk",
+			"pullUiautomator2DaemonTestApk"
+	)
+}
 
 /*processTestResources.dependsOn(
 				"pullApkFixtures",

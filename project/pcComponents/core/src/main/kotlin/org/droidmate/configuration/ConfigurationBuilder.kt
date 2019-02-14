@@ -323,7 +323,9 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, "deviceControlDaemon-test.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
 
-			cfg.monitorApkApi23 = getResourcePath(cfg, EnvironmentConstants.monitor_api23_apk_name).toAbsolutePath()
+			cfg.monitorApkApi23 = try{getResourcePath(cfg, EnvironmentConstants.monitor_api23_apk_name).toAbsolutePath()}catch (e:Throwable){
+				null
+			}
 			log.info("Using ${EnvironmentConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
 
 			cfg.apiPoliciesFile = getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()

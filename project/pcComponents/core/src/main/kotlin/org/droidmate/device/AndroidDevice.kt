@@ -379,8 +379,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun pushMonitorJar() {
-		if (cfg[apiVersion] == ConfigurationWrapper.api23) {
-			this.pushFile(this.cfg.monitorApkApi23, EnvironmentConstants.monitor_on_avd_apk_name)
+		if (cfg[apiVersion] == ConfigurationWrapper.api23 && cfg.monitorApkApi23!=null) {
+			this.pushFile(cfg.monitorApkApi23!!, EnvironmentConstants.monitor_on_avd_apk_name)
 
 		} else
 			throw UnexpectedIfElseFallthroughError()

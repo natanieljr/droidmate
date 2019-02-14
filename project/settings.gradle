@@ -31,8 +31,6 @@ include(
 		"projects:tools:apk-inliner",
 		"projects:tools:androcov",
 		"projects:uiautomator-daemon-lib",
-		"projects:monitor-template",
-		"projects:monitor-generator",
 		"projects:core",
 		"projects:reporter",
 		"projects:command",

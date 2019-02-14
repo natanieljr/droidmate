@@ -1,3 +1,4 @@
+import java.nio.file.Paths
 
 pluginManagement {  // this seams essential to make simultaneous includes of android and jvm modules possible without IntelliJ/gradle to die
 
@@ -36,14 +37,25 @@ include(
 		"project:pcComponents:commonLib",
 		"project:pcComponents:tools:apk-inliner",
 		"project:pcComponents:tools:androcov",
-		"project:pcComponents:monitor-template",
-		"project:pcComponents:monitor-generator",
 		"project:pcComponents:core",
 		"project:pcComponents:reporter",
 		"project:pcComponents:command",
 		"project:pcComponents:API"
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
+if(Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").toFile().exists())
+{  // only include monitor if android platforms are installed to avoid jitpack build fail
+	println("android platforms available, monitor will be generated")
+	include(
+			"project:pcComponents:monitor-template",
+			"project:pcComponents:monitor-generator",
+	)
+
+	// Exclude the run tasks from monitor-generator and apk-inliner when 'run' is called on root level
+	startParameter.excludedTaskNames << "project:pcComponents:monitor-generator:run"
+}
+startParameter.excludedTaskNames << "project:pcComponents:tools:apk-inliner:run"
+
 def isIncludedBuild = gradle.parent != null
 if(!isIncludedBuild) {
 	def libDir = 'project/deviceCommonLib/deviceDaemonLib'
@@ -74,6 +86,3 @@ if(!isIncludedBuild) {
 //=> NOPE destroys dependencies as well
 //}
 
-// Exclude the run tasks from monitor-generator and apk-inliner when 'run' is called on root level
-startParameter.excludedTaskNames << "project:pcComponents:monitor-generator:run"
-startParameter.excludedTaskNames << "project:pcComponents:tools:apk-inliner:run"
