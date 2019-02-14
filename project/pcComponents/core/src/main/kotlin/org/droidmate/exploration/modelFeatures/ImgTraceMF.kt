@@ -23,6 +23,8 @@
 //
 // web: www.droidmate.org
 
+@file:Suppress("unused")
+
 package org.droidmate.exploration.modelFeatures
 
 import kotlinx.coroutines.*
@@ -70,11 +72,9 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 			val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")
 			lastId = action.id
 
-			while (coroutineContext.isActive && !screenFile.exists()) delay(100)
-			while (coroutineContext.isActive && !screenFile.canRead()) delay(100)
 			if (!isActive) return
 			var t=0
-			while ( t<20 && (!screenFile.exists() || !screenFile.canRead())) {
+			while ( isActive && t<20 && (!screenFile.exists() || !screenFile.canRead())) {
 				t++; delay (300)
 			}  // wait until file was written in model-update
 
