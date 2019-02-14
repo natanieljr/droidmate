@@ -43,7 +43,7 @@ include(
 		"project:pcComponents:API"
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
-if(Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").toFile().exists())
+if(Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").toFile().list().length>0)
 {  // only include monitor if android platforms are installed to avoid jitpack build fail
 	println("android platforms available, monitor will be generated")
 	include(
