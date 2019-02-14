@@ -43,9 +43,9 @@ include(
 		"project:pcComponents:API"
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
-if(Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").toFile().list().length>0)
+if(Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").toFile().list().any {it.contains("android-")})
 {  // only include monitor if android platforms are installed to avoid jitpack build fail
-	println("android platforms available, monitor will be generated")
+	println("android platforms available, monitor will be generated ${Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").toFile().list()}")
 	include(
 			"project:pcComponents:monitor-template",
 			"project:pcComponents:monitor-generator",
