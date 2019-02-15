@@ -21,7 +21,7 @@ buildscript {
 apply from: file("${rootProject.projectDir}/versions.gradle")
 
 wrapper{
-    gradleVersion = '4.10.2'  //define what gradle wrapper version is to be used on wrapper initialization (only if there is no wrapper yet or 'gradlew wrapper' is called)
+	gradleVersion = '4.10.2'  //define what gradle wrapper version is to be used on wrapper initialization (only if there is no wrapper yet or 'gradlew wrapper' is called)
 }
 
 allprojects {
@@ -64,7 +64,7 @@ allprojects {
 			}
 			if(findProject(":explorationModel") != null) {
 //				println "use composite build directory (explorationModel) instead of artifact from server"
-				substitute module("com.github.hotzkow:explorationModel") with project(":explorationModel")
+				substitute module("com.github.hotzkow:explorationModel:master-SNAPSHOT") with project(":explorationModel")
 			}
 		}
 	}
@@ -74,39 +74,44 @@ apply from: file("project/log.gradle")
 apply from: file("project/functions.gradle")
 
 project.ext { // direct child projects would be childProjects
-    pcJvmTargets = subprojects.find() { it.name == 'pcComponents' }.subprojects
+	pcJvmTargets = subprojects.find() { it.name == 'pcComponents' }.subprojects
 }
 
 task Debug {
-    println(pcJvmTargets)
+	println(pcJvmTargets)
 }
 
 
 configure(pcJvmTargets) {
 
-    apply from: file("${rootProject.projectDir}/versions.gradle")
+	apply from: file("${rootProject.projectDir}/versions.gradle")
 
-    apply plugin: "kotlin"
-    sourceCompatibility = project.ext.javaVersion
-    targetCompatibility = project.ext.javaVersion
+	apply plugin: "kotlin"
+	compileKotlin {
+		sourceCompatibility = project.ext.javaVersion
+		targetCompatibility = project.ext.javaVersion
+		kotlinOptions {
+			jvmTarget = project.ext.javaVersion
+		}
+	}
 
-    dependencies {
-	    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
-	    implementation "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
-	    implementation 'org.slf4j:slf4j-api:1.7.25'
-    }
+	dependencies {
+		implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
+		implementation "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
+		implementation 'org.slf4j:slf4j-api:1.7.25'
+	}
 }
 
 apply plugin: "kotlin"
 
 dependencies {
-    compile project(":project:pcComponents:API")
+	compile project(":project:pcComponents:API")
 }
 
 jar {
-    manifest {
-        attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
-    }
+	manifest {
+		attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"
+	}
 }
 
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)

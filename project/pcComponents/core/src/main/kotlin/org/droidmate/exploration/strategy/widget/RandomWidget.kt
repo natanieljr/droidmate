@@ -27,7 +27,6 @@ package org.droidmate.exploration.strategy.widget
 import kotlinx.coroutines.runBlocking
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.misc.debugT
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.Swipe
 import org.droidmate.exploration.ExplorationContext
@@ -36,8 +35,9 @@ import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.modelFeatures.ActionCounterMF
 import org.droidmate.exploration.modelFeatures.BlackListMF
 import org.droidmate.exploration.modelFeatures.listOfSmallest
+import org.droidmate.explorationModel.debugOutput
+import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.emptyId
-import org.droidmate.misc.debugOutput
 import java.util.Random
 import kotlin.streams.asSequence
 

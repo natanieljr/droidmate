@@ -2,7 +2,6 @@ package org.droidmate.exploration.actions
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.droidmate.misc.debugT
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.logcat.DeviceLogsHandler
@@ -14,6 +13,7 @@ import org.droidmate.deviceInterface.exploration.ActionQueue
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.LaunchApp
+import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory

@@ -30,7 +30,7 @@ import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.misc.debugOutput
+import org.droidmate.explorationModel.debugOutput
 import org.slf4j.LoggerFactory
 import java.lang.Math.max
 

@@ -39,7 +39,6 @@ import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.StatementCoverageMF
 import org.droidmate.exploration.modelFeatures.CrashListMF
-import org.droidmate.exploration.modelFeatures.ImgTraceMF
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.*
@@ -87,8 +86,8 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	init {
 		if (explorationEndTime > LocalDateTime.MIN)
 			this.verify()
-		org.droidmate.misc.debugOutput = _model.config[debugMode] // disable debug ouptuts if not in debug mode
-		org.droidmate.misc.measurePerformance = _model.config[debugMode]
+		debugOutput = _model.config[debugMode] // disable debug ouptuts if not in debug mode
+		measurePerformance = _model.config[debugMode]
 		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, cfg, device, _model.config.appName))
 	}
 
@@ -136,10 +135,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 				launch { feature.cancelAndJoin() } // terminate/restart all model features
 			}
 			retention.coroutineContext.cancel() // terminate any unfinished ModelFeature-dump coroutines
-			runBlocking {
-				_model.cancelAndJoin()  // ensure the model has persisted all required data and cancel  all (child)scopes
-				log.debug("DONE - app finished notification")
-			}
+
+			_model.cancelAndJoin()  // ensure the model has persisted all required data and cancel  all (child)scopes
+			log.debug("DONE - app finished notification")
 		}
 	}
 
@@ -206,18 +204,18 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	/**
 	 * Get the exploration duration.
-     	 *
-     	 * The default value for [explorationEndTime] is LocalDateTime.MIN. So if
-     	 * [explorationEndTime] hasn't been set yet, use the time until now,
-     	 * otherwise use [explorationEndTime].
+	 *
+	 * The default value for [explorationEndTime] is LocalDateTime.MIN. So if
+	 * [explorationEndTime] hasn't been set yet, use the time until now,
+	 * otherwise use [explorationEndTime].
 	 */
 	fun getExplorationDuration(): Duration {
-        	return if (explorationEndTime > LocalDateTime.MIN) {
-            		Duration.between(explorationStartTime, explorationEndTime)
-        	} else {
-            		Duration.between(explorationStartTime, LocalDateTime.now())
-        	}
-    	}
+		return if (explorationEndTime > LocalDateTime.MIN) {
+			Duration.between(explorationStartTime, explorationEndTime)
+		} else {
+			Duration.between(explorationStartTime, LocalDateTime.now())
+		}
+	}
 
 	/**
 	 * Get the number of explorationTrace which exist in the logcat
@@ -293,7 +291,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		val actions = explorationTrace.getActions().dropLast(1)
 
 		/** Consider all elements within a ActionQueue as a single action for the assertion
-		    (-> consider only the ActionQueue end) */
+		(-> consider only the ActionQueue end) */
 		var inQueue = false
 		for (action in actions) {
 
@@ -382,7 +380,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	private fun assertFirstActionIsLaunchApp() {
 		assert(explorationTrace.getActions().let{ trace -> trace.isEmpty() || trace.subList(0,min(trace.size,4)).any { it.actionType.isLaunchApp() }}// || explorationTrace.first().actionType == PlaybackResetAction::class.simpleName
-		 )
+		)
 	}
 
 	private fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {

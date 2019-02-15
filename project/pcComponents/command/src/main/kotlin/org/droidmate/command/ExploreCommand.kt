@@ -79,6 +79,7 @@ import org.droidmate.report.apk.*
 import org.droidmate.tools.*
 import org.droidmate.explorationModel.interaction.EmptyActionResult
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
+import org.droidmate.explorationModel.debugT
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File

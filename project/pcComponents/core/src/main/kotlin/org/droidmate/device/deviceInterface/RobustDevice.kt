@@ -30,7 +30,6 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.misc.debugT
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
@@ -45,6 +44,7 @@ import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.imgDump.widgets
+import org.droidmate.explorationModel.debugT
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
