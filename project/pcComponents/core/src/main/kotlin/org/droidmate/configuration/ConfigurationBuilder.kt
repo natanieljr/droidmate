@@ -328,7 +328,9 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			}
 			log.info("Using ${EnvironmentConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
 
-			cfg.apiPoliciesFile = getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()
+			cfg.apiPoliciesFile = try{getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()} catch (e:Throwable){
+				null
+			}
 			log.info("Using ${EnvironmentConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
 
 			cfg.apksDirPath = if (cfg[useApkFixturesDir])

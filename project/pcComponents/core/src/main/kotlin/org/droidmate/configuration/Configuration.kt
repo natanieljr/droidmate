@@ -98,7 +98,7 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	 * File with API policies. This file will be deployed be on the android (virtual) device
 	 * to define which APIs will be accessible
 	 */
-	lateinit var apiPoliciesFile: Path
+	var apiPoliciesFile: Path? = null
 
 	/**
 	 * File with the port for the monitor connection. This file will be deployed be on the android (virtual) device.
