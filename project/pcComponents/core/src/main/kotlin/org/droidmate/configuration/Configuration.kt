@@ -26,6 +26,7 @@
 package org.droidmate.configuration
 
 import com.natpryce.konfig.*
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.customADB
 import org.droidmate.misc.EnvironmentConstants
 import java.net.URI
 import java.nio.file.*
@@ -80,7 +81,7 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	lateinit var resourceDir: Path
 
 	val aaptCommand = EnvironmentConstants.aapt_command
-	val adbCommand = EnvironmentConstants.adb_command
+	val adbCommand = EnvironmentConstants.adb_command+cfg[customADB].let { if(it.isBlank()) "" else " $it" }
 
 	/**
 	 * Apk with uiautomator-daemon. This is a dummy package required only by instrumentation command (instrumentation target property)
@@ -184,6 +185,7 @@ abstract class ConfigProperties {
 	}
 
 	object DeviceCommunication : PropertyGroup() {
+		val customADB by stringType
 		val checkAppIsRunningRetryAttempts by intType
 		val checkAppIsRunningRetryDelay by intType
 		val checkDeviceAvailableAfterRebootAttempts by intType

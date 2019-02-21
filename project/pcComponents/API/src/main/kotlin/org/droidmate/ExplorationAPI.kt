@@ -73,7 +73,7 @@ object ExplorationAPI {
 
 	@JvmStatic
 	fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().build(args, FileSystems.getDefault(), *options)
-
+	fun customCommandConfig(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().buildRestrictedOptions(args, FileSystems.getDefault(), *options)
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic

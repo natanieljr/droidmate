@@ -50,6 +50,7 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkApp
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootFirstDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootLaterDelays
+import org.droidmate.configuration.ConfigProperties.DeviceCommunication.customADB
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppRetryAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForCanRebootDelay
@@ -117,6 +118,14 @@ class ConfigurationBuilder : IConfigurationBuilder {
 	@Throws(ConfigurationException::class)
 	override fun build(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = build(args, FileSystems.getDefault(),*options)
 
+	/**
+	 * there may be occassions when an (extended) project only wants to allow for a subset of the commandline arguments to be available,
+	 * e.g. to make the --help more comprehensive.
+	 * Then this function can be used to create a configuration which will only show/allow the commandline options from [options].
+	 */
+	fun buildRestrictedOptions(args: Array<String>, fs: FileSystem, vararg options: CommandLineOption): ConfigurationWrapper = build(parseArgs(args,
+			*options).first, fs)
+
 	@Throws(ConfigurationException::class)
 	override fun build(args: Array<String>, fs: FileSystem, vararg options: CommandLineOption): ConfigurationWrapper = build(parseArgs(args,
 			*options,
@@ -143,6 +152,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(shuffleApks, description = "ExplorationStrategy the apks in the input directory in a random order."),
 			CommandLineOption(deployRawApks, description = "Deploys apks to device in 'raw' form, that is, without instrumenting them. Will deploy them raw even if instrumented version is available from last run."),
 			// DeviceCommunication
+			CommandLineOption(customADB, description="allows to specify additional parameters for adb, i.e. to allow for host device acces via -H in container environments"),
 			CommandLineOption(checkAppIsRunningRetryAttempts, description = "Number of attempts to check if an app is running on the device."),
 			CommandLineOption(checkAppIsRunningRetryDelay, description = "Timeout for each attempt to check if an app is running on the device in milliseconds."),
 			CommandLineOption(checkDeviceAvailableAfterRebootAttempts, description = "Determines how often DroidMate checks if a device is available after a reboot."),
