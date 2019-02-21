@@ -1,5 +1,6 @@
 package org.droidmate.exploration.modelFeatures
 
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -10,7 +11,7 @@ abstract class AdbBasedMF(val cfg: ConfigurationWrapper): ModelFeature() {
 	internal fun runAdbCommand(commandArgs: List<String>,
 							   timeout : Int = 1,
 							   timeoutUnit: TimeUnit = TimeUnit.SECONDS): List<String> {
-		val command = listOf(cfg.adbCommand, "-s", cfg.deviceSerialNumber, *commandArgs.toTypedArray())
+		val command = listOf(cfg.adbCommand,"-H", cfg[ConfigProperties.DeviceCommunication.adbHost], "-s", cfg.deviceSerialNumber, *commandArgs.toTypedArray())
 
 		val builder = ProcessBuilder(command)
 
