@@ -339,7 +339,8 @@ Logcat reference:
 					"logcat", "-c")
 
 		} catch (e: SysCmdExecutorException) {
-			throw AdbWrapperException(e)
+			log.warn("logcat clear failed: ${e.message}")
+//			throw AdbWrapperException(e)
 		}
 
 	}
