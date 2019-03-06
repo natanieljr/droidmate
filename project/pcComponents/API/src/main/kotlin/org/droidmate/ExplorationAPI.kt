@@ -34,11 +34,11 @@ import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
+import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
 import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.report.Reporter
-import org.droidmate.report.apk.VisualizationGraph
+import org.droidmate.explorationModel.ModelFeatureI
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystems
 import java.util.*
@@ -46,7 +46,6 @@ import java.util.*
 @Suppress("MemberVisibilityCanBePrivate")
 object ExplorationAPI {
 	private val log by lazy { LoggerFactory.getLogger(ExplorationAPI::class.java) }
-	val defaultReporter = listOf(VisualizationGraph())
 
 	/**
 	 * entry-point to explore an application with a (subset) of default exploration strategies as specified in the property `explorationStrategies`
@@ -74,6 +73,7 @@ object ExplorationAPI {
 	@JvmStatic
 	fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().build(args, FileSystems.getDefault(), *options)
 	fun customCommandConfig(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().buildRestrictedOptions(args, FileSystems.getDefault(), *options)
+	fun defaultReporter(cfg: ConfigurationWrapper) = listOf(VisualizationGraphMF(cfg.droidmateOutputReportDirPath.toAbsolutePath(), cfg.resourceDir.toAbsolutePath()))
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic
@@ -92,18 +92,18 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = defaultReporter,
+	            selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args)),
 	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
-		return explore(setup(args), strategies, selectors, reportCreators, modelProvider)
+		return explore(setup(args), strategies, selectors, watcher, modelProvider)
 	}
 
 	@JvmStatic
 	@JvmOverloads
 	fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
-	            selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = defaultReporter,
+	            selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(cfg),
 	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
 		val runStart = Date()
-		val exploration = ExploreCommand.build(cfg, reportCreators = reportCreators, strategies = strategies
+		val exploration = ExploreCommand.build(cfg, watcher = watcher, strategies = strategies
 				?: ExploreCommand.getDefaultStrategies(cfg), selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg)
 				, modelProvider = modelProvider ?: { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} )
 		log.info("EXPLORATION start timestamp: $runStart")
@@ -131,11 +131,11 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	                     selectors: List<StrategySelector>? = null, reportCreators: List<Reporter> = defaultReporter): List<ExplorationContext> {
+	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): List<ExplorationContext> {
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
-		return explore(cfg, strategies, selectors, reportCreators)
+		return explore(cfg, strategies, selectors, watcher)
 	}
 
 }

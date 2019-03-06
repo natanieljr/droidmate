@@ -59,9 +59,12 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.device.exception
+import org.droidmate.device.run
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.actions.*
+import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.exploration.modelFeatures.reporter.*
 import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.config.ModelConfig
@@ -70,16 +73,15 @@ import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
+import org.droidmate.explorationModel.ModelFeatureI
 import org.droidmate.logging.Markers
 import org.droidmate.misc.*
-import org.droidmate.report.AggregateStats
-import org.droidmate.report.Reporter
-import org.droidmate.report.Summary
-import org.droidmate.report.apk.*
 import org.droidmate.tools.*
 import org.droidmate.explorationModel.interaction.EmptyActionResult
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
 import org.droidmate.explorationModel.debugT
+import org.droidmate.exploration.modelFeatures.reporter.AggregateStats
+import org.droidmate.exploration.modelFeatures.reporter.Summary
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -204,6 +206,8 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			return strategies
 		}
 
+		private val watcher: LinkedList<ModelFeatureI> = LinkedList()
+
 		@JvmStatic
 		@JvmOverloads
 		fun build(cfg: ConfigurationWrapper,
@@ -211,30 +215,42 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
 		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
 		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
-		          reportCreators: List<Reporter> = defaultReportWatcher(cfg),
+		          watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
 		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
 										 strategyProvider, modelProvider)
-
-			reportCreators.forEach { r -> command.registerReporter(r) }
+			this.watcher.addAll(watcher)
 
 			return command
 		}
-
 		@Suppress("MemberVisibilityCanBePrivate")
 		@JvmStatic
-		fun defaultReportWatcher(cfg: ConfigurationWrapper): List<Reporter> =
-				listOf(AggregateStats(), Summary(), ApkViewsFile(), ApiCount(cfg[includePlots]), ClickFrequency(cfg[includePlots]),
-						//TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
-						ApiActionTrace(), ActivitySeenSummary(), ActionTrace(), WidgetApiTrace(), VisualizationGraph())
+		fun defaultReportWatcher(cfg: ConfigurationWrapper): List<ReporterMF> {
+			val reportDir = cfg.droidmateOutputReportDirPath.toAbsolutePath()
+			val resourceDir = cfg.resourceDir.toAbsolutePath()
+			return listOf(AggregateStats(reportDir, resourceDir),
+				Summary(reportDir, resourceDir),
+				ApkViewsFileMF(reportDir, resourceDir),
+				ApiCountMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
+				ClickFrequencyMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
+//						TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
+				ApiActionTraceMF(reportDir, resourceDir),
+				ActivitySeenSummaryMF(reportDir, resourceDir),
+				ActionTraceMF(reportDir, resourceDir),
+				WidgetApiTraceMF(reportDir, resourceDir),
+				VisualizationGraphMF(reportDir, resourceDir))
+        }
+
 	}
 
-	private val reporters: MutableList<Reporter> = mutableListOf()
-
 	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
-		if(cfg[cleanDirs]) cleanOutputDir(cfg)
+		if (cfg[cleanDirs]) cleanOutputDir(cfg)
+		val reportDir = cfg.droidmateOutputReportDirPath
+		if (!Files.exists(reportDir))
+		    Files.createDirectories(reportDir)
+		assert(Files.exists(reportDir)) { "Unable to create report directory ($reportDir)" }
 
 		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
 		if (!validateApks(apks, cfg[runOnNotInlined]))
@@ -251,21 +267,25 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			}
 		}
 
+		runBlocking { onFinalFinished() }
+		log.warn("Writing reports finished.")
+
 		return explorationData.first
 	}
 
-	private fun writeReports(reportDir: Path, resourceDir: Path, rawData: List<ExplorationContext>) {
-		if (!Files.exists(reportDir))
-			Files.createDirectories(reportDir)
-
-		assert(Files.exists(reportDir)) { "Unable to create report directory ($reportDir)" }
-
-		log.info("Writing reports")
-		reporters.forEach { it.write(reportDir.toAbsolutePath(), resourceDir.toAbsolutePath(), rawData) }
-	}
-
-	fun registerReporter(report: Reporter) {
-		reporters.add(report)
+	private suspend fun onFinalFinished() = this.let { eContext ->
+	    coroutineScope {
+	        // we use coroutineScope here to ensure that this function waits for all coroutines spawned within this method
+	        watcher.forEach { feature ->
+	            (feature as? ModelFeature)?.let {
+	                // this is meant to be in the current coroutineScope and not in feature, such this scope waits for its completion
+	                launch(CoroutineName("eContext-finish")) {
+	                    it.onFinalFinished()
+	                }
+	            }
+	            launch { feature.cancelAndJoin() } // terminate/restart all model features
+	        }
+	    }
 	}
 
 	private fun validateApks(apks: List<Apk>, runOnNotInlined: Boolean): Boolean {
@@ -328,8 +348,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			explorationExceptions.addException(deployExploreSerializeThrowable)
 		}
 
-		writeReports(cfg.droidmateOutputReportDirPath, cfg.resourceDir, out)
-
 		return Pair(out, explorationExceptions)
 	}
 
@@ -369,7 +387,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	}
 
 
-@Throws(DeviceException::class)
+	@Throws(DeviceException::class)
 	private suspend fun tryExploreOnDeviceAndSerialize(
 			deployedApk: IApk, device: IRobustDevice, out: MutableList<ExplorationContext>) {
 		val fallibleApkOut2 = this.run(deployedApk, device)
@@ -429,7 +447,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, device, LocalDateTime.now(), _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, device, LocalDateTime.now(), watcher = watcher, _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 

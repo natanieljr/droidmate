@@ -35,7 +35,7 @@ import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.IDeviceMessagesReader
-import org.droidmate.exploration.actions.click
+import org.droidmate.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
 import org.droidmate.deviceInterface.exploration.DeviceResponse

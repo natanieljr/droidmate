@@ -49,13 +49,9 @@ dependencies {
 	implementation 'ch.qos.logback:logback-classic:1.2.3'
 	implementation 'ch.qos.logback:logback-core:1.2.3'
 	//compile 'net.sf.opencsv:opencsv:2.3'
-	implementation 'org.json:json:20160212'
 
 	// Filesystem stubbing
 	implementation 'com.google.jimfs:jimfs:1.1'
-
-	implementation 'nz.ac.waikato.cms.weka:weka-stable:3.8.1'
-
 }
 
 apply from: file("resources.gradle")

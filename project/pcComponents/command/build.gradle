@@ -54,7 +54,7 @@ jar {
 dependOnJunit(project)
 
 dependWithTest([project, ":project:pcComponents:core", "kotlin"])
-dependWithTest([project, ":project:pcComponents:reporter", "kotlin"])
+dependWithTest([project, ":project:pcComponents:exploration", "kotlin"])
 
 dependencies {
 	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {

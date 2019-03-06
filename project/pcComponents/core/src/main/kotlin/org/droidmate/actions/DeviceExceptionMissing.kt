@@ -1,5 +1,5 @@
 // DroidMate, an automated execution generator for Android apps.
-// Copyright (C) 2012-2016 Konrad Jamrozik
+// Copyright (C) 2012-2018. Saarland University
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,25 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-// email: jamrozik@st.cs.uni-saarland.de
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
+// Former Maintainers:
+// Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
+//
 // web: www.droidmate.org
 
-/*
- * The settings.gradle file is used to specify which projects to include in your build.
- * In a single module build this file can be empty or even removed.
- * 
- * Detailed information about configuring a multiproject build in Gradle can be found at
- * http://www.gradle.org/docs/current/userguide/multi_project_builds.html
- */
-rootProject.name = 'droidmate'
+package org.droidmate.actions
 
-include(
-		"projects:commonLib",
-		"projects:tools:apk-inliner",
-		"projects:tools:androcov",
-		"projects:uiautomator-daemon-lib",
-		"projects:core",
-		"projects:exploration",
-		"projects:command",
-		"projects:API"
-)
+import org.droidmate.device.android_sdk.DeviceException
+
+class DeviceExceptionMissing : DeviceException(defaultExceptionMessage) {
+	companion object {
+		private const val serialVersionUID: Long = 1
+		private const val defaultExceptionMessage = "N/A (no device exception available)"
+	}
+
+	override fun toString(): String {
+		return defaultExceptionMessage
+	}
+}

@@ -22,11 +22,10 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.test_tools.device_simulation
 
-import org.droidmate.exploration.ExplorationContext
-
-class GuiScreensBuilderFromApkExplorationOutput2(private val output: ExplorationContext) : IGuiScreensBuilder {
+class GuiScreensBuilderFromApkExplorationOutput2 : IGuiScreensBuilder {
 	override fun build(): List<IGuiScreen> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
