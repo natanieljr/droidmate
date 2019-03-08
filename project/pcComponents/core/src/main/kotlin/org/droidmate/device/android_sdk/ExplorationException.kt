@@ -25,6 +25,7 @@
 package org.droidmate.device.android_sdk
 
 import org.droidmate.misc.DroidmateException
+import java.util.HashMap
 
 open class ExplorationException(cause: Throwable) : DroidmateException(cause) {
 
@@ -33,3 +34,6 @@ open class ExplorationException(cause: Throwable) : DroidmateException(cause) {
 	}
 
 }
+
+fun HashMap<Apk?, List<ExplorationException>>.addException(e: Throwable) =
+		compute(null){ _, exceptions -> exceptions?.plus(ExplorationException(e)) ?: listOf(ExplorationException(e))}

@@ -87,6 +87,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.collections.HashMap
 
 open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
                                       private val apksProvider: IApksProvider,
@@ -240,10 +241,14 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			return emptyList()
 
 		val explorationData = execute(cfg, apks)
-		val explorationExceptions = explorationData.second
-		if (!explorationExceptions.isEmpty()) {
-			explorationExceptions.forEach { log.error(it.message); it.printStackTrace() }
-			throw ThrowablesCollection(explorationExceptions)
+		explorationData.second.let { explorationExceptions ->
+			if (explorationExceptions.values.any { it.isNotEmpty() }) {
+				explorationExceptions.toList().forEach { (apk,e) ->
+					e.firstOrNull()?.let{ error ->
+						log.error("${apk?.packageName}${error.message}"); error.printStackTrace() }
+					}
+				throw ExecuteException(explorationExceptions.filterValues { it.isNotEmpty() }, explorationData.first)
+			}
 		}
 
 		return explorationData.first
@@ -307,11 +312,11 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
 	}
 
-	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, List<ExplorationException>> {
+	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, HashMap<Apk?,List<ExplorationException>>> {
 		val out : MutableList<ExplorationContext> = mutableListOf()
 
 
-		val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
+		val explorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
 		try {
 			explorationExceptions += deployExploreSerialize(cfg, apks, out)
 		} catch (deployExploreSerializeThrowable: Throwable) {
@@ -320,7 +325,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					"This means ${ExplorationException::class.java.simpleName}s have been lost, if any! " +
 					"Skipping summary output analysis persisting. " +
 					"Rethrowing.")
-			throw deployExploreSerializeThrowable
+			explorationExceptions.addException(deployExploreSerializeThrowable)
 		}
 
 		writeReports(cfg.droidmateOutputReportDirPath, cfg.resourceDir, out)
@@ -330,10 +335,10 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
 	                                   apks: List<Apk>,
-	                                   out: MutableList<ExplorationContext>): List<ExplorationException>{
+	                                   out: MutableList<ExplorationContext>): HashMap<Apk?,List<ExplorationException>>{
 		return deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
 			runBlocking{
-				val allApksExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
+				val allApksExplorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
 
 				var encounteredApkExplorationsStoppingException = false
 
@@ -341,12 +346,12 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					if (!encounteredApkExplorationsStoppingException) {
 						log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
 
-						allApksExplorationExceptions +=
+						allApksExplorationExceptions[apk] =
 								apkDeployer.withDeployedApk(device, apk) { deployedApk ->
 									tryExploreOnDeviceAndSerialize(deployedApk, device, out)
 								}
 
-						if (allApksExplorationExceptions.any { it.shouldStopFurtherApkExplorations() }) {
+						if (allApksExplorationExceptions[apk]?.any { (it as? ApkExplorationException)?.shouldStopFurtherApkExplorations() == true } == true) {
 							log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
 							encounteredApkExplorationsStoppingException = true
 						}
@@ -357,6 +362,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				}
 				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
 					imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
+
 				allApksExplorationExceptions
 			}
 		}  // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope

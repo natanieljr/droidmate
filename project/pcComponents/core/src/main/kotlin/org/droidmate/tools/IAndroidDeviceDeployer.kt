@@ -25,13 +25,14 @@
 
 package org.droidmate.tools
 
-import org.droidmate.device.android_sdk.ApkExplorationException
+import org.droidmate.device.android_sdk.Apk
 import org.droidmate.device.android_sdk.ExplorationException
 import org.droidmate.device.deviceInterface.IRobustDevice
+import java.util.HashMap
 
 /**
  * @see AndroidDeviceDeployer
  */
 interface IAndroidDeviceDeployer {
-	fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> List<ApkExplorationException>): List<ExplorationException>
+	fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> HashMap<Apk?, List<ExplorationException>>): HashMap<Apk?, List<ExplorationException>>
 }

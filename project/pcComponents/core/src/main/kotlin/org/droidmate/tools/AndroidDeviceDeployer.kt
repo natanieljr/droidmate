@@ -40,6 +40,7 @@ import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.DroidmateException
 import org.droidmate.deviceInterface.DeviceConstants
 import org.slf4j.LoggerFactory
+import java.util.HashMap
 
 class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
                                         private val adbWrapper: IAdbWrapper,
@@ -155,7 +156,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 			log.trace("Device is not available. Skipping tear down.")
 	}
 
-	override fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> List<ApkExplorationException>): List<ExplorationException> {
+	override fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> HashMap<Apk?, List<ExplorationException>>): HashMap<Apk?, List<ExplorationException>> {
 		// Set the deviceSerialNumber in the configuration. Calculate the deviceSerialNumber, if not not provided by
 		// the given deviceIndex. It can't be done in the configuration because it needs access to the AdbWrapper.
 
@@ -168,20 +169,20 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 		assert(cfg.deviceSerialNumber.isNotEmpty(), {"Expected deviceSerialNumber to be initialized."})
 		log.info("Setup device with deviceSerialNumber of ${cfg.deviceSerialNumber}")
 
-		val explorationExceptions: MutableList<ExplorationException> = mutableListOf()
+		val explorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
 
 		val data = setupDevice()
-		val throwable = data[1] as Throwable?
-		if (throwable != null) {
-			explorationExceptions.add(ExplorationException(throwable))
+		data.second?.let {  throwable ->
+			explorationExceptions.addException(throwable)
 			return explorationExceptions
 		}
-		val device = data[0] as IRobustDevice
+
+		val device = data.first as IRobustDevice
 
 		assert(explorationExceptions.isEmpty())
 		try {
 			val apkExplorationExceptions = computation(device)
-			explorationExceptions.addAll(apkExplorationExceptions)
+			explorationExceptions+=(apkExplorationExceptions)
 		} catch (computationThrowable: Throwable) {
 			log.error("!!! Caught ${computationThrowable.javaClass.simpleName} in withSetupDevice(${cfg.deviceSerialNumber})->computation($device). " +
 					"This means ${ApkExplorationException::class.java.simpleName}s have been lost, if any! " +
@@ -189,7 +190,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 					"Then adding to the collected exceptions list.\n" +
 					"The ${computationThrowable::class.java.simpleName}: $computationThrowable")
 
-			explorationExceptions.add(ExplorationException(computationThrowable))
+			explorationExceptions.addException(computationThrowable)
 		} finally {
 			log.debug("Finalizing: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 			try {
@@ -204,14 +205,14 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 								"The ${tearDownThrowable::class.java.simpleName}: $tearDownThrowable")
 				log.error(Markers.appHealth, tearDownThrowable.message, tearDownThrowable)
 
-				explorationExceptions.add(ExplorationException(tearDownThrowable))
+				explorationExceptions.addException(tearDownThrowable)
 			}
 			log.debug("Finalizing DONE: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 		}
 		return explorationExceptions
 	}
 
-	private fun setupDevice(): List<Any?> {
+	private fun setupDevice(): Pair<IAndroidDevice?,Throwable?> {
 		try {
 			this.usedSerialNumbers.add(cfg.deviceSerialNumber)
 
@@ -219,7 +220,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 			trySetUp(device)
 
-			return arrayListOf(device, null)
+			return Pair(device, null)
 
 		} catch (setupDeviceThrowable: Throwable) {
 			log.warn(Markers.appHealth,
@@ -227,7 +228,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 							"Adding as a cause to an ${ExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
 			log.error(Markers.appHealth, setupDeviceThrowable.message, setupDeviceThrowable)
 
-			return arrayListOf(null, setupDeviceThrowable)
+			return Pair(null, setupDeviceThrowable)
 		}
 	}
 
