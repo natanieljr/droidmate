@@ -25,8 +25,8 @@
 
 package org.droidmate.report
 
-import org.droidmate.misc.replaceVariable
-import org.droidmate.misc.zeroLeastSignificantDigits
+import org.droidmate.exploration.modelFeatures.misc.replaceVariable
+import org.droidmate.exploration.modelFeatures.misc.zeroLeastSignificantDigits
 import org.junit.Test
 import kotlin.test.assertEquals
 

@@ -25,6 +25,9 @@
 
 package org.droidmate.frontend
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.droidmate.command.DroidmateCommand
 import org.droidmate.configuration.ConfigProperties.Deploy.installApk
 import org.droidmate.configuration.ConfigProperties.Deploy.installAux
@@ -67,17 +70,18 @@ class DroidmateFrontend {
 		 * @see DroidmateFrontend
 		 */
 		@JvmStatic
-		fun main(args: Array<String>) {
+		fun main(args: Array<String>) = runBlocking {
 			val currArgs = if (args.isEmpty()) {
 				println("Parameters not provided. Trying to read from args.txt file.")
 				val argsFile = Paths.get("args.txt")
 
-				if (Files.exists(argsFile))
+				if (Files.exists(argsFile)) withContext(Dispatchers.IO) {
 					Files.readAllLines(argsFile)
 							.joinToString(" ")
 							.split(" ")
 							.filter { it.isNotEmpty() }
 							.toTypedArray()
+				}
 				else
 					emptyArray()
 			} else
@@ -90,11 +94,11 @@ class DroidmateFrontend {
 		@Suppress("MemberVisibilityCanBePrivate")
 		@JvmStatic
 		@JvmOverloads
-		fun execute(args: Array<String>,
-		            commandProvider: (ConfigurationWrapper) -> DroidmateCommand = { determineAndBuildCommand(it) },
-		            fs: FileSystem = FileSystems.getDefault(),
-		            exceptionHandler: IExceptionHandler = ExceptionHandler(),
-		            cfg: ConfigurationWrapper = ConfigurationBuilder().build(args, fs)): Int {
+		suspend fun execute(args: Array<String>,
+		                    commandProvider: (ConfigurationWrapper) -> DroidmateCommand = { determineAndBuildCommand(it) },
+		                    fs: FileSystem = FileSystems.getDefault(),
+		                    exceptionHandler: IExceptionHandler = ExceptionHandler(),
+		                    cfg: ConfigurationWrapper = ConfigurationBuilder().build(args, fs)): Int {
 			println("DroidMate, an automated execution generator for Android apps.")
 			println("Copyright (c) 2012 - ${LocalDate.now().year} Konrad Jamrozik")
 			println("This program is free software licensed under GNU GPL v3.")

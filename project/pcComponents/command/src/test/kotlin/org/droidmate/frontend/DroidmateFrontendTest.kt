@@ -55,7 +55,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 * Exploration results still get serialized.
 	 *
 	 * </p><p>
-	 * The installation of the third apk on the device finishes successfully. However, when the exploration of it starts to run,
+	 * The installation of the third apk on the device finishes successfully. However, when the exploration of it starts to runApp,
 	 * the device fails altogether. Thus, before the proper exploration loop starts, the call to 'hasPackageInstalled' to the
 	 * device fails. In addition, no exploration results are obtained (because the loop didn't start) and so nothing gets
 	 * serialized. DroidMate then tries to recover by uninstalling the apk, which also fails, because device is unavailable. This
@@ -88,10 +88,10 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 
 			val exceptionSpecs = arrayListOf(
 
-							// Thrown during Exploration.run()->tryDeviceHasPackageInstalled()
+							// Thrown during Exploration.runApp()->tryDeviceHasPackageInstalled()
 							ExceptionSpec("hasPackageInstalled", apk2.packageName),
 
-							// Thrown during Exploration.explorationLoop()->ResetAppExplorationAction.run()
+							// Thrown during Exploration.explorationLoop()->ResetAppExplorationAction.runApp()
 							// The call index is 2 because 1st call is made to close 'app has stopped' dialog box before the exploration loop starts,
 							// i.e. in org.droidmate.command.exploration.Exploration.tryWarnDeviceDisplaysHomeScreen
 							ExceptionSpec("perform", apk3.packageName, /* call index */ 2),
@@ -300,7 +300,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 *
 	 * </p><p>
 	 * The test will make DroidMate output results to {@code EnvironmentConstants.test_temp_dir_name}.
-	 * To ensure logs are also output there, run this test with VM arg of {@code -DlogsDir="temp_dir_for_tests/logs"}.
+	 * To ensure logs are also output there, runApp this test with VM arg of {@code -DlogsDir="temp_dir_for_tests/logs"}.
 	 * Note that {@code logsDir} is defined in {@code org.droidmate.logging.LogbackConstants.getLogsDirPath}.
 	 *
 	 * </p>
@@ -312,7 +312,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			// Act
 			val exitStatus = DroidmateFrontend.execute(args.toTypedArray())
 
-			assert(exitStatus == 0, { "Exit status != 0. Please inspect the run logs for details, including exception thrown" })
+			assert(exitStatus == 0, { "Exit status != 0. Please inspect the runApp logs for details, including exception thrown" })
 
 			val apkOut = outputDir.explorationOutput2.single()
 

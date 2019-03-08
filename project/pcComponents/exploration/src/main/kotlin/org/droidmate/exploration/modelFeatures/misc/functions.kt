@@ -31,8 +31,15 @@ import com.konradjamrozik.Resource
 import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
 import org.droidmate.misc.SysCmdExecutor
+import java.io.BufferedInputStream
+import java.io.FileOutputStream
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Duration
+import java.util.zip.ZipFile
 
 fun plot(dataFilePath: String, outputFilePath: String, resourceDir: Path) {
 
@@ -43,12 +50,12 @@ fun plot(dataFilePath: String, outputFilePath: String, resourceDir: Path) {
 	val plotTemplatePathString = Resource("plot_template.plt").extractTo(resourceDir).toString()
 
 	SysCmdExecutor().execute("Generating plot with GNUPlot",
-                "gnuplot",
-                                "-c",
-                                plotTemplatePathString,
-                                "0",
-                                dataFilePath,
-                                outputFilePath)
+			"gnuplot",
+			"-c",
+			plotTemplatePathString,
+			"0",
+			dataFilePath,
+			outputFilePath)
 }
 
 fun <V> buildTable(headers: Iterable<String>, rowCount: Int, computeRow: (Int) -> Iterable<V>): Table<Int, String, V> {
@@ -73,4 +80,64 @@ fun <V> buildTable(headers: Iterable<String>, rowCount: Int, computeRow: (Int) -
 	}
 
 	return builder.build()
+}
+
+/**
+ * Unzips a zipped archive into [targetDirectory].
+ */
+fun Path.unzip(targetDirectory: Path): Path {
+	val file = ZipFile(this.toAbsolutePath().toString())
+	val fileSystem = this.fileSystem
+	val entries = file.entries()
+
+	Files.createDirectory(fileSystem.getPath(targetDirectory.toString()))
+
+	while (entries.hasMoreElements()) {
+		val entry = entries.nextElement()
+		if (entry.isDirectory) {
+			Files.createDirectories(targetDirectory.resolve(entry.name))
+		} else {
+			val bis = BufferedInputStream(file.getInputStream(entry))
+			val fName = targetDirectory.resolve(entry.name).toAbsolutePath().toString()
+			Files.createFile(fileSystem.getPath(fName))
+			val fileOutput = FileOutputStream(fName)
+			while (bis.available() > 0) {
+				fileOutput.write(bis.read())
+			}
+			fileOutput.close()
+		}
+	}
+
+	file.close()
+
+	return targetDirectory
+}
+
+val Duration.minutesAndSeconds: String
+	get() {
+		val m = this.toMinutes()
+		val s = this.seconds - m * 60
+		return "$m".padStart(4, ' ') + "m " + "$s".padStart(2, ' ') + "s"
+	}
+
+/**
+ * Given a string builder over a string containing variables in form of "$var_name" (without ""), it will replace
+ * all such variables with their value.
+ */
+fun StringBuilder.replaceVariable(varName: String, value: String): StringBuilder {
+	val fullVarName = "$$varName"
+	while (this.indexOf(fullVarName) != -1) {
+		val startIndex = this.indexOf(fullVarName)
+		val endIndex = startIndex + fullVarName.length
+		this.replace(startIndex, endIndex, value)
+	}
+	return this
+}
+
+/**
+ * Zeroes digits before (i.e. left of) comma. E.g. if [digitsToZero] is 2, then 6789 will become 6700.
+ */
+// Reference: http://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
+fun Int.zeroLeastSignificantDigits(digitsToZero: Int): Long {
+	return BigDecimal(this.toString()).setScale(-digitsToZero, RoundingMode.DOWN).toBigInteger().toLong()
 }

@@ -27,15 +27,15 @@ package org.droidmate.exploration.modelFeatures.reporter
 
 import com.konradjamrozik.Resource
 import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
+import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.actions.DeviceExceptionMissing
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.exploration.modelFeatures.misc.minutesAndSeconds
+import org.droidmate.exploration.modelFeatures.misc.replaceVariable
 import org.droidmate.logging.LogbackConstants
-import org.droidmate.misc.minutesAndSeconds
-import org.droidmate.misc.replaceVariable
 import org.droidmate.exploration.modelFeatures.misc.resetActionsCount
 import java.time.Duration
 

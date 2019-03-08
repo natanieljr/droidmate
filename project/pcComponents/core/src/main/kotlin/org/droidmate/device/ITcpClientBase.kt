@@ -25,7 +25,7 @@
 
 package org.droidmate.device
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 import java.io.Serializable
 
 interface ITcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable> {

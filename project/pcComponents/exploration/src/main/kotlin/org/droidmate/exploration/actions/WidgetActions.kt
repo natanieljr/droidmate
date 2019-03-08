@@ -1,6 +1,6 @@
 @file:Suppress("unused", "DEPRECATION", "UNUSED_PARAMETER")
 
-package org.droidmate.actions
+package org.droidmate.exploration.actions
 
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.ExplorationTrace.Companion.widgetTargets

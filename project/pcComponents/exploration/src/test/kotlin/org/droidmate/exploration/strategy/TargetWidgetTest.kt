@@ -25,7 +25,6 @@
 
 package org.droidmate.exploration.strategy
 
-import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,7 +38,8 @@ import org.junit.runners.MethodSorters
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class TargetWidgetTest : DroidmateTestCase() {
+class TargetWidgetTest //: DroidmateTestCase()
+{
 	// TODO Fix tests
 	@Test
 	fun dummy() {

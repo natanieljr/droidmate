@@ -42,7 +42,7 @@ open class DroidmateTestCase : TestCase() {
 		TestCase.assertTrue("expected \n${ref.toString()} \nbut result was \n${res.toString()}\n DIFF = $diff", res == ref)
 	}
 	/*
-		Used for profiling the JUnit test runs with VisualVM. Uncomment, run the tests with -Xverify:none JVM option and make sure
+		Used for profiling the JUnit test runs with VisualVM. Uncomment, runApp the tests with -Xverify:none JVM option and make sure
 		that in those 5 seconds you will select the process in VisualVM, click the "profiler" tab and start CPU profiling.
 		For more, see Konrad's OneNote / Reference / Technical / Java / Profiling.
 

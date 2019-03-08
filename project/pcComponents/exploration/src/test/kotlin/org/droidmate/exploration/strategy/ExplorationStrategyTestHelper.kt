@@ -26,7 +26,6 @@
 package org.droidmate.exploration.strategy
 
 //import org.droidmate.exploration.ExplorationContext
-import org.droidmate.android_sdk.ApkTestHelper
 
 class ExplorationStrategyTestHelper {
 	companion object {

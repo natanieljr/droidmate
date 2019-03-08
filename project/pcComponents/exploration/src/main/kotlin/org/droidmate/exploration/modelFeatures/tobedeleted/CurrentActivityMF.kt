@@ -26,7 +26,6 @@
 package org.droidmate.exploration.modelFeatures.tobedeleted
 
 import kotlinx.coroutines.CoroutineName
-import org.droidmate.configuration.ConfigurationWrapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -36,7 +35,7 @@ import org.slf4j.LoggerFactory
  *
  * Output example: mFocusedActivity: ActivityRecord{b959d7e u0 com.addressbook/.AddressBookActivity t21414}
  */
-class CurrentActivityMF(cfg: ConfigurationWrapper): AdbBasedMF(cfg){
+class CurrentActivityMF(adbCommand : String, deviceSerial:String): AdbBasedMF(adbCommand, deviceSerial){
 	override val coroutineContext = CoroutineName("CurrentActivityMF")
 
 	private val log: Logger by lazy { LoggerFactory.getLogger(CurrentActivityMF::class.java) }

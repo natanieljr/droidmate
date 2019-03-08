@@ -34,5 +34,7 @@ import java.util.HashMap
  * @see AndroidDeviceDeployer
  */
 interface IAndroidDeviceDeployer {
-	fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> HashMap<Apk?, List<ExplorationException>>): HashMap<Apk?, List<ExplorationException>>
+	suspend fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int,
+	                     computation: suspend(IRobustDevice) -> HashMap<Apk?, List<ExplorationException>>)
+			: HashMap<Apk?, List<ExplorationException>>
 }

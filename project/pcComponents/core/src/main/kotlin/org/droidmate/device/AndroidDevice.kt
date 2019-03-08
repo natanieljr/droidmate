@@ -27,9 +27,9 @@
 package org.droidmate.device
 
 import org.droidmate.configuration.ConfigProperties
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.device.android_sdk.IApk
+import org.droidmate.exploration.IApk
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.TcpClient.serverAddress
@@ -52,6 +52,7 @@ import org.droidmate.deviceInterface.communication.*
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.SimulationAdbClearPackage
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
@@ -385,7 +386,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			this.pushFile(this.cfg.apiPoliciesFile!!, EnvironmentConstants.api_policies_file_name)
 			this.pushFile(this.cfg.monitorPortFile, EnvironmentConstants.monitor_port_file_name)
 			this.pushFile(this.cfg.coveragePortFile, EnvironmentConstants.coverage_port_file_name)
-		} else if(cfg[ConfigProperties.ModelProperties.Features.statementCoverage]) {
+		} else if(cfg[StatementCoverageMF.statementCoverage]) {
 			throw UnexpectedIfElseFallthroughError("android platform ${ConfigurationWrapper.api23} has to be installed in order to monitor coverage")
 		}
 	}

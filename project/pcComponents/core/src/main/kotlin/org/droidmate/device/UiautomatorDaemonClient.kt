@@ -25,7 +25,7 @@
 
 package org.droidmate.device
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.deviceInterface.communication.DeviceCommand
 import org.droidmate.deviceInterface.exploration.DeviceResponse

@@ -25,6 +25,8 @@
 
 package org.droidmate.device.android_sdk
 
+import org.droidmate.device.error.DeviceException
+
 open class AdbWrapperException : DeviceException {
 	companion object {
 		private const val serialVersionUID: Long = 1

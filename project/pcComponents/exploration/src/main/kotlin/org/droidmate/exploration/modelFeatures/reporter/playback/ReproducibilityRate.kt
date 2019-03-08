@@ -29,7 +29,7 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.explorationWatchers.ActionPlaybackFeature
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.modelFeatures.misc.plot
-import org.droidmate.misc.withExtension
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -96,7 +96,7 @@ class ReproducibilityRate @JvmOverloads constructor(reportDir: Path,
 	}
 
 	private fun writeOutPlot(dataFile: Path, resourceDir: Path) {
-		val fileName = dataFile.fileName.withExtension("pdf")
+		val fileName = dataFile.fileName.resolveSibling(File(dataFile.fileName.toString()).nameWithoutExtension + "." + "pdf")
 		val outFile = dataFile.resolveSibling(fileName)
 
 		plot(dataFile.toAbsolutePath().toString(), outFile.toAbsolutePath().toString(), resourceDir)

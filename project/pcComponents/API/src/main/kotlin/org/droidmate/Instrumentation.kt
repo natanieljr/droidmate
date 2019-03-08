@@ -11,12 +11,12 @@ object Instrumentation {
 	/****************************** Apk-Inline API methods *****************************/
 	@JvmStatic
 	@JvmOverloads
-	fun inline(args: Array<String> = emptyArray()) {
+	suspend fun inline(args: Array<String> = emptyArray()) {
 		inline(setup(args))
 	}
 
 	@JvmStatic
-	fun inline(cfg: ConfigurationWrapper) {
+	suspend fun inline(cfg: ConfigurationWrapper) {
 		log.info("inline the apks if necessary")
 		InlineCommand(cfg).execute(cfg)
 	}

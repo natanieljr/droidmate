@@ -23,31 +23,15 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.device.android_sdk
+package org.droidmate.device.error
 
-import java.io.Serializable
-import java.nio.file.Path
-
-interface IApk : Serializable {
-	val path: Path
-	val packageName: String
-	val applicationLabel: String
-	val fileName: String
-	val fileNameWithoutExtension: String
-	val absolutePath: String
-
-	val inlined: Boolean
-	val instrumented: Boolean
-
-	val isDummy: Boolean
-
-	/**
-	 * An APK can have multiple launchable activities. Therefore, we set this value
-	 * during run, when we get this information from the device.
-	 */
-	var launchableMainActivityName: String
-	fun updateLaunchableActivityName(newValue: String) {
-		launchableMainActivityName = if (newValue.isBlank()) launchableMainActivityName else newValue
+class DeviceExceptionMissing : DeviceException(defaultExceptionMessage) {
+	companion object {
+		private const val serialVersionUID: Long = 1
+		private const val defaultExceptionMessage = "N/A (no device exception available)"
 	}
 
+	override fun toString(): String {
+		return defaultExceptionMessage
+	}
 }

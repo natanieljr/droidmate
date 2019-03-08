@@ -26,7 +26,7 @@ package org.droidmate.tools
 
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.device.android_sdk.IAaptWrapper
-import org.droidmate.device.android_sdk.IApk
+import org.droidmate.exploration.IApk
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 import java.nio.file.Files

@@ -26,7 +26,6 @@
 package org.droidmate.test_suites
 
 
-import org.droidmate.report.ReporterTestSuite
 import org.droidmate.android_sdk.AdbWrapperTest
 import org.droidmate.configuration.ConfigurationBuilderTest
 import org.droidmate.device.DeviceTest
@@ -40,13 +39,13 @@ import org.junit.runners.Suite
   https://github.com/junit-team/junit/wiki/Aggregating-tests-in-suites
 */
 
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-		ConfigurationBuilderTest::class,
-		AdbWrapperTest::class,
-		DeviceTest::class,
-		ExplorationTestSuite::class,
-		ReporterTestSuite::class)
-class UnitTestSuite
+//@RunWith(Suite::class)
+//@Suite.SuiteClasses(
+//		ConfigurationBuilderTest::class,
+//		AdbWrapperTest::class,
+//		DeviceTest::class,
+//		ExplorationTestSuite::class,
+//		ReporterTestSuite::class)
+//class UnitTestSuite
 
 

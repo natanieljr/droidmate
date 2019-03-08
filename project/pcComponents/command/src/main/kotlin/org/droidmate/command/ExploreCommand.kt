@@ -59,9 +59,13 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.device.error.DeviceException
 import org.droidmate.device.exception
-import org.droidmate.device.run
+import org.droidmate.device.logcat.ApiLogcatMessage
+import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
+import org.droidmate.device.runApp
 import org.droidmate.deviceInterface.exploration.*
+import org.droidmate.exploration.IApk
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.exploration.modelFeatures.reporter.*
@@ -85,6 +89,7 @@ import org.droidmate.exploration.modelFeatures.reporter.Summary
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.RuntimeException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -180,13 +185,13 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				strategies.add(Playback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath()))
 
 			if (cfg[explore])
-				strategies.add(RandomWidget(cfg))
+				strategies.add(RandomWidget(cfg.randomSeed, cfg[Strategies.Parameters.biasedRandom], cfg[Strategies.Parameters.randomScroll]))
 
 			if (cfg[fitnessProportionate])
-				strategies.add(FitnessProportionateSelection(cfg))
+				strategies.add(FitnessProportionateSelection(cfg.randomSeed))
 
 			if (cfg[modelBased])
-				strategies.add(ModelBased(cfg))
+				strategies.add(ModelBased(cfg.randomSeed))
 
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())
@@ -220,7 +225,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			val apksProvider = ApksProvider(deviceTools.aapt)
 
 			val command = ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-										 strategyProvider, modelProvider)
+					strategyProvider, modelProvider)
 			this.watcher.addAll(watcher)
 
 			return command
@@ -231,30 +236,30 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			val reportDir = cfg.droidmateOutputReportDirPath.toAbsolutePath()
 			val resourceDir = cfg.resourceDir.toAbsolutePath()
 			return listOf(AggregateStats(reportDir, resourceDir),
-				Summary(reportDir, resourceDir),
-				ApkViewsFileMF(reportDir, resourceDir),
-				ApiCountMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
-				ClickFrequencyMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
+					Summary(reportDir, resourceDir),
+					ApkViewsFileMF(reportDir, resourceDir),
+					ApiCountMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
+					ClickFrequencyMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
 //						TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
-				ApiActionTraceMF(reportDir, resourceDir),
-				ActivitySeenSummaryMF(reportDir, resourceDir),
-				ActionTraceMF(reportDir, resourceDir),
-				WidgetApiTraceMF(reportDir, resourceDir),
-				VisualizationGraphMF(reportDir, resourceDir))
-        }
+					ApiActionTraceMF(reportDir, resourceDir),
+					ActivitySeenSummaryMF(reportDir, resourceDir),
+					ActionTraceMF(reportDir, resourceDir),
+					WidgetApiTraceMF(reportDir, resourceDir),
+					VisualizationGraphMF(reportDir, resourceDir))
+		}
 
 	}
 
-	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
+	override suspend fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> = supervisorScope {
 		if (cfg[cleanDirs]) cleanOutputDir(cfg)
 		val reportDir = cfg.droidmateOutputReportDirPath
 		if (!Files.exists(reportDir))
-		    Files.createDirectories(reportDir)
+			withContext(Dispatchers.IO){ Files.createDirectories(reportDir)}
 		assert(Files.exists(reportDir)) { "Unable to create report directory ($reportDir)" }
 
-		val apks = this.apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
+		val apks = apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
 		if (!validateApks(apks, cfg[runOnNotInlined]))
-			return emptyList()
+			return@supervisorScope emptyList<ExplorationContext>()
 
 		val explorationData = execute(cfg, apks)
 		explorationData.second.let { explorationExceptions ->
@@ -262,30 +267,27 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				explorationExceptions.toList().forEach { (apk,e) ->
 					e.firstOrNull()?.let{ error ->
 						log.error("${apk?.packageName}${error.message}"); error.printStackTrace() }
-					}
+				}
 				throw ExecuteException(explorationExceptions.filterValues { it.isNotEmpty() }, explorationData.first)
 			}
 		}
 
-		runBlocking { onFinalFinished() }
+		onFinalFinished()
 		log.warn("Writing reports finished.")
 
-		return explorationData.first
+		return@supervisorScope explorationData.first
 	}
 
-	private suspend fun onFinalFinished() = this.let { eContext ->
-	    coroutineScope {
-	        // we use coroutineScope here to ensure that this function waits for all coroutines spawned within this method
-	        watcher.forEach { feature ->
-	            (feature as? ModelFeature)?.let {
-	                // this is meant to be in the current coroutineScope and not in feature, such this scope waits for its completion
-	                launch(CoroutineName("eContext-finish")) {
-	                    it.onFinalFinished()
-	                }
-	            }
-	            launch { feature.cancelAndJoin() } // terminate/restart all model features
-	        }
-	    }
+	private suspend fun onFinalFinished() = coroutineScope {
+		// we use coroutineScope here to ensure that this function waits for all coroutines spawned within this method
+		watcher.forEach { feature ->
+			(feature as? ModelFeature)?.let {
+				// this is meant to be in the current coroutineScope and not in feature, such this scope waits for its completion
+				launch(CoroutineName("eContext-finish")) {
+					it.onFinalFinished()
+				}
+			}
+		}
 	}
 
 	private fun validateApks(apks: List<Apk>, runOnNotInlined: Boolean): Boolean {
@@ -332,7 +334,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
 	}
 
-	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, HashMap<Apk?,List<ExplorationException>>> {
+	protected open suspend fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, HashMap<Apk?,List<ExplorationException>>> {
 		val out : MutableList<ExplorationContext> = mutableListOf()
 
 
@@ -351,46 +353,45 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		return Pair(out, explorationExceptions)
 	}
 
-	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
-	                                   apks: List<Apk>,
-	                                   out: MutableList<ExplorationContext>): HashMap<Apk?,List<ExplorationException>>{
+	private suspend fun deployExploreSerialize(cfg: ConfigurationWrapper,
+	                                           apks: List<Apk>,
+	                                           out: MutableList<ExplorationContext>): HashMap<Apk?,List<ExplorationException>>{
 		return deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
-			runBlocking{
-				val allApksExplorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
+			val allApksExplorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
 
-				var encounteredApkExplorationsStoppingException = false
+			var encounteredApkExplorationsStoppingException = false
 
-				apks.forEachIndexed { i, apk ->
-					if (!encounteredApkExplorationsStoppingException) {
-						log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
+			apks.forEachIndexed { i, apk ->
+				if (!encounteredApkExplorationsStoppingException) {
+					log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
 
-						allApksExplorationExceptions[apk] =
-								apkDeployer.withDeployedApk(device, apk) { deployedApk ->
-									tryExploreOnDeviceAndSerialize(deployedApk, device, out)
-								}
-
-						if (allApksExplorationExceptions[apk]?.any { (it as? ApkExplorationException)?.shouldStopFurtherApkExplorations() == true } == true) {
-							log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
-							encounteredApkExplorationsStoppingException = true
+					allApksExplorationExceptions[apk] = supervisorScope {
+						apkDeployer.withDeployedApk(device, apk) { deployedApk ->
+							tryExploreOnDeviceAndSerialize(deployedApk, device, out)
 						}
-
-						// Just preventative measures for ensuring healthiness of the device connection.
-						device.restartUiaDaemon(false)
 					}
-				}
-				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
-					imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
 
-				allApksExplorationExceptions
+					if (allApksExplorationExceptions[apk]?.any { (it as? ApkExplorationException)?.shouldStopFurtherApkExplorations() == true } == true) {
+						log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
+						encounteredApkExplorationsStoppingException = true
+					}
+
+					// Just preventative measures for ensuring healthiness of the device connection.
+					device.restartUiaDaemon(false)
+				}
 			}
-		}  // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
+			if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
+				imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
+
+			allApksExplorationExceptions
+		}
 	}
 
 
 	@Throws(DeviceException::class)
 	private suspend fun tryExploreOnDeviceAndSerialize(
 			deployedApk: IApk, device: IRobustDevice, out: MutableList<ExplorationContext>) {
-		val fallibleApkOut2 = this.run(deployedApk, device)
+		val fallibleApkOut2 = runApp(deployedApk, device)
 
 		if (fallibleApkOut2.result != null) {
 //      fallibleApkOut2.result!!.serialize(this.storage2) //TODO
@@ -401,8 +402,8 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			throw fallibleApkOut2.exception!!
 	}
 
-	private suspend fun run(app: IApk, device: IRobustDevice): Failable<ExplorationContext, DeviceException> {
-		log.info("run(${app.packageName}, device)")
+	private suspend fun runApp(app: IApk, device: IRobustDevice): Failable<ExplorationContext, DeviceException> {
+		log.info("runApp(${app.packageName}, device)")
 
 		device.resetTimeSync()
 
@@ -422,6 +423,37 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					"after already obtaining some exploration output.")
 
 		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
+	}
+
+	private suspend fun ExplorationContext.verify() {
+		try {
+			assert(this.explorationTrace.size > 0)
+			assert(this.explorationStartTime > LocalDateTime.MIN)
+			assert(this.explorationEndTime > LocalDateTime.MIN)
+
+			assertFirstActionIsLaunchApp()
+			assertLastActionIsTerminateOrResultIsFailure()
+			assertLastGuiSnapshotIsHomeOrResultIsFailure()
+			assertOnlyLastActionMightHaveDeviceException()
+			assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull()
+
+			assertLogsAreSortedByTime()
+			warnIfTimestampsAreIncorrectWithGivenTolerance()
+
+		} catch (e: AssertionError) {
+			throw RuntimeException(e)
+		}
+	}
+
+	private fun ExplorationContext.assertLogsAreSortedByTime() {
+		val apiLogs = explorationTrace.getActions()
+				.mapQueueToSingleElement()
+				.flatMap { deviceLog -> deviceLog.deviceLogs.map { ApiLogcatMessage.from(it) } }
+
+		assert(explorationStartTime <= explorationEndTime)
+
+		val ret = ApiLogcatMessageListExtensions.sortedByTimePerPID(apiLogs)
+		assert(ret)
 	}
 
 	private val imgTransfer = CoroutineScope(Dispatchers.Default+ SupervisorJob() + CoroutineName("device image pull"))
@@ -447,11 +479,11 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, device, LocalDateTime.now(), watcher = watcher, _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, { device.readStatements() }, LocalDateTime.now(), watcher = watcher, _model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
-		// Construct initial action and run it on the device to obtain initial result.
+		// Construct initial action and runApp it on the device to obtain initial result.
 		var action: ExplorationAction = EmptyAction
 		var result: ActionResult = EmptyActionResult
 
@@ -464,7 +496,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				// decide for an action
 				action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
 				// execute action
-				result = action.run(app, device)
+				result = action.runApp(app, device)
 
 				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) withContext(Dispatchers.IO) {
 					if(action is ActionQueue){
@@ -491,7 +523,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }		}
 		finally {
 //			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
-				// having one pull in the end does not really seam to make a performance difference right now
+			// having one pull in the end does not really seam to make a performance difference right now
 //				val fileName = "${action.id}.jpg"
 //				val dstFile = explorationContext.getModel().config.imgDst.resolve(fileName)
 //				var c = 0

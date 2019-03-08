@@ -25,7 +25,6 @@
 
 package org.droidmate.exploration.strategy
 
-import org.droidmate.test_tools.DroidmateTestCase
 import org.junit.FixMethodOrder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -36,7 +35,8 @@ import org.junit.runners.MethodSorters
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
-class ExplorationStrategiesTest : DroidmateTestCase() {
+class ExplorationStrategiesTest //: DroidmateTestCase()
+{
 	// TODO Fix tests
 	/*@Test
 	fun strategySelectionTest() {

@@ -25,7 +25,7 @@
 
 package org.droidmate.device.logcat
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 import org.droidmate.device.deviceInterface.IDeviceTimeDiff
 
 interface IApiLogsReader {

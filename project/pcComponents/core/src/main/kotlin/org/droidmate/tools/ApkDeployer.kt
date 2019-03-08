@@ -29,14 +29,14 @@ import org.droidmate.configuration.ConfigProperties.Deploy.installApk
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallApk
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
-import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.error.DeviceException
+import org.droidmate.exploration.IApk
 import org.droidmate.device.IDeployableAndroidDevice
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 
 /**
- * @see IApkDeployer#withDeployedApk(IDeployableAndroidDevice, org.droidmate.device.android_sdk.IApk, (IApk) -> Any)
+ * @see IApkDeployer#withDeployedApk(IDeployableAndroidDevice, org.droidmate.exploration.IApk, (IApk) -> Any)
  */
 class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeployer {
 	companion object {

@@ -23,17 +23,20 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.actions
+package org.droidmate.test_suites
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.test_suite_categories.ExcludedFromFastRegressionTests
+import org.junit.experimental.categories.Categories
+import org.junit.runner.RunWith
 
-class DeviceExceptionMissing : DeviceException(defaultExceptionMessage) {
-	companion object {
-		private const val serialVersionUID: Long = 1
-		private const val defaultExceptionMessage = "N/A (no device exception available)"
-	}
-
-	override fun toString(): String {
-		return defaultExceptionMessage
-	}
-}
+//@RunWith(Categories::class)
+//@Categories.ExcludeCategory(ExcludedFromFastRegressionTests::class)
+// FIXME dependencies (parent test class should be in commonLib then this test-suit can be put into exploration.report
+//@Suite.SuiteClasses(
+//		extensions_miscKtTest::class,
+//		extensions_time_seriesKtTest::class,
+//		functionsKtTest::class,
+//		ApkSummaryTest::class,
+//		ExplorationOutput2ReportTest::class
+//)
+class ReporterTestSuite

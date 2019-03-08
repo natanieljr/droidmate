@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.modelFeatures.tobedeleted.EventProbabilityMF
@@ -35,13 +34,6 @@ import org.droidmate.exploration.modelFeatures.tobedeleted.EventProbabilityMF
 open class ModelBased @JvmOverloads constructor(randomSeed: Long,
                                                 protected val modelName: String = "HasModel.model",
                                                 protected val arffName: String = "baseModelFile.arff") : RandomWidget(randomSeed) {
-	/**
-	 * Creates a new exploration strategy instance reading the random seed from the configuration file
-	 */
-	@JvmOverloads
-	constructor(cfg: ConfigurationWrapper,
-	            modelName: String = "HasModel.model",
-	            arffName: String = "baseModelFile.arff") : this(cfg.randomSeed, modelName, arffName)
 
 	protected val watcher: EventProbabilityMF
 		get() = (eContext.findWatcher { it is EventProbabilityMF } as EventProbabilityMF)

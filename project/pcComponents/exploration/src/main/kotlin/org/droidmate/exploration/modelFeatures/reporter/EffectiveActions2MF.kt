@@ -32,12 +32,12 @@ import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.misc.withExtension
 import org.droidmate.exploration.modelFeatures.misc.plot
 import java.awt.Point
 import java.awt.image.BufferedImage
 import java.awt.image.Raster
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.temporal.ChronoUnit
@@ -143,7 +143,7 @@ class EffectiveActions2MF(private val pixelDensity: Int = nexus5XPixelDensity,
     }
 
     private fun writeOutPlot(dataFile: Path, resourceDir: Path) {
-        val fileName = dataFile.fileName.withExtension("pdf")
+        val fileName = dataFile.fileName.resolveSibling(File(dataFile.fileName.toString()).nameWithoutExtension + "." + "pdf")
         val outFile = dataFile.resolveSibling(fileName)
 
         plot(dataFile.toAbsolutePath().toString(), outFile.toAbsolutePath().toString(), resourceDir)

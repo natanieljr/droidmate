@@ -25,7 +25,7 @@
 
 package org.droidmate.device
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 
 interface IApiMonitorClient : IMonitorClient {
 	@Throws(DeviceException::class)

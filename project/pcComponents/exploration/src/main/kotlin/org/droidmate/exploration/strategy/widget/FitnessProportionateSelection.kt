@@ -26,7 +26,6 @@
 package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.runBlocking
-import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.modelFeatures.ActionCounterMF
@@ -39,10 +38,6 @@ import org.droidmate.exploration.modelFeatures.tobedeleted.EventProbabilityMF
 open class FitnessProportionateSelection @JvmOverloads constructor(randomSeed: Long,
                                                                    modelName: String = "HasModel.model",
                                                                    arffName: String = "baseModelFile.arff") : ModelBased(randomSeed, modelName, arffName) {
-
-	@JvmOverloads
-	constructor(cfg: ConfigurationWrapper, modelName: String = "HasModel.model", arffName: String = "baseModelFile.arff")
-			: this(cfg.randomSeed, modelName, arffName)
 
 	protected open val eventWatcher: EventProbabilityMF by lazy {
 		(eContext.findWatcher { it is EventProbabilityMF }

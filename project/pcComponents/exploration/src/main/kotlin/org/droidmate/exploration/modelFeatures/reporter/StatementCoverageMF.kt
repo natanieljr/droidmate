@@ -25,14 +25,17 @@
 
 package org.droidmate.exploration.modelFeatures.reporter
 
+import com.natpryce.konfig.PropertyGroup
+import com.natpryce.konfig.booleanType
+import com.natpryce.konfig.getValue
+import com.natpryce.konfig.stringType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
-import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.FeatureDir
+import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.misc.deleteDir
@@ -55,9 +58,9 @@ import kotlin.streams.toList
  * Model feature to monitor the statement coverage by processing an optional instrumentation file and fetching
  * the statement data from the device.
  */
-class StatementCoverageMF(cfg: ConfigurationWrapper,
-                          private val config: ConfigurationWrapper,
-                          private val device: IExplorableAndroidDevice,
+class StatementCoverageMF(private val statementsLogOutputDir: Path,
+                          private val config: ModelConfig,
+                          private val readStatements: ()-> List<List<String>>,
                           private val appName: String,
                           private val fileName: String = "coverage.txt") : ModelFeature() {
 
@@ -67,7 +70,6 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
     override val coroutineContext: CoroutineContext = CoroutineName("StatementCoverageMF") + Job()
 
     private val instrumentationDir = Paths.get(config[ConfigProperties.ModelProperties.path.FeatureDir].toString()).toAbsolutePath()
-    private val statementsLogOutputDir: Path = cfg.coverageReportDirPath.toAbsolutePath().resolve(appName)
 
     private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
     private val instrumentationMap: Map<String, String>
@@ -175,7 +177,7 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
      */
     private fun updateCoverage() {
         // Fetch the statement data from the device
-        val readStatements = device.readStatements()
+        val readStatements = readStatements()
 
         readStatements
             .forEach { statement ->
@@ -236,6 +238,10 @@ class StatementCoverageMF(cfg: ConfigurationWrapper,
 
     companion object {
         private const val header = "Statement;Time"
+
+        val statementCoverage by booleanType
+        val coverageDir by stringType
+
     }
 
 }

@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.device
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 
 class TcpServerUnreachableException(cause: Throwable) : DeviceException(cause) {
 	companion object {

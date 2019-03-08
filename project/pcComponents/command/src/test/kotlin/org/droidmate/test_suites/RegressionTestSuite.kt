@@ -30,6 +30,6 @@ import org.junit.runners.Suite
 @RunWith(Suite::class)
 @Suite.SuiteClasses(
 		TestCodeTestSuite::class,
-		UnitTestSuite::class,
+//		UnitTestSuite::class,
 		IntegrationTestSuite::class)
 class RegressionTestSuite

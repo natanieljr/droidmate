@@ -25,7 +25,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.actions.click
+import org.droidmate.exploration.actions.click
 
 /**
  * Exploration strategy that always clicks "Deny" on runtime permission dialogs.

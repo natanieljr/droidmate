@@ -26,12 +26,9 @@
 package org.droidmate.exploration.strategy.playback
 
 import kotlinx.coroutines.runBlocking
-import org.droidmate.actions.*
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.pressBack
-import org.droidmate.exploration.actions.resetApp
-import org.droidmate.exploration.actions.terminateApp
+import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.Model
 import org.droidmate.exploration.modelFeatures.explorationWatchers.ActionPlaybackFeature
@@ -146,14 +143,13 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 					val peekAction = getNextTraceAction(peek = true)
 					val nextEquiv = peekAction.targetWidget.canExecute(eContext.getCurrentState())
 					val explorationAction = if (prevEquiv.first > nextEquiv.first  // try to execute the last previously skipped action only if the next action is executable afterwards
-							&& runBlocking {
-								model.getState(lastSkipped.resState)?.run {
+							&& model.getState(lastSkipped.resState)?.run {
 									actionableWidgets.any {
 										peekAction.targetWidget == null || it.uid == peekAction.targetWidget!!.uid
 												|| it.configId == peekAction.targetWidget!!.uid
 									}
 								}
-							} == true) {
+							 == true) {
 						lastSkipped = Interaction.empty  // we execute it now so do not try to do so again
 						if(action.isClick()){
 							logger.info("trigger previously skipped action")
@@ -188,7 +184,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 					return getNextAction()
 				}
 
-				val similarity = eContext.getCurrentState().similarity(runBlocking { model.getState(currTraceData.resState)!!})
+				val similarity = eContext.getCurrentState().similarity( model.getState(currTraceData.resState)!!)
 
 				// Rule:
 				// 0 - Doesn't belong to app, skip

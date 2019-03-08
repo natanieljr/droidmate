@@ -27,6 +27,7 @@
 package org.droidmate
 
 import com.natpryce.konfig.CommandLineOption
+import kotlinx.coroutines.runBlocking
 import org.droidmate.command.CoverageCommand
 import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.ConfigProperties
@@ -51,7 +52,7 @@ object ExplorationAPI {
 	 * entry-point to explore an application with a (subset) of default exploration strategies as specified in the property `explorationStrategies`
 	 */
 	@JvmStatic  // -config ../customConfig.properties
-	fun main(args: Array<String>) { // e.g.`-config filePath` or `--configPath=filePath`
+	fun main(args: Array<String>) = runBlocking { // e.g.`-config filePath` or `--configPath=filePath`
 		val cfg = setup(args)
 
 		if (cfg[ConfigProperties.ExecutionMode.coverage])
@@ -78,12 +79,12 @@ object ExplorationAPI {
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic
 	@JvmOverloads
-	fun instrument(args: Array<String> = emptyArray()) {
+	suspend fun instrument(args: Array<String> = emptyArray()) {
 		instrument(setup(args))
 	}
 
 	@JvmStatic
-	fun instrument(cfg: ConfigurationWrapper) {
+	suspend fun instrument(cfg: ConfigurationWrapper) {
 		log.info("instrument the apks for coverage if necessary")
 		CoverageCommand(cfg).execute(cfg)
 	}
@@ -91,7 +92,7 @@ object ExplorationAPI {
 	/****************************** Exploration API methods *****************************/
 	@JvmStatic
 	@JvmOverloads
-	fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
+	suspend fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
 	            selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args)),
 	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
 		return explore(setup(args), strategies, selectors, watcher, modelProvider)
@@ -99,9 +100,9 @@ object ExplorationAPI {
 
 	@JvmStatic
 	@JvmOverloads
-	fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
-	            selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(cfg),
-	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
+	suspend fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
+	                    selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(cfg),
+	                    modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
 		val runStart = Date()
 		val exploration = ExploreCommand.build(cfg, watcher = watcher, strategies = strategies
 				?: ExploreCommand.getDefaultStrategies(cfg), selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg)
@@ -114,13 +115,13 @@ object ExplorationAPI {
 
 	@JvmStatic
 	@JvmOverloads
-	fun inline(args: Array<String> = emptyArray()) {
+	suspend fun inline(args: Array<String> = emptyArray()) {
 		val cfg = setup(args)
 		inline(cfg)
 	}
 
 	@JvmStatic
-	fun inline(cfg: ConfigurationWrapper) {
+	suspend fun inline(cfg: ConfigurationWrapper) {
 		Instrumentation.inline(cfg)
 	}
 
@@ -130,7 +131,7 @@ object ExplorationAPI {
 	 */
 	@JvmStatic
 	@JvmOverloads
-	fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
+	suspend fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
 	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): List<ExplorationContext> {
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)

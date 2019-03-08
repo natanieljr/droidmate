@@ -60,7 +60,6 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForD
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.explore
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.inline
-import org.droidmate.configuration.ConfigProperties.ExecutionMode.report
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.Exploration.apkNames
 import org.droidmate.configuration.ConfigProperties.Exploration.apksDir
@@ -70,7 +69,6 @@ import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumb
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
-import org.droidmate.configuration.ConfigProperties.Output.coverageDir
 import org.droidmate.configuration.ConfigProperties.Output.outputDir
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
 import org.droidmate.configuration.ConfigProperties.Output.screenshotDir
@@ -103,6 +101,7 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTime
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdleTimeout
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.coverageDir
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.EnvironmentConstants
 import org.slf4j.Logger
@@ -140,7 +139,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(serverAddress, description = "Server address for tcp clients e.g. localhost."),
 			// ExecutionMode
 			CommandLineOption(inline, description = "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks. This flag cannot be combined with another execution mode."),
-			CommandLineOption(report, description = "If present, instead of normal run, DroidMate will generate reports from previously serialized data. This flag cannot be combined with another execution mode."),
 			CommandLineOption(explore, description = "Run DroidMate in exploration mode."),
 			CommandLineOption(coverage, description = "If present, instead of normal run, DroidMate will run in 'instrument APK for coverage' mode. This flag cannot be combined with another execution mode."),
 			// Deploy
@@ -323,8 +321,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 					.resolve(EnvironmentConstants.dir_name_temp_extracted_resources)
 			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath
 					.resolve(cfg[reportDir]).toAbsolutePath()
-			cfg.coverageReportDirPath = cfg.droidmateOutputDirPath
-					.resolve(cfg[coverageDir]).toAbsolutePath()
 			cfg.reportInputDirPath = cfg.getPath(cfg[ConfigProperties.Report.inputDir]).toAbsolutePath()
 
 			cfg.uiautomator2DaemonApk = getResourcePath(cfg, "deviceControlDaemon.apk").toAbsolutePath()

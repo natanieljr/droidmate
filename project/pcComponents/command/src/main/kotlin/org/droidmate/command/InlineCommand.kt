@@ -35,7 +35,7 @@ import org.droidmate.tools.ApksProvider
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                               private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
 
-	override fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
+	override suspend fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 

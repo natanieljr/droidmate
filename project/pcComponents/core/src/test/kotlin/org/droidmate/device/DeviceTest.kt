@@ -61,7 +61,7 @@ fun `reboots and restores connection`() {
  * u0_a1027  31550 205   869064 38120 sys_epoll_ 00000000 S org.droidmate.uiautomator2daemon.UiAutomator2Daemon
  *
  * - If the server was somehow corrupted, rerunning this test will hang on the "ObjectInputStream", even if the installApk
- * and setupConnection methods are run. However, if the uninstall commands are run, then the test will succeed again without
+ * and setupConnection methods are runApp. However, if the uninstall commands are runApp, then the test will succeed again without
  * problems. Not sure which uninstall is the important one, but I guess the one uninstalling.test
  *
  * Symptom observations: sometimes, even though server on the device says he is waiting to accept a socket, actually getting

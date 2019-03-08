@@ -26,11 +26,10 @@ package org.droidmate.exploration.strategy.login
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.actions.click
+import org.droidmate.exploration.actions.click
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
-import org.droidmate.misc.DroidmateException
+import java.lang.RuntimeException
 
 @Suppress("unused")
 class LoginWithGoogle : ExplorationStrategy() {
@@ -54,7 +53,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 			return widget.click()
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	private fun canClickAccount(widgets: List<Widget>): Boolean {
@@ -69,7 +68,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 			return widget.click()
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	private fun canClickAccept(widgets: List<Widget>): Boolean {
@@ -84,7 +83,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 			return widget.click()
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	/*override fun mustPerformMoreActions(): Boolean {
@@ -117,7 +116,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 			canClickGoogle(widgets) -> clickGoogle(widgets)
 			canClickAccount(widgets) -> clickAccount(widgets)
 			canClickAccept(widgets) -> clickAccept(widgets)
-			else -> throw UnexpectedIfElseFallthroughError("Should not have reached this point. $widgets")
+			else -> throw RuntimeException("Should not have reached this point. $widgets")
 		}
 	}
 

@@ -25,8 +25,8 @@
 
 package org.droidmate.device.deviceInterface
 
-import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.error.DeviceException
+import org.droidmate.exploration.IApk
 import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
@@ -35,7 +35,6 @@ import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.IDeviceMessagesReader
-import org.droidmate.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
 import org.droidmate.deviceInterface.exploration.DeviceResponse
@@ -43,7 +42,7 @@ import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
-import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.imgDump.widgets
+import org.droidmate.exploration.actions.click
 import org.droidmate.explorationModel.debugT
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep

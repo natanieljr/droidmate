@@ -26,7 +26,7 @@
 package org.droidmate.android_sdk
 
 import org.droidmate.device.android_sdk.IAaptWrapper
-import org.droidmate.device.android_sdk.IApk
+import org.droidmate.exploration.IApk
 
 import java.nio.file.Path
 

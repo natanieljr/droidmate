@@ -28,7 +28,7 @@ package org.droidmate.androcov
 import com.konradjamrozik.Resource
 import org.droidmate.ApkContentManager
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.device.android_sdk.IApk
+import org.droidmate.exploration.IApk
 import org.droidmate.helpClasses.Helper
 import org.droidmate.instrumentation.Runtime
 import org.droidmate.manifest.ManifestConstants

@@ -2,9 +2,9 @@ package org.droidmate.device
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.droidmate.actions.DeviceExceptionMissing
-import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.device.android_sdk.IApk
+import org.droidmate.device.error.DeviceExceptionMissing
+import org.droidmate.device.error.DeviceException
+import org.droidmate.exploration.IApk
 import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.logcat.IApiLogcatMessage
@@ -42,7 +42,7 @@ private fun performAction(action: ExplorationAction, app: IApk, device: IRobustD
 }
 
 @Throws(DeviceException::class)
-fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult {
+fun ExplorationAction.runApp(app: IApk, device: IRobustDevice): ActionResult {
 	logs = MissingDeviceLogs
 	snapshot = DeviceResponse.empty
 	exception = DeviceExceptionMissing()
@@ -50,7 +50,7 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult {
 
 	val startTime = LocalDateTime.now()
 	try {
-		log.trace("$name.run(app=${app.fileName}, device)")
+		log.trace("$name.runApp(app=${app.fileName}, device)")
 
 		log.debug("1. Assert only background API logs are present, if any.")
 		val logsHandler = DeviceLogsHandler(device)
@@ -65,7 +65,7 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult {
 		debugT("read logcat after action", { logsHandler.readAndClearApiLogs() }, inMillis = true)
 		logs = logsHandler.getLogs()
 
-		log.trace("$name.run(app=${app.fileName}, device) - DONE")
+		log.trace("$name.runApp(app=${app.fileName}, device) - DONE")
 	} catch (e: DeviceException) {
 		exception = e
 		log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device explorationTrace of ${this}. " +

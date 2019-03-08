@@ -24,16 +24,15 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
-import org.droidmate.actions.click
-import org.droidmate.actions.setText
+import org.droidmate.exploration.actions.setText
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.exploration.actions.click
 import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
-import org.droidmate.misc.DroidmateException
 import java.io.IOException
+import java.lang.RuntimeException
 
 @Suppress("unused")
 class LoginWithFacebook : ExplorationStrategy() {
@@ -60,7 +59,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		}
 
 		if (email.isEmpty() || password.isEmpty()) {
-			throw DroidmateException("Invalid facebook configuration file. To use this strategy it is necessary to " +
+			throw RuntimeException("Invalid facebook configuration file. To use this strategy it is necessary to " +
 					"have a resource file called 'facebookLogin.config' with a row username=<USERNAME> and a second " +
 					"row with password=<PASSWORD>.")
 		}
@@ -105,7 +104,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 			return button.click()
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	private fun canInsertEmail(widgets: List<Widget>): Boolean {
@@ -122,7 +121,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 			return button.setText(emailValue)
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	private fun canInsertPassword(widgets: List<Widget>): Boolean {
@@ -138,7 +137,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 			return button.setText(passwordValue)
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	private fun canClickLogInButton(widgets: List<Widget>): Boolean {
@@ -155,7 +154,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 			return button.click()
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	private fun canClickContinueButton(widgets: List<Widget>): Boolean {
@@ -172,7 +171,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 			return button.click()
 		}
 
-		throw DroidmateException("The exploration shouldn' have reached this point.")
+		throw RuntimeException("The exploration shouldn' have reached this point.")
 	}
 
 	/*override fun mustPerformMoreActions(): Boolean {
@@ -208,7 +207,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 			canInsertPassword(widgets) -> insertPassword(widgets)
 			canClickLogInButton(widgets) -> clickLogIn(widgets)
 			canClickContinueButton(widgets) -> clickContinue(widgets)
-			else -> throw UnexpectedIfElseFallthroughError("Should not have reached this point. $widgets")
+			else -> throw RuntimeException("Should not have reached this point. $widgets")
 		}
 	}
 

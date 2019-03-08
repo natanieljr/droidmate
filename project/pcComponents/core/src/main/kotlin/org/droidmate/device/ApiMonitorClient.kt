@@ -25,7 +25,7 @@
 
 package org.droidmate.device
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.misc.MonitorConstants
 import org.slf4j.LoggerFactory

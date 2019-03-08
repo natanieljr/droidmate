@@ -25,17 +25,12 @@
 
 package org.droidmate.exploration
 
+import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.*
-import org.droidmate.actions.DeviceExceptionMissing
 import org.droidmate.configuration.ConfigProperties
-import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.device.android_sdk.DeviceException
-import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.device.android_sdk.IApk
-import org.droidmate.device.logcat.ApiLogcatMessage
-import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
+import org.droidmate.device.error.DeviceException
+import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.deviceInterface.exploration.*
-import org.droidmate.errors.DroidmateError
 import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.droidmate.exploration.modelFeatures.explorationWatchers.CrashListMF
@@ -50,11 +45,12 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.math.min
 import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
+import java.nio.file.Paths
 
 @Suppress("MemberVisibilityCanBePrivate")
-class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper,
+class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
                                                    val apk: IApk,
-                                                   val device: IRobustDevice,
+                                                   readDeviceStatements: ()-> List<List<String>>,
                                                    val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
@@ -84,11 +80,12 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 
 	init {
-		if (explorationEndTime > LocalDateTime.MIN)
-			this.verify()
 		debugOutput = _model.config[debugMode] // disable debug ouptuts if not in debug mode
 		measurePerformance = _model.config[debugMode]
-		if (_model.config[ConfigProperties.ModelProperties.Features.statementCoverage]) watcher.add(StatementCoverageMF(cfg, cfg, device, _model.config.appName))
+		if (_model.config[StatementCoverageMF.statementCoverage]){
+			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[StatementCoverageMF.coverageDir]).toAbsolutePath()
+			watcher.add(StatementCoverageMF(coverageDir, _model.config, readDeviceStatements, _model.config.appName))
+		}
 	}
 
 	fun getCurrentState(): State = explorationTrace.currentState
@@ -173,11 +170,11 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 
 
-	private fun assertLastGuiSnapshotIsHomeOrResultIsFailure() { runBlocking {
+	suspend fun assertLastGuiSnapshotIsHomeOrResultIsFailure() {
 		explorationTrace.last()?.let {
 			assert(!it.successful || getCurrentState().isHomeScreen)
 		}
-	}}
+	}
 
 	/**
 	 * Get the last widget the exploration has interacted with
@@ -226,39 +223,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		return _model
 	}
 
-	@Throws(DroidmateError::class)
-	fun verify() {
-		try {
-			assert(this.explorationTrace.size > 0)
-			assert(this.explorationStartTime > LocalDateTime.MIN)
-			assert(this.explorationEndTime > LocalDateTime.MIN)
-
-			assertFirstActionIsLaunchApp()
-			assertLastActionIsTerminateOrResultIsFailure()
-			assertLastGuiSnapshotIsHomeOrResultIsFailure()
-			assertOnlyLastActionMightHaveDeviceException()
-			assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull()
-
-			assertLogsAreSortedByTime()
-			warnIfTimestampsAreIncorrectWithGivenTolerance()
-
-		} catch (e: AssertionError) {
-			throw DroidmateError(e)
-		}
-	}
-
-	private fun assertLogsAreSortedByTime() {
-		val apiLogs = explorationTrace.getActions()
-				.mapQueueToSingleElement()
-				.flatMap { deviceLog -> deviceLog.deviceLogs.map { ApiLogcatMessage.from(it) } }
-
-		assert(explorationStartTime <= explorationEndTime)
-
-		val ret = ApiLogcatMessageListExtensions.sortedByTimePerPID(apiLogs)
-		assert(ret)
-	}
-
-	private fun List<Interaction>.mapQueueToSingleElement(): List<Interaction>{
+	fun List<Interaction>.mapQueueToSingleElement(): List<Interaction>{
 		var startQueue = 0
 		var endQueue = 0
 
@@ -279,13 +244,13 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 	}
 
 
-	private fun assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull() {
+	fun assertDeviceExceptionIsMissingOnSuccessAndPresentOnFailureNeverNull() {
 		//TODO improve or remove if redundant
 //		val lastResultSuccessful = FindReplaceUtility.getLastAction().successful
 //		assert(lastResultSuccessful == (exception is DeviceExceptionMissing) || !lastResultSuccessful)
 	}
 
-	private fun assertOnlyLastActionMightHaveDeviceException() {
+	fun assertOnlyLastActionMightHaveDeviceException() {
 		// assert(explorationTrace.getActions().dropLast(1).all { a -> a.successful })
 
 		val actions = explorationTrace.getActions().dropLast(1)
@@ -318,7 +283,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	}
 
-	private fun warnIfTimestampsAreIncorrectWithGivenTolerance() {
+	fun warnIfTimestampsAreIncorrectWithGivenTolerance() {
 		/**
 		 * <p>
 		 * Used for time comparisons allowing for some imprecision.
@@ -378,12 +343,12 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 		}
 	}
 
-	private fun assertFirstActionIsLaunchApp() {
+	fun assertFirstActionIsLaunchApp() {
 		assert(explorationTrace.getActions().let{ trace -> trace.isEmpty() || trace.subList(0,min(trace.size,4)).any { it.actionType.isLaunchApp() }}// || explorationTrace.first().actionType == PlaybackResetAction::class.simpleName
 		)
 	}
 
-	private fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {
+	fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {
 		explorationTrace.last()?.let {
 			assert(!it.successful || it.actionType.isTerminate()) {" last action was $it instead of Terminate/Failure"}
 		}

@@ -25,18 +25,17 @@
 
 package org.droidmate.exploration.modelFeatures.tobedeleted
 
-import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
 
-abstract class AdbBasedMF(val cfg: ConfigurationWrapper): ModelFeature() {
+abstract class AdbBasedMF(private val adbCommand : String, private val deviceSerial:String): ModelFeature() {
 	internal fun runAdbCommand(commandArgs: List<String>,
 							   timeout : Int = 1,
 							   timeoutUnit: TimeUnit = TimeUnit.SECONDS): List<String> {
-		val command = listOf(cfg.adbCommand, "-s", cfg.deviceSerialNumber, *commandArgs.toTypedArray())
+		val command = listOf(adbCommand, "-s", deviceSerial, *commandArgs.toTypedArray())
 
 		val builder = ProcessBuilder(command)
 

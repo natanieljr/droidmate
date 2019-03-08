@@ -27,7 +27,6 @@ package org.droidmate.command
 
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.inline
-import org.droidmate.configuration.ConfigProperties.ExecutionMode.report
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.exploration.ExplorationContext
@@ -40,7 +39,7 @@ import java.nio.file.Path
 abstract class DroidmateCommand {
 
 	@Throws(ThrowablesCollection::class)
-	abstract fun execute(cfg: ConfigurationWrapper): List<ExplorationContext>
+	abstract suspend fun execute(cfg: ConfigurationWrapper): List<ExplorationContext>
 
 	companion object {
 		@JvmStatic
@@ -48,10 +47,9 @@ abstract class DroidmateCommand {
 
 		@JvmStatic
 		fun build(cfg: ConfigurationWrapper): DroidmateCommand {
-			assert(arrayListOf(cfg[report], cfg[inline], cfg[coverage]).count { it } <= 1)
+			assert(arrayListOf(cfg[inline], cfg[coverage]).count { it } <= 1)
 
 			return when {
-				cfg[report] -> ReportCommand()
 				cfg[inline] -> InlineCommand(cfg)
 				cfg[coverage] -> CoverageCommand(cfg)
 				else -> ExploreCommand.build(cfg)

@@ -23,20 +23,31 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.report
+package org.droidmate.exploration
 
-import org.droidmate.test_suite_categories.ExcludedFromFastRegressionTests
-import org.junit.experimental.categories.Categories
-import org.junit.runner.RunWith
-import org.junit.runners.Suite
+import java.io.Serializable
+import java.nio.file.Path
 
-@RunWith(Categories::class)
-@Categories.ExcludeCategory(ExcludedFromFastRegressionTests::class)
-@Suite.SuiteClasses(
-		extensions_miscKtTest::class,
-		extensions_time_seriesKtTest::class,
-		functionsKtTest::class,
-		ApkSummaryTest::class,
-		ExplorationOutput2ReportTest::class
-)
-class ReporterTestSuite
+interface IApk : Serializable {
+	val path: Path
+	val packageName: String
+	val applicationLabel: String
+	val fileName: String
+	val fileNameWithoutExtension: String
+	val absolutePath: String
+
+	val inlined: Boolean
+	val instrumented: Boolean
+
+	val isDummy: Boolean
+
+	/**
+	 * An APK can have multiple launchable activities. Therefore, we set this value
+	 * during run, when we get this information from the device.
+	 */
+	var launchableMainActivityName: String
+	fun updateLaunchableActivityName(newValue: String) {
+		launchableMainActivityName = if (newValue.isBlank()) launchableMainActivityName else newValue
+	}
+
+}

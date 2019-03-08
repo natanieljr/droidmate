@@ -35,6 +35,7 @@ import org.droidmate.device.IDeployableAndroidDevice
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.deviceInterface.RobustDevice
+import org.droidmate.device.error.DeviceException
 import org.droidmate.logging.Markers
 import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.DroidmateException
@@ -156,7 +157,8 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 			log.trace("Device is not available. Skipping tear down.")
 	}
 
-	override fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int, computation: (IRobustDevice) -> HashMap<Apk?, List<ExplorationException>>): HashMap<Apk?, List<ExplorationException>> {
+	override suspend fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int,
+	                                     computation: suspend (IRobustDevice) -> HashMap<Apk?, List<ExplorationException>>): HashMap<Apk?, List<ExplorationException>> {
 		// Set the deviceSerialNumber in the configuration. Calculate the deviceSerialNumber, if not not provided by
 		// the given deviceIndex. It can't be done in the configuration because it needs access to the AdbWrapper.
 

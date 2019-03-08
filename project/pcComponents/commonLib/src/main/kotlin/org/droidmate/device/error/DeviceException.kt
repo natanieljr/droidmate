@@ -23,7 +23,7 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.device.android_sdk
+package org.droidmate.device.error
 
 import org.droidmate.misc.DroidmateException
 

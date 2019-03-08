@@ -25,7 +25,7 @@
 
 package org.droidmate.device
 
-import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.device.error.DeviceException
 import org.droidmate.deviceInterface.communication.SerializationHelper
 import java.io.DataInputStream
 import java.io.DataOutputStream
