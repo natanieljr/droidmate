@@ -36,8 +36,7 @@ dependencies {
 	compile 'com.github.hotzkow:explorationModel:master-SNAPSHOT' // includes platformInterfaceLib
 	implementation project(':project:pcComponents:commonLib')  // necessary since some reports access ApiLogcatMessage
 
-//	api 'com.natpryce:konfig:1.6.6.0'  // configuration library (since some strategies access config parameters)
-	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.ext.coroutines_version}"
+	api 'com.natpryce:konfig:1.6.6.0'  // configuration library (since StatementCoverageMF access config parameters)
 	
 	testImplementation "org.jetbrains.kotlin:kotlin-test:${project.ext.kotlin_version}"
 	testImplementation "org.jetbrains.kotlin:kotlin-test-junit:${project.ext.kotlin_version}"

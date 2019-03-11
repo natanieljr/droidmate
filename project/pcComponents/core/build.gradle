@@ -43,7 +43,6 @@ dependencies {
 
 	// jdk dependency necessary for kotlin/stream library used by ResourceManager
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
 
 	implementation 'ch.qos.logback:logback-classic:1.2.3'
 	implementation 'ch.qos.logback:logback-core:1.2.3'
