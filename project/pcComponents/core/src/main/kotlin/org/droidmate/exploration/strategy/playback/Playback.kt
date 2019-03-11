@@ -166,6 +166,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 					explorationAction
 				}
 			}
+			action.isFetch() -> GlobalAction(ActionType.FetchGUI)
 			action.isTerminate() -> terminateApp()
 			action.isQueueStart() -> {
 				// Currently it supports only the launch app queue
