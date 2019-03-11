@@ -239,8 +239,10 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
     companion object {
         private const val header = "Statement;Time"
 
-        val statementCoverage by booleanType
-        val coverageDir by stringType
+        object StatementCoverage : PropertyGroup() {
+            val enableCoverage by booleanType
+            val coverageDir by stringType
+        }
 
     }
 

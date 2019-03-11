@@ -27,6 +27,7 @@
 package org.droidmate
 
 import com.natpryce.konfig.CommandLineOption
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.droidmate.command.CoverageCommand
 import org.droidmate.command.ExploreCommand
@@ -79,12 +80,12 @@ object ExplorationAPI {
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic
 	@JvmOverloads
-	suspend fun instrument(args: Array<String> = emptyArray()) {
+	suspend fun instrument(args: Array<String> = emptyArray()) = coroutineScope{
 		instrument(setup(args))
 	}
 
 	@JvmStatic
-	suspend fun instrument(cfg: ConfigurationWrapper) {
+	suspend fun instrument(cfg: ConfigurationWrapper) = coroutineScope{
 		log.info("instrument the apks for coverage if necessary")
 		CoverageCommand(cfg).execute(cfg)
 	}
@@ -102,7 +103,7 @@ object ExplorationAPI {
 	@JvmOverloads
 	suspend fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
 	                    selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(cfg),
-	                    modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
+	                    modelProvider: ((String) -> Model)? = null): List<ExplorationContext> = coroutineScope{
 		val runStart = Date()
 		val exploration = ExploreCommand.build(cfg, watcher = watcher, strategies = strategies
 				?: ExploreCommand.getDefaultStrategies(cfg), selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg)
@@ -110,7 +111,7 @@ object ExplorationAPI {
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
-		return exploration.execute(cfg)
+		return@coroutineScope exploration.execute(cfg)
 	}
 
 	@JvmStatic
@@ -132,11 +133,11 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	suspend fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): List<ExplorationContext> {
+	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): List<ExplorationContext> = coroutineScope{
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
-		return explore(cfg, strategies, selectors, watcher)
+		return@coroutineScope explore(cfg, strategies, selectors, watcher)
 	}
 
 }

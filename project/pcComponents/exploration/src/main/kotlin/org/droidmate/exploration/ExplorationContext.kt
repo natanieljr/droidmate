@@ -35,6 +35,8 @@ import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.droidmate.exploration.modelFeatures.explorationWatchers.CrashListMF
 import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.*
 import org.droidmate.misc.TimeDiffWithTolerance
@@ -82,8 +84,8 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 	init {
 		debugOutput = _model.config[debugMode] // disable debug ouptuts if not in debug mode
 		measurePerformance = _model.config[debugMode]
-		if (_model.config[StatementCoverageMF.statementCoverage]){
-			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[StatementCoverageMF.coverageDir]).toAbsolutePath()
+		if (_model.config[enableCoverage]){
+			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[coverageDir]).toAbsolutePath()
 			watcher.add(StatementCoverageMF(coverageDir, _model.config, readDeviceStatements, _model.config.appName))
 		}
 	}

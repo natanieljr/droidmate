@@ -101,7 +101,8 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTime
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdleTimeout
-import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.coverageDir
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.EnvironmentConstants
 import org.slf4j.Logger
@@ -142,6 +143,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(explore, description = "Run DroidMate in exploration mode."),
 			CommandLineOption(coverage, description = "If present, instead of normal run, DroidMate will run in 'instrument APK for coverage' mode. This flag cannot be combined with another execution mode."),
 			// Deploy
+			CommandLineOption(enableCoverage, description = "If true, the statement coverage of the exploration will be measured. This requires the apk to be instrumented with 'coverage' mode."),
 			CommandLineOption(installApk, description = "Reinstall the app to the device. If the app is not previously installed the exploration will fail"),
 			CommandLineOption(installAux, description = "Reinstall the auxiliary files (UIAutomator and Monitor) to the device. If the auxiliary files are not previously installed the exploration will fail."),
 			CommandLineOption(uninstallApk, description = "Uninstall the APK after the exploration."),
