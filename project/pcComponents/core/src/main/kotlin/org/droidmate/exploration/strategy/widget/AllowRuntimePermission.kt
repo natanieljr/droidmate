@@ -32,7 +32,7 @@ import org.droidmate.exploration.actions.click
  */
 class AllowRuntimePermission : ExplorationStrategy() {
 	override suspend fun chooseAction(): ExplorationAction {
-		val allowButton = eContext.getCurrentState().widgets.let { widgets ->
+		val allowButton = eContext.getCurrentState().actionableWidgets.filter{it.isVisible}.let { widgets ->
 			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 					?: widgets.firstOrNull { it.text.toUpperCase() == "ALLOW" } ?: widgets.first { it.text.toUpperCase() == "OK" }
 		}
