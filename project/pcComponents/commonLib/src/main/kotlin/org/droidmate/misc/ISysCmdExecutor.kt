@@ -66,6 +66,9 @@ interface ISysCmdExecutor {
 	@Throws(SysCmdExecutorException::class)
 	fun executeWithoutTimeout(commandDescription: String, vararg cmdLineParams: String): Array<String>
 
+	/**
+	 * @timeout timout for the process in milli seconds
+	 */
 	@Throws(SysCmdExecutorException::class)
 	fun executeWithTimeout(commandDescription: String, timeout: Int, vararg cmdLineParams: String): Array<String>
 }

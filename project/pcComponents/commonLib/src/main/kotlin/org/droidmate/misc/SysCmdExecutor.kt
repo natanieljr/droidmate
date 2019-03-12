@@ -81,8 +81,7 @@ class SysCmdExecutor : ISysCmdExecutor {
 
 		if (timeout > 0) {
 			// Attach the process timeout.
-			val watchdog = ExecuteWatchdog(timeout.toLong())
-			executor.watchdog = watchdog
+			executor.watchdog = ExecuteWatchdog(timeout.toLong())
 		}
 
 		// Only exit value of 0 is allowed for the call to return successfully.
