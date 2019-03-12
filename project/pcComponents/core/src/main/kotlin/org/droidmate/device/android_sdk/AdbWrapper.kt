@@ -581,7 +581,7 @@ Logcat reference:
 		}else{
 			val commandDescription = "Executing adb to pull $pulledFilePath on Android Device with s/n $deviceSerialNumber."
 			try {
-				sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				sysCmdExecutor.executeWithTimeout(commandDescription, 2000, cfg.adbCommand, "-H", cfg[adbHost],
 						"-s", deviceSerialNumber,
 						"pull", pulledFilePath, destinationFilePath.toAbsolutePath().toString())
 			}catch (e: SysCmdExecutorException){

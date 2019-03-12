@@ -456,9 +456,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		assert(ret)
 	}
 
-	private val imgTransfer = CoroutineScope(Dispatchers.Default+ SupervisorJob() + CoroutineName("device image pull"))
+	private val imgTransfer = CoroutineScope(SupervisorJob() + CoroutineName("device image pull") + Dispatchers.IO)
 
-	private fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice){
+	private suspend fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice) = withTimeoutOrNull(10000){
 		debugT("image transfer should take no time on main thread", {
 			imgTransfer.launch {
 				// pull the image from device, store it in the image directory defined in ModelConfig and remove it on device
@@ -468,7 +468,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				do {          // try for up to 3 times to pull a screenshot image
 					delay(2000)// the device is going to need some time to compress the image, if the image is time critical you should disable delayed fetch
 					device.pullFile(fileName, dstFile)
-				} while (c++ < 3 && !File(dstFile.toString()).exists())
+				} while (isActive && c++ < 3 && !File(dstFile.toString()).exists())
 			}
 		}, inMillis = true)
 
@@ -498,7 +498,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				// execute action
 				result = action.runApp(app, device)
 
-				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) withContext(Dispatchers.IO) {
+				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
 					if(action is ActionQueue){
 						action.actions.forEachIndexed { i, a ->
 							if(i<action.actions.size-1 &&
@@ -507,8 +507,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 								pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device)
 						}
 					}
-					// TODO if contains scroll additional screen capture + fetch
-					// ? if text input additional screen capture after insert action?
 					pullScreenShot(action.id, explorationContext.getModel().config.imgDst, device)
 				}
 
