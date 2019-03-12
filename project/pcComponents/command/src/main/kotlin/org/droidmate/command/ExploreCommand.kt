@@ -521,6 +521,10 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			}
 			assert(!result.successful || action.isTerminate())
 			assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }		}
+		catch(e: Throwable){  // the decide call of a strategy may issue an exception e.g. when trying to interact on non-actable elements
+			log.error("Exception during exploration (probably caused by Strategy.decide) check explorationContext.exception for further details")
+			explorationContext.exception = DeviceException(e)
+		}
 		finally {
 //			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
 			// having one pull in the end does not really seam to make a performance difference right now
