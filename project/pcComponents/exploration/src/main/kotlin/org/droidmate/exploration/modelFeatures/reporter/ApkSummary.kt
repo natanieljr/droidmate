@@ -33,6 +33,7 @@ import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.exploration.modelFeatures.misc.actionString
 import org.droidmate.exploration.modelFeatures.misc.minutesAndSeconds
 import org.droidmate.exploration.modelFeatures.misc.replaceVariable
 import org.droidmate.logging.LogbackConstants

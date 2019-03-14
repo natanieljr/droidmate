@@ -65,9 +65,6 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	var i: AtomicInteger = AtomicInteger(0)
 	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State, newState: State) {
 		try {
-			// check if we have any screenshots to process
-			if (!cfg[ConfigProperties.ModelProperties.imgDump.states]) return
-
 			val step = i.incrementAndGet() - 1
 			val screenFile = java.io.File(cfg.imgDst.resolve("$lastId.jpg").toString())
 			val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")

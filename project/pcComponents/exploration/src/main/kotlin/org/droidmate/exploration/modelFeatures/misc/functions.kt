@@ -30,6 +30,7 @@ import com.google.common.collect.Table
 import com.konradjamrozik.Resource
 import com.konradjamrozik.isDirectory
 import com.konradjamrozik.isRegularFile
+import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.misc.SysCmdExecutor
 import java.io.BufferedInputStream
 import java.io.FileOutputStream
@@ -141,3 +142,8 @@ fun StringBuilder.replaceVariable(varName: String, value: String): StringBuilder
 fun Int.zeroLeastSignificantDigits(digitsToZero: Int): Long {
 	return BigDecimal(this.toString()).setScale(-digitsToZero, RoundingMode.DOWN).toBigInteger().toLong()
 }
+
+
+fun Interaction.actionString(sep:String = ";") = listOf(prevState.toString(), actionType,
+		targetWidget?.id.toString(), resState.toString(), startTimestamp.toString(), endTimestamp.toString(),
+		successful.toString(), exception, data).joinToString(separator = sep)

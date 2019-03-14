@@ -59,13 +59,26 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is Click -> {
 			env.device.verifyCoordinate(x, y)
 			env.device.click(x, y, interactiveTimeout).apply {
-				runBlocking { delay(delay) }
+				delay(delay)
 			}
+		}
+		is Tick -> {
+			var success = UiHierarchy.findAndPerform(env, idMatch(idHash)){
+				val newStatus = !it.isChecked
+				it.isChecked = newStatus
+				it.isChecked == newStatus
+			}
+			if(!success){
+				env.device.verifyCoordinate(x, y)
+				success = env.device.click(x, y, interactiveTimeout)
+			}
+			delay(delay)
+			success
 		}
 		is LongClick -> {
 			env.device.verifyCoordinate(x, y)
 			env.device.longClick(x, y, interactiveTimeout).apply {
-				runBlocking { delay(delay) }
+				delay(delay)
 			}
 		}
 		is SimulationAdbClearPackage, EmptyAction -> false /* should not be called on device */
@@ -89,14 +102,14 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				ActionType.CloseKeyboard -> 	if (env.isKeyboardOpen()) //(UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
 						env.device.pressBack()
 					else false
-			}//.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
+			}//.also { if (it is Boolean && it) { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
 				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
-//					if(it) runBlocking { delay(idleTimeout) } // wait for display update
+//					if(it) { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
 				} }.also {
 				Log.d(logTag,"action was successful=$it")
@@ -113,7 +126,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is PinchIn -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
 		is PinchOut -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
 		is Scroll -> TODO()
-		is ActionQueue -> runBlocking {
+		is ActionQueue -> {
 			var success = true
 			actions.forEachIndexed { i,action -> success = success &&
 					action.execute(env).also{
@@ -173,7 +186,7 @@ private fun getOrStoreImgPixels(bm: Bitmap?, env: UiAutomationEnvironment, actio
 			}
 			ByteArray(0)
 		}
-		else -> UiHierarchy.compressScreenshot(bm).also{ _ ->
+		else -> UiHierarchy.compressScreenshot(bm).also{
 			bm.recycle()
 		}
 	}
@@ -184,7 +197,7 @@ private var cnt = 0
 private var wt = 0.0
 private var wc = 0
 private const val debugFetch = false
-private val isInteractive = { w: UiElementPropertiesI -> w.clickable || w.longClickable || w.isInputField}
+private val isInteractive = { w: UiElementPropertiesI -> w.clickable || w.longClickable || w.checked!=null || w.isInputField}
 suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean = false): DeviceResponse = coroutineScope{
 	debugOut("start fetch execution",debugFetch)
 	waitForSync(env,afterAction)
@@ -209,7 +222,7 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 		debugOut("INTERACTIVE Element in UI = ${it?.any (isInteractive)}")
 	} ?: emptyList<UiElementPropertiesI>()	.also { isSuccessful = false }
 
-//			val xmlDump = runBlocking { UiHierarchy.getXml(device) }
+//			val xmlDump = UiHierarchy.getXml(device)
 	val focusedWindow = windows.filter { it.isExtracted() && !it.isKeyboard }.let { appWindows ->
 		( appWindows.firstOrNull{ it.w.hasFocus || it.w.hasInputFocus } ?: appWindows.firstOrNull())
 	}
@@ -261,20 +274,20 @@ private fun UiDevice.twoPointAction(start: Pair<Int,Int>, end: Pair<Int,Int>, ac
 	return action(x0, y0, x1, y1)
 }
 
-private fun UiDevice.minimizeMaximize(){
+private suspend fun UiDevice.minimizeMaximize(){
 	val currentPackage = currentPackageName
 	Log.d(logTag, "Original package name $currentPackage")
 
 	pressRecentApps()
 	// Cannot use wait for changes because it crashes UIAutomator
-	runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
+	delay(100) // avoid idle 0 which get the wait stuck for multiple seconds
 	measureTimeMillis { waitForIdle(idleTimeout) }.let { Log.d(logTag, "waited $it millis for IDLE") }
 
 	for (i in (0 until 10)) {
 		pressRecentApps()
 
 		// Cannot use wait for changes because it waits some interact-able element
-		runBlocking { delay(100) } // avoid idle 0 which get the wait stuck for multiple seconds
+		delay(100) // avoid idle 0 which get the wait stuck for multiple seconds
 		measureTimeMillis { waitForIdle(idleTimeout) }.let { Log.d(logTag, "waited $it millis for IDLE") }
 
 		Log.d(logTag, "Current package name $currentPackageName")
@@ -283,17 +296,18 @@ private fun UiDevice.minimizeMaximize(){
 	}
 }
 
-private fun UiDevice.launchApp(appPackageName: String, env: UiAutomationEnvironment, launchActivityDelay: Long, waitTime: Long): Boolean {
+private suspend fun UiDevice.launchApp(appPackageName: String, env: UiAutomationEnvironment, launchActivityDelay: Long, waitTime: Long): Boolean {
 	var success = false
 	// Launch the app
 	val intent = env.context.packageManager
 			.getLaunchIntentForPackage(appPackageName)
+
 	// Clear out any previous instances
-	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+	intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
 
 	// Update environment
 	env.launchedMainActivity = try {
-		intent.component.className
+		intent?.component?.className ?: ""
 	} catch (e: IllegalStateException) {
 		""
 	}
@@ -307,7 +321,7 @@ private fun UiDevice.launchApp(appPackageName: String, env: UiAutomationEnvironm
 		wait(Until.hasObject(By.pkg(appPackageName).depth(0)),
 				waitTime)
 
-		runBlocking { delay(launchActivityDelay) }
+		delay(launchActivityDelay)
 		success = UiHierarchy.waitFor(env, interactiveTimeout, actableAppElem)
 		// mute audio after app launch (for very annoying apps we may need a contentObserver listening on audio setting changes)
 		val audio = env.context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

@@ -6,26 +6,24 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.emptyId
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.Interaction.Companion.ActionDataFields
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import java.time.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
+private fun Interaction.shortString() = "$actionType;$targetWidget;$exception;$successful"
+
 class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, Interaction> =
 		                                             Graph(State.emptyState,
 				                                             stateComparison = { a, b -> a.uid == b.uid },
 				                                             labelComparison = { a, b ->
-					                                             val fields = arrayOf(ActionDataFields.Action, ActionDataFields.WId, ActionDataFields.Exception, ActionDataFields.SuccessFul)
-					                                             val aData = a.actionString(fields)
-					                                             val bData = b.actionString(fields)
-
+					                                             val aData = a.shortString()
+					                                             val bData = b.shortString()
 					                                             aData == bData
 				                                             })) : ModelFeature(), IGraph<State, Interaction> by graph {
 	private fun emptyWithWidget(widget: Widget?): Interaction =
-			Interaction("EMPTY", widget, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId, //FIXME sep should be read from eContext instead
-					prevState = emptyId)
-
+			Interaction("EMPTY", widget, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId,
+					prevState = emptyId, actionId = -1)
 
 	override val coroutineContext: CoroutineContext = CoroutineName("StateGraphMF")
 

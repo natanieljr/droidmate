@@ -23,17 +23,13 @@
 //
 // web: www.droidmate.org
 /*
-  This project contains classes reused by multiple projects, none of which are run on an Android device.
+  This project contains classes summarizing the actions and strategies used for the UI exploration, none of which are compiled on an Android device.
   Because none of them are run on an Android Device, the classes in this project can and are compiled with Java 8.
 */
 
-repositories {
-	mavenCentral()
-}
-
-
 dependencies {
 	compile 'com.github.hotzkow:explorationModel:master-SNAPSHOT' // includes platformInterfaceLib
+//	compile project(':explorationModel')
 	implementation project(':project:pcComponents:commonLib')  // necessary since some reports access ApiLogcatMessage
 
 	api 'com.natpryce:konfig:1.6.6.0'  // configuration library (since StatementCoverageMF access config parameters)
