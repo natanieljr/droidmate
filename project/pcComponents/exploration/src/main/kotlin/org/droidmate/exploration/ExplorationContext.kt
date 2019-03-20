@@ -63,6 +63,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
 	}
 	val retention: CoroutineScope = CoroutineScope(CoroutineName("MF-Dump")) + SupervisorJob()
+	val imgTransfer = CoroutineScope(SupervisorJob() + CoroutineName("device image pull") + Dispatchers.IO)
 
 	inline fun<reified T:ModelFeature> getOrCreateWatcher(): T
 			= ( findWatcher{ it is T } ?: T::class.java.newInstance().also { addWatcher(it) } ) as T

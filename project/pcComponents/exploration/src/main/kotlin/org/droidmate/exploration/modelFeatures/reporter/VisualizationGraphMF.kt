@@ -28,8 +28,8 @@ package org.droidmate.exploration.modelFeatures.reporter
 import com.google.gson.*
 import com.konradjamrozik.Resource
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
-import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.isQueueEnd
 import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
@@ -44,6 +44,7 @@ import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*
 import javax.imageio.ImageIO
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.coroutines.CoroutineContext
 
@@ -52,11 +53,15 @@ import kotlin.coroutines.CoroutineContext
  * actions as an interactive graph with execution details. The report is generated into a folder
  * named after topLevelDirName.
  *
- * For better usage set the "ModelProperties.imgDump.widget.nonInteractable" property to true.
+ * For better usage set:
+ * "ModelProperties.imgDump.widget.nonInteractable" property to true
+ * "ModelProperties.imgDump.widgets" property to true
  */
 class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(reportDir, resourceDir) {
 
     override val coroutineContext: CoroutineContext = CoroutineName("VisualizationGraphMF")
+
+    private val imageFormat: String = ".jpg"
 
     /**
      * All files are generated into this folder.
@@ -69,6 +74,13 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     private lateinit var targetStatesImgDir: Path
 
     /**
+     * CInteraction encapsulates interaction with the corresponding previous interaction.
+     * This is needed to get the correct image for the according [interaction], because the
+     * screenshot is taken after the interaction is executed.
+     */
+    inner class CInteraction(val interaction: Interaction, val prevInteraction: Interaction?)
+
+    /**
      * Edge encapsulates an Interaction object, because the frontend cannot have multiple
      * edges for the same transitions. Therefore, the indices are stored and the corresponding
      * targetWidgets are mapped to the indices. E.g., for an Edge e1, the transition was taken
@@ -79,12 +91,17 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     inner class Edge(val interaction: Interaction) {
         val indices = HashSet<Int>()
         val id = "${interaction.prevState} -> ${interaction.resState}"
-        val actionIndexWidgetMap = HashMap<Int, Widget?>()
-        fun addIndex(i: Int, w: Widget?) {  //FIXME this does not allow for all targets of WidgetQueue
-            indices.add(i)
-            actionIndexWidgetMap[i] = w
+        val actionIndexInteractionMap = HashMap<Int, CInteraction>()
+        fun addIndex(idx: Int, i: CInteraction) {  //FIXME this does not allow for all targets of WidgetQueue
+            indices.add(idx)
+            actionIndexInteractionMap[idx] = i
         }
     }
+
+    /**
+     * Node encapsulates state and corresponding actionId to map screenshots to states.
+     */
+    inner class Node(val state: State, val actionId: Int)
 
     /**
      * Wrapper object to encapsulate nodes and edges, so that when this object is serialized
@@ -92,7 +109,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
      * general information.
      */
     @Suppress("unused")
-    inner class Graph(val nodes: Set<State>,
+    inner class Graph(val states: Set<State>,
                       edges: List<Pair<Int, Interaction>>,
                       val explorationStartTime: String,
                       val explorationEndTime: String,
@@ -100,26 +117,53 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
                       val numberOfStates: Int,
                       val apk: IApk) {
         private val edges: MutableList<Edge> = ArrayList()
+        private val nodes: MutableList<Node> = ArrayList()
 
-        // The graph in the frontend is not able to display multiple edges for the same transition,
-        // therefore update here the indices and check if the same transition was taken before, if yes
-        // then just update the index to the already added edge
         init {
-//			val tmpEdges = edges.map { Edge(it) }
+            // Associate the state with actionId by iterating through the edges/interactions
+            val stateIdActionIdMap = HashMap<ConcreteId, Int>()
+
+            // The graph in the frontend is not able to display multiple edges for the same transition,
+            // therefore update here the indices and check if the same transition was taken before, if yes
+            // then just update the index to the already added edge
             val edgeMap = HashMap<String, Edge>()
-            edges.forEach { (idx, a) ->
-                if (!(a.actionType.isQueueStart() || a.actionType.isQueueEnd())) { // ignore queue actions
-                    val edge = Edge(a)
-                    val entry = edgeMap[edge.id]
-                    if (entry == null) {
-                        edge.addIndex(idx, edge.interaction.targetWidget)
-                        edgeMap[edge.id] = edge
-                        this.edges.add(edge)
-                    } else {
-                        entry.addIndex(idx, edge.interaction.targetWidget)
+            var processingQueueActions = false
+            for ((index, p) in edges.withIndex()) {
+                val interaction = p.second
+                val interactionIdx = p.first
+                // Ignore queue start and end
+                when {
+                    interaction.actionType.isQueueStart() -> processingQueueActions = true
+                    interaction.actionType.isQueueEnd() -> processingQueueActions = false
+                    else -> {
+                        val edge = Edge(interaction)
+                        val entry = edgeMap[edge.id]
+
+                        // Calculate the previous interaction
+                        val prevInteraction = if (processingQueueActions && index > 2)
+                            edges[index - 2].second
+                        else if (!processingQueueActions && index > 1)
+                            edges[index - 1].second
+                        else
+                            null
+                        if (entry == null) {
+                            edge.addIndex(interactionIdx, CInteraction(edge.interaction, prevInteraction))
+                            edgeMap[edge.id] = edge
+                            this.edges.add(edge)
+                        } else {
+                            entry.addIndex(interactionIdx, CInteraction(edge.interaction, prevInteraction))
+                        }
+
+                        stateIdActionIdMap[interaction.resState] = interaction.actionId
                     }
                 }
             }
+
+            states.forEach { state ->
+                assert(stateIdActionIdMap.containsKey(state.stateId))
+                nodes.add(Node(state, stateIdActionIdMap[state.stateId]!!))
+            }
+
         }
 
         fun toJsonVariable(gson: Gson): String {
@@ -157,29 +201,29 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     /**
      * Custom Json serializer to control the serialization for State objects.
      */
-    inner class StateDataAdapter : JsonSerializer<State> {
-        override fun serialize(src: State, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+    inner class NodeAdapter : JsonSerializer<Node> {
+        override fun serialize(src: Node, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             val obj = JsonObject()
-            val stateId = src.stateId.toString()
+            val state = src.state
+            val stateId = state.stateId.toString()
             // The frontend needs a property 'id', use the stateId for this
             obj.addProperty("id", stateId)
             obj.addProperty("stateId", stateId)
-//			obj.addProperty("topNodePackageName", src.topNodePackageName)
             obj.addProperty("shape", "image")
-            obj.addProperty("image", getImgPath(stateId))
-            obj.addProperty("uid", src.uid.toString())
-            obj.addProperty("configId", src.configId.toString())
-            obj.addProperty("hasEdit", src.hasEdit)
-            obj.addProperty("isHomeScreen", src.isHomeScreen)
+            obj.addProperty("image", getImgPath(src.actionId.toString()))
+            obj.addProperty("uid", state.uid.toString())
+            obj.addProperty("configId", state.configId.toString())
+            obj.addProperty("hasEdit", state.hasEdit)
+            obj.addProperty("isHomeScreen", state.isHomeScreen)
             obj.addProperty("title", stateId)
             // Include all important properties to make the states searchable
             val properties = arrayListOf(stateId, //src.topNodePackageName,
-                src.uid.toString(), src.configId.toString())
+                state.uid.toString(), state.configId.toString())
             obj.addProperty("nlpText", properties.joinToString("\n"))
 
             // Widgets
             val widgets = JsonArray()
-            for (w in src.widgets) {
+            for (w in state.widgets) {
                 widgets.add(context.serialize(w))
             }
 
@@ -199,9 +243,10 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
             obj.addProperty("actionType", src.interaction.actionType)
             obj.addProperty("id", src.id)
             obj.addProperty("configId", src.interaction.targetWidget?.configId.toString())
+            obj.addProperty("actionId", src.interaction.actionId.toString())
             obj.addProperty("title", src.id)
             obj.addProperty("label", "${src.interaction.actionType} ${src.indices.joinToString(",", prefix = "<", postfix = ">")}")
-            obj.add("targetWidgets", context.serialize(src.actionIndexWidgetMap))
+            obj.add("interactions", context.serialize(src.actionIndexInteractionMap))
             return obj
         }
     }
@@ -218,17 +263,16 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     /**
      * Custom Json serializer to control the serialization for <HashMap<Int, Widget?> objects.
      */
-    inner class IdxWidgetHashMapAdapter : JsonSerializer<HashMap<Int, Widget?>> {
-        override fun serialize(src: HashMap<Int, Widget?>, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-            val widgets = JsonArray()
-            for ((idx, w) in src) {
-                val obj = convertWidget(w, context)
-                // TODO dataString might be interesting?
+    inner class IdxInteractionHashMapAdapter : JsonSerializer<HashMap<Int, CInteraction>> {
+        override fun serialize(src: HashMap<Int, CInteraction>, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            val interactions = JsonArray()
+            for ((idx, i) in src) {
+                val obj = convertCInteraction(i, context)
                 obj.addProperty("idxOfAction", idx)
-                widgets.add(obj)
+                interactions.add(obj)
             }
 
-            return widgets
+            return interactions
         }
     }
 
@@ -253,6 +297,25 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     }
 
     /**
+     * Converts a given CInteraction as JsonObject with all the necessary information.
+     */
+    private fun convertCInteraction(src: CInteraction, context: JsonSerializationContext): JsonObject {
+        val obj = JsonObject()
+        val interaction = src.interaction
+
+        obj.addProperty("actionId", interaction.actionId)
+        obj.addProperty("actionType", interaction.actionType)
+        obj.addProperty("data", interaction.data)
+        obj.addProperty("successful", interaction.successful)
+        // Use the actionId of the previous interaction, because the screenshot was taken after
+        // the previous interaction was executed
+        obj.addProperty("image", getImgPath(src.prevInteraction?.actionId?.toString()))
+        obj.add("targetWidget", convertWidget(interaction.targetWidget, context))
+
+        return obj
+    }
+
+    /**
      * Converts a given Widget as JsonObject with all the necessary information.
      */
     private fun convertWidget(src: Widget?, context: JsonSerializationContext): JsonObject {
@@ -262,7 +325,6 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
         obj.addProperty("id", id)
         obj.addProperty("uid", src?.uid.toString())
         obj.addProperty("configId", src?.configId.toString())
-        obj.addProperty("image", getImgPath(id))
         obj.addProperty("text", src?.text)
         obj.addProperty("contentDesc", src?.contentDesc)
         obj.addProperty("resourceId", src?.resourceId)
@@ -276,9 +338,8 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
         obj.addProperty("scrollable", src?.scrollable)
         obj.addProperty("checked", src?.checked)
         obj.addProperty("focused", src?.focused)
-        obj.add("visibleAreas", context.serialize(src?.visibleAreas))
+        obj.add("visibleBounds", context.serialize(src?.visibleBounds))
         obj.addProperty("selected", src?.selected)
-        obj.addProperty("xpath", src?.xpath)
         obj.addProperty("isLeaf", src?.isLeaf())
 
         return obj
@@ -290,15 +351,15 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
      * e.g. for the initial state or for states for which DroidMate could not acquire an
      * image.
      */
-    private fun getImgPath(id: String?): String { // FIXME the image files are stored by their action number, lookup the exploration trace to determine which image belongs to which state (or if necessary add an model watcher for that)
+    private fun getImgPath(id: String?): String {
         return if (id != null
             // Image is available
-            && Files.list(targetStatesImgDir).use { list -> list.anyMatch { it.fileName.toString().startsWith(id) } }) {
+            && Files.list(targetStatesImgDir).use { list -> list.anyMatch { it.fileName.toString() == "$id$imageFormat" } }) {
 
             Paths.get(".")
                 .resolve("img")
                 .resolve("states")
-                .resolve("$id.jpg")
+                .resolve("$id$imageFormat")
                 .toString()
         } else
             Paths.get(".")
@@ -314,11 +375,11 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     private fun getCustomGsonBuilder(): Gson {
         val gsonBuilder = GsonBuilder().setPrettyPrinting()
 
-        gsonBuilder.registerTypeAdapter(State::class.java, StateDataAdapter())
+        gsonBuilder.registerTypeAdapter(Node::class.java, NodeAdapter())
         gsonBuilder.registerTypeAdapter(Edge::class.java, EdgeAdapter())
         gsonBuilder.registerTypeAdapter(IApk::class.java, IApkAdapter())
         gsonBuilder.registerTypeAdapter(Widget::class.java, WidgetAdapter())
-        gsonBuilder.registerTypeAdapter(HashMap<Int, Widget?>()::class.java, IdxWidgetHashMapAdapter())
+        gsonBuilder.registerTypeAdapter(HashMap<Int, CInteraction>()::class.java, IdxInteractionHashMapAdapter())
 
         return gsonBuilder.create()
     }
@@ -332,13 +393,9 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
             }
     }
 
-    override fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+        context.imgTransfer.coroutineContext[Job]?.children?.forEach { it.join() }
         createVisualizationGraph(context.getModel(), context.apk, apkReportDir, resourceDir)
-    }
-
-    override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State, newState: State) {
-        // TODO keep track of actionnumber, map state
-        // Fix here Ticket #73
     }
 
     override fun reset() {
@@ -371,7 +428,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
         targetStatesImgDir = targetImgDir.resolve("states")
         Files.createDirectories(targetStatesImgDir)
 
-        copyFilteredFiles(model.config.imgDst, targetStatesImgDir, ".jpg")
+        copyFilteredFiles(model.config.imgDst, targetStatesImgDir, imageFormat)
 
         val jsonFile = targetVisFolder.resolve("data.js")
         val gson = getCustomGsonBuilder()
@@ -380,19 +437,19 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
 
             // TODO Jenny proposed to visualize multiple traces in different colors in the future, as we only
             // use the first trace right now
-            val actions = if (ignoreConfig)
+            val interactions = if (ignoreConfig)
                 markTargets(model, targetStatesImgDir)
             else
                 model.getPaths().first().getActions().mapIndexed { i, a -> Pair(i, a) }
             val states = model.getStates().filter { s ->
                 // avoid unconnected states
-                actions.any { (_, a) -> a.prevState == s.stateId || a.resState == s.stateId }
+                interactions.any { (_, a) -> a.prevState == s.stateId || a.resState == s.stateId }
             }.toSet()
             val graph = Graph(states,
-                actions,
-                actions.first().second.startTimestamp.toString(),
-                actions.last().second.endTimestamp.toString(),
-                actions.size,
+                interactions,
+                interactions.first().second.startTimestamp.toString(),
+                interactions.last().second.endTimestamp.toString(),
+                interactions.size,
                 states.size,
                 apk)
             val jsGraph = graph.toJsonVariable(gson)
@@ -425,16 +482,16 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
             .groupBy { (_, it) -> it.prevState.uid }.flatMap { (uid, indexedActions) ->
                 var imgFile = imgDir.resolve("${indexedActions.first().second.prevState.toString()}.jpg").toFile()
                 if (!imgFile.exists()) {
-                    imgFile = Files.list(imgDir).filter { it.fileName.startsWith(uid.toString()) && it.fileName.endsWith(".jpg") }.findFirst().orElseGet { Paths.get("Error") }.toFile()
+                    imgFile = Files.list(imgDir).filter { it.fileName.startsWith(uid.toString()) && it.fileName.endsWith(imageFormat) }.findFirst().orElseGet { Paths.get("Error") }.toFile()
                 }
                 val img = if (imgFile.exists()) ImageIO.read(imgFile) else null
                 if (!imgFile.exists() || img == null) indexedActions// if we cannot find a source img we are not touching the actions
                 else {
-                    uidMap[uid] = fromString(imgFile.name.replace(".jpg", ""))!!
+                    uidMap[uid] = fromString(imgFile.name.replace(imageFormat, ""))!!
                     val configId = uidMap[uid]!!.configId
                     val targets = indexedActions.filter { (_, action) -> action.targetWidget != null }
                     highlightWidget(img, targets.map { it.second.targetWidget!! }, targets.map { it.first }) // highlight each action in img
-                    ImageIO.write(img, "jpg", imgDir.resolve("${ConcreteId(uid, configId)}.jpg").toFile())
+                    ImageIO.write(img, "jpg", imgDir.resolve("${ConcreteId(uid, configId)}$imageFormat").toFile())
                     // manipulate the action datas to replace config-id's
                     indexedActions.map { (i, action) ->
                         Pair(i, action.copy(prevState = ConcreteId(uid, configId), resState = uidMap.getOrDefault(action.resState.uid, action.resState)))
