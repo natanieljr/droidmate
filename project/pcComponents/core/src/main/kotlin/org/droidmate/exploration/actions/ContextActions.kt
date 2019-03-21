@@ -9,6 +9,7 @@ import org.droidmate.explorationModel.debugOut
 import org.droidmate.explorationModel.interaction.Widget
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -81,7 +82,8 @@ fun ExplorationContext.navigateTo(w: Widget, action: (Widget) -> ExplorationActi
 					println("ERROR invalid state could not find parentHash $waId within this state ${getCurrentState().stateId}")
 					return null
 				}
-				a.isVisible -> wa = a
+				a.isVisible // check that we do not try to swipe on a tiny area and require a huge ammount of swipes
+						&& a.visibleBounds.height>200 && a.visibleBounds.width>200 -> wa = a
 				else -> {
 					hasAncestor = a.hasParent
 					waId = a.parentHash
@@ -137,24 +139,28 @@ fun ExplorationContext.navigateTo(w: Widget, action: (Widget) -> ExplorationActi
 private fun ExplorationContext.swipe(distX:Int, distY:Int, area:Rectangle, swipeOffset: Int = 2):LinkedList<ExplorationAction>{
 	val actions = LinkedList<ExplorationAction>()
 	val (middleX,middleY) = area.center
+	val sxOffset=100 // for right scrolling to prevent the "open menu" feature, implemented in some apps
+
 	// mDistX/Y is the maximal distance we can scroll into X/Y direction with the respective integer sign
+	// sx and sy are the start point for the swipe
 	val (sx,mDistX) = with(area) {
 		when {
 			distX == 0 -> Pair(middleX, 0) // if we do not have swipe right/left we start the swipe in the middle of the x coordinate
-			distX < 0 -> Pair(leftX + swipeOffset, width-swipeOffset) // swipe left
+			distX < 0 -> Pair(leftX + sxOffset, -(max(0,width-sxOffset))) // swipe from left to right (reveal left elements)
 			else -> Pair(width - swipeOffset, width-swipeOffset)
 		}
 	}
 	val (sy,mDistY) = with(area) {
 		when {
 			distY == 0 -> Pair(middleY,0)
-			distY < 0 -> Pair(topY + swipeOffset, height-swipeOffset) // swipe up
+			distY < 0 -> Pair(topY + swipeOffset, -(height-swipeOffset)) // swipe from top to bottom (reveal upper elements)
 			else -> Pair(height - swipeOffset, height-swipeOffset)
 		}
 	}
 
 	var dx = 0  // the distance we already swiped on the x/y axis
 	var dy = 0
+	//mDistX and mDistY are positive if we have to swipe left | up and negative for right | down
 	while ((mDistX!=0 || mDistY!=0) && (dx!=distX || dy!=distY)){
 		val mx = (distX-dx).let{ distToX -> if(abs(distToX) < abs(mDistX)) distToX else mDistX}
 		dx += mx
