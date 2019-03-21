@@ -57,7 +57,10 @@ fun ExplorationContext.resetApp(): ExplorationAction {
 }
 fun terminateApp(): ExplorationAction = GlobalAction(ActionType.Terminate)
 
-/** navigate to widget [w] (which may be currently out of screen) and act upon it by calling [action]
+/** navigate to widget [w] (which may be currently out of screen) and act upon it by calling [action].
+ * This may not work for all apps when the element is located above the current snapshot, i.e. some web-view apps
+ * do not report the real element boundaries but rather put others in front,
+ * for these we have no way to compute how often to scroll into which direction.
  *
  * 1) if the element is not visible, we traverse the parent structure until we find a visible ancestor (wa)
  * 2) the visible bounds of this ancestor will determine the region we can use to swipe within

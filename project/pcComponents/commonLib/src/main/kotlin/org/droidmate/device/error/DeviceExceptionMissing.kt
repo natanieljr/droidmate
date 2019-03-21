@@ -28,7 +28,7 @@ package org.droidmate.device.error
 class DeviceExceptionMissing : DeviceException(defaultExceptionMessage) {
 	companion object {
 		private const val serialVersionUID: Long = 1
-		private const val defaultExceptionMessage = "N/A (no device exception available)"
+		private const val defaultExceptionMessage = ""
 	}
 
 	override fun toString(): String {

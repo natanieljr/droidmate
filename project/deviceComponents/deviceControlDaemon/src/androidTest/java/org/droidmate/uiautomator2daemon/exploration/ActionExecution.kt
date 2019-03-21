@@ -75,13 +75,23 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 			delay(delay)
 			success
 		}
+		is ClickEvent ->
+			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
+				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)}.also {
+					if(it) { delay(idleTimeout) } // wait for display update
+					Log.d(logTag, "perform successful=$it")
+				}
+		is LongClickEvent -> UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
+			nodeInfo.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)}.also {
+			if(it) { delay(idleTimeout) } // wait for display update
+			Log.d(logTag, "perform successful=$it")
+		}
 		is LongClick -> {
 			env.device.verifyCoordinate(x, y)
 			env.device.longClick(x, y, interactiveTimeout).apply {
 				delay(delay)
 			}
 		}
-		is SimulationAdbClearPackage, EmptyAction -> false /* should not be called on device */
 		is GlobalAction ->
 			when (actionType) {
 				ActionType.PressBack -> env.device.pressBack()
@@ -100,21 +110,18 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				ActionType.Terminate -> false /* should never be transferred to the device */
 				ActionType.PressEnter -> env.device.pressEnter()
 				ActionType.CloseKeyboard -> 	if (env.isKeyboardOpen()) //(UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
-						env.device.pressBack()
-					else false
+					env.device.pressBack()
+				else false
 			}//.also { if (it is Boolean && it) { delay(idleTimeout) } }// wait for display update (if no Fetch action)
-		is TextInsert -> {
+		is TextInsert ->
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
 				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
-//					if(it) { delay(idleTimeout) } // wait for display update
+					//					if(it) { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
-				} }.also {
-				Log.d(logTag,"action was successful=$it")
-			}
-		}
+				} }
 		is RotateUI -> env.device.rotate(rotation, env.automation)
 		is LaunchApp -> {
 			env.device.launchApp(packageName, env, launchActivityDelay, timeout)
@@ -125,7 +132,12 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is TwoPointerGesture ->	TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
 		is PinchIn -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
 		is PinchOut -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
-		is Scroll -> TODO()
+		is Scroll -> // TODO we may trigger the UiObject2 method instead
+			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
+			nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)}.also {
+			if(it) { delay(idleTimeout) } // wait for display update
+			Log.d(logTag, "perform successful=$it")
+		}
 		is ActionQueue -> {
 			var success = true
 			actions.forEachIndexed { i,action -> success = success &&
@@ -134,10 +146,11 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 						if(i<actions.size-1 &&
 								((action is TextInsert && actions[i+1] is Click)
 										|| action is Swipe)) getOrStoreImgPixels(env.captureScreen(),env, action.id)
-					} as Boolean }.apply{
+					}.let{ if(it is Boolean) it else true } }.apply{
 				getOrStoreImgPixels(env.captureScreen(),env)
 			}
 		}
+		else -> throw DeviceDaemonException("not implemented action $name was called in exploration/ActionExecution")
 	}
 	Log.d(logTag, "END execution of ${toString()}")
 	return result
@@ -159,11 +172,11 @@ private suspend fun waitForSync(env: UiAutomationEnvironment, afterAction: Boole
 				time += it / 1000000
 				cnt += 1
 			}) // this sometimes really sucks in performance but we do not yet have any reliable alternative
-		debugOut("check if we have a webView", debugFetch)
-		if (afterAction && UiHierarchy.any(env, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
-			debugOut("WebView detected wait for interactive element with different package name", debugFetch)
-			UiHierarchy.waitFor(env, interactiveTimeout, actableAppElem)
-		}
+	debugOut("check if we have a webView", debugFetch)
+	if (afterAction && UiHierarchy.any(env, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
+		debugOut("WebView detected wait for interactive element with different package name", debugFetch)
+		UiHierarchy.waitFor(env, interactiveTimeout, actableAppElem)
+	}
 }
 
 
@@ -229,7 +242,7 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 	val focusedAppPkg = focusedWindow	?.w?.pkgName ?: "no AppWindow detected"
 	debugOut("determined focused window $focusedAppPkg inputF=${focusedWindow?.w?.hasInputFocus}, focus=${focusedWindow?.w?.hasFocus}")
 
-		debugOut("started async ui extraction",debugFetch)
+	debugOut("started async ui extraction",debugFetch)
 
 	debugOut("compute img pixels",debugFetch)
 	val imgPixels =	getOrStoreImgPixels(img,env)

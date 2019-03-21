@@ -25,30 +25,28 @@
 
 package org.droidmate.device.deviceInterface
 
-import org.droidmate.device.error.DeviceException
-import org.droidmate.exploration.IApk
-import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
+import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
+import org.droidmate.device.error.DeviceException
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.IDeviceMessagesReader
-import org.droidmate.logging.Markers
-import org.droidmate.misc.Utils
-import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.deviceInterface.exploration.ActionType
+import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
+import org.droidmate.exploration.IApk
 import org.droidmate.exploration.actions.click
-import org.droidmate.explorationModel.debugT
+import org.droidmate.logging.Markers
+import org.droidmate.misc.Utils
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.time.LocalDateTime
-import kotlin.math.max
 
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
@@ -67,9 +65,6 @@ class RobustDevice : IRobustDevice {
 
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(RobustDevice::class.java) }
-
-		private var c = 0
-		private var time = 0.0
 	}
 
 	private val device: IAndroidDevice
@@ -275,8 +270,7 @@ class RobustDevice : IRobustDevice {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
 							{
-								debugT("perform action ${action::class.simpleName} avg = ${time / max(1, c)}", { this.device.perform(action) }
-										, inMillis = true, timer = { time += it / 1000000.0; c += 1 })
+								this.device.perform(action)
 							},
 							{ this.restartUiaDaemon(false) },
 							DeviceException::class,

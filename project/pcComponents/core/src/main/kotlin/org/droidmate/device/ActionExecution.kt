@@ -1,19 +1,15 @@
 package org.droidmate.device
 
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.error.DeviceException
 import org.droidmate.exploration.IApk
-import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.deviceInterface.IRobustDevice
+import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.MissingDeviceLogs
-import org.droidmate.deviceInterface.exploration.DeviceResponse
-import org.droidmate.deviceInterface.exploration.ActionQueue
-import org.droidmate.deviceInterface.exploration.ActionType
-import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.deviceInterface.exploration.LaunchApp
+import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.logging.Markers
@@ -30,23 +26,27 @@ lateinit var exception: DeviceException
 private var performT: Long = 0
 private var performN: Int = 0
 
-private fun performAction(action: ExplorationAction, app: IApk, device: IRobustDevice){
+private suspend fun performAction(action: ExplorationAction, app: IApk, device: IRobustDevice){
 	when {
 		action.name == ActionType.Terminate.name -> terminate(app, device)
 		action is LaunchApp || (action is ActionQueue && action.actions.any { it is LaunchApp }) -> {
 			resetApp(app, device)
 			defaultExecution(action, device)
 		}
-		else -> defaultExecution(action, device)
+		else -> debugT("perform $action on average ${performT / max(performN, 1)} ms", {
+			defaultExecution(action, device)
+		}, timer = {
+			performT += it / 1000000
+			performN += 1
+		}, inMillis = true)
 	}
 }
 
 @Throws(DeviceException::class)
-fun ExplorationAction.runApp(app: IApk, device: IRobustDevice): ActionResult {
+suspend fun ExplorationAction.runApp(app: IApk, device: IRobustDevice): ActionResult {
 	logs = MissingDeviceLogs
 	snapshot = DeviceResponse.empty
 	exception = DeviceExceptionMissing()
-	// @formatter:on
 
 	val startTime = LocalDateTime.now()
 	try {
@@ -80,23 +80,16 @@ fun ExplorationAction.runApp(app: IApk, device: IRobustDevice): ActionResult {
 
 
 @Throws(DeviceException::class)
-private fun defaultExecution(action: ExplorationAction, device: IRobustDevice){
+private suspend fun defaultExecution(action: ExplorationAction, device: IRobustDevice) =	coroutineScope {
 	try {
-		debugT("perform $action on average ${performT / max(performN, 1)} ms", {
-			runBlocking {
-				launch {
-					// do the perform as launch to inject a suspension point, as perform is currently no suspend function
-					snapshot = device.perform(action)
-				}.join()
-			}
-		}, timer = {
-			performT += it / 1000000
-			performN += 1
-		}, inMillis = true)
+		launch {
+			// do the perform as launch to inject a suspension point, as perform is currently no suspend function
+			snapshot = device.perform(action)
+		}.join()
 	} catch (e: Exception) {
 		log.warn("2.1. Failed to perform $action, retry once")
 		device.restartUiaDaemon(false)
-		snapshot =  device.perform(action)
+		snapshot = device.perform(action)
 	}
 }
 

@@ -50,7 +50,6 @@ import org.droidmate.deviceInterface.DeviceConstants.uia2Daemon_testPackageName
 import org.droidmate.deviceInterface.communication.*
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.deviceInterface.exploration.SimulationAdbClearPackage
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -150,10 +149,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override fun perform(action: ExplorationAction): DeviceResponse {
 		log.debug("perform($action)")
 
-		return when (action) {
-			is SimulationAdbClearPackage -> throw DeviceException("call .clearPackage() directly instead")
-			else -> execute(action)
-		}
+		return execute(action)
 	}
 
 	@Throws(DeviceException::class)

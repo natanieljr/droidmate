@@ -18,7 +18,7 @@ import org.droidmate.explorationModel.interaction.Widget
  */
 
 /**
- * issue a click to [this.uncoveredCoord] if it exists and to the boundaries center otherwise.
+ * issue a click to [this.visibleAreas.firstCenter()] if it exists and to the boundaries center otherwise.
  * The widget has to be clickable and enabled. If it is not definedAsVisible this method will throw an exception
  * (you should use [navigateTo] instead).
  */

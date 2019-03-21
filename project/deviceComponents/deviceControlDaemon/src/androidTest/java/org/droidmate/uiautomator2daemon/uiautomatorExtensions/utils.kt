@@ -25,6 +25,10 @@ fun Rectangle.toRect() = Rect(leftX,topY,rightX,bottomY)
 
 data class Coordinate(val x:Int, val y: Int)
 var markedAsOccupied = true
+/** given a set of available window areas ([uncovered]) the (sub-)areas intersecting with [this] are computed,
+ * i.e. all areas of this element which are not visible due to overlaying are NOT in the result list.
+ * All these intersecting areas are removed from the list of [uncovered] such that later parsed
+ * parent and sibling elements can not occupy these areas.*/
 fun Rect.visibleAxis(uncovered: MutableCollection<Rect>, isSingleElement: Boolean = false): List<Rect>{
 	if(uncovered.isEmpty() || this.isEmpty) return emptyList()
 	markedAsOccupied = true
