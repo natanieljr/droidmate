@@ -129,8 +129,8 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 			action.isClick() || action.isLongClick()-> {
 				val verifyExecutability = currTraceData.targetWidget.canExecute(eContext.getCurrentState())
 				if(verifyExecutability.first>0.0) {
-					if(action.isClick())
-						verifyExecutability.second!!.click()
+					if(action.isClick())  //FIXME for now just click the coordinate even if the element is not reported clickable, but we should check when and why a recorded target would not be clickable
+						verifyExecutability.second!!.click(ignoreClickable = true)
 					else
 						verifyExecutability.second!!.longClick()
 				}
@@ -153,7 +153,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 						lastSkipped = Interaction.empty  // we execute it now so do not try to do so again
 						if(action.isClick()){
 							logger.info("trigger previously skipped action")
-							prevEquiv.second!!.click()
+							prevEquiv.second!!.click(ignoreClickable = true)
 						}else{
 							logger.info("trigger previously skipped action")
 							prevEquiv.second!!.longClick()
@@ -210,7 +210,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 				}
 			}
 			else -> {
-				currTraceData.targetWidget!!.click()
+				currTraceData.targetWidget!!.click(ignoreClickable = true)
 			}
 		}
 	}
