@@ -43,7 +43,7 @@ class WidgetApiTraceMF(reportDir: Path,
 
     override val coroutineContext: CoroutineContext = CoroutineName("WidgetApiTraceMF")
 
-    override fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
         val sb = StringBuilder()
         val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
         sb.append(header)

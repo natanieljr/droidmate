@@ -37,7 +37,7 @@ abstract class ApkReporterMF(reportDir: Path, resourceDir: Path) : ReporterMF(re
         reset()
     }
 
-    fun safeWrite(context: ExplorationContext) {
+    suspend fun safeWrite(context: ExplorationContext) {
         val apkReportDir = reportDir.resolve(context.apkFileNameWithUnderscoresForDots)
 
         Files.createDirectories(apkReportDir)
@@ -46,5 +46,5 @@ abstract class ApkReporterMF(reportDir: Path, resourceDir: Path) : ReporterMF(re
         safeWriteApkReport(context, apkReportDir, resourceDir)
     }
 
-    protected abstract fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path)
+    protected abstract suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path)
 }

@@ -39,7 +39,7 @@ class ApkViewsFileMF(reportDir: Path,
 
     override val coroutineContext: CoroutineContext = CoroutineName("ApkViewsFileMF")
 
-    override fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
         val reportData = getReportData(context)
         val reportFile = apkReportDir.resolve(fileName)
         Files.write(reportFile, reportData.toByteArray())

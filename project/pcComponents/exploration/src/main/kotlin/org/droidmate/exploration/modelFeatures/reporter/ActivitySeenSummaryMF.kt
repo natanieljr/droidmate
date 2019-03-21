@@ -40,7 +40,7 @@ class ActivitySeenSummaryMF(reportDir: Path,
 
     override val coroutineContext: CoroutineContext = CoroutineName("ActivitySeenSummaryMF")
 
-    override fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
         val sb = StringBuilder()
         val header = "activity\tcount\n"
         sb.append(header)

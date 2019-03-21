@@ -381,7 +381,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				}
 			}
 			if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
-				imgTransfer.coroutineContext[Job]!!.cancelAndJoin()
+				out.forEach { it.imgTransfer.coroutineContext[Job]!!.cancelAndJoin() }
 
 			allApksExplorationExceptions
 		}
@@ -456,11 +456,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		assert(ret)
 	}
 
-	private val imgTransfer = CoroutineScope(SupervisorJob() + CoroutineName("device image pull") + Dispatchers.IO)
-
-	private suspend fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice) = withTimeoutOrNull(10000){
+	private suspend fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice, eContext: ExplorationContext) = withTimeoutOrNull(10000){
 		debugT("image transfer should take no time on main thread", {
-			imgTransfer.launch {
+			eContext.imgTransfer.launch {
 				// pull the image from device, store it in the image directory defined in ModelConfig and remove it on device
 				val fileName = "$actionId.jpg"
 				val dstFile = targetDir.resolve(fileName)
@@ -504,10 +502,10 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 							if(i<action.actions.size-1 &&
 									((a is TextInsert && action.actions[i+1] is Click)
 											|| a is Swipe))
-								pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device)
+								pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device, explorationContext)
 						}
 					}
-					pullScreenShot(action.id, explorationContext.getModel().config.imgDst, device)
+					pullScreenShot(action.id, explorationContext.getModel().config.imgDst, device, explorationContext)
 				}
 
 				explorationContext.update(action, result)
