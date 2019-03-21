@@ -23,8 +23,8 @@ import org.droidmate.explorationModel.interaction.Widget
  * (you should use [navigateTo] instead).
  */
 @JvmOverloads
-fun Widget.click(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
-	if (!(definedAsVisible || isVisible) || !enabled || !clickable)
+fun Widget.click(delay: Long = 0, isVisible: Boolean = false, ignoreClickable: Boolean = false): ExplorationAction {
+	if (!(definedAsVisible || isVisible) || !enabled || !(clickable||ignoreClickable))
 		throw RuntimeException("ERROR: tried to click non-actable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
