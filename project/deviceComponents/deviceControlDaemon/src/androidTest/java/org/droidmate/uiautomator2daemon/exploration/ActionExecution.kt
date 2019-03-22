@@ -59,13 +59,13 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is Click -> {
 			env.device.verifyCoordinate(x, y)
 			env.device.click(x, y, interactiveTimeout).apply {
-				runBlocking { delay(delay) }
+				delay(delay)
 			}
 		}
 		is LongClick -> {
 			env.device.verifyCoordinate(x, y)
 			env.device.longClick(x, y, interactiveTimeout).apply {
-				runBlocking { delay(delay) }
+				delay(delay)
 			}
 		}
 		is SimulationAdbClearPackage, EmptyAction -> false /* should not be called on device */
@@ -89,7 +89,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				ActionType.CloseKeyboard -> 	if (env.isKeyboardOpen()) //(UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
 						env.device.pressBack()
 					else false
-			}//.also { if (it is Boolean && it) runBlocking { delay(idleTimeout) } }// wait for display update (if no Fetch action)
+			}//.also { if (it is Boolean && it) { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert -> {
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
 				// do this for API Level above 19 (exclusive)
@@ -113,7 +113,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is PinchIn -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
 		is PinchOut -> TODO("this requires a call on UiObject, which we currently do not match to our ui-extraction")
 		is Scroll -> TODO()
-		is ActionQueue -> runBlocking {
+		is ActionQueue ->  {
 			var success = true
 			actions.forEachIndexed { i,action -> success = success &&
 					action.execute(env).also{
@@ -121,7 +121,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 						if(i<actions.size-1 &&
 								((action is TextInsert && actions[i+1] is Click)
 										|| action is Swipe)) getOrStoreImgPixels(env.captureScreen(),env, action.id)
-					} as Boolean }.apply{
+					}.let{ if(it is Boolean) it else true} }.apply{
 				getOrStoreImgPixels(env.captureScreen(),env)
 			}
 		}
