@@ -28,7 +28,7 @@
 */
 
 dependencies {
-	api 'com.github.hotzkow:explorationModel:master-SNAPSHOT' // includes platformInterfaceLib
+	compile 'com.github.hotzkow:explorationModel:master-SNAPSHOT' // includes platformInterfaceLib
 //	compile project(':explorationModel')
 	implementation project(':project:pcComponents:commonLib')  // necessary since some reports access ApiLogcatMessage
 
