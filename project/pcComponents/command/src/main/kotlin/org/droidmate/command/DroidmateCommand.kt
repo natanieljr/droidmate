@@ -29,7 +29,7 @@ import org.droidmate.configuration.ConfigProperties.ExecutionMode.coverage
 import org.droidmate.configuration.ConfigProperties.ExecutionMode.inline
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
-import org.droidmate.exploration.ExplorationContext
+import org.droidmate.misc.FailableExploration
 import org.droidmate.misc.ThrowablesCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -39,7 +39,7 @@ import java.nio.file.Path
 abstract class DroidmateCommand {
 
 	@Throws(ThrowablesCollection::class)
-	abstract suspend fun execute(cfg: ConfigurationWrapper): List<ExplorationContext>
+	abstract suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration>
 
 	companion object {
 		@JvmStatic

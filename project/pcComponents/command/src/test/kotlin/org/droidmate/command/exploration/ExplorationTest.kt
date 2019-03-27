@@ -80,11 +80,11 @@ class ExplorationTest : DroidmateTestCase() {
 
 			val outData: MutableList<ExplorationContext?> = ArrayList()
 
-			deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
+			deviceTools.deviceDeployer.setupAndExecute("", 0) { device ->
 					deviceTools.apkDeployer.withDeployedApk(device, apk) { deployedApk ->
 
 							// Act
-							val explData = exploration.runApp(deployedApk, RobustDevice(device, cfg))
+							val explData = exploration.execute(deployedApk, RobustDevice(device, cfg))
 							outData.update(explData.result)
 							explData.exception as Any
 					}
@@ -132,7 +132,7 @@ class ExplorationTest : DroidmateTestCase() {
 			val exploration = Exploration.build(cfg, timeGenerator)
 
 			// Act
-			val failableOut = exploration.runApp(apk, simulatedDevice)
+			val failableOut = exploration.execute(apk, simulatedDevice)
 
 			if (failableOut.result != null) {
 					assert(!failableOut.result!!.exceptionIsPresent)

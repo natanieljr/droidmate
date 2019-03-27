@@ -60,7 +60,7 @@ dependencies {
 	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
 		exclude group: "org.slf4j", module: "slf4j-simple"
 	}
-	api 'com.natpryce:konfig:1.6.6.0'  // configuration library
+	compile 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
 	// Workaround for: 'gradlew :p:command:test' fails when reporter tests are runApp from command line.
 	// It works when runApp from IntelliJ or when runApp with 'gradlew :p:reporter:test'

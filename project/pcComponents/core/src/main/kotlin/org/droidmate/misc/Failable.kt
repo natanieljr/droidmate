@@ -24,10 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
+import org.droidmate.exploration.ExplorationContext
 import java.io.Serializable
 
-class Failable<out TResult , out TException : Exception> constructor(val result: TResult?, val exception: TException?) : Serializable {
+class Failable<out TResult , out TException> (val result: TResult?, val error: TException) : Serializable {
 	companion object {
 		private const val serialVersionUID: Long = 1
 	}
 }
+
+typealias FailableExploration = Failable<ExplorationContext, List<Throwable>>
