@@ -28,11 +28,14 @@ package org.droidmate.tools
 import org.droidmate.device.android_sdk.ApkExplorationException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.IDeployableAndroidDevice
+import org.droidmate.device.android_sdk.DeviceException
+import org.droidmate.exploration.ExplorationContext
+import org.droidmate.misc.Failable
 
 /**
  * @see ApkDeployer
  */
 interface IApkDeployer {
 
-	suspend fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: suspend (IApk) -> Any): List<ApkExplorationException>
+	suspend fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: suspend (IApk) -> Failable<ExplorationContext, DeviceException>): List<ApkExplorationException>
 }

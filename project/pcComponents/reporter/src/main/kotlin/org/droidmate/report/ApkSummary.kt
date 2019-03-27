@@ -55,7 +55,7 @@ class ApkSummary {
 						.replaceVariable("total_run_time", totalRunTime.minutesAndSeconds)
 						.replaceVariable("total_actions_count", totalActionsCount.toString().padStart(4, ' '))
 						.replaceVariable("total_resets_count", totalResetsCount.toString().padStart(4, ' '))
-						.replaceVariable("exception", exception.messageIfAny())
+						.replaceVariable("exception", exception.firstOrNull()?.messageIfAny()?:"")
 						.replaceVariable("unique_apis_count", uniqueApisCount.toString())
 						.replaceVariable("api_entries", apiEntries.joinToString(separator = System.lineSeparator()))
 						.replaceVariable("unique_api_event_pairs_count", uniqueEventApiPairsCount.toString())
@@ -88,7 +88,7 @@ class ApkSummary {
 			val totalRunTime: Duration,
 			val totalActionsCount: Int,
 			val totalResetsCount: Int,
-			val exception: DeviceException,
+			internal val exception: List<DeviceException>,
 			val uniqueApisCount: Int,
 			val apiEntries: List<ApiEntry>,
 			val uniqueEventApiPairsCount: Int,
@@ -110,7 +110,7 @@ class ApkSummary {
 				totalRunTime = data.getExplorationDuration(),
 				totalActionsCount = data.explorationTrace.size,
 				totalResetsCount = data.resetActionsCount,
-				exception = data.exception,
+				exception = data.exceptions,
 				uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
 				apiEntries = uniqueApiLogsWithFirstTriggeringActionIndex.map {
 					val (apiLog: IApiLogcatMessage, firstIndex: Int) = it

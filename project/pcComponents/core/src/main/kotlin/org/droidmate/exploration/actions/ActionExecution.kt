@@ -1,7 +1,10 @@
 package org.droidmate.exploration.actions
 
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.droidmate.device.TcpServerUnreachableException
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.logcat.DeviceLogsHandler
@@ -29,7 +32,7 @@ lateinit var exception: DeviceException
 private var performT: Long = 0
 private var performN: Int = 0
 
-private fun performAction(action: ExplorationAction, app: IApk, device: IRobustDevice){
+private suspend fun performAction(action: ExplorationAction, app: IApk, device: IRobustDevice){
 	when {
 		action.name == ActionType.Terminate.name -> terminate(app,device)
 		action is LaunchApp || (action is ActionQueue && action.actions.any { it is LaunchApp }) -> {
@@ -41,7 +44,7 @@ private fun performAction(action: ExplorationAction, app: IApk, device: IRobustD
 }
 
 @Throws(DeviceException::class)
-fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult {
+suspend fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult {
 	logs = MissingDeviceLogs
 	snapshot = DeviceResponse.empty
 	exception = DeviceExceptionMissing()
@@ -79,23 +82,26 @@ fun ExplorationAction.run(app: IApk, device: IRobustDevice): ActionResult {
 
 
 @Throws(DeviceException::class)
-private fun defaultExecution(action: ExplorationAction, device: IRobustDevice){
+private suspend fun defaultExecution(action: ExplorationAction, device: IRobustDevice, isSecondTry: Boolean = false): Unit = coroutineScope{
 	try {
 		debugT("perform $action on average ${performT / max(performN, 1)} ms", {
-			runBlocking {
-				launch {
-					// do the perform as launch to inject a suspension point, as perform is currently no suspend function
-					snapshot = device.perform(action)
-				}.join()
-			}
+			launch {
+				// do the perform as launch to inject a suspension point, as perform is currently no suspend function
+				snapshot = device.perform(action)
+			}.join()
 		}, timer = {
 			performT += it / 1000000
 			performN += 1
 		}, inMillis = true)
-	} catch (e: Exception) {
-		log.warn("2.1. Failed to perform $action, retry once")
-		device.restartUiaDaemon(false)
-		snapshot =  device.perform(action)
+	} catch (e: Throwable) {
+		if(isSecondTry){
+			log.error("cannot execute $action \n${e.stackTrace}")
+		}else {
+			log.warn("2.1. Failed to perform $action, retry once")
+			device.restartUiaDaemon(e is TcpServerUnreachableException)
+			delay(1000)
+			defaultExecution(action, device, isSecondTry = true)
+		}
 	}
 }
 

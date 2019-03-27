@@ -75,9 +75,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: ConfigurationWrapper
 
 	val crashlist: CrashListMF by lazy { getOrCreateWatcher<CrashListMF>() }
 	val exceptionIsPresent: Boolean
-		get() = exception !is DeviceExceptionMissing
+		get() = exceptions.isNotEmpty()
 
-	var exception: DeviceException = DeviceExceptionMissing()
+	var exceptions: MutableList<DeviceException> = LinkedList()
 	/** for debugging purpose only contains the last UiAutomator dump */
 	var lastDump: String = ""
 

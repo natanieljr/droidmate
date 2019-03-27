@@ -171,7 +171,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			val strategies = LinkedList<ISelectableExplorationStrategy>()
 
 			strategies.add(Back)
-			strategies.add(Reset)
+			strategies.add(Reset())
 			strategies.add(Terminate)
 
 			if (cfg[playback])
@@ -312,31 +312,34 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
 	}
 
-	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, HashMap<Apk?,List<ExplorationException>>> {
-		val out : MutableList<ExplorationContext> = mutableListOf()
+	protected open fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Pair<List<ExplorationContext>, HashMap<Apk?,List<DroidmateException>>> {
+		var out : HashMap<Apk,Failable<ExplorationContext, DeviceException>> = HashMap()
 
-
-		val explorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
+		val explorationExceptions: HashMap<Apk?,List<DroidmateException>> = HashMap()
 		try {
-			explorationExceptions += deployExploreSerialize(cfg, apks, out)
+			out = deployExploreSerialize(cfg, apks)
+			out.entries.forEach { (apk,v) ->
+				explorationExceptions[apk] = v.exceptions
+			}
 		} catch (deployExploreSerializeThrowable: Throwable) {
 			log.error("!!! Caught ${deployExploreSerializeThrowable.javaClass.simpleName} " +
 					"in execute(configuration, apks)->deployExploreSerialize(${cfg[deviceIndex]}, apks, out). " +
 					"This means ${ExplorationException::class.java.simpleName}s have been lost, if any! " +
 					"Skipping summary output analysis persisting. " +
 					"Rethrowing.")
-			explorationExceptions.addException(deployExploreSerializeThrowable)
+			explorationExceptions.compute(null){ _, exceptions -> exceptions?.plus(ExplorationException(deployExploreSerializeThrowable)) ?: listOf(ExplorationException(deployExploreSerializeThrowable))}
 		}
 
-		writeReports(cfg.droidmateOutputReportDirPath, cfg.resourceDir, out)
+		val resultContexts = out.values.mapNotNull { it.result }
+		writeReports(cfg.droidmateOutputReportDirPath, cfg.resourceDir, resultContexts)
 
-		return Pair(out, explorationExceptions)
+		return Pair(resultContexts, explorationExceptions)
 	}
 
 	private fun deployExploreSerialize(cfg: ConfigurationWrapper,
-	                                   apks: List<Apk>,
-	                                   out: MutableList<ExplorationContext>): HashMap<Apk?,List<ExplorationException>>{
-		return deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
+	                                   apks: List<Apk>): HashMap<Apk,Failable<ExplorationContext, DeviceException>>{
+		val explorationResult = HashMap<Apk,Failable<ExplorationContext, DeviceException>>()
+			deviceDeployer.withSetupDevice(cfg[deviceSerialNumber], cfg[deviceIndex]) { device ->
 			runBlocking{
 				val allApksExplorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
 
@@ -348,7 +351,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 						allApksExplorationExceptions[apk] =
 								apkDeployer.withDeployedApk(device, apk) { deployedApk ->
-									tryExploreOnDeviceAndSerialize(deployedApk, device, out)
+									run(deployedApk, device).also { // result for this exploration
+										explorationResult[apk] = it
+									}
 								}
 
 						if (allApksExplorationExceptions[apk]?.any { (it as? ApkExplorationException)?.shouldStopFurtherApkExplorations() == true } == true) {
@@ -366,22 +371,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				allApksExplorationExceptions
 			}
 		}  // END runBlocking , this will implicitly wait for all coroutines created in imgTransfer scope
+		return explorationResult
 	}
 
-
-@Throws(DeviceException::class)
-	private suspend fun tryExploreOnDeviceAndSerialize(
-			deployedApk: IApk, device: IRobustDevice, out: MutableList<ExplorationContext>) {
-		val fallibleApkOut2 = this.run(deployedApk, device)
-
-		if (fallibleApkOut2.result != null) {
-//      fallibleApkOut2.result!!.serialize(this.storage2) //TODO
-			out.add(fallibleApkOut2.result!!)
-		}
-
-		if (fallibleApkOut2.exception != null)
-			throw fallibleApkOut2.exception!!
-	}
 
 	private suspend fun run(app: IApk, device: IRobustDevice): Failable<ExplorationContext, DeviceException> {
 		log.info("run(${app.packageName}, device)")
@@ -392,7 +384,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			tryDeviceHasPackageInstalled(device, app.packageName)
 			tryWarnDeviceDisplaysHomeScreen(device, app.fileName)
 		} catch (e: DeviceException) {
-			return Failable<ExplorationContext, DeviceException>(null, e)
+			return Failable<ExplorationContext, DeviceException>(null, listOf(e))
 		}
 
 		val output = explorationLoop(app, device)
@@ -400,10 +392,10 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		output.verify()
 
 		if (output.exceptionIsPresent)
-			log.warn(Markers.appHealth, "! Encountered ${output.exception.javaClass.simpleName} during the exploration of ${app.packageName} " +
+			log.warn(Markers.appHealth, "! Encountered ${output.exceptions.javaClass.simpleName} during the exploration of ${app.packageName} " +
 					"after already obtaining some exploration output.")
 
-		return Failable(output, if (output.exceptionIsPresent) output.exception else null)
+		return Failable(output, output.exceptions )
 	}
 
 	private val imgTransfer = CoroutineScope(Dispatchers.Default+ SupervisorJob() + CoroutineName("device image pull"))
@@ -440,42 +432,55 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		var isFirst = true
 		val strategy: IExplorationStrategy = strategyProvider.invoke(explorationContext)
 
-		try {
+		try{
 			// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 			while (isFirst || (result.successful && !action.isTerminate())) {
-				// decide for an action
-				action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
-				// execute action
-				result = action.run(app, device)
+				try {
+					// decide for an action
+					action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
+					// execute action
+					result = action.run(app, device)
 
-				if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
-					if(action is ActionQueue){
-						action.actions.forEachIndexed { i, a ->
-							if(i<action.actions.size-1 &&
-									((a is TextInsert && action.actions[i+1] is Click)
-											|| a is Swipe))
-								pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device)
+					if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
+						if (action is ActionQueue) {
+							action.actions.forEachIndexed { i, a ->
+								if (i < action.actions.size - 1 &&
+										((a is TextInsert && action.actions[i + 1] is Click)
+												|| a is Swipe))
+									pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device)
+							}
 						}
+						pullScreenShot(action.id, explorationContext.getModel().config.imgDst, device)
 					}
-					pullScreenShot(action.id, explorationContext.getModel().config.imgDst, device)
-				}
 
-				explorationContext.update(action, result)
+					explorationContext.update(action, result)
 
-				if (isFirst) {
-					log.info("Initial action: $action")
-					isFirst = false
+					if (isFirst) {
+						log.info("Initial action: $action")
+						isFirst = false
+					}
+
+					// Propagate exception if there was any exception on device
+					if (!result.successful)
+						explorationContext.exceptions.add(exception)
+
+					assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }
+				} catch (e: Throwable) {  // the decide call of a strategy may issue an exception e.g. when trying to interact on non-actable elements
+					log.error("Exception during exploration (probably caused by Strategy.decide) check explorationContext.exception for further details\n" +
+							" ${e.localizedMessage}")
+					explorationContext.exceptions.add(if(e is DeviceException) e else DeviceException(e))
+					explorationContext.resetApp().run(app,device)
 				}
-			}
-			assert(!result.successful || action.isTerminate())
-			assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }		}
-		catch(e: Throwable){  // the decide call of a strategy may issue an exception e.g. when trying to interact on non-actable elements
-			log.error("Exception during exploration (probably caused by Strategy.decide) check explorationContext.exception for further details")
-			explorationContext.exception = DeviceException(e)
+			} // end loop
+		} catch (e: Throwable){ // the loop handles internal exceptions if possible, however if the resetApp after exception fails we end in this catch
+			// this means likely the uiAutomator is dead or we lost device connection
+			log.error("unhandled device exception \n ${e.localizedMessage}")
+			explorationContext.exceptions.add(if(e is DeviceException) e else DeviceException(e))
 		}
-		finally {
-//			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
-				// having one pull in the end does not really seam to make a performance difference right now
+		finally
+		{
+			//			if (explorationContext.cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
+			// having one pull in the end does not really seam to make a performance difference right now
 //				val fileName = "${action.id}.jpg"
 //				val dstFile = explorationContext.getModel().config.imgDst.resolve(fileName)
 //				var c = 0
@@ -488,10 +493,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			strategy.close()
 			explorationContext.close()
 		}
-
-		// Propagate exception if there was any
-		if (!result.successful)
-			explorationContext.exception = exception
 
 		explorationContext.explorationEndTime = LocalDateTime.now()
 

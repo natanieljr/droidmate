@@ -72,7 +72,7 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
 								apkData.uniqueClickedWidgets.size.toString(),
 								apkData.uniqueApis.size.toString(),
 								apkData.uniqueEventApiPairs.size.toString(),
-								apkData.exception.toString()
+								apkData.exceptions.toString()
 						)
 					}
 			)

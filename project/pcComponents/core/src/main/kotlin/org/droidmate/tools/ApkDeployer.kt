@@ -32,7 +32,9 @@ import org.droidmate.device.android_sdk.ApkExplorationException
 import org.droidmate.device.android_sdk.DeviceException
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.IDeployableAndroidDevice
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.logging.Markers
+import org.droidmate.misc.Failable
 import org.slf4j.LoggerFactory
 
 /**
@@ -43,7 +45,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 		private val log by lazy { LoggerFactory.getLogger(ApkDeployer::class.java) }
 	}
 
-	override suspend fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: suspend (IApk) -> Any): List<ApkExplorationException> {
+	override suspend fun withDeployedApk(device: IDeployableAndroidDevice, apk: IApk, computation: suspend (IApk) -> Failable<ExplorationContext, DeviceException>): List<ApkExplorationException> {
 		log.debug("withDeployedApk(device, $apk.fileName, computation)")
 
 		val apkExplorationExceptions: MutableList<ApkExplorationException> = mutableListOf()
@@ -54,17 +56,18 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 		}
 
 		assert(apkExplorationExceptions.isEmpty())
-		try {
-			computation(apk)
-		} catch (computationThrowable: Throwable) {
+		val explResult = computation(apk)
+		if(explResult.exceptions.isNotEmpty()) {
 			log.warn(Markers.appHealth,
-					"! Caught ${computationThrowable.javaClass.simpleName} in withDeployedApk($device, ${apk.fileName})->computation(). " +
+					"! Caught Exceptions during exploration in withDeployedApk($device, ${apk.fileName})->computation(). " +
 							"Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.\n" +
-							"The ${computationThrowable.javaClass.simpleName}: $computationThrowable")
-			log.error(Markers.appHealth, computationThrowable.message, computationThrowable)
+							explResult.exceptions.joinToString(separator = "\n") { it.localizedMessage })
+			log.error(Markers.appHealth, explResult.exceptions.joinToString(separator = "\n") { it.localizedMessage }, explResult.exceptions)
 
-			apkExplorationExceptions.add(ApkExplorationException(apk, computationThrowable))
-		} finally {
+			explResult.exceptions.forEach {
+				apkExplorationExceptions.add(ApkExplorationException(apk, it))
+			}
+		}
 			log.debug("Finalizing: withDeployedApk($device, ${apk.fileName}).finally{} for computation($apk.fileName)")
 			try {
 				tryUndeployApk(device, apk)
@@ -78,7 +81,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 				apkExplorationExceptions.add(ApkExplorationException(apk, undeployApkThrowable, true))
 			}
 			log.debug("Finalizing DONE: withDeployedApk($device, ${apk.fileName}).finally{} for computation($apk.fileName)")
-		}
+
 
 		log.trace("Undeployed apk $apk.fileName")
 		return apkExplorationExceptions
