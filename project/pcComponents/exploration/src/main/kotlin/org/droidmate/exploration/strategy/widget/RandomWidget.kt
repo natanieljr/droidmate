@@ -173,7 +173,7 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 		return currentState.actionableWidgets.chooseRandomly()
 	}
 
-	protected open fun chooseRandomWidget(): ExplorationAction {
+	protected open suspend fun chooseRandomWidget(): ExplorationAction {
 		return if (biased)
 			chooseBiased()
 		else
