@@ -111,7 +111,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				ActionType.PressEnter -> env.device.pressEnter()
 				ActionType.CloseKeyboard -> 	if (env.isKeyboardOpen()) //(UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
 					env.device.pressBack()
-				else false
+				else true
 			}//.also { if (it is Boolean && it) { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert ->
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
