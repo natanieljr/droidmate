@@ -185,7 +185,8 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				strategies.add(Playback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath()))
 
 			if (cfg[explore])
-				strategies.add(RandomWidget(cfg.randomSeed, cfg[Strategies.Parameters.biasedRandom], cfg[Strategies.Parameters.randomScroll]))
+				strategies.add(RandomWidget(cfg.randomSeed, cfg[Strategies.Parameters.biasedRandom],
+						cfg[Strategies.Parameters.randomScroll], delay = cfg[ConfigProperties.Exploration.widgetActionDelay] ))
 
 			if (cfg[fitnessProportionate])
 				strategies.add(FitnessProportionateSelection(cfg.randomSeed))

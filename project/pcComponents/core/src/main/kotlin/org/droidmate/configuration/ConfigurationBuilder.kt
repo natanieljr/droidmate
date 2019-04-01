@@ -64,6 +64,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.Exploration.apkNames
 import org.droidmate.configuration.ConfigProperties.Exploration.apksDir
 import org.droidmate.configuration.ConfigProperties.Exploration.apksLimit
+import org.droidmate.configuration.ConfigProperties.Exploration.widgetActionDelay
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
@@ -174,6 +175,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(launchActivityDelay, description = "Delay (in milliseconds) to wait for the app to load before continuing the exploration after a reset (or exploration start)."),
 			CommandLineOption(launchActivityTimeout, description = "Maximum amount of time to be waited for an app to start after a reset in milliseconds."),
 			CommandLineOption(apiVersion, description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api23"),
+			CommandLineOption(widgetActionDelay, description = "Default delay to be applied after interacting with a widget (click, long click, tick)"),
 			// Output
 			CommandLineOption(outputDir, description = "Path to the directory that will contain DroidMate exploration output."),
 			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data."),

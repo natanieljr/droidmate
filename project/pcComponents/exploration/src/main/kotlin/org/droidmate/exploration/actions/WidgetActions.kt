@@ -25,7 +25,7 @@ import org.droidmate.explorationModel.interaction.Widget
 @JvmOverloads
 fun Widget.click(delay: Long = 0, isVisible: Boolean = false, ignoreClickable: Boolean = false): ExplorationAction {
 	if (!(definedAsVisible || isVisible) || !enabled || !(clickable||ignoreClickable))
-		throw RuntimeException("ERROR: tried to click non-actable Widget $this")
+		throw RuntimeException("ERROR: tried to click non-actionable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
 }
@@ -33,7 +33,7 @@ fun Widget.click(delay: Long = 0, isVisible: Boolean = false, ignoreClickable: B
 @JvmOverloads
 fun Widget.tick(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
 	if (!(definedAsVisible || isVisible) || !enabled)
-		throw RuntimeException("ERROR: tried to tick non-actable (checkbox) Widget $this")
+		throw RuntimeException("ERROR: tried to tick non-actionable (checkbox) Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Tick(idHash,x, y, true, delay) }
 }
@@ -41,7 +41,7 @@ fun Widget.tick(delay: Long = 0, isVisible: Boolean = false): ExplorationAction 
 @JvmOverloads
 fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
 	if (!(definedAsVisible || isVisible) || !enabled || !longClickable)
-		throw RuntimeException("ERROR: tried to long-click non-actable Widget $this")
+		throw RuntimeException("ERROR: tried to long-click non-actionable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> LongClick(x, y, true, delay) }
 }
@@ -49,7 +49,7 @@ fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAc
 @JvmOverloads
 fun Widget.setText(newContent: String, isVisible: Boolean = false, enableValidation: Boolean = true): ExplorationAction {
 	if (enableValidation && (!(definedAsVisible || isVisible) || !enabled || !isInputField))
-		throw RuntimeException("ERROR: tried to enter text on non-actable Widget $this")
+		throw RuntimeException("ERROR: tried to enter text on non-actionable Widget $this")
 	widgetTargets.add(this)
 	return TextInsert(this.idHash, newContent, true)
 }
@@ -69,20 +69,20 @@ fun Widget.swipeRight(stepSize: Int = this.visibleAreas.firstOrEmpty().width / 2
 fun UiElementPropertiesI.click(): ExplorationAction = (visibleAreas.firstCenter()
 		?: visibleBounds.center).let{ (x,y) -> Click(x,y) }
 
- fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter() ?: visibleBounds.center
+fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter() ?: visibleBounds.center
 
 
-fun Widget.availableActions(): List<ExplorationAction>{
+fun Widget.availableActions(delay: Long): List<ExplorationAction> {
 	val actionList: MutableList<ExplorationAction> = mutableListOf()
 
 	if (this.longClickable)
-		actionList.add(this.longClick())
+		actionList.add(this.longClick(delay))
 
 	if (this.clickable)
-		actionList.add(this.click())
+		actionList.add(this.click(delay))
 
 	if (this.checked != null)
-		actionList.add(this.tick())
+		actionList.add(this.tick(delay))
 
 	if (this.scrollable) {
 		actionList.add(this.swipeUp())
