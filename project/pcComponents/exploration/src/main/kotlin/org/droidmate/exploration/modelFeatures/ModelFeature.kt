@@ -55,6 +55,12 @@ abstract class ModelFeature: ModelFeatureI() {
 	open suspend fun onAppExplorationFinished(context: ExplorationContext) {  /* do nothing [to be overwritten] */
 	}
 
+	/**
+	 * this method is called before starting an app exploration
+	 */
+	open fun onAppExplorationStarted(context: ExplorationContext) {  /* do nothing [to be overwritten] */
+	}
+
 	/** this method is called, when all app explorations are finished.
 	 */
 	open suspend fun onFinalFinished() {  /* do nothing [to be overwritten] */

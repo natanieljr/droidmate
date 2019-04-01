@@ -87,18 +87,12 @@ class SysCmdExecutor : ISysCmdExecutor {
 		// Only exit value of 0 is allowed for the call to return successfully.
 		executor.setExitValue(0)
 
-		log.trace(commandDescription)
-		log.trace("Timeout: {} ms", timeout)
-		log.trace("Command:")
-		log.trace(command.toString())
-		log.info(Markers.osCmd, command.toString())
+		log.trace("$commandDescription -> $command")
 
 		val executionTimeStopwatch = Stopwatch.createStarted()
 
-		val exitValue: Int
-		try {
-			exitValue = executor.execute(command)
-
+		val exitValue = try {
+			executor.execute(command)
 		} catch (e: ExecuteException) {
 			throw SysCmdExecutorException(String.format("Failed to execute a system command.\n"
 					+ "Command: %s\n"
@@ -122,15 +116,11 @@ class SysCmdExecutor : ISysCmdExecutor {
 					if (processStdoutStream.toString().isNotEmpty()) processStdoutStream.toString() else "<stdout is empty>",
 					if (processStderrStream.toString().isNotEmpty()) processStderrStream.toString() else "<stderr is empty>"),
 					e)
-		} finally {
-			log.trace("Captured stdout:")
-			log.trace(processStdoutStream.toString())
-
-			log.trace("Captured stderr:")
-			log.trace(processStderrStream.toString())
 		}
-		log.trace("Captured exit value: $exitValue")
-		log.trace("DONE executing system command")
+
+		if (exitValue > 0) {
+			log.trace("Captured exit value: $exitValue")
+		}
 
 		return arrayOf(processStdoutStream.toString(), processStderrStream.toString())
 	}

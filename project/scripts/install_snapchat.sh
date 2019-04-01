@@ -1,1 +1,0 @@
-adb install -r C:/my/local/repos/chair/droidmate/dev/droidmate/projects/core/artifacts/apks/com.snapchat.android-inlined.apk

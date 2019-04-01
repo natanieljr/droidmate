@@ -111,7 +111,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				ActionType.PressEnter -> env.device.pressEnter()
 				ActionType.CloseKeyboard -> 	if (env.isKeyboardOpen()) //(UiHierarchy.any(env.device) { node, _ -> env.keyboardPkgs.contains(node.packageName) })
 					env.device.pressBack()
-				else false
+				else true
 			}//.also { if (it is Boolean && it) { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert ->
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
@@ -158,24 +158,28 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 
 
 //REMARK keep the order of first wait for windowUpdate, then wait for idle, then extract windows to minimize synchronization issues with opening/closing keyboard windows
-private suspend fun waitForSync(env: UiAutomationEnvironment, afterAction: Boolean){
-	env.lastWindows.firstOrNull { it.isExtracted() && !it.isKeyboard }?.let {
-		env.device.waitForWindowUpdate(it.w.pkgName, env.interactiveTimeout) //wait sync on focused window
-	}
+private suspend fun waitForSync(env: UiAutomationEnvironment, afterAction: Boolean) {
+	try {
+		env.lastWindows.firstOrNull { it.isExtracted() && !it.isKeyboard }?.let {
+			env.device.waitForWindowUpdate(it.w.pkgName, env.interactiveTimeout) //wait sync on focused window
+		}
 
-	debugT("wait for IDLE avg = ${time / max(1, cnt)} ms", {
-		env.automation.waitForIdle(100,env.idleTimeout)
+		debugT("wait for IDLE avg = ${time / max(1, cnt)} ms", {
+			env.automation.waitForIdle(100, env.idleTimeout)
 //		env.device.waitForIdle(env.idleTimeout) // this has a minimal delay of 500ms between events until the device is considered idle
-	}, inMillis = true,
-			timer = {
-				Log.d(logTag, "time=${it / 1000000}")
-				time += it / 1000000
-				cnt += 1
-			}) // this sometimes really sucks in performance but we do not yet have any reliable alternative
-	debugOut("check if we have a webView", debugFetch)
-	if (afterAction && UiHierarchy.any(env, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
-		debugOut("WebView detected wait for interactive element with different package name", debugFetch)
-		UiHierarchy.waitFor(env, interactiveTimeout, actableAppElem)
+		}, inMillis = true,
+				timer = {
+					Log.d(logTag, "time=${it / 1000000}")
+					time += it / 1000000
+					cnt += 1
+				}) // this sometimes really sucks in performance but we do not yet have any reliable alternative
+		debugOut("check if we have a webView", debugFetch)
+		if (afterAction && UiHierarchy.any(env, cond = isWebView)) { // waitForIdle is insufficient for WebView's therefore we need to handle the stabilize separately
+			debugOut("WebView detected wait for interactive element with different package name", debugFetch)
+			UiHierarchy.waitFor(env, interactiveTimeout, actableAppElem)
+		}
+	} catch(e: java.util.concurrent.TimeoutException) {
+		Log.e(logTag, "No idle state with idle timeout: 100ms within global timeout: ${env.idleTimeout}ms", e)
 	}
 }
 
