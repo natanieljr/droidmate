@@ -27,8 +27,6 @@ package org.droidmate.exploration.modelFeatures.reporter
 
 import com.konradjamrozik.Resource
 import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
-import org.droidmate.device.error.DeviceException
-import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.explorationModel.interaction.Interaction
@@ -57,7 +55,7 @@ class ApkSummary {
 						.replaceVariable("total_run_time", totalRunTime.minutesAndSeconds)
 						.replaceVariable("total_actions_count", totalActionsCount.toString().padStart(4, ' '))
 						.replaceVariable("total_resets_count", totalResetsCount.toString().padStart(4, ' '))
-						.replaceVariable("exception", exception.messageIfAny())
+						.replaceVariable("exception", exceptions.firstOrNull()?.message()?:"")
 						.replaceVariable("unique_apis_count", uniqueApisCount.toString())
 						.replaceVariable("api_entries", apiEntries.joinToString(separator = System.lineSeparator()))
 						.replaceVariable("unique_api_event_pairs_count", uniqueEventApiPairsCount.toString())
@@ -71,30 +69,25 @@ class ApkSummary {
 			Resource("apk_exploration_summary_template.txt").text
 		}
 
-		private fun DeviceException.messageIfAny(): String {
-			return if (this is DeviceExceptionMissing)
-				""
-			else {
-				"\n* * * * * * * * * *\n" +
+		private fun Throwable.message(): String =	"\n* * * * * * * * * *\n" +
 						"WARNING! This exploration threw an exception.\n\n" +
 						"Exception message: '${this.message}'.\n\n" +
 						LogbackConstants.err_log_msg + System.lineSeparator() +
 						"* * * * * * * * * *\n"
-			}
-		}
+
 	}
 
 	@Suppress("unused") // Kotlin BUG on private constructor(data: IApkExplorationOutput2, uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>)
 	data class Payload(
-		val appPackageName: String,
-		val totalRunTime: Duration,
-		val totalActionsCount: Int,
-		val totalResetsCount: Int,
-		val exception: DeviceException,
-		val uniqueApisCount: Int,
-		val apiEntries: List<ApiEntry>,
-		val uniqueEventApiPairsCount: Int,
-		val apiEventEntries: List<ApiEventEntry>
+			val appPackageName: String,
+			val totalRunTime: Duration,
+			val totalActionsCount: Int,
+			val totalResetsCount: Int,
+			val exceptions: Collection<Throwable>,
+			val uniqueApisCount: Int,
+			val apiEntries: List<ApiEntry>,
+			val uniqueEventApiPairsCount: Int,
+			val apiEventEntries: List<ApiEventEntry>
 	) {
 
 		constructor(data: ExplorationContext) : this(
@@ -112,7 +105,7 @@ class ApkSummary {
 				totalRunTime = data.getExplorationDuration(),
 				totalActionsCount = data.explorationTrace.size,
 				totalResetsCount = data.resetActionsCount,
-				exception = data.exception,
+				exceptions = data.exceptions,
 				uniqueApisCount = uniqueApiLogsWithFirstTriggeringActionIndex.keys.size,
 				apiEntries = uniqueApiLogsWithFirstTriggeringActionIndex.map {
 					val (apiLog: IApiLogcatMessage, firstIndex: Int) = it

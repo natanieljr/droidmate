@@ -28,8 +28,6 @@ package org.droidmate.exploration
 import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigProperties
-import org.droidmate.device.error.DeviceException
-import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
@@ -77,9 +75,9 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 
 	val crashlist: CrashListMF by lazy { getOrCreateWatcher<CrashListMF>() }
 	val exceptionIsPresent: Boolean
-		get() = exception !is DeviceExceptionMissing
+		get() = exceptions.isNotEmpty()
 
-	var exception: DeviceException = DeviceExceptionMissing()
+	var exceptions: MutableList<Throwable> = ArrayList(10)  // expected to be very small and according to google guidelines java arraylist is on average more efficient then LinkedList
 	/** for debugging purpose only contains the last UiAutomator dump */
 	var lastDump: String = ""
 

@@ -34,13 +34,14 @@ import org.droidmate.command.ExploreCommand
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.ExplorationContext
+import org.droidmate.device.android_sdk.Apk
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
 import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.explorationModel.ModelFeatureI
+import org.droidmate.misc.FailableExploration
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystems
 import java.util.*
@@ -92,18 +93,18 @@ object ExplorationAPI {
 
 	/****************************** Exploration API methods *****************************/
 	@JvmStatic
-	@JvmOverloads
 	suspend fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
 	            selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args)),
-	            modelProvider: ((String) -> Model)? = null): List<ExplorationContext> {
+	            modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
 		return explore(setup(args), strategies, selectors, watcher, modelProvider)
 	}
+
 
 	@JvmStatic
 	@JvmOverloads
 	suspend fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
 	                    selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(cfg),
-	                    modelProvider: ((String) -> Model)? = null): List<ExplorationContext> = coroutineScope{
+	                    modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> = coroutineScope{
 		val runStart = Date()
 		val exploration = ExploreCommand.build(cfg, watcher = watcher, strategies = strategies
 				?: ExploreCommand.getDefaultStrategies(cfg), selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg)
@@ -113,6 +114,7 @@ object ExplorationAPI {
 
 		return@coroutineScope exploration.execute(cfg)
 	}
+
 
 	@JvmStatic
 	@JvmOverloads
@@ -131,13 +133,13 @@ object ExplorationAPI {
 	 * 2. run the exploration with the strategies listed in the property `explorationStrategies`
 	 */
 	@JvmStatic
-	@JvmOverloads
 	suspend fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): List<ExplorationContext> = coroutineScope{
+	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): Map<Apk, FailableExploration> = coroutineScope{
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
 		return@coroutineScope explore(cfg, strategies, selectors, watcher)
 	}
+
 
 }

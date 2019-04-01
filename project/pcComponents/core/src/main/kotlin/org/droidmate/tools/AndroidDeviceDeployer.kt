@@ -25,23 +25,28 @@
 
 package org.droidmate.tools
 
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.installAux
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallAux
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
-import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.IDeployableAndroidDevice
-import org.droidmate.errors.UnexpectedIfElseFallthroughError
+import org.droidmate.device.android_sdk.*
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.deviceInterface.RobustDevice
 import org.droidmate.device.error.DeviceException
-import org.droidmate.logging.Markers
-import org.droidmate.misc.EnvironmentConstants
-import org.droidmate.misc.DroidmateException
 import org.droidmate.deviceInterface.DeviceConstants
+import org.droidmate.errors.UnexpectedIfElseFallthroughError
+import org.droidmate.exploration.IApk
+import org.droidmate.logging.Markers
+import org.droidmate.misc.DroidmateException
+import org.droidmate.misc.EnvironmentConstants
+import org.droidmate.misc.FailableExploration
 import org.slf4j.LoggerFactory
-import java.util.HashMap
+import java.util.*
 
 class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
                                         private val adbWrapper: IAdbWrapper,
@@ -157,8 +162,10 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 			log.trace("Device is not available. Skipping tear down.")
 	}
 
-	override suspend fun withSetupDevice(deviceSerialNumber: String, deviceIndex: Int,
-	                                     computation: suspend (IRobustDevice) -> HashMap<Apk?, List<ExplorationException>>): HashMap<Apk?, List<ExplorationException>> {
+	override suspend fun setupAndExecute(deviceSerialNumber: String, deviceIndex: Int,
+	                                     apkDeployer: IApkDeployer,
+	                                     apks: Collection<Apk>,
+	                                     exploreFn: suspend (IApk, IRobustDevice) -> FailableExploration): Map<Apk, FailableExploration> {
 		// Set the deviceSerialNumber in the configuration. Calculate the deviceSerialNumber, if not not provided by
 		// the given deviceIndex. It can't be done in the configuration because it needs access to the AdbWrapper.
 
@@ -168,70 +175,72 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 		} else
 			deviceSerialNumber
 
-		assert(cfg.deviceSerialNumber.isNotEmpty(), {"Expected deviceSerialNumber to be initialized."})
+		check(cfg.deviceSerialNumber.isNotEmpty()) {"Expected deviceSerialNumber to be initialized."}
 		log.info("Setup device with deviceSerialNumber of ${cfg.deviceSerialNumber}")
 
-		val explorationExceptions: HashMap<Apk?,List<ExplorationException>> = HashMap()
+		val explorationResults: MutableMap<Apk, FailableExploration> = HashMap()
 
-		val data = setupDevice()
-		data.second?.let {  throwable ->
-			explorationExceptions.addException(throwable)
-			return explorationExceptions
+		val device = setupDevice()
+
+		assert(explorationResults.isEmpty())
+
+		var encounteredApkExplorationsStoppingException = false
+
+		apks.forEachIndexed { i, apk ->
+			if (!encounteredApkExplorationsStoppingException) {
+				log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
+
+				// explore this apk on device and store it in explorationResults
+				apkDeployer.withDeployedApk(device, apk, exploreFn).let{ result ->
+					explorationResults[apk] = result
+					if (result.error.any { (it as? ApkExplorationException)?.shouldStopFurtherApkExplorations() == true }) {
+						log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
+						encounteredApkExplorationsStoppingException = true
+					}
+				}
+
+				// Just preventative measures for ensuring healthiness of the device connection.
+				device.restartUiaDaemon(false)
+			}
 		}
+		/** all explorations done - tear down */
+		if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
+			explorationResults.values.forEach { it.result?.apply{ imgTransfer.coroutineContext[Job]?.cancelAndJoin()} } // close pending coroutine job from img fetch
 
-		val device = data.first as IRobustDevice
-
-		assert(explorationExceptions.isEmpty())
 		try {
-			val apkExplorationExceptions = computation(device)
-			explorationExceptions+=(apkExplorationExceptions)
-		} catch (computationThrowable: Throwable) {
-			log.error("!!! Caught ${computationThrowable.javaClass.simpleName} in withSetupDevice(${cfg.deviceSerialNumber})->computation($device). " +
-					"This means ${ApkExplorationException::class.java.simpleName}s have been lost, if any! " +
-					"Adding the exception as a cause to an ${ExplorationException::class.java.simpleName}. " +
-					"Then adding to the collected exceptions list.\n" +
-					"The ${computationThrowable::class.java.simpleName}: $computationThrowable")
-
-			explorationExceptions.addException(computationThrowable)
 		} finally {
-			log.debug("Finalizing: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
+			log.debug("Finalizing: setupAndExecute(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 			try {
 				tryTearDown(device)
 				usedSerialNumbers -= cfg.deviceSerialNumber
 
 			} catch (tearDownThrowable: Throwable) {
 				log.warn(Markers.appHealth,
-						"! Caught ${tearDownThrowable.javaClass.simpleName} in withSetupDevice(${cfg.deviceSerialNumber})->tryTearDown($device). " +
+						"! Caught ${tearDownThrowable.javaClass.simpleName} in setupAndExecute(${cfg.deviceSerialNumber})->tryTearDown($device). " +
 								"Adding as a cause to an ${ExplorationException::class.java.simpleName}. " +
-								"Then adding to the collected exceptions list.\n" +
+								"Then adding to the collected error list.\n" +
 								"The ${tearDownThrowable::class.java.simpleName}: $tearDownThrowable")
 				log.error(Markers.appHealth, tearDownThrowable.message, tearDownThrowable)
-
-				explorationExceptions.addException(tearDownThrowable)
 			}
-			log.debug("Finalizing DONE: withSetupDevice(${cfg.deviceSerialNumber})->finally{} for computation($device)")
+			log.debug("Finalizing DONE: setupAndExecute(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 		}
-		return explorationExceptions
+		return explorationResults
 	}
 
-	private fun setupDevice(): Pair<IAndroidDevice?,Throwable?> {
-		try {
-			this.usedSerialNumbers.add(cfg.deviceSerialNumber)
+	/**
+	 * Setup contains the install of the deviceControlDaemon, monitor and starting the adb wrapper.
+	 * This is to be done once before any specific AUT is installed.
+	 * If any error occurs in this phase we cannot start the exploration for any app,
+	 * therefore we do not catch any exception but rather propagate it.
+	 */
+	private fun setupDevice(): IRobustDevice {
+		this.usedSerialNumbers.add(cfg.deviceSerialNumber)
 
-			val device = robustWithReadableLogs(this.deviceFactory.create(cfg.deviceSerialNumber))
+		val device = robustWithReadableLogs(this.deviceFactory.create(cfg.deviceSerialNumber))
 
-			trySetUp(device)
+		trySetUp(device)
 
-			return Pair(device, null)
-
-		} catch (setupDeviceThrowable: Throwable) {
-			log.warn(Markers.appHealth,
-					"! Caught ${setupDeviceThrowable.javaClass.simpleName} in setupDevice(). " +
-							"Adding as a cause to an ${ExplorationException::class.java.simpleName}. Then adding to the collected exceptions list.")
-			log.error(Markers.appHealth, setupDeviceThrowable.message, setupDeviceThrowable)
-
-			return Pair(null, setupDeviceThrowable)
-		}
+		return device
 	}
 
 	private fun robustWithReadableLogs(device: IAndroidDevice): IRobustDevice = RobustDevice(device, this.cfg)

@@ -63,8 +63,8 @@ import java.time.format.DateTimeFormatter
  * </p><p>
  * Provides programmatic access to Android (Virtual) Device. The instance of this class should be available only as a parameter
  * in {@code closure} passed to
- * {@link org.droidmate.tools.IAndroidDeviceDeployer#withSetupDevice(String, int, Closure)
- * AndroidDeviceDeployer.withSetupDevice(closure)}, thus guaranteeing invariant of this class:
+ * {@link org.droidmate.tools.IAndroidDeviceDeployer#setupAndExecute(String, int, Closure)
+ * AndroidDeviceDeployer.setupAndExecute(closure)}, thus guaranteeing invariant of this class:
  *
  * </p><p>
  * CLASS INVARIANT: the A(V)D accessed by a instance of this class is setup and available for duration of the instance existence.

@@ -28,20 +28,21 @@ import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.apk_inliner.ApkInliner
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.ExplorationContext
+import org.droidmate.device.android_sdk.Apk
+import org.droidmate.misc.FailableExploration
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                               private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
 
-	override suspend fun execute(cfg: ConfigurationWrapper): List<ExplorationContext> {
+	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
 		if (apks.all { it.inlined }) {
 			log.warn("No non-inlined apks found. Aborting.")
-			return emptyList()
+			return emptyMap()
 		}
 
 		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
@@ -55,6 +56,6 @@ class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 			moveOriginal(apk, originalsDir)
 		}
 
-		return emptyList()
+		return emptyMap()
 	}
 }

@@ -61,7 +61,7 @@ fun `reboots and restores connection`() {
  * u0_a1027  31550 205   869064 38120 sys_epoll_ 00000000 S org.droidmate.uiautomator2daemon.UiAutomator2Daemon
  *
  * - If the server was somehow corrupted, rerunning this test will hang on the "ObjectInputStream", even if the installApk
- * and setupConnection methods are runApp. However, if the uninstall commands are runApp, then the test will succeed again without
+ * and setupConnection methods are execute. However, if the uninstall commands are execute, then the test will succeed again without
  * problems. Not sure which uninstall is the important one, but I guess the one uninstalling.test
  *
  * Symptom observations: sometimes, even though server on the device says he is waiting to accept a socket, actually getting
@@ -118,7 +118,7 @@ fun `Restarts uiautomatorDaemon2 and communicates with it via TCP`()
 @Category(RequiresDevice::class)
 @Test
 fun `Print widgets of current GUI screen`() {
-		withSetupDevice(getConfigurationApi23()) { _, _, device ->
+		setupAndExecute(getConfigurationApi23()) { _, _, device ->
 
 				val gs = device.getGuiSnapshot().guiState
 				println("widgets (#${gs.widgets.size}):")
@@ -170,7 +170,7 @@ fun `Obtains GUI snapshot for manual inspection`() {
 										.forDevice()
 										.get()
 		)
-		deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
+		deviceTools.deviceDeployer.setupAndExecute("", 0) { device ->
 				println(device.getGuiSnapshot().windowHierarchyDump)
 				ArrayList()
 		}
@@ -180,7 +180,7 @@ fun `Obtains GUI snapshot for manual inspection`() {
 @Test
 fun `Sets up API23 compatible device and turns wifi on`() {
 		val deviceTools = DeviceTools(getConfigurationApi23())
-		deviceTools.deviceDeployer.withSetupDevice("", 0) { device ->
+		deviceTools.deviceDeployer.setupAndExecute("", 0) { device ->
 				device.perform(EnableWifiAction())
 				ArrayList()
 		}
@@ -194,18 +194,18 @@ private fun getConfigurationApi23(): Configuration {
 }
 
 private fun withApkDeployedOnDevice(computation: (IRobustDevice, IApk) -> Any) {
-		val exceptions: MutableList<ApkExplorationException> = mutableListOf()
+		val error: MutableList<ApkExplorationException> = mutableListOf()
 		val config = getConfigurationApi23monitoredInlinedApk()
-		withSetupDevice(config) { cfg, deviceTools, device ->
+		setupAndExecute(config) { cfg, deviceTools, device ->
 				val apksProvider = ApksProvider(deviceTools.aapt)
 				val apk = apksProvider.getApks(cfg.apksDirPath, cfg.apksLimit, cfg.apksNames, cfg.shuffleApks).first()
 
 				deviceTools.apkDeployer.withDeployedApk(device, apk, { computation(device, apk) })
 		}
 
-		exceptions.forEach { it.printStackTrace() }
+		error.forEach { it.printStackTrace() }
 
-		assert(exceptions.isEmpty())
+		assert(error.isEmpty())
 }
 
 private fun getConfigurationApi23monitoredInlinedApk(): Configuration = ConfigurationForTests()
@@ -215,8 +215,8 @@ private fun getConfigurationApi23monitoredInlinedApk(): Configuration = Configur
 				.forDevice()
 				.get()
 
-private fun withSetupDevice(cfg: Configuration, computation: (Configuration, IDeviceTools, IRobustDevice) -> List<ApkExplorationException>) {
+private fun setupAndExecute(cfg: Configuration, computation: (Configuration, IDeviceTools, IRobustDevice) -> List<ApkExplorationException>) {
 		val deviceTools = DeviceTools(cfg)
-		deviceTools.deviceDeployer.withSetupDevice("", 0) { device -> computation(cfg, deviceTools, device) }
+		deviceTools.deviceDeployer.setupAndExecute("", 0) { device -> computation(cfg, deviceTools, device) }
 }*/
 }

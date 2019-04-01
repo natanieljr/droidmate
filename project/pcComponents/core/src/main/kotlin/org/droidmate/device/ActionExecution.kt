@@ -1,11 +1,12 @@
 package org.droidmate.device
 
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.error.DeviceException
 import org.droidmate.exploration.IApk
-import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.MissingDeviceLogs
@@ -44,14 +45,14 @@ private suspend fun performAction(action: ExplorationAction, app: IApk, device: 
 }
 
 @Throws(DeviceException::class)
-suspend fun ExplorationAction.runApp(app: IApk, device: IRobustDevice): ActionResult {
+suspend fun ExplorationAction.execute(app: IApk, device: IRobustDevice): ActionResult {
 	logs = MissingDeviceLogs
 	snapshot = DeviceResponse.empty
 	exception = DeviceExceptionMissing()
 
 	val startTime = LocalDateTime.now()
 	try {
-		log.trace("$name.runApp(app=${app.fileName}, device)")
+		log.trace("$name.execute(app=${app.fileName}, device)")
 
 		log.debug("1. Assert only background API logs are present, if any.")
 		val logsHandler = DeviceLogsHandler(device)
@@ -66,7 +67,7 @@ suspend fun ExplorationAction.runApp(app: IApk, device: IRobustDevice): ActionRe
 		debugT("read logcat after action", { logsHandler.readAndClearApiLogs() }, inMillis = true)
 		logs = logsHandler.getLogs()
 
-		log.trace("$name.runApp(app=${app.fileName}, device) - DONE")
+		log.trace("$name.execute(app=${app.fileName}, device) - DONE")
 	} catch (e: DeviceException) {
 		exception = e
 		log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device explorationTrace of ${this}. " +
@@ -81,7 +82,7 @@ suspend fun ExplorationAction.runApp(app: IApk, device: IRobustDevice): ActionRe
 
 
 @Throws(DeviceException::class)
-private suspend fun defaultExecution(action: ExplorationAction, device: IRobustDevice) =	coroutineScope {
+private suspend fun defaultExecution(action: ExplorationAction, device: IRobustDevice, isSecondTry: Boolean = false): Unit =	coroutineScope {
 	try {
 		launch {
 			// do the perform as launch to inject a suspension point, as perform is currently no suspend function
@@ -89,8 +90,9 @@ private suspend fun defaultExecution(action: ExplorationAction, device: IRobustD
 		}.join()
 	} catch (e: Exception) {
 		log.warn("2.1. Failed to perform $action, retry once")
-		device.restartUiaDaemon(false)
-		snapshot = device.perform(action)
+		device.restartUiaDaemon(e is TcpServerUnreachableException)
+		delay(1000)
+		defaultExecution(action, device, isSecondTry = true)
 	}
 }
 

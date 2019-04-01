@@ -32,6 +32,7 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.explorationModel.debugOutput
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.lang.Math.max
 
 /**
@@ -143,5 +144,14 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		return strategies
 				.filterIsInstance(klass)
 				.firstOrNull()
+	}
+
+	fun getByName(className: String) = strategies.firstOrNull { it.uniqueStrategyName == className } ?: throw IllegalStateException("no strategy $className in the poll, register it first or call 'getOrCreate' instead")
+
+	fun getOrCreate(className: String, createStrategy: ()->ISelectableExplorationStrategy): ISelectableExplorationStrategy{
+		val strategy = strategies.firstOrNull { it.uniqueStrategyName == className }
+		return strategy ?: createStrategy().also{
+			check(it.uniqueStrategyName==className) {"ERROR your created strategy does not correspond to the requested name $className"}
+			it.initialize(memory); strategies.add(it)  }
 	}
 }

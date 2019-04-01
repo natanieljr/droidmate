@@ -46,16 +46,16 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 * simulated device. The apps behave in the following way:
 	 *
 	 * </p><p>
-	 * The first one finishes exploration successfully, no exceptions get thrown. Exploration results get serialized.
+	 * The first one finishes exploration successfully, no error get thrown. Exploration results get serialized.
 	 *
 	 * </p><p>
 	 * The second app is faulty, making it impossible to perform some exploration action on it. This results in an exception during
-	 * exploration loop. The exception gets wrapped into a collection of apk exploration exceptions
+	 * exploration loop. The exception gets wrapped into a collection of apk exploration error
 	 * (the collection is itself an exception), to be reported by exception handler at the end of DroidMate's run.
 	 * Exploration results still get serialized.
 	 *
 	 * </p><p>
-	 * The installation of the third apk on the device finishes successfully. However, when the exploration of it starts to runApp,
+	 * The installation of the third apk on the device finishes successfully. However, when the exploration of it starts to execute,
 	 * the device fails altogether. Thus, before the proper exploration loop starts, the call to 'hasPackageInstalled' to the
 	 * device fails. In addition, no exploration results are obtained (because the loop didn't start) and so nothing gets
 	 * serialized. DroidMate then tries to recover by uninstalling the apk, which also fails, because device is unavailable. This
@@ -64,16 +64,16 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 * the 'has package installed')
 	 *
 	 * </p><p>
-	 * In the end, both the set of apk exploration exceptions (having one exception, from the exploration of second app) and
+	 * In the end, both the set of apk exploration error (having one exception, from the exploration of second app) and
 	 * the device undeployment exception (having suppressed exception having suppressed exception) both get wrapped into a throwable
 	 * collection, also being an exception. This exception is then passed to exception handler, which logs all the relevant
-	 * information to stderr and exceptions.txt.
+	 * information to stderr and error.txt.
 	 *
 	 * </p>
 	 */
 	@Category(RequiresSimulator::class)
 	@Test
-	fun `Handles exploration and fatal device exceptions`() {
+	fun `Handles exploration and fatal device error`() {
 			val mockedFs = MockFileSystem(arrayListOf(
 							"mock_1_noThrow_outputOk",
 							"mock_2_throwBeforeLoop_outputNone",
@@ -88,10 +88,10 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 
 			val exceptionSpecs = arrayListOf(
 
-							// Thrown during Exploration.runApp()->tryDeviceHasPackageInstalled()
+							// Thrown during Exploration.execute()->tryDeviceHasPackageInstalled()
 							ExceptionSpec("hasPackageInstalled", apk2.packageName),
 
-							// Thrown during Exploration.explorationLoop()->ResetAppExplorationAction.runApp()
+							// Thrown during Exploration.explorationLoop()->ResetAppExplorationAction.execute()
 							// The call index is 2 because 1st call is made to close 'app has stopped' dialog box before the exploration loop starts,
 							// i.e. in org.droidmate.command.exploration.Exploration.tryWarnDeviceDisplaysHomeScreen
 							ExceptionSpec("perform", apk3.packageName, /* call index */ 2),
@@ -300,7 +300,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 	 *
 	 * </p><p>
 	 * The test will make DroidMate output results to {@code EnvironmentConstants.test_temp_dir_name}.
-	 * To ensure logs are also output there, runApp this test with VM arg of {@code -DlogsDir="temp_dir_for_tests/logs"}.
+	 * To ensure logs are also output there, execute this test with VM arg of {@code -DlogsDir="temp_dir_for_tests/logs"}.
 	 * Note that {@code logsDir} is defined in {@code org.droidmate.logging.LogbackConstants.getLogsDirPath}.
 	 *
 	 * </p>
@@ -312,7 +312,7 @@ class DroidmateFrontendTest : DroidmateTestCase() {
 			// Act
 			val exitStatus = DroidmateFrontend.execute(args.toTypedArray())
 
-			assert(exitStatus == 0, { "Exit status != 0. Please inspect the runApp logs for details, including exception thrown" })
+			assert(exitStatus == 0, { "Exit status != 0. Please inspect the execute logs for details, including exception thrown" })
 
 			val apkOut = outputDir.explorationOutput2.single()
 
