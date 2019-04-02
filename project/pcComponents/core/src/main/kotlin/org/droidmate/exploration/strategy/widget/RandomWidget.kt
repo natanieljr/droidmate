@@ -25,6 +25,7 @@
 package org.droidmate.exploration.strategy.widget
 
 import kotlinx.coroutines.runBlocking
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.deviceInterface.exploration.ExplorationAction
@@ -51,7 +52,8 @@ import kotlin.streams.asSequence
 open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 												  private val biased: Boolean = true,
 												  private val randomScroll: Boolean = true,
-                         private val dictionary: List<String> = emptyList()) : ExplorationStrategy() {
+												  private val dictionary: List<String> = emptyList(),
+												  private val delay : Long = 0) : ExplorationStrategy() {
 
 	protected var random = Random(randomSeed)
 		private set
@@ -64,7 +66,8 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	/**
 	 * Creates a new exploration strategy instance using the [configured random seed][cfg]
 	 */
-	constructor(cfg: ConfigurationWrapper) : this(cfg.randomSeed, cfg[Parameters.biasedRandom], cfg[Parameters.randomScroll])
+	constructor(cfg: ConfigurationWrapper) : this(cfg.randomSeed, cfg[Parameters.biasedRandom],
+		cfg[Parameters.randomScroll], delay = cfg[ConfigProperties.Exploration.widgetActionDelay])
 
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>() }

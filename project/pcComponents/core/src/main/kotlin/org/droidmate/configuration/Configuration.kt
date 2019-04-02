@@ -208,6 +208,7 @@ abstract class ConfigProperties {
 		val launchActivityDelay by longType
 		val launchActivityTimeout by intType
 		val apiVersion by intType
+		val widgetActionDelay by longType
 	}
 
 	object Output : PropertyGroup() {

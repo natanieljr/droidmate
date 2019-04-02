@@ -31,11 +31,11 @@ fun Widget.click(delay: Long = 0, isVisible: Boolean = false, ignoreClickable: B
 }
 
 @JvmOverloads
-fun Widget.tick(isVisible: Boolean = false): ExplorationAction {
+fun Widget.tick(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
 	if (!(definedAsVisible || isVisible) || !enabled)
 		throw RuntimeException("ERROR: tried to tick non-actable (checkbox) Widget $this")
 	widgetTargets.add(this)
-	return clickCoordinate().let { (x, y) -> Click(x, y, true) }
+	return clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
 }
 
 @JvmOverloads
@@ -72,17 +72,17 @@ fun UiElementPropertiesI.click(): ExplorationAction = (visibleAreas.firstCenter(
  fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter() ?: visibleBounds.center
 
 
-fun Widget.availableActions(): List<ExplorationAction>{
+fun Widget.availableActions(delay: Long): List<ExplorationAction>{
 	val actionList: MutableList<ExplorationAction> = mutableListOf()
 
 	if (this.longClickable)
-		actionList.add(this.longClick())
+		actionList.add(this.longClick(delay))
 
 	if (this.clickable)
-		actionList.add(this.click())
+		actionList.add(this.click(delay))
 
 	if (this.checked != null)
-		actionList.add(this.tick())
+		actionList.add(this.tick(delay))
 
 	if (this.scrollable) {
 		actionList.add(this.swipeUp())
