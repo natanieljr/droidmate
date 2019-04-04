@@ -74,8 +74,6 @@ abstract class ConfigProperties {
 		val explore by booleanType
 		val terminate by booleanType
 		val back by booleanType
-		val modelBased by booleanType
-		val fitnessProportionate by booleanType
 		val allowRuntimeDialog by booleanType
 		val denyRuntimeDialog by booleanType
 		val playback by booleanType

@@ -148,22 +148,6 @@ class StrategySelector constructor(val priority: Int,
 		}
 
 		/**
-		 * Randomly selects a widget among those classified by a static model as "has event" and acts over it
-		 */
-		@JvmStatic
-		val randomWithModel: SelectorFunction = { _, pool, _ ->
-			pool.getFirstInstanceOf(ModelBased::class.java)
-		}
-
-		/**
-		 * Selects a widget among those classified by a static model as "has event" and acts over it
-		 */
-		@JvmStatic
-		val randomBiased: SelectorFunction = { _, pool, _ ->
-			pool.getFirstInstanceOf(FitnessProportionateSelection::class.java)
-		}
-
-		/**
 		 * Randomly presses back.
 		 *
 		 * Expected bundle: Array: [Probability (Double), java.util.Random].
