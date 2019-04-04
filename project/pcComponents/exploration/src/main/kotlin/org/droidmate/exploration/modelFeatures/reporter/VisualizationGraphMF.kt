@@ -30,6 +30,7 @@ import com.konradjamrozik.Resource
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.isQueueEnd
 import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
@@ -47,6 +48,7 @@ import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.coroutines.CoroutineContext
+import java.nio.charset.StandardCharsets
 
 /**
  * This reporter creates a report in form of a web page, displaying the model, its states and its
@@ -160,15 +162,20 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
             }
 
             states.forEach { state ->
-                assert(stateIdActionIdMap.containsKey(state.stateId))
-                nodes.add(Node(state, stateIdActionIdMap[state.stateId]!!))
+                // Queue actions are not contained in stateIdActionIdMap
+                if (stateIdActionIdMap.containsKey(state.stateId)) {
+                    nodes.add(Node(state, stateIdActionIdMap[state.stateId]!!))
+                }
             }
 
         }
 
-        fun toJsonVariable(gson: Gson): String {
-            val graphJson = gson.toJson(this)
-            return "var data = $graphJson;"
+        fun writeToFile(gson: Gson, file: Path) {
+            Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW).use {
+                it.append("var data = ")
+                gson.toJson(this, it)
+                it.append(";")
+            }
         }
     }
 
@@ -252,6 +259,21 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     }
 
     /**
+     * Custom Json serializer to control the serialization for Rectangle objects.
+     * The other properties are needed, so we can save memory and storage.
+     */
+    inner class RectangleAdapter : JsonSerializer<Rectangle> {
+        override fun serialize(src: Rectangle, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            val obj = JsonObject()
+            obj.addProperty("leftX", src.leftX)
+            obj.addProperty("topY", src.topY)
+            obj.addProperty("width", src.width)
+            obj.addProperty("height", src.height)
+            return obj
+        }
+    }
+
+    /**
      * Custom Json serializer to control the serialization for Widget objects.
      */
     inner class WidgetAdapter : JsonSerializer<Widget> {
@@ -327,20 +349,20 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
         obj.addProperty("configId", src?.configId.toString())
         obj.addProperty("text", src?.text)
         obj.addProperty("contentDesc", src?.contentDesc)
-        obj.addProperty("resourceId", src?.resourceId)
+//        obj.addProperty("resourceId", src?.resourceId)
         obj.addProperty("className", src?.className)
         obj.addProperty("packageName", src?.packageName)
-        obj.addProperty("isPassword", src?.isPassword)
-        obj.addProperty("enabled", src?.enabled)
-        obj.addProperty("definedAsVisible", src?.definedAsVisible)
+//        obj.addProperty("isPassword", src?.isPassword)
+//        obj.addProperty("enabled", src?.enabled)
+//        obj.addProperty("definedAsVisible", src?.definedAsVisible)
         obj.addProperty("clickable", src?.clickable)
-        obj.addProperty("longClickable", src?.longClickable)
-        obj.addProperty("scrollable", src?.scrollable)
-        obj.addProperty("checked", src?.checked)
-        obj.addProperty("focused", src?.focused)
+//        obj.addProperty("longClickable", src?.longClickable)
+//        obj.addProperty("scrollable", src?.scrollable)
+//        obj.addProperty("checked", src?.checked)
+//        obj.addProperty("focused", src?.focused)
         obj.add("visibleBounds", context.serialize(src?.visibleBounds))
-        obj.addProperty("selected", src?.selected)
-        obj.addProperty("isLeaf", src?.isLeaf())
+//        obj.addProperty("selected", src?.selected)
+//        obj.addProperty("isLeaf", src?.isLeaf())
 
         return obj
     }
@@ -377,6 +399,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
 
         gsonBuilder.registerTypeAdapter(Node::class.java, NodeAdapter())
         gsonBuilder.registerTypeAdapter(Edge::class.java, EdgeAdapter())
+        gsonBuilder.registerTypeAdapter(Rectangle::class.java, RectangleAdapter())
         gsonBuilder.registerTypeAdapter(IApk::class.java, IApkAdapter())
         gsonBuilder.registerTypeAdapter(Widget::class.java, WidgetAdapter())
         gsonBuilder.registerTypeAdapter(HashMap<Int, CInteraction>()::class.java, IdxInteractionHashMapAdapter())
@@ -452,9 +475,8 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
                 interactions.size,
                 states.size,
                 apk)
-            val jsGraph = graph.toJsonVariable(gson)
 
-            Files.write(jsonFile, jsGraph.toByteArray())
+            graph.writeToFile(gson, jsonFile)
         }
     }
 
