@@ -103,6 +103,7 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInt
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdleTimeout
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.EnvironmentConstants
 import org.slf4j.Logger
@@ -143,7 +144,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(explore, description = "Run DroidMate in exploration mode."),
 			CommandLineOption(coverage, description = "If present, instead of normal run, DroidMate will run in 'instrument APK for coverage' mode. This flag cannot be combined with another execution mode."),
 			// Deploy
-			CommandLineOption(enableCoverage, description = "If true, the statement coverage of the exploration will be measured. This requires the apk to be instrumented with 'coverage' mode."),
 			CommandLineOption(installApk, description = "Reinstall the app to the device. If the app is not previously installed the exploration will fail"),
 			CommandLineOption(installAux, description = "Reinstall the auxiliary files (UIAutomator and Monitor) to the device. If the auxiliary files are not previously installed the exploration will fail."),
 			CommandLineOption(uninstallApk, description = "Uninstall the APK after the exploration."),
@@ -176,7 +176,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(apiVersion, description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api23"),
 			// Output
 			CommandLineOption(outputDir, description = "Path to the directory that will contain DroidMate exploration output."),
-			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data."),
 			CommandLineOption(screenshotDir, description = "Path to the directory that will contain the screenshots from an exploration."),
 			CommandLineOption(reportDir, description = "Path to the directory that will contain the report files."),
 			// Strategies
@@ -215,7 +214,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(enablePrintOuts, description = "Enable or disable debug and performance outputs on the device output (in the LogCat)."),
 			CommandLineOption(socketTimeout, description = "Socket timeout to communicate with the UiDaemonServer."),
 			CommandLineOption(basePort, description = "The base port for the communication with the devices. DroidMate communicates over this base port + device index."),
-			CommandLineOption(delayedImgFetch, description = "Option to allow for faster exploration by delaying screen-shot fetch to an asynchronous call.")
+			CommandLineOption(delayedImgFetch, description = "Option to allow for faster exploration by delaying screen-shot fetch to an asynchronous call."),
+			// StatementCoverage
+			CommandLineOption(enableCoverage, description = "If true, the statement coverage of the exploration will be measured. This requires the apk to be instrumented with 'coverage' mode."),
+			CommandLineOption(onlyCoverAppPackageName, description = "Only instrument statement coverage for statements belong inside the app package name scope. Libraries with other package names will be ignored. Be aware that this filtering might not be always correct."),
+			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data.")
 			).first, fs)
 
 	@Throws(ConfigurationException::class)
