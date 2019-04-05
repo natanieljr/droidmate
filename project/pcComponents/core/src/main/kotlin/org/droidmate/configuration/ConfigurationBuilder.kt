@@ -86,9 +86,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRota
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.back
 import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
-import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
 import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
-import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.reset
 import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
@@ -183,8 +181,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(ConfigProperties.Strategies.explore, description = "Enables use of biased random exploration strategy."),
 			CommandLineOption(terminate, description = "Enables use of default terminate strategy."),
 			CommandLineOption(back, description = "Enables use of 'press back button' strategy"),
-			CommandLineOption(modelBased, description = "Enables use of random exploration strategy using static model."),
-			CommandLineOption(fitnessProportionate, description = "Enables use of random exploration strategy using static model and fitness proportionate selection."),
 			CommandLineOption(allowRuntimeDialog, description = "Enables use of strategy to always click 'Allow' on permission dialogs."),
 			CommandLineOption(denyRuntimeDialog, description = "Enables use of strategy to always click 'Deny' on permission dialogs."),
 			CommandLineOption(playback, description = "Enables use of playback strategy (if a playback model is provided)."),
