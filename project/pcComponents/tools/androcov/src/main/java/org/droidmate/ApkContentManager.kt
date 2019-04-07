@@ -25,9 +25,8 @@
 
 package org.droidmate
 
-import com.konradjamrozik.Resource
 import com.google.common.base.Stopwatch
-import org.apache.commons.lang3.ArrayUtils
+import org.droidmate.legacy.Resource
 import org.droidmate.manifest.ManifestInstrumenter
 import org.droidmate.misc.SysCmdExecutor
 import org.slf4j.LoggerFactory

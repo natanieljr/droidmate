@@ -32,14 +32,12 @@ dependOnJunit(project)
 //dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
 
 dependencies {
-
-	compile 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
+	//compile 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
+	compile 'org.droidmate:common:1.4-SNAPSHOT'
+	
 	compile project(":project:pcComponents:exploration")
 	implementation 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
-	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
-		exclude group: "org.slf4j", module: "slf4j-simple"
-	}
 	implementation 'org.apache.commons:commons-lang3:3.8'
 
 	// jdk dependency necessary for kotlin/stream library used by ResourceManager

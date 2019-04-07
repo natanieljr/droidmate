@@ -24,9 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-import com.konradjamrozik.createDirIfNotExists
-import com.konradjamrozik.isDirectory
-import com.konradjamrozik.toList
 import java.io.File
 import java.io.IOException
 import java.nio.file.FileSystem

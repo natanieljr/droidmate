@@ -25,12 +25,12 @@
 
 package org.droidmate.androcov
 
-import com.konradjamrozik.Resource
 import org.droidmate.ApkContentManager
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.IApk
 import org.droidmate.helpClasses.Helper
 import org.droidmate.instrumentation.Runtime
+import org.droidmate.legacy.Resource
 import org.droidmate.manifest.ManifestConstants
 import org.droidmate.misc.*
 import org.json.JSONObject

@@ -37,9 +37,6 @@ dependencies {
 	// We use the Soot version 3.0.1, because we had trouble with Soot 3.1.0.
 	// Soot 3.1.0 was not able to instrument wikihowapp or reddit.
 //	implementation "ca.mcgill.sable:soot:3.0.1"
-	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
-		exclude group: "org.slf4j", module: "slf4j-simple"
-	}
 	implementation 'org.apache.commons:commons-lang3:3.8'
 
 	// Use the .jar for soot-infoflow-android and soot, because the repository does not work reliable.

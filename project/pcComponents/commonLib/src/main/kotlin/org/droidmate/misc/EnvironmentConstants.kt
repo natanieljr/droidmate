@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.misc
 
-import com.konradjamrozik.*
 import java.io.File
 import java.nio.file.Files
 import java.util.*

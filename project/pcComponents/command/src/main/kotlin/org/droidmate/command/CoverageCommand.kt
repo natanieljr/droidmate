@@ -25,7 +25,6 @@
 
 package org.droidmate.command
 
-import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.androcov.StatementInstrumenter
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.AaptWrapper
@@ -33,6 +32,7 @@ import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.FailableExploration
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
+import java.nio.file.Files
 
 class CoverageCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                                 private val instrumenter: StatementInstrumenter = StatementInstrumenter(cfg)) : DroidmateCommand() {
@@ -46,8 +46,7 @@ class CoverageCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		}
 
 		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
-		if (originalsDir.createDirIfNotExists())
-			log.info("Created directory to hold original apks, before instrumenting: $originalsDir")
+		Files.createDirectories(originalsDir)
 
 		if (apks.size > 1)
 			log.warn("More than one no-instrumented apk on the input dir. Instrumenting only the first one.")

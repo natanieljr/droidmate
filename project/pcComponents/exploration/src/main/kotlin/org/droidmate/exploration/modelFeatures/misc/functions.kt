@@ -27,10 +27,8 @@ package org.droidmate.exploration.modelFeatures.misc
 
 import com.google.common.collect.ImmutableTable
 import com.google.common.collect.Table
-import com.konradjamrozik.Resource
-import com.konradjamrozik.isDirectory
-import com.konradjamrozik.isRegularFile
 import org.droidmate.explorationModel.interaction.Interaction
+import org.droidmate.legacy.Resource
 import org.droidmate.misc.SysCmdExecutor
 import java.io.BufferedInputStream
 import java.io.FileOutputStream
@@ -44,9 +42,9 @@ import java.util.zip.ZipFile
 
 fun plot(dataFilePath: String, outputFilePath: String, resourceDir: Path) {
 
-	require(Paths.get(dataFilePath).isRegularFile, { "Paths.get(dataFilePath='$dataFilePath').isRegularFile" })
-	require(Paths.get(outputFilePath).parent.isDirectory, { "Paths.get(outputFilePath='$outputFilePath').parent.isDirectory" })
-	require(resourceDir.isDirectory, { "resourceDir(=$resourceDir).isDirectory" })
+	require(Files.isRegularFile(Paths.get(dataFilePath)), { "Paths.get(dataFilePath='$dataFilePath').isRegularFile" })
+	require(Files.isDirectory(Paths.get(outputFilePath).parent), { "Paths.get(outputFilePath='$outputFilePath').parent.isDirectory" })
+	require(Files.isDirectory(resourceDir), { "resourceDir(=$resourceDir).isDirectory" })
 
 	val plotTemplatePathString = Resource("plot_template.plt").extractTo(resourceDir).toString()
 

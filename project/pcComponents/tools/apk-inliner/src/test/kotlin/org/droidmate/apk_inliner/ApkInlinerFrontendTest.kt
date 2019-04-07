@@ -25,7 +25,6 @@
 
 /*package org.droidmate.apk_inliner
 
-import com.konradjamrozik.ResourcePath
 import org.apache.commons.io.FileUtils
 import org.droidmate.misc.EnvironmentConstants
 import org.junit.FixMethodOrder

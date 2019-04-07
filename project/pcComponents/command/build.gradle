@@ -56,10 +56,6 @@ dependOnJunit(project)
 dependWithTest([project, ":project:pcComponents:core", "kotlin"])
 
 dependencies {
-
-	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
-		exclude group: "org.slf4j", module: "slf4j-simple"
-	}
 	compile 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
 	// Workaround for: 'gradlew :p:command:test' fails when reporter tests are runApp from command line.

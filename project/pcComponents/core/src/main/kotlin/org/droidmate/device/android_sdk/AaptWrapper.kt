@@ -25,8 +25,8 @@
 
 package org.droidmate.device.android_sdk
 
-import com.konradjamrozik.FirstMatchFirstGroup
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.legacy.FirstMatchFirstGroup
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException

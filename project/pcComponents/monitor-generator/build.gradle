@@ -36,10 +36,6 @@ dependOnJunit(project)
 dependencies {
 
 	compile 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
-	//compile project(":project:pcComponents:commonLib")
-	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
-		exclude group: "org.slf4j", module: "slf4j-simple"
-	}
 
 	compile 'com.google.code.gson:gson:2.8.5'
 

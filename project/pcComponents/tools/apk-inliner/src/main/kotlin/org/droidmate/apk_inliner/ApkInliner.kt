@@ -25,8 +25,8 @@
 
 package org.droidmate.apk_inliner
 
-import com.konradjamrozik.Resource
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.legacy.Resource
 import org.droidmate.misc.*
 import org.droidmate.misc.IJarsignerWrapper
 import org.slf4j.LoggerFactory

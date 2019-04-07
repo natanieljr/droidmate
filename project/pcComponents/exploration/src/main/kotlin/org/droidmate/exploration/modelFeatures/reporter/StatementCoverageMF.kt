@@ -31,7 +31,6 @@ import com.natpryce.konfig.getValue
 import com.natpryce.konfig.stringType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.sync.Mutex
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.ExplorationTrace
@@ -127,11 +126,12 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
      */
     private fun getInstrumentationFile(apkName: String): Path? {
         return Files.list(instrumentationDir)
-            .toList()
-            .find {
+            .filter {
                 it.fileName.toString().contains(apkName)
                     && it.fileName.toString().endsWith(".apk.json")
             }
+            .toList()
+            .firstOrNull()
     }
 
     @Throws(IOException::class)

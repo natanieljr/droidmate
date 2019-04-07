@@ -25,10 +25,7 @@
 
 package org.droidmate.logging
 
-import com.konradjamrozik.isDirectory
-import com.konradjamrozik.isRegularFile
-import com.konradjamrozik.toList
-import com.konradjamrozik.writeText
+import org.droidmate.legacy.writeText
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -42,14 +39,14 @@ class LogbackUtilsRequiringLogbackLog {
 		@JvmStatic
 		fun cleanLogsDir() {
 			val logsDir = Paths.get(LogbackConstants.LOGS_DIR_PATH)
-			if (!logsDir.isDirectory)
+			if (!Files.isDirectory(logsDir))
 				Files.createDirectories(logsDir)
 
 			var msgNotDeletedLogFileNames = ""
 
 			val invalidNames = mutableListOf(".", "..").apply { addAll(LogbackConstants.fileAppendersUsedBeforeCleanLogsDir()) }
-			Files.walk(logsDir).toList()
-					.filter { it.isRegularFile }
+			Files.walk(logsDir)
+					.filter { Files.isRegularFile(it) }
 					.forEach { logFile ->
 						if (logFile.fileName.toString() !in invalidNames) {
 							if (!Files.deleteIfExists(logFile)) {

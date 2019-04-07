@@ -25,11 +25,11 @@
 
 package org.droidmate.test_tools
 
-import com.konradjamrozik.Resource
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.legacy.Resource
 import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.misc.text

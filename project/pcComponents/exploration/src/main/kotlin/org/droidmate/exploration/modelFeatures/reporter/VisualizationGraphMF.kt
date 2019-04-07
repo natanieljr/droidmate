@@ -26,7 +26,6 @@
 package org.droidmate.exploration.modelFeatures.reporter
 
 import com.google.gson.*
-import com.konradjamrozik.Resource
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -40,6 +39,7 @@ import org.droidmate.explorationModel.ConcreteId.Companion.fromString
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.legacy.Resource
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*

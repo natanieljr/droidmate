@@ -25,7 +25,6 @@
 
 package org.droidmate.misc
 
-import com.konradjamrozik.Resource
 import java.nio.file.Path
 import java.nio.file.Paths
 

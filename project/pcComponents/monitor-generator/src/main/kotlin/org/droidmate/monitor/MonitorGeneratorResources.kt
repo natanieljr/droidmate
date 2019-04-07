@@ -25,7 +25,6 @@
 
 package org.droidmate.monitor
 
-import com.konradjamrozik.ResourcePath
 import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.IConfiguration
 import java.nio.file.Files

@@ -26,11 +26,11 @@
 package org.droidmate.configuration
 
 import ch.qos.logback.classic.Level
-import com.konradjamrozik.Resource
-import com.konradjamrozik.ResourcePath
-import com.konradjamrozik.createDirIfNotExists
-import com.konradjamrozik.toList
-import com.natpryce.konfig.*
+import com.natpryce.konfig.CommandLineOption
+import com.natpryce.konfig.Configuration
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.overriding
+import com.natpryce.konfig.parseArgs
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.apache.commons.lang3.builder.StandardToStringStyle
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
@@ -104,6 +104,8 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInt
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdleTimeout
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
+import org.droidmate.legacy.Resource
+import org.droidmate.legacy.ResourcePath
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.EnvironmentConstants
 import org.slf4j.Logger
@@ -290,10 +292,9 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 			val apkNames = Files.list(cfg.getPath(cfg[apksDir]))
 					.filter { it.toString().endsWith(".apk") }
-					.map { it -> it.fileName.toString() }
-					.toList()
+					.map { it.fileName.toString() }
 
-			if (cfg[deployRawApks] && arrayListOf("inlined", "monitored").any { apkNames.contains(it) })
+			if (cfg[deployRawApks] && arrayListOf("inlined", "monitored").any { apkNames.anyMatch { s -> s.contains(it) } })
 				throw ConfigurationException(
 						"DroidMate was instructed to deploy raw apks, while the apks dir contains an apk " +
 								"with 'inlined' or 'monitored' in its name. Please do not mix such apk with raw apks in one dir.\n" +
@@ -348,8 +349,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			else
 				cfg.getPath(cfg[apksDir]).toAbsolutePath()
 
-			if (cfg.apksDirPath.createDirIfNotExists())
-				log.info("Created directory from which DroidMate will read input apks: " + cfg.apksDirPath.toAbsolutePath().toString())
+			Files.createDirectories(cfg.apksDirPath)
 
 			if (Files.notExists(cfg.droidmateOutputDirPath)) {
 				Files.createDirectories(cfg.droidmateOutputDirPath)

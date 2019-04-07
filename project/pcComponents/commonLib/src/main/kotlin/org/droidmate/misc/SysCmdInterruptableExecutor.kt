@@ -27,7 +27,6 @@ package org.droidmate.misc
 
 import com.google.common.base.Joiner
 import com.google.common.base.Stopwatch
-import com.konradjamrozik.OS
 import org.apache.commons.exec.*
 import org.droidmate.logging.Markers
 import org.droidmate.misc.ISysCmdExecutor.Companion.getExecutionTimeMsg

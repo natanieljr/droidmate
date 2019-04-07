@@ -47,9 +47,6 @@ repositories {
 
 dependencies {
 
-	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
-		exclude group: "org.slf4j", module: "slf4j-simple"
-	}
 	implementation group:'com.github.hotzkow', name: 'platformInterfaceLib', version: "${project.ext.driverLib_version}"
 
 	implementation 'com.natpryce:konfig:1.6.6.0'  // configuration library

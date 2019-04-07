@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.command
 
-import com.konradjamrozik.createDirIfNotExists
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.apk_inliner.ApkInliner
 import org.droidmate.configuration.ConfigurationWrapper
@@ -32,6 +31,7 @@ import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.FailableExploration
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
+import java.nio.file.Files
 
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                               private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
@@ -46,8 +46,7 @@ class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		}
 
 		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
-		if (originalsDir.createDirIfNotExists())
-			log.info("Created directory to hold original apks, before inlining: $originalsDir")
+		Files.createDirectories(originalsDir)
 
 		apks.filter { !it.inlined }.forEach { apk ->
 

@@ -27,7 +27,6 @@ package org.droidmate.device.android_sdk
 
 import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
-import com.konradjamrozik.isDirectory
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.adbHost
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
@@ -571,7 +570,7 @@ Logcat reference:
 		assert(pulledFilePath.isNotEmpty())
 		assert(shellPackageName.isNotEmpty())
 
-		if (!destinationFilePath.isDirectory && Files.exists(destinationFilePath))
+		if (!Files.isDirectory(destinationFilePath) && Files.exists(destinationFilePath))
 			Files.delete(destinationFilePath)
 
 		if(pulledFilePath.endsWith("logcat.txt")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is

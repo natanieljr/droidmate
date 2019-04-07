@@ -25,7 +25,6 @@
 
 package org.droidmate.command
 
-import com.konradjamrozik.isRegularFile
 import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
@@ -318,7 +317,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		Files.walk(outputDir)
 				.filter { it.parent.fileName.toString() != EnvironmentConstants.dir_name_temp_extracted_resources }
 				.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
-				.filter { it.isRegularFile }
+				.filter { Files.isRegularFile(it) }
 				.forEach { Files.delete(it) }
 
 		Files.walk(outputDir)
