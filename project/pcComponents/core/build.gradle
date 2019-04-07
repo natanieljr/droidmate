@@ -30,6 +30,8 @@ dependOnJunit(project)
 
 dependencies {
 	compile 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
+	implementation 'com.github.natanieljr:droidmate-monitor:master-SNAPSHOT'
+	//implementation 'com.github.natanieljr:droidmate-monitor:535c45bef6'
 	//compile 'org.droidmate:common:1.4-SNAPSHOT'
 	
 	compile project(":project:pcComponents:exploration")
