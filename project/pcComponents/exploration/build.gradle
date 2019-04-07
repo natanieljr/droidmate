@@ -30,7 +30,8 @@
 dependencies {
 	compile 'com.github.hotzkow:explorationModel:master-SNAPSHOT' // includes platformInterfaceLib
 //	compile project(':explorationModel')
-	implementation project(':project:pcComponents:commonLib')  // necessary since some reports access ApiLogcatMessage
+	//implementation project(':project:pcComponents:commonLib')  // necessary since some reports access ApiLogcatMessage
+	implementation 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
 
 	api 'com.natpryce:konfig:1.6.6.0'  // configuration library (since StatementCoverageMF access config parameters)
 	

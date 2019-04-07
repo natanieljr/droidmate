@@ -35,7 +35,8 @@ dependOnJunit(project)
 
 dependencies {
 
-	compile project(":project:pcComponents:commonLib")
+	compile 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
+	//compile project(":project:pcComponents:commonLib")
 	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {
 		exclude group: "org.slf4j", module: "slf4j-simple"
 	}
@@ -48,7 +49,7 @@ dependencies {
 
 	compile project(":project:pcComponents:monitor-template")
 }
-
+/*
 //region Tasks to setup resources necessary for a call to MonitorGeneratorFrontend
 
 // Ensure BuildKt.monitored_apis_txt is available at runtime as a resource. 
@@ -164,3 +165,4 @@ build.dependsOn "buildMonitorApk_api23"
 
 // Tests not included because the test shouldn't be run as part of a test suite.
 configureTest(project, [''])
+*/

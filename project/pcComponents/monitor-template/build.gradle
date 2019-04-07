@@ -53,7 +53,7 @@ dependencies {
 
 	compileOnly files(BuildKt.android_sdk_dir.resolve("platforms/android-23/android.jar").toString())
 
-	compile project(":project:pcComponents:commonLib")
+	compile 'com.github.natanieljr:droidmate-common:-SNAPSHOT'
 }
 
 configureTest(project, ['**/MonitorJavaTemplateTest.class'])

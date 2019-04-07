@@ -26,7 +26,7 @@
 // Ensure BuildKt.monitored_apis_txt is available at runtime as a resource.
 processResources.configure { Copy copy -> copy.from(project(":project:pcComponents").file("resources")) }
 
-if(findProject(":project:pcComponents:monitor-generator") != null) {
+/*if(findProject(":project:pcComponents:monitor-generator") != null) {
 	processResources.dependsOn(
 			"pullMonitorApk_api23",
 			"pullUiautomator2DaemonApk",
@@ -37,21 +37,21 @@ if(findProject(":project:pcComponents:monitor-generator") != null) {
 			"pullUiautomator2DaemonApk",
 			"pullUiautomator2DaemonTestApk"
 	)
-}
+}*/
 
 /*processTestResources.dependsOn(
 				"pullApkFixtures",
 				"inlineMonitoredApkFixture_api23"
 )*/
 
-clean.dependsOn(
+/*clean.dependsOn(
 				"cleanMonitorApk_api23",
 				"cleanUiautomator2Daemon",
 				//"cleanApkFixtures"
-)
+)*/
 
 ext.coreResDir = sourceSets.main.resources.srcDirs.findAll { it.path.contains(project.name) }.first()
-apply from: file("monitor.gradle")
+//apply from: file("monitor.gradle")
 apply from: file("deviceControlDaemon.gradle")
 //apply from: file("apkFixtures.gradle")
 

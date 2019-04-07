@@ -27,12 +27,13 @@ apply from: project(":project:pcComponents").file("debug.gradle")
 
 
 dependOnJunit(project)
-evaluationDependsOn(':project:pcComponents:commonLib')
-compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:commonLib:testClasses')
-dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
+//evaluationDependsOn(':project:pcComponents:commonLib')
+//compileTestJava.dependsOn tasks.getByPath(':project:pcComponents:commonLib:testClasses')
+//dependWithTest([project, ":project:pcComponents:commonLib", "kotlin"])
 
 dependencies {
 
+	compile 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
 	compile project(":project:pcComponents:exploration")
 	implementation 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
