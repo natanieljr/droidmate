@@ -25,7 +25,7 @@
 package org.droidmate.command
 
 import org.droidmate.device.android_sdk.AaptWrapper
-import org.droidmate.apk_inliner.ApkInliner
+import org.droidmate.monitor.ApkInliner
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.FailableExploration
@@ -34,7 +34,7 @@ import org.droidmate.tools.ApksProvider
 import java.nio.file.Files
 
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
-                                              private val inliner: ApkInliner = ApkInliner.build(cfg)) : DroidmateCommand() {
+                                              private val inliner: ApkInliner = ApkInliner(cfg.resourceDir)) : DroidmateCommand() {
 
 	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
@@ -49,8 +49,7 @@ class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
 		Files.createDirectories(originalsDir)
 
 		apks.filter { !it.inlined }.forEach { apk ->
-
-			inliner.inline(apk.path, apk.path.parent)
+			inliner.instrumentApk(apk.path, apk.path.parent)
 			log.info("Inlined ${apk.fileName}")
 			moveOriginal(apk, originalsDir)
 		}

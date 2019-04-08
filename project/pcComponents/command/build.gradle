@@ -62,7 +62,8 @@ dependencies {
 	// It works when runApp from IntelliJ or when runApp with 'gradlew :p:reporter:test'
 	testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
-	compile project(":project:pcComponents:tools:apk-inliner")
+	//compile 'com.github.natanieljr:droidmate-monitor:-SNAPSHOT'
+	compile 'org.droidmate:monitor:1.4-SNAPSHOT'
 	compile project(":project:pcComponents:tools:androcov")
 }
 

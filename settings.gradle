@@ -32,8 +32,6 @@ include("project:deviceComponents") // to include the build of the android modul
 
 include(
 		"project:pcComponents", // use this to identify all child projects
-		//"project:pcComponents:commonLib",
-		"project:pcComponents:tools:apk-inliner",
 		"project:pcComponents:tools:androcov",
 		"project:pcComponents:core",
 		"project:pcComponents:exploration",
@@ -41,19 +39,6 @@ include(
 		"project:pcComponents:API"
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
-// monitor seams to be incompatible with android-27 which is the one installed on jitpack
-/*if(Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").resolve("android-23").toFile().exists())
-{  // only include monitor if android platforms are installed to avoid jitpack build fail
-	println("android platforms available, monitor will be generated ${Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").toFile().list()}")
-	include(
-			"project:pcComponents:monitor-template",
-			"project:pcComponents:monitor-generator",
-	)
-
-	// Exclude the run tasks from monitor-generator and apk-inliner when 'run' is called on root level
-	startParameter.excludedTaskNames << "project:pcComponents:monitor-generator:run"
-}*/
-startParameter.excludedTaskNames << "project:pcComponents:tools:apk-inliner:run"
 
 def isIncludedBuild = gradle.parent != null
 if(!isIncludedBuild) {
@@ -70,8 +55,6 @@ if(!isIncludedBuild) {
 		project(':explorationModel').projectDir = new File(eModelDir)
 	}
 }
-
-//project(':deviceControlDaemon').projectDir = new File("project/deviceComponents/deviceControlDaemon/")
 
 /** REMARKS for later reference: */
 //def isIncludedBuild = gradle.parent != null
