@@ -32,7 +32,6 @@ import kotlinx.coroutines.runBlocking
 import org.droidmate.deviceInterface.exploration.isQueueEnd
 import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.IApk
 import org.droidmate.exploration.modelFeatures.misc.unzip
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.ConcreteId.Companion.fromString
@@ -40,6 +39,7 @@ import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.legacy.Resource
+import org.droidmate.misc.IApk
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*

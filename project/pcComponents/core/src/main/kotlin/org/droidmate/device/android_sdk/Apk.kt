@@ -26,8 +26,8 @@
 package org.droidmate.device.android_sdk
 
 import org.apache.commons.io.FilenameUtils
-import org.droidmate.exploration.IApk
 import org.droidmate.logging.Markers
+import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.nio.file.Files

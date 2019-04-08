@@ -33,8 +33,6 @@ buildscript {
 }
 
 dependencies {
-	compile project(":project:pcComponents:command")
-
 	compile 'com.natpryce:konfig:1.6.6.0' // dependency as api since we expose the CommandLineOption to allow for extending configuration parameters
 }
 

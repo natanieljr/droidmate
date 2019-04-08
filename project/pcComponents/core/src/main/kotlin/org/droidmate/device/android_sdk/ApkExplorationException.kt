@@ -25,8 +25,8 @@
 package org.droidmate.device.android_sdk
 
 import org.droidmate.device.error.DeviceException
-import org.droidmate.exploration.IApk
 import org.droidmate.logging.Markers
+import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 
 class ApkExplorationException @JvmOverloads constructor(val apk: IApk,

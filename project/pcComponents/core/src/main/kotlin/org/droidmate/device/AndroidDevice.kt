@@ -28,7 +28,6 @@ package org.droidmate.device
 
 import org.droidmate.device.error.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.exploration.IApk
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.TcpClient.serverAddress
@@ -51,6 +50,7 @@ import org.droidmate.deviceInterface.communication.*
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
+import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path

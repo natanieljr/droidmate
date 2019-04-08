@@ -25,36 +25,36 @@
 
 package org.droidmate.command
 
-import org.droidmate.androcov.StatementInstrumenter
-import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.AaptWrapper
+import org.droidmate.apk_inliner.ApkInliner
+import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.FailableExploration
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 import java.nio.file.Files
 
-class CoverageCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
-                                                private val instrumenter: StatementInstrumenter = StatementInstrumenter(cfg)) : DroidmateCommand() {
+class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
+                                              private val inliner: ApkInliner = ApkInliner.build(cfg.resourceDir)) : DroidmateCommand() {
+
 	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
 		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
-		if (apks.all { it.instrumented }) {
-			log.warn("No non-instrumented apks found. Aborting.")
+		if (apks.all { it.inlined }) {
+			log.warn("No non-inlined apks found. Aborting.")
 			return emptyMap()
 		}
 
 		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
 		Files.createDirectories(originalsDir)
 
-		if (apks.size > 1)
-			log.warn("More than one no-instrumented apk on the input dir. Instrumenting only the first one.")
+		apks.filter { !it.inlined }.forEach { apk ->
 
-		val apk = apks.first { !it.instrumented }
-		instrumenter.instrument(apk, apk.path.parent)
-		log.info("Instrumented ${apk.fileName}")
-		moveOriginal(apk, originalsDir)
+			inliner.inline(apk.path, apk.path.parent)
+			log.info("Inlined ${apk.fileName}")
+			moveOriginal(apk, originalsDir)
+		}
 
 		return emptyMap()
 	}

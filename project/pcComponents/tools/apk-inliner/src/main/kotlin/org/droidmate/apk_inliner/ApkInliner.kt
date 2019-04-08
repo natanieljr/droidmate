@@ -25,23 +25,26 @@
 
 package org.droidmate.apk_inliner
 
-import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.legacy.Resource
-import org.droidmate.misc.*
+import org.droidmate.misc.Dex
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.IJarsignerWrapper
+import org.droidmate.misc.ISysCmdExecutor
+import org.droidmate.misc.Jar
+import org.droidmate.misc.JarsignerWrapper
+import org.droidmate.misc.SysCmdExecutor
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
-
 class ApkInliner constructor(private val sysCmdExecutor: ISysCmdExecutor,
-							 private val jarsignerWrapper: IJarsignerWrapper,
-							 private val inlinerJar: Jar,
-							 private val appGuardLoader: Dex,
-							 private val monitorClassName: String,
-							 private val pathToMonitorApkOnAndroidDevice: String) {
+                             private val jarsignerWrapper: IJarsignerWrapper,
+                             private val inlinerJar: Jar,
+                             private val appGuardLoader: Dex,
+                             private val monitorClassName: String,
+                             private val pathToMonitorApkOnAndroidDevice: String) {
 	fun inline(inputPath: Path, outputDir: Path) {
 		if (!Files.exists(inputPath))
 			Files.createDirectories(inputPath)
@@ -122,15 +125,15 @@ class ApkInliner constructor(private val sysCmdExecutor: ISysCmdExecutor,
 		private val log by lazy { LoggerFactory.getLogger(ApkInliner::class.java) }
 
 		@JvmStatic
-		fun build(cfg: ConfigurationWrapper): ApkInliner {
+		fun build(resourceDir: Path): ApkInliner {
 			val sysCmdExecutor = SysCmdExecutor()
 
 			return ApkInliner(sysCmdExecutor,
 					JarsignerWrapper(sysCmdExecutor,
 							EnvironmentConstants.jarsigner.toAbsolutePath(),
-							Resource("debug.keystore").extractTo(cfg.resourceDir)),
-					Jar(Resource("appguard-inliner.jar").extractTo(cfg.resourceDir)),
-					Dex(Resource("appguard-loader.dex").extractTo(cfg.resourceDir)),
+							Resource("debug.keystore").extractTo(resourceDir)),
+					Jar(Resource("appguard-inliner.jar").extractTo(resourceDir)),
+					Dex(Resource("appguard-loader.dex").extractTo(resourceDir)),
 					"org.droidmate.monitor.Monitor",
 					EnvironmentConstants.AVD_dir_for_temp_files + EnvironmentConstants.monitor_apk_name)
 		}

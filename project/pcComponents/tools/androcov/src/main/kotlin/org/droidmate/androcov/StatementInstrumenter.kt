@@ -26,13 +26,18 @@
 package org.droidmate.androcov
 
 import org.droidmate.ApkContentManager
-import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.IApk
 import org.droidmate.helpClasses.Helper
 import org.droidmate.instrumentation.Runtime
 import org.droidmate.legacy.Resource
 import org.droidmate.manifest.ManifestConstants
-import org.droidmate.misc.*
+import org.droidmate.misc.DroidmateException
+import org.droidmate.misc.EnvironmentConstants
+import org.droidmate.misc.IApk
+import org.droidmate.misc.IJarsignerWrapper
+import org.droidmate.misc.ISysCmdExecutor
+import org.droidmate.misc.JarsignerWrapper
+import org.droidmate.misc.SysCmdExecutor
+import org.droidmate.misc.deleteDir
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import soot.*
@@ -48,11 +53,14 @@ import java.util.*
 /**
  * Instrument statements in an apk.
  */
-class StatementInstrumenter(private val cfg: ConfigurationWrapper,
+class StatementInstrumenter(private val resourceDir: Path,
+                            private val droidmateOutputDirPath: Path,
+                            private val apksDirPath: Path,
                             private val sysCmdExecutor: ISysCmdExecutor = SysCmdExecutor(),
                             private val jarsignerWrapper: IJarsignerWrapper = JarsignerWrapper(sysCmdExecutor,
 									EnvironmentConstants.jarsigner.toAbsolutePath(),
-									Resource("debug.keystore").extractTo(cfg.resourceDir))) {
+									Resource("debug.keystore").extractTo(resourceDir))
+) {
 
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(StatementInstrumenter::class.java) }
@@ -120,9 +128,9 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 		val tmpOutApk = tmpOutputDir.resolve(apk.fileName)
 		apkContentManager.buildApk(tmpOutApk)
 
-		configSoot(tmpOutApk, cfg.droidmateOutputDirPath)
+		configSoot(tmpOutApk, droidmateOutputDirPath)
 
-		return instrumentAndSign(apk, cfg.droidmateOutputDirPath)
+		return instrumentAndSign(apk, droidmateOutputDirPath)
 	}
 
 	/**
@@ -141,12 +149,12 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 		val processDirs = ArrayList<String>()
 		processDirs.add(processingApk.toString())
 
-		val resourceDir = cfg.resourceDir
+		val resourceDir = resourceDir
 			.resolve("Runtime/${Runtime.PACKAGE.replace('.', '/')}")
 
 		helperClasses.forEach { Resource("$it.class").extractTo(resourceDir) }
 
-		val helperDirPath = cfg.resourceDir.resolve("Runtime")
+		val helperDirPath = resourceDir.resolve("Runtime")
 		processDirs.add(helperDirPath.toString())
 
 		// Consider using multiplex, but it crashed for some apps
@@ -210,7 +218,7 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 			writeOutput(signedInlinedApk)
 
 			return Files.move(signedInlinedApk,
-					cfg.apksDirPath.resolve(signedInlinedApk.fileName.toString().replace(".apk", "-instrumented.apk")),
+					apksDirPath.resolve(signedInlinedApk.fileName.toString().replace(".apk", "-instrumented.apk")),
 					StandardCopyOption.REPLACE_EXISTING)
 		} else {
 			log.warn("error instrumenting")
@@ -223,7 +231,7 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 		val apkName = instrumentedApk.fileName.toString()
 		outputMap["outputAPK"] = instrumentedApk.toString()
 		outputMap["allMethods"] = allMethods
-		val instrumentResultFile = cfg.droidmateOutputDirPath.resolve("$apkName.json")
+		val instrumentResultFile = droidmateOutputDirPath.resolve("$apkName.json")
 		val resultJson = JSONObject(outputMap)
 		try {
 			Files.write(instrumentResultFile, resultJson.toString(2).toByteArray())

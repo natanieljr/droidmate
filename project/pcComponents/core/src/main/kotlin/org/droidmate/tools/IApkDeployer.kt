@@ -25,9 +25,9 @@
 
 package org.droidmate.tools
 
-import org.droidmate.exploration.IApk
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.misc.FailableExploration
+import org.droidmate.misc.IApk
 
 /**
  * @see ApkDeployer
@@ -35,5 +35,5 @@ import org.droidmate.misc.FailableExploration
 interface IApkDeployer {
 
 	suspend fun withDeployedApk(device: IRobustDevice, apk: IApk,
-	                            exploreFn: suspend (IApk, IRobustDevice) -> FailableExploration): FailableExploration
+                                exploreFn: suspend (IApk, IRobustDevice) -> FailableExploration): FailableExploration
 }

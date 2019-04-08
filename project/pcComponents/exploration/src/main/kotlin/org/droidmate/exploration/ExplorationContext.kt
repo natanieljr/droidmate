@@ -45,6 +45,7 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.math.min
 import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
+import org.droidmate.misc.IApk
 import java.nio.file.Paths
 
 @Suppress("MemberVisibilityCanBePrivate")

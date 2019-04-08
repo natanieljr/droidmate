@@ -35,6 +35,8 @@ dependencies {
 	//implementation 'org.droidmate:monitor:1.4-SNAPSHOT'
 	
 	compile project(":project:pcComponents:exploration")
+	compile project(":project:pcComponents:tools:apk-inliner")
+	compile project(":project:pcComponents:tools:androcov")
 	implementation 'com.natpryce:konfig:1.6.6.0'  // configuration library
 
 	implementation 'org.apache.commons:commons-lang3:3.8'

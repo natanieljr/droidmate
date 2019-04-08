@@ -39,9 +39,9 @@ import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
-import org.droidmate.exploration.IApk
 import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
+import org.droidmate.misc.IApk
 import org.droidmate.misc.Utils
 import org.slf4j.LoggerFactory
 import java.lang.Thread.sleep
