@@ -31,6 +31,5 @@ include(
 		"projects:uiautomator-daemon-lib",
 		"projects:core",
 		"projects:exploration",
-		"projects:command",
 		"projects:API"
 )

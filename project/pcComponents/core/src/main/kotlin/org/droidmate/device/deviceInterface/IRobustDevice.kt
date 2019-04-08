@@ -26,10 +26,10 @@
 package org.droidmate.device.deviceInterface
 
 import org.droidmate.device.error.DeviceException
-import org.droidmate.exploration.IApk
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.logcat.IDeviceMessagesReader
 import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.misc.IApk
 
 interface IRobustDevice : IAndroidDevice, IDeviceMessagesReader {
 	@Throws(DeviceException::class)

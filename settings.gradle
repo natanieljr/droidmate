@@ -35,7 +35,6 @@ include(
 		"project:pcComponents:tools:androcov",
 		"project:pcComponents:core",
 		"project:pcComponents:exploration",
-		"project:pcComponents:command",
 		"project:pcComponents:API"
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)

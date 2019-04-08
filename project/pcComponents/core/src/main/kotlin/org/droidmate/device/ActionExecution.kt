@@ -6,7 +6,6 @@ import kotlinx.coroutines.launch
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.error.DeviceException
-import org.droidmate.exploration.IApk
 import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.MissingDeviceLogs
@@ -14,6 +13,7 @@ import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.logging.Markers
+import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import kotlin.math.max

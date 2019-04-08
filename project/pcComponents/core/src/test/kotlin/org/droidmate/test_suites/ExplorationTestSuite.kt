@@ -22,32 +22,12 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+package org.droidmate.test_suites
 
-package org.droidmate.exploration
-
-import java.io.Serializable
-import java.nio.file.Path
-
-interface IApk : Serializable {
-	val path: Path
-	val packageName: String
-	val applicationLabel: String
-	val fileName: String
-	val fileNameWithoutExtension: String
-	val absolutePath: String
-
-	val inlined: Boolean
-	val instrumented: Boolean
-
-	val isDummy: Boolean
-
-	/**
-	 * An APK can have multiple launchable activities. Therefore, we set this value
-	 * during run, when we get this information from the device.
-	 */
-	var launchableMainActivityName: String
-	fun updateLaunchableActivityName(newValue: String) {
-		launchableMainActivityName = if (newValue.isBlank()) launchableMainActivityName else newValue
-	}
-
-}
+//@RunWith(Suite::class)  //FIXME
+//@Suite.SuiteClasses(
+//		UiautomatorWindowDumpFunctionsTest::class,
+//		UiautomatorWindowDumpTest::class,
+//		ExplorationStrategyTest::class,
+//		ExplorationTest::class)
+class ExplorationTestSuite

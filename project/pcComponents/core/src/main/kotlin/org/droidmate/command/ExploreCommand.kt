@@ -65,7 +65,6 @@ import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
 import org.droidmate.device.execute
 import org.droidmate.deviceInterface.exploration.*
-import org.droidmate.exploration.IApk
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.resetApp
 import org.droidmate.exploration.modelFeatures.ModelFeature

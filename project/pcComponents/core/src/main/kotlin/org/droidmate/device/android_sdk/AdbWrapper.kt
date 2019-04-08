@@ -38,7 +38,7 @@ import org.droidmate.misc.ISysCmdExecutor
 import org.droidmate.misc.SysCmdExecutorException
 import org.droidmate.misc.Utils
 import org.droidmate.deviceInterface.DeviceConstants
-import org.droidmate.exploration.IApk
+import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
