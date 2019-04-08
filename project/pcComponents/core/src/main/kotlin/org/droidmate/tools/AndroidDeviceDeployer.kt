@@ -156,7 +156,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 					device.uninstallApk(DeviceConstants.uia2Daemon_packageName, true)
 				} else
 					throw UnexpectedIfElseFallthroughError()
-				if(cfg.monitorApkApi23!=null) device.removeJar(cfg.getPath(EnvironmentConstants.monitor_on_avd_apk_name))
+				if(cfg.monitorApk!=null) device.removeJar(cfg.getPath(EnvironmentConstants.monitor_apk_name))
 			}
 		} else
 			log.trace("Device is not available. Skipping tear down.")

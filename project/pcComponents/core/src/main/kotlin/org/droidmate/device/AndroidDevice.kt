@@ -376,8 +376,8 @@ class AndroidDevice constructor(private val serialNumber: String,
 	}
 
 	override fun pushMonitorJar() {
-		if (cfg[apiVersion] == ConfigurationWrapper.api23 && cfg.monitorApkApi23!=null) {
-			this.pushFile(cfg.monitorApkApi23!!, EnvironmentConstants.monitor_on_avd_apk_name)
+		if (cfg[apiVersion] == ConfigurationWrapper.api23 && cfg.monitorApk!=null) {
+			this.pushFile(cfg.monitorApk!!, EnvironmentConstants.monitor_apk_name)
 			this.pushFile(this.cfg.apiPoliciesFile!!, EnvironmentConstants.api_policies_file_name)
 			this.pushFile(this.cfg.monitorPortFile, EnvironmentConstants.monitor_port_file_name)
 			this.pushFile(this.cfg.coveragePortFile, EnvironmentConstants.coverage_port_file_name)

@@ -309,6 +309,18 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		}
 
 		@JvmStatic
+		private fun getCompiledResourcePath(cfg: ConfigurationWrapper,
+											resourceName: String,
+											compileCommand: (Path) -> Path): Path {
+			val path = cfg.resourceDir.resolve(resourceName)
+
+			if (!cfg[replaceResources] && Files.exists(path))
+				return path
+
+			return compileCommand.invoke(cfg.resourceDir)
+		}
+
+		@JvmStatic
 		private fun getResourcePath(cfg: ConfigurationWrapper, resourceName: String): Path {
 			val path = cfg.resourceDir.resolve(resourceName)
 
@@ -334,12 +346,18 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, "deviceControlDaemon-test.apk").toAbsolutePath()
 			log.info("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
 
-			cfg.monitorApkApi23 = try{getResourcePath(cfg, EnvironmentConstants.monitor_api23_apk_name).toAbsolutePath()}catch (e:Throwable){
+			cfg.monitorApk = try {
+				getCompiledResourcePath(cfg, EnvironmentConstants.monitor_apk_name) {
+						path -> org.droidmate.monitor.Compiler.compile(path)
+				}.toAbsolutePath()
+            } catch (e:Throwable) {
 				null
 			}
-			log.info("Using ${EnvironmentConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
+			log.info("Using ${EnvironmentConstants.monitor_apk_name} located at ${cfg.monitorApk}")
 
-			cfg.apiPoliciesFile = try{getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()} catch (e:Throwable){
+			cfg.apiPoliciesFile = try {
+                getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()
+            } catch (e:Throwable) {
 				null
 			}
 			log.info("Using ${EnvironmentConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
