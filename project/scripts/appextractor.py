@@ -103,33 +103,40 @@ def download_file_from_url(url, download_location, file_name):
     urllib.request.urlretrieve(url, os.path.join(download_location, file_name))
 
 
-def download_apps(app_ids, download_location):
-    store_base_url = "https://apkpure.com"
+def download_app(app, category, download_location):
+    apk_path = None
     # Search for the app
-    for (app, category) in app_ids:
-        try:
-            apkpure_search = get_html_from_url(f"{store_base_url}/search?q={app}&t=app")
-            soup = BeautifulSoup(apkpure_search, "lxml")
-            apps = soup.body.find_all(attrs={"class":"search-title"})
-            if len(apps) <= 0:
-                print(f"Could not download: {app}")
-                break
-            href = (apps[0]).find(attrs={"href": True})['href']
-
-            # Follow the first link from the search
-            url = f"{store_base_url}{href}/download?from=details"
-            app_page = get_html_from_url(url)
-            soup = BeautifulSoup(app_page, "lxml")
-            download_elem = soup.body.find(attrs={"id":"download_link"})
-            if download_elem is None:
-                print(f"Could not download: {app}")
-                break
-            download_link = download_elem['href']
-            download_file_from_url(download_link, download_location, f"{category}_{app}.apk")
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
+    store_base_url = "https://apkpure.com"
+    try:
+        apkpure_search = get_html_from_url(f"{store_base_url}/search?q={app}&t=app")
+        soup = BeautifulSoup(apkpure_search, "lxml")
+        apps = soup.body.find_all(attrs={"class": "search-title"})
+        if len(apps) <= 0:
             print(f"Could not download: {app}")
-            pass
+            return apk_path
+        href = (apps[0]).find(attrs={"href": True})['href']
+
+        # Follow the first link from the search
+        url = f"{store_base_url}{href}/download?from=details"
+        app_page = get_html_from_url(url)
+        soup = BeautifulSoup(app_page, "lxml")
+        download_elem = soup.body.find(attrs={"id": "download_link"})
+        if download_elem is None:
+            print(f"Could not download: {app}")
+            return apk_path
+        download_link = download_elem['href']
+        apk_file_name = f"{category}_{app}.apk"
+        download_file_from_url(download_link, download_location, apk_file_name)
+        return os.path.join(download_location, apk_file_name)
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        print(f"Could not download: {app}")
+        return apk_path
+
+
+def download_apps(app_ids, download_location):
+    for (app, category) in app_ids:
+        download_app(app, category, download_location)
 
 
 def get_app_ids_from_play_store_url(url, number, category):

@@ -23,8 +23,6 @@
 //
 // web: www.droidmate.org
 
-import org.droidmate.buildsrc.BuildKt
-
 apply plugin: 'project-report'
 
 /*
@@ -65,60 +63,6 @@ dependencies {
 	testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 	testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 }
-
-File resDir = sourceSets.main.resources.srcDirs.first()
-File buildConstantsFile = new File(resDir, "buildConstants.properties")
-
-task writeBuildConstantsProperties() { Task it ->
-
-	it.outputs.file(buildConstantsFile)
-
-	doLast {
-
-		// Map constants used in both Gradle build scripts and in the compiled classes to a resource file. This way the constants will
-		// be available to the compiled classes in a stand-alone deployment, without the gradle build scripts.
-		//
-		// Do not use Groovy map initializer syntax to define the map due to a known issue:
-		// https://youtrack.jetbrains.com/issue/IDEA-155257
-		//
-		Map<String, String> map = [:]
-		map["apk_inliner_param_input"] = BuildKt.apk_inliner_param_input
-		map["apk_inliner_param_output_dir"] = BuildKt.apk_inliner_param_output_dir
-		map["apk_inliner_param_input_default"] = BuildKt.apk_inliner_param_input_default.toString()
-		map["apk_inliner_param_output_dir_default"] = BuildKt.apk_inliner_param_output_dir_default.toString()
-		map["AVD_dir_for_temp_files"] = BuildKt.AVD_dir_for_temp_files
-		map["jarsigner_relative_path"] = BuildKt.jarsigner_relative_path
-		map["apk_fixtures"] = BuildKt.apk_fixtures
-		map["monitored_inlined_apk_fixture_api23_name"] = BuildKt.monitored_inlined_apk_fixture_api23_name
-		map["monitor_generator_output_relative_path_api23"] = BuildKt.monitor_generator_output_relative_path_api23
-		map["test_temp_dir_name"] = BuildKt.test_temp_dir_name
-		map["monitored_apis_xml"] = BuildKt.monitored_apis_xml
-		map["dir_name_temp_extracted_resources"] = BuildKt.dir_name_temp_extracted_resources
-		map["monitor_generator_res_name_monitor_template"] = BuildKt.monitor_generator_res_name_monitor_template
-		map["aapt_command_relative"] = BuildKt.aapt_command_relative
-		map["adb_command_relative"] = BuildKt.adb_command_relative
-		map["monitor_on_avd_apk_name"] = BuildKt.monitor_on_avd_apk_name
-		map["monitor_api23_apk_name"] = BuildKt.monitor_api23_apk_name
-		map["api_policies_file_name"] = BuildKt.api_policies_file_name
-		map["monitor_port_file_name"] = BuildKt.monitor_port_file_name
-		map["coverage_port_file_name"] = BuildKt.coverage_port_file_name
-		map["locale"] = BuildKt.locale.toString()
-
-		buildConstantsFile.withWriter { BufferedWriter wr ->
-			map.each { key, value ->
-				wr.writeLine(key + "=" + value)
-			}
-		}
-	}
-}
-
-task cleanConstantsFile(type: Delete) {
-	delete file(buildConstantsFile)
-}
-
-clean.dependsOn "cleanConstantsFile"
-
-processResources.dependsOn("writeBuildConstantsProperties")
 
 task testi(type: Test, dependsOn: "testClasses") { Test it ->
 	it.group = "verification"

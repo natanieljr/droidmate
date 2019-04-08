@@ -63,14 +63,14 @@ def get_adb_path():
     if ANDROID_SDK_HOME_ENV_NAME in os.environ:
         return os.path.join(os.environ[ANDROID_SDK_HOME_ENV_NAME], "platform-tools", "adb")
     else:
-        raise ValueErrror("Could not find %s" % ANDROID_SDK_HOME_ENV_NAME)
+        raise ValueError("Could not find %s" % ANDROID_SDK_HOME_ENV_NAME)
 
 
 def get_emulator_path():
     if ANDROID_SDK_HOME_ENV_NAME in os.environ:
         return os.path.join(os.environ[ANDROID_SDK_HOME_ENV_NAME], "emulator", "emulator")
     else:
-        raise ValueErrror("Could not find %s" % ANDROID_SDK_HOME_ENV_NAME)
+        raise ValueError("Could not find %s" % ANDROID_SDK_HOME_ENV_NAME)
 
 
 def wait_for_boot(adb):

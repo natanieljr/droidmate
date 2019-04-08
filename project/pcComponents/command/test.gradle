@@ -31,16 +31,9 @@ SourceDirectorySet testResDirs = project(":project:pcComponents:core").sourceSet
 assert testResDirs.srcDirs.size() == 1
 File testResDir = testResDirs.srcDirs[0]
 assert testResDir.path.endsWith("test" + File.separator + "resources")
-File apkFixturesDir = new File(testResDir, BuildKt.apk_fixtures)
-if (!apkFixturesDir.exists())
-	apkFixturesDir.mkdirs()
-
-assert apkFixturesDir.isDirectory()
 
 def configureTestTask = { Test task ->
 	task.group = "verification"
-
-	task.inputs.dir apkFixturesDir.absolutePath
 
 	// This task is to be run manually, so it should never be up-to-date.
 	task.outputs.upToDateWhen { false }
