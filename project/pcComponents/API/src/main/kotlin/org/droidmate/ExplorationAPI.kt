@@ -27,6 +27,7 @@
 package org.droidmate
 
 import com.natpryce.konfig.CommandLineOption
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.droidmate.command.CoverageCommand
@@ -54,7 +55,8 @@ object ExplorationAPI {
 	 * entry-point to explore an application with a (subset) of default exploration strategies as specified in the property `explorationStrategies`
 	 */
 	@JvmStatic  // -config ../customConfig.properties
-	fun main(args: Array<String>) = runBlocking { // e.g.`-config filePath` or `--configPath=filePath`
+	// use JVM arg -Dlogback.configurationFile=default-logback.xml
+	fun main(args: Array<String>) = runBlocking(CoroutineName("main")) { // e.g.`-config filePath` or `--configPath=filePath`
 		val cfg = setup(args)
 
 		if (cfg[ConfigProperties.ExecutionMode.coverage])

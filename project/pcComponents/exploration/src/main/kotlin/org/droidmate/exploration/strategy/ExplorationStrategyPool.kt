@@ -79,7 +79,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 			runBlocking(selectorThreadPool){
 				selectors
 						.sortedBy { it.priority }
-						.map { Pair(it, async(coroutineContext) { it.selector(mem, pool, it.bundle)
+						.map { Pair(it, async(coroutineContext+ CoroutineName("select-${it.description}")) { it.selector(mem, pool, it.bundle)
 							 }) }
 						.first{ it.second.await() != null }
 			}
