@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.github.natanieljr:droidmate-common:38911ec8c2'
+    compile 'com.github.natanieljr:droidmate-common:master-SNAPSHOT'
 	
 	// We use the Soot version 3.0.1, because we had trouble with Soot 3.1.0.
 	// Soot 3.1.0 was not able to instrument wikihowapp or reddit.
