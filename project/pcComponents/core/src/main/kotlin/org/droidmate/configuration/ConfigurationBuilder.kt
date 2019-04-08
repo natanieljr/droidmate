@@ -287,7 +287,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 			val apkNames = Files.list(cfg.getPath(cfg[apksDir]))
 					.filter { it.toString().endsWith(".apk") }
-					.map { it -> it.fileName.toString() }
+					.map { it.fileName.toString() }
 					.toList()
 
 			if (cfg[deployRawApks] && arrayListOf("inlined", "monitored").any { apkNames.contains(it) })
