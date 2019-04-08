@@ -262,7 +262,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		@Throws(ConfigurationException::class)
 		private fun bindAndValidate(config: ConfigurationWrapper): ConfigurationWrapper {
 			try {
-				setLogbackRootLoggerLoggingLevel(config)
 				setupResourcesAndPaths(config)
 				validateExplorationSettings(config)
 				normalizeAndroidApi(config)
@@ -351,25 +350,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			if (Files.notExists(cfg.droidmateOutputDirPath)) {
 				Files.createDirectories(cfg.droidmateOutputDirPath)
 				log.info("Created directory to which DroidMate will output: " + cfg.droidmateOutputDirPath.toAbsolutePath().toString())
-			}
-		}
-
-		@JvmStatic
-		@Throws(ConfigurationException::class)
-		private fun setLogbackRootLoggerLoggingLevel(config: ConfigurationWrapper) {
-			val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
-			val explorationLogger = LoggerFactory.getLogger("org.droidmate.exploration")
-
-			if (rootLogger is ch.qos.logback.classic.Logger) {
-				if (config[logLevel].toLowerCase() in arrayListOf("info", "debug", "trace", "warn", "error")) {
-					rootLogger.level = Level.toLevel(config[logLevel])
-					if (explorationLogger is ch.qos.logback.classic.Logger)
-						explorationLogger.level = Level.toLevel(config[logLevel])
-				} else
-					throw ConfigurationException("Unrecognized logging level. Given level: ${config[logLevel]}. Expected one of levels: info debug trace")
-			}
-			else{
-				rootLogger.warn("Logger is using ${rootLogger::class.java.simpleName} instead of ${ch.qos.logback.classic.Logger::class.java.simpleName}, cannot configure the logcat level.")
 			}
 		}
 
