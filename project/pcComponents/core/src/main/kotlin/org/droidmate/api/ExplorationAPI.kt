@@ -24,7 +24,7 @@
 // web: www.droidmate.org
 @file:Suppress("unused")
 
-package org.droidmate
+package org.droidmate.api
 
 import com.natpryce.konfig.CommandLineOption
 import kotlinx.coroutines.CoroutineName
@@ -52,7 +52,7 @@ object ExplorationAPI {
 	private val log by lazy { LoggerFactory.getLogger(ExplorationAPI::class.java) }
 
 	/**
-	 * entry-point to explore an application with a (subset) of default exploration strategies as specified in the property `explorationStrategies`
+	 * Entry-point to explore an application with a (subset) of default exploration strategies as specified in the property `explorationStrategies`
 	 */
 	@JvmStatic  // -config ../customConfig.properties
 	// use JVM arg -Dlogback.configurationFile=default-logback.xml
@@ -60,13 +60,13 @@ object ExplorationAPI {
 		val cfg = setup(args)
 
 		if (cfg[ConfigProperties.ExecutionMode.coverage])
-			instrument(cfg)
+            ExplorationAPI.instrument(cfg)
 
 		if (cfg[ConfigProperties.ExecutionMode.inline])
-			inline(cfg)
+            ExplorationAPI.inline(cfg)
 
 		if (cfg[ConfigProperties.ExecutionMode.explore])
-			explore(cfg)
+            ExplorationAPI.explore(cfg)
 
 		if ( !cfg[ConfigProperties.ExecutionMode.explore] &&
 				!cfg[ConfigProperties.ExecutionMode.inline] &&
@@ -84,7 +84,7 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	suspend fun instrument(args: Array<String> = emptyArray()) = coroutineScope{
-		instrument(setup(args))
+        ExplorationAPI.instrument(setup(args))
 	}
 
 	@JvmStatic
@@ -97,17 +97,21 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	suspend fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	            selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args)),
-	            modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
-		return explore(setup(args), strategies, selectors, watcher, modelProvider)
+                        selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(
+            setup(args)
+        ),
+                        modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
+		return ExplorationAPI.explore(setup(args), strategies, selectors, watcher, modelProvider)
 	}
 
 
 	@JvmStatic
 	@JvmOverloads
 	suspend fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
-	                    selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(cfg),
-	                    modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> = coroutineScope{
+                        selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(
+            cfg
+        ),
+                        modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> = coroutineScope{
 		val runStart = Date()
 		val exploration = ExploreCommand.build(cfg, watcher = watcher, strategies = strategies
 				?: ExploreCommand.getDefaultStrategies(cfg), selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg)
@@ -123,7 +127,7 @@ object ExplorationAPI {
 	@JvmOverloads
 	suspend fun inline(args: Array<String> = emptyArray()) {
 		val cfg = setup(args)
-		inline(cfg)
+        ExplorationAPI.inline(cfg)
 	}
 
 	@JvmStatic
@@ -132,17 +136,20 @@ object ExplorationAPI {
 	}
 
 	/**
-	 * 1. inline the apks in the directory if they do not end on `-inlined.apk`
-	 * 2. run the exploration with the strategies listed in the property `explorationStrategies`
+	 * 1. Inline the apks in the directory if they do not end on `-inlined.apk`
+	 * 2. Run the exploration with the strategies listed in the property `explorationStrategies`
 	 */
 	@JvmStatic
 	@JvmOverloads
 	suspend fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): Map<Apk, FailableExploration> = coroutineScope{
+	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(
+            setup(args)
+        )
+    ): Map<Apk, FailableExploration> = coroutineScope{
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
-		return@coroutineScope explore(cfg, strategies, selectors, watcher)
+		return@coroutineScope ExplorationAPI.explore(cfg, strategies, selectors, watcher)
 	}
 
 

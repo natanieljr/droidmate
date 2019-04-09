@@ -29,6 +29,5 @@ rootProject.name = 'droidmate'
 include(
 		"projects:uiautomator-daemon-lib",
 		"projects:core",
-		"projects:exploration",
-		"projects:API"
+		"projects:exploration"
 )

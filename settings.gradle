@@ -33,8 +33,7 @@ include("project:deviceComponents") // to include the build of the android modul
 include(
 		"project:pcComponents", // use this to identify all child projects
 		"project:pcComponents:core",
-		"project:pcComponents:exploration",
-		"project:pcComponents:API"
+		"project:pcComponents:exploration"
 //		,":deviceControlDaemon" // not working Failed to apply plugin [id 'com.android.application']
 		)
 

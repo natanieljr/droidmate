@@ -23,30 +23,26 @@
 //
 // web: www.droidmate.org
 
-buildscript {
-	repositories {
-		jcenter()
+package org.droidmate.api
+
+import org.droidmate.command.InlineCommand
+import org.droidmate.configuration.ConfigurationWrapper
+import org.slf4j.LoggerFactory
+
+@Suppress("unused")
+object Instrumentation {
+	private val log by lazy { LoggerFactory.getLogger(Instrumentation::class.java) }
+
+	/****************************** Apk-Inline API methods *****************************/
+	@JvmStatic
+	@JvmOverloads
+	suspend fun inline(args: Array<String> = emptyArray()) {
+        Instrumentation.inline(setup(args))
 	}
-	dependencies {
-		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'  // requires jcenter
+
+	@JvmStatic
+	suspend fun inline(cfg: ConfigurationWrapper) {
+		log.info("inline the apks if necessary")
+		InlineCommand(cfg).execute(cfg)
 	}
 }
-
-dependencies {
-	compile project(":project:pcComponents:core")
-
-	compile 'com.natpryce:konfig:1.6.6.0' // dependency as api since we expose the CommandLineOption to allow for extending configuration parameters
-}
-
-apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
-shadowJar {
-	baseName = 'shadow'
-	manifest {
-		attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
-	}
-}
-
-// make this jar to the
-//jar.baseName = rootProject.name
-
-

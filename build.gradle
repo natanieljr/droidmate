@@ -106,10 +106,6 @@ configure(pcJvmTargets) {
 
 apply plugin: "kotlin"
 
-dependencies {
-	compile project(":project:pcComponents:API")
-}
-
 jar {
 	manifest {
 		attributes 'Main-Class': "org.droidmate.API.ExplorationAPI"

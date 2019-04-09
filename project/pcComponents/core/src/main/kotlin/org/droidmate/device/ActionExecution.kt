@@ -97,8 +97,8 @@ private suspend fun defaultExecution(action: ExplorationAction, device: IRobustD
 }
 
 private fun resetApp(app: IApk, device: IRobustDevice){
-	log.debug("LaunchApp action was issued this will kill the current app process if it is active and re-launch it")
-	log.debug("try to terminate app process")
+	log.debug("LaunchApp action was issued. This will kill the current app process if it is active and re-launch it.")
+	log.debug("Try to terminate app process.")
 	device.clearPackage(app.packageName)
 
 	log.debug("Ensure home screen is displayed.")

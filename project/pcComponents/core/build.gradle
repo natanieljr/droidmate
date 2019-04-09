@@ -22,9 +22,18 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 apply plugin: 'idea'
 apply from: project(":project:pcComponents").file("debug.gradle")
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'  // requires jcenter
+    }
+}
 
 dependOnJunit(project)
 
@@ -72,5 +81,13 @@ sourceSets {
 			//     runtimeClasspath += sourceSets.test.runtimeClasspath // ***)
 		}
 	}
+}
+
+apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
+shadowJar {
+    baseName = 'shadow'
+    manifest {
+        attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
+    }
 }
 
