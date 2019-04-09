@@ -95,6 +95,7 @@ object ExplorationAPI {
 
 	/****************************** Exploration API methods *****************************/
 	@JvmStatic
+	@JvmOverloads
 	suspend fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
 	            selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args)),
 	            modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
@@ -135,6 +136,7 @@ object ExplorationAPI {
 	 * 2. run the exploration with the strategies listed in the property `explorationStrategies`
 	 */
 	@JvmStatic
+	@JvmOverloads
 	suspend fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
 	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(setup(args))): Map<Apk, FailableExploration> = coroutineScope{
 		val cfg = setup(args)
