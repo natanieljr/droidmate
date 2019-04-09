@@ -54,7 +54,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 		}
 
 		val explResult = exploreFn(apk,device)  // all exploration exceptions should be handled internally by in function
-		if(explResult.error.isNotEmpty()) {
+		if (explResult.error.isNotEmpty()) {
 			log.warn(Markers.appHealth,
 					"! Caught Exceptions during exploration in withDeployedApk($device, ${apk.fileName})->computation(). " +
 							"Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected error list.\n" +
@@ -62,18 +62,19 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 			log.error(Markers.appHealth, explResult.error.joinToString(separator = "\n") { it.localizedMessage }, explResult.error)
 
 		}
-			log.debug("Finalizing: withDeployedApk($device, ${apk.fileName}).finally{} for computation($apk.fileName)")
-			try {
-				tryUndeployApk(device, apk)
-			} catch (undeployApkThrowable: Throwable) {
-				log.warn(Markers.appHealth,
-						"! Caught ${undeployApkThrowable.javaClass.simpleName} in withDeployedApk($device, ${apk.fileName})->tryUndeployApk(). " +
-								"Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected error list.\n" +
-								"The ${undeployApkThrowable.javaClass.simpleName}: $undeployApkThrowable")
-				log.error(Markers.appHealth, undeployApkThrowable.message, undeployApkThrowable)
-				// if we have an error on undeploy this does not affect the exploration results therefore this error is only logged
-			}
-			log.debug("Finalizing DONE: withDeployedApk($device, ${apk.fileName}).finally{} for computation($apk.fileName)")
+
+		log.debug("Finalizing: withDeployedApk($device, ${apk.fileName}).finally{} for computation($apk.fileName)")
+		try {
+			tryUndeployApk(device, apk)
+		} catch (undeployApkThrowable: Throwable) {
+			log.warn(Markers.appHealth,
+					"! Caught ${undeployApkThrowable.javaClass.simpleName} in withDeployedApk($device, ${apk.fileName})->tryUndeployApk(). " +
+							"Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected error list.\n" +
+							"The ${undeployApkThrowable.javaClass.simpleName}: $undeployApkThrowable")
+			log.error(Markers.appHealth, undeployApkThrowable.message, undeployApkThrowable)
+			// if we have an error on undeploy this does not affect the exploration results therefore this error is only logged
+		}
+		log.debug("Finalizing DONE: withDeployedApk($device, ${apk.fileName}).finally{} for computation($apk.fileName)")
 
 		log.trace("Undeployed apk $apk.fileName")
 		return explResult

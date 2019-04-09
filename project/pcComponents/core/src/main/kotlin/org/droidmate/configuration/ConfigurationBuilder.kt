@@ -87,9 +87,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRota
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.back
 import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
-import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
 import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
-import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.reset
 import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
@@ -104,6 +102,7 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInt
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdleTimeout
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
 import org.droidmate.legacy.Resource
 import org.droidmate.legacy.ResourcePath
 import org.droidmate.logging.Markers.Companion.runData
@@ -146,7 +145,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(explore, description = "Run DroidMate in exploration mode."),
 			CommandLineOption(coverage, description = "If present, instead of normal run, DroidMate will run in 'instrument APK for coverage' mode. This flag cannot be combined with another execution mode."),
 			// Deploy
-			CommandLineOption(enableCoverage, description = "If true, the statement coverage of the exploration will be measured. This requires the apk to be instrumented with 'coverage' mode."),
 			CommandLineOption(installApk, description = "Reinstall the app to the device. If the app is not previously installed the exploration will fail"),
 			CommandLineOption(installAux, description = "Reinstall the auxiliary files (UIAutomator and Monitor) to the device. If the auxiliary files are not previously installed the exploration will fail."),
 			CommandLineOption(uninstallApk, description = "Uninstall the APK after the exploration."),
@@ -180,7 +178,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(widgetActionDelay, description = "Default delay to be applied after interacting with a widget (click, long click, tick)"),
 			// Output
 			CommandLineOption(outputDir, description = "Path to the directory that will contain DroidMate exploration output."),
-			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data."),
 			CommandLineOption(screenshotDir, description = "Path to the directory that will contain the screenshots from an exploration."),
 			CommandLineOption(reportDir, description = "Path to the directory that will contain the report files."),
 			// Strategies
@@ -188,8 +185,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(ConfigProperties.Strategies.explore, description = "Enables use of biased random exploration strategy."),
 			CommandLineOption(terminate, description = "Enables use of default terminate strategy."),
 			CommandLineOption(back, description = "Enables use of 'press back button' strategy"),
-			CommandLineOption(modelBased, description = "Enables use of random exploration strategy using static model."),
-			CommandLineOption(fitnessProportionate, description = "Enables use of random exploration strategy using static model and fitness proportionate selection."),
 			CommandLineOption(allowRuntimeDialog, description = "Enables use of strategy to always click 'Allow' on permission dialogs."),
 			CommandLineOption(denyRuntimeDialog, description = "Enables use of strategy to always click 'Deny' on permission dialogs."),
 			CommandLineOption(playback, description = "Enables use of playback strategy (if a playback model is provided)."),
@@ -219,7 +214,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(enablePrintOuts, description = "Enable or disable debug and performance outputs on the device output (in the LogCat)."),
 			CommandLineOption(socketTimeout, description = "Socket timeout to communicate with the UiDaemonServer."),
 			CommandLineOption(basePort, description = "The base port for the communication with the devices. DroidMate communicates over this base port + device index."),
-			CommandLineOption(delayedImgFetch, description = "Option to allow for faster exploration by delaying screen-shot fetch to an asynchronous call.")
+			CommandLineOption(delayedImgFetch, description = "Option to allow for faster exploration by delaying screen-shot fetch to an asynchronous call."),
+			// StatementCoverage
+			CommandLineOption(enableCoverage, description = "If true, the statement coverage of the exploration will be measured. This requires the apk to be instrumented with 'coverage' mode."),
+			CommandLineOption(onlyCoverAppPackageName, description = "Only instrument statement coverage for statements belong inside the app package name scope. Libraries with other package names will be ignored. Be aware that this filtering might not be always correct."),
+			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data.")
 			).first, fs)
 
 	@Throws(ConfigurationException::class)
@@ -267,7 +266,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 		@Throws(ConfigurationException::class)
 		private fun bindAndValidate(config: ConfigurationWrapper): ConfigurationWrapper {
 			try {
-				setLogbackRootLoggerLoggingLevel(config)
 				setupResourcesAndPaths(config)
 				validateExplorationSettings(config)
 				normalizeAndroidApi(config)
@@ -372,25 +370,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			if (Files.notExists(cfg.droidmateOutputDirPath)) {
 				Files.createDirectories(cfg.droidmateOutputDirPath)
 				log.info("Created directory to which DroidMate will output: " + cfg.droidmateOutputDirPath.toAbsolutePath().toString())
-			}
-		}
-
-		@JvmStatic
-		@Throws(ConfigurationException::class)
-		private fun setLogbackRootLoggerLoggingLevel(config: ConfigurationWrapper) {
-			val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
-			val explorationLogger = LoggerFactory.getLogger("org.droidmate.exploration")
-
-			if (rootLogger is ch.qos.logback.classic.Logger) {
-				if (config[logLevel].toLowerCase() in arrayListOf("info", "debug", "trace", "warn", "error")) {
-					rootLogger.level = Level.toLevel(config[logLevel])
-					if (explorationLogger is ch.qos.logback.classic.Logger)
-						explorationLogger.level = Level.toLevel(config[logLevel])
-				} else
-					throw ConfigurationException("Unrecognized logging level. Given level: ${config[logLevel]}. Expected one of levels: info debug trace")
-			}
-			else{
-				rootLogger.warn("Logger is using ${rootLogger::class.java.simpleName} instead of ${ch.qos.logback.classic.Logger::class.java.simpleName}, cannot configure the logcat level.")
 			}
 		}
 

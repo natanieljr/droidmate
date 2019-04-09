@@ -29,13 +29,14 @@ import org.droidmate.coverage.Instrumenter
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
 import org.droidmate.misc.FailableExploration
 import org.droidmate.tools.ApksProvider
 import java.nio.file.Files
 
 class CoverageCommand @JvmOverloads constructor(
 	cfg: ConfigurationWrapper,
-	private val instrumenter: Instrumenter = Instrumenter(cfg.resourceDir)
+	private val instrumenter: Instrumenter = Instrumenter(cfg.resourceDir, cfg[onlyCoverAppPackageName])
 ) : DroidmateCommand() {
 	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
 		val apksProvider = ApksProvider(AaptWrapper())

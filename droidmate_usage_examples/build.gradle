@@ -11,7 +11,7 @@ buildscript {
 
 apply plugin: 'kotlin'
 apply plugin: 'application'
-mainClassName = "saarland.cispa.droidmate.example.Example"
+mainClassName = "org.droidmate.example.Example"
 
 group = 'org.droidmate.droidmate-2'
 version = '1.1-SNAPSHOT'

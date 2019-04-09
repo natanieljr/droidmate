@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%-35(%d{HH:mm:ss.SSS} [%thread]) | %-5level | %-35class{35} | %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.droidmate.command.ExploreCommand" level="INFO"/>
+    <logger name="org.droidmate.configuration.ConfigurationBuilder" level="WARN"/>
+    <logger name="org.droidmate.configuration.ConfigurationBuilder$Companion" level="WARN"/>
+    <logger name="org.droidmate.device.AndroidDevice" level="INFO"/>
+    <logger name="org.droidmate.device.logcat.ApiLogsReader" level="INFO"/>
+    <logger name="org.droidmate.exploration.statemodel.loader" level="INFO"/>
+    <logger name="org.droidmate.exploration.strategy.ExplorationStrategyPool" level="INFO"/>
+    <logger name="org.droidmate.misc.SysCmdExecutor" level="WARN"/>
+    <logger name="org.droidmate.misc.SysCmdInterruptableExecutor" level="WARN"/>
+    <logger name="PC-ActionRun" level="INFO"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

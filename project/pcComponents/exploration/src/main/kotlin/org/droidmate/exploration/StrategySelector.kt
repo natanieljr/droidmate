@@ -79,11 +79,11 @@ class StrategySelector constructor(val priority: Int,
 			val timeLimit = bundle!![0].toString().toInt()
 			if(timeLimit <= 0) null
 			else {
-				val diff = context.getExplorationTimeInMs() //TODO check if this works and doesn't raise an exception because eContext start time is not yet initialized
+				val diff = context.getExplorationTimeInMs()
 
-				debugOut("remaining exploration time ${"%.1f".format((timeLimit-diff)/1000.0)}s")
+				logger.debug("remaining exploration time: ${"%.1f".format((timeLimit-diff)/1000.0)}s")
 				if (diff >= timeLimit) {
-					logger.debug("Exploration time exhausted. Returning 'Terminate'")
+					logger.info("Exploration time exhausted. Returning 'Terminate'")
 					Terminate
 				} else
 					null
@@ -145,22 +145,6 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
 		val randomWidget: SelectorFunction = { _, pool, _ ->
 			pool.getFirstInstanceOf(RandomWidget::class.java)
-		}
-
-		/**
-		 * Randomly selects a widget among those classified by a static model as "has event" and acts over it
-		 */
-		@JvmStatic
-		val randomWithModel: SelectorFunction = { _, pool, _ ->
-			pool.getFirstInstanceOf(ModelBased::class.java)
-		}
-
-		/**
-		 * Selects a widget among those classified by a static model as "has event" and acts over it
-		 */
-		@JvmStatic
-		val randomBiased: SelectorFunction = { _, pool, _ ->
-			pool.getFirstInstanceOf(FitnessProportionateSelection::class.java)
 		}
 
 		/**

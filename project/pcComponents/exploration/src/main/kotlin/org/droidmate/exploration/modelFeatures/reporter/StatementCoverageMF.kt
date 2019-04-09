@@ -31,11 +31,12 @@ import com.natpryce.konfig.getValue
 import com.natpryce.konfig.stringType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
+import org.droidmate.coverage.ID_STR
+import org.droidmate.coverage.INSTRUMENTATION_FILE_METHODS_PROP
+import org.droidmate.coverage.INSTRUMENTATION_FILE_SUFFIX
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.ExplorationTrace
-import org.droidmate.explorationModel.config.ConfigProperties
-import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.FeatureDir
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
@@ -47,7 +48,6 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.util.*
@@ -63,14 +63,13 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
                           private val config: ModelConfig,
                           private val readStatements: ()-> List<List<String>>,
                           private val appName: String,
+                          private val resourceDir: Path,
                           private val fileName: String = "coverage.txt") : ModelFeature() {
 
     private val log: Logger by lazy { LoggerFactory.getLogger(StatementCoverageMF::class.java) }
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
     override val coroutineContext: CoroutineContext = CoroutineName("StatementCoverageMF") + Job()
-
-    private val instrumentationDir = Paths.get(config[ConfigProperties.ModelProperties.path.FeatureDir].toString()).toAbsolutePath()
 
     private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
     private val instrumentationMap: Map<String, String>
@@ -97,17 +96,16 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
      * Returns a map which is used for the coverage calculation.
      */
     private fun getInstrumentation(apkName: String): Map<String, String> {
-        return if (!Files.exists(instrumentationDir)) {
-            log.warn("Provided Dir does not exist: ${config[FeatureDir]}." +
+        return if (!Files.exists(resourceDir)) {
+            log.warn("Provided Dir does not exist: $resourceDir." +
                 "DroidMate will monitor coverage, but won't be able to calculate the coverage.")
             emptyMap()
         } else {
-            val instrumentationFile = getInstrumentationFile(apkName)
-
+            val instrumentationFile = getInstrumentationFile(apkName, resourceDir)
             if (instrumentationFile != null)
                 readInstrumentationFile(instrumentationFile)
             else {
-                log.warn("Provided Dir (${config[FeatureDir]}) does not contain " +
+                log.warn("Provided directory ($resourceDir) does not contain " +
                     "the corresponding instrumentation file. DroidMate will monitor coverage, but won't be able" +
                     "to calculate the coverage.")
                 emptyMap()
@@ -124,34 +122,33 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
      * apkName = a2dp.Vol_137.apk
      * return: instrumentation-a2dp.Vol.json
      */
-    private fun getInstrumentationFile(apkName: String): Path? {
-        return Files.list(instrumentationDir)
+    private fun getInstrumentationFile(apkName: String, targetDir: Path): Path? {
+        return Files.list(targetDir)
             .filter {
                 it.fileName.toString().contains(apkName)
-                    && it.fileName.toString().endsWith(".apk.json")
+                    && it.fileName.toString().endsWith(".apk$INSTRUMENTATION_FILE_SUFFIX")
             }
             .toList()
             .firstOrNull()
     }
 
     @Throws(IOException::class)
-    private fun readInstrumentationFile(instrumentationFile: Path): Map<String, String> {
+    private fun readInstrumentationFile(instrumentationFile: Path?): Map<String, String> {
         val jsonData = String(Files.readAllBytes(instrumentationFile))
         val jObj = JSONObject(jsonData)
 
-        val jArr = JSONArray(jObj.getJSONArray("allMethods").toString())
-
-        val l = "9946a686-9ef6-494f-b893-ac8b78efb667".length
+        val jArr = JSONArray(jObj.getJSONArray(INSTRUMENTATION_FILE_METHODS_PROP).toString())
         val statements: MutableMap<String, String> = mutableMapOf()
+
         (0 until jArr.length()).forEach { idx ->
             val method = jArr[idx]
 
-            val parts = method.toString().split("uuid=".toRegex(), 2).toTypedArray()
-            val uuid = parts.last()
+            val parts = method.toString().split(ID_STR.toRegex(), 2).toTypedArray()
+            val id = parts.last()
 
-            assert(uuid.length == l) { "Invalid UUID $uuid $method" }
+            assert(id.toLong() >= 0) { "Invalid id: $id" }
 
-            statements[uuid] = method.toString()
+            statements[id] = method.toString()
         }
 
         return statements
@@ -181,20 +178,17 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
 
         readStatements
             .forEach { statement ->
-                val statementStr = statement[1]
-                val parts = statementStr.split("uuid=".toRegex(), 2).toTypedArray()
-
-                // Get uuid
-                assert(parts.size > 1)
-                val uuid = parts.last()
                 val timestamp = statement[0]
                 val tms = dateFormat.parse(timestamp)
 
-                // Add the statement if it wasn't executed before
-                val found = executedStatementsMap.containsKey(uuid)
+                val id = statement[1]
+                assert(id.toLong() >= 0) { "Invalid id: $id" }
 
-                if (!found /*&& instrumentationMap.containsKey(uuid)*/)
-                    executedStatementsMap[uuid] = tms
+                // Add the statement if it wasn't executed before
+                val found = executedStatementsMap.containsKey(id)
+
+                if (!found /*&& instrumentationMap.containsKey(id)*/)
+                    executedStatementsMap[id] = tms
             }
 
         log.info("Current statement coverage: ${getCurrentCoverage()}. Encountered statements: ${executedStatementsMap.size}")
@@ -203,7 +197,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
         if (readStatements.isNotEmpty()) {
             val lastId = trace.last()?.actionId ?: 0
             val file = getLogFilename(lastId)
-            launch(IO) { Files.write(file, readStatements.map { it[1] }) }
+            launch(IO) { Files.write(file, readStatements.map { "${it[1]};${it[0]}" }) }
         }
     }
 
@@ -236,10 +230,11 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
     }
 
     companion object {
-        private const val header = "Statement;Time"
+        private const val header = "Statement(id);Time(Duration in sec till first occurrence)"
 
         object StatementCoverage : PropertyGroup() {
             val enableCoverage by booleanType
+            val onlyCoverAppPackageName by booleanType
             val coverageDir by stringType
         }
 

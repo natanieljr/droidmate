@@ -46,6 +46,7 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.math.min
 import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
+import org.droidmate.misc.EnvironmentConstants
 import java.nio.file.Paths
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -85,11 +86,12 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 
 
 	init {
-		debugOutput = _model.config[debugMode] // disable debug ouptuts if not in debug mode
+		debugOutput = _model.config[debugMode] // disable debug outputs if not in debug mode
 		measurePerformance = _model.config[debugMode]
 		if (_model.config[enableCoverage]){
 			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[coverageDir]).toAbsolutePath()
-			watcher.add(StatementCoverageMF(coverageDir, _model.config, readDeviceStatements, _model.config.appName))
+			val resourceDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(EnvironmentConstants.dir_name_temp_extracted_resources).toAbsolutePath()
+			watcher.add(StatementCoverageMF(coverageDir, _model.config, readDeviceStatements, _model.config.appName, resourceDir))
 		}
 	}
 
