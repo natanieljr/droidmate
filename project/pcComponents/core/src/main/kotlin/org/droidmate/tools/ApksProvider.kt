@@ -61,7 +61,7 @@ class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
 		if (apks.isEmpty())
 			log.warn("No apks found! Apks were expected to be found in: {}", apksDir.toAbsolutePath().toString())
 
-		var builtApks = apks.map { Apk.build(aapt, it) }.toList()
+		var builtApks = apks.map { Apk.fromFile(it) }.toList()
 
 		builtApks.filter { !it.inlined }.forEach { p -> log.info("Following input apk is not inlined: ${p.fileName}") }
 
