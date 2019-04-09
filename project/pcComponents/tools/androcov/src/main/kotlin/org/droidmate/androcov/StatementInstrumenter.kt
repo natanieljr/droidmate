@@ -29,6 +29,10 @@ import com.konradjamrozik.Resource
 import org.droidmate.ApkContentManager
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.IApk
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.ID_STR
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.INSTRUMENTATION_FILE_METHODS_PROP
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.INSTRUMENTATION_FILE_SUFFIX
 import org.droidmate.helpClasses.Helper
 import org.droidmate.instrumentation.Runtime
 import org.droidmate.manifest.ManifestConstants
@@ -65,6 +69,11 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 										"TcpServerBase\$1",
 										"TcpServerBase\$MonitorServerRunnable",
 										"TcpServerBase")
+	private val excludedPackages = listOf("android.support.",
+										"com.google.",
+										"com.android.",
+										"android.java.")
+
 	private lateinit var helperSootClasses: List<SootClass>
 	private lateinit var runtime: Runtime
 	private lateinit var apkContentManager: ApkContentManager
@@ -167,33 +176,9 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 	private fun instrumentAndSign(apk: IApk, sootOutputDir: Path): Path {
 		log.info("Start instrumenting coverage...")
 
-		val refinedPackageName = refinePackageName(apk.packageName)
-		PackManager.v().getPack("jtp").add(Transform("jtp.androcov", object : BodyTransformer() {
-			override fun internalTransform(b: Body, phaseName: String, options: MutableMap<String, String>) {
-				val units = b.units
-				// important to use snapshotIterator here
-				// Skip if the current class is one of the classes we use to instrument the coverage
-				if (helperSootClasses.any { it === b.method.declaringClass }) { return }
-				val methodSig = b.method.signature
+		val transformer = ITransformer(cfg[onlyCoverAppPackageName], apk.packageName)
 
-				if (methodSig.startsWith("<$refinedPackageName")) {
-					// perform instrumentation here
-					val iterator = units.snapshotIterator()
-					while (iterator.hasNext()) {
-						val u = iterator.next()
-						val uuid = UUID.randomUUID()
-						// Instrument statements
-						if (u !is JIdentityStmt) {
-							allMethods.add(u.toString() + " uuid=" + uuid)
-
-							val logStatement = runtime.makeCallToStatementPoint("$methodSig uuid=$uuid")
-							units.insertBefore(logStatement, u)
-						}
-					}
-					b.validate()
-				}
-			}
-		}))
+		PackManager.v().getPack("jtp").add(transformer)
 
 		PackManager.v().runPacks()
 		PackManager.v().writeOutput()
@@ -218,12 +203,52 @@ class StatementInstrumenter(private val cfg: ConfigurationWrapper,
 		throw DroidmateException("Failed to instrument $apk. Instrumented APK not found.")
 	}
 
+	/**
+	 * Custom statement instrumentation transformer.
+	 * Each statement is uniquely assigned by an incrementing long counter (2^64 universe).
+	 */
+	inner class ITransformer(onlyCoverAppPackageName: Boolean, packageName: String) : Transform("jtp.androcov", object : BodyTransformer() {
+
+		private var counter: Long = 0
+		private val refinedPackageName = refinePackageName(packageName)
+
+		override fun internalTransform(b: Body, phaseName: String, options: MutableMap<String, String>) {
+			val units = b.units
+			// Important to use snapshotIterator here
+			// Skip if the current class is one of the classes we use to instrument the coverage
+			if (helperSootClasses.any { it === b.method.declaringClass }) { return }
+			// Skip if the current class belongs to the Android OS
+			if (excludedPackages.any { b.method.declaringClass.toString().startsWith(it) }) { return }
+
+			val methodSig = b.method.signature
+
+			if (!onlyCoverAppPackageName ||
+				(onlyCoverAppPackageName && methodSig.startsWith("<$refinedPackageName"))) {
+
+				// Perform instrumentation here
+				val iterator = units.snapshotIterator()
+				while (iterator.hasNext()) {
+					val u = iterator.next()
+					// Instrument statements
+					if (u !is JIdentityStmt) {
+						val id = counter
+						allMethods.add("$u $ID_STR$id")
+						val logStatement = runtime.makeCallToStatementPoint("$id")
+						units.insertBefore(logStatement, u)
+						counter++
+					}
+				}
+				b.validate()
+			}
+		}
+	})
+
 	private fun writeOutput(instrumentedApk: Path) {
 		val outputMap = HashMap<String, Any>()
 		val apkName = instrumentedApk.fileName.toString()
 		outputMap["outputAPK"] = instrumentedApk.toString()
-		outputMap["allMethods"] = allMethods
-		val instrumentResultFile = cfg.droidmateOutputDirPath.resolve("$apkName.json")
+		outputMap[INSTRUMENTATION_FILE_METHODS_PROP] = allMethods
+		val instrumentResultFile = cfg.resourceDir.resolve("$apkName$INSTRUMENTATION_FILE_SUFFIX")
 		val resultJson = JSONObject(outputMap)
 		try {
 			Files.write(instrumentResultFile, resultJson.toString(2).toByteArray())

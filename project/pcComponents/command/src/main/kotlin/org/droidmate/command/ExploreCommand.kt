@@ -49,9 +49,7 @@ import org.droidmate.configuration.ConfigProperties.Strategies
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
 import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.explore
-import org.droidmate.configuration.ConfigProperties.Strategies.fitnessProportionate
 import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
-import org.droidmate.configuration.ConfigProperties.Strategies.modelBased
 import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.device.android_sdk.*
@@ -158,14 +156,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			if (cfg[stopOnExhaustion])
 				res.add(StrategySelector(++priority, "explorationExhausted", StrategySelector.explorationExhausted))
 
-			// Fitness Proportionate Selection
-			if (cfg[fitnessProportionate])
-				res.add(StrategySelector(++priority, "randomBiased", StrategySelector.randomBiased))
-
-			// ExplorationContext based
-			if (cfg[modelBased])
-				res.add(StrategySelector(++priority, "randomWithModel", StrategySelector.randomWithModel))
-
 			// Random exploration
 			if (cfg[explore])
 				res.add(StrategySelector(++priority, "randomWidget", StrategySelector.randomWidget))
@@ -188,12 +178,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			if (cfg[explore])
 				strategies.add(RandomWidget(cfg.randomSeed, cfg[Strategies.Parameters.biasedRandom],
 						cfg[Strategies.Parameters.randomScroll], delay = cfg[ConfigProperties.Exploration.widgetActionDelay] ))
-
-			if (cfg[fitnessProportionate])
-				strategies.add(FitnessProportionateSelection(cfg.randomSeed))
-
-			if (cfg[modelBased])
-				strategies.add(ModelBased(cfg.randomSeed))
 
 			if (cfg[allowRuntimeDialog])
 				strategies.add(AllowRuntimePermission())

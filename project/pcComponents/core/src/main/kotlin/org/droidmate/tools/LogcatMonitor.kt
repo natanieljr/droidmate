@@ -39,13 +39,14 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
             log.info(Markers.appHealth, "Start monitoring logcat. Output to ${getLogfilePath().toAbsolutePath()}")
 
             try {
+              withContext(Dispatchers.IO) {
                 Files.createDirectories(getLogfilePath().parent)
 
                 while (running.get()) {
-                    monitorLogcat()
-                    delay(5)
+                  monitorLogcat()
+                  delay(5)
                 }
-
+              }
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
