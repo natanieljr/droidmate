@@ -31,9 +31,9 @@ import com.natpryce.konfig.getValue
 import com.natpryce.konfig.stringType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.sync.Mutex
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.explorationModel.ExplorationTrace
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
