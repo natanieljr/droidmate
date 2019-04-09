@@ -28,7 +28,7 @@ import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import org.droidmate.android_sdk.ApkTestHelper
 import org.droidmate.configuration.ConfigurationWrapper.Companion.defaultApksDir
-import org.droidmate.misc.IApk
+import org.droidmate.device.android_sdk.IApk
 
 import java.nio.file.FileSystem
 import java.nio.file.Files

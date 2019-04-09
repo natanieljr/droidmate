@@ -29,6 +29,7 @@ import com.google.gson.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.exploration.isQueueEnd
 import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
@@ -39,7 +40,6 @@ import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.legacy.Resource
-import org.droidmate.misc.IApk
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*
@@ -115,7 +115,8 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
                       val explorationEndTime: String,
                       val numberOfActions: Int,
                       val numberOfStates: Int,
-                      val apk: IApk) {
+                      val apk: IApk
+    ) {
         private val edges: MutableList<Edge> = ArrayList()
         private val nodes: MutableList<Node> = ArrayList()
 

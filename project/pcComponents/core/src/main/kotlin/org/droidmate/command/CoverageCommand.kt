@@ -25,19 +25,20 @@
 
 package org.droidmate.command
 
-import org.droidmate.androcov.StatementInstrumenter
+import org.droidmate.coverage.Instrumenter
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.FailableExploration
-import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
 import java.nio.file.Files
 
-class CoverageCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
-                                                private val instrumenter: StatementInstrumenter = StatementInstrumenter(cfg.resourceDir, cfg.droidmateOutputDirPath, cfg.resourceDir)) : DroidmateCommand() {
+class CoverageCommand @JvmOverloads constructor(
+	cfg: ConfigurationWrapper,
+	private val instrumenter: Instrumenter = Instrumenter(cfg.resourceDir)
+) : DroidmateCommand() {
 	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
-		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
+		val apksProvider = ApksProvider(AaptWrapper())
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
 		if (apks.all { it.instrumented }) {

@@ -28,6 +28,7 @@ package org.droidmate.exploration
 import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigProperties
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
@@ -45,18 +46,17 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.math.min
 import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
-import org.droidmate.misc.IApk
 import java.nio.file.Paths
 
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
-                                                   val apk: IApk,
-                                                   readDeviceStatements: ()-> List<List<String>>,
-                                                   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
-                                                   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
-                                                   val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
-                                                   val explorationTrace: ExplorationTrace = _model.initNewTrace(watcher)) {
+												   val apk: IApk,
+												   readDeviceStatements: ()-> List<List<String>>,
+												   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
+												   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
+												   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
+												   val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
+												   val explorationTrace: ExplorationTrace = _model.initNewTrace(watcher)) {
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }

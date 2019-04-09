@@ -27,7 +27,7 @@ package org.droidmate.test_tools
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.misc.IApk
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.tools.ApksProvider
 
 class SingleApkFixture constructor(aapt: IAaptWrapper,

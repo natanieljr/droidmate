@@ -25,9 +25,9 @@
 
 package org.droidmate.device
 
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.error.DeviceException
 import org.droidmate.deviceInterface.DeviceConstants
-import org.droidmate.misc.IApk
 
 import java.nio.file.Path
 

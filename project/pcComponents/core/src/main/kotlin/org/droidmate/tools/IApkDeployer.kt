@@ -25,9 +25,9 @@
 
 package org.droidmate.tools
 
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.misc.FailableExploration
-import org.droidmate.misc.IApk
 
 /**
  * @see ApkDeployer

@@ -36,6 +36,7 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInt
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.ApkExplorationException
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.logcat.TimeFormattedLogcatMessage
 import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
@@ -50,7 +51,6 @@ import org.droidmate.deviceInterface.communication.*
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
-import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path

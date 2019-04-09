@@ -38,7 +38,7 @@ class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
                                               private val inliner: ApkInliner = ApkInliner(cfg.resourceDir)) : DroidmateCommand() {
 
 	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
-		val apksProvider = ApksProvider(AaptWrapper(cfg, SysCmdExecutor()))
+		val apksProvider = ApksProvider(AaptWrapper())
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
 		if (apks.all { it.inlined }) {

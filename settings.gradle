@@ -32,7 +32,6 @@ include("project:deviceComponents") // to include the build of the android modul
 
 include(
 		"project:pcComponents", // use this to identify all child projects
-		"project:pcComponents:tools:androcov",
 		"project:pcComponents:core",
 		"project:pcComponents:exploration",
 		"project:pcComponents:API"

@@ -3,6 +3,7 @@ package org.droidmate.device
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.error.DeviceException
@@ -13,7 +14,6 @@ import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.logging.Markers
-import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import kotlin.math.max

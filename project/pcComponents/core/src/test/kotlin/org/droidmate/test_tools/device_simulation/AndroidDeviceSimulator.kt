@@ -27,9 +27,9 @@ package org.droidmate.test_tools.device_simulation
 
 import org.droidmate.deviceInterface.communication.TimeFormattedLogMessageI
 import org.droidmate.device.IAndroidDevice
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.misc.IApk
 import java.nio.file.Path
 import java.time.LocalDateTime
 

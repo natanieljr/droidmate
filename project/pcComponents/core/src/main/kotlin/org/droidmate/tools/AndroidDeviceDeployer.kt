@@ -44,7 +44,6 @@ import org.droidmate.logging.Markers
 import org.droidmate.misc.DroidmateException
 import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.FailableExploration
-import org.droidmate.misc.IApk
 import org.slf4j.LoggerFactory
 import java.util.*
 

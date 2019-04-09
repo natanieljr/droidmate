@@ -25,7 +25,6 @@
 
 package org.droidmate.device.android_sdk
 
-import org.droidmate.misc.IApk
 import org.droidmate.misc.ISysCmdExecutor
 import java.nio.file.Path
 
