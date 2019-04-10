@@ -1,3 +1,6 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
 // Copyright (c) 2012-2016 Saarland University
 // All rights reserved.
 //
@@ -9,14 +12,12 @@
 
 buildscript {
 	repositories {
-		jcenter()
 		mavenCentral()
 	}
 	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
 		classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1' // for jitpack gradle support?
-		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'  // requires jcenter
 	}
 }
 
@@ -106,6 +107,23 @@ configure(pcJvmTargets) {
 	}
 }
 
+apply plugin: 'application'
+mainClassName = "org.droidmate.api.ExplorationAPI"
+
+// Run by ':project:run'
+(tasks.run as JavaExec).configure {
+
+	sourceSets.main.runtimeClasspath = classpath
+
+	workingDir rootDir
+	def argsFile = Paths.get("$rootDir/args.txt")
+	if (Files.exists(argsFile))
+	{
+		List<String> appArgs = argsFile.text.readLines().first().split(" ") as List<String>
+		args appArgs
+	}
+}
+
 apply plugin: "kotlin"
 
 dependencies {
@@ -113,14 +131,6 @@ dependencies {
 }
 
 jar {
-	manifest {
-		attributes 'Main-Class': "org.droidmate.api.ExplorationAPI"
-	}
-}
-
-apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
-shadowJar {
-	baseName = 'shadow'
 	manifest {
 		attributes 'Main-Class': "org.droidmate.api.ExplorationAPI"
 	}
