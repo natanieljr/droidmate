@@ -34,6 +34,7 @@ import org.zeroturnaround.exec.ProcessExecutor
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -76,7 +77,8 @@ val debug = Files.list(android_sdk_dir).use {  file ->
 	}
 }
 
-val android_extras_m2repo = android_sdk_dir.resolveDir("extras/android/m2repository")
+val android_extras_m2repo: Path = android_sdk_dir.resolve("extras/android/m2repository")
+
 //endregion
 
 const val monitor_generator_res_name_monitor_template = "monitorTemplate.txt"
