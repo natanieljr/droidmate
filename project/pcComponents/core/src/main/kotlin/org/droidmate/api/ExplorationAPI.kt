@@ -90,7 +90,7 @@ object ExplorationAPI {
 	@JvmStatic
 	suspend fun instrument(cfg: ConfigurationWrapper) = coroutineScope{
 		log.info("instrument the apks for coverage if necessary")
-		CoverageCommand(cfg).execute(cfg)
+		CoverageCommand(cfg).execute()
 	}
 
 	/****************************** Exploration API methods *****************************/

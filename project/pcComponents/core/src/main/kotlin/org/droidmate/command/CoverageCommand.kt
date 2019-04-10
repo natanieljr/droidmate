@@ -32,19 +32,32 @@ import org.droidmate.device.android_sdk.Apk
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
 import org.droidmate.misc.FailableExploration
 import org.droidmate.tools.ApksProvider
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
+import java.nio.file.Path
 
 class CoverageCommand @JvmOverloads constructor(
-	cfg: ConfigurationWrapper,
+	private val cfg: ConfigurationWrapper,
 	private val instrumenter: Instrumenter = Instrumenter(cfg.resourceDir, cfg[onlyCoverAppPackageName])
 ) : DroidmateCommand() {
+	companion object {
+		@JvmStatic
+		private val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
+	}
+
 	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
+		execute()
+		return emptyMap()
+	}
+
+	fun execute(): Pair<Path, Path>? {
 		val apksProvider = ApksProvider(AaptWrapper())
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 
 		if (apks.all { it.instrumented }) {
 			log.warn("No non-instrumented apks found. Aborting.")
-			return emptyMap()
+			return null
 		}
 
 		val originalsDir = cfg.apksDirPath.resolve("originals").toAbsolutePath()
@@ -54,10 +67,8 @@ class CoverageCommand @JvmOverloads constructor(
 			log.warn("More than one no-instrumented apk on the input dir. Instrumenting only the first one.")
 
 		val apk = apks.first { !it.instrumented }
-		instrumenter.instrument(apk, apk.path.parent)
+		val result = instrumenter.instrument(apk, apk.path.parent)
 		log.info("Instrumented ${apk.fileName}")
-		moveOriginal(apk, originalsDir)
-
-		return emptyMap()
+		return result
 	}
 }
