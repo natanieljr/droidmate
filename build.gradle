@@ -115,7 +115,6 @@ jar {
 	}
 }
 
-// NoOp
 // include all dependencies (resolvedArtifacts) in publishing (i.e. for publishToMavenLocal)
 apply plugin: 'maven-publish' //FIXME no longer working
 task resolveDependencies{ doFirst {
