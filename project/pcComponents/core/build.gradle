@@ -26,15 +26,6 @@
 apply plugin: 'idea'
 apply from: project(":project:pcComponents").file("debug.gradle")
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'  // requires jcenter
-    }
-}
-
 dependOnJunit(project)
 
 dependencies {
@@ -55,7 +46,6 @@ dependencies {
 
 	implementation 'ch.qos.logback:logback-classic:1.2.3'
 	implementation 'ch.qos.logback:logback-core:1.2.3'
-	//compile 'net.sf.opencsv:opencsv:2.3'
 
 	// Filesystem stubbing
 	implementation 'com.google.jimfs:jimfs:1.1'
@@ -82,12 +72,3 @@ sourceSets {
 		}
 	}
 }
-
-apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/
-shadowJar {
-    baseName = 'shadow'
-    manifest {
-        attributes 'Main-Class': "org.droidmate.frontend.DroidmateFrontend"
-    }
-}
-
