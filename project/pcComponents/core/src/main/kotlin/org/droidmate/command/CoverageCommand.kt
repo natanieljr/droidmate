@@ -40,15 +40,10 @@ import java.nio.file.Path
 class CoverageCommand @JvmOverloads constructor(
 	private val cfg: ConfigurationWrapper,
 	private val instrumenter: Instrumenter = Instrumenter(cfg.resourceDir, cfg[onlyCoverAppPackageName])
-) : DroidmateCommand() {
+) {
 	companion object {
 		@JvmStatic
-		private val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
-	}
-
-	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
-		execute()
-		return emptyMap()
+		private val log: Logger by lazy { LoggerFactory.getLogger(this::class.java) }
 	}
 
 	fun execute(): Pair<Path, Path>? {

@@ -22,7 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-package org.droidmate.frontend
+/*package org.droidmate.frontend
 
 import org.droidmate.misc.ThrowablesCollection
 
@@ -44,3 +44,4 @@ class ExceptionHandlerSpy(private val exceptionHandler: ExceptionHandler = Excep
 			ArrayList()
 	}
 }
+*/

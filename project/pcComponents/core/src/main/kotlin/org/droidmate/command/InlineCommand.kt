@@ -32,12 +32,31 @@ import org.droidmate.device.android_sdk.Apk
 import org.droidmate.misc.FailableExploration
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.tools.ApksProvider
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
+import java.nio.file.Path
 
 class InlineCommand @JvmOverloads constructor(cfg: ConfigurationWrapper,
-                                              private val inliner: ApkInliner = ApkInliner(cfg.resourceDir)) : DroidmateCommand() {
+                                              private val inliner: ApkInliner = ApkInliner(cfg.resourceDir)) {
+	companion object {
+		@JvmStatic
+		private val log: Logger by lazy { LoggerFactory.getLogger(this::class.java) }
 
-	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
+		@JvmStatic
+		private fun moveOriginal(apk: Apk, originalsDir: Path) {
+			val original = originalsDir.resolve(apk.fileName)
+
+			if (!Files.exists(original)) {
+				Files.move(apk.path, original)
+				log.info("Moved ${original.fileName} to '${originalsDir.fileName}' sub dir.")
+			} else {
+				log.info("Skipped moving ${original.fileName} to '${originalsDir.fileName}' sub dir: it already exists there.")
+			}
+		}
+	}
+
+	fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> {
 		val apksProvider = ApksProvider(AaptWrapper())
 		val apks = apksProvider.getApks(cfg.apksDirPath, 0, ArrayList(), false)
 

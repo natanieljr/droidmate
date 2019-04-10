@@ -25,7 +25,6 @@
 
 package org.droidmate.api
 
-import org.droidmate.command.DroidmateCommand
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.logging.LogbackUtilsRequiringLogbackLog
 import org.slf4j.LoggerFactory
@@ -38,7 +37,7 @@ internal fun setup(args: Array<String>): ConfigurationWrapper {
 
 	LogbackUtilsRequiringLogbackLog.cleanLogsDir()  // FIXME this logPath crap should use our config properties
 	log.info("Bootstrapping DroidMate: building ${ConfigurationWrapper::class.java.simpleName} from args " +
-			"and instantiating objects for ${DroidmateCommand::class.java.simpleName}.")
+			"and instantiating objects for ${ExplorationAPI::class.java.simpleName}.")
 	log.info("IMPORTANT: for help on how to configure DroidMate, run it with --help")
 
 	return ExplorationAPI.config(args)

@@ -98,7 +98,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
                                       private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
-                                      private var modelProvider: (String) -> Model) : DroidmateCommand() {
+                                      private var modelProvider: (String) -> Model) {
 	companion object {
 		@JvmStatic
 		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
@@ -234,7 +234,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 	}
 
-	override suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> = supervisorScope {
+	suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> = supervisorScope {
 		if (cfg[cleanDirs]) cleanOutputDir(cfg)
 		val reportDir = cfg.droidmateOutputReportDirPath
 		if (!Files.exists(reportDir))
