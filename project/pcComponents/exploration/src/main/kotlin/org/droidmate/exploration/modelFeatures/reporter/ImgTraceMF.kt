@@ -115,7 +115,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 
 			}
 		}catch(e: Throwable){
-			log.error(e.localizedMessage)
+			log.error(e.localizedMessage, e)
 		}
 	}
 }
