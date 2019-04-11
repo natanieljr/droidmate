@@ -331,9 +331,9 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 	private suspend fun ExplorationContext.verify() {
 		try {
-			assert(this.explorationTrace.size > 0)
-			assert(this.explorationStartTime > LocalDateTime.MIN)
-			assert(this.explorationEndTime > LocalDateTime.MIN)
+			assert(this.explorationTrace.size > 0) { "Exploration trace should not be empty" }
+			assert(this.explorationStartTime > LocalDateTime.MIN) { "Start date/time not set for exploration" }
+			assert(this.explorationEndTime > LocalDateTime.MIN) { "End date/time not set for exploration" }
 
 			assertFirstActionIsLaunchApp()
 			assertLastActionIsTerminateOrResultIsFailure()
