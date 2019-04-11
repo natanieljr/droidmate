@@ -23,14 +23,10 @@
 //
 // web: www.droidmate.org
 
-import org.droidmate.buildsrc.BuildKt
-
 apply plugin: 'kotlin'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
-apply plugin: 'application'
-mainClassName = "org.droidmate.apk_inliner.ApkInlinerFrontend"
 
 dependencies {
 
@@ -43,27 +39,6 @@ dependencies {
 
 	testImplementation 'junit:junit:4.12'
 
-}
-
-run {
-
-	standardOutput = new ByteArrayOutputStream() // Mute the task stdout
-
-	ext.targetApksDir = file(BuildKt.apk_inliner_param_input_default.toFile())
-	ext.inlinedApksDir = file(BuildKt.apk_inliner_param_output_dir_default.toFile())
-
-	if (!targetApksDir.isDirectory())
-		targetApksDir.mkdir()
-
-	inputs.dir targetApksDir
-	outputs.dir inlinedApksDir
-}
-
-clean.configure {
-	doLast {
-		File inlinedApksDir = run.outputs.files.getSingleFile()
-		inlinedApksDir.listFiles().each { if (it.name.endsWith(".apk")) assert it.delete() }
-	}
 }
 
 configureTest(project, [''])//['**/ApkInlinerFrontendTest.class'])

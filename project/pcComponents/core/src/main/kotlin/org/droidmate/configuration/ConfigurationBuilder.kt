@@ -44,7 +44,6 @@ import org.droidmate.configuration.ConfigProperties.Deploy.replaceResources
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallApk
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallAux
-import org.droidmate.configuration.ConfigProperties.Deploy.useApkFixturesDir
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkAppIsRunningRetryAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkAppIsRunningRetryDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts
@@ -339,10 +338,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			}
 			log.info("Using ${EnvironmentConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
 
-			cfg.apksDirPath = if (cfg[useApkFixturesDir])
-				ResourcePath(EnvironmentConstants.apk_fixtures).path.toAbsolutePath()
-			else
-				cfg.getPath(cfg[apksDir]).toAbsolutePath()
+			cfg.apksDirPath = cfg.getPath(cfg[apksDir]).toAbsolutePath()
 
 			if (cfg.apksDirPath.createDirIfNotExists())
 				log.info("Created directory from which DroidMate will read input apks: " + cfg.apksDirPath.toAbsolutePath().toString())

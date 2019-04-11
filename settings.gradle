@@ -55,7 +55,6 @@ if(Paths.get(System.getenv("ANDROID_HOME")).resolve("platforms").resolve("androi
 	// Exclude the run tasks from monitor-generator and apk-inliner when 'run' is called on root level
 	startParameter.excludedTaskNames << "project:pcComponents:monitor-generator:run"
 }
-startParameter.excludedTaskNames << "project:pcComponents:tools:apk-inliner:run"
 
 def isIncludedBuild = gradle.parent != null
 if(!isIncludedBuild) {

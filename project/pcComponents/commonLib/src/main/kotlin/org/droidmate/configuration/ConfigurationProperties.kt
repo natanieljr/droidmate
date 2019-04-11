@@ -32,7 +32,6 @@ abstract class ConfigProperties {
 		val uninstallAux by booleanType
 		val replaceResources by booleanType
 		val shuffleApks by booleanType
-		val useApkFixturesDir by booleanType
 		val deployRawApks by booleanType
 	}
 

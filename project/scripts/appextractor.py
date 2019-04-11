@@ -40,7 +40,7 @@ categories = [
     "PERSONALIZATION",
     "TRAVEL_AND_LOCAL",
     "SHOPPING",
-    "LIBRARIES_AND_DEMO",
+    # "LIBRARIES_AND_DEMO",
     "SOCIAL",
     "SPORTS",
     "EVENTS",
@@ -50,33 +50,33 @@ categories = [
     "ANDROID_WEAR",
     "WEATHER",
     "GAME",
-    "GAME_ADVENTURE",
-    "GAME_ACTION",
-    "GAME_ARCADE",
-    "GAME_BOARD",
-    "GAME_CASINO",
-    "GAME_PUZZLE",
-    "GAME_CASUAL",
-    "GAME_CARD",
-    "GAME_EDUCATIONAL",
-    "GAME_MUSIC",
-    "GAME_TRIVIA",
-    "GAME_RACING",
-    "GAME_ROLE_PLAYING",
-    "GAME_SIMULATION",
-    "GAME_SPORTS",
-    "GAME_STRATEGY",
-    "GAME_WORD",
+    # "GAME_ADVENTURE",
+    # "GAME_ACTION",
+    # "GAME_ARCADE",
+    # "GAME_BOARD",
+    # "GAME_CASINO",
+    # "GAME_PUZZLE",
+    # "GAME_CASUAL",
+    # "GAME_CARD",
+    # "GAME_EDUCATIONAL",
+    # "GAME_MUSIC",
+    # "GAME_TRIVIA",
+    # "GAME_RACING",
+    # "GAME_ROLE_PLAYING",
+    # "GAME_SIMULATION",
+    # "GAME_SPORTS",
+    # "GAME_STRATEGY",
+    # "GAME_WORD",
     "FAMILY",
-    "FAMILY?age=AGE_RANGE1",
-    "FAMILY?age=AGE_RANGE2",
-    "FAMILY?age=AGE_RANGE3",
-    "FAMILY_ACTION",
-    "FAMILY_EDUCATION",
-    "FAMILY_BRAINGAMES",
-    "FAMILY_CREATE",
-    "FAMILY_MUSICVIDEO",
-    "FAMILY_PRETEND"
+    # "FAMILY?age=AGE_RANGE1",
+    # "FAMILY?age=AGE_RANGE2",
+    # "FAMILY?age=AGE_RANGE3",
+    # "FAMILY_ACTION",
+    # "FAMILY_EDUCATION",
+    # "FAMILY_BRAINGAMES",
+    # "FAMILY_CREATE",
+    # "FAMILY_MUSICVIDEO",
+    # "FAMILY_PRETEND"
               ]
 
 user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
@@ -86,6 +86,10 @@ headers = {'User-Agent': user_agent}
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', user_agent)]
 urllib.request.install_opener(opener)
+
+
+def play_store_topselling_free_url(category):
+    return f"https://play.google.com/store/apps/category/{category}/collection/topselling_free"
 
 
 def get_html_from_url(url):
@@ -103,33 +107,40 @@ def download_file_from_url(url, download_location, file_name):
     urllib.request.urlretrieve(url, os.path.join(download_location, file_name))
 
 
-def download_apps(app_ids, download_location):
-    store_base_url = "https://apkpure.com"
+def download_app(app, category, download_location):
+    apk_path = None
     # Search for the app
-    for (app, category) in app_ids:
-        try:
-            apkpure_search = get_html_from_url(f"{store_base_url}/search?q={app}&t=app")
-            soup = BeautifulSoup(apkpure_search, "lxml")
-            apps = soup.body.find_all(attrs={"class":"search-title"})
-            if len(apps) <= 0:
-                print(f"Could not download: {app}")
-                break
-            href = (apps[0]).find(attrs={"href": True})['href']
-
-            # Follow the first link from the search
-            url = f"{store_base_url}{href}/download?from=details"
-            app_page = get_html_from_url(url)
-            soup = BeautifulSoup(app_page, "lxml")
-            download_elem = soup.body.find(attrs={"id":"download_link"})
-            if download_elem is None:
-                print(f"Could not download: {app}")
-                break
-            download_link = download_elem['href']
-            download_file_from_url(download_link, download_location, f"{category}_{app}.apk")
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
+    store_base_url = "https://apkpure.com"
+    try:
+        apkpure_search = get_html_from_url(f"{store_base_url}/search?q={app}&t=app")
+        soup = BeautifulSoup(apkpure_search, "lxml")
+        apps = soup.body.find_all(attrs={"class": "search-title"})
+        if len(apps) <= 0:
             print(f"Could not download: {app}")
-            pass
+            return apk_path
+        href = (apps[0]).find(attrs={"href": True})['href']
+
+        # Follow the first link from the search
+        url = f"{store_base_url}{href}/download?from=details"
+        app_page = get_html_from_url(url)
+        soup = BeautifulSoup(app_page, "lxml")
+        download_elem = soup.body.find(attrs={"id": "download_link"})
+        if download_elem is None:
+            print(f"Could not download: {app}")
+            return apk_path
+        download_link = download_elem['href']
+        apk_file_name = f"{category}_{app}.apk"
+        download_file_from_url(download_link, download_location, apk_file_name)
+        return os.path.join(download_location, apk_file_name)
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        print(f"Could not download: {app}")
+        return apk_path
+
+
+def download_apps(app_ids, download_location):
+    for (app, category) in app_ids:
+        download_app(app, category, download_location)
 
 
 def get_app_ids_from_play_store_url(url, number, category):
@@ -148,7 +159,7 @@ def get_app_ids_from_play_store_url(url, number, category):
 def main(download_location="./"):
     for category in categories:
         print(f"-------------------Category: {category}")
-        url = f"https://play.google.com/store/apps/category/{category}/collection/topselling_free"
+        url = play_store_topselling_free_url(category)
         app_ids = get_app_ids_from_play_store_url(url, number_apps_per_category, category)
         download_apps(app_ids, download_location)
 

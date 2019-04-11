@@ -25,7 +25,6 @@
 
 package org.droidmate.configuration
 
-import org.droidmate.configuration.ConfigProperties.Deploy.useApkFixturesDir
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkAppIsRunningRetryDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.deviceOperationDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
@@ -70,11 +69,6 @@ class ConfigurationForTests() {
 		// For details, see org.droidmate.report.plot
 		this.setArg(arrayListOf(includePlots.name, "false"))
 
-		return this
-	}
-
-	fun forDevice(): ConfigurationForTests {
-		this.setArg(arrayListOf(useApkFixturesDir.name, "true"))
 		return this
 	}
 
