@@ -435,6 +435,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				}
 			} // end loop
 
+			explorationContext.explorationEndTime = LocalDateTime.now()
 			explorationContext.verify() // some result validation do this in the end of exploration for this app
 			// but within the catch block to NOT terminate other explorations and to NOT loose the derived context
 
@@ -447,7 +448,6 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		finally {
 			explorationContext.close()
 		}
-		explorationContext.explorationEndTime = LocalDateTime.now()
 
 		return FailableExploration(explorationContext, explorationContext.exceptions)
 	}
