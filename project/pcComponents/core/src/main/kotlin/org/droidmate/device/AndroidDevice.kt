@@ -250,16 +250,14 @@ class AndroidDevice constructor(private val serialNumber: String,
 			val messages = this.tcpClients.getStatements()
 
 			messages.forEach { msg ->
-				assert(msg.size == 3)
-				assert(msg[0].isNotEmpty())
-				assert(msg[1].isNotEmpty())
+				assert(msg.size == 2) { "Expected 2 messages, received ${msg.size}" }
+				assert(msg[0].isNotEmpty()) { "First part of the statement payload was empty" }
+				assert(msg[1].isNotEmpty()) { "Second part of the statement payload was empty" }
 			}
 
 			return messages
 		} catch (e: ApkExplorationException) {
-			log.error("Error reading statements from monitor TCP server. Proceeding with exploration ${e.message}")
-			log.error("Trace: ${e.stackTrace}")
-
+			log.error("Error reading statements from monitor TCP server. Proceeding with exploration ${e.message}", e)
 			return emptyList()
 		}
 	}
@@ -278,29 +276,26 @@ class AndroidDevice constructor(private val serialNumber: String,
 			val messages = this.tcpClients.getLogs()
 
 			messages.forEach { msg ->
-				assert(msg.size == 3)
-				assert(msg[0].isNotEmpty())
-				assert(msg[1].isNotEmpty())
-				assert(msg[2].isNotEmpty())
+				assert(msg.size == 3) { "Expected 3 messages, received ${msg.size}" }
+				assert(msg[0].isNotEmpty()) { "First part of the statement payload was empty" }
+				assert(msg[1].isNotEmpty()) { "Second part of the statement payload was empty" }
+				assert(msg[2].isNotEmpty()) { "Third part of the statement payload was empty" }
 			}
 
 			return messages
 		} catch (e: ApkExplorationException) {
-			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}")
-			log.error("ExplorationTrace: ${e.stackTrace}")
-
+			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}", e)
 			return emptyList()
 		}
 	}
 
 	override fun getCurrentTime(): LocalDateTime {
+		log.debug("readAndClearMonitorTcpMessages()")
 		val messages = this.tcpClients.getCurrentTime()
 
-		assert(messages.size == 1)
-		assert(messages[0].size == 3)
-		assert(messages[0][0].isNotEmpty())
-		//assert(messages[0][1].isNotEmpty())
-		//assert(messages[0][2].isNotEmpty())
+		assert(messages.size == 1) { "Expected 1 message, received ${messages.size}" }
+		assert(messages[0].size == 3) { "Expected 3 messages, received ${messages.size}" }
+		assert(messages[0][0].isNotEmpty()) { "First payload of first message is empty" }
 
 		return LocalDateTime.parse(messages[0][0], DateTimeFormatter.ofPattern(MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale))
 	}
