@@ -440,7 +440,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 
 		} catch (e: Throwable){ // the loop handles internal error if possible, however if the resetApp after exception fails we end in this catch
 			// this means likely the uiAutomator is dead or we lost device connection
-			log.error("unhandled device exception \n ${e.localizedMessage}")
+			log.error("unhandled device exception \n ${e.localizedMessage}", e)
 			explorationContext.exceptions.add(e)
 			strategy?.close()
 		}
