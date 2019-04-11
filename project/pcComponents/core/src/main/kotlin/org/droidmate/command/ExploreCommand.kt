@@ -158,6 +158,10 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			if (cfg[explore])
 				res.add(StrategySelector(++priority, "randomWidget", StrategySelector.randomWidget))
 
+			if (cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage]) {
+				res.add(StrategySelector(++priority, "statementCoverageSync", StrategySelector.statementCoverage))
+			}
+
 			return res
 		}
 

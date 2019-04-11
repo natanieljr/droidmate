@@ -28,6 +28,7 @@ package org.droidmate.exploration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.droidmate.deviceInterface.exploration.*
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
@@ -301,6 +302,15 @@ class StrategySelector constructor(val priority: Int,
 		@JvmStatic
 		val dfs: SelectorFunction = { _, pool, _ ->
 			pool.getFirstInstanceOf(DFS::class.java)
+		}
+
+		/**
+		 * Selector to synchronizestatementt coverage
+		 */
+		val statementCoverage: SelectorFunction = { context, _, _ ->
+			context.findWatcher { it is StatementCoverageMF }?.join()
+
+			null
 		}
 	}
 }
