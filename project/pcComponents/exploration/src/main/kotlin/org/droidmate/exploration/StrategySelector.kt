@@ -225,7 +225,7 @@ class StrategySelector constructor(val priority: Int,
 								pool.getFirstInstanceOf(Terminate::class.java)
 							}
 							secondLast?.actionType?.isPressBack() ?: false -> {
-								Companion.WaitForLaunch.terminate = true  // try to wait for launch but terminate if we still have nothing to explore afterwards
+								//WaitForLaunch.terminate = true  // try to wait for launch but terminate if we still have nothing to explore afterwards
 								WaitForLaunch
 							}
 							else -> { // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed re-fetch for now
