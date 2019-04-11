@@ -40,7 +40,7 @@ categories = [
     "PERSONALIZATION",
     "TRAVEL_AND_LOCAL",
     "SHOPPING",
-    "LIBRARIES_AND_DEMO",
+    # "LIBRARIES_AND_DEMO",
     "SOCIAL",
     "SPORTS",
     "EVENTS",
@@ -50,33 +50,33 @@ categories = [
     "ANDROID_WEAR",
     "WEATHER",
     "GAME",
-    "GAME_ADVENTURE",
-    "GAME_ACTION",
-    "GAME_ARCADE",
-    "GAME_BOARD",
-    "GAME_CASINO",
-    "GAME_PUZZLE",
-    "GAME_CASUAL",
-    "GAME_CARD",
-    "GAME_EDUCATIONAL",
-    "GAME_MUSIC",
-    "GAME_TRIVIA",
-    "GAME_RACING",
-    "GAME_ROLE_PLAYING",
-    "GAME_SIMULATION",
-    "GAME_SPORTS",
-    "GAME_STRATEGY",
-    "GAME_WORD",
+    # "GAME_ADVENTURE",
+    # "GAME_ACTION",
+    # "GAME_ARCADE",
+    # "GAME_BOARD",
+    # "GAME_CASINO",
+    # "GAME_PUZZLE",
+    # "GAME_CASUAL",
+    # "GAME_CARD",
+    # "GAME_EDUCATIONAL",
+    # "GAME_MUSIC",
+    # "GAME_TRIVIA",
+    # "GAME_RACING",
+    # "GAME_ROLE_PLAYING",
+    # "GAME_SIMULATION",
+    # "GAME_SPORTS",
+    # "GAME_STRATEGY",
+    # "GAME_WORD",
     "FAMILY",
-    "FAMILY?age=AGE_RANGE1",
-    "FAMILY?age=AGE_RANGE2",
-    "FAMILY?age=AGE_RANGE3",
-    "FAMILY_ACTION",
-    "FAMILY_EDUCATION",
-    "FAMILY_BRAINGAMES",
-    "FAMILY_CREATE",
-    "FAMILY_MUSICVIDEO",
-    "FAMILY_PRETEND"
+    # "FAMILY?age=AGE_RANGE1",
+    # "FAMILY?age=AGE_RANGE2",
+    # "FAMILY?age=AGE_RANGE3",
+    # "FAMILY_ACTION",
+    # "FAMILY_EDUCATION",
+    # "FAMILY_BRAINGAMES",
+    # "FAMILY_CREATE",
+    # "FAMILY_MUSICVIDEO",
+    # "FAMILY_PRETEND"
               ]
 
 user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
@@ -86,6 +86,10 @@ headers = {'User-Agent': user_agent}
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', user_agent)]
 urllib.request.install_opener(opener)
+
+
+def play_store_topselling_free_url(category):
+    return f"https://play.google.com/store/apps/category/{category}/collection/topselling_free"
 
 
 def get_html_from_url(url):
@@ -155,7 +159,7 @@ def get_app_ids_from_play_store_url(url, number, category):
 def main(download_location="./"):
     for category in categories:
         print(f"-------------------Category: {category}")
-        url = f"https://play.google.com/store/apps/category/{category}/collection/topselling_free"
+        url = play_store_topselling_free_url(category)
         app_ids = get_app_ids_from_play_store_url(url, number_apps_per_category, category)
         download_apps(app_ids, download_location)
 
