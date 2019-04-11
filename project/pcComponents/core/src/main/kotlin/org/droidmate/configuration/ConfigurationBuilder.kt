@@ -345,8 +345,15 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			log.info("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
 
 			cfg.monitorApk = try {
-				getCompiledResourcePath(cfg, EnvironmentConstants.monitor_apk_name) {
-						path -> org.droidmate.monitor.Compiler.compile(path)
+				getCompiledResourcePath(cfg, EnvironmentConstants.monitor_apk_name) {path ->
+					val customApiFile = cfg.resourceDir.resolve("monitored_apis.json")
+					val apiPath = if (Files.exists(customApiFile)) {
+						customApiFile
+					} else {
+						null
+					}
+
+					org.droidmate.monitor.Compiler.compile(path, apiPath)
 				}.toAbsolutePath()
             } catch (e:Throwable) {
 				null

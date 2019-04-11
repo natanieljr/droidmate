@@ -120,8 +120,6 @@ const val apk_fixtures = "fixtures/apks"
 
 val test_temp_dir_name = "out${File.separator}temp_dir_for_tests"
 
-const val monitored_apis_xml = "monitored_apis.json"
-
 /**
  * Directory for resources extracted from jars in the classpath.
  *
