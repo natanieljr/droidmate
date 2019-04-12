@@ -310,11 +310,15 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 		// - the time diff on the device was different when the logcat messages were output, than the time diff measured by DroidMate.
 		// This should not be of concern as manual inspection shows that the device time diff changes only a little bit over time,A
 		// far less than to justify sudden 10 second difference.
-		val diff = TimeDiffWithTolerance(Duration.ofSeconds(5))
-		warnIfExplorationStartTimeIsNotBeforeEndTime(diff, apk.fileName)
-		warnIfExplorationStartTimeIsNotBeforeFirstLogTime(diff, apk.fileName)
-		warnIfLastLogTimeIsNotBeforeExplorationEndTime(diff, apk.fileName)
-		warnIfLogsAreNotAfterAction(diff, apk.fileName)
+		try {
+			val diff = TimeDiffWithTolerance(Duration.ofSeconds(5))
+			warnIfExplorationStartTimeIsNotBeforeEndTime(diff, apk.fileName)
+			warnIfExplorationStartTimeIsNotBeforeFirstLogTime(diff, apk.fileName)
+			warnIfLastLogTimeIsNotBeforeExplorationEndTime(diff, apk.fileName)
+			warnIfLogsAreNotAfterAction(diff, apk.fileName)
+		} catch (e: Throwable){
+			log.error("Error during time computation", e)
+		}
 	}
 
 	private fun warnIfExplorationStartTimeIsNotBeforeEndTime(diff: TimeDiffWithTolerance, apkFileName: String) {

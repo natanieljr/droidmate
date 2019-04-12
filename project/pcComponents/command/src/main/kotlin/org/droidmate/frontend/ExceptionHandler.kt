@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory
 class ExceptionHandler : IExceptionHandler {
 	override fun handle(e: Throwable): Int {
 		val returnCode = internalHandle(e)
-		log.error(LogbackConstants.err_log_msg)
+		log.error(LogbackConstants.err_log_msg,e)
 		return returnCode
 	}
 

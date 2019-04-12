@@ -25,7 +25,6 @@
 
 package org.droidmate.configuration
 
-import ch.qos.logback.classic.Level
 import com.konradjamrozik.Resource
 import com.konradjamrozik.ResourcePath
 import com.konradjamrozik.createDirIfNotExists
@@ -103,7 +102,6 @@ import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Comp
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.EnvironmentConstants
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -320,28 +318,28 @@ class ConfigurationBuilder : IConfigurationBuilder {
 					.resolve(EnvironmentConstants.dir_name_temp_extracted_resources)
 			cfg.droidmateOutputReportDirPath = cfg.droidmateOutputDirPath
 					.resolve(cfg[reportDir]).toAbsolutePath()
-			cfg.reportInputDirPath = cfg.getPath(cfg[ConfigProperties.Report.inputDir]).toAbsolutePath()
+			cfg.reportInputDirPath = cfg.getPath(cfg[inputDir]).toAbsolutePath()
 
 			cfg.uiautomator2DaemonApk = getResourcePath(cfg, "deviceControlDaemon.apk").toAbsolutePath()
-			log.info("Using uiautomator2-daemon.apk located at ${cfg.uiautomator2DaemonApk}")
+			log.debug("Using uiautomator2-daemon.apk located at ${cfg.uiautomator2DaemonApk}")
 
 			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, "deviceControlDaemon-test.apk").toAbsolutePath()
-			log.info("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
+			log.debug("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
 
 			cfg.monitorApkApi23 = try{getResourcePath(cfg, EnvironmentConstants.monitor_api23_apk_name).toAbsolutePath()}catch (e:Throwable){
 				null
 			}
-			log.info("Using ${EnvironmentConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
+			log.debug("Using ${EnvironmentConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
 
 			cfg.apiPoliciesFile = try{getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()} catch (e:Throwable){
 				null
 			}
-			log.info("Using ${EnvironmentConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
+			log.debug("Using ${EnvironmentConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
 
 			cfg.apksDirPath = cfg.getPath(cfg[apksDir]).toAbsolutePath()
 
 			if (cfg.apksDirPath.createDirIfNotExists())
-				log.info("Created directory from which DroidMate will read input apks: " + cfg.apksDirPath.toAbsolutePath().toString())
+				log.debug("Created directory from which DroidMate will read input apks: " + cfg.apksDirPath.toAbsolutePath().toString())
 
 			if (Files.notExists(cfg.droidmateOutputDirPath)) {
 				Files.createDirectories(cfg.droidmateOutputDirPath)
@@ -368,19 +366,19 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			var configurationDump = ReflectionToStringBuilder(config, displayStyle).toString()
 			configurationDump = configurationDump.split(System.lineSeparator()).asSequence().sorted().joinToString(System.lineSeparator())
 
-			log.info(runData, "--------------------------------------------------------------------------------")
-			log.info(runData, "")
-			log.info(runData, "Working dir:   ${System.getProperty("user.dir")}")
-			log.info(runData, "")
-			log.info(runData, "JVM arguments: ${readJVMArguments()}")
-			log.info(runData, "")
+			log.debug(runData, "--------------------------------------------------------------------------------")
+			log.debug(runData, "")
+			log.debug(runData, "Working dir:   ${System.getProperty("user.dir")}")
+			log.debug(runData, "")
+			log.debug(runData, "JVM arguments: ${readJVMArguments()}")
+			log.debug(runData, "")
 			log.debug(runData, "Configuration dump:")
 			log.debug(runData, "")
 			log.debug(runData, configurationDump)
 			log.debug(runData, "")
 			log.debug(runData, "End of configuration dump")
-			log.info(runData, "")
-			log.info(runData, "--------------------------------------------------------------------------------")
+			log.debug(runData, "")
+			log.debug(runData, "--------------------------------------------------------------------------------")
 
 		}
 

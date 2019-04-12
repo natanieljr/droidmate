@@ -45,7 +45,7 @@ class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver:
 
 			return DeviceResponse.empty.apply { throwable = e }
 		} catch (t: Throwable) {
-			Log.wtf(uiaDaemon_logcatTag, "Server: Failed, with a non-${DeviceDaemonException::class.java.simpleName} (!)," +
+			Log.e(uiaDaemon_logcatTag, "Server: Failed, with a non-${DeviceDaemonException::class.java.simpleName} (!)," +
 					"to execute command $deviceCommand and thus, obtain appropriate GuiState. Returning throwable-DeviceResponse.", t)
 
 			return DeviceResponse.empty.apply { throwable = t }

@@ -53,19 +53,30 @@ allprojects {
 	apply from: file("${rootProject.projectDir}/versions.gradle")
 /* this is necessary as long as we do not publish the library into its own repository, since the CI server does not seam to support composite builds but only multi-project hierarchies */
 	configurations.all {
-		resolutionStrategy.dependencySubstitution {
-			def targetProject = findProject(":deviceDaemonLib")
-			if (targetProject != null) {
-				def substitution = substitute module("com.github.hotzkow:platformInterfaceLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
-				if(substitution != null) {
+		resolutionStrategy{
+			// force certain versions of dependencies (including transitive)
+			//  *append new forced modules as comma separated strings
+			force "com.github.hotzkow:platformInterfaceLib:${driverLib_version}"
+			// cache dynamic versions for 10 minutes
+			
+			dependencySubstitution {
+				def targetProject = findProject(":deviceDaemonLib")
+				if (targetProject != null) {
+					def substitution = substitute module("com.github.hotzkow:platformInterfaceLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
+					if(substitution != null) {
 //					println "use composite build directory (deviceLib) instead of artifact from server"
-					substitution because "use local git submodule for development instead of external dependency"
+						substitution because "use local git submodule for development instead of external dependency"
+					}
+				}
+				if(findProject(":explorationModel") != null) {
+//				println "use composite build directory (explorationModel) instead of artifact from server"
+					substitute module("com.github.hotzkow:explorationModel:master-SNAPSHOT") with project(":explorationModel")
 				}
 			}
-			if(findProject(":explorationModel") != null) {
-//				println "use composite build directory (explorationModel) instead of artifact from server"
-				substitute module("com.github.hotzkow:explorationModel:master-SNAPSHOT") with project(":explorationModel")
-			}
+
+			cacheDynamicVersionsFor 10*60, 'seconds'
+			// don't cache changing modules at all
+			cacheChangingModulesFor 0, 'seconds'
 		}
 	}
 }

@@ -77,8 +77,6 @@ val debug = Files.list(android_sdk_dir).use {  file ->
 	}
 }
 
-val android_extras_m2repo: Path = android_sdk_dir.resolve("extras/android/m2repository")
-
 //endregion
 
 const val monitor_generator_res_name_monitor_template = "monitorTemplate.txt"

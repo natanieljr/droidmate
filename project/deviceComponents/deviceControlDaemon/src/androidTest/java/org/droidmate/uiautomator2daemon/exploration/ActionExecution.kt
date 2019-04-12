@@ -257,6 +257,7 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 					", because (currently) we would have to traverse the tree a second time"
 //									xmlDump
 			, launchedActivity = env.launchedMainActivity,
+			capturedScreen = img != null,
 			screenshot = imgPixels,
 			appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
 			isHomeScreen = windows.count { it.isApp() }.let { nAppW ->

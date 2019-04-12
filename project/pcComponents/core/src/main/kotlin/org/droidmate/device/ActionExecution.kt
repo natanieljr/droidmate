@@ -128,7 +128,6 @@ private fun terminate(app: IApk, device: IRobustDevice){
 		log.trace("App is still running. Clearing package again.")
 		device.clearPackage(app.packageName)
 	}
-
 }
 @Throws(DeviceException::class)
 private fun assertAppIsNotRunning(device: IRobustDevice, apk: IApk) {

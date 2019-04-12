@@ -249,7 +249,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		val explorationData = execute(cfg, apks)
 
 		onFinalFinished()
-		log.warn("Writing reports finished.")
+		log.info("Writing reports finished.")
 
 		return@supervisorScope explorationData
 	}
@@ -372,6 +372,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					delay(2000)// the device is going to need some time to compress the image, if the image is time critical you should disable delayed fetch
 					device.pullFile(fileName, dstFile)
 				} while (isActive && c++ < 3 && !File(dstFile.toString()).exists())
+				if(!File(dstFile.toString()).exists()) log.warn("unable to fetch state image for action $actionId")
 			}
 		}, inMillis = true)
 
@@ -389,6 +390,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Construct initial action and execute it on the device to obtain initial result.
 		var action: ExplorationAction = EmptyAction
 		var result: ActionResult = EmptyActionResult
+		var capturedPreviously: Boolean = false
 
 		var isFirst = true
 
@@ -404,16 +406,22 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					result = action.execute(app, device)
 
 					if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
-						if (action is ActionQueue) {
+						if (capturedPreviously && action is ActionQueue) {
 							action.actions.forEachIndexed { i, a ->
+								log.debug("action queue element {} should have screenshot for ExploreCommand {}",i,a)
 								if (i < action.actions.size - 1 &&
 										((a is TextInsert && action.actions[i + 1] is Click)
 												|| a is Swipe))
 									pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device, explorationContext)
 							}
 						}
-						pullScreenShot(action.id, explorationContext.getModel().config.imgDst, device, explorationContext)
+						if(result.guiSnapshot.capturedScreen){
+							val id = if(action.isTerminate()) action.id +1 else action.id // terminate is not send to the device instead we terminate the app process and issue Fetch which will have a higher id value
+							log.debug("action {} should have screenshot for ExploreCommand {}",id,action)
+							pullScreenShot(id, explorationContext.getModel().config.imgDst, device, explorationContext)
+						}
 					}
+					capturedPreviously = result.guiSnapshot.capturedScreen
 
 					explorationContext.update(action, result)
 
@@ -430,25 +438,25 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 					assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }
 				} catch (e: Throwable) {  // the decide call of a strategy may issue an exception e.g. when trying to interact on non-actable elements
 					log.error("Exception during exploration\n" +
-							" ${e.localizedMessage}")
+							" ${e.localizedMessage}",e)
 					explorationContext.exceptions.add(e)
 					explorationContext.resetApp().execute(app,device)
 				}
 			} // end loop
 
+			explorationContext.explorationEndTime = LocalDateTime.now()
 			explorationContext.verify() // some result validation do this in the end of exploration for this app
 			// but within the catch block to NOT terminate other explorations and to NOT loose the derived context
 
 		} catch (e: Throwable){ // the loop handles internal error if possible, however if the resetApp after exception fails we end in this catch
 			// this means likely the uiAutomator is dead or we lost device connection
-			log.error("unhandled device exception \n ${e.localizedMessage}")
+			log.error("unhandled device exception \n ${e.localizedMessage}",e)
 			explorationContext.exceptions.add(e)
 			strategy?.close()
 		}
 		finally {
 			explorationContext.close()
 		}
-		explorationContext.explorationEndTime = LocalDateTime.now()
 
 		return FailableExploration(explorationContext, explorationContext.exceptions)
 	}

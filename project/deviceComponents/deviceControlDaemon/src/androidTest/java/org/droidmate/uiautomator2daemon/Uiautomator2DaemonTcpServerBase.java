@@ -159,6 +159,8 @@ public abstract class Uiautomator2DaemonTcpServerBase<ServerInputT extends Seria
 				close();
 			} catch (IOException e) {
 				Log.e(tag, "Exception was thrown while operating droidmate TCP server", e);
+			} catch ( Throwable e) {
+				Log.e(tag, "unhandled exception", e);
 			}
 		}
 

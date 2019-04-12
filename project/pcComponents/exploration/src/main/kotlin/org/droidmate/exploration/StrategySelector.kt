@@ -81,7 +81,7 @@ class StrategySelector constructor(val priority: Int,
 			else {
 				val diff = context.getExplorationTimeInMs()
 
-				logger.debug("remaining exploration time: ${"%.1f".format((timeLimit-diff)/1000.0)}s")
+				logger.info("remaining exploration time: ${"%.1f".format((timeLimit-diff)/1000.0)}s")
 				if (diff >= timeLimit) {
 					logger.info("Exploration time exhausted. Returning 'Terminate'")
 					Terminate

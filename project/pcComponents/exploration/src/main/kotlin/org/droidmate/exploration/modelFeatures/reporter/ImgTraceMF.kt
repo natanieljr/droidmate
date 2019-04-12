@@ -33,7 +33,6 @@ import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.deviceInterface.exploration.isComplete
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.ConcreteId
-import org.droidmate.explorationModel.config.ConfigProperties
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
@@ -115,7 +114,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 
 			}
 		}catch(e: Throwable){
-			log.error(e.localizedMessage)
+			log.error(e.localizedMessage, e)
 		}
 	}
 }
@@ -141,10 +140,10 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 			paint = shapeColor// reset color for next shape drawing
 
 			stroke = BasicStroke(1F)
-			w.visibleAreas.forEach { drawOval(it) }
+//			w.visibleAreas.forEach { drawRectangle(it) }
 			stroke = BasicStroke(10F)
 			with(w.visibleBounds) {
-				drawOval(this)
+				drawRectangle(this)
 				// draw the label number for the element
 				val text = targetCounter[w.id]!!.joinToString(separator = ", ") { if (it.first != 0) "${it.first}.${it.second}" else "${it.second}" }
 				if (text.length > 20) font = Font("TimesRoman", Font.PLAIN, 20)
@@ -161,6 +160,6 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 
 private fun Int.resize() = if(this<5) 10 else this
 
-fun Graphics.drawOval(bounds: Rectangle){
+fun Graphics.drawRectangle(bounds: Rectangle){
 	this.drawRect(bounds.leftX,bounds.topY,bounds.width,bounds.height)
 }

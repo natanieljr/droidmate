@@ -2,26 +2,31 @@
 <configuration>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- encoders are assigned the type
-             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <!-- reduce the produced standard output in console for clarity, but all debug out is still in the produced log file -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
         <encoder>
-            <pattern>%-35(%d{HH:mm:ss.SSS} [%thread]) | %-5level | %-35class{35} | %msg%n</pattern>
+            <pattern>%d{HH:mm:ss} %highlight(%-5level) %boldWhite%-20([%.18thread]) %cyan(%-35.35class{35}) %msg%n</pattern>
         </encoder>
     </appender>
 
-    <logger name="org.droidmate.command.ExploreCommand" level="INFO"/>
-    <logger name="org.droidmate.configuration.ConfigurationBuilder" level="WARN"/>
-    <logger name="org.droidmate.configuration.ConfigurationBuilder$Companion" level="WARN"/>
-    <logger name="org.droidmate.device.AndroidDevice" level="INFO"/>
-    <logger name="org.droidmate.device.logcat.ApiLogsReader" level="INFO"/>
-    <logger name="org.droidmate.exploration.statemodel.loader" level="INFO"/>
-    <logger name="org.droidmate.exploration.strategy.ExplorationStrategyPool" level="INFO"/>
-    <logger name="org.droidmate.misc.SysCmdExecutor" level="WARN"/>
-    <logger name="org.droidmate.misc.SysCmdInterruptableExecutor" level="WARN"/>
-    <logger name="PC-ActionRun" level="INFO"/>
+    <timestamp key="myTimestamp" datePattern="yyyy-MM-dd'_'HH-mm-ss.SSS"/>
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.html.HTMLLayout">
+                <pattern>%d{HH:mm:ss.SSS}%thread%level%class%msg</pattern>
+            </layout>
+        </encoder>
+        <file>out/log-${myTimestamp}.html</file>
+        <append>true</append>
+        <!-- set immediateFlush to false for much higher logging throughput -->
+        <immediateFlush>true</immediateFlush>
+    </appender>
 
-    <root level="DEBUG">
+    <root level="TRACE">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
 
 </configuration>

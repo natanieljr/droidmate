@@ -257,8 +257,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 			return messages
 		} catch (e: ApkExplorationException) {
-			log.error("Error reading statements from monitor TCP server. Proceeding with exploration ${e.message}")
-			log.error("Trace: ${e.stackTrace}")
+			log.error("Error reading statements from monitor TCP server. Proceeding with exploration ${e.message}",e.cause)
 
 			return emptyList()
 		}
@@ -286,8 +285,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 			return messages
 		} catch (e: ApkExplorationException) {
-			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}")
-			log.error("ExplorationTrace: ${e.stackTrace}")
+			log.error("Error reading APIs from monitor TCP server. Proceeding with exploration ${e.message}",e.cause)
 
 			return emptyList()
 		}

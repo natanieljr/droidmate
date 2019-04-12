@@ -54,14 +54,6 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 		}
 
 		val explResult = exploreFn(apk,device)  // all exploration exceptions should be handled internally by in function
-		if (explResult.error.isNotEmpty()) {
-			log.warn(Markers.appHealth,
-					"! Caught Exceptions during exploration in withDeployedApk($device, ${apk.fileName})->computation(). " +
-							"Adding as a cause to an ${ApkExplorationException::class.java.simpleName}. Then adding to the collected error list.\n" +
-							explResult.error.joinToString(separator = "\n") { it.localizedMessage })
-			log.error(Markers.appHealth, explResult.error.joinToString(separator = "\n") { it.localizedMessage }, explResult.error)
-
-		}
 
 		log.debug("Finalizing: withDeployedApk($device, ${apk.fileName}).finally{} for computation($apk.fileName)")
 		try {
