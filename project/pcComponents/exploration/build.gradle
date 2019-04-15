@@ -41,10 +41,7 @@ dependencies {
 	// for event probability strategy (should be in its own fork)
 	implementation 'org.apache.commons:commons-lang3:3.8'
 	implementation 'com.google.jimfs:jimfs:1.1'
-	implementation("com.github.natanieljr:konrads_utilities:$utilities_version") {  // used in VisualizationGraph (probably can get rid of)
-		exclude group: "org.slf4j", module: "slf4j-simple"
-	}
-	
+
 	// used in VisualizationGraph
 	implementation 'org.json:json:20160212'
 	implementation 'com.google.code.gson:gson:2.8.5'
