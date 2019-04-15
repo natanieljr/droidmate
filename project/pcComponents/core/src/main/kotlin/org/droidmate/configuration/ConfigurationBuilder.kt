@@ -363,12 +363,12 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 			cfg.apksDirPath = cfg.getPath(cfg[apksDir]).toAbsolutePath()
 
-			if (cfg.apksDirPath.createDirIfNotExists())
-				log.debug("Created directory from which DroidMate will read input apks: ${cfg.apksDirPath.toAbsolutePath()}")
+			Files.createDirectories(cfg.apksDirPath)
+			log.debug("Reading APKs from: ${cfg.apksDirPath.toAbsolutePath()}")
 
 			if (Files.notExists(cfg.droidmateOutputDirPath)) {
 				Files.createDirectories(cfg.droidmateOutputDirPath)
-				log.info("Created directory to which DroidMate will output: " + cfg.droidmateOutputDirPath.toAbsolutePath().toString())
+				log.info("Writing output to: ${cfg.droidmateOutputDirPath}")
 			}
 		}
 

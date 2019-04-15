@@ -57,7 +57,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 												   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
 												   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
 												   val model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
-												   val explorationTrace: ExplorationTrace = _model.initNewTrace(watcher)) {
+												   val explorationTrace: ExplorationTrace = model.initNewTrace(watcher)) {
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
