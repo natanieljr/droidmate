@@ -22,6 +22,7 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+
 package org.droidmate.device.deviceInterface
 
 import org.droidmate.device.error.DeviceException
@@ -29,7 +30,6 @@ import org.droidmate.device.IExplorableAndroidDevice
 import org.droidmate.device.logcat.ApiLogsReader
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.IDeviceMessagesReader
-
 
 /**
  * <p>
