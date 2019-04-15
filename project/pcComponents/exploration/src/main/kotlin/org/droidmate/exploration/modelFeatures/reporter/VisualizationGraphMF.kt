@@ -172,7 +172,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
         }
 
         fun writeToFile(gson: Gson, file: Path) {
-            Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW).use {
+            Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE).use {
                 it.append("var data = ")
                 gson.toJson(this, it)
                 it.append(";")

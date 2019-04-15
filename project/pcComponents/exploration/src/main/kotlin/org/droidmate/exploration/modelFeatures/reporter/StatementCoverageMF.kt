@@ -69,7 +69,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
     private val instrumentationMap = getInstrumentation(appName)
     private val mutex = Mutex()
 
-    private lateinit var trace : ExplorationTrace
+    private var trace: ExplorationTrace? = null
 
     init {
         assert(statementsLogOutputDir.deleteDir()) { "Could not delete the directory $statementsLogOutputDir" }
@@ -109,7 +109,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
 
             // Write the received content into a file
             if (readStatements.isNotEmpty()) {
-                val lastId = trace.last()?.actionId ?: 0
+                val lastId = trace?.last()?.actionId ?: 0
                 val file = getLogFilename(lastId)
                 launch(IO) { Files.write(file, readStatements.map { "${it[1]};${it[0]}" }) }
             }
