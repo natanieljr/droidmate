@@ -383,7 +383,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, { device.readStatements() }, LocalDateTime.now(), watcher = watcher, _model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(cfg, app, { device.readStatements() }, LocalDateTime.now(), watcher = watcher, model = modelProvider(app.packageName))
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 
@@ -412,13 +412,13 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 								if (i < action.actions.size - 1 &&
 										((a is TextInsert && action.actions[i + 1] is Click)
 												|| a is Swipe))
-									pullScreenShot(a.id, explorationContext.getModel().config.imgDst, device, explorationContext)
+									pullScreenShot(a.id, explorationContext.model.config.imgDst, device, explorationContext)
 							}
 						}
 						if(result.guiSnapshot.capturedScreen){
 							val id = if(action.isTerminate()) action.id +1 else action.id // terminate is not send to the device instead we terminate the app process and issue Fetch which will have a higher id value
 							log.debug("action {} should have screenshot for ExploreCommand {}",id,action)
-							pullScreenShot(id, explorationContext.getModel().config.imgDst, device, explorationContext)
+							pullScreenShot(id, explorationContext.model.config.imgDst, device, explorationContext)
 						}
 					}
 					capturedPreviously = result.guiSnapshot.capturedScreen

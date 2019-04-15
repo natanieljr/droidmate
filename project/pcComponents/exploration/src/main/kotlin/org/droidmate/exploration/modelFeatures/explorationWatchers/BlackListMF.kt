@@ -37,7 +37,7 @@ import kotlin.coroutines.CoroutineContext
 class BlackListMF: WidgetCountingMF() {
 	override val coroutineContext: CoroutineContext = CoroutineName("BlackListMF")
 
-	private var lastActionableState: State = State.emptyState
+	private var lastActionableState: State? = null
 
 	/** used to keep track of the last state before we got stuck */
 	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
@@ -55,18 +55,19 @@ class BlackListMF: WidgetCountingMF() {
 	 * and blacklist the widget of the action before this one to be not/ less likely explored
 	 */
 	override suspend fun onContextUpdate(context: ExplorationContext) {
-		if(!lastActionableState.isHomeScreen && context.lastTarget != null && isStuck(context.getLastActionType()))
-			incCnt(context.lastTarget!!.uid, lastActionableState.uid)
+		if(lastActionableState != null &&
+			!lastActionableState!!.isHomeScreen && context.lastTarget != null && isStuck(context.getLastActionType()))
+			incCnt(context.lastTarget!!.uid, lastActionableState!!.uid)
 	}
 
 	fun decreaseCounter(context: ExplorationContext){
 		context.lastTarget?.let { lastTarget ->
-			decCnt(lastTarget.uid, lastActionableState.uid)
+			decCnt(lastTarget.uid, lastActionableState!!.uid)
 		}
 	}
 
 
 	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
-		dump(context.getModel().config.baseDir.resolve("lastBlacklist.txt"))
+		dump(context.model.config.baseDir.resolve("lastBlacklist.txt"))
 	}
 }

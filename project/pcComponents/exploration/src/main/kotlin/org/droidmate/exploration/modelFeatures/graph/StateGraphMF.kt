@@ -14,7 +14,7 @@ import kotlin.coroutines.CoroutineContext
 private fun Interaction.shortString() = "$actionType;$targetWidget;$exception;$successful"
 
 class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, Interaction> =
-		                                             Graph(State.emptyState,
+		                                             Graph(State(emptyList()),
 				                                             stateComparison = { a, b -> a.uid == b.uid },
 				                                             labelComparison = { a, b ->
 					                                             val aData = a.shortString()
@@ -36,13 +36,13 @@ class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, In
 		val sourceState = if (lastAction.actionType.isLaunchApp())
 			root.data
 		else
-			context.getState(lastAction.prevState) ?: State.emptyState
+			context.getState(lastAction.prevState) ?: context.model.emptyState
 
 		val prevLabel = emptyWithWidget(lastAction.targetWidget)
 
 		// Try to update a previous label (from prevState to emptyState) if it exists, otherwise update a new one
 		if (prevLabel.targetWidget != null)
-			this.update(sourceState, State.emptyState, newState, prevLabel, lastAction) ?: this.add(sourceState, newState, lastAction)
+			this.update(sourceState, context.model.emptyState, newState, prevLabel, lastAction) ?: this.add(sourceState, newState, lastAction)
 		else
 			this.add(sourceState, newState, lastAction)
 

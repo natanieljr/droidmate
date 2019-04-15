@@ -103,12 +103,12 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
             sb.appendln("$key\t${value.first}\t${value.second}")
         }
 
-        val reportFile = context.getModel().config.baseDir.resolve("effective_actions.txt")
+        val reportFile = context.model.config.baseDir.resolve("effective_actions.txt")
         Files.write(reportFile, sb.toString().toByteArray())
 
         if (includePlots) {
             log.info("Writing out plot $")
-            this.writeOutPlot(reportFile, context.getModel().config.baseDir)
+            this.writeOutPlot(reportFile, context.model.config.baseDir)
         }
     }
 

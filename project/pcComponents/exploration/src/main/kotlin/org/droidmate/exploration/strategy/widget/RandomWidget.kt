@@ -75,7 +75,7 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 					// Has last action
 					this.eContext.lastTarget != null &&
 					// Has a state that is not a runtime permission
-					runBlocking { eContext.getModel().getStates() }
+					runBlocking { eContext.model.getStates() }
 							.filterNot { it.stateId == emptyId && it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&
 					// Can re-execute the same action

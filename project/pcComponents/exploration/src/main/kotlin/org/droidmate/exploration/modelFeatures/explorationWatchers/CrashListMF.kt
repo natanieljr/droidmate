@@ -62,7 +62,7 @@ class CrashListMF : WidgetCountingMF() {
 					out.appendln("${actionData.actionType};${actionData.targetWidget};\t${actionData.prevState};$exception")
 			}
 
-		val file = context.getModel().config.baseDir.resolve("crashlist.txt")
+		val file = context.model.config.baseDir.resolve("crashlist.txt")
 		Files.write(file, out.lines())
 	}
 

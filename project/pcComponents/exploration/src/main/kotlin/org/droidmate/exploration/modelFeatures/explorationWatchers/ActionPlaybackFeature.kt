@@ -57,7 +57,7 @@ class ActionPlaybackFeature(val storedModel: Model,
 			sb.appendln("$trace;$action")
 		}
 
-		val outputFile = context.getModel().config.baseDir.resolve("playbackErrors.txt")
+		val outputFile = context.model.config.baseDir.resolve("playbackErrors.txt")
 		Files.write(outputFile, sb.lines())
 	}
 

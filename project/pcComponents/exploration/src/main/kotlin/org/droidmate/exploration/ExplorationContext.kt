@@ -55,8 +55,8 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
                                                    val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                    var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                    private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
-                                                   val _model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
-                                                   val explorationTrace: ExplorationTrace = _model.initNewTrace(watcher)) {
+                                                   val model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
+                                                   val explorationTrace: ExplorationTrace = model.initNewTrace(watcher)) {
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
@@ -85,17 +85,17 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 
 
 	init {
-		debugOutput = _model.config[debugMode] // disable debug outputs if not in debug mode
-		measurePerformance = _model.config[debugMode]
-		if (_model.config[enableCoverage]){
+		debugOutput = model.config[debugMode] // disable debug outputs if not in debug mode
+		measurePerformance = model.config[debugMode]
+		if (model.config[enableCoverage]){
 			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[coverageDir]).toAbsolutePath()
 			val resourceDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(EnvironmentConstants.dir_name_temp_extracted_resources).toAbsolutePath()
-			watcher.add(StatementCoverageMF(coverageDir, _model.config, readDeviceStatements, _model.config.appName, resourceDir))
+			watcher.add(StatementCoverageMF(coverageDir, model.config, readDeviceStatements, model.config.appName, resourceDir))
 		}
 	}
 
 	fun getCurrentState(): State = explorationTrace.currentState
-	suspend fun getState(sId: ConcreteId) = _model.getState(sId)
+	suspend fun getState(sId: ConcreteId) = model.getState(sId)
 
 	/** filters out all crashing marked widgets from the actionable widgets of the current state **/
 	suspend fun Collection<Widget>.nonCrashingWidgets() = filterNot { crashlist.isBlacklistedInState(it.uid,getCurrentState().uid) }
@@ -109,7 +109,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 		apk.updateLaunchableActivityName(result.guiSnapshot.launchedMainActivityName)
 
 		assert(action.toString() == result.action.toString()) { "ERROR on ACTION-RESULT construction the wrong action was instantiated ${result.action} instead of $action"}
-		_model.updateModel(result, explorationTrace)
+		model.updateModel(result, explorationTrace)
 		this.also { context ->
 			lastTarget = explorationTrace.getExploredWidgets().lastOrNull() // this may be used by some strategies or ModelFeatures
 			watcher.forEach { feature ->
@@ -139,14 +139,14 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 			}
 			retention.coroutineContext.cancel() // terminate any unfinished ModelFeature-dump coroutines
 
-			_model.cancelAndJoin()  // ensure the model has persisted all required data and cancel  all (child)scopes
+			model.cancelAndJoin()  // ensure the model has persisted all required data and cancel  all (child)scopes
 			log.debug("DONE - app finished notification")
 		}
 	}
 
 	suspend fun dump() = this.let{ eContext ->
 		log.info("dump models and watcher")
-		_model.dumpModel(_model.config)
+		model.dumpModel(model.config)
 
 		watcher.forEach { feature ->
 			retention.launch(CoroutineName("eContext-dump")) { // this called on "retention scope" to allow for easy feature task synchronization
@@ -161,7 +161,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 	//TODO it may be more performing to have a list of all unexplored widgets and remove the ones chosen as target -> best done as ModelFeature
 	// this could be nicely combined with the highlighting feature of the (numbered) img trace
 	suspend fun areAllWidgetsExplored(): Boolean { // only consider widgets which belong to the app because there are insanely many keyboard/icon widgets available
-		return explorationTrace.size>0 && explorationTrace.unexplored( _model.getWidgets().filter { it.packageName == apk.packageName && it.isInteractive }).isEmpty()
+		return explorationTrace.size>0 && explorationTrace.unexplored( model.getWidgets().filter { it.packageName == apk.packageName && it.isInteractive }).isEmpty()
 	}
 
 	/**
@@ -224,10 +224,6 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 	 * Get the number of explorationTrace which exist in the logcat
 	 */
 	fun getSize(): Int = explorationTrace.size
-
-	fun getModel(): Model {
-		return _model
-	}
 
 	fun List<Interaction>.mapQueueToSingleElement(): List<Interaction>{
 		var startQueue = 0

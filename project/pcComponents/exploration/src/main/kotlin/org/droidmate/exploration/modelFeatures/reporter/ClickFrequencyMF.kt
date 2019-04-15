@@ -47,7 +47,7 @@ class ClickFrequencyMF(reportDir: Path,
         report.write()
         if (includePlots) {
             log.info("Writing out plot $report")
-            report.writeOutPlot(context.getModel().config.baseDir)
+            report.writeOutPlot(context.model.config.baseDir)
         }
     }
 

@@ -223,7 +223,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
                 }
         }
 
-        val outputFile = context.getModel().config.baseDir.resolve(fileName)
+        val outputFile = context.model.config.baseDir.resolve(fileName)
         Files.write(outputFile, sb.lines())
     }
 

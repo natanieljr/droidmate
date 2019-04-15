@@ -418,7 +418,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
 
     override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
         context.imgTransfer.coroutineContext[Job]?.children?.forEach { it.join() }
-        createVisualizationGraph(context.getModel(), context.apk, apkReportDir, resourceDir)
+        createVisualizationGraph(context.model, context.apk, apkReportDir, resourceDir)
     }
 
     override fun reset() {
