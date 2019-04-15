@@ -29,12 +29,9 @@ apply from: project(":project:pcComponents").file("debug.gradle")
 dependOnJunit(project)
 
 dependencies {
-	compile 'com.github.natanieljr:droidmate-common:-SNAPSHOT'
-	compile 'com.github.natanieljr:droidmate-coverage:-SNAPSHOT'
-	compile 'com.github.natanieljr:droidmate-monitor:-SNAPSHOT'
-	//compile 'org.droidmate:common:1.4-SNAPSHOT'
-	//compile 'org.droidmate:coverage:1.4-SNAPSHOT'
-	//compile 'org.droidmate:monitor:1.4-SNAPSHOT'
+	compile project.ext.dmCommon
+	compile project.ext.dmCoverage
+	compile project.ext.dmAPIMonitor
 
 	compile project(":project:pcComponents:exploration")
 	implementation 'com.natpryce:konfig:1.6.6.0'  // configuration library

@@ -96,7 +96,7 @@ configurations.all {
 }
 dependencies {
 //	implementation group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
-	implementation group:'com.github.hotzkow', name: 'platformInterfaceLib', version: "${project.ext.driverLib_version}"
+	implementation dmDriverLib
 
 	// Testing-only dependencies
 	testImplementation 'junit:junit:4.12'
