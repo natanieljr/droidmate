@@ -42,6 +42,9 @@ dependencies {
 	implementation 'org.apache.commons:commons-lang3:3.8'
 	implementation 'com.google.jimfs:jimfs:1.1'
 
+	// jdk dependency necessary for kotlin/stream library used by RandomWidget
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
 	// used in VisualizationGraph
 	implementation 'org.json:json:20160212'
 	implementation 'com.google.code.gson:gson:2.8.5'

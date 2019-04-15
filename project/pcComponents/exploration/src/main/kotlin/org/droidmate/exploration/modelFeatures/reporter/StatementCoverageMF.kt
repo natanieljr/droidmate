@@ -52,7 +52,6 @@ import java.time.Duration
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
-import kotlin.streams.toList
 
 /**
  * Model feature to monitor the statement coverage by processing an optional instrumentation file and fetching
@@ -152,8 +151,8 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
                 it.fileName.toString().contains(apkName)
                     && it.fileName.toString().endsWith(".apk$INSTRUMENTATION_FILE_SUFFIX")
             }
-            .toList()
-            .firstOrNull()
+            .findFirst()
+            .orElse(null)
     }
 
     @Throws(IOException::class)

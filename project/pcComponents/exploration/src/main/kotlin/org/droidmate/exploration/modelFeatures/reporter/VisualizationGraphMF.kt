@@ -196,8 +196,6 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
             get() = "DummyFileName"
         override val fileNameWithoutExtension: String
             get() = "DummyFileNameWithoutExtension"
-        override val absolutePath: String
-            get() = "DummyAbsolutePath"
         override val inlined: Boolean
             get() = false
         override val instrumented: Boolean
@@ -311,7 +309,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
             obj.addProperty("applicationLabel", src.applicationLabel)
             obj.addProperty("fileName", src.fileName)
             obj.addProperty("fileNameWithoutExtension", src.fileNameWithoutExtension)
-            obj.addProperty("absolutePath", src.absolutePath)
+            obj.addProperty("absolutePath", src.packageName)
             obj.addProperty("inlined", src.inlined)
             obj.addProperty("instrumented", src.instrumented)
             obj.addProperty("isDummy", src.isDummy)
@@ -419,15 +417,15 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
 
     override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
         context.imgTransfer.coroutineContext[Job]?.children?.forEach { it.join() }
-        createVisualizationGraph(context.model, context.apk, apkReportDir, resourceDir)
+        createVisualizationGraph(context.model, context.apk, apkReportDir)
     }
 
     override fun reset() {
         // Do nothing
     }
 
-    fun createVisualizationGraph(model: Model, apkReportDir: Path, resourceDir: Path, ignoreConfig: Boolean = false) {
-        createVisualizationGraph(model, DummyApk(), apkReportDir, resourceDir, ignoreConfig)
+    fun createVisualizationGraph(model: Model, apkReportDir: Path, ignoreConfig: Boolean = false) {
+        createVisualizationGraph(model, DummyApk(), apkReportDir, ignoreConfig)
     }
 
     /**
@@ -435,7 +433,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
      * It is zipped because, keeping it as directory in the resources folder and copying a folder
      * from a jar (e.g. when DroidMate is imported as an external application) was troublesome.
      */
-    fun createVisualizationGraph(model: Model, apk: IApk, apkReportDir: Path, resourceDir: Path, ignoreConfig: Boolean = false) {
+    fun createVisualizationGraph(model: Model, apk: IApk, apkReportDir: Path, ignoreConfig: Boolean = false) {
         val targetVisFolder = apkReportDir.resolve(topLevelDirName)
         // Copy the folder with the required resources
         val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)

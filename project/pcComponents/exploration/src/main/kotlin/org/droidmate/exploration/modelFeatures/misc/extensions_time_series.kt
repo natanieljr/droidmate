@@ -25,8 +25,8 @@
 
 package org.droidmate.exploration.modelFeatures.misc
 
-import com.konradjamrozik.associateMany
-import com.konradjamrozik.flatten
+import org.droidmate.legacy.associateMany
+import org.droidmate.legacy.flatten
 import java.lang.Math.max
 import java.time.Duration
 import java.time.LocalDateTime

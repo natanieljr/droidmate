@@ -45,7 +45,7 @@ class ReproducibilityRate @JvmOverloads constructor(reportDir: Path,
                                                     private val includePlots: Boolean = true,
                                                     fileName: String = "reproducibilityRate.txt") : PlaybackReportMF(reportDir, resourceDir, playbackStrategy, fileName) {
 
-    override suspend fun safeWriteApkReport(data: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
 		val reportSubDir = getPlaybackReportDir(apkReportDir)
 
 		val sb = StringBuilder()
@@ -56,7 +56,7 @@ class ReproducibilityRate @JvmOverloads constructor(reportDir: Path,
 		var actionNr = 0
 		var explored = 0
 
-		val playbackFeature = data.getOrCreateWatcher<ActionPlaybackFeature>()
+		val playbackFeature = context.getOrCreateWatcher<ActionPlaybackFeature>()
 		val skippedActions = playbackFeature.skippedActions
 
 		playbackFeature.storedModel.let {model ->

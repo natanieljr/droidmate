@@ -25,7 +25,6 @@
 
 package org.droidmate.exploration.modelFeatures.reporter
 
-import com.konradjamrozik.uniqueItemsWithFirstOccurrenceIndex
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.explorationModel.interaction.Interaction
@@ -36,6 +35,7 @@ import org.droidmate.exploration.modelFeatures.misc.replaceVariable
 import org.droidmate.logging.LogbackConstants
 import org.droidmate.exploration.modelFeatures.misc.resetActionsCount
 import org.droidmate.legacy.Resource
+import org.droidmate.legacy.uniqueItemsWithFirstOccurrenceIndex
 import java.time.Duration
 
 class ApkSummary {

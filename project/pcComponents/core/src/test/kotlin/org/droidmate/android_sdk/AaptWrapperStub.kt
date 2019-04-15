@@ -43,7 +43,7 @@ class AaptWrapperStub(private val apks: List<IApk>) : IAaptWrapper {
 	}
 
 	override fun getMetadata(apk: Path): List<String> {
-		val data = apks.single { it.absolutePath == apk.toAbsolutePath().toString() }
+		val data = apks.single { it.path.toString() == apk.toAbsolutePath().toString() }
 		return arrayListOf(data.packageName, data.launchableMainActivityName, data.applicationLabel)
 	}
 }
