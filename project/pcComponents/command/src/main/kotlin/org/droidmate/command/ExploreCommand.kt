@@ -390,7 +390,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		// Construct initial action and execute it on the device to obtain initial result.
 		var action: ExplorationAction = EmptyAction
 		var result: ActionResult = EmptyActionResult
-		var capturedPreviously: Boolean = false
+		var capturedPreviously = false
 
 		var isFirst = true
 
