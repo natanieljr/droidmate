@@ -26,6 +26,8 @@
 apply plugin: 'idea'
 apply from: project(":project:pcComponents").file("debug.gradle")
 
+// NoOp
+
 dependOnJunit(project)
 
 dependencies {
@@ -52,20 +54,3 @@ apply from: file("resources.gradle")
 
 configureTest([project, ['**/LibKotlinTestSuite.class']])
 
-sourceSets {
-	integrationTest {
-		kotlin {
-			resources {
-				srcDir 'src/main/resources'
-			}
-//      compileClasspath += sourceSets.main.runtimeClasspath
-		}
-		test {
-			resources {
-				srcDir 'src/test/resources'
-			}
-//      compileClasspath += sourceSets.test.runtimeClasspath
-			//     runtimeClasspath += sourceSets.test.runtimeClasspath // ***)
-		}
-	}
-}
