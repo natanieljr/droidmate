@@ -74,7 +74,7 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 
 	lateinit var apksDirPath: Path
 
-	var monitorApkApi23: Path? = null
+	var monitorApk: Path? = null
 
 	lateinit var resourceDir: Path
 

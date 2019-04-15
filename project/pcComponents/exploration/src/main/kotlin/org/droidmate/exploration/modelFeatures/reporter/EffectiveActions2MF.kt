@@ -178,8 +178,7 @@ class EffectiveActions2MF(private val pixelDensity: Int = nexus5XPixelDensity,
                 log.info("Both images have different size")
 
         } catch (e: Exception) {
-            log.error("Failed to compare image files: $screenshotA and $screenshotB",e)
-            e.printStackTrace()
+            log.error("Failed to compare image files: $screenshotA and $screenshotB", e)
         }
 
         return percentage

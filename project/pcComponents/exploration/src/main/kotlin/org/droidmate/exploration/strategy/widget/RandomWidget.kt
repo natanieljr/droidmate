@@ -53,7 +53,8 @@ import kotlin.streams.asSequence
 open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 												  private val biased: Boolean = true,
 												  private val randomScroll: Boolean = true,
-                         private val dictionary: List<String> = emptyList()) : ExplorationStrategy() {
+												  private val dictionary: List<String> = emptyList(),
+												  private val delay : Long = 0) : ExplorationStrategy() {
 
 	protected var random = Random(randomSeed)
 		private set
@@ -199,8 +200,8 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 
 		val actionList = when{
 			widget.isInputField ->	listOf(widget.setText(randomString()))
-			randomScroll -> widget.availableActions()
-			else -> widget.availableActions().filterNot { it is Swipe }
+			randomScroll -> widget.availableActions(delay)
+			else -> widget.availableActions(delay).filterNot { it is Swipe }
 		}
 
 		val maxVal = actionList.size

@@ -22,18 +22,12 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
+package org.droidmate.test_suites
 
-package org.droidmate.tools
-
-import org.droidmate.device.android_sdk.IApk
-import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.misc.FailableExploration
-
-/**
- * @see ApkDeployer
- */
-interface IApkDeployer {
-
-	suspend fun withDeployedApk(device: IRobustDevice, apk: IApk,
-                                exploreFn: suspend (IApk, IRobustDevice) -> FailableExploration): FailableExploration
-}
+//@RunWith(Suite::class)  //FIXME
+//@Suite.SuiteClasses(
+//		UiautomatorWindowDumpFunctionsTest::class,
+//		UiautomatorWindowDumpTest::class,
+//		ExplorationStrategyTest::class,
+//		ExplorationTest::class)
+class ExplorationTestSuite

@@ -25,9 +25,9 @@
 
 package org.droidmate.exploration.modelFeatures.reporter
 
-import com.konradjamrozik.Resource
 import kotlinx.coroutines.CoroutineName
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.legacy.Resource
 import org.droidmate.misc.getTextFromExtractedResource
 import java.nio.file.Files
 import java.nio.file.Path

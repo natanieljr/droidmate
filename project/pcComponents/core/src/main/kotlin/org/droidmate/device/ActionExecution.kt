@@ -3,10 +3,10 @@ package org.droidmate.device
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.error.DeviceException
-import org.droidmate.exploration.IApk
 import org.droidmate.device.logcat.DeviceLogsHandler
 import org.droidmate.device.logcat.IApiLogcatMessage
 import org.droidmate.device.logcat.MissingDeviceLogs
@@ -97,8 +97,8 @@ private suspend fun defaultExecution(action: ExplorationAction, device: IRobustD
 }
 
 private fun resetApp(app: IApk, device: IRobustDevice){
-	log.debug("LaunchApp action was issued this will kill the current app process if it is active and re-launch it")
-	log.debug("try to terminate app process")
+	log.debug("LaunchApp action was issued. This will kill the current app process if it is active and re-launch it.")
+	log.debug("Try to terminate app process.")
 	device.clearPackage(app.packageName)
 
 	log.debug("Ensure home screen is displayed.")

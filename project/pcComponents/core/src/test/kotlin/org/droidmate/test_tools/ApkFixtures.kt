@@ -23,13 +23,13 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.test_tools
+/*package org.droidmate.test_tools
 
-import com.konradjamrozik.Resource
 import org.droidmate.device.android_sdk.AaptWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.device.android_sdk.IAaptWrapper
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.legacy.Resource
 import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.SysCmdExecutor
 import org.droidmate.misc.text
@@ -66,7 +66,7 @@ class ApkFixtures(aapt: IAaptWrapper) {
 		}
 
 	init {
-		gui = Apk.build(aapt, Resource("${EnvironmentConstants.apk_fixtures}/GuiApkFixture-debug.apk").extractedPath)
-		monitoredInlined_api23 = Apk.build(aapt, Resource("${EnvironmentConstants.apk_fixtures}/${EnvironmentConstants.monitored_inlined_apk_fixture_api23_name}").extractedPath)
+		gui = Apk.fromFile(Resource("${EnvironmentConstants.apk_fixtures}/GuiApkFixture-debug.apk").extractedPath)
+		monitoredInlined_api23 = Apk.fromFile(Resource("${EnvironmentConstants.apk_fixtures}/${EnvironmentConstants.monitored_inlined_apk_fixture_api23_name}").extractedPath)
 	}
-}
+}*/

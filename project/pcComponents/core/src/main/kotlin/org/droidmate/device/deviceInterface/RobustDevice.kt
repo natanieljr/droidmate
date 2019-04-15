@@ -30,6 +30,7 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
 import org.droidmate.device.IAndroidDevice
 import org.droidmate.device.TcpServerUnreachableException
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.android_sdk.NoAndroidDevicesAvailableException
 import org.droidmate.device.error.DeviceException
 import org.droidmate.device.logcat.IApiLogcatMessage
@@ -39,7 +40,6 @@ import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.DeviceResponse
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
-import org.droidmate.exploration.IApk
 import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils

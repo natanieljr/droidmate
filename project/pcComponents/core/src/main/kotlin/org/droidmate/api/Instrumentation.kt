@@ -23,17 +23,26 @@
 //
 // web: www.droidmate.org
 
-package org.droidmate.tools
+package org.droidmate.api
 
-import org.droidmate.device.android_sdk.IApk
-import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.misc.FailableExploration
+import org.droidmate.command.InlineCommand
+import org.droidmate.configuration.ConfigurationWrapper
+import org.slf4j.LoggerFactory
 
-/**
- * @see ApkDeployer
- */
-interface IApkDeployer {
+@Suppress("unused")
+object Instrumentation {
+	private val log by lazy { LoggerFactory.getLogger(Instrumentation::class.java) }
 
-	suspend fun withDeployedApk(device: IRobustDevice, apk: IApk,
-                                exploreFn: suspend (IApk, IRobustDevice) -> FailableExploration): FailableExploration
+	/****************************** Apk-Inline API methods *****************************/
+	@JvmStatic
+	@JvmOverloads
+	suspend fun inline(args: Array<String> = emptyArray()) {
+        Instrumentation.inline(setup(args))
+	}
+
+	@JvmStatic
+	suspend fun inline(cfg: ConfigurationWrapper) {
+		log.info("inline the apks if necessary")
+		InlineCommand(cfg).execute(cfg)
+	}
 }

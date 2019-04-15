@@ -26,8 +26,8 @@
 package org.droidmate.tools
 
 import org.droidmate.device.android_sdk.Apk
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.IRobustDevice
-import org.droidmate.exploration.IApk
 import org.droidmate.misc.FailableExploration
 
 /**

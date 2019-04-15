@@ -26,21 +26,21 @@
 package org.droidmate.exploration.modelFeatures.reporter
 
 import com.google.gson.*
-import com.konradjamrozik.Resource
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import org.droidmate.deviceInterface.exploration.Rectangle
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.exploration.isQueueEnd
 import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.IApk
 import org.droidmate.exploration.modelFeatures.misc.unzip
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.ConcreteId.Companion.fromString
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.legacy.Resource
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.util.*
@@ -117,7 +117,8 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
                       val explorationEndTime: String,
                       val numberOfActions: Int,
                       val numberOfStates: Int,
-                      val apk: IApk) {
+                      val apk: IApk
+    ) {
         private val edges: MutableList<Edge> = ArrayList()
         private val nodes: MutableList<Node> = ArrayList()
 
@@ -171,7 +172,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
         }
 
         fun writeToFile(gson: Gson, file: Path) {
-            Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW).use {
+            Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE).use {
                 it.append("var data = ")
                 gson.toJson(this, it)
                 it.append(";")

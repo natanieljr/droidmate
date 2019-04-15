@@ -28,6 +28,7 @@ package org.droidmate.exploration
 import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigProperties
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.explorationModel.*
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
@@ -50,13 +51,13 @@ import java.nio.file.Paths
 
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
-                                                   val apk: IApk,
-                                                   readDeviceStatements: ()-> List<List<String>>,
-                                                   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
-                                                   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-                                                   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
-                                                   val model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
-                                                   val explorationTrace: ExplorationTrace = model.initNewTrace(watcher)) {
+												   val apk: IApk,
+												   readDeviceStatements: ()-> List<List<String>>,
+												   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
+												   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
+												   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
+												   val model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
+												   val explorationTrace: ExplorationTrace = _model.initNewTrace(watcher)) {
 	companion object {
 		@JvmStatic
 		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
@@ -90,7 +91,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 		if (model.config[enableCoverage]){
 			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[coverageDir]).toAbsolutePath()
 			val resourceDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(EnvironmentConstants.dir_name_temp_extracted_resources).toAbsolutePath()
-			watcher.add(StatementCoverageMF(coverageDir, model.config, readDeviceStatements, model.config.appName, resourceDir))
+			addWatcher(StatementCoverageMF(coverageDir, readDeviceStatements, model.config.appName, resourceDir))
 		}
 	}
 

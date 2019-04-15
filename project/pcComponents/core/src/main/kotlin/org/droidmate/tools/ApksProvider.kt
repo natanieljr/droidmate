@@ -26,7 +26,7 @@ package org.droidmate.tools
 
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.device.android_sdk.IAaptWrapper
-import org.droidmate.exploration.IApk
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.logging.Markers
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -61,7 +61,7 @@ class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
 		if (apks.isEmpty())
 			log.warn("No apks found! Apks were expected to be found in: {}", apksDir.toAbsolutePath().toString())
 
-		var builtApks = apks.map { Apk.build(aapt, it) }.toList()
+		var builtApks = apks.map { Apk.fromFile(it) }.toList()
 
 		builtApks.filter { !it.inlined }.forEach { p -> log.info("Following input apk is not inlined: ${p.fileName}") }
 

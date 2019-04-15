@@ -47,7 +47,7 @@ class DeviceTools @JvmOverloads constructor(cfg: ConfigurationWrapper = Configur
 		aapt = if (substitutes.containsKey(IAaptWrapper::class))
 			substitutes[IAaptWrapper::class] as IAaptWrapper
 		else
-			AaptWrapper(cfg, sysCmdExecutor)
+			AaptWrapper()
 		adb = if (substitutes.containsKey(IAdbWrapper::class))
 			substitutes[IAdbWrapper::class] as IAdbWrapper
 		else

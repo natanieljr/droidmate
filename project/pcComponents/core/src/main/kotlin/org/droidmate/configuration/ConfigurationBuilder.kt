@@ -25,11 +25,11 @@
 
 package org.droidmate.configuration
 
-import com.konradjamrozik.Resource
-import com.konradjamrozik.ResourcePath
-import com.konradjamrozik.createDirIfNotExists
-import com.konradjamrozik.toList
-import com.natpryce.konfig.*
+import com.natpryce.konfig.CommandLineOption
+import com.natpryce.konfig.Configuration
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.overriding
+import com.natpryce.konfig.parseArgs
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.apache.commons.lang3.builder.StandardToStringStyle
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
@@ -62,6 +62,7 @@ import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigProperties.Exploration.apkNames
 import org.droidmate.configuration.ConfigProperties.Exploration.apksDir
 import org.droidmate.configuration.ConfigProperties.Exploration.apksLimit
+import org.droidmate.configuration.ConfigProperties.Exploration.widgetActionDelay
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityDelay
@@ -100,6 +101,8 @@ import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForIdl
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
+import org.droidmate.legacy.Resource
+import org.droidmate.legacy.ResourcePath
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.EnvironmentConstants
 import org.slf4j.LoggerFactory
@@ -169,6 +172,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(launchActivityDelay, description = "Delay (in milliseconds) to wait for the app to load before continuing the exploration after a reset (or exploration start)."),
 			CommandLineOption(launchActivityTimeout, description = "Maximum amount of time to be waited for an app to start after a reset in milliseconds."),
 			CommandLineOption(apiVersion, description = "Has to be set to the Android API version corresponding to the (virtual) devices on which DroidMate will run. Currently supported values: api23"),
+			CommandLineOption(widgetActionDelay, description = "Default delay to be applied after interacting with a widget (click, long click, tick)"),
 			// Output
 			CommandLineOption(outputDir, description = "Path to the directory that will contain DroidMate exploration output."),
 			CommandLineOption(screenshotDir, description = "Path to the directory that will contain the screenshots from an exploration."),
@@ -284,9 +288,8 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			val apkNames = Files.list(cfg.getPath(cfg[apksDir]))
 					.filter { it.toString().endsWith(".apk") }
 					.map { it.fileName.toString() }
-					.toList()
 
-			if (cfg[deployRawApks] && arrayListOf("inlined", "monitored").any { apkNames.contains(it) })
+			if (cfg[deployRawApks] && arrayListOf("inlined", "monitored").any { apkNames.anyMatch { s -> s.contains(it) } })
 				throw ConfigurationException(
 						"DroidMate was instructed to deploy raw apks, while the apks dir contains an apk " +
 								"with 'inlined' or 'monitored' in its name. Please do not mix such apk with raw apks in one dir.\n" +
@@ -298,6 +301,18 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			if (cfg[randomSeed] == -1L) {
 				log.info("Generated random seed: ${cfg.randomSeed}")
 			}
+		}
+
+		@JvmStatic
+		private fun getCompiledResourcePath(cfg: ConfigurationWrapper,
+											resourceName: String,
+											compileCommand: (Path) -> Path): Path {
+			val path = cfg.resourceDir.resolve(resourceName)
+
+			if (!cfg[replaceResources] && Files.exists(path))
+				return path
+
+			return compileCommand.invoke(cfg.resourceDir)
 		}
 
 		@JvmStatic
@@ -326,10 +341,20 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			cfg.uiautomator2DaemonTestApk = getResourcePath(cfg, "deviceControlDaemon-test.apk").toAbsolutePath()
 			log.debug("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
 
-			cfg.monitorApkApi23 = try{getResourcePath(cfg, EnvironmentConstants.monitor_api23_apk_name).toAbsolutePath()}catch (e:Throwable){
-				null
-			}
-			log.debug("Using ${EnvironmentConstants.monitor_api23_apk_name} located at ${cfg.monitorApkApi23}")
+			cfg.monitorApk = try {
+				getCompiledResourcePath(cfg, EnvironmentConstants.monitor_apk_name) {path ->
+					val customApiFile = cfg.resourceDir.resolve("monitored_apis.json")
+					val apiPath = if (Files.exists(customApiFile)) {
+						customApiFile
+					} else {
+						null
+					}
+                    org.droidmate.monitor.Compiler.compile(path, apiPath)
+                }.toAbsolutePath()
+            } catch (e:Throwable) {
+                null
+            }
+            log.debug("Using ${EnvironmentConstants.monitor_apk_name} located at ${cfg.monitorApk}")
 
 			cfg.apiPoliciesFile = try{getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()} catch (e:Throwable){
 				null
@@ -339,7 +364,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			cfg.apksDirPath = cfg.getPath(cfg[apksDir]).toAbsolutePath()
 
 			if (cfg.apksDirPath.createDirIfNotExists())
-				log.debug("Created directory from which DroidMate will read input apks: " + cfg.apksDirPath.toAbsolutePath().toString())
+				log.debug("Created directory from which DroidMate will read input apks: ${cfg.apksDirPath.toAbsolutePath()}")
 
 			if (Files.notExists(cfg.droidmateOutputDirPath)) {
 				Files.createDirectories(cfg.droidmateOutputDirPath)
