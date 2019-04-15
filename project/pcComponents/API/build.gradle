@@ -35,7 +35,7 @@ buildscript {
 dependencies {
 	compile project(":project:pcComponents:command")
 
-	api 'com.natpryce:konfig:1.6.6.0' // dependency as api since we expose the CommandLineOption to allow for extending configuration parameters
+	compile 'com.natpryce:konfig:1.6.6.0' // dependency as api since we expose the CommandLineOption to allow for extending configuration parameters
 }
 
 apply plugin: 'com.github.johnrengelman.shadow' // http://imperceptiblethoughts.com/shadow/

@@ -30,9 +30,10 @@ import com.natpryce.konfig.booleanType
 import com.natpryce.konfig.getValue
 import com.natpryce.konfig.stringType
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.Dispatchers.IO
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.explorationModel.ExplorationTrace
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
@@ -70,9 +71,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
     private val executedStatementsMap: ConcurrentHashMap<String, Date> = ConcurrentHashMap()
     private val instrumentationMap: Map<String, String>
 
-    private val mutex = Mutex()
-
-    private var counter = 0
+    private lateinit var trace : ExplorationTrace
 
     init {
         assert(statementsLogOutputDir.deleteDir())
@@ -81,14 +80,13 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
         instrumentationMap = getInstrumentation(appName)
     }
 
+    override fun onAppExplorationStarted(context: ExplorationContext) {
+        this.trace = context.explorationTrace
+    }
+
     override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
-        // Prevent concurrent problems
-        try {
-            mutex.lock()
-            updateCoverage()
-        } finally {
-            mutex.unlock()
-        }
+        // This method is internally synchronized to prevent concurrent problems
+        updateCoverage()
     }
 
     /**
@@ -169,7 +167,8 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
     /**
      * Fetch the statement data form the device. Afterwards, it parses the data and updates [executedStatementsMap].
      */
-    private fun updateCoverage() {
+    @Synchronized
+    private suspend fun updateCoverage() {
         // Fetch the statement data from the device
         val readStatements = readStatements()
 
@@ -192,10 +191,9 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
 
         // Write the received content into a file
         if (readStatements.isNotEmpty()) {
-            val file = getLogFilename(counter)
-            Files.write(file, readStatements.map { "${it[1]};${it[0]}" })
-
-            counter++
+            val lastId = trace.last()?.actionId ?: 0
+            val file = getLogFilename(lastId)
+            launch(IO) { Files.write(file, readStatements.map { it[1] }) }
         }
     }
 
@@ -224,7 +222,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
         }
 
         val outputFile = context.getModel().config.baseDir.resolve(fileName)
-        Files.write(outputFile, sb.lines())
+        launch(IO) { Files.write(outputFile, sb.lines()) }
     }
 
     companion object {
