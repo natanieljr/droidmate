@@ -108,18 +108,19 @@ object ExplorationAPI {
 		return ExplorationAPI.explore(setup(args), strategies, selectors, watcher, modelProvider)
 	}
 
-
 	@JvmStatic
 	@JvmOverloads
-	suspend fun explore(cfg: ConfigurationWrapper, strategies: List<ISelectableExplorationStrategy>? = null,
-                        selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(
-            cfg
-        ),
-                        modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> = coroutineScope{
+	suspend fun explore(cfg: ConfigurationWrapper,
+						strategies: List<ISelectableExplorationStrategy>? = null,
+                        selectors: List<StrategySelector>? = null,
+						watcher: List<ModelFeatureI>? = null,
+                        modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> = coroutineScope {
 		val runStart = Date()
-		val exploration = ExploreCommand.build(cfg, watcher = watcher, strategies = strategies
-				?: ExploreCommand.getDefaultStrategies(cfg), selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg)
-				, modelProvider = modelProvider ?: { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} )
+		val exploration = ExploreCommand.build(cfg,
+			watcher = watcher ?: defaultReporter(cfg),
+			strategies = strategies ?: ExploreCommand.getDefaultStrategies(cfg),
+			selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg),
+			modelProvider = modelProvider ?: { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} )
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
