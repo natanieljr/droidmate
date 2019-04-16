@@ -10,7 +10,7 @@ unitTestsUnix:
   script:
     - chmod +x ./gradlew
     - echo "Running unit tests on Unix"
-    - ./gradlew clean build test
+    - ./gradlew clean build test run --args='StatementCoverage-enableCoverage=true' --refresh-dependencies
 
 unitTestsWindows:
   stage: test
@@ -18,7 +18,7 @@ unitTestsWindows:
     - droidmatewin
   script:
     - echo "Running unit tests on Windows"
-    - ./gradlew clean build test
+    - ./gradlew clean build test run --args='StatementCoverage-enableCoverage=true' --refresh-dependencies
 
 job:on-schedule:
   stage: test
