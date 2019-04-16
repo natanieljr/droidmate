@@ -82,7 +82,7 @@ object ExplorationAPI {
 	fun customCommandConfig(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().buildRestrictedOptions(args, FileSystems.getDefault(), *options)
 
 	@JvmStatic
-	fun defaultReporter(cfg: ConfigurationWrapper) = listOf(VisualizationGraphMF(cfg.droidmateOutputReportDirPath.toAbsolutePath(), cfg.resourceDir.toAbsolutePath()))
+	fun defaultReporter(cfg: ConfigurationWrapper): List<ModelFeatureI> = listOf(VisualizationGraphMF(cfg.droidmateOutputReportDirPath.toAbsolutePath(), cfg.resourceDir.toAbsolutePath()))
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic
