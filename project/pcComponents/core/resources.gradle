@@ -26,6 +26,13 @@
 // Ensure BuildKt.monitored_apis_txt is available at runtime as a resource.
 processResources.configure { Copy copy -> copy.from(project(":project:pcComponents").file("resources")) }
 
+processResources.dependsOn(
+		"pullUiautomator2DaemonApk",
+		"pullUiautomator2DaemonTestApk"
+)
+
+clean.dependsOn("cleanUiautomator2Daemon")
+
 ext.coreResDir = sourceSets.main.resources.srcDirs.findAll { it.path.contains(project.name) }.first()
 apply from: file("deviceControlDaemon.gradle")
 
