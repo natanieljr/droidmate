@@ -77,7 +77,11 @@ object ExplorationAPI {
 
 	@JvmStatic
 	fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().build(args, FileSystems.getDefault(), *options)
+
+	@JvmStatic
 	fun customCommandConfig(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().buildRestrictedOptions(args, FileSystems.getDefault(), *options)
+
+	@JvmStatic
 	fun defaultReporter(cfg: ConfigurationWrapper) = listOf(VisualizationGraphMF(cfg.droidmateOutputReportDirPath.toAbsolutePath(), cfg.resourceDir.toAbsolutePath()))
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
@@ -151,6 +155,4 @@ object ExplorationAPI {
 
 		return@coroutineScope ExplorationAPI.explore(cfg, strategies, selectors, watcher)
 	}
-
-
 }
