@@ -122,44 +122,44 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 				else
 					cfg[actionLimit]
 
-				res.add(StrategySelector(++priority, "actionBasedTerminate", StrategySelector.actionBasedTerminate, actionLimit))
+				res.add(StrategySelector(++priority * 10, "actionBasedTerminate", StrategySelector.actionBasedTerminate, actionLimit))
 			}
 
 			// Time based terminate
 			if (cfg[timeLimit] > 0)
-				res.add(StrategySelector(++priority, "timeBasedTerminate", StrategySelector.timeBasedTerminate, cfg[timeLimit]))
+				res.add(StrategySelector(++priority * 10, "timeBasedTerminate", StrategySelector.timeBasedTerminate, cfg[timeLimit]))
 
-			res.add(StrategySelector(++priority, "appCrashedReset", StrategySelector.appCrashedReset))
+			res.add(StrategySelector(++priority * 10, "appCrashedReset", StrategySelector.appCrashedReset))
 
 			if (cfg[allowRuntimeDialog])
-				res.add(StrategySelector(++priority, "allowPermission", StrategySelector.allowPermission))
+				res.add(StrategySelector(++priority * 10, "allowPermission", StrategySelector.allowPermission))
 
 			if (cfg[denyRuntimeDialog])
-				res.add(StrategySelector(++priority, "denyPermission", StrategySelector.denyPermission))
+				res.add(StrategySelector(++priority * 10, "denyPermission", StrategySelector.denyPermission))
 
-			res.add(StrategySelector(++priority, "cannotExplore", StrategySelector.cannotExplore))
+			res.add(StrategySelector(++priority * 10, "cannotExplore", StrategySelector.cannotExplore))
 
 			// Interval reset
 			if (cfg[resetEvery] > 0)
-				res.add(StrategySelector(++priority, "intervalReset", StrategySelector.intervalReset, cfg[resetEvery]))
+				res.add(StrategySelector(++priority * 10, "intervalReset", StrategySelector.intervalReset, cfg[resetEvery]))
 
 			// Random back
 			if (cfg[pressBackProbability] > 0.0)
-				res.add(StrategySelector(++priority, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed)))
+				res.add(StrategySelector(++priority * 10, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed)))
 
 			if (cfg[Selectors.dfs])
-				res.add(StrategySelector(++priority, "dfs", StrategySelector.dfs))
+				res.add(StrategySelector(++priority * 10, "dfs", StrategySelector.dfs))
 
 			// Exploration exhausted
 			if (cfg[stopOnExhaustion])
-				res.add(StrategySelector(++priority, "explorationExhausted", StrategySelector.explorationExhausted))
+				res.add(StrategySelector(++priority * 10, "explorationExhausted", StrategySelector.explorationExhausted))
 
 			// Random exploration
 			if (cfg[explore])
-				res.add(StrategySelector(++priority, "randomWidget", StrategySelector.randomWidget))
+				res.add(StrategySelector(++priority * 10, "randomWidget", StrategySelector.randomWidget))
 
 			if (cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage]) {
-				res.add(StrategySelector(++priority, "statementCoverageSync", StrategySelector.statementCoverage))
+				res.add(StrategySelector(++priority * 10, "statementCoverageSync", StrategySelector.statementCoverage))
 			}
 
 			return res
