@@ -76,13 +76,22 @@ object ExplorationAPI {
 	}
 
 	@JvmStatic
-	fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().build(args, FileSystems.getDefault(), *options)
+	fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper =
+		ConfigurationBuilder().build(args, FileSystems.getDefault(), *options)
 
 	@JvmStatic
-	fun customCommandConfig(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper = ConfigurationBuilder().buildRestrictedOptions(args, FileSystems.getDefault(), *options)
+	fun customCommandConfig(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper =
+		ConfigurationBuilder().buildRestrictedOptions(args, FileSystems.getDefault(), *options)
 
 	@JvmStatic
-	fun defaultReporter(cfg: ConfigurationWrapper): List<ModelFeatureI> = listOf(VisualizationGraphMF(cfg.droidmateOutputReportDirPath.toAbsolutePath(), cfg.resourceDir.toAbsolutePath()))
+	fun defaultReporter(cfg: ConfigurationWrapper): List<ModelFeatureI> =
+		listOf(VisualizationGraphMF(cfg.droidmateOutputReportDirPath, cfg.resourceDir))
+
+	@JvmStatic
+	fun defaultStrategies(cfg: ConfigurationWrapper) = ExploreCommand.getDefaultStrategies(cfg)
+
+	@JvmStatic
+	fun defaultSelectors(cfg: ConfigurationWrapper) = ExploreCommand.getDefaultSelectors(cfg)
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic
@@ -100,10 +109,10 @@ object ExplorationAPI {
 	/****************************** Exploration API methods *****************************/
 	@JvmStatic
 	@JvmOverloads
-	suspend fun explore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-                        selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(
-            setup(args)
-        ),
+	suspend fun explore(args: Array<String> = emptyArray(),
+						strategies: List<ISelectableExplorationStrategy>? = null,
+                        selectors: List<StrategySelector>? = null,
+						watcher: List<ModelFeatureI>? = null,
                         modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
 		return ExplorationAPI.explore(setup(args), strategies, selectors, watcher, modelProvider)
 	}
@@ -146,11 +155,11 @@ object ExplorationAPI {
 	 */
 	@JvmStatic
 	@JvmOverloads
-	suspend fun inlineAndExplore(args: Array<String> = emptyArray(), strategies: List<ISelectableExplorationStrategy>? = null,
-	                     selectors: List<StrategySelector>? = null, watcher: List<ModelFeatureI> = defaultReporter(
-            setup(args)
-        )
-    ): Map<Apk, FailableExploration> = coroutineScope{
+	suspend fun inlineAndExplore(args: Array<String> = emptyArray(),
+								 strategies: List<ISelectableExplorationStrategy>? = null,
+								 selectors: List<StrategySelector>? = null,
+								 watcher: List<ModelFeatureI>? = null
+	): Map<Apk, FailableExploration> = coroutineScope{
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
