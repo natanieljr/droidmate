@@ -29,7 +29,7 @@ wrapper{
 
 allprojects {
 	group = "org.droidmate"
-	version = "1.3.1-SNAPSHOT"
+	version = "1.3.2-SNAPSHOT"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
@@ -39,19 +39,6 @@ allprojects {
 		jcenter()
 		mavenCentral()
 		mavenLocal()
-	}
-
-	apply plugin: 'java'
-
-	task sourcesJar(type: Jar, dependsOn: "classes") {
-		classifier = 'sources'
-		from sourceSets.main.allJava
-		from sourceSets.main.allSource
-		from sourceSets.test.allSource
-	}
-	apply plugin: 'maven'
-	artifacts {
-		archives sourcesJar
 	}
 
 	apply from: file("${rootProject.projectDir}/versions.gradle")
@@ -90,12 +77,32 @@ apply from: file("project/functions.gradle")
 
 project.ext { // direct child projects would be childProjects
 	pcJvmTargets = subprojects.find() { it.name == 'pcComponents' }.subprojects
+	artifactModules = allprojects.findAll {
+		it.name in [ "droidmate-2", "core", "exploration",    // internal artifacts
+		             "deviceDaemonLib", "explorationModel" ]  // external for platform independency
+	}
 }
 
 task Debug {
-	println(pcJvmTargets)
+	println("determine release artifacts")
+	println(artifactModules)
 }
 
+configure(artifactModules){
+	apply plugin: 'maven'
+	apply plugin: 'java'
+
+	task sourcesJar(type: Jar, dependsOn: "classes") {
+		classifier = 'sources'
+		from sourceSets.main.allJava
+		from sourceSets.main.allSource
+		from sourceSets.test.allSource
+	}
+
+	artifacts {
+		archives sourcesJar
+	}
+}
 
 configure(pcJvmTargets) {
 
