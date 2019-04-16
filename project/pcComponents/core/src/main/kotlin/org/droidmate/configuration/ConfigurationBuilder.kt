@@ -356,7 +356,9 @@ class ConfigurationBuilder : IConfigurationBuilder {
             }
             log.debug("Using ${EnvironmentConstants.monitor_apk_name} located at ${cfg.monitorApk}")
 
-			cfg.apiPoliciesFile = try{getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()} catch (e:Throwable){
+			cfg.apiPoliciesFile = try{
+				getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()}
+			catch (e:Throwable){
 				null
 			}
 			log.debug("Using ${EnvironmentConstants.api_policies_file_name} located at ${cfg.apiPoliciesFile}")
