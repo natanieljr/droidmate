@@ -102,11 +102,11 @@ import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Comp
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.onlyCoverAppPackageName
 import org.droidmate.legacy.Resource
-import org.droidmate.legacy.ResourcePath
 import org.droidmate.logging.Markers.Companion.runData
 import org.droidmate.misc.EnvironmentConstants
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.StringBuilder
 import java.lang.management.ManagementFactory
 import java.nio.file.*
 
@@ -388,23 +388,26 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			displayStyle.contentEnd = ""
 			displayStyle.fieldSeparator = System.lineSeparator()
 
-			var configurationDump = ReflectionToStringBuilder(config, displayStyle).toString()
-			configurationDump = configurationDump.split(System.lineSeparator()).asSequence().sorted().joinToString(System.lineSeparator())
+			val configurationDump = ReflectionToStringBuilder(config, displayStyle).toString()
+				.split(System.lineSeparator())
+				.sorted()
 
-			log.debug(runData, "--------------------------------------------------------------------------------")
-			log.debug(runData, "")
-			log.debug(runData, "Working dir:   ${System.getProperty("user.dir")}")
-			log.debug(runData, "")
-			log.debug(runData, "JVM arguments: ${readJVMArguments()}")
-			log.debug(runData, "")
-			log.debug(runData, "Configuration dump:")
-			log.debug(runData, "")
-			log.debug(runData, configurationDump)
-			log.debug(runData, "")
-			log.debug(runData, "End of configuration dump")
-			log.debug(runData, "")
-			log.debug(runData, "--------------------------------------------------------------------------------")
+			val sb = StringBuilder()
+			sb.appendln("--------------------------------------------------------------------------------")
+				.appendln("Working dir:   ${System.getProperty("user.dir")}")
+				.appendln("")
+				.appendln("JVM arguments: ${readJVMArguments()}")
+				.appendln("")
+				.appendln("Configuration dump:")
+				.appendln("")
 
+			configurationDump.forEach { sb.appendln(it) }
+
+			sb.appendln("")
+				.appendln("End of configuration dump")
+				.appendln("--------------------------------------------------------------------------------")
+
+			log.debug(runData, sb.toString())
 		}
 
 		/**

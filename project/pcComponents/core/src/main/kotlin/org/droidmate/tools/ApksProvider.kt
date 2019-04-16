@@ -74,13 +74,7 @@ class ApksProvider constructor(val aapt: IAaptWrapper) : IApksProvider {
 	}
 
 	private fun logApksUsedIntoRunData(apks: Collection<IApk>) {
-		log.info(Markers.runData, "Used input apks file paths:")
-		log.info(Markers.runData, "")
-
-		apks.forEach { log.info(Markers.runData, it.packageName) }
-
-		log.info(Markers.runData, "")
-		log.info(Markers.runData, "--------------------------------------------------------------------------------")
+		log.info(Markers.runData, "Used input apks file paths: ${apks.joinToString(",") {it.packageName}}")
 	}
 
 }
