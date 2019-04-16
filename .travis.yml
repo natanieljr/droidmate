@@ -71,4 +71,4 @@ cache:
 script:
 
   # By default, 'android' language uses 'connectedCheck'. Here we replace it with appropriate task.
-  - ./gradlew build
+  - ./gradlew clean build run --args='StatementCoverage-enableCoverage=true' --refresh-dependencies
