@@ -37,7 +37,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-typealias SelectorFunction = suspend (context: ExplorationContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
+typealias SelectorFunction = suspend (context: ExplorationContext, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
 typealias OnSelected = (context: ExplorationContext) -> Unit
 
 class StrategySelector constructor(val priority: Int,
@@ -57,6 +57,22 @@ class StrategySelector constructor(val priority: Int,
 
 	companion object {
 		val logger: Logger by lazy { LoggerFactory.getLogger(StrategySelector::class.java) }
+
+		/**
+		 * Creates a [StrategySelector] based on a regular lambda function.
+		 * This is necessary for Java interoperability, as suspend functions
+		 * are not easily ported
+		 */
+		@JvmStatic
+		fun from(priority: Int,
+				 description: String,
+				 function: (context: ExplorationContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?,
+				 vararg bundle: Any): StrategySelector = StrategySelector(
+			priority,
+			description,
+			{ context, pool, data -> function(context, pool, data) },
+			bundle
+		)
 
 		/**
 		 * Terminate the exploration after a predefined number of actions
