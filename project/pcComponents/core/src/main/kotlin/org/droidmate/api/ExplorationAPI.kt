@@ -93,6 +93,11 @@ object ExplorationAPI {
 	@JvmStatic
 	fun defaultSelectors(cfg: ConfigurationWrapper) = ExploreCommand.getDefaultSelectors(cfg)
 
+	@JvmStatic
+	fun defaultModelProvider(cfg: ConfigurationWrapper): ((String) -> Model)
+			= { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))}
+
+
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
 	@JvmStatic
 	@JvmOverloads
@@ -127,9 +132,9 @@ object ExplorationAPI {
 		val runStart = Date()
 		val exploration = ExploreCommand.build(cfg,
 			watcher = watcher ?: defaultReporter(cfg),
-			strategies = strategies ?: ExploreCommand.getDefaultStrategies(cfg),
-			selectors = selectors ?: ExploreCommand.getDefaultSelectors(cfg),
-			modelProvider = modelProvider ?: { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} )
+			strategies = strategies ?: defaultStrategies(cfg),
+			selectors = selectors ?: defaultSelectors(cfg),
+			modelProvider = modelProvider ?: defaultModelProvider(cfg) )
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
