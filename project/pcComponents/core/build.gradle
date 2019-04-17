@@ -54,7 +54,7 @@ apply from: file("deviceControlDaemon.gradle")
 
 processResources.configure { Copy copy -> copy.from(project(":project:pcComponents").file("resources")) }
 
-processResources.dependsOn(
+compileJava.dependsOn(
 		"pullUiautomator2DaemonApk",
 		"pullUiautomator2DaemonTestApk"
 )
