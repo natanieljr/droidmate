@@ -99,6 +99,7 @@ object ExplorationAPI {
 
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
+
 	@JvmStatic
 	@JvmOverloads
 	suspend fun instrument(args: Array<String> = emptyArray()) = coroutineScope{
@@ -121,14 +122,6 @@ object ExplorationAPI {
                         modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
 		return ExplorationAPI.explore(setup(args), strategies, selectors, watcher, modelProvider)
 	}
-
-	@JvmStatic
-	@JvmOverloads
-	suspend fun exploreWithDefaultModel(cfg: ConfigurationWrapper,
-										strategies: List<ISelectableExplorationStrategy>? = null,
-										selectors: List<StrategySelector>? = null,
-										watcher: List<ModelFeatureI>? = null) =
-		explore(cfg, strategies, selectors, watcher, null)
 
 	@JvmStatic
 	@JvmOverloads
