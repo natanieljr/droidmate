@@ -138,7 +138,7 @@ object ExplorationAPI {
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
-		return@coroutineScope exploration.execute(cfg)
+		exploration.execute(cfg)
 	}
 
 
@@ -168,6 +168,6 @@ object ExplorationAPI {
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
-		return@coroutineScope ExplorationAPI.explore(cfg, strategies, selectors, watcher)
+		ExplorationAPI.explore(cfg, strategies, selectors, watcher)
 	}
 }
