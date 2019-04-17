@@ -124,6 +124,14 @@ object ExplorationAPI {
 
 	@JvmStatic
 	@JvmOverloads
+	suspend fun exploreWithDefaultModel(cfg: ConfigurationWrapper,
+										strategies: List<ISelectableExplorationStrategy>? = null,
+										selectors: List<StrategySelector>? = null,
+										watcher: List<ModelFeatureI>? = null) =
+		explore(cfg, strategies, selectors, watcher, null)
+
+	@JvmStatic
+	@JvmOverloads
 	suspend fun explore(cfg: ConfigurationWrapper,
 						strategies: List<ISelectableExplorationStrategy>? = null,
                         selectors: List<StrategySelector>? = null,
