@@ -237,7 +237,9 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 		}else it
 	}.also {
 		debugOut("INTERACTIVE Element in UI = ${it?.any (isInteractive)}")
-	} ?: emptyList<UiElementPropertiesI>()	.also { isSuccessful = false }
+	} ?: emptyList<UiElementPropertiesI>()	.also {
+		Log.w(logTag, "could not parse current UI screen ( $windows )")
+		isSuccessful = false }
 
 //			val xmlDump = UiHierarchy.getXml(device)
 	val focusedWindow = windows.filter { it.isExtracted() && !it.isKeyboard }.let { appWindows ->

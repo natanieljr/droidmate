@@ -40,7 +40,7 @@ object UiHierarchy : UiParser() {
 			windows.forEach {  w: DisplayedWindow ->
 				if (w.isExtracted() && !w.isLauncher){  // for now we are not interested in the Launcher elements
 					w.area = LinkedList<Rect>().apply { w.initialArea.forEach { add(it) } }
-					if(w.rootNode == null) debugOut("ERROR root should not be null")
+					if(w.rootNode == null) Log.w(LOGTAG,"ERROR root should not be null (window=$w)")
 					check(w.rootNode != null) {"if extraction is enabled we have to have a rootNode"}
 					createBottomUp(w, w.rootNode!!, parentXpath = "//", nodes = nodes, img = if(validImg) img else null)
 					Log.d(LOGTAG, "${w.w.pkgName}:${w.w.windowId} ${visibleOuterBounds(w.initialArea)} " +

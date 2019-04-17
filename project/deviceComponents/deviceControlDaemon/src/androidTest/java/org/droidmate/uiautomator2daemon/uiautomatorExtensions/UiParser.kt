@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
+import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.isActive
 import org.droidmate.deviceInterface.communication.UiElementProperties
@@ -18,6 +19,8 @@ import kotlin.coroutines.coroutineContext
 abstract class UiParser {
 
 	companion object {
+		private const val LOGTAG = "droidmate/UiParser"
+
 		fun computeIdHash(xPath: String, windowLayer: Int) = xPath.hashCode() + windowLayer
 		/** used for parentHash and idHash computation of [UiElementProperties] */
 		private fun computeIdHash(xPath: String, window: DisplayedWindow) = computeIdHash(xPath, window.layer)
@@ -26,7 +29,10 @@ abstract class UiParser {
 	protected suspend fun createBottomUp(w: DisplayedWindow, node: AccessibilityNodeInfo, index: Int = 0,
 	                                     parentXpath: String, nodes: MutableList<UiElementProperties>, img: Bitmap?,
 	                                     parentH: Int = 0): UiElementProperties? {
-		if(!coroutineContext.isActive) return null
+		if(!coroutineContext.isActive) {
+			Log.w(LOGTAG, "coroutine is no longer active UI parsing is aborted")
+			return null
+		}
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
 		val nChildren = node.getChildCount()

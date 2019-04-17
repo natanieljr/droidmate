@@ -403,7 +403,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		try {
 			strategy = strategyProvider.invoke(explorationContext)
 			// Execute the exploration loop proper, starting with the values of initial reset action and its result.
-			while (isFirst || (result.successful && !action.isTerminate())) {
+			while (isFirst || !action.isTerminate()) {
 				try {
 					// decide for an action
 					action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
