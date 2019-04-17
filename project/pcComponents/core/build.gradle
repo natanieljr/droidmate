@@ -59,8 +59,5 @@ compileJava.dependsOn(
 		"pullUiautomator2DaemonTestApk"
 )
 
-clean.dependsOn("cleanUiautomator2Daemon", "cleanExternalBuild_uiautomator2Daemon")
-
-
 configureTest([project, ['**/LibKotlinTestSuite.class']])
 
