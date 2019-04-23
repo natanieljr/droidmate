@@ -131,7 +131,7 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 
 		val selectedAction = activeStrategy.decide()
 
-		logger.info("(${this.memory.getSize()}) $selectedAction")
+		logger.info("(${this.memory.getSize()}) $selectedAction [id=${selectedAction.id}]")
 
 		return selectedAction
 	}

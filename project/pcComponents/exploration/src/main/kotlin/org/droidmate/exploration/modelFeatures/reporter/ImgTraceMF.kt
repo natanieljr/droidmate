@@ -120,11 +120,12 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 }
 
 var shapeColor: Color = Color.red
-var textColor: Color = Color.magenta
+var textColor: Color = Color.magenta.darker()
+var textSize: Int = 100
 fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>){
 	stateImg.createGraphics().apply{
 		stroke = BasicStroke(10F)
-		font = Font("TimesRoman", Font.PLAIN, 60)
+		font = Font("TimesRoman", Font.PLAIN, textSize)
 
 		val targetsPerAction = targetWidgets.asSequence().mapIndexed{ i, t -> Pair(idxOffset[i],t)}.groupBy { it.first }
 
@@ -150,8 +151,8 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 				paint = textColor// for better visibility use a different color then the boarder
 				drawString(text, leftX + (width / 10), topY + (height / 10))
 			}
-			font = Font("TimesRoman", Font.PLAIN, 60) // reset font to bigger font
-			shapeColor = shapeColor.darker()
+			font = Font("TimesRoman", Font.PLAIN, textSize) // reset font to bigger font
+			if(w.isVisible) shapeColor = shapeColor.darker()
 		}
 	}
 }
