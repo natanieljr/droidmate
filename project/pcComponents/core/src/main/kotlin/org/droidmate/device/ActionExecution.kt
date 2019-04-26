@@ -59,7 +59,7 @@ suspend fun ExplorationAction.execute(app: IApk, device: IRobustDevice): ActionR
 //		debugT("reading logcat", { logsHandler.readClearAndAssertOnlyBackgroundApiLogsIfAny() }, inMillis = true)
 //		logs = logsHandler.getLogs()
 
-		log.debug("2. Perform action ${this}")
+		log.debug("2. Perform action ${this} ($id)")
 
 		performAction(this, app, device)
 

@@ -81,15 +81,9 @@ task assembleUiautomator2Daemon(type: GradleBuild) { GradleBuild task ->
 if(gradle.getIncludedBuilds().contains('deviceDaemonLib'))
 	assembleUiautomator2Daemon.dependsOn gradle.includedBuild('deviceDaemonLib').task(':install')
 
-String uia2DaemonApkName = "${uia2DaemonName}.apk"
-String uia2DaemonTestApkName = "${uia2DaemonName}-test.apk"
-
-task cleanUiautomator2Daemon(type: Delete, dependsOn: "cleanExternalBuild_uiautomator2Daemon") {
-	delete file(new File(coreResDir as File, uia2DaemonApkName))
-	delete file(new File(coreResDir as File, uia2DaemonTestApkName))
-}
-
-task cleanExternalBuild_uiautomator2Daemon(type: GradleBuild) { GradleBuild task ->
+task cleanDeviceControlApk(type: GradleBuild) { GradleBuild task ->
 	task.buildFile = new File(uia2DaemonProjectDir, "build.gradle")
 	task.tasks = ["clean"]
+	delete file(new File(coreResDir as File, uia2DaemonName + '.apk'))
+	delete file(new File(coreResDir as File, uia2DaemonName + '-test.apk'))
 }
