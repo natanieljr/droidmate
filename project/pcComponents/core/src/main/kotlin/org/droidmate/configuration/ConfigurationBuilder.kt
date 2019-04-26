@@ -39,6 +39,7 @@ import org.droidmate.configuration.ConfigProperties.Core.logLevel
 import org.droidmate.configuration.ConfigProperties.Deploy.deployRawApks
 import org.droidmate.configuration.ConfigProperties.Deploy.installApk
 import org.droidmate.configuration.ConfigProperties.Deploy.installAux
+import org.droidmate.configuration.ConfigProperties.Deploy.installMonitor
 import org.droidmate.configuration.ConfigProperties.Deploy.replaceResources
 import org.droidmate.configuration.ConfigProperties.Deploy.shuffleApks
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallApk
@@ -342,19 +343,20 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			log.debug("Using uiautomator2-daemon-test.apk located at ${cfg.uiautomator2DaemonTestApk}")
 
 			cfg.monitorApk = try {
-				getCompiledResourcePath(cfg, EnvironmentConstants.monitor_apk_name) {path ->
+				if(!cfg[installMonitor]) null
+				else getCompiledResourcePath(cfg, EnvironmentConstants.monitor_apk_name) {path ->
 					val customApiFile = cfg.resourceDir.resolve("monitored_apis.json")
 					val apiPath = if (Files.exists(customApiFile)) {
 						customApiFile
 					} else {
 						null
 					}
-                    org.droidmate.monitor.Compiler.compile(path, apiPath)
-                }.toAbsolutePath()
-            } catch (e:Throwable) {
-                null
-            }
-            log.debug("Using ${EnvironmentConstants.monitor_apk_name} located at ${cfg.monitorApk}")
+					org.droidmate.monitor.Compiler.compile(path, apiPath)
+				}.toAbsolutePath()
+			} catch (e:Throwable) {
+				null
+			}
+			log.debug("Using ${EnvironmentConstants.monitor_apk_name} located at ${cfg.monitorApk}")
 
 			cfg.apiPoliciesFile = try{
 				getResourcePath(cfg, EnvironmentConstants.api_policies_file_name).toAbsolutePath()}
