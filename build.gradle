@@ -35,6 +35,8 @@ allprojects {
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
 
 	repositories {
+		maven { url = "https://soot-build.cs.upb.de/nexus/repository/soot-release/" }
+		maven { url = "https://soot-build.cs.upb.de/nexus/repository/soot-snapshot/" }
 		maven { url = 'https://jitpack.io'	}
 		jcenter()
 		mavenCentral()
