@@ -467,7 +467,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	@Throws(DeviceException::class)
-	private fun tryDeviceHasPackageInstalled(device: IExplorableAndroidDevice, packageName: String) {
+	private suspend fun tryDeviceHasPackageInstalled(device: IExplorableAndroidDevice, packageName: String) {
 		log.trace("tryDeviceHasPackageInstalled(device, $packageName)")
 
 		if (!device.hasPackageInstalled(packageName))
@@ -475,7 +475,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	}
 
 	@Throws(DeviceException::class)
-	private fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
+	private suspend fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
 		log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
 
 		val initialGuiSnapshot = device.perform(GlobalAction(ActionType.FetchGUI))

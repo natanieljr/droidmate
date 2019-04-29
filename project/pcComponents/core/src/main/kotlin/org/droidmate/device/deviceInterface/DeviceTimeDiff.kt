@@ -55,7 +55,7 @@ class DeviceTimeDiff(private val device: IExplorableAndroidDevice) : IDeviceTime
 
 	private var diff: Duration? = null
 
-	override fun sync(deviceTime: LocalDateTime): LocalDateTime {
+	override suspend fun sync(deviceTime: LocalDateTime): LocalDateTime {
 		if (diff == null)
 			diff = computeDiff(device)
 
@@ -65,7 +65,7 @@ class DeviceTimeDiff(private val device: IExplorableAndroidDevice) : IDeviceTime
 	}
 
 	@Throws(DeviceException::class)
-	private fun computeDiff(device: IExplorableAndroidDevice): Duration {
+	private suspend fun computeDiff(device: IExplorableAndroidDevice): Duration {
 		val deviceTime = device.getCurrentTime()
 		val now = LocalDateTime.now()
 		val diff = Duration.between(now, deviceTime)
@@ -83,7 +83,7 @@ class DeviceTimeDiff(private val device: IExplorableAndroidDevice) : IDeviceTime
 		return diff
 	}
 
-	override fun syncMessages(messages: List<TimeFormattedLogMessageI>): List<TimeFormattedLogMessageI> {
+	override suspend fun syncMessages(messages: List<TimeFormattedLogMessageI>): List<TimeFormattedLogMessageI> {
 		return messages.map {
 
 			//      logcat.trace("syncing: curr diff: ${this.diff} logcat dev. time: $it.time tag: $it.tag pid: $it.pidString, payload first 200 chars: ${it.messagePayload.take(200)}")

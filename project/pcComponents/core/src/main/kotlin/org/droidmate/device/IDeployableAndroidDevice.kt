@@ -33,87 +33,87 @@ import java.nio.file.Path
 
 interface IDeployableAndroidDevice {
 	@Throws(DeviceException::class)
-	fun pushFile(jar: Path)
+	suspend fun pushFile(jar: Path)
 
 	@Throws(DeviceException::class)
-	fun pushFile(jar: Path, targetFileName: String)
+	suspend fun pushFile(jar: Path, targetFileName: String)
 
-	fun pullFile(fileName:String, dstPath: Path, srcPath: String = DeviceConstants.imgPath)
+	suspend fun pullFile(fileName:String, dstPath: Path, srcPath: String = DeviceConstants.imgPath)
 
-	fun removeFile(fileName:String,srcPath: String = DeviceConstants.imgPath)
-
-	@Throws(DeviceException::class)
-	fun removeJar(jar: Path)
+	suspend fun removeFile(fileName:String,srcPath: String = DeviceConstants.imgPath)
 
 	@Throws(DeviceException::class)
-	fun installApk(apk: Path)
+	suspend fun removeJar(jar: Path)
 
 	@Throws(DeviceException::class)
-	fun installApk(apk: IApk)
+	suspend fun installApk(apk: Path)
 
 	@Throws(DeviceException::class)
-	fun isApkInstalled(apkPackageName: String): Boolean
+	suspend fun installApk(apk: IApk)
 
 	@Throws(DeviceException::class)
-	fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean)
+	suspend fun isApkInstalled(apkPackageName: String): Boolean
 
 	@Throws(DeviceException::class)
-	fun closeMonitorServers()
+	suspend fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean)
 
 	@Throws(DeviceException::class)
-	fun clearPackage(apkPackageName: String)
+	suspend fun closeMonitorServers()
 
 	@Throws(DeviceException::class)
-	fun appProcessIsRunning(appPackageName: String): Boolean
+	suspend fun clearPackage(apkPackageName: String)
 
 	@Throws(DeviceException::class)
-	fun clearLogcat()
+	suspend fun appProcessIsRunning(appPackageName: String): Boolean
 
 	@Throws(DeviceException::class)
-	fun closeConnection()
+	suspend fun clearLogcat()
 
 	@Throws(DeviceException::class)
-	fun reboot()
+	suspend fun closeConnection()
 
 	@Throws(DeviceException::class)
-	fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean)
+	suspend fun reboot()
 
 	@Throws(DeviceException::class)
-	fun isAvailable(): Boolean
+	suspend fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean)
 
 	@Throws(DeviceException::class)
-	fun uiaDaemonClientThreadIsAlive(): Boolean
+	suspend fun isAvailable(): Boolean
 
 	@Throws(DeviceException::class)
-	fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean)
+	suspend fun uiaDaemonClientThreadIsAlive(): Boolean
 
 	@Throws(DeviceException::class)
-	fun startUiaDaemon()
+	suspend fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean)
 
 	@Throws(DeviceException::class)
-	fun removeLogcatLogFile()
+	suspend fun startUiaDaemon()
 
 	@Throws(DeviceException::class)
-	fun pullLogcatLogFile()
+	suspend fun removeLogcatLogFile()
 
 	@Throws(DeviceException::class)
-	fun reinstallUiAutomatorDaemon()
+	suspend fun pullLogcatLogFile()
 
 	@Throws(DeviceException::class)
-	fun pushMonitorJar()
+	suspend fun reinstallUiAutomatorDaemon()
 
 	@Throws(DeviceException::class)
-	fun setupConnection()
+	suspend fun pushMonitorJar()
 
 	@Throws(DeviceException::class)
-	fun reconnectAdb()
+	suspend fun setupConnection()
 
 	@Throws(DeviceException::class)
-	fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String)
+	suspend fun reconnectAdb()
 
 	@Throws(DeviceException::class)
-	fun uiaDaemonIsRunning(): Boolean
+	suspend fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String)
 
 	@Throws(DeviceException::class)
-	fun isPackageInstalled(packageName: String): Boolean
+	suspend fun uiaDaemonIsRunning(): Boolean
+
+	@Throws(DeviceException::class)
+	suspend fun isPackageInstalled(packageName: String): Boolean
 }

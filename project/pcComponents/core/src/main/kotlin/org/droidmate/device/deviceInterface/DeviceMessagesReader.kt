@@ -47,12 +47,12 @@ class DeviceMessagesReader @JvmOverloads constructor(device: IExplorableAndroidD
 	private val apiLogsReader = ApiLogsReader(device)
 	private val deviceTimeDiff = DeviceTimeDiff(device)
 
-	override fun resetTimeSync() {
+	override suspend fun resetTimeSync() {
 		this.deviceTimeDiff.reset()
 	}
 
 	@Throws(DeviceException::class)
-	override fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage> {
+	override suspend fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage> {
 		return if (useLogcat)
 			this.getAndClearCurrentApiLogsFromLogcat()
 		else
@@ -61,12 +61,12 @@ class DeviceMessagesReader @JvmOverloads constructor(device: IExplorableAndroidD
 
 	@Deprecated("Deprecated. Prefer to use the TCP server instead.")
 	@Throws(DeviceException::class)
-	private fun getAndClearCurrentApiLogsFromLogcat(): List<IApiLogcatMessage> {
+	private suspend fun getAndClearCurrentApiLogsFromLogcat(): List<IApiLogcatMessage> {
 		return apiLogsReader.getCurrentApiLogsFromLogcat(deviceTimeDiff)
 	}
 
 	@Throws(DeviceException::class)
-	private fun getAndClearCurrentApiLogsFromMonitorTcpServer(): List<IApiLogcatMessage> {
+	private suspend fun getAndClearCurrentApiLogsFromMonitorTcpServer(): List<IApiLogcatMessage> {
 		return apiLogsReader.getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)
 	}
 }

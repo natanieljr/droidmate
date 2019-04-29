@@ -31,8 +31,8 @@ import org.droidmate.device.deviceInterface.IDeviceTimeDiff
 interface IApiLogsReader {
 	@Throws(DeviceException::class)
 	@Deprecated("Method is deprecated. It is recommended to get logs from TCP server")
-	fun getCurrentApiLogsFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage>
+	suspend fun getCurrentApiLogsFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage>
 
 	@Throws(DeviceException::class)
-	fun getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage>
+	suspend fun getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage>
 }

@@ -31,10 +31,10 @@ import java.time.LocalDateTime
 
 interface IDeviceTimeDiff {
 	@Throws(DeviceException::class)
-	fun sync(deviceTime: LocalDateTime): LocalDateTime
+	suspend fun sync(deviceTime: LocalDateTime): LocalDateTime
 
 	@Throws(DeviceException::class)
-	fun syncMessages(messages: List<TimeFormattedLogMessageI>): List<TimeFormattedLogMessageI>
+	suspend fun syncMessages(messages: List<TimeFormattedLogMessageI>): List<TimeFormattedLogMessageI>
 
 	fun reset()
 }

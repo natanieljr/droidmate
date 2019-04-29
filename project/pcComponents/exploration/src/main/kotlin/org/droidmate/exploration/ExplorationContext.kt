@@ -52,7 +52,7 @@ import java.nio.file.Paths
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 												   val apk: IApk,
-												   readDeviceStatements: ()-> List<List<String>>,
+												   readDeviceStatements: suspend ()-> List<List<String>>,
 												   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
 												   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
 												   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),

@@ -121,32 +121,32 @@ class AndroidDevice constructor(private val serialNumber: String,
 			cfg.coverageMonitorPort)
 
 	@Throws(DeviceException::class)
-	override fun pushFile(jar: Path) {
+	override suspend fun pushFile(jar: Path) {
 		pushFile(jar, "")
 	}
 
 	@Throws(DeviceException::class)
-	override fun pushFile(jar: Path, targetFileName: String) {
+	override suspend fun pushFile(jar: Path, targetFileName: String) {
 		log.debug("pushFile($jar, $targetFileName)")
 		adbWrapper.pushFile(serialNumber, jar, targetFileName)
 	}
 
-	override fun pullFile(fileName:String, dstPath: Path, srcPath: String){
+	override suspend fun pullFile(fileName:String, dstPath: Path, srcPath: String){
 		log.debug("pullFile $fileName from $srcPath to $dstPath")
 		adbWrapper.pullFileApi23(serialNumber,srcPath+fileName,dstPath, uia2Daemon_packageName)
 	}
 
-	override fun removeFile(fileName:String,srcPath: String){
+	override suspend fun removeFile(fileName:String,srcPath: String){
 		log.debug("remove device file $fileName from $srcPath")
 		adbWrapper.removeFileApi23(serialNumber,srcPath+fileName, uia2Daemon_packageName)
 	}
 
-	override fun hasPackageInstalled(packageName: String): Boolean {
+	override suspend fun hasPackageInstalled(packageName: String): Boolean {
 		log.debug("hasPackageInstalled($packageName)")
 		return adbWrapper.listPackage(serialNumber, packageName).contains(packageName)
 	}
 
-	override fun perform(action: ExplorationAction): DeviceResponse {
+	override suspend fun perform(action: ExplorationAction): DeviceResponse {
 		log.debug("perform($action)")
 
 		return execute(action)
@@ -165,11 +165,11 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return deviceResponse
 	}
 
-	override fun closeConnection() {
+	override suspend fun closeConnection() {
 		this.stopUiaDaemon(false)
 	}
 
-	override fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+	override suspend fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
 
 		log.trace("stopUiaDaemon(uiaDaemonThreadIsNull:$uiaDaemonThreadIsNull)")
 
@@ -185,19 +185,19 @@ class AndroidDevice constructor(private val serialNumber: String,
 		log.trace("DONE stopUiaDaemon()")
 	}
 
-	override fun isAvailable(): Boolean {
+	override suspend fun isAvailable(): Boolean {
 //    logcat.trace("isAvailable(${this.serialNumber})")
 		return this.adbWrapper.getAndroidDevicesDescriptors().any { it.deviceSerialNumber == this.serialNumber }
 	}
 
-	override fun reboot() {
+	override suspend fun reboot() {
 //    logcat.trace("reboot(${this.serialNumber})")
 		this.adbWrapper.reboot(this.serialNumber)
 	}
 
-	override fun uiaDaemonClientThreadIsAlive(): Boolean = this.tcpClients.getUiaDaemonThreadIsAlive()
+	override suspend fun uiaDaemonClientThreadIsAlive(): Boolean = this.tcpClients.getUiaDaemonThreadIsAlive()
 
-	override fun setupConnection() {
+	override suspend fun setupConnection() {
 		log.trace("setupConnection($serialNumber) / this.tcpClients.forwardPorts()")
 		this.tcpClients.forwardPorts()
 		log.trace("setupConnection($serialNumber) / this.restartUiaDaemon()")
@@ -205,7 +205,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		log.trace("setupConnection($serialNumber) / DONE")
 	}
 
-	override fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+	override suspend fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
 		if (this.uiaDaemonIsRunning()) {
 			log.trace("stopUiaDaemon() during restart")
 			this.stopUiaDaemon(uiaDaemonThreadIsNull)
@@ -214,13 +214,13 @@ class AndroidDevice constructor(private val serialNumber: String,
 		this.startUiaDaemon()
 	}
 
-	override fun startUiaDaemon() {
+	override suspend fun startUiaDaemon() {
 //		assert(!this.uiaDaemonIsRunning()) { "UIAutomatorDaemon is not running." }  //FIXME sometimes this fails
 		this.clearLogcat()
 		this.tcpClients.startUiaDaemon()
 	}
 
-	override fun removeLogcatLogFile() {
+	override suspend fun removeLogcatLogFile() {
 
 		log.debug("removeLogcatLogFile()")
 		if (cfg[apiVersion] == ConfigurationWrapper.api23)
@@ -229,7 +229,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			throw UnexpectedIfElseFallthroughError("configured api version does not match ConfigurationWrapper.api23")
 	}
 
-	override fun pullLogcatLogFile() {
+	override suspend fun pullLogcatLogFile() {
 		log.debug("pullLogcatLogFile()")
 		if (cfg[apiVersion] == ConfigurationWrapper.api23)
 			this.adbWrapper.pullFileApi23(this.serialNumber, DeviceConstants.deviceLogcatLogDir_api23+logcatLogFileName, cfg.getPath(LogbackUtils.getLogFilePath("logcat.txt")), uia2Daemon_packageName)
@@ -237,13 +237,13 @@ class AndroidDevice constructor(private val serialNumber: String,
 			throw UnexpectedIfElseFallthroughError("configured api version does not match ConfigurationWrapper.api23")
 	}
 
-	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
+	override suspend fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
 		log.debug("readLogcatMessages(tag: $messageTag)")
 		val messages = adbWrapper.readMessagesFromLogcat(this.serialNumber, messageTag)
 		return messages.map { TimeFormattedLogcatMessage.from(it) }
 	}
 
-	override fun readStatements(): List<List<String>> {
+	override suspend fun readStatements(): List<List<String>> {
 		log.debug("readStatements()")
 
 		try {
@@ -262,14 +262,14 @@ class AndroidDevice constructor(private val serialNumber: String,
 		}
 	}
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
+	override suspend fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
 		log.debug("waitForLogcatMessages(tag: $messageTag, minMessagesCount: $minMessagesCount, waitTimeout: $waitTimeout, queryDelay: $queryDelay)")
 		val messages = adbWrapper.waitForMessagesOnLogcat(this.serialNumber, messageTag, minMessagesCount, waitTimeout, queryDelay)
 		log.debug("waitForLogcatMessages(): obtained messages: ${messages.joinToString(System.lineSeparator())}")
 		return messages.map { TimeFormattedLogcatMessage.from(it) }
 	}
 
-	override fun readAndClearMonitorTcpMessages(): List<List<String>> {
+	override suspend fun readAndClearMonitorTcpMessages(): List<List<String>> {
 		log.debug("readAndClearMonitorTcpMessages()")
 
 		try {
@@ -289,7 +289,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		}
 	}
 
-	override fun getCurrentTime(): LocalDateTime {
+	override suspend fun getCurrentTime(): LocalDateTime {
 		log.debug("readAndClearMonitorTcpMessages()")
 		val messages = this.tcpClients.getCurrentTime()
 
@@ -300,7 +300,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return LocalDateTime.parse(messages[0][0], DateTimeFormatter.ofPattern(MonitorConstants.monitor_time_formatter_pattern, MonitorConstants.monitor_time_formatter_locale))
 	}
 
-	override fun appProcessIsRunning(appPackageName: String): Boolean {
+	override suspend fun appProcessIsRunning(appPackageName: String): Boolean {
 		log.debug("appProcessIsRunning($appPackageName)")
 		val ps = this.adbWrapper.ps(this.serialNumber)
 
@@ -312,53 +312,53 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return out
 	}
 
-	override fun anyMonitorIsReachable(): Boolean =//    logcat.debug("anyMonitorIsReachable()")
+	override suspend fun anyMonitorIsReachable(): Boolean =//    logcat.debug("anyMonitorIsReachable()")
 			this.tcpClients.anyMonitorIsReachable()
 
-	override fun clearLogcat() {
+	override suspend fun clearLogcat() {
 		log.debug("clearLogcat()")
 		adbWrapper.clearLogcat(serialNumber)
 	}
 
-	override fun installApk(apk: IApk) {
+	override suspend fun installApk(apk: IApk) {
 		log.debug("installApk($apk.fileName)")
 		adbWrapper.installApk(serialNumber, apk)
 	}
 
-	override fun isApkInstalled(apkPackageName: String): Boolean {
+	override suspend fun isApkInstalled(apkPackageName: String): Boolean {
 		log.debug("Check if $apkPackageName is installed")
 		return adbWrapper.isApkInstalled(serialNumber, apkPackageName)
 	}
 
-	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
+	override suspend fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
 		log.debug("uninstallApk($apkPackageName, ignoreFailure: $ignoreFailure)")
 		adbWrapper.uninstallApk(serialNumber, apkPackageName, ignoreFailure)
 	}
 
-	override fun closeMonitorServers() {
+	override suspend fun closeMonitorServers() {
 		log.debug("closeMonitorServers()")
 		tcpClients.closeMonitorServers()
 	}
 
-	override fun clearPackage(apkPackageName: String) {
+	override suspend fun clearPackage(apkPackageName: String) {
 		log.debug("clearPackage($apkPackageName)")
 		adbWrapper.clearPackage(serialNumber, apkPackageName)
 	}
 
-	override fun removeJar(jar: Path) {
+	override suspend fun removeJar(jar: Path) {
 		log.debug("removeJar($jar)")
 		adbWrapper.removeJar(serialNumber, jar)
 	}
 
-	override fun installApk(apk: Path) {
+	override suspend fun installApk(apk: Path) {
 		log.debug("installApk($apk.fileName)")
 		adbWrapper.installApk(serialNumber, apk)
 	}
 
-	override fun appIsRunning(appPackageName: String): Boolean =
+	override suspend fun appIsRunning(appPackageName: String): Boolean =
 			this.appProcessIsRunning(appPackageName) && this.anyMonitorIsReachable()
 
-	override fun reinstallUiAutomatorDaemon() {
+	override suspend fun reinstallUiAutomatorDaemon() {
 		if (cfg[apiVersion] == ConfigurationWrapper.api23) {
 			this.uninstallApk(uia2Daemon_testPackageName, true)
 			this.uninstallApk(uia2Daemon_packageName, true)
@@ -370,7 +370,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			throw UnexpectedIfElseFallthroughError()
 	}
 
-	override fun pushMonitorJar() {
+	override suspend fun pushMonitorJar() {
 		if (cfg[apiVersion] == ConfigurationWrapper.api23 && cfg.monitorApk!=null) {
 			this.pushFile(cfg.monitorApk!!, EnvironmentConstants.monitor_apk_name)
 			this.pushFile(this.cfg.apiPoliciesFile!!, EnvironmentConstants.api_policies_file_name)
@@ -381,15 +381,15 @@ class AndroidDevice constructor(private val serialNumber: String,
 		}
 	}
 
-	override fun reconnectAdb() {
+	override suspend fun reconnectAdb() {
 		this.adbWrapper.reconnect(this.serialNumber)
 	}
 
-	override fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
+	override suspend fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
 		this.adbWrapper.executeCommand(this.serialNumber, successfulOutput, commandDescription, command)
 	}
 
-	override fun uiaDaemonIsRunning(): Boolean {
+	override suspend fun uiaDaemonIsRunning(): Boolean {
 		if (cfg[apiVersion] != ConfigurationWrapper.api23)
 			throw UnexpectedIfElseFallthroughError()
 
@@ -403,7 +403,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 		return processList.contains(packageName)
 	}
 
-	override fun isPackageInstalled(packageName: String): Boolean {
+	override suspend fun isPackageInstalled(packageName: String): Boolean {
 		val uiadPackageList = this.adbWrapper.executeCommand(this.serialNumber,
 				"", "Check if package $packageName is installed.",
 				"shell", "pm", "list", "packages", packageName)

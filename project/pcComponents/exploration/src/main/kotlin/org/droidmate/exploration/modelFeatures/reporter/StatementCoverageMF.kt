@@ -59,7 +59,7 @@ import kotlin.coroutines.CoroutineContext
  * the statement data from the device.
  */
 class StatementCoverageMF(private val statementsLogOutputDir: Path,
-                          private val readStatements: ()-> List<List<String>>,
+                          private val readStatements: suspend ()-> List<List<String>>,
                           private val appName: String,
                           private val resourceDir: Path,
                           private val fileName: String = "coverage.txt") : ModelFeature() {

@@ -96,7 +96,7 @@ private suspend fun defaultExecution(action: ExplorationAction, device: IRobustD
 	}
 }
 
-private fun resetApp(app: IApk, device: IRobustDevice){
+private suspend fun resetApp(app: IApk, device: IRobustDevice){
 	log.debug("LaunchApp action was issued. This will kill the current app process if it is active and re-launch it.")
 	log.debug("Try to terminate app process.")
 	device.clearPackage(app.packageName)
@@ -111,7 +111,7 @@ private fun resetApp(app: IApk, device: IRobustDevice){
 	}
 }
 
-private fun terminate(app: IApk, device: IRobustDevice){
+private suspend fun terminate(app: IApk, device: IRobustDevice){
 	log.debug("2.0 Close monitor servers, if any.")
 	device.closeMonitorServers()
 	log.debug("2.1 Clear package ${app.packageName}}.")
@@ -130,6 +130,6 @@ private fun terminate(app: IApk, device: IRobustDevice){
 	}
 }
 @Throws(DeviceException::class)
-private fun assertAppIsNotRunning(device: IRobustDevice, apk: IApk) {
+private suspend fun assertAppIsNotRunning(device: IRobustDevice, apk: IApk) {
 	assert(device.appIsNotRunning(apk))
 }

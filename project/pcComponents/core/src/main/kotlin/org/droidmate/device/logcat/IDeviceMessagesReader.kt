@@ -28,7 +28,7 @@ import org.droidmate.device.error.DeviceException
 
 interface IDeviceMessagesReader {
 	@Throws(DeviceException::class)
-	fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage>
+	suspend fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage>
 
-	fun resetTimeSync()
+	suspend fun resetTimeSync()
 }

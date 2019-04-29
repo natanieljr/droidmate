@@ -39,12 +39,12 @@ class DeviceLogsHandler constructor(val device: IRobustDevice) : IDeviceLogsHand
 
 	private var logs: MutableList<IApiLogcatMessage> = mutableListOf()
 
-	override fun readAndClearApiLogs() {
+	override suspend fun readAndClearApiLogs() {
 		val apiLogs = _readAndClearApiLogs()
 		addApiLogs(apiLogs)
 	}
 
-	override fun readClearAndAssertOnlyBackgroundApiLogsIfAny() {
+	override suspend fun readClearAndAssertOnlyBackgroundApiLogsIfAny() {
 		val apiLogs = _readAndClearApiLogs()
 		assert(this.logs.all { it.threadId != uiThreadId })
 
@@ -69,5 +69,5 @@ class DeviceLogsHandler constructor(val device: IRobustDevice) : IDeviceLogsHand
 	}
 
 	@Throws(DeviceException::class)
-	private fun _readAndClearApiLogs(): List<IApiLogcatMessage> = device.getAndClearCurrentApiLogs()
+	private suspend fun _readAndClearApiLogs(): List<IApiLogcatMessage> = device.getAndClearCurrentApiLogs()
 }

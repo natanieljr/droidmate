@@ -55,12 +55,12 @@ class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : 
 	private val monitorLogger by lazy { LoggerFactory.getLogger(LogbackConstants.logger_name_monitor) }
 
 	@Suppress("OverridingDeprecatedMember")
-	override fun getCurrentApiLogsFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
+	override suspend fun getCurrentApiLogsFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
 		log.debug("getCurrentApiLogsFromLogcat(deviceTimeDiff)")
 		return readApiLogcatMessages { this.getMessagesFromLogcat(deviceTimeDiff) }
 	}
 
-	override fun getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
+	override suspend fun getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<IApiLogcatMessage> {
 		log.debug("getAndClearCurrentApiLogsFromMonitorTcpServer(deviceTimeDiff)")
 
 		val logs = readApiLogcatMessages { this.getAndClearMessagesFromMonitorTcpServer(deviceTimeDiff) }
@@ -70,7 +70,7 @@ class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : 
 	}
 
 	@Throws(DeviceException::class)
-	private fun readApiLogcatMessages(messagesProvider: () -> List<TimeFormattedLogMessageI>): List<IApiLogcatMessage> {
+	private suspend fun readApiLogcatMessages(messagesProvider: suspend () -> List<TimeFormattedLogMessageI>): List<IApiLogcatMessage> {
 		val messages = messagesProvider.invoke()
 
 		messages.forEach { monitorLogger.trace(it.toLogcatMessageString) }
@@ -88,21 +88,21 @@ class ApiLogsReader constructor(private val device: IExplorableAndroidDevice) : 
 
 	@Throws(DeviceException::class)
 	@Deprecated("Method is deprecated. It is recommended to get logs from TCP server")
-	fun getMessagesFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<TimeFormattedLogMessageI> {
+	suspend fun getMessagesFromLogcat(deviceTimeDiff: IDeviceTimeDiff): List<TimeFormattedLogMessageI> {
 		val messages = device.readLogcatMessages(MonitorConstants.tag_api)
 
 		return deviceTimeDiff.syncMessages(messages)
 	}
 
 	@Throws(DeviceException::class)
-	private fun getAndClearMessagesFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<TimeFormattedLogMessageI> {
+	private suspend fun getAndClearMessagesFromMonitorTcpServer(deviceTimeDiff: IDeviceTimeDiff): List<TimeFormattedLogMessageI> {
 		val messages = device.readAndClearMonitorTcpMessages()
 
 		return extractLogcatMessagesFromTcpMessages(messages, deviceTimeDiff)
 	}
 
 	@Throws(DeviceException::class)
-	private fun extractLogcatMessagesFromTcpMessages(messages: List<List<String>>, deviceTimeDiff: IDeviceTimeDiff): List<TimeFormattedLogMessageI> {
+	private suspend fun extractLogcatMessagesFromTcpMessages(messages: List<List<String>>, deviceTimeDiff: IDeviceTimeDiff): List<TimeFormattedLogMessageI> {
 		return deviceTimeDiff.syncMessages(messages.map { msg ->
 
 			val pid = msg[0]

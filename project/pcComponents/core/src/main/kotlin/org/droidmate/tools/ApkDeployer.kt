@@ -72,7 +72,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 		return explResult
 	}
 
-	private fun deployApk(device: IDeployableAndroidDevice, apk: IApk): ApkExplorationException? {
+	private suspend fun deployApk(device: IDeployableAndroidDevice, apk: IApk): ApkExplorationException? {
 
 		if (cfg[installApk]) {
 			try {
@@ -90,7 +90,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 	}
 
 	@Throws(DeviceException::class)
-	private fun tryUndeployApk(device: IDeployableAndroidDevice, apk: IApk) {
+	private suspend fun tryUndeployApk(device: IDeployableAndroidDevice, apk: IApk) {
 		if (cfg[uninstallApk]) {
 			if (device.isAvailable()) {
 				log.info("Uninstalling $apk.fileName")
@@ -109,7 +109,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 	}
 
 	@Throws(DeviceException::class)
-	private fun tryReinstallApk(device: IDeployableAndroidDevice, apk: IApk) {
+	private suspend fun tryReinstallApk(device: IDeployableAndroidDevice, apk: IApk) {
 		log.info("Reinstalling {}", apk.fileName)
 		/* The apk is uninstalled before installation to ensure:
 		 - any cache will be purged.

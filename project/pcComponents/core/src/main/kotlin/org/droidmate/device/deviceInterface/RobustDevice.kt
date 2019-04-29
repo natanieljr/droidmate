@@ -50,14 +50,13 @@ import java.time.LocalDateTime
 
 // TODO Very confusing method chain. Simplify
 class RobustDevice : IRobustDevice {
-	override fun pullFile(fileName: String, dstPath: Path, srcPath: String) =
+	override suspend fun pullFile(fileName: String, dstPath: Path, srcPath: String) =
 		this.device.pullFile(fileName,dstPath,srcPath)  // pull may fail because we try to fetch images which were not possible to capture -> no retry here
 
-	override fun removeFile(fileName: String, srcPath: String) {
+	override suspend fun removeFile(fileName: String, srcPath: String) {
 		Utils.retryOnException(
 				{ this.device.removeFile(fileName,srcPath) },
 				{},
-				DeviceException::class,
 				deviceOperationAttempts,
 				deviceOperationDelay,
 				"device.removeFile()"
@@ -144,7 +143,7 @@ class RobustDevice : IRobustDevice {
 		assert(deviceOperationDelay >= 0)
 	}
 
-	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
+	override suspend fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
 		if (ignoreFailure)
 			device.uninstallApk(apkPackageName, ignoreFailure)
 		else {
@@ -172,18 +171,17 @@ class RobustDevice : IRobustDevice {
 		}
 	}
 
-	override fun setupConnection() {
+	override suspend fun setupConnection() {
 		rebootIfNecessary("device.setupConnection()", true) { this.device.setupConnection() }
 	}
 
-	override fun clearPackage(apkPackageName: String) {
+	override suspend fun clearPackage(apkPackageName: String) {
 		// Clearing package has to happen more than once, because sometimes after cleaning suddenly the ActivityManager restarts
 		// one of the activities of the app.
 		Utils.retryOnFalse({
 
 			Utils.retryOnException({ device.clearPackage(apkPackageName) },
 					{},
-					DeviceException::class,
 					deviceOperationAttempts,
 					deviceOperationDelay,
 					"clearPackage")
@@ -210,7 +208,7 @@ class RobustDevice : IRobustDevice {
 					widgets.any { it.text == "Always" }
 
 
-	override fun ensureHomeScreenIsDisplayed(): DeviceResponse {
+	override suspend fun ensureHomeScreenIsDisplayed(): DeviceResponse {
 		var guiSnapshot = this.getExplorableGuiSnapshot()
 		if (guiSnapshot.isHomeScreen)
 			return guiSnapshot
@@ -242,7 +240,7 @@ class RobustDevice : IRobustDevice {
 		return guiSnapshot
 	}
 
-	private fun closeSelectAHomeAppDialogBox(snapshot: DeviceResponse): DeviceResponse {
+	private suspend fun closeSelectAHomeAppDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val launcherWidget = snapshot.widgets.single { it.text == "Launcher" }
 		perform(launcherWidget.click())
 
@@ -257,7 +255,7 @@ class RobustDevice : IRobustDevice {
 		return guiSnapshot
 	}
 
-	private fun closeUseLauncherAsHomeDialogBox(snapshot: DeviceResponse): DeviceResponse {
+	private suspend fun closeUseLauncherAsHomeDialogBox(snapshot: DeviceResponse): DeviceResponse {
 		val justOnceWidget = snapshot.widgets.single { it.text == "Just once" }
 		perform(justOnceWidget.click())
 
@@ -266,14 +264,13 @@ class RobustDevice : IRobustDevice {
 		return guiSnapshot
 	}
 
-	override fun perform(action: ExplorationAction): DeviceResponse {
+	override suspend fun perform(action: ExplorationAction): DeviceResponse {
 		return Utils.retryOnFalse({
 					Utils.retryOnException(
 							{
 								this.device.perform(action)
 							},
 							{ this.restartUiaDaemon(false) },
-							DeviceException::class,
 							deviceOperationAttempts,
 							0,
 							"device.perform(action:$action)"
@@ -284,17 +281,20 @@ class RobustDevice : IRobustDevice {
 				deviceOperationDelay)
 	}
 
-	override fun appIsNotRunning(apk: IApk): Boolean {
+	override suspend fun appIsNotRunning(apk: IApk): Boolean {
 		return Utils.retryOnFalse({ !this.getAppIsRunningRebootingIfNecessary(apk.packageName) },
 				checkAppIsRunningRetryAttempts,
 				checkAppIsRunningRetryDelay)
 	}
 
 	@Throws(DeviceException::class)
-	private fun getAppIsRunningRebootingIfNecessary(packageName: String): Boolean = rebootIfNecessary("device.appIsRunning(packageName:$packageName)", true) { this.device.appIsRunning(packageName) }
+	private suspend fun getAppIsRunningRebootingIfNecessary(packageName: String): Boolean =
+		rebootIfNecessary("device.appIsRunning(packageName:$packageName)", true) {
+		this.device.appIsRunning(packageName)
+	}
 
 	@Throws(DeviceException::class)
-	private fun getExplorableGuiSnapshot(): DeviceResponse {
+	private suspend fun getExplorableGuiSnapshot(): DeviceResponse {
 		var guiSnapshot = this.getRetryValidGuiSnapshotRebootingIfNecessary()
 		guiSnapshot = closeANRIfNecessary(guiSnapshot)
 		return guiSnapshot
@@ -305,7 +305,7 @@ class RobustDevice : IRobustDevice {
 					widgets.any { it.resourceId == "android:id/aerr_wait" }
 
 	@Throws(DeviceException::class)
-	private fun closeANRIfNecessary(guiSnapshot: DeviceResponse): DeviceResponse {
+	private suspend fun closeANRIfNecessary(guiSnapshot: DeviceResponse): DeviceResponse {
 		if (!guiSnapshot.isAppHasStoppedDialogBox())
 			return guiSnapshot
 
@@ -339,15 +339,17 @@ class RobustDevice : IRobustDevice {
 	}
 
 	@Throws(DeviceException::class)
-	private fun getRetryValidGuiSnapshotRebootingIfNecessary(): DeviceResponse = rebootIfNecessary("device.getRetryValidGuiSnapshot()", true) { this.getRetryValidGuiSnapshot() }
+	private suspend fun getRetryValidGuiSnapshotRebootingIfNecessary(): DeviceResponse =
+		rebootIfNecessary("device.getRetryValidGuiSnapshot()", true) {
+		this.getRetryValidGuiSnapshot()
+	}
 
 	@Throws(DeviceException::class)
-	private fun getRetryValidGuiSnapshot(): DeviceResponse {
+	private suspend fun getRetryValidGuiSnapshot(): DeviceResponse {
 		try {
 			return Utils.retryOnException(
 					{ getValidGuiSnapshot() },
 					{ restartUiaDaemon(false) },
-					DeviceException::class,
 					deviceOperationAttempts,
 					deviceOperationDelay,
 					"getValidGuiSnapshot")
@@ -357,7 +359,7 @@ class RobustDevice : IRobustDevice {
 	}
 
 	@Throws(DeviceException::class)
-	private fun getValidGuiSnapshot(): DeviceResponse {
+	private suspend fun getValidGuiSnapshot(): DeviceResponse {
 		// the rebootIfNecessary will reboot on TcpServerUnreachable
 		return rebootIfNecessary("device.getGuiSnapshot()", true) {
 			perform(GlobalAction(ActionType.FetchGUI))
@@ -365,7 +367,11 @@ class RobustDevice : IRobustDevice {
 	}
 
 	@Throws(DeviceException::class)
-	private fun <T> rebootIfNecessary(description: String, makeSecondAttempt: Boolean, operationOnDevice: () -> T): T {
+	private suspend fun <T> rebootIfNecessary(
+		description: String,
+		makeSecondAttempt: Boolean,
+		operationOnDevice: suspend () -> T
+	): T {
 		try {
 			return operationOnDevice.invoke()
 		} catch (e: Exception) {
@@ -405,7 +411,7 @@ class RobustDevice : IRobustDevice {
 		}
 	}
 
-	override fun reboot() {
+	override suspend fun reboot() {
 		if (this.device.isAvailable()) {
 			log.trace("Device is available for rebooting.")
 		} else {
@@ -445,122 +451,113 @@ class RobustDevice : IRobustDevice {
 		assert(!this.device.uiaDaemonClientThreadIsAlive())
 	}
 
-	override fun rebootAndRestoreConnection() {
+	override suspend fun rebootAndRestoreConnection() {
 		// Removed by Nataniel
 		// This is not feasible when using the device farm, upon restart of the ADB server the connection
 		// to the device is lost and it's assigned a new, random port, which doesn't allow automatic reconnection.
 	}
 
-	override fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage> {
+	override suspend fun getAndClearCurrentApiLogs(): List<IApiLogcatMessage> {
         return rebootIfNecessary("messagesReader.getAndClearCurrentApiLogs()", true) { this.messagesReader.getAndClearCurrentApiLogs() }
     }
 
-	override fun closeConnection() {
+	override suspend fun closeConnection() {
 		rebootIfNecessary("closeConnection()", true) { this.device.closeConnection() }
 	}
 
 	override fun toString(): String = "robust-" + this.device.toString()
 
-	override fun pushFile(jar: Path) {
+	override suspend fun pushFile(jar: Path) {
         Utils.retryOnException(
                 { this.device.pushFile(jar) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.pushFile(jar:$jar)"
         )
 	}
 
-	override fun pushFile(jar: Path, targetFileName: String) {
+	override suspend fun pushFile(jar: Path, targetFileName: String) {
         Utils.retryOnException(
                 { this.device.pushFile(jar, targetFileName) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.pushFile(jar:$jar, targetFileName:$targetFileName)"
         )
 	}
 
-	override fun removeJar(jar: Path) {
+	override suspend fun removeJar(jar: Path) {
         Utils.retryOnException(
                 { this.device.removeJar(jar) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.removeJar(jar:$jar)"
         )
 	}
 
-	override fun installApk(apk: Path) {
+	override suspend fun installApk(apk: Path) {
         Utils.retryOnException(
                 { this.device.installApk(apk) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.installApk(apk:$apk)"
         )
 	}
 
-	override fun installApk(apk: IApk) {
+	override suspend fun installApk(apk: IApk) {
         Utils.retryOnException(
                 { this.device.installApk(apk) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.installApk(apk:$apk)"
         )
 	}
 
-	override fun isApkInstalled(apkPackageName: String): Boolean {
+	override suspend fun isApkInstalled(apkPackageName: String): Boolean {
         return Utils.retryOnException(
                 { this.device.isApkInstalled(apkPackageName) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.isApkInstalled(apkPackageName:$apkPackageName)"
         )
 	}
 
-	override fun closeMonitorServers() {
+	override suspend fun closeMonitorServers() {
         Utils.retryOnException(
                 { this.device.closeMonitorServers() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.closeMonitorServers()"
         )
 	}
 
-	override fun appProcessIsRunning(appPackageName: String): Boolean {
+	override suspend fun appProcessIsRunning(appPackageName: String): Boolean {
         return Utils.retryOnException(
                 { this.device.appProcessIsRunning(appPackageName) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.appProcessIsRunning(appPackageName:$appPackageName)"
         )
     }
 
-	override fun clearLogcat() {
+	override suspend fun clearLogcat() {
         Utils.retryOnException(
                 { this.device.clearLogcat() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.clearLogcat()"
         )
 	}
 
-    override fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+    override suspend fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
         Utils.retryOnException(
                 {
                     try {
@@ -570,14 +567,13 @@ class RobustDevice : IRobustDevice {
                     } // retry on other exceptions
                 },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.stopUiaDaemon"
         )
     }
 
-    override fun isAvailable(): Boolean {
+    override suspend fun isAvailable(): Boolean {
         return Utils.retryOnException(
                 {
                     try {
@@ -587,109 +583,100 @@ class RobustDevice : IRobustDevice {
                     } // retry on other exceptions
                 },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.isAvailable()"
         )
     }
 
-	override fun uiaDaemonClientThreadIsAlive(): Boolean {
+	override suspend fun uiaDaemonClientThreadIsAlive(): Boolean {
         return Utils.retryOnException(
                 { this.device.uiaDaemonClientThreadIsAlive() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.uiaDaemonClientThreadIsAlive()"
         )
     }
 
-	override fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+	override suspend fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
 		if (this.uiaDaemonIsRunning()) {
 			this.stopUiaDaemon(uiaDaemonThreadIsNull)
 		}
 		this.startUiaDaemon()
 	}
 
-	override fun startUiaDaemon() {
+	override suspend fun startUiaDaemon() {
         Utils.retryOnException(
                 { this.device.startUiaDaemon() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.startUiaDaemon()"
         )
 	}
 
-	override fun removeLogcatLogFile() {
+	override suspend fun removeLogcatLogFile() {
         Utils.retryOnException(
                 { this.device.removeLogcatLogFile() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.removeLogcatLogFile()"
         )
 	}
 
-	override fun pullLogcatLogFile() {
+	override suspend fun pullLogcatLogFile() {
         Utils.retryOnException(
                 { this.device.pullLogcatLogFile() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.pullLogcatLogFile()"
         )
 	}
 
-	override fun reinstallUiAutomatorDaemon() {
+	override suspend fun reinstallUiAutomatorDaemon() {
         Utils.retryOnException(
                 { this.device.reinstallUiAutomatorDaemon() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.reinstallUiautomatorDaemon()"
         )
 	}
 
-	override fun pushMonitorJar() {
+	override suspend fun pushMonitorJar() {
         Utils.retryOnException(
                 { this.device.pushMonitorJar() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.pushMonitorJar()"
         )
 	}
 
-	override fun reconnectAdb() {
+	override suspend fun reconnectAdb() {
         Utils.retryOnException(
                 { this.device.reconnectAdb() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.reconnectAdb()"
         )
 	}
 
-	override fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
+	override suspend fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
         Utils.retryOnException(
                 { this.device.executeAdbCommand(command, successfulOutput, commandDescription) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.executeAdbCommand(command:$command, successfulOutput:$successfulOutput, commandDescription:$commandDescription)"
         )
 	}
 
-	override fun uiaDaemonIsRunning(): Boolean {
+	override suspend fun uiaDaemonIsRunning(): Boolean {
 		return try {
 			this.device.uiaDaemonIsRunning()
 		} catch (e: Exception) {
@@ -699,110 +686,100 @@ class RobustDevice : IRobustDevice {
 		}
 	}
 
-	override fun isPackageInstalled(packageName: String): Boolean {
+	override suspend fun isPackageInstalled(packageName: String): Boolean {
         return Utils.retryOnException(
                 { this.device.isPackageInstalled(packageName) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.isPackageInstalled(packageName:$packageName)"
         )
     }
 
-	override fun hasPackageInstalled(packageName: String): Boolean {
+	override suspend fun hasPackageInstalled(packageName: String): Boolean {
         return Utils.retryOnException(
                 { this.device.hasPackageInstalled(packageName) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.hasPackageInstalled(packageName:$packageName)"
         )
     }
 
-	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
+	override suspend fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
         return Utils.retryOnException(
                 { this.device.readLogcatMessages(messageTag) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.readLogcatMessages(messageTag:$messageTag)"
         )
     }
 
-	override fun readStatements(): List<List<String>> {
+	override suspend fun readStatements(): List<List<String>> {
 		return Utils.retryOnException(
 			{ this.device.readStatements() },
 			{},
-			DeviceException::class,
 			deviceOperationAttempts,
 			deviceOperationDelay,
 			"device.readStatements()"
 		)
 	}
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
+	override suspend fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
         return Utils.retryOnException(
                 { this.device.waitForLogcatMessages(messageTag, minMessagesCount, waitTimeout, queryDelay) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.waitForLogcatMessages(messageTag:$messageTag, minMessagesCount:$minMessagesCount, waitTimeout:$waitTimeout, queryDelay:$queryDelay)"
         )
     }
 
-	override fun readAndClearMonitorTcpMessages(): List<List<String>> {
+	override suspend fun readAndClearMonitorTcpMessages(): List<List<String>> {
         return Utils.retryOnException(
                 { this.device.readAndClearMonitorTcpMessages() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.readAndClearMonitorTcpMessages()"
         )
     }
 
-	override fun getCurrentTime(): LocalDateTime {
+	override suspend fun getCurrentTime(): LocalDateTime {
         return Utils.retryOnException(
                 { this.device.getCurrentTime() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.getCurrentTime()"
         )
     }
 
-	override fun anyMonitorIsReachable(): Boolean {
+	override suspend fun anyMonitorIsReachable(): Boolean {
         return Utils.retryOnException(
                 { this.device.anyMonitorIsReachable() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.anyMonitorIsReachable()"
         )
     }
 
-	override fun appIsRunning(appPackageName: String): Boolean {
+	override suspend fun appIsRunning(appPackageName: String): Boolean {
         return Utils.retryOnException(
                 { this.device.appIsRunning(appPackageName) },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "device.appIsRunning(appPackageName:$appPackageName)"
         )
     }
 
-	override fun resetTimeSync() {
+	override suspend fun resetTimeSync() {
         Utils.retryOnException(
                 { this.messagesReader.resetTimeSync() },
                 {},
-                DeviceException::class,
                 deviceOperationAttempts,
                 deviceOperationDelay,
                 "messagesReader.resetTimeSync()"

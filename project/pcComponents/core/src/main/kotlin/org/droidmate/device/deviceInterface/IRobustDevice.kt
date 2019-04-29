@@ -33,11 +33,11 @@ import org.droidmate.deviceInterface.exploration.DeviceResponse
 
 interface IRobustDevice : IAndroidDevice, IDeviceMessagesReader {
 	@Throws(DeviceException::class)
-	fun ensureHomeScreenIsDisplayed(): DeviceResponse
+	suspend fun ensureHomeScreenIsDisplayed(): DeviceResponse
 
 	@Throws(DeviceException::class)
-	fun appIsNotRunning(apk: IApk): Boolean
+	suspend fun appIsNotRunning(apk: IApk): Boolean
 
 	@Throws(DeviceException::class)
-	fun rebootAndRestoreConnection()
+	suspend fun rebootAndRestoreConnection()
 }

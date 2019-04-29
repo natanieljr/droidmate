@@ -119,7 +119,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	 * @throws DeviceException if any of the operation fails.
 	 */
 	@Throws(DeviceException::class)
-	private fun trySetUp(device: IDeployableAndroidDevice) {
+	private suspend fun trySetUp(device: IDeployableAndroidDevice) {
 		this.adbWrapper.startAdbServer()
 
 		if (cfg[installAux]) {
@@ -140,7 +140,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	 * @see #trySetUp(IDeployableAndroidDevice)
 	 */
 	@Throws(DeviceException::class)
-	private fun tryTearDown(device: IDeployableAndroidDevice) {
+	private suspend fun tryTearDown(device: IDeployableAndroidDevice) {
 		this.deviceIsSetup = false
 
 		if (device.isAvailable()) {
@@ -233,7 +233,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	 * If any error occurs in this phase we cannot start the exploration for any app,
 	 * therefore we do not catch any exception but rather propagate it.
 	 */
-	private fun setupDevice(): IRobustDevice {
+	private suspend fun setupDevice(): IRobustDevice {
 		this.usedSerialNumbers.add(cfg.deviceSerialNumber)
 
 		val device = robustWithReadableLogs(this.deviceFactory.create(cfg.deviceSerialNumber))

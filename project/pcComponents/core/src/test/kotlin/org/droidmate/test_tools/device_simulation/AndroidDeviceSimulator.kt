@@ -45,156 +45,156 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
                              private val exceptionSpecs: List<IExceptionSpec> = ArrayList(),
                              unreliableSimulation: Boolean = false)*/ // TODO Fix tests
 	: IAndroidDevice {
-	override fun readStatements(): List<List<String>> {
+	override suspend fun readStatements(): List<List<String>> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun pullFile(fileName: String, dstPath: Path, srcPath: String) {
+	override suspend fun pullFile(fileName: String, dstPath: Path, srcPath: String) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun removeFile(fileName: String, srcPath: String) {
+	override suspend fun removeFile(fileName: String, srcPath: String) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun isApkInstalled(apkPackageName: String): Boolean {
+	override suspend fun isApkInstalled(apkPackageName: String): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
 	// TODO Fix tests
-	override fun pushFile(jar: Path) {
+	override suspend fun pushFile(jar: Path) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun pushFile(jar: Path, targetFileName: String) {
+	override suspend fun pushFile(jar: Path, targetFileName: String) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun removeJar(jar: Path) {
+	override suspend fun removeJar(jar: Path) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun installApk(apk: Path) {
+	override suspend fun installApk(apk: Path) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun installApk(apk: IApk) {
+	override suspend fun installApk(apk: IApk) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
+	override suspend fun uninstallApk(apkPackageName: String, ignoreFailure: Boolean) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun closeMonitorServers() {
+	override suspend fun closeMonitorServers() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun clearPackage(apkPackageName: String) {
+	override suspend fun clearPackage(apkPackageName: String) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun appProcessIsRunning(appPackageName: String): Boolean {
+	override suspend fun appProcessIsRunning(appPackageName: String): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun clearLogcat() {
+	override suspend fun clearLogcat() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun closeConnection() {
+	override suspend fun closeConnection() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun reboot() {
+	override suspend fun reboot() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+	override suspend fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun isAvailable(): Boolean {
+	override suspend fun isAvailable(): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun uiaDaemonClientThreadIsAlive(): Boolean {
+	override suspend fun uiaDaemonClientThreadIsAlive(): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
+	override suspend fun restartUiaDaemon(uiaDaemonThreadIsNull: Boolean) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun startUiaDaemon() {
+	override suspend fun startUiaDaemon() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun removeLogcatLogFile() {
+	override suspend fun removeLogcatLogFile() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun pullLogcatLogFile() {
+	override suspend fun pullLogcatLogFile() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun reinstallUiAutomatorDaemon() {
+	override suspend fun reinstallUiAutomatorDaemon() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun pushMonitorJar() {
+	override suspend fun pushMonitorJar() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun setupConnection() {
+	override suspend fun setupConnection() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun reconnectAdb() {
+	override suspend fun reconnectAdb() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
+	override suspend fun executeAdbCommand(command: String, successfulOutput: String, commandDescription: String) {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun uiaDaemonIsRunning(): Boolean {
+	override suspend fun uiaDaemonIsRunning(): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun isPackageInstalled(packageName: String): Boolean {
+	override suspend fun isPackageInstalled(packageName: String): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun hasPackageInstalled(packageName: String): Boolean {
+	override suspend fun hasPackageInstalled(packageName: String): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun perform(action: ExplorationAction): DeviceResponse {
+	override suspend fun perform(action: ExplorationAction): DeviceResponse {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
+	override suspend fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
+	override suspend fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun readAndClearMonitorTcpMessages(): List<List<String>> {
+	override suspend fun readAndClearMonitorTcpMessages(): List<List<String>> {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun getCurrentTime(): LocalDateTime {
+	override suspend fun getCurrentTime(): LocalDateTime {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun anyMonitorIsReachable(): Boolean {
+	override suspend fun anyMonitorIsReachable(): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override fun appIsRunning(appPackageName: String): Boolean {
+	override suspend fun appIsRunning(appPackageName: String): Boolean {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 

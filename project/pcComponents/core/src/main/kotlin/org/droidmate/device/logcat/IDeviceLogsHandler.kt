@@ -28,10 +28,10 @@ import org.droidmate.device.error.DeviceException
 
 interface IDeviceLogsHandler {
 	@Throws(DeviceException::class)
-	fun readClearAndAssertOnlyBackgroundApiLogsIfAny()
+	suspend fun readClearAndAssertOnlyBackgroundApiLogsIfAny()
 
 	@Throws(DeviceException::class)
-	fun readAndClearApiLogs()
+	suspend fun readAndClearApiLogs()
 
 	fun getLogs(): MutableList<IApiLogcatMessage>
 }

@@ -34,33 +34,33 @@ import java.time.LocalDateTime
 
 interface IExplorableAndroidDevice {
 	@Throws(DeviceException::class)
-	fun hasPackageInstalled(packageName: String): Boolean
+	suspend fun hasPackageInstalled(packageName: String): Boolean
 
 	@Throws(DeviceException::class)
-	fun perform(action: ExplorationAction): DeviceResponse
+	suspend fun perform(action: ExplorationAction): DeviceResponse
 
 	@Throws(DeviceException::class)
-	fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI>
+	suspend fun readLogcatMessages(messageTag: String): List<TimeFormattedLogMessageI>
 
 	@Throws(DeviceException::class)
-	fun readStatements(): List<List<String>>
+	suspend fun readStatements(): List<List<String>>
 
 	@Throws(DeviceException::class)
-	fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI>
+	suspend fun waitForLogcatMessages(messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<TimeFormattedLogMessageI>
 
 	@Throws(DeviceException::class)
-	fun clearLogcat()
+	suspend fun clearLogcat()
 
 	@Throws(DeviceException::class)
-	fun readAndClearMonitorTcpMessages(): List<List<String>>
+	suspend fun readAndClearMonitorTcpMessages(): List<List<String>>
 
 	@Throws(DeviceException::class)
-	fun getCurrentTime(): LocalDateTime
+	suspend fun getCurrentTime(): LocalDateTime
 
 	@Throws(DeviceException::class)
-	fun anyMonitorIsReachable(): Boolean
+	suspend fun anyMonitorIsReachable(): Boolean
 
 	@Throws(DeviceException::class)
-	fun appIsRunning(appPackageName: String): Boolean
+	suspend fun appIsRunning(appPackageName: String): Boolean
 }
 
