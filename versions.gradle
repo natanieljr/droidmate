@@ -22,7 +22,7 @@ project.ext {
 	// Coverage
 	dmCoverage = "com.github.uds-se:droidmate-coverage:master-SNAPSHOT"
 	// API Monitor
-	dmAPIMonitor = "com.github.natanieljr:droidmate-monitor:master-SNAPSHOT"
+	dmAPIMonitor = "com.github.uds-se:droidmate-monitor:master-SNAPSHOT"
 	
 	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = 'v0.2.4'
