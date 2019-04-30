@@ -5,17 +5,19 @@ package org.droidmate.uiautomator2daemon.uiautomatorExtensions
 import android.app.UiAutomation
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.support.test.uiautomator.*
+import android.support.test.uiautomator.NodeProcessor
+import android.support.test.uiautomator.UiDevice
+import android.support.test.uiautomator.apply
+import android.support.test.uiautomator.processTopDown
 import android.util.Log
 import android.util.Xml
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.uiautomator2daemon.exploration.debugT
-import org.droidmate.uiautomator2daemon.exploration.nullableDebugT
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.util.*
@@ -54,7 +56,7 @@ object UiHierarchy : UiParser() {
 	}
 
 
-	fun getXml(device: UiDevice):String = debugT(" fetching gui Dump ", {
+	suspend fun getXml(device: UiDevice):String = debugT(" fetching gui Dump ", {
 		StringWriter().use { out ->
 			device.waitForIdle()
 
@@ -82,7 +84,7 @@ object UiHierarchy : UiParser() {
 	}
 
 	@JvmOverloads
-	suspend fun findAndPerform(env: UiAutomationEnvironment, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean {
+	suspend fun findAndPerform(env: UiAutomationEnvironment, cond: SelectorCondition, retry: Boolean=true, action:suspend (AccessibilityNodeInfo)->Boolean): Boolean {
 		return findAndPerform(env.getAppRootNodes(),cond,retry,action)
 	}
 
@@ -90,7 +92,7 @@ object UiHierarchy : UiParser() {
 	 * The search condition should be unique to avoid unwanted side-effects on other nodes which fulfill the same condition.
 	 */
 	@JvmOverloads
-	suspend fun findAndPerform(roots: List<AccessibilityNodeInfo>, cond: SelectorCondition, retry: Boolean=true, action:((AccessibilityNodeInfo)->Boolean)): Boolean{
+	suspend fun findAndPerform(roots: List<AccessibilityNodeInfo>, cond: SelectorCondition, retry: Boolean=true, action: suspend(AccessibilityNodeInfo)->Boolean): Boolean{
 		var found = false
 		var successfull = false
 
@@ -110,7 +112,7 @@ object UiHierarchy : UiParser() {
 					if(isFound){
 						successfull = action(node).run { if(retry && !this){
 							Log.d(LOGTAG,"action failed on $node\n with id ${computeIdHash(xPath,node.window.layer)}, try a second time")
-							runBlocking { delay(20) }
+							delay(20)
 							action(node)
 							}else this
 						}.also {
@@ -122,14 +124,17 @@ object UiHierarchy : UiParser() {
 				}
 			}
 		}
+//			Log.d(LOGTAG, "roots are ${roots.map { it.packageName }}")
 		roots.forEach { root ->
-			processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+//			Log.d(LOGTAG, "search in root $root with ${root.childCount} children")
+			// only continue search if element is not yet found in any previous root (otherwise we would overwrite the result accidentially)
+			if(!found) processTopDown(root, processor = processor, postProcessor = { Unit })
 		}
 		if(retry && !found) {
 			Log.d(LOGTAG,"didn't find target, try a second time")
-			runBlocking { delay(20) }
+			delay(20)
 			roots.forEach { root ->
-				processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
+				if(!found) processTopDown(root, processor = processor, postProcessor = { Unit })
 			}
 		}
 		Log.d(LOGTAG,"found = $found")
@@ -140,11 +145,11 @@ object UiHierarchy : UiParser() {
 	 * @return if the condition was fulfilled within timeout
 	 * */
 	@JvmOverloads
-	fun waitFor(env: UiAutomationEnvironment, timeout: Long = 10000, cond: SelectorCondition): Boolean{
+	suspend fun waitFor(env: UiAutomationEnvironment, timeout: Long = 10000, cond: SelectorCondition): Boolean{
 		return waitFor(env,timeout,10,cond)
 	}
 	/** @param pollTime time intervall (in ms) to recheck the condition [cond] */
-	fun waitFor(env: UiAutomationEnvironment, timeout: Long, pollTime: Long, cond: SelectorCondition) = runBlocking{
+	suspend fun waitFor(env: UiAutomationEnvironment, timeout: Long, pollTime: Long, cond: SelectorCondition): Boolean = coroutineScope{
 		// lookup should only take less than 100ms (avg 50-80ms) if the UiAutomator did not screw up
 		val scanTimeout = 100 // this is the maximal number of milliseconds, which is spend for each lookup in the hierarchy
 		var time = 0.0

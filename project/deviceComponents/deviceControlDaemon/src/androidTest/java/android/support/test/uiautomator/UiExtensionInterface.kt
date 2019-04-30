@@ -12,16 +12,16 @@ fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
 }
 
 /** @return true if children should be recursively traversed */
-typealias NodeProcessor = (rootNode: AccessibilityNodeInfo, index: Int, xPath: String)	-> Boolean
+typealias NodeProcessor = suspend (rootNode: AccessibilityNodeInfo, index: Int, xPath: String)	-> Boolean
 typealias PostProcessor<T> = (rootNode: AccessibilityNodeInfo)	-> T
 const val osPkg = "com.android.systemui"
 
-inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline postProcessor: PostProcessor<T>): List<T> =
+suspend inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline postProcessor: PostProcessor<T>): List<T> =
 	getNonSystemRootNodes().mapIndexed { index,root: AccessibilityNodeInfo ->
 		processTopDown(root,processor = processor,postProcessor = postProcessor)
 	}
 
-fun UiDevice.apply(processor: NodeProcessor){
+suspend fun UiDevice.apply(processor: NodeProcessor){
 	try{
 		getNonSystemRootNodes().mapIndexed { index, root: AccessibilityNodeInfo ->
 			processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
@@ -31,7 +31,7 @@ fun UiDevice.apply(processor: NodeProcessor){
 	}
 }
 
-fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeProcessor, postProcessor: PostProcessor<T>, parentXpath: String = "//"):T{
+suspend fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processor: NodeProcessor, postProcessor: PostProcessor<T>, parentXpath: String = "//"):T{
 	val nChildren = node.childCount
 	val xPath = parentXpath +"${node.className}[${index + 1}]"
 	val proceed = processor(node,index,xPath)

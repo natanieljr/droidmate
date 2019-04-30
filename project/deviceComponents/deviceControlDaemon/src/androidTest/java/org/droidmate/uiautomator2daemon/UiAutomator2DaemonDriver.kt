@@ -45,10 +45,10 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 
 	private var nActions = 0
 	@Throws(DeviceDaemonException::class)
-	override fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse {
+	override fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse = runBlocking { // right now need this since calling class is still Java, which cannot handle coroutines
 		Log.v(uiaDaemon_logcatTag, "Executing device command: ($nActions) $deviceCommand")
 
-		return try {
+		try {
 
 			when (deviceCommand) {
 				is ExecuteCommand ->
@@ -70,7 +70,7 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 	private var tExec = 0L
 	private var et = 0.0
 	@Throws(DeviceDaemonException::class)
-	private fun performAction(deviceCommand: ExecuteCommand): DeviceResponse = runBlocking {
+	private suspend fun performAction(deviceCommand: ExecuteCommand): DeviceResponse =
 		deviceCommand.guiAction.let { action ->
 			debugT(" EXECUTE-TIME avg = ${et / max(1, nActions)}", {
 
@@ -97,5 +97,5 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 				nActions += 1
 //				}
 			})
-		}}
+		}
 }

@@ -142,7 +142,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 					uncoveredC.firstOrNull()?.let { r ->
 						outRect.intersect(r)
 						if (outRect == r){  // wrong keyboard boundaries reported
-							debugOut("try to handle soft keyboard in front with $outRect", debug)
+							Log.d(logtag, "try to handle soft keyboard in front with $outRect")
 							UiHierarchy.findAndPerform(listOf(root),selectKeyboardRoot(r.top+1,r.width(),r.height()),retry = false,
 									action = { node -> outRect = node.getBounds(r.width(),r.height() ); true })
 						}
@@ -261,7 +261,8 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 
 	suspend fun isKeyboardOpen(): Boolean = getDisplayedWindows().any { it.isKeyboard }
 
-	suspend fun getAppRootNodes() = 	getDisplayedWindows().mapNotNull { if(it.isApp()) it.rootNode else null }
+	// FIXME for the apps with interaction issues, check if we need different window types here
+	suspend fun getAppRootNodes() = 	getDisplayedWindows().mapNotNull { if(it.isApp()||it.isKeyboard) it.rootNode else null }
 
 
 }

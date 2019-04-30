@@ -77,6 +77,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		}
 		is ClickEvent ->
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
+//				Log.d(logTag, "looking for click target, windows are ${env.getDisplayedWindows()}")
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)}.also {
 					if(it) { delay(delay) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
