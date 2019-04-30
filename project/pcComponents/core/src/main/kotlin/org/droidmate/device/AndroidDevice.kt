@@ -234,7 +234,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override suspend fun pullLogcatLogFile() {
 		log.debug("pullLogcatLogFile()")
 		if (cfg[apiVersion] == ConfigurationWrapper.api23)
-			this.adbWrapper.pullFileApi23(this.serialNumber, DeviceConstants.deviceLogcatLogDir_api23+logcatLogFileName, cfg.getPath(LogbackUtils.getLogFilePath("logcat.txt")), uia2Daemon_packageName)
+			this.adbWrapper.pullFileApi23(this.serialNumber, DeviceConstants.deviceLogcatLogDir_api23+logcatLogFileName, cfg.getPath(LogbackUtils.getLogFilePath("logcat.log")), uia2Daemon_packageName)
 		else
 			throw UnexpectedIfElseFallthroughError("configured api version does not match ConfigurationWrapper.api23")
 	}

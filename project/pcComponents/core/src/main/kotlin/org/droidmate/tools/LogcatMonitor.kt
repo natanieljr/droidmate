@@ -71,7 +71,7 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
          * Returns the logfile name in which the logcat content is written into.
          */
         private fun getLogfilePath(): Path {
-            return cfg.getPath(LogbackUtils.getLogFilePath("logcat.txt"))
+            return cfg.getPath(LogbackUtils.getLogFilePath("logcat.log"))
         }
 
         /**

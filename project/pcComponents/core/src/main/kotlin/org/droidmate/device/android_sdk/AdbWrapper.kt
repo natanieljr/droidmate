@@ -564,7 +564,7 @@ Logcat reference:
 		if (!Files.isDirectory(destinationFilePath) && Files.exists(destinationFilePath))
 			Files.delete(destinationFilePath)
 
-		if(pulledFilePath.endsWith("logcat.txt")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is
+		if(pulledFilePath.endsWith("logcat.log")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is
 			val stdout = this.executeCommand(deviceSerialNumber, "", "Pull logcat from stdout (API23 compatibility)",
 					"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
 			Files.write(destinationFilePath, stdout.toByteArray())
