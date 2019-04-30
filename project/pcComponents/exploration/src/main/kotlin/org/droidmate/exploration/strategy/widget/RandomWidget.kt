@@ -49,11 +49,14 @@ import kotlin.streams.asSequence
  * @param biased Prioritise UI elements which have not yet been interacted with, instead of plain random
  * @param randomScroll Trigger not only clicks and long clicks, but also scroll actions when the UI element supports it
  */
-open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
-												  private val biased: Boolean = true,
-												  private val randomScroll: Boolean = true,
-												  private val dictionary: List<String> = emptyList(),
-												  private val delay : Long = 0) : ExplorationStrategy() {
+open class RandomWidget @JvmOverloads
+constructor(	private val randomSeed: Long,
+              private val biased: Boolean = true,
+              private val randomScroll: Boolean = true,
+              private val dictionary: List<String> = emptyList(),
+              private val delay : Long = 0,
+              private val useCoordinateClicks: Boolean = false
+) : ExplorationStrategy() {
 
 	protected var random = Random(randomSeed)
 		private set
@@ -200,8 +203,8 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 
 		val actionList = when{
 			widget.isInputField ->	listOf(widget.setText(randomString()))
-			randomScroll -> widget.availableActions(delay)
-			else -> widget.availableActions(delay).filterNot { it is Swipe }
+			randomScroll -> widget.availableActions(delay,useCoordinateClicks)
+			else -> widget.availableActions(delay,useCoordinateClicks).filterNot { it is Swipe }
 		}
 
 		val maxVal = actionList.size

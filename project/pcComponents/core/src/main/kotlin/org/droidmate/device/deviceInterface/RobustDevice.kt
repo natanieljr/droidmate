@@ -25,6 +25,7 @@
 
 package org.droidmate.device.deviceInterface
 
+import kotlinx.coroutines.delay
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.AllDeviceAttemptsExhaustedException
@@ -44,7 +45,6 @@ import org.droidmate.exploration.actions.click
 import org.droidmate.logging.Markers
 import org.droidmate.misc.Utils
 import org.slf4j.LoggerFactory
-import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.time.LocalDateTime
 
@@ -188,7 +188,7 @@ class RobustDevice : IRobustDevice {
 
 			// Sleep here to give the device some time to stop all the processes belonging to the cleared package before checking
 			// if indeed all of them have been stopped.
-			sleep(this.stopAppSuccessCheckDelay.toLong())
+			delay(this.stopAppSuccessCheckDelay.toLong())
 
 			!this.getAppIsRunningRebootingIfNecessary(apkPackageName)
 
@@ -272,7 +272,7 @@ class RobustDevice : IRobustDevice {
 							},
 							{ this.restartUiaDaemon(false) },
 							deviceOperationAttempts,
-							0,
+							deviceOperationDelay,
 							"device.perform(action:$action)"
 					)
 				},
@@ -418,7 +418,7 @@ class RobustDevice : IRobustDevice {
 			log.trace("Device not yet available for a reboot. Waiting $waitForCanRebootDelay milliseconds. If the device still won't be available, " +
 					"assuming it cannot be reached at all.")
 
-			sleep(this.waitForCanRebootDelay.toLong())
+			delay(this.waitForCanRebootDelay.toLong())
 
 			if (this.device.isAvailable())
 				log.trace("Device can be rebooted after the wait.")
@@ -429,7 +429,7 @@ class RobustDevice : IRobustDevice {
 		log.trace("Rebooting.")
 		this.device.reboot()
 
-		sleep(this.checkDeviceAvailableAfterRebootFirstDelay.toLong())
+		delay(this.checkDeviceAvailableAfterRebootFirstDelay.toLong())
 		// WISH use "adb wait-for-device"
 		val rebootResult = Utils.retryOnFalse({
 			val out = this.device.isAvailable()
@@ -548,13 +548,17 @@ class RobustDevice : IRobustDevice {
     }
 
 	override suspend fun clearLogcat() {
-        Utils.retryOnException(
-                { this.device.clearLogcat() },
-                {},
-                deviceOperationAttempts,
-                deviceOperationDelay,
-                "device.clearLogcat()"
-        )
+		try {
+			Utils.retryOnException(
+				{ this.device.clearLogcat() },
+				{},
+				2,
+				deviceOperationDelay,
+				"device.clearLogcat()"
+			)
+		} catch(e : Throwable){
+			log.warn("logcat clear failed: ${e.message}")
+		}
 	}
 
     override suspend fun stopUiaDaemon(uiaDaemonThreadIsNull: Boolean) {

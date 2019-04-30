@@ -68,10 +68,9 @@ suspend fun ExplorationAction.execute(app: IApk, device: IRobustDevice): ActionR
 		logs = logsHandler.getLogs()
 
 		log.trace("$name.execute(app=${app.fileName}, device) - DONE")
-	} catch (e: DeviceException) {
-		exception = e
-		log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device explorationTrace of ${this}. " +
-				"Returning failed ${javaClass.simpleName} with the exception assigned to a field.")
+	} catch (e: Throwable) {
+		exception = if(e !is DeviceException) DeviceException(e) else e
+		log.warn(Markers.appHealth, "! Caught ${e.javaClass.simpleName} while performing device explorationTrace of ${this}.",e)
 	}
 	val endTime = LocalDateTime.now()
 

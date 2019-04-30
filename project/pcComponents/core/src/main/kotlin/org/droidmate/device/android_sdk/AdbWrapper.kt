@@ -329,18 +329,11 @@ Logcat reference:
 
 	override fun clearLogcat(deviceSerialNumber: String) {
 
-		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to clear logcat output."
+		val commandDescription = "Executing adb (Android Debug Bridge) to clear logcat output."
 
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"logcat", "-c")
-
-		} catch (e: SysCmdExecutorException) {
-			log.warn("logcat clear failed: ${e.message}")
-//			throw AdbWrapperException(e)
-		}
-
+		sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+			"-s", deviceSerialNumber,
+			"logcat", "-c")
 	}
 
 	override fun waitForMessagesOnLogcat(deviceSerialNumber: String, messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<String> {
@@ -571,7 +564,7 @@ Logcat reference:
 		if (!Files.isDirectory(destinationFilePath) && Files.exists(destinationFilePath))
 			Files.delete(destinationFilePath)
 
-		if(pulledFilePath.endsWith("logcat.txt")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is
+		if(pulledFilePath.endsWith("logcat.log")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is
 			val stdout = this.executeCommand(deviceSerialNumber, "", "Pull logcat from stdout (API23 compatibility)",
 					"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
 			Files.write(destinationFilePath, stdout.toByteArray())

@@ -59,9 +59,9 @@ import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.error.DeviceException
 import org.droidmate.device.error.DeviceExceptionMissing
 import org.droidmate.device.exception
+import org.droidmate.device.execute
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
-import org.droidmate.device.execute
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.resetApp
@@ -477,14 +477,19 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	@Throws(DeviceException::class)
 	private suspend fun tryWarnDeviceDisplaysHomeScreen(device: IExplorableAndroidDevice, fileName: String) {
 		log.trace("tryWarnDeviceDisplaysHomeScreen(device, $fileName)")
+		try {
+			val initialGuiSnapshot = device.perform(GlobalAction(ActionType.FetchGUI))
 
-		val initialGuiSnapshot = device.perform(GlobalAction(ActionType.FetchGUI))
-
-		if (!initialGuiSnapshot.isHomeScreen)
-			log.warn(Markers.appHealth,
+			if (!initialGuiSnapshot.isHomeScreen)
+				log.warn(
+					Markers.appHealth,
 					"An exploration process for $fileName is about to start but the device doesn't display home screen. " +
 							"Instead, its GUI state is: $initialGuiSnapshot.guiStatus. " +
 							"Continuing the exploration nevertheless, hoping that the first \"reset app\" " +
-							"exploration action will force the device into the home screen.")
+							"exploration action will force the device into the home screen."
+				)
+		}catch(e: Throwable){
+			log.warn("initial fetch (warnIfNotHomeScreen) failed",e)
+		}
 	}
 }
