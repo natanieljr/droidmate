@@ -66,9 +66,9 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		return model.getPaths().let { traceIdx+1 == it.size && actionIdx+1 == it[traceIdx].size }
 	}
 
-	private fun supposedToBeCrash():Boolean{
+	private suspend fun supposedToBeCrash():Boolean{
 		val lastAction = model.getPaths()[traceIdx].getActions()[max(0,actionIdx)]
-		return runBlocking { model.getState(lastAction.resState)!!.isAppHasStoppedDialogBox }
+		return model.getState(lastAction.resState)!!.isAppHasStoppedDialogBox
 	}
 
 	private suspend fun getNextTraceAction(peek: Boolean = false): Interaction {

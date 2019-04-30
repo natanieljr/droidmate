@@ -25,7 +25,6 @@
 
 package org.droidmate.exploration.strategy.widget
 
-import kotlinx.coroutines.runBlocking
 import org.droidmate.exploration.actions.availableActions
 import org.droidmate.exploration.actions.setText
 import org.droidmate.deviceInterface.exploration.ExplorationAction
@@ -68,7 +67,7 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>() }
 	private val blackList: BlackListMF by lazy { eContext.getOrCreateWatcher<BlackListMF>() }
 
-	private fun mustRepeatLastAction(): Boolean {
+	private suspend fun mustRepeatLastAction(): Boolean {
 		if (!this.eContext.isEmpty()) {
 
 			// Last state was runtime permission
@@ -76,7 +75,7 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 					// Has last action
 					this.eContext.lastTarget != null &&
 					// Has a state that is not a runtime permission
-					runBlocking { eContext.model.getStates() }
+					eContext.model.getStates()
 							.filterNot { it.stateId == emptyId && it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&
 					// Can re-execute the same action
@@ -161,13 +160,14 @@ open class RandomWidget @JvmOverloads constructor(private val randomSeed: Long,
 				}
 	}
 
-	private fun chooseBiased(): ExplorationAction = runBlocking {
+	private suspend fun chooseBiased(): ExplorationAction {
 		val candidates = getCandidates()
 		// no valid candidates -> go back to previous state
-		if (candidates.isEmpty()) {
+		return if (candidates.isEmpty()) {
 			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
 			eContext.pressBack()
-		} else candidates.chooseRandomly()
+		}
+		else candidates.chooseRandomly()
 	}
 
 	private fun chooseRandomly(): ExplorationAction {
