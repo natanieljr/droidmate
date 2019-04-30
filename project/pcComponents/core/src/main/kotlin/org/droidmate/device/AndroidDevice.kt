@@ -160,8 +160,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 	private fun issueCommand(deviceCommand: DeviceCommand): DeviceResponse {
 		val deviceResponse = this.tcpClients.sendCommandToUiautomatorDaemon(deviceCommand)
 
-		throwDeviceResponseThrowableIfAny(deviceResponse)
-		assert(deviceResponse.throwable == null)
 		return deviceResponse
 	}
 

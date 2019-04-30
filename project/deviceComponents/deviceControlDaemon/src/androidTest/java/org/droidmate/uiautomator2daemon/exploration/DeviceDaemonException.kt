@@ -25,6 +25,8 @@
 
 package org.droidmate.uiautomator2daemon.exploration
 
+import org.droidmate.deviceInterface.exploration.DeviceResponse
+
 @Suppress("unused")
 class DeviceDaemonException : Throwable {
 
@@ -37,3 +39,8 @@ class DeviceDaemonException : Throwable {
 	constructor(arg0: Throwable) : super(arg0)
 
 }
+
+private val error = DeviceResponse.create(isSuccessful = false, capturedScreen = false,
+	appWindows = emptyList(), isHomeScreen = false, uiHierarchy = emptyList(), launchedActivity = "",
+	screenshot = ByteArray(0), uiDump = "ERROR in device controlling app")
+val ErrorResponse:(Throwable?) ->DeviceResponse = {error.apply { throwable = it }}

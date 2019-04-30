@@ -18,12 +18,14 @@ import android.support.test.uiautomator.Configurator
 import android.support.test.uiautomator.UiDevice
 import android.support.test.uiautomator.getBounds
 import android.support.test.uiautomator.getWindowRootNodes
+import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import android.view.inputmethod.InputMethodManager
 import kotlinx.coroutines.delay
 import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.uiautomator2daemon.exploration.debugT
 import org.droidmate.uiautomator2daemon.exploration.measurePerformance
 import org.droidmate.uiautomator2daemon.exploration.nullableDebugT
 import java.io.File
@@ -31,6 +33,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 private const val debug = false
+private const val logtag = "droidmate/UiEnv"
 
 data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveTimeout: Long = 1000, val imgQuality: Int,
                                    val delayedImgTransfer: Boolean, val enablePrintouts: Boolean) {
@@ -77,7 +80,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		if (device == null) throw AssertionError(" could not determine UI-Device")
 
 		if(delayedImgTransfer && context.checkSelfPermission(WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
-			debugOut("warn we have no storage permission, we may not be able to store & fetch screenshots")
+			Log.w(logtag,"warn we have no storage permission, we may not be able to store & fetch screenshots")
 		}
 		imgDir =
 				Environment.getExternalStorageDirectory().resolve("DM-2/images")
@@ -145,15 +148,15 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 						}
 					}
 				}
-				debugOut("warn use device root for ${w.id} ${root.packageName}[$outRect] uncovered = $uncoveredC ${w.type}", debug)
+				Log.d(logtag,"use device root for ${w.id} ${root.packageName}[$outRect] uncovered = $uncoveredC ${w.type}")
 				return DisplayedWindow(w, uncoveredC, outRect, root.isKeyboard(), root)
 			}
-			debugOut("warn no root for ${w.id} ${deviceRoots.map { "${it.packageName}" +" wId=${it.window?.id}"}}")
+			Log.w(logtag,"warn no root for ${w.id} ${deviceRoots.map { "${it.packageName}" +" wId=${it.window?.id}"}}")
 			return null
 		}
 		w.getBoundsInScreen(outRect)
 		if(outRect.isEmpty && w.type == AccessibilityWindowInfo.TYPE_APPLICATION){
-			debugOut("warn empty application window")
+			Log.w(logtag,"warn empty application window")
 			return null
 		}
 		debugOut("process window ${w.id} ${w.root?.packageName ?: "no ROOT!! type=${w.type}"}", debug)
@@ -165,26 +168,45 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		newW.getBoundsInScreen(b)
 		return w.windowId == newW.id && layer == newW.layer
 				&& bounds == b
-				&& (!isExtracted() || newW.root != null).also {
+				&& (!isExtracted() ||
+				(newW.root != null && w.pkgName == newW.root.packageName)).also {
 			if(!it) 		debugOut("extracted = ${isExtracted()}; newW = ${newW.layer}, $b", debug)
 		}
 	}
 	private var lastDisplayDimension = DisplayDimension(0,0)
 
+	private fun List<DisplayedWindow>.invalid() = isEmpty()|| none{it.isLauncher||(it.isApp()&& it.isExtracted())}
 	suspend fun getDisplayedWindows(): List<DisplayedWindow> {
+		var windows: List<DisplayedWindow> = emptyList()
+		var c = 0
+		debugT("compute windows",  {
+			while(windows.invalid() && c++<10) {
+				windows = computeDisplayedWindows()
+				if(windows.invalid()){
+					lastWindows = emptyList()
+					delay(200)
+				}
+			}
+		}, inMillis = true)
+		if(windows.invalid()) throw java.lang.IllegalStateException("Error: Displayed Windows could not be extracted $windows")
+
+		return windows
+	}
+
+	private suspend fun computeDisplayedWindows(): List<DisplayedWindow>{
 		debugOut("compute displayCoordinates", false)
 		// to compute which areas in the screen are not yet occupied by other windows (for UiElement-visibility)
 		val displayDim = getDisplayDimension()
 		val processedWindows = HashMap<Int,DisplayedWindow>() // keep track of already processed windowIds to prevent re-processing when we have to re-fetch windows due to missing accessibility roots
 
-		var windows = automation.getWindows()
+		var windows = automation.getWindows() // visible windows in descending layer order
 		var count = 0
-		while(count++<10 && windows.none { it.type == AccessibilityWindowInfo.TYPE_APPLICATION && it.root != null  }){  // wait until app/home window is available
+		while(count++<50 && windows.none { it.type == AccessibilityWindowInfo.TYPE_APPLICATION && it.root != null  }){  // wait until app/home window is available
 			delay(10)
 			windows = automation.getWindows()
 		}
 		val uncoveredC = LinkedList<Rect>().apply { add(Rect(0,0,displayDim.width,displayDim.height)) }
-//		/*
+
 		if(lastDisplayDimension == displayDim){
 			var canReuse = windows.size >= lastWindows.size // necessary since otherwise disappearing soft-keyboards would mark part of the app screen as invisible
 			var c = 0
@@ -192,23 +214,22 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 				with(lastWindows[c]) {
 					val newW = windows[c++]
 					val cnd = canReuseFor(newW)
-					if(w.windowId == newW.id && !cnd) debugOut("try to reuse $this for ${newW.id}", debug)
+					if(w.windowId == newW.id && !cnd) Log.d(logtag,"cannot reuse $this for ${newW.id}: ${newW.root?.packageName}")
 					if (cnd) {
-						debugOut("can reuse window ${w.windowId} ${w.pkgName} ${w.boundaries}", debug)
+						Log.d(logtag,"can reuse window ${w.windowId} ${w.pkgName} ${w.boundaries}")
 						processedWindows[w.windowId] = this.apply { if(isExtracted()) rootNode = newW.root }
 					}
 					else canReuse = false // no guarantees after we have one mismatching window
 				}
 			}
 			if (!canReuse){ // wo could only partially reuse windows or none
-				if(processedWindows.isNotEmpty()) debugOut("only partial reuse was possible", debug)
+				if(processedWindows.isNotEmpty()) Log.d(logtag, "partial reuse of windows ${processedWindows.entries.joinToString(separator=" ; "){(id,w)->"$id: ${w.w.pkgName}"}}")
 				processedWindows.values.forEach { it.bounds.visibleAxis(uncoveredC) } // then we need to mark the (reused) displayed window area as occupied
 			}
 		}
-//		*/
 
-		count = 0
-		while(count++<10 && (processedWindows.size<windows.size)){
+		count = 0 //FIXME why did we limit the number of windows here? Was were an infinite loop?
+		while(count++<20 && (processedWindows.size<windows.size)){
 			var canContinue = true
 			windows.forEach { window ->
 				if(canContinue && !processedWindows.containsKey(window.id)){
@@ -218,8 +239,19 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 							?: let{ delay(10); windows = automation.getWindows(); canContinue = false }
 				}
 			}
+			if(!canContinue){ // something went wrong in the window extraction => throw cached results away and try once again
+				delay(100)
+				Log.d(logtag,"window processing failed try once again")
+				processedWindows.clear()
+				windows = automation.getWindows()
+				windows.forEach { window ->
+						processWindows(window,uncoveredC)?.also {
+							processedWindows[it.w.windowId] = it }
+							?: let{ Log.e(logtag, "window ${window.id}: ${window.root?.packageName} ${window.title}") }
+				}
+			}
 		}
-		if (processedWindows.size<windows.size) debugOut("ERROR could not get rootNode for all windows[#dw=${processedWindows.size}, #w=${windows.size}] ${device.getWindowRootNodes().mapNotNull { it.packageName }}")
+		if (processedWindows.size<windows.size) Log.e(logtag, "ERROR could not get rootNode for all windows[#dw=${processedWindows.size}, #w=${windows.size}] ${device.getWindowRootNodes().mapNotNull { it.packageName }}")
 		return processedWindows.values.toList().also { displayedWindows ->
 			lastDisplayDimension = displayDim // store results to be potentially reused
 			lastWindows = displayedWindows

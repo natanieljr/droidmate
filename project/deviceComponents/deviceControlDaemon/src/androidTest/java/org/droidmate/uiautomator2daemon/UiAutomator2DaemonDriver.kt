@@ -46,7 +46,7 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 	private var nActions = 0
 	@Throws(DeviceDaemonException::class)
 	override fun executeCommand(deviceCommand: DeviceCommand): DeviceResponse {
-		Log.v(uiaDaemon_logcatTag, "Executing device command: (${nActions-3}) $deviceCommand")
+		Log.v(uiaDaemon_logcatTag, "Executing device command: ($nActions) $deviceCommand")
 
 		return try {
 
@@ -62,7 +62,7 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 			Log.e(uiaDaemon_logcatTag, "Printing stack trace for debug")
 			e.printStackTrace()
 
-			DeviceResponse.empty.apply { throwable = e }
+			ErrorResponse(e)
 		}
 	}
 
@@ -74,7 +74,7 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 		deviceCommand.guiAction.let { action ->
 			debugT(" EXECUTE-TIME avg = ${et / max(1, nActions)}", {
 
-				Log.v(uiaDaemon_logcatTag, "Performing GUI action $action")
+				Log.v(uiaDaemon_logcatTag, "Performing GUI action $action [${action.id}]")
 
 				val result = debugT("execute action avg= ${tExec / (max(nActions, 1) * 1000000)}", {
 					lastId = action.id

@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.UiElementPropertiesI
 import org.droidmate.uiautomator2daemon.exploration.debugT
+import org.droidmate.uiautomator2daemon.exploration.nullableDebugT
 import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.util.*
@@ -28,15 +29,14 @@ object UiHierarchy : UiParser() {
 
 	private var nActions = 0
 	private var ut = 0L
-	suspend fun fetch(windows: List<DisplayedWindow>, img: Bitmap?): List<UiElementPropertiesI>?
-			= debugT(" compute UiNodes avg= ${ut / (max(nActions, 1) * 1000000)}", {
+	suspend fun fetch(windows: List<DisplayedWindow>, img: Bitmap?): List<UiElementPropertiesI>? {
 		val nodes = LinkedList<UiElementProperties>()
 
 		try {
-
 			val validImg = img.isValid(windows)// we cannot use an error prone image for ui extraction -> rather work without it completely
 			//TODO check if this filters out all os windows but keeps permission request dialogues
 //			debugOut("windows to extract: ${windows.map { "${it.isExtracted()}-${it.w.pkgName}:${it.w.windowId}[${visibleOuterBounds(it.area)}]" }}")
+			Log.d(LOGTAG, "current screen contains ${windows.size} app windows $windows")
 			windows.forEach {  w: DisplayedWindow ->
 				if (w.isExtracted() && !w.isLauncher){  // for now we are not interested in the Launcher elements
 					w.area = LinkedList<Rect>().apply { w.initialArea.forEach { add(it) } }
@@ -47,11 +47,11 @@ object UiHierarchy : UiParser() {
 							"#elems = ${nodes.size} ${w.initialArea} empty=${w.initialArea.isEmpty()}")				}
 			}
 		} catch (e: Exception) {  // the accessibilityNode service may throw this if the node is no longer up-to-date
-			Log.w("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}\n last widget was ${nodes.lastOrNull()}")
+			Log.e("droidmate/UiDevice", "error while fetching widgets ${e.localizedMessage}\n last widget was ${nodes.lastOrNull()}",e)
 			return null
 		}
-nodes
-	}, inMillis = true, timer = { ut += it; nActions += 1 })
+		return nodes
+	}
 
 
 	fun getXml(device: UiDevice):String = debugT(" fetching gui Dump ", {

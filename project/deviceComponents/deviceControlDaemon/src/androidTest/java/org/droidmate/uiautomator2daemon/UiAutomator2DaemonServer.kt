@@ -28,6 +28,7 @@ import org.droidmate.deviceInterface.DeviceConstants.UIADAEMON_SERVER_START_MSG
 import org.droidmate.deviceInterface.DeviceConstants.UIADAEMON_SERVER_START_TAG
 import org.droidmate.deviceInterface.DeviceConstants.uiaDaemon_logcatTag
 import org.droidmate.deviceInterface.exploration.DeviceResponse
+import org.droidmate.uiautomator2daemon.exploration.ErrorResponse
 
 class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver: IUiAutomator2DaemonDriver)
 	: Uiautomator2DaemonTcpServerBase<DeviceCommand, DeviceResponse>(UIADAEMON_SERVER_START_TAG, UIADAEMON_SERVER_START_MSG) {
@@ -43,12 +44,12 @@ class UiAutomator2DaemonServer internal constructor(private val uiaDaemonDriver:
 		} catch (e: DeviceDaemonException) {
 			Log.e(uiaDaemon_logcatTag,"Server: Failed to execute command $deviceCommand and thus, obtain appropriate GuiState. Returning exception-DeviceResponse.", e)
 
-			return DeviceResponse.empty.apply { throwable = e }
+			return ErrorResponse(e)
 		} catch (t: Throwable) {
 			Log.e(uiaDaemon_logcatTag, "Server: Failed, with a non-${DeviceDaemonException::class.java.simpleName} (!)," +
 					"to execute command $deviceCommand and thus, obtain appropriate GuiState. Returning throwable-DeviceResponse.", t)
 
-			return DeviceResponse.empty.apply { throwable = t }
+			return ErrorResponse(t)
 		}
 	}
 

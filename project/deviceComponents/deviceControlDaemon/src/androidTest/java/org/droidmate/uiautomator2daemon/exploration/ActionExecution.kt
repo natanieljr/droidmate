@@ -54,7 +54,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		val layer = env.lastWindows.find { it.w.windowId == n.windowId }?.layer ?: n.window?.layer
 		layer != null && idHash == computeIdHash(xPath, layer)
 	}}
-	Log.d(logTag, "START execution ${toString()}")
+	Log.d(logTag, "START execution ${toString()}($id)")
 	val result: Any = when(this) { // REMARK this has to be an assignment for when to check for exhaustiveness
 		is Click -> {
 			env.device.verifyCoordinate(x, y)
@@ -160,7 +160,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		}
 		else -> throw DeviceDaemonException("not implemented action $name was called in exploration/ActionExecution")
 	}
-	Log.d(logTag, "END execution of ${toString()}")
+	Log.d(logTag, "END execution of ${toString()} ($id)")
 	return result
 }
 
@@ -217,6 +217,10 @@ private fun getOrStoreImgPixels(bm: Bitmap?, env: UiAutomationEnvironment, actio
 	}
 }, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
 
+private fun List<DisplayedWindow>.isHomeScreen() = count { it.isApp() }.let { nAppW ->
+	nAppW == 0 || (nAppW==1 && any { it.isLauncher && it.isApp() })
+}
+
 private var time: Long = 0
 private var cnt = 0
 private var wt = 0.0
@@ -227,8 +231,7 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 	debugOut("start fetch execution",debugFetch)
 	waitForSync(env,afterAction)
 
-	var windows: List<DisplayedWindow> = debugT("compute windows",  { env.getDisplayedWindows()}, inMillis = true)
-
+	var windows: List<DisplayedWindow> = env.getDisplayedWindows()
 	var isSuccessful = true
 
 	// fetch the screenshot if available
@@ -237,17 +240,23 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 	debugOut("start element extraction",debugFetch)
 	// we want the ui fetch first as it is fast but will likely solve synchronization issues
 	val uiHierarchy = UiHierarchy.fetch(windows,img).let{
-		if(it == null || it.none (isInteractive) ) {
-			Log.d(logTag, "first ui extraction failed, start a second try")
-			windows = debugT("second compute windows",  { env.getDisplayedWindows()}, inMillis = true)
+		if(it == null || (!windows.isHomeScreen() && it.none (isInteractive)) ) {
+			Log.w(logTag, "first ui extraction failed or no interactive elements were found \n $it, \n ---> start a second try")
+			windows = env.getDisplayedWindows()
 			img = env.captureScreen()
-			UiHierarchy.fetch( windows, img )  //retry once for the case that AccessibilityNode tree was not yet stable
-		}else it
-	}.also {
-		debugOut("INTERACTIVE Element in UI = ${it?.any (isInteractive)}")
+			UiHierarchy.fetch( windows, img ).also{ secondRes ->
+				Log.d(logTag, "second try resulted in ${secondRes?.size} elements")
+			}  //retry once for the case that AccessibilityNode tree was not yet stable
+		} else it
 	} ?: emptyList<UiElementPropertiesI>()	.also {
-		Log.w(logTag, "could not parse current UI screen ( $windows )")
-		isSuccessful = false }
+		isSuccessful = false
+		Log.e(logTag, "could not parse current UI screen ( $windows )")
+		throw java.lang.RuntimeException("UI extraction failed for windows: $windows")
+	}
+//	Log.d(logTag, "uiHierarchy = $uiHierarchy")
+	uiHierarchy.also {
+		debugOut("INTERACTIVE Element in UI = ${it.any (isInteractive)}")
+	}
 
 //			val xmlDump = UiHierarchy.getXml(device)
 	val focusedWindow = windows.filter { it.isExtracted() && !it.isKeyboard }.let { appWindows ->
@@ -270,9 +279,7 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 			capturedScreen = img != null,
 			screenshot = imgPixels,
 			appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
-			isHomeScreen = windows.count { it.isApp() }.let { nAppW ->
-				nAppW == 0 || (nAppW==1 && windows.any { it.isLauncher && it.isApp() })
-			}
+			isHomeScreen = windows.isHomeScreen()
 	)
 
 	return@coroutineScope env.lastResponse
@@ -289,8 +296,8 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 //	}
 
 private fun UiDevice.verifyCoordinate(x:Int,y:Int){
-	assert(x in 0..(displayWidth - 1)) { "Error on click coordinate invalid x:$x" }
-	assert(y in 0..(displayHeight - 1)) { "Error on click coordinate invalid y:$y" }
+	assert(x in 0 until displayWidth) { "Error on click coordinate invalid x:$x" }
+	assert(y in 0 until displayHeight) { "Error on click coordinate invalid y:$y" }
 }
 
 private typealias twoPointStepableAction = (x0:Int,y0:Int,x1:Int,y1:Int)->Boolean
