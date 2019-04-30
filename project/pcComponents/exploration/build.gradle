@@ -29,7 +29,7 @@
 
 dependencies {
 	compile project.ext.dmExplorationModel // includes platformInterfaceLib
-	implementation project.ext.dmCommon
+	compile project.ext.dmCommon
 
 	api 'com.natpryce:konfig:1.6.6.0'  // configuration library (since StatementCoverageMF access config parameters)
 	

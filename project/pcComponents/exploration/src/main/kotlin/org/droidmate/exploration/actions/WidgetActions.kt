@@ -30,9 +30,16 @@ fun Widget.click(delay: Long = 0, isVisible: Boolean = false, ignoreClickable: B
 	return clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
 }
 
+fun Widget.clickEvent(delay: Long = 0, ignoreClickable: Boolean = false): ExplorationAction {
+	if (!enabled || !(clickable||ignoreClickable))
+		throw RuntimeException("ERROR: tried to click non-actionable Widget $this")
+	widgetTargets.add(this)
+	return ClickEvent(this.idHash, true, delay)
+}
+
 @JvmOverloads
-fun Widget.tick(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
-	if (!(definedAsVisible || isVisible) || !enabled)
+fun Widget.tick(delay: Long = 0, ignoreVisibility: Boolean = false): ExplorationAction {
+	if (!(definedAsVisible || ignoreVisibility) || !enabled)
 		throw RuntimeException("ERROR: tried to tick non-actionable (checkbox) Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Tick(idHash,x, y, true, delay) }
@@ -47,8 +54,17 @@ fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAc
 }
 
 @JvmOverloads
-fun Widget.setText(newContent: String, isVisible: Boolean = false, enableValidation: Boolean = true): ExplorationAction {
-	if (enableValidation && (!(definedAsVisible || isVisible) || !enabled || !isInputField))
+fun Widget.longClickEvent(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
+	if (!(definedAsVisible || isVisible) || !enabled || !longClickable)
+		throw RuntimeException("ERROR: tried to long-click non-actionable Widget $this")
+	widgetTargets.add(this)
+	widgetTargets.add(this)
+	return LongClickEvent(this.idHash, true, delay)
+}
+
+@JvmOverloads
+fun Widget.setText(newContent: String, ignoreVisibility: Boolean = false, enableValidation: Boolean = true): ExplorationAction {
+	if (enableValidation && (!(definedAsVisible || ignoreVisibility) || !enabled || !isInputField))
 		throw RuntimeException("ERROR: tried to enter text on non-actionable Widget $this")
 	widgetTargets.add(this)
 	return TextInsert(this.idHash, newContent, true)
@@ -72,14 +88,17 @@ fun UiElementPropertiesI.click(): ExplorationAction = (visibleAreas.firstCenter(
 fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter() ?: visibleBounds.center
 
 
-fun Widget.availableActions(delay: Long): List<ExplorationAction> {
+fun Widget.availableActions(delay: Long, useCoordinateClicks:Boolean): List<ExplorationAction> {
 	val actionList: MutableList<ExplorationAction> = mutableListOf()
 
-	if (this.longClickable)
-		actionList.add(this.longClick(delay))
-
-	if (this.clickable)
-		actionList.add(this.click(delay))
+	if (this.longClickable){
+		if(useCoordinateClicks) actionList.add(this.longClick(delay))
+		else actionList.add(this.longClickEvent(delay))
+	}
+	if (this.clickable){
+		if(useCoordinateClicks) actionList.add(this.click(delay))
+		else actionList.add(this.clickEvent(delay))
+	}
 
 	if (this.checked != null)
 		actionList.add(this.tick(delay))

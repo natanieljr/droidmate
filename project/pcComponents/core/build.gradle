@@ -31,9 +31,12 @@ apply from: project(":project:pcComponents").file("debug.gradle")
 dependOnJunit(project)
 
 dependencies {
-	compile project.ext.dmCommon
-	compile project.ext.dmCoverage
-	compile project.ext.dmAPIMonitor
+	api( project.ext.dmCoverage ){
+		exclude( module: "droidmate-common" )
+	}
+	api( project.ext.dmAPIMonitor ){
+		exclude( module: "droidmate-common" )
+	}
 
 	compile project(":project:pcComponents:exploration")
 	implementation 'com.natpryce:konfig:1.6.6.0'  // configuration library

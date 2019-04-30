@@ -78,12 +78,12 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		is ClickEvent ->
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)}.also {
-					if(it) { delay(idleTimeout) } // wait for display update
+					if(it) { delay(delay) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
 				}
 		is LongClickEvent -> UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
 			nodeInfo.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)}.also {
-			if(it) { delay(idleTimeout) } // wait for display update
+			if(it) { delay(delay) } // wait for display update
 			Log.d(logTag, "perform successful=$it")
 		}
 		is LongClick -> {
@@ -115,12 +115,20 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 			}//.also { if (it is Boolean && it) { delay(idleTimeout) } }// wait for display update (if no Fetch action)
 		is TextInsert ->
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
+				if(nodeInfo.isFocusable){
+					nodeInfo.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+					Log.d(logTag,"focus inputfield")
+				}
 				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
 				args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
 					//					if(it) { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
+					if(nodeInfo.isFocusable){
+						env.device.pressEnter()
+						nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS)
+					}
 				} }
 		is RotateUI -> env.device.rotate(rotation, env.automation)
 		is LaunchApp -> {

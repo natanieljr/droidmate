@@ -329,18 +329,11 @@ Logcat reference:
 
 	override fun clearLogcat(deviceSerialNumber: String) {
 
-		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to clear logcat output."
+		val commandDescription = "Executing adb (Android Debug Bridge) to clear logcat output."
 
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"logcat", "-c")
-
-		} catch (e: SysCmdExecutorException) {
-			log.warn("logcat clear failed: ${e.message}")
-//			throw AdbWrapperException(e)
-		}
-
+		sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+			"-s", deviceSerialNumber,
+			"logcat", "-c")
 	}
 
 	override fun waitForMessagesOnLogcat(deviceSerialNumber: String, messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<String> {

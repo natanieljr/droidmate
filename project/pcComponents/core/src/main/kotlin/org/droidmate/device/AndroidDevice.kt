@@ -216,7 +216,11 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	override suspend fun startUiaDaemon() {
 //		assert(!this.uiaDaemonIsRunning()) { "UIAutomatorDaemon is not running." }  //FIXME sometimes this fails
-		this.clearLogcat()
+		try {
+			this.clearLogcat()
+		}catch(e: org.droidmate.misc.SysCmdExecutorException){
+			log.warn("logcat could not be cleared before starting the device-controller")
+		}
 		this.tcpClients.startUiaDaemon()
 	}
 
@@ -315,6 +319,9 @@ class AndroidDevice constructor(private val serialNumber: String,
 	override suspend fun anyMonitorIsReachable(): Boolean =//    logcat.debug("anyMonitorIsReachable()")
 			this.tcpClients.anyMonitorIsReachable()
 
+	/**
+	 * @throws org.droidmate.misc.SysCmdExecutorException when failed
+	 */
 	override suspend fun clearLogcat() {
 		log.debug("clearLogcat()")
 		adbWrapper.clearLogcat(serialNumber)
