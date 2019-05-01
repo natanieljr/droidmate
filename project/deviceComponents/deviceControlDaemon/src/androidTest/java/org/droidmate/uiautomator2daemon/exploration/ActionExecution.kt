@@ -118,7 +118,10 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->
 				if(nodeInfo.isFocusable){
 					nodeInfo.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-					Log.d(logTag,"focus inputfield")
+					Log.d(logTag,"focus input-field")
+				}else if(nodeInfo.isClickable){
+					nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+					Log.d(logTag, "click non-focusable input-field")
 				}
 				// do this for API Level above 19 (exclusive)
 				val args = Bundle()
