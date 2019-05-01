@@ -48,6 +48,7 @@ inline fun <T> debugT(msg: String, block: () -> T?, timer: (Long) -> Unit = {}, 
 private const val logTag = DeviceConstants.deviceLogcatTagPrefix + "ActionExecution"
 
 var lastId = 0
+var isWithinQueue = false
 @Suppress("DEPRECATION")
 suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 	val idMatch: (Int) -> SelectorCondition = {idHash ->{ n: AccessibilityNodeInfo, xPath ->
@@ -129,7 +130,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
 					//					if(it) { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
-					env.device.pressEnter()
+					if(!isWithinQueue) env.device.pressEnter()  // when doing multiple action sending enter may trigger a continue button but not all elements are yet filled
 					if(nodeInfo.isFocusable){
 						env.device.pressEnter()
 						nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS)
@@ -153,7 +154,10 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		}
 		is ActionQueue -> {
 			var success = true
-			actions.forEachIndexed { i,action -> success = success &&
+			isWithinQueue = true
+			actions.forEachIndexed { i,action ->
+				if(i==actions.size-1) isWithinQueue = false // reset var at the end of queue
+				success = success &&
 					action.execute(env).also{
 						delay(delay)
 						if(i<actions.size-1 &&

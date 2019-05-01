@@ -73,6 +73,7 @@ class UiAutomator2DaemonDriver(waitForIdleTimeout: Long, waitForInteractiveTimeo
 	private suspend fun performAction(deviceCommand: ExecuteCommand): DeviceResponse =
 		deviceCommand.guiAction.let { action ->
 			debugT(" EXECUTE-TIME avg = ${et / max(1, nActions)}", {
+				isWithinQueue = false
 
 				Log.v(uiaDaemon_logcatTag, "Performing GUI action $action [${action.id}]")
 
