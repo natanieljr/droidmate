@@ -53,11 +53,19 @@ fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAc
 	return clickCoordinate().let { (x, y) -> LongClick(x, y, true, delay) }
 }
 
+/** Some apps do not report elements as 'clickable' but long-click will trigger a different behavior, therefore we try to send a click first, if this really has no effect it will simply fail and the long-click is executed instead
+ *
+ * This function will only execute a 'click' if the widget is reported as !clickable, otherwise only a longClickEvent is triggered.
+ * */
+fun Widget.clickOrLongClick(delay: Long=0, isVisible: Boolean = false) =
+	if(!clickable)
+	ActionQueue(listOf(click(ignoreClickable = true, isVisible = isVisible),longClickEvent(delay,isVisible)),delay=0)
+	else longClickEvent(delay,isVisible)
+
 @JvmOverloads
-fun Widget.longClickEvent(delay: Long = 0, isVisible: Boolean = false): ExplorationAction {
-	if (!(definedAsVisible || isVisible) || !enabled || !longClickable)
+fun Widget.longClickEvent(delay: Long = 0, ignoreVisibility: Boolean = false): ExplorationAction {
+	if (!(definedAsVisible || ignoreVisibility) || !enabled || !longClickable)
 		throw RuntimeException("ERROR: tried to long-click non-actionable Widget $this")
-	widgetTargets.add(this)
 	widgetTargets.add(this)
 	return LongClickEvent(this.idHash, true, delay)
 }
@@ -93,7 +101,7 @@ fun Widget.availableActions(delay: Long, useCoordinateClicks:Boolean): List<Expl
 
 	if (this.longClickable){
 		if(useCoordinateClicks) actionList.add(this.longClick(delay))
-		else actionList.add(this.longClickEvent(delay))
+		else actionList.add(clickOrLongClick())
 	}
 	if (this.clickable){
 		if(useCoordinateClicks) actionList.add(this.click(delay))
