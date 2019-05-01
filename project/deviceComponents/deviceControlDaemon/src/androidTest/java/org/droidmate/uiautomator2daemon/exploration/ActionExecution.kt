@@ -129,6 +129,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
 					//					if(it) { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
+					env.device.pressEnter()
 					if(nodeInfo.isFocusable){
 						env.device.pressEnter()
 						nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS)
