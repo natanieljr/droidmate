@@ -169,7 +169,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 //REMARK keep the order of first wait for windowUpdate, then wait for idle, then extract windows to minimize synchronization issues with opening/closing keyboard windows
 private suspend fun waitForSync(env: UiAutomationEnvironment, afterAction: Boolean) {
 	try {
-		env.lastWindows.firstOrNull { it.isExtracted() && !it.isKeyboard }?.let {
+		env.lastWindows.firstOrNull { it.isApp() && !it.isKeyboard && !it.isLauncher }?.let {
 			env.device.waitForWindowUpdate(it.w.pkgName, env.interactiveTimeout) //wait sync on focused window
 		}
 
@@ -283,7 +283,7 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 			isHomeScreen = windows.isHomeScreen()
 	)
 
-	return@coroutineScope env.lastResponse
+	env.lastResponse
 }
 
 
