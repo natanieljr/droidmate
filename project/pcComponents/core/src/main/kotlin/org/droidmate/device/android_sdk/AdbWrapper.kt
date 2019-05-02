@@ -587,7 +587,7 @@ Logcat reference:
 
 		try {
 			this.executeCommand(deviceSerialNumber, "", "Delete file (API23 compatibility).",
-					"shell", "run-as", shellPackageName, "rm", filePath)
+					"shell", "run-as", shellPackageName, "rm", "-r", filePath)
 		} catch (e: Exception) {
 			// Logcat file does not exist on new devices, therefore it crashes on the first attempt
 			if (!filePath.contains("droidmate_logcat"))

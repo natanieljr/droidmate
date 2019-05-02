@@ -96,6 +96,7 @@ interface IAdbWrapper {
 
 	//void stopUiautomatorDaemon(deviceSerialNumber: String) throws AdbWrapperException
 
+	/** remove file or directory from device with given [filePath] */
 	@Throws(AdbWrapperException::class)
 	fun removeFileApi23(deviceSerialNumber: String, filePath: String, shellPackageName: String)
 

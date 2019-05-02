@@ -158,6 +158,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 					throw UnexpectedIfElseFallthroughError()
 				if(cfg.monitorApk!=null) device.removeJar(cfg.getPath(EnvironmentConstants.monitor_apk_name))
 			}
+			device.removeFile("") // delete the image dir to ensure that consequent runs will not accidentially pull old images
 		} else
 			log.trace("Device is not available. Skipping tear down.")
 	}
@@ -166,48 +167,48 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 	                                     apkDeployer: IApkDeployer,
 	                                     apks: Collection<Apk>,
 	                                     exploreFn: suspend (IApk, IRobustDevice) -> FailableExploration): Map<Apk, FailableExploration> {
+		val explorationResults: MutableMap<Apk, FailableExploration> = HashMap()
 		// Set the deviceSerialNumber in the configuration. Calculate the deviceSerialNumber, if not not provided by
 		// the given deviceIndex. It can't be done in the configuration because it needs access to the AdbWrapper.
 
 		// If deviceIndex is given and serialNumber is empty
 		cfg.deviceSerialNumber = if (deviceSerialNumber.isEmpty()) {
-			AndroidDeviceDeployer.tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
+			tryResolveSerialNumber(this.adbWrapper, this.usedSerialNumbers, deviceIndex)
 		} else
 			deviceSerialNumber
 
 		check(cfg.deviceSerialNumber.isNotEmpty()) {"Expected deviceSerialNumber to be initialized."}
 		log.info("Setup device with deviceSerialNumber of ${cfg.deviceSerialNumber}")
 
-		val explorationResults: MutableMap<Apk, FailableExploration> = HashMap()
 
 		val device = setupDevice()
-
-		assert(explorationResults.isEmpty())
-
-		var encounteredApkExplorationsStoppingException = false
-
-		apks.forEachIndexed { i, apk ->
-			if (!encounteredApkExplorationsStoppingException) {
-				log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
-
-				// explore this apk on device and store it in explorationResults
-				apkDeployer.withDeployedApk(device, apk, exploreFn).let{ result ->
-					explorationResults[apk] = result
-					if (result.error.any { (it as? ApkExplorationException)?.shouldStopFurtherApkExplorations() == true }) {
-						log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
-						encounteredApkExplorationsStoppingException = true
-					}
-				}
-
-				// Just preventative measures for ensuring healthiness of the device connection.
-				device.restartUiaDaemon(false)
-			}
-		}
-		/** all explorations done - tear down */
-		if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
-			explorationResults.values.forEach { it.result?.apply{ imgTransfer.coroutineContext[Job]?.cancelAndJoin()} } // close pending coroutine job from img fetch
-
 		try {
+
+			assert(explorationResults.isEmpty())
+
+			var encounteredApkExplorationsStoppingException = false
+
+			apks.forEachIndexed { i, apk ->
+				if (!encounteredApkExplorationsStoppingException) {
+					log.info(Markers.appHealth, "Processing ${i + 1} out of ${apks.size} apks: ${apk.fileName}")
+
+					// explore this apk on device and store it in explorationResults
+					apkDeployer.withDeployedApk(device, apk, exploreFn).let{ result ->
+						explorationResults[apk] = result
+						if (result.error.any { (it as? ApkExplorationException)?.shouldStopFurtherApkExplorations() == true }) {
+							log.warn("Encountered an exception that stops further apk explorations. Skipping exploring the remaining apks.")
+							encounteredApkExplorationsStoppingException = true
+						}
+					}
+
+					// Just preventative measures for ensuring healthiness of the device connection.
+					device.restartUiaDaemon(false)
+				}
+			}
+			/** all explorations done - tear down */
+			if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
+				explorationResults.values.forEach { it.result?.apply{ imgTransfer.coroutineContext[Job]?.cancelAndJoin()} } // close pending coroutine job from img fetch
+
 		} finally {
 			log.debug("Finalizing: setupAndExecute(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 			try {
@@ -216,10 +217,10 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 			} catch (tearDownThrowable: Throwable) {
 				log.warn(Markers.appHealth,
-						"! Caught ${tearDownThrowable.javaClass.simpleName} in setupAndExecute(${cfg.deviceSerialNumber})->tryTearDown($device). " +
-								"Adding as a cause to an ${ExplorationException::class.java.simpleName}. " +
-								"Then adding to the collected error list.\n" +
-								"The ${tearDownThrowable::class.java.simpleName}: $tearDownThrowable")
+					"! Caught ${tearDownThrowable.javaClass.simpleName} in setupAndExecute(${cfg.deviceSerialNumber})->tryTearDown($device). " +
+							"Adding as a cause to an ${ExplorationException::class.java.simpleName}. " +
+							"Then adding to the collected error list.\n" +
+							"The ${tearDownThrowable::class.java.simpleName}: $tearDownThrowable")
 				log.error(Markers.appHealth, tearDownThrowable.message, tearDownThrowable)
 			}
 			log.debug("Finalizing DONE: setupAndExecute(${cfg.deviceSerialNumber})->finally{} for computation($device)")
