@@ -2,8 +2,9 @@ package org.droidmate.example
 
 import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.runBlocking
-import org.droidmate.ExplorationAPI
+import org.droidmate.api.ExplorationAPI
 import org.droidmate.command.ExploreCommand
+import org.droidmate.command.ExploreCommandBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.StrategySelector
 
@@ -25,32 +26,12 @@ class Example {
 					// Some random example value
 					// Create the strategy and update it to the list of default strategies on Droidmate
 					val someId = 10
-					val myStrategy = ExampleStrategy(someId)
-
-					val strategies = ExploreCommand.getDefaultStrategies(cfg).toMutableList()
-						.apply {
-							add(myStrategy)
-						}
-
-					val random = ExploreCommand.getDefaultSelectors(cfg).last()
-					val defaultSelectors = ExploreCommand.getDefaultSelectors(cfg).toMutableList()
-						// Remove random
-						.dropLast(1)
-
-					val selectors = defaultSelectors.toMutableList()
-					selectors.add(
-						StrategySelector(
-							priority = defaultSelectors.size + 1,
-							description = "Example Selector",
-							selector = mySelector,
-							bundle = someId
-						)
-					)
-
-					selectors.add(random)
+					val command = ExploreCommandBuilder.fromConfig(cfg)
+						.withStrategy(ExampleStrategy(someId))
+						.insertBefore(StrategySelector.randomWidget,"Example Selector", mySelector, someId)
 
 					// Run Droidmate
-					val explorationOutput = ExplorationAPI.explore(cfg, strategies, selectors)
+					val explorationOutput = ExplorationAPI.explore(cfg, command)
 
 					explorationOutput.forEach { appResult ->
 						// Process results for each application
