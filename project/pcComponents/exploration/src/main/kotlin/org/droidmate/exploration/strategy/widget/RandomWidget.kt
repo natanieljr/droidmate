@@ -202,7 +202,7 @@ constructor(	private val randomSeed: Long,
 		}
 
 		val actionList = when{
-			widget.isInputField ->	listOf(widget.setText(randomString()))
+			widget.isInputField ->	listOf(widget.setText(randomString(),delay = delay, sendEnter = true))
 			randomScroll -> widget.availableActions(delay,useCoordinateClicks)
 			else -> widget.availableActions(delay,useCoordinateClicks).filterNot { it is Swipe }
 		}

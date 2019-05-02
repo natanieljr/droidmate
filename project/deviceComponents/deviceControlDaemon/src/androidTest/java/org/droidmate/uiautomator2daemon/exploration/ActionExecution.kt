@@ -130,11 +130,12 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
 					//					if(it) { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
-					if(!isWithinQueue) env.device.pressEnter()  // when doing multiple action sending enter may trigger a continue button but not all elements are yet filled
+					if(sendEnter && !isWithinQueue) env.device.pressEnter()  // when doing multiple action sending enter may trigger a continue button but not all elements are yet filled
 					if(nodeInfo.isFocusable){
 						env.device.pressEnter()
 						nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS)
 					}
+					delay(delay)
 				} }
 		is RotateUI -> env.device.rotate(rotation, env.automation)
 		is LaunchApp -> {
@@ -159,11 +160,11 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				if(i==actions.size-1) isWithinQueue = false // reset var at the end of queue
 				success = success &&
 					action.execute(env).also{
-						delay(delay)
 						if(i<actions.size-1 &&
 								((action is TextInsert && actions[i+1] is Click)
 										|| action is Swipe)) getOrStoreImgPixels(env.captureScreen(),env, action.id)
 					}.let{ if(it is Boolean) it else true } }.apply{
+				delay(delay)
 				getOrStoreImgPixels(env.captureScreen(),env)
 			}
 		}
