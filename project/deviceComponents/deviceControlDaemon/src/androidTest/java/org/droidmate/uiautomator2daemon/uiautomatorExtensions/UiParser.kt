@@ -33,7 +33,11 @@ abstract class UiParser {
 			Log.w(LOGTAG, "coroutine is no longer active UI parsing is aborted")
 			return null
 		}
-		Log.d(LOGTAG, "refresh node successful: ${node.refresh()}")
+		val refresh = node.refresh()
+		if(!refresh){
+			Log.d(LOGTAG, "refresh node failed, this will lead to illegale state exception later-on, return null for this element")
+			return null
+		}
 		val xPath = parentXpath +"${node.className}[${index + 1}]"
 
 		val nChildren = node.getChildCount()

@@ -158,7 +158,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 					throw UnexpectedIfElseFallthroughError()
 				if(cfg.monitorApk!=null) device.removeJar(cfg.getPath(EnvironmentConstants.monitor_apk_name))
 			}
-			device.removeFile("") // delete the image dir to ensure that consequent runs will not accidentially pull old images
+			device.removeFile("", DeviceConstants.imgPath.removeSuffix("/")) // delete the image dir to ensure that consequent runs will not accidentially pull old images
 		} else
 			log.trace("Device is not available. Skipping tear down.")
 	}
@@ -206,10 +206,10 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 				}
 			}
 			/** all explorations done - tear down */
+		} finally {
 			if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) // we cannot cancel the job in the explorationLoop as subsequent apk explorations wouldn't have a job to pull images
 				explorationResults.values.forEach { it.result?.apply{ imgTransfer.coroutineContext[Job]?.cancelAndJoin()} } // close pending coroutine job from img fetch
 
-		} finally {
 			log.debug("Finalizing: setupAndExecute(${cfg.deviceSerialNumber})->finally{} for computation($device)")
 			try {
 				tryTearDown(device)

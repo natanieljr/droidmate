@@ -102,7 +102,8 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 	suspend fun Collection<Widget>.nonCrashingWidgets() = filterNot { crashlist.isBlacklistedInState(it.uid,getCurrentState().uid) }
 
 	fun belongsToApp(state: State): Boolean {
-		return state.widgets.any { it.packageName == apk.packageName }
+		return state.widgets.any { it.packageName == apk.packageName
+				|| it.packageName == "com.google.android.gms" }  // allow googles internal log-in screen
 	}
 
 	suspend fun update(action: ExplorationAction, result: ActionResult) {

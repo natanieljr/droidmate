@@ -130,9 +130,11 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args).also {
 					//					if(it) { delay(idleTimeout) } // wait for display update
 					Log.d(logTag, "perform successful=$it")
-					if(sendEnter && !isWithinQueue) env.device.pressEnter()  // when doing multiple action sending enter may trigger a continue button but not all elements are yet filled
-					if(nodeInfo.isFocusable){
+					if(sendEnter && !isWithinQueue){
+						Log.d(logTag, "trigger enter")
 						env.device.pressEnter()
+					}  // when doing multiple action sending enter may trigger a continue button but not all elements are yet filled
+					if(nodeInfo.isFocusable){
 						nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS)
 					}
 					delay(delay)
