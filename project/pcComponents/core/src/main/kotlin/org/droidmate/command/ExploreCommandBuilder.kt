@@ -347,9 +347,9 @@ open class ExploreCommandBuilder(
 
     @JvmOverloads
     fun insertBefore(
+        oldSelector: SelectorFunction,
         newDescription: String,
         newSelector: SelectorFunction,
-        oldSelector: SelectorFunction,
         vararg bundle: Any = emptyArray()
     ): ExploreCommandBuilder {
         val priority = selectors.firstOrNull { it.selector == oldSelector }?.priority
