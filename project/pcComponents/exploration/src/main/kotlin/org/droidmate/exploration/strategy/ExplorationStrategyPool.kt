@@ -118,11 +118,8 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 	//endregion
 
 	override suspend fun decide(result: ActionResult): ExplorationAction {
-
 		if(debugOutput)
-			logger.debug("ActionResult: ${result.action} => #widgets=${result.guiSnapshot} ,exception = ${result.exception}")
-
-//		assert(result.successful) //FIXME no assert, instead use error handling/e.g. re-fetching or notify strategy of failed action
+			logger.debug("ActionResult: ${result.action} => #widgets=${result.guiSnapshot}, exception = ${result.exception}")
 
 		assert(!this.strategies.isEmpty())
 
@@ -140,18 +137,21 @@ class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStr
 		selectorThreadPool.close()
 	}
 
-	fun <R> getFirstInstanceOf(klass: Class<R>): R?{
+	fun <R> getFirstInstanceOf(klass: Class<R>): R? {
 		return strategies
-				.filterIsInstance(klass)
-				.firstOrNull()
+			.filterIsInstance(klass)
+			.firstOrNull()
 	}
 
 	fun getByName(className: String) = strategies.firstOrNull { it.uniqueStrategyName == className } ?: throw IllegalStateException("no strategy $className in the poll, register it first or call 'getOrCreate' instead")
 
 	fun getOrCreate(className: String, createStrategy: ()->ISelectableExplorationStrategy): ISelectableExplorationStrategy{
 		val strategy = strategies.firstOrNull { it.uniqueStrategyName == className }
-		return strategy ?: createStrategy().also{
-			check(it.uniqueStrategyName==className) {"ERROR your created strategy does not correspond to the requested name $className"}
-			it.initialize(memory); strategies.add(it)  }
+
+		return strategy ?: createStrategy()
+			.also {
+				check(it.uniqueStrategyName == className) { "ERROR your created strategy does not correspond to the requested name $className" }
+				it.initialize(memory); strategies.add(it)
+			}
 	}
 }

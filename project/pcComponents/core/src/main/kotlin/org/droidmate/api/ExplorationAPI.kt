@@ -31,16 +31,14 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.droidmate.command.CoverageCommand
-import org.droidmate.command.ExploreCommand
+import org.droidmate.command.ExploreCommandBuilder
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
-import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
 import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
 import org.droidmate.explorationModel.ModelFeatureI
 import org.droidmate.misc.FailableExploration
 import org.slf4j.LoggerFactory
@@ -88,10 +86,7 @@ object ExplorationAPI {
 		listOf(VisualizationGraphMF(cfg.droidmateOutputReportDirPath, cfg.resourceDir))
 
 	@JvmStatic
-	fun defaultStrategies(cfg: ConfigurationWrapper) = ExploreCommand.getDefaultStrategies(cfg)
-
-	@JvmStatic
-	fun defaultSelectors(cfg: ConfigurationWrapper) = ExploreCommand.getDefaultSelectors(cfg)
+	fun buildFromConfig(cfg: ConfigurationWrapper) = ExploreCommandBuilder.fromConfig(cfg)
 
 	@JvmStatic
 	fun defaultModelProvider(cfg: ConfigurationWrapper): ((String) -> Model)
@@ -116,26 +111,25 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	suspend fun explore(args: Array<String> = emptyArray(),
-						strategies: List<ISelectableExplorationStrategy>? = null,
-                        selectors: List<StrategySelector>? = null,
+						commandBuilder: ExploreCommandBuilder? = null,
 						watcher: List<ModelFeatureI>? = null,
                         modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
-		return ExplorationAPI.explore(setup(args), strategies, selectors, watcher, modelProvider)
+		return ExplorationAPI.explore(setup(args), commandBuilder, watcher, modelProvider)
 	}
 
 	@JvmStatic
 	@JvmOverloads
 	suspend fun explore(cfg: ConfigurationWrapper,
-						strategies: List<ISelectableExplorationStrategy>? = null,
-                        selectors: List<StrategySelector>? = null,
-						watcher: List<ModelFeatureI>? = null,
+						commandBuilder: ExploreCommandBuilder? = null,
+                        watcher: List<ModelFeatureI>? = null,
                         modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> = coroutineScope {
 		val runStart = Date()
-		val exploration = ExploreCommand.build(cfg,
+
+		val builder = commandBuilder ?: ExploreCommandBuilder.fromConfig(cfg)
+		val exploration = builder.build(cfg,
 			watcher = watcher ?: defaultReporter(cfg),
-			strategies = strategies ?: defaultStrategies(cfg),
-			selectors = selectors ?: defaultSelectors(cfg),
 			modelProvider = modelProvider ?: defaultModelProvider(cfg) )
+
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
 
@@ -162,13 +156,12 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	suspend fun inlineAndExplore(args: Array<String> = emptyArray(),
-								 strategies: List<ISelectableExplorationStrategy>? = null,
-								 selectors: List<StrategySelector>? = null,
+								 commandBuilder: ExploreCommandBuilder? = null,
 								 watcher: List<ModelFeatureI>? = null
 	): Map<Apk, FailableExploration> = coroutineScope{
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
-		ExplorationAPI.explore(cfg, strategies, selectors, watcher)
+		ExplorationAPI.explore(cfg, commandBuilder, watcher)
 	}
 }
