@@ -111,7 +111,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
             if (readStatements.isNotEmpty()) {
                 val lastId = trace?.last()?.actionId ?: 0
                 val file = getLogFilename(lastId)
-                launch(IO) { Files.write(file, readStatements.map { "${it[1]};${it[0]}" }) }
+                withContext(Dispatchers.IO){ Files.write(file, readStatements.map { "${it[1]};${it[0]}" }) }
             }
         }
     }

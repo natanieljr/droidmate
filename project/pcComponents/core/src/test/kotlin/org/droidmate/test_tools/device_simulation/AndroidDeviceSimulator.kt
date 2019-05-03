@@ -142,7 +142,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override suspend fun pushMonitorJar() {
+	override suspend fun pushAuxiliaryFiles() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
@@ -411,7 +411,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 	override fun reinstallUiAutomatorDaemon() {
 	}
 
-	override fun pushMonitorJar() {
+	override fun pushAuxiliaryFiles() {
 
 	}
 

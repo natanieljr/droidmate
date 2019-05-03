@@ -26,6 +26,7 @@
 
 package org.droidmate.device
 
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.device.error.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
@@ -375,14 +376,27 @@ class AndroidDevice constructor(private val serialNumber: String,
 			throw UnexpectedIfElseFallthroughError()
 	}
 
-	override suspend fun pushMonitorJar() {
-		if (cfg[apiVersion] == ConfigurationWrapper.api23 && cfg.monitorApk!=null) {
+	private suspend fun pushCoveragePort() {
+		// Configuration file for statement coverage
+		if (cfg[enableCoverage]) {
+			this.pushFile(this.cfg.coveragePortFile, EnvironmentConstants.coverage_port_file_name)
+		}
+	}
+
+	private suspend fun pushApiMonitorFiles() {
+		// Configuration Files for API Monitoring
+		if (cfg.monitorApk!=null) {
 			this.pushFile(cfg.monitorApk!!, EnvironmentConstants.monitor_apk_name)
 			this.pushFile(this.cfg.apiPoliciesFile!!, EnvironmentConstants.api_policies_file_name)
 			this.pushFile(this.cfg.monitorPortFile, EnvironmentConstants.monitor_port_file_name)
-			this.pushFile(this.cfg.coveragePortFile, EnvironmentConstants.coverage_port_file_name)
-		} else if(cfg[enableCoverage]) {
-			throw UnexpectedIfElseFallthroughError("android platform ${ConfigurationWrapper.api23} has to be installed in order to monitor coverage")
+		}
+	}
+
+	override suspend fun pushAuxiliaryFiles() {
+		pushCoveragePort()
+
+		if(cfg[ConfigProperties.Deploy.installMonitor]) {
+			pushApiMonitorFiles()
 		}
 	}
 

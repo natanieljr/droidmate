@@ -124,7 +124,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 		if (cfg[installAux]) {
 			device.reinstallUiAutomatorDaemon()
-			if(cfg[installMonitor])	device.pushMonitorJar()
+			device.pushAuxiliaryFiles()
 		}
 		logcatMonitor.start()
 		device.setupConnection()
