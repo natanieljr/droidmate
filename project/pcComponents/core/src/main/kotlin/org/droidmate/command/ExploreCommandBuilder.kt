@@ -117,7 +117,7 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterTime(seconds: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "timeBasedTerminate", StrategySelector.timeBasedTerminate, seconds))
+        selectors.add(StrategySelector(getNextSelectorPriority(), "timeBasedTerminate", StrategySelector.timeBasedTerminate, arrayOf(seconds)))
         return this
     }
 
@@ -126,7 +126,7 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterActions(actionLimit: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "actionBasedTerminate", StrategySelector.actionBasedTerminate, actionLimit))
+        selectors.add(StrategySelector(getNextSelectorPriority(), "actionBasedTerminate", StrategySelector.actionBasedTerminate, arrayOf(actionLimit)))
         return this
     }
 
@@ -150,7 +150,7 @@ open class ExploreCommandBuilder(
     }
 
     fun resetOnIntervals(actionInterval: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "intervalReset", StrategySelector.intervalReset, actionInterval))
+        selectors.add(StrategySelector(getNextSelectorPriority(), "intervalReset", StrategySelector.intervalReset, arrayOf(actionInterval)))
         return this
     }
 
@@ -179,7 +179,7 @@ open class ExploreCommandBuilder(
     }
 
     fun randomBack(probability: Double, randomSeed: Long): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "randomBack", StrategySelector.randomBack, null, probability, Random(randomSeed)))
+        selectors.add(StrategySelector(getNextSelectorPriority(), "randomBack", StrategySelector.randomBack, arrayOf(probability, Random(randomSeed))))
         return this
     }
 
@@ -336,11 +336,11 @@ open class ExploreCommandBuilder(
     fun append(
         newDescription: String,
         newSelector: SelectorFunction,
-        vararg bundle: Any = emptyArray()
+        bundle: Array<Any> = emptyArray()
     ): ExploreCommandBuilder {
         val priority = selectors.maxBy { it.priority }?.priority ?: selectors.size
 
-        selectors.add(StrategySelector(priority, newDescription, newSelector, bundle = bundle))
+        selectors.add(StrategySelector(priority, newDescription, newSelector, bundle))
 
         return this
     }
@@ -350,13 +350,13 @@ open class ExploreCommandBuilder(
         oldSelector: SelectorFunction,
         newDescription: String,
         newSelector: SelectorFunction,
-        vararg bundle: Any = emptyArray()
+        bundle: Array<Any> = emptyArray()
     ): ExploreCommandBuilder {
         val priority = selectors.firstOrNull { it.selector == oldSelector }?.priority
             ?: selectors.maxBy { it.priority }?.priority
             ?: selectors.size
 
-        selectors.add(StrategySelector(priority, newDescription, newSelector, bundle = bundle))
+        selectors.add(StrategySelector(priority, newDescription, newSelector, bundle))
         return this
     }
 

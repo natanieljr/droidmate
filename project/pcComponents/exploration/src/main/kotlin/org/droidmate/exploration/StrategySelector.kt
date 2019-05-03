@@ -26,30 +26,23 @@
 package org.droidmate.exploration
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
-import org.droidmate.explorationModel.debugOut
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-typealias SelectorFunction = suspend (context: ExplorationContext, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?
+typealias SelectorFunction = suspend (context: ExplorationContext, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>) -> ISelectableExplorationStrategy?
 typealias OnSelected = (context: ExplorationContext) -> Unit
 
 class StrategySelector constructor(val priority: Int,
                                    val description: String,
                                    val selector: SelectorFunction,
-                                   val onSelected: OnSelected? = null,
-                                   vararg val bundle: Any){
-	constructor(priority: Int,
-	            description: String,
-	            selector: SelectorFunction,
-	            bundle: Any): this(priority, description, selector, null, bundle)
-
+                                   val bundle: Array<Any> = emptyArray(),
+								   val onSelected: OnSelected? = null){
 	override fun toString(): String {
 		return "($priority)-$description"
 	}
@@ -63,10 +56,11 @@ class StrategySelector constructor(val priority: Int,
 		 * are not easily ported
 		 */
 		@JvmStatic
+		@JvmOverloads
 		fun from(priority: Int,
 				 description: String,
 				 function: (context: ExplorationContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?,
-				 vararg bundle: Any): StrategySelector = StrategySelector(
+				 bundle: Array<Any> = emptyArray()): StrategySelector = StrategySelector(
 			priority,
 			description,
 			{ context, pool, data -> function(context, pool, data) },
@@ -78,7 +72,7 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val actionBasedTerminate : SelectorFunction = { context, pool, bundle ->
-			val maxActions = bundle!![0] .toString().toInt()
+			val maxActions = bundle.first().toString().toInt()
 			if (context.explorationTrace.size == maxActions) {
 				logger.debug("Maximum number of actions reached. Returning 'Terminate'")
 				pool.getFirstInstanceOf(Terminate::class.java)
@@ -92,7 +86,7 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val timeBasedTerminate : SelectorFunction = { context, _, bundle ->
-			val timeLimit = bundle!![0].toString().toInt()
+			val timeLimit = bundle.first().toString().toInt()
 			if(timeLimit <= 0) null
 			else {
 				val diff = context.getExplorationTimeInMs()
@@ -139,10 +133,10 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val intervalReset: SelectorFunction = { context, pool, bundle ->
-			val interval = bundle!![0].toString().toInt()
+			val interval = bundle.first().toString().toInt()
 
 			val lastReset = context.explorationTrace.P_getActions()
-					.indexOfLast { it -> it.actionType == LaunchApp.name }
+					.indexOfLast { it.actionType == LaunchApp.name }
 
 			val currAction = context.explorationTrace.size
 			val diff = currAction - lastReset
@@ -172,9 +166,8 @@ class StrategySelector constructor(val priority: Int,
 		 */
 		@JvmStatic
 		val randomBack: SelectorFunction = { context, pool, bundle ->
-			val bundleArray = bundle!!
-			val probability = bundleArray[0] as Double
-			val random = bundleArray[1] as Random
+			val probability = bundle[0] as Double
+			val random = bundle[1] as Random
 			val value = random.nextDouble()
 
 			val lastLaunchDistance = with(context.explorationTrace.getActions()) {
@@ -201,7 +194,7 @@ class StrategySelector constructor(val priority: Int,
 			override suspend fun internalDecide(): ExplorationAction {
 				return when{
 					cnt++ < 2 ->{
-						runBlocking {  delay(5000) }
+						delay(5000)
 						GlobalAction(ActionType.FetchGUI)
 					}
 					terminate -> {
@@ -266,7 +259,7 @@ class StrategySelector constructor(val priority: Int,
 				}
 			}
 			else{			// can move forwards
-				Companion.WaitForLaunch.init()
+				WaitForLaunch.init()
 				null
 			}
 		}
@@ -329,7 +322,7 @@ class StrategySelector constructor(val priority: Int,
 		}
 
 		/**
-		 * Selector to synchronizestatementt coverage
+		 * Selector to synchronize statement coverage
 		 */
 		val statementCoverage: SelectorFunction = { context, _, _ ->
 			context.findWatcher { it is StatementCoverageMF }?.join()
