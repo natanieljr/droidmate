@@ -77,32 +77,11 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
                                       private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
-                                      private var modelProvider: (String) -> Model) {
+                                      private var modelProvider: (String) -> Model,
+									  val watcher: MutableList<ModelFeatureI> = mutableListOf()) {
 	companion object {
 		@JvmStatic
 		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
-
-		private val watcher: LinkedList<ModelFeatureI> = LinkedList()
-
-		@Suppress("MemberVisibilityCanBePrivate")
-		@JvmStatic
-		fun defaultReportWatcher(cfg: ConfigurationWrapper): List<ReporterMF> {
-			val reportDir = cfg.droidmateOutputReportDirPath.toAbsolutePath()
-			val resourceDir = cfg.resourceDir.toAbsolutePath()
-			return listOf(
-				AggregateStats(reportDir, resourceDir),
-				Summary(reportDir, resourceDir),
-				ApkViewsFileMF(reportDir, resourceDir),
-				ApiCountMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
-				ClickFrequencyMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
-//						TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
-				ApiActionTraceMF(reportDir, resourceDir),
-				ActivitySeenSummaryMF(reportDir, resourceDir),
-				ActionTraceMF(reportDir, resourceDir),
-				WidgetApiTraceMF(reportDir, resourceDir),
-				VisualizationGraphMF(reportDir, resourceDir)
-			)
-		}
 	}
 
 	suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> = supervisorScope {

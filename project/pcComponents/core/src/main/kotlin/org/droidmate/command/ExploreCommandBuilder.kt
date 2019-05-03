@@ -9,7 +9,18 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.SelectorFunction
 import org.droidmate.exploration.StrategySelector
+import org.droidmate.exploration.modelFeatures.reporter.ActionTraceMF
+import org.droidmate.exploration.modelFeatures.reporter.ActivitySeenSummaryMF
+import org.droidmate.exploration.modelFeatures.reporter.AggregateStats
+import org.droidmate.exploration.modelFeatures.reporter.ApiActionTraceMF
+import org.droidmate.exploration.modelFeatures.reporter.ApiCountMF
+import org.droidmate.exploration.modelFeatures.reporter.ApkViewsFileMF
+import org.droidmate.exploration.modelFeatures.reporter.ClickFrequencyMF
+import org.droidmate.exploration.modelFeatures.reporter.ReporterMF
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
+import org.droidmate.exploration.modelFeatures.reporter.Summary
+import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
+import org.droidmate.exploration.modelFeatures.reporter.WidgetApiTraceMF
 import org.droidmate.exploration.strategy.Back
 import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.exploration.strategy.IExplorationStrategy
@@ -35,11 +46,45 @@ import java.util.*
 open class ExploreCommandBuilder(
     val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf(),
     val selectors: MutableList<StrategySelector> = mutableListOf(),
-    val watcher: LinkedList<ModelFeatureI> = LinkedList()
+    val watcher: MutableList<ModelFeatureI> = mutableListOf()
 ) {
     companion object {
         fun fromConfig(cfg: ConfigurationWrapper): ExploreCommandBuilder {
             return ExploreCommandBuilder().fromConfig(cfg)
+        }
+
+        @JvmStatic
+        fun defaultReportWatcher(cfg: ConfigurationWrapper): LinkedList<ModelFeatureI> {
+            val reportDir = cfg.droidmateOutputReportDirPath.toAbsolutePath()
+            val resourceDir = cfg.resourceDir.toAbsolutePath()
+            val list = LinkedList<ModelFeatureI>()
+                .also {
+                    it.addAll(
+                        listOf(
+                            AggregateStats(reportDir, resourceDir),
+                            Summary(reportDir, resourceDir),
+                            ApkViewsFileMF(reportDir, resourceDir),
+                            ApiCountMF(
+                                reportDir,
+                                resourceDir,
+                                includePlots = cfg[ConfigProperties.Report.includePlots]
+                            ),
+                            ClickFrequencyMF(
+                                reportDir,
+                                resourceDir,
+                                includePlots = cfg[ConfigProperties.Report.includePlots]
+                            ),
+//						TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
+                            ApiActionTraceMF(reportDir, resourceDir),
+                            ActivitySeenSummaryMF(reportDir, resourceDir),
+                            ActionTraceMF(reportDir, resourceDir),
+                            WidgetApiTraceMF(reportDir, resourceDir),
+                            VisualizationGraphMF(reportDir, resourceDir)
+                        )
+                    )
+                }
+
+            return list
         }
     }
 
@@ -364,13 +409,14 @@ open class ExploreCommandBuilder(
     fun build(cfg: ConfigurationWrapper,
               deviceTools: IDeviceTools = DeviceTools(cfg),
               strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(this.strategies, this.selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
-              watcher: List<ModelFeatureI> = ExploreCommand.defaultReportWatcher(cfg),
+              watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
               modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
         val apksProvider = ApksProvider(deviceTools.aapt)
 
-        val command = ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-            strategyProvider, modelProvider)
         this.watcher.addAll(watcher)
+
+        val command = ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+            strategyProvider, modelProvider, this.watcher)
 
         return command
     }
