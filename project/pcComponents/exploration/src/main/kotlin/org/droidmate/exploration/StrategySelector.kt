@@ -50,7 +50,6 @@ class StrategySelector constructor(val priority: Int,
 	            selector: SelectorFunction,
 	            bundle: Any): this(priority, description, selector, null, bundle)
 
-
 	override fun toString(): String {
 		return "($priority)-$description"
 	}
@@ -212,6 +211,15 @@ class StrategySelector constructor(val priority: Int,
 					else -> GlobalAction(ActionType.PressBack)
 				}
 			}
+		}
+
+		val ads: SelectorFunction = { eContext, pool, _ ->
+			if (eContext.getCurrentState().widgets
+					.any { it.packageName == "com.android.vending" }
+			)
+				pool.getFirstInstanceOf(Back::class.java)
+			else
+				null
 		}
 
 		@JvmStatic
