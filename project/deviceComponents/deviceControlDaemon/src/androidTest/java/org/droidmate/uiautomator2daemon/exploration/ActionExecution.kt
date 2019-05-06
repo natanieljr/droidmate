@@ -164,7 +164,13 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 					action.execute(env).also{
 						if(i<actions.size-1 &&
 								((action is TextInsert && actions[i+1] is Click)
-										|| action is Swipe)) getOrStoreImgPixels(env.captureScreen(),env, action.id)
+										|| action is Swipe)) {
+							if(action is Swipe){
+								Log.d(logTag, "delay after swipe")
+								delay(delay)
+							}
+							getOrStoreImgPixels(env.captureScreen(), env, action.id)
+						}
 					}.let{ if(it is Boolean) it else true } }.apply{
 				delay(delay)
 				getOrStoreImgPixels(env.captureScreen(),env)
