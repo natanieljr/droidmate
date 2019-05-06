@@ -14,7 +14,7 @@ project.ext {
 	androidCompileSdkVersion = 28
 
 	// ExplorationModel
-	dmExplorationModel = 'com.github.hotzkow:explorationModel:master-SNAPSHOT'
+	dmExplorationModel = 'com.github.hotzkow:explorationModel:dev-SNAPSHOT'
 	// ExplorationModel
 	dmDriverLib = "com.github.hotzkow:platformInterfaceLib:$driverLib_version"
 	// Common
