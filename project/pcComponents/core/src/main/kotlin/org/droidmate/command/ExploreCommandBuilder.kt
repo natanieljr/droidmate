@@ -113,7 +113,7 @@ open class ExploreCommandBuilder(
 
         conditionalEnable(cfg[ConfigProperties.Strategies.dfs]) { usingDFS() }
 
-        conditionalEnable(cfg[ConfigProperties.Strategies.explore], cfg) { addRandomStrategy(cfg) }
+        conditionalEnable(cfg[ConfigProperties.Strategies.explore], cfg) { exploreRandomly(cfg) }
 
         conditionalEnable(cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage], cfg) { collectStatementCoverage() }
 
