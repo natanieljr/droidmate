@@ -62,7 +62,6 @@ import org.droidmate.device.execute
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
 import org.droidmate.deviceInterface.exploration.*
-import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.resetApp
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.exploration.modelFeatures.reporter.*
@@ -70,9 +69,6 @@ import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.others.RotateUI
-import org.droidmate.exploration.strategy.playback.Playback
-import org.droidmate.exploration.strategy.widget.*
 import org.droidmate.explorationModel.ModelFeatureI
 import org.droidmate.logging.Markers
 import org.droidmate.misc.*
@@ -82,7 +78,6 @@ import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.pa
 import org.droidmate.explorationModel.debugT
 import org.droidmate.exploration.modelFeatures.reporter.AggregateStats
 import org.droidmate.exploration.modelFeatures.reporter.Summary
-import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -97,160 +92,38 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
                                       private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
-                                      private var modelProvider: (String) -> Model) {
+                                      private var modelProvider: (String) -> Model,
+									  val watcher: MutableList<ModelFeatureI> = mutableListOf()) {
 	companion object {
 		@JvmStatic
 		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
-
-		@Suppress("MemberVisibilityCanBePrivate")
-		@JvmStatic
-		fun getDefaultSelectors(cfg: ConfigurationWrapper): List<StrategySelector>{
-			val res : MutableList<StrategySelector> = mutableListOf()
-
-			var priority = 0
-
-			if (cfg[playback])
-				res.add(StrategySelector(++priority, "playback", StrategySelector.playback))
-
-			res.add(StrategySelector(++priority, "startExplorationReset", StrategySelector.startExplorationReset))
-
-			// ExplorationAction based terminate
-			if (cfg[actionLimit] > 0) {
-				val actionLimit = cfg[actionLimit]
-
-				res.add(StrategySelector(++priority * 10, "actionBasedTerminate", StrategySelector.actionBasedTerminate, actionLimit))
-			}
-
-			// Time based terminate
-			if (cfg[timeLimit] > 0)
-				res.add(StrategySelector(++priority * 10, "timeBasedTerminate", StrategySelector.timeBasedTerminate, cfg[timeLimit]))
-
-			res.add(StrategySelector(++priority * 10, "appCrashedReset", StrategySelector.appCrashedReset))
-
-			if (cfg[allowRuntimeDialog])
-				res.add(StrategySelector(++priority * 10, "allowPermission", StrategySelector.allowPermission))
-
-			if (cfg[denyRuntimeDialog])
-				res.add(StrategySelector(++priority * 10, "denyPermission", StrategySelector.denyPermission))
-
-			res.add(StrategySelector(++priority * 10, "cannotExplore", StrategySelector.cannotExplore))
-
-			// Interval reset
-			if (cfg[resetEvery] > 0)
-				res.add(StrategySelector(++priority * 10, "intervalReset", StrategySelector.intervalReset, cfg[resetEvery]))
-
-			// Random back
-			if (cfg[pressBackProbability] > 0.0)
-				res.add(StrategySelector(++priority * 10, "randomBack", StrategySelector.randomBack, null, cfg[pressBackProbability], Random(cfg.randomSeed)))
-
-			if (cfg[Selectors.dfs])
-				res.add(StrategySelector(++priority * 10, "dfs", StrategySelector.dfs))
-
-			// Exploration exhausted
-			if (cfg[stopOnExhaustion])
-				res.add(StrategySelector(++priority * 10, "explorationExhausted", StrategySelector.explorationExhausted))
-
-			// Random exploration
-			if (cfg[explore])
-				res.add(StrategySelector(++priority * 10, "randomWidget", StrategySelector.randomWidget))
-
-			if (cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage]) {
-				res.add(StrategySelector(++priority * 10, "statementCoverageSync", StrategySelector.statementCoverage))
-			}
-
-			return res
-		}
-
-		@Suppress("MemberVisibilityCanBePrivate")
-		@JvmStatic
-		fun getDefaultStrategies(cfg: ConfigurationWrapper): List<ISelectableExplorationStrategy>{
-			val strategies = LinkedList<ISelectableExplorationStrategy>()
-
-			strategies.add(Back)
-			strategies.add(Reset())
-			strategies.add(Terminate)
-
-			if (cfg[playback])
-				strategies.add(Playback(cfg.getPath(cfg[playbackModelDir]).toAbsolutePath()))
-
-			if (cfg[explore])
-				strategies.add(RandomWidget(cfg.randomSeed, cfg[Strategies.Parameters.biasedRandom],
-						cfg[Strategies.Parameters.randomScroll], delay = cfg[ConfigProperties.Exploration.widgetActionDelay] ))
-
-			if (cfg[allowRuntimeDialog])
-				strategies.add(AllowRuntimePermission())
-
-			if (cfg[denyRuntimeDialog])
-				strategies.add(DenyRuntimePermission())
-
-			if (cfg[Strategies.dfs])
-				strategies.add(DFS())
-
-			if (cfg[rotateUI])
-				strategies.add(RotateUI(cfg[uiRotation]))
-
-			if (cfg[minimizeMaximize])
-				strategies.add(MinimizeMaximize())
-
-			return strategies
-		}
-
-		private val watcher: LinkedList<ModelFeatureI> = LinkedList()
-
-		@JvmStatic
-		@JvmOverloads
-		fun build(cfg: ConfigurationWrapper,
-		          deviceTools: IDeviceTools = DeviceTools(cfg),
-		          strategies: List<ISelectableExplorationStrategy> = getDefaultStrategies(cfg),
-		          selectors: List<StrategySelector> = getDefaultSelectors(cfg),
-		          strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(strategies, selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
-		          watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
-		          modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
-			val apksProvider = ApksProvider(deviceTools.aapt)
-
-			val command = ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-					strategyProvider, modelProvider)
-			this.watcher.addAll(watcher)
-
-			return command
-		}
-		@Suppress("MemberVisibilityCanBePrivate")
-		@JvmStatic
-		fun defaultReportWatcher(cfg: ConfigurationWrapper): List<ReporterMF> {
-			val reportDir = cfg.droidmateOutputReportDirPath.toAbsolutePath()
-			val resourceDir = cfg.resourceDir.toAbsolutePath()
-			return listOf(AggregateStats(reportDir, resourceDir),
-					Summary(reportDir, resourceDir),
-					ApkViewsFileMF(reportDir, resourceDir),
-					ApiCountMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
-					ClickFrequencyMF(reportDir, resourceDir, includePlots = cfg[includePlots]),
-//						TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
-					ApiActionTraceMF(reportDir, resourceDir),
-					ActivitySeenSummaryMF(reportDir, resourceDir),
-					ActionTraceMF(reportDir, resourceDir),
-					WidgetApiTraceMF(reportDir, resourceDir),
-					VisualizationGraphMF(reportDir, resourceDir))
-		}
-
 	}
 
 	suspend fun execute(cfg: ConfigurationWrapper): Map<Apk, FailableExploration> = supervisorScope {
-		if (cfg[cleanDirs]) cleanOutputDir(cfg)
+		if (cfg[cleanDirs]) {
+			cleanOutputDir(cfg)
+		}
+
 		val reportDir = cfg.droidmateOutputReportDirPath
-		if (!Files.exists(reportDir))
-			withContext(Dispatchers.IO){ Files.createDirectories(reportDir)}
+
+		if (!Files.exists(reportDir)) {
+			withContext(Dispatchers.IO) { Files.createDirectories(reportDir) }
+		}
+
 		assert(Files.exists(reportDir)) { "Unable to create report directory ($reportDir)" }
 
 		val apks = apksProvider.getApks(cfg.apksDirPath, cfg[apksLimit], cfg[apkNames], cfg[shuffleApks])
-		if (!validateApks(apks, cfg[runOnNotInlined]))
-			return@supervisorScope emptyMap<Apk, FailableExploration>()
 
-		val explorationData = execute(cfg, apks)
+		if (!validateApks(apks, cfg[runOnNotInlined])) {
+			emptyMap()
+		} else {
+			val explorationData = execute(cfg, apks)
 
-		onFinalFinished()
-		log.info("Writing reports finished.")
+			onFinalFinished()
+			log.info("Writing reports finished.")
 
-		return@supervisorScope explorationData
+			explorationData
+		}
 	}
 
 	private suspend fun onFinalFinished() = coroutineScope {

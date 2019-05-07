@@ -100,7 +100,7 @@ interface IDeployableAndroidDevice {
 	suspend fun reinstallUiAutomatorDaemon()
 
 	@Throws(DeviceException::class)
-	suspend fun pushMonitorJar()
+	suspend fun pushAuxiliaryFiles()
 
 	@Throws(DeviceException::class)
 	suspend fun setupConnection()

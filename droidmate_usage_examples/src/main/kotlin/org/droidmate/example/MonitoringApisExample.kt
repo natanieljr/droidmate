@@ -1,9 +1,7 @@
 package org.droidmate.example
 
 import kotlinx.coroutines.runBlocking
-import org.droidmate.ExplorationAPI
-import org.droidmate.monitor.ApkInliner
-import java.nio.file.Paths
+import org.droidmate.api.ExplorationAPI
 
 class MonitoringApisExample {
     companion object {
@@ -15,9 +13,10 @@ class MonitoringApisExample {
                 // Create a configuration to run DroidMate
                 val cfg = ExplorationAPI.config(args)
 
-                val inputDir = Paths.get("original-apks")
-                val outputDir = Paths.get("apks")
-                ApkInliner(cfg.resourceDir).instrumentApk(inputDir, outputDir)
+                //val inputDir = Paths.get("original-apks")
+                //val outputDir = Paths.get("apks")
+                //ApkInliner(cfg.resourceDir).instrumentApk(inputDir, outputDir)
+                ExplorationAPI.inline(cfg)
 
                 // Run DroidMate
                 Example.run(cfg)

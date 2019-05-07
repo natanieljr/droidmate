@@ -55,7 +55,7 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 												   readDeviceStatements: suspend ()-> List<List<String>>,
 												   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
 												   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-												   private val watcher: LinkedList<ModelFeatureI> = LinkedList(),
+												   private val watcher: MutableList<ModelFeatureI> = mutableListOf(),
 												   val model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
 												   val explorationTrace: ExplorationTrace = model.initNewTrace(watcher)) {
 	companion object {

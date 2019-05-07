@@ -149,6 +149,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(replaceResources, description = "Replace the resources from the extracted resources folder upon execution."),
 			CommandLineOption(shuffleApks, description = "ExplorationStrategy the apks in the input directory in a random order."),
 			CommandLineOption(deployRawApks, description = "Deploys apks to device in 'raw' form, that is, without instrumenting them. Will deploy them raw even if instrumented version is available from last run."),
+			CommandLineOption(installMonitor, description = "Install the API monitor into the device."),
 			// DeviceCommunication
 			CommandLineOption(adbHost, description="allows to specify an adb host different from localhost, i.e. to allow container environments to access host devices"),
 			CommandLineOption(checkAppIsRunningRetryAttempts, description = "Number of attempts to check if an app is running on the device."),

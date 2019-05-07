@@ -2,6 +2,7 @@ package org.droidmate.api
 
 import com.natpryce.konfig.CommandLineOption
 import kotlinx.coroutines.runBlocking
+import org.droidmate.command.ExploreCommandBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.exploration.StrategySelector
@@ -25,10 +26,7 @@ object JavaAPI {
         ExplorationAPI.defaultReporter(cfg)
 
     @JvmStatic
-    fun defaultStrategies(cfg: ConfigurationWrapper) = ExplorationAPI.defaultStrategies(cfg)
-
-    @JvmStatic
-    fun defaultSelectors(cfg: ConfigurationWrapper) = ExplorationAPI.defaultSelectors(cfg)
+    fun buildFromConfig(cfg: ConfigurationWrapper) = ExploreCommandBuilder.fromConfig(cfg)
 
     @JvmStatic
     fun defaultModelProvider(cfg: ConfigurationWrapper): ((String) -> Model)
@@ -49,12 +47,11 @@ object JavaAPI {
     @JvmOverloads
     fun explore(
         cfg: ConfigurationWrapper,
-        strategies: List<ISelectableExplorationStrategy>? = null,
-        selectors: List<StrategySelector>? = null,
+        commandBuilder: ExploreCommandBuilder? = null,
         watcher: List<ModelFeatureI>? = null,
         modelProvider: ((String) -> Model)? = null
     ) = runBlocking {
-        ExplorationAPI.explore(cfg, strategies, selectors, watcher, modelProvider)
+        ExplorationAPI.explore(cfg, commandBuilder, watcher, modelProvider)
     }
 
     @JvmStatic
@@ -76,9 +73,8 @@ object JavaAPI {
     @JvmOverloads
     fun inlineAndExplore(
         args: Array<String> = emptyArray(),
-        strategies: List<ISelectableExplorationStrategy>? = null,
-        selectors: List<StrategySelector>? = null,
+        commandBuilder: ExploreCommandBuilder? = null,
         watcher: List<ModelFeatureI>? = null): Map<Apk, FailableExploration> = runBlocking {
-        ExplorationAPI.inlineAndExplore(args, strategies, selectors, watcher)
+        ExplorationAPI.inlineAndExplore(args, commandBuilder, watcher)
     }
 }
