@@ -42,7 +42,6 @@ import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbabili
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
 import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
-import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
@@ -116,11 +115,8 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 			res.add(StrategySelector(++priority, "startExplorationReset", StrategySelector.startExplorationReset))
 
 			// ExplorationAction based terminate
-			if ((cfg[widgetIndexes].first() >= 0) || cfg[actionLimit] > 0) {
-				val actionLimit = if (cfg[widgetIndexes].first() >= 0)
-					cfg[widgetIndexes].size // TODO what is this widgetIndexes for?
-				else
-					cfg[actionLimit]
+			if (cfg[actionLimit] > 0) {
+				val actionLimit = cfg[actionLimit]
 
 				res.add(StrategySelector(++priority * 10, "actionBasedTerminate", StrategySelector.actionBasedTerminate, actionLimit))
 			}

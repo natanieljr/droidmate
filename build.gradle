@@ -63,7 +63,7 @@ allprojects {
 				}
 				if(findProject(":explorationModel") != null) {
 //				println "use composite build directory (explorationModel) instead of artifact from server"
-					substitute module("com.github.hotzkow:explorationModel:master-SNAPSHOT") with project(":explorationModel")
+					substitute module("com.github.hotzkow:explorationModel:${project.ext.model_version}") with project(":explorationModel")
 				}
 			}
 

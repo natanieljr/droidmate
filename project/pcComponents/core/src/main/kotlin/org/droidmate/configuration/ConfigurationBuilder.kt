@@ -81,7 +81,6 @@ import org.droidmate.configuration.ConfigProperties.Selectors.randomSeed
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
 import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
-import org.droidmate.configuration.ConfigProperties.Selectors.widgetIndexes
 import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
 import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
 import org.droidmate.configuration.ConfigProperties.Strategies.back
@@ -194,7 +193,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 
 			// Selectors
 			CommandLineOption(pressBackProbability, description = "Probability of randomly pressing the back button while exploring. Set to 0 to disable the press back strategy."),
-			CommandLineOption(widgetIndexes, description = "Makes the exploration strategy to choose widgets to click that have the indexes as provided by this parameter, in sequence. The format is: [<first widget index>,<second widget index>,...<nth widget index>], starting indexing at 0. Example: [0,7,3]"),
 			CommandLineOption(playbackModelDir, description = "Directory of a previous exploration model. Required for playback."),
 			CommandLineOption(resetEvery, description = "Number of actions to automatically reset the exploration from its initial activity. Set to 0 to disable."),
 			CommandLineOption(actionLimit, description = "How many actions the GUI exploration strategy can conduct before terminating."),
