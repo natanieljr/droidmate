@@ -16,7 +16,6 @@ import org.droidmate.exploration.modelFeatures.reporter.ApiActionTraceMF
 import org.droidmate.exploration.modelFeatures.reporter.ApiCountMF
 import org.droidmate.exploration.modelFeatures.reporter.ApkViewsFileMF
 import org.droidmate.exploration.modelFeatures.reporter.ClickFrequencyMF
-import org.droidmate.exploration.modelFeatures.reporter.ReporterMF
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.droidmate.exploration.modelFeatures.reporter.Summary
 import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
@@ -385,7 +384,7 @@ open class ExploreCommandBuilder(
     ): ExploreCommandBuilder {
         val priority = selectors.maxBy { it.priority }?.priority ?: selectors.size
 
-        selectors.add(StrategySelector(priority, newDescription, newSelector, bundle))
+        selectors.add(StrategySelector(priority + 1, newDescription, newSelector, bundle))
 
         return this
     }
@@ -397,11 +396,14 @@ open class ExploreCommandBuilder(
         newSelector: SelectorFunction,
         bundle: Array<Any> = emptyArray()
     ): ExploreCommandBuilder {
-        val priority = selectors.firstOrNull { it.selector == oldSelector }?.priority
-            ?: selectors.maxBy { it.priority }?.priority
-            ?: selectors.size
+        val targetPriority = selectors.firstOrNull { it.selector == oldSelector }?.priority
 
-        selectors.add(StrategySelector(priority, newDescription, newSelector, bundle))
+        if (targetPriority != null) {
+            selectors.add(StrategySelector(targetPriority - 1, newDescription, newSelector, bundle))
+        } else {
+            append(newDescription, newSelector, bundle)
+        }
+
         return this
     }
 
