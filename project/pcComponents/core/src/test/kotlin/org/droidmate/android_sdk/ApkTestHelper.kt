@@ -24,7 +24,6 @@
 // web: www.droidmate.org
 package org.droidmate.android_sdk
 
-import org.apache.commons.io.FilenameUtils
 import org.droidmate.device.android_sdk.Apk
 
 import java.nio.file.Path
@@ -55,7 +54,7 @@ class ApkTestHelper {
 		@JvmStatic
 		fun build(path: Path): Apk {
 			assert(path.toString().isNotEmpty())
-			val name = FilenameUtils.getBaseName(path.fileName.toString())
+			val name = path.fileName.toFile().nameWithoutExtension
 
 			return Apk(
 					path,
