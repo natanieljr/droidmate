@@ -28,7 +28,7 @@ class Example {
 					val someId = 10
 					val command = ExploreCommandBuilder.fromConfig(cfg)
 						.withStrategy(ExampleStrategy(someId))
-						.insertBefore(StrategySelector.randomWidget,"Example Selector", mySelector, someId)
+						.insertBefore(StrategySelector.randomWidget,"Example Selector", mySelector, arrayOf(someId))
 
 					// Run Droidmate
 					val explorationOutput = ExplorationAPI.explore(cfg, command)

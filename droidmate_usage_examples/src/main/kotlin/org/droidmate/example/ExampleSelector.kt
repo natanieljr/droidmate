@@ -12,7 +12,7 @@ val mySelector: SelectorFunction = { context, pool, bundle ->
 	// Selector function receives the current state [context], the strategy pool with all strategies [pool]
 	// and a nullable array of content [bundle], defined on it's creation, the bundle can be used to store
 	// values for the selector to check. Example usages are available in [org.droidmate.exploration.StrategySelector]
-	if (bundle != null) {
+	if (bundle.isNotEmpty()) {
 		assert(bundle.first() is Int)
 		val id = bundle.first() as Int
 

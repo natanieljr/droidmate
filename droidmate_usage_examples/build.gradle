@@ -25,11 +25,11 @@ repositories {
 dependencies {
 	/** if changes are made to DM-2 directly, then deploy it locally with 'gradlew install' 
 	 * and use this dependency to refer to the modified version (adjust version accordingly to yours) */
-  api group:'org.droidmate', name: 'droidmate-2', version: "+"
+  //api group:'org.droidmate', name: 'droidmate-2', version: "+"
 	/** when no modification to DM-2 we can refer to the most recent github version */
-//	api 'com.github.uds-se.droidmate:API:master-SNAPSHOT' // android exploration platform
+	api 'com.github.uds-se.droidmate:droidmate-2:1.3.3-RC1' // android exploration platform
 
-	api('com.github.uds-se:droidmate-coverage:master-SNAPSHOT') {
+	api('com.github.uds-se:droidmate-coverage:1.3.2-RC0') {
 		exclude( module: "droidmate-common" )
 	}
 
