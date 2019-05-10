@@ -1,9 +1,7 @@
 package org.droidmate.example
 
-import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.runBlocking
 import org.droidmate.api.ExplorationAPI
-import org.droidmate.command.ExploreCommand
 import org.droidmate.command.ExploreCommandBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.StrategySelector
