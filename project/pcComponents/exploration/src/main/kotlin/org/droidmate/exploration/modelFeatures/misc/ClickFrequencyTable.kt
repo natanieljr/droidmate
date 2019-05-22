@@ -33,13 +33,13 @@ import java.util.*
 //TODO check if this is even still used
 class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>) : Table<Int, String, Int> by table {
 
-	constructor(data: ExplorationContext) : this(build(data))
+	constructor(data: ExplorationContext<*,*,*>) : this(build(data))
 
 	companion object {
 		const val headerNoOfClicks = "No_of_clicks"
 		const val headerViewsCount = "Views_count"
 
-		fun build(data: ExplorationContext): Table<Int, String, Int> {
+		fun build(data: ExplorationContext<*,*,*>): Table<Int, String, Int> {
 
 			val countOfViewsHavingNoOfClicks: Map<Int, Int> = data.countOfViewsHavingNoOfClicks
 
@@ -58,7 +58,7 @@ class ClickFrequencyTable private constructor(val table: Table<Int, String, Int>
 		}
 
 		/** computing how many new widgets become visible after each action (#actions -> #newWidgets) **/
-		private val ExplorationContext.countOfViewsHavingNoOfClicks: Map<Int, Int>
+		private val ExplorationContext<*,*,*>.countOfViewsHavingNoOfClicks: Map<Int, Int>
 			get() = mutableMapOf<Int, Int>().also { res ->
 				with(mutableSetOf<UUID>()) {
 					// temporary set of widgets seen over the action trace

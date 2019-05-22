@@ -6,7 +6,7 @@ import org.droidmate.exploration.modelFeatures.graph.StateGraphMF
 abstract class GraphBasedExploration : ExplorationStrategy(){
 	protected val graph: StateGraphMF by lazy { eContext.getOrCreateWatcher<StateGraphMF>()	}
 
-	override fun initialize(memory: ExplorationContext) {
+	override fun initialize(memory: ExplorationContext<*, *, *>) {
 		super.initialize(memory)
 
 		// Forces the graph to be initialized, even before the strategy is first invoked

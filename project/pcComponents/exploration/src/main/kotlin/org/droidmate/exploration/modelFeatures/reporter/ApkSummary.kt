@@ -42,7 +42,7 @@ class ApkSummary {
 
 	companion object {
 
-		fun build(data: ExplorationContext): String {
+		fun build(data: ExplorationContext<*,*,*>): String {
 			return build(Payload(data))
 		}
 
@@ -90,16 +90,16 @@ class ApkSummary {
 			val apiEventEntries: List<ApiEventEntry>
 	) {
 
-		constructor(data: ExplorationContext) : this(
+		constructor(data: ExplorationContext<*,*,*>) : this(
 				data,
 				data.uniqueApiLogsWithFirstTriggeringActionIndex,
 				data.uniqueEventApiPairsWithFirstTriggeringActionIndex
 		)
 
 		private constructor(
-				data: ExplorationContext,
+				data: ExplorationContext<*,*,*>,
 				uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>,
-				uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<Interaction, IApiLogcatMessage>, Int>
+				uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<Interaction<*>, IApiLogcatMessage>, Int>
 		) : this(
 				appPackageName = data.apk.packageName,
 				totalRunTime = data.getExplorationDuration(),
@@ -119,7 +119,7 @@ class ApkSummary {
 				uniqueEventApiPairsCount = uniqueEventApiPairsWithFirstTriggeringActionIndex.keys.size,
 				apiEventEntries = uniqueEventApiPairsWithFirstTriggeringActionIndex.map {
 					val (eventApiPair, firstIndex: Int) = it
-					val (event: Interaction, apiLog: IApiLogcatMessage) = eventApiPair
+					val (event: Interaction<*>, apiLog: IApiLogcatMessage) = eventApiPair
 					ApiEventEntry(
 						ApiEntry(
 							time = Duration.between(data.explorationStartTime, apiLog.time),
@@ -133,7 +133,7 @@ class ApkSummary {
 		)
 
 		companion object {
-			val ExplorationContext.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
+			val ExplorationContext<*,*,*>.uniqueApiLogsWithFirstTriggeringActionIndex: Map<IApiLogcatMessage, Int>
 				get() {
 					return this.explorationTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(
 							extractItems = { action -> action.deviceLogs.map { ApiLogcatMessage.from(it) as IApiLogcatMessage } },
@@ -141,7 +141,7 @@ class ApkSummary {
 					)
 				}
 
-			val ExplorationContext.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<Interaction, IApiLogcatMessage>, Int>
+			val ExplorationContext<*,*,*>.uniqueEventApiPairsWithFirstTriggeringActionIndex: Map<Pair<Interaction<*>, IApiLogcatMessage>, Int>
 				get() {
 
 					return this.explorationTrace.getActions().uniqueItemsWithFirstOccurrenceIndex(

@@ -35,7 +35,7 @@ class AggregateStats @JvmOverloads constructor(reportDir: Path,
                                                private val fileName: String = "aggregate_stats.txt") : AggregateReporterMF(reportDir, resourceDir) {
 	override val coroutineContext: CoroutineContext = CoroutineName("AggregateStatsMF")
 
-	fun getTableData(rawData: List<ExplorationContext>, path: Path): TableDataFile<Int, String, String> {
+	fun getTableData(rawData: List<ExplorationContext<*,*,*>>, path: Path): TableDataFile<Int, String, String> {
 		return TableDataFile(AggregateStatsTable(rawData), path)
 	}
 
@@ -43,7 +43,7 @@ class AggregateStats @JvmOverloads constructor(reportDir: Path,
 		return reportDir.resolve(fileName)
 	}
 
-	override fun safeWrite(eContexts: List<ExplorationContext>) {
+	override fun safeWrite(eContexts: List<ExplorationContext<*,*,*>>) {
 		val path = getFilePath(reportDir)
 		val report = getTableData(eContexts, path)
 		log.info("Writing out report $report")

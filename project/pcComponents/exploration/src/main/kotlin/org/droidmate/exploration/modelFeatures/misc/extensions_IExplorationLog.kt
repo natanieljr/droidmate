@@ -33,22 +33,22 @@ import org.droidmate.explorationModel.emptyUUID
 import org.droidmate.explorationModel.interaction.DeviceLog
 import java.util.*
 
-val ExplorationContext.uniqueActionableWidgets: Set<Widget>
+val ExplorationContext<*,*,*>.uniqueActionableWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {	runBlocking {
 		model.getWidgets().filter { it.isInteractive }.groupBy { it.uid } // TODO we would like a mechanism to identify which widget config was the (default)
 				.forEach { add(it.value.first()) }
 	} }
 
-val ExplorationContext.uniqueClickedWidgets: Set<Widget>
+val ExplorationContext<*,*,*>.uniqueClickedWidgets: Set<Widget>
 	get() = mutableSetOf<Widget>().apply {
 		explorationTrace.getActions().forEach { action -> action.targetWidget?.let { add(it) } }
 	}
 
 //TODO not sure about the original intention of this function
-val ExplorationContext.uniqueApis: Set<DeviceLog>
+val ExplorationContext<*,*,*>.uniqueApis: Set<DeviceLog>
 	get() = uniqueEventApiPairs.map { (_, api) -> api }.toSet()
 
-val ExplorationContext.uniqueEventApiPairs: Set<Pair<UUID, DeviceLog>>
+val ExplorationContext<*,*,*>.uniqueEventApiPairs: Set<Pair<UUID, DeviceLog>>
 	get() = mutableSetOf<Pair<UUID, DeviceLog>>().apply {
 		explorationTrace.getActions().forEach { action ->
 			action.deviceLogs.forEach{ api ->
@@ -57,8 +57,8 @@ val ExplorationContext.uniqueEventApiPairs: Set<Pair<UUID, DeviceLog>>
 		}
 	}
 
-val ExplorationContext.resetActionsCount: Int
+val ExplorationContext<*,*,*>.resetActionsCount: Int
 	get() = explorationTrace.getActions().count { it.actionType.isLaunchApp() }
 
-val ExplorationContext.apkFileNameWithUnderscoresForDots: String
+val ExplorationContext<*,*,*>.apkFileNameWithUnderscoresForDots: String
 	get() = apk.fileName.replace("", "_")

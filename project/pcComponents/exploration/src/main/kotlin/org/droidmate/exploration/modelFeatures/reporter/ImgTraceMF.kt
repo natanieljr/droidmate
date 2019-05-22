@@ -62,10 +62,10 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 
 	var i: AtomicInteger = AtomicInteger(0)
-	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State, newState: State) {
+	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State<*>, newState: State<*>) {
 		try {
 			val step = i.incrementAndGet() - 1
-			val screenFile = java.io.File(cfg.imgDst.resolve("$lastId.jpg").toString())
+			val screenFile = File(cfg.imgDst.resolve("$lastId.jpg").toString())
 			val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")
 			lastId = action.id
 

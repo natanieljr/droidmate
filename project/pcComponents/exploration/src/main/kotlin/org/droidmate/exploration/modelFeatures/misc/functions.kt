@@ -142,6 +142,6 @@ fun Int.zeroLeastSignificantDigits(digitsToZero: Int): Long {
 }
 
 
-fun Interaction.actionString(sep:String = ";") = listOf(prevState.toString(), actionType,
+fun Interaction<*>.actionString(sep:String = ";") = listOf(prevState.toString(), actionType,
 		targetWidget?.id.toString(), resState.toString(), startTimestamp.toString(), endTimestamp.toString(),
 		successful.toString(), exception, data).joinToString(separator = sep)

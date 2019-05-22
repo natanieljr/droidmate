@@ -51,10 +51,10 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	/**
 	 * Internal context of the strategy. Synchronized with exploration context upon initialization.
 	 */
-	protected lateinit var eContext: ExplorationContext
+	protected lateinit var eContext: ExplorationContext<*, *, *>
 		private set
 
-	protected val currentState: State get() = eContext.getCurrentState()
+	protected val currentState get() = eContext.getCurrentState()
 
 	/**
 	 * Check if this is the first time an action will be performed ([eContext] is empty)
@@ -68,7 +68,7 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 * Check if last performed action in the [eContext] was to reset the app
 	 * @return If the last action was a reset
 	 */
-	internal fun lastAction(): Interaction {
+	internal fun lastAction(): Interaction<*> {
 		return this.eContext.getLastAction()
 	}
 
@@ -77,14 +77,14 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	 *
 	 * Used by some strategies (ex: Terminate and Back) to prevent loops (ex: Reset -> Back -> Reset -> Back)
 	 */
-	suspend fun getSecondLastAction(): Interaction {
+	suspend fun getSecondLastAction(): Interaction<*> {
 		if (this.eContext.getSize() < 2)
-			return Interaction.empty
+			return eContext.emptyAction
 
 		return this.eContext.explorationTrace.P_getActions().dropLast(1).last()
 	}
 
-	override fun initialize(memory: ExplorationContext) {
+	override fun initialize(memory: ExplorationContext<*, *, *>) {
 		this.eContext = memory
 	}
 

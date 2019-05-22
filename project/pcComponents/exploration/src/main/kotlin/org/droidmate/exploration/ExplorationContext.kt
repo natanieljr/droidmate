@@ -36,7 +36,6 @@ import org.droidmate.exploration.modelFeatures.explorationWatchers.CrashListMF
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
-import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.*
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.slf4j.Logger
@@ -46,22 +45,33 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.math.min
 import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.factory.ModelProvider
 import org.droidmate.misc.EnvironmentConstants
 import java.nio.file.Paths
 
 @Suppress("MemberVisibilityCanBePrivate")
-class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
-												   val apk: IApk,
-												   readDeviceStatements: suspend ()-> List<List<String>>,
-												   val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
-												   var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
-												   private val watcher: MutableList<ModelFeatureI> = mutableListOf(),
-												   val model: Model = Model.emptyModel(ModelConfig(appName = apk.packageName)),
-												   val explorationTrace: ExplorationTrace = model.initNewTrace(watcher)) {
+class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration,
+                                                      val apk: IApk,
+                                                      readDeviceStatements: suspend ()-> List<List<String>>,
+                                                      val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
+                                                      var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
+                                                      private val watcher: MutableList<ModelFeatureI> = mutableListOf(),
+                                                      val modelProvider: ModelProvider<M>
+                                                      )
+		where M: AbstractModel<S, W>, S: State<W>, W: Widget {
+
+	val model get() = modelProvider.get()
+	val explorationTrace: ExplorationTrace<S,W>
+	init{
+		explorationTrace = model.initNewTrace(watcher)
+	}
+
 	companion object {
 		@JvmStatic
-		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.java) }
+		val log: Logger by lazy { LoggerFactory.getLogger(ExplorationContext::class.qualifiedName) }
 	}
+
 	val retention: CoroutineScope = CoroutineScope(CoroutineName("MF-Dump")) + SupervisorJob()
 	val imgTransfer = CoroutineScope(SupervisorJob() + CoroutineName("device image pull") + Dispatchers.IO)
 
@@ -95,13 +105,13 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 		}
 	}
 
-	fun getCurrentState(): State = explorationTrace.currentState
+	fun getCurrentState(): S = explorationTrace.currentState
 	suspend fun getState(sId: ConcreteId) = model.getState(sId)
 
 	/** filters out all crashing marked widgets from the actionable widgets of the current state **/
 	suspend fun Collection<Widget>.nonCrashingWidgets() = filterNot { crashlist.isBlacklistedInState(it.uid,getCurrentState().uid) }
 
-	fun belongsToApp(state: State): Boolean {
+	fun<S: State<*>> belongsToApp(state: S): Boolean {
 		return state.widgets.any { it.packageName == apk.packageName
 				|| it.packageName == "com.google.android.gms" }  // allow googles internal log-in screen
 	}
@@ -197,9 +207,11 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 	 *
 	 * @return Information of the last action performed or instance of [EmptyActionResult]
 	 */
-	fun getLastAction(): Interaction = runBlocking { explorationTrace.last() } ?: Interaction.empty
+	fun getLastAction() = runBlocking { explorationTrace.last() } ?: Interaction.empty()
+	val emptyAction by lazy{ Interaction.empty<W>() }
 	/** @returns the name of the last executed action.
 	 * This method should be preferred to [getLastAction] as it does not have to wait for any other co-routines. */
+	@Deprecated("probably no longer used => going to be deleted")
 	fun getLastActionType(): String = explorationTrace.lastActionType
 
 	/**
@@ -227,11 +239,11 @@ class ExplorationContext @JvmOverloads constructor(val cfg: Configuration,
 	 */
 	fun getSize(): Int = explorationTrace.size
 
-	fun List<Interaction>.mapQueueToSingleElement(): List<Interaction>{
+	fun List<Interaction<W>>.mapQueueToSingleElement(): List<Interaction<W>>{
 		var startQueue = 0
 		var endQueue = 0
 
-		val newList : MutableList<Interaction> = mutableListOf()
+		val newList : MutableList<Interaction<W>> = mutableListOf()
 
 		this.forEach {
 			if (startQueue == endQueue)

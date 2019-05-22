@@ -28,7 +28,7 @@ package org.droidmate.exploration.modelFeatures.misc
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Widget
 
-class WidgetSeenClickedTable(data: ExplorationContext) : CountsPartitionedByTimeTable(
+class WidgetSeenClickedTable(data: ExplorationContext<*,*,*>) : CountsPartitionedByTimeTable(
 		data.getExplorationTimeInMs(),
 		listOf(
 				headerTime,
@@ -47,19 +47,19 @@ class WidgetSeenClickedTable(data: ExplorationContext) : CountsPartitionedByTime
 		const val headerViewsSeen = "Actionable_unique_views_seen"
 		const val headerViewsClicked = "Actionable_unique_views_clicked"
 
-		private val ExplorationContext.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext<*,*,*>.uniqueSeenActionableViewsCountByTime: Map<Long, Iterable<String>>
 			get() {
 				return this.uniqueViewCountByPartitionedTime(
 						extractItems = { this.getCurrentState().actionableWidgets.filter{ it.packageName == this.apk.packageName} }
 				)
 			}
 
-		private val ExplorationContext.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext<*,*,*>.uniqueClickedViewsCountByTime: Map<Long, Iterable<String>>
 			get() {
 				return this.uniqueViewCountByPartitionedTime(extractItems = { this.explorationTrace.getExploredWidgets() })
 			}
 
-		private fun ExplorationContext.uniqueViewCountByPartitionedTime(
+		private fun ExplorationContext<*,*,*>.uniqueViewCountByPartitionedTime(
 				extractItems: (Any) -> Iterable<Widget>): Map<Long, Iterable<String>> {
 			TODO("what do we intent to compute here?")
 //            return this.logRecords.itemsAtTime(

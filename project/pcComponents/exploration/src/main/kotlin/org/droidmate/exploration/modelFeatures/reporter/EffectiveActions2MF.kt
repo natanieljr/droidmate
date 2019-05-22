@@ -69,7 +69,7 @@ class EffectiveActions2MF(private val pixelDensity: Int = nexus5XPixelDensity,
     private var totalActions = 0
     private var effectiveActions = 0
 
-    override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State, newState: State) {
+    override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State<*>, newState: State<*>) {
         totalActions++
         if (prevState != newState)
             effectiveActions++
@@ -84,7 +84,7 @@ class EffectiveActions2MF(private val pixelDensity: Int = nexus5XPixelDensity,
     }
 
 
-    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+    override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
         val sb = StringBuilder()
         val header = "Time_Seconds\tTotal_Actions\tTotal_Effective\n"
         sb.append(header)
@@ -132,7 +132,7 @@ class EffectiveActions2MF(private val pixelDensity: Int = nexus5XPixelDensity,
 
     // Currently used in child projects
     @Suppress("MemberVisibilityCanBePrivate")
-    fun actionWasEffective(prevAction: Interaction, currAction: Interaction): Boolean {
+    fun actionWasEffective(prevAction: Interaction<*>, currAction: Interaction<*>): Boolean {
 
         return if ((!prevAction.actionType.isClick()) ||
             (! currAction.actionType.isClick()))

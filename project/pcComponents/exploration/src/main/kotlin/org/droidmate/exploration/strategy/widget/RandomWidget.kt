@@ -61,7 +61,7 @@ constructor(	private val randomSeed: Long,
 	protected var random = Random(randomSeed)
 		private set
 
-	override fun initialize(memory: ExplorationContext) {
+	override fun initialize(memory: ExplorationContext<*, *, *>) {
 		super.initialize(memory)
 		random = Random(randomSeed)
 	}

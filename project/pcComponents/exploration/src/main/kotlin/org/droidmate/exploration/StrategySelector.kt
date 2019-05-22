@@ -35,8 +35,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-typealias SelectorFunction = suspend (context: ExplorationContext, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>) -> ISelectableExplorationStrategy?
-typealias OnSelected = (context: ExplorationContext) -> Unit
+typealias SelectorFunction = suspend (context: ExplorationContext<*,*,*>, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>) -> ISelectableExplorationStrategy?
+typealias OnSelected = (context: ExplorationContext<*,*,*>) -> Unit
 
 class StrategySelector constructor(val priority: Int,
                                    val description: String,
@@ -59,7 +59,7 @@ class StrategySelector constructor(val priority: Int,
 		@JvmOverloads
 		fun from(priority: Int,
 				 description: String,
-				 function: (context: ExplorationContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?,
+				 function: (context: ExplorationContext<*,*,*>, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?,
 				 bundle: Array<Any> = emptyArray()): StrategySelector = StrategySelector(
 			priority,
 			description,

@@ -36,7 +36,7 @@ interface ISelectableExplorationStrategy {
 	val uniqueStrategyName: String
 	val noContext: Boolean
 
-	fun initialize(memory: ExplorationContext)
+	fun initialize(memory: ExplorationContext<*, *, *>)
 
 	/**
 	 * Selects an exploration action based on the [current GUI](currentState).

@@ -41,9 +41,11 @@ import java.lang.Math.max
  *
  * @author Nataniel P. Borges Jr.
  */
-class ExplorationStrategyPool(receivedStrategies: List<ISelectableExplorationStrategy>,
-                              private val selectors: List<StrategySelector>,
-                              private val memory: ExplorationContext) : IExplorationStrategy {
+class ExplorationStrategyPool(
+	receivedStrategies: List<ISelectableExplorationStrategy>,
+	private val selectors: List<StrategySelector>,
+	private val memory: ExplorationContext<*, *, *>
+) : IExplorationStrategy {
 
 	companion object {
 		@JvmStatic

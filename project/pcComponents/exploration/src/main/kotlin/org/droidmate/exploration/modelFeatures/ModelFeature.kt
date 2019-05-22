@@ -47,18 +47,18 @@ abstract class ModelFeature: ModelFeatureI() {
 	 *
 	 * WARNING: this method is not triggered when loading an already existing model
 	 */
-	open suspend fun onContextUpdate(context: ExplorationContext) { /* do nothing [to be overwritten] */
+	open suspend fun onContextUpdate(context: ExplorationContext<*, *, *>) { /* do nothing [to be overwritten] */
 	} // TODO we do not really need onContext update, the MF using this could easily avoid the need by tracking action targets on its own
 
 	/** this method is called on each call to [ExplorationContext].close(), executed after [ModelFeature].dump()
 	 */
-	open suspend fun onAppExplorationFinished(context: ExplorationContext) {  /* do nothing [to be overwritten] */
+	open suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {  /* do nothing [to be overwritten] */
 	}
 
 	/**
 	 * this method is called before starting an app exploration
 	 */
-	open fun onAppExplorationStarted(context: ExplorationContext) {  /* do nothing [to be overwritten] */
+	open fun onAppExplorationStarted(context: ExplorationContext<*, *, *>) {  /* do nothing [to be overwritten] */
 	}
 
 	/** this method is called, when all app explorations are finished.
@@ -70,6 +70,6 @@ abstract class ModelFeature: ModelFeatureI() {
 	 * The exploration never waits for this method to complete, as it is launched in the context of [ExplorationContext.retention].
 	 * Therefore, it is your features responsibility to guarantee that your last state is persisted, e.g. by implementing [cancelAndJoin].
 	 */
-	open suspend fun dump(context: ExplorationContext) {  /* do nothing [to be overwritten] */
+	open suspend fun dump(context: ExplorationContext<*, *, *>) {  /* do nothing [to be overwritten] */
 	}
 }

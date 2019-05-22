@@ -51,7 +51,7 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
     private var totalActions = 0
     private var effectiveActions = 0
 
-    override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State, newState: State) {
+    override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State<*>, newState: State<*>) {
         totalActions++
         if (prevState != newState)
             effectiveActions++
@@ -66,7 +66,7 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
     }
 
 
-    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+    override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
         val sb = StringBuilder()
         val header = "Time_Seconds\tTotal_Actions\tTotal_Effective\n"
         sb.append(header)
@@ -114,7 +114,7 @@ class EffectiveActionsMF(private val includePlots: Boolean = true) : ModelFeatur
 
     // Currently used in child projects
     @Suppress("MemberVisibilityCanBePrivate")
-    fun actionWasEffective(prevAction: Interaction, currAction: Interaction): Boolean {
+    fun actionWasEffective(prevAction: Interaction<*>, currAction: Interaction<*>): Boolean {
 
         return if ((!prevAction.actionType.isClick()) ||
                 (! currAction.actionType.isClick()))

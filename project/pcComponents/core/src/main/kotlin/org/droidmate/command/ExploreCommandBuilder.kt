@@ -9,23 +9,8 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.SelectorFunction
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.modelFeatures.reporter.ActionTraceMF
-import org.droidmate.exploration.modelFeatures.reporter.ActivitySeenSummaryMF
-import org.droidmate.exploration.modelFeatures.reporter.AggregateStats
-import org.droidmate.exploration.modelFeatures.reporter.ApiActionTraceMF
-import org.droidmate.exploration.modelFeatures.reporter.ApiCountMF
-import org.droidmate.exploration.modelFeatures.reporter.ApkViewsFileMF
-import org.droidmate.exploration.modelFeatures.reporter.ClickFrequencyMF
-import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
-import org.droidmate.exploration.modelFeatures.reporter.Summary
-import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
-import org.droidmate.exploration.modelFeatures.reporter.WidgetApiTraceMF
-import org.droidmate.exploration.strategy.Back
-import org.droidmate.exploration.strategy.ExplorationStrategyPool
-import org.droidmate.exploration.strategy.IExplorationStrategy
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.Reset
-import org.droidmate.exploration.strategy.Terminate
+import org.droidmate.exploration.modelFeatures.reporter.*
+import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
@@ -33,9 +18,11 @@ import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.DFS
 import org.droidmate.exploration.strategy.widget.DenyRuntimePermission
 import org.droidmate.exploration.strategy.widget.RandomWidget
-import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.ModelFeatureI
-import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.factory.ModelProvider
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.tools.ApksProvider
 import org.droidmate.tools.DeviceTools
 import org.droidmate.tools.IDeviceTools
@@ -408,18 +395,16 @@ open class ExploreCommandBuilder(
     }
 
     @JvmOverloads
-    fun build(cfg: ConfigurationWrapper,
+    fun<M:AbstractModel<S,W>,S: State<W>,W: Widget> build(cfg: ConfigurationWrapper,
               deviceTools: IDeviceTools = DeviceTools(cfg),
-              strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(this.strategies, this.selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
+              strategyProvider: (ExplorationContext<*,*,*>) -> IExplorationStrategy = { ExplorationStrategyPool(this.strategies, this.selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
               watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
-              modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
+              modelProvider: ModelProvider<M> ): ExploreCommand<M, S, W> {
         val apksProvider = ApksProvider(deviceTools.aapt)
 
         this.watcher.addAll(watcher)
 
-        val command = ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+        return ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
             strategyProvider, modelProvider, this.watcher)
-
-        return command
     }
 }

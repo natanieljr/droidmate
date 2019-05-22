@@ -30,10 +30,10 @@ import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.explorationModel.Model
 import org.droidmate.exploration.modelFeatures.explorationWatchers.ActionPlaybackFeature
 import org.droidmate.explorationModel.retention.loading.ModelParser
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
+import org.droidmate.explorationModel.factory.DefaultModel
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
@@ -45,9 +45,9 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 
 	private var traceIdx = 0
 	private var actionIdx = 0
-	protected lateinit var model : Model
-	private var lastSkipped: Interaction = Interaction.empty
-	protected var toExecute: Interaction = Interaction.empty
+	protected lateinit var model : DefaultModel<State<Widget>,Widget>
+	private var lastSkipped: Interaction<Widget> = Interaction.empty()
+	protected var toExecute: Interaction<Widget> = Interaction.empty()
 
 
 	private val watcher: ActionPlaybackFeature by lazy {
@@ -56,7 +56,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 						.also { eContext.addWatcher(it) }) as ActionPlaybackFeature
 	}
 
-	override fun initialize(memory: ExplorationContext) {
+	override fun initialize(memory: ExplorationContext<*, *, *>) {
 		super.initialize(memory)
 
 		model = runBlocking{ ModelParser.loadModel(ModelConfig(modelDir, eContext.apk.packageName, true)) }
@@ -71,11 +71,11 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 		return model.getState(lastAction.resState)!!.isAppHasStoppedDialogBox
 	}
 
-	private suspend fun getNextTraceAction(peek: Boolean = false): Interaction {
+	private suspend fun getNextTraceAction(peek: Boolean = false): Interaction<Widget> {
 		model.let { m ->
 			m.getPaths()[traceIdx].let { currentTrace ->
 				if (currentTrace.size - 1 == actionIdx) { // check if all actions of this trace were handled
-					if(m.getPaths().size == traceIdx + 1) return Interaction.empty  // this may happen on a peek for next action on the end of the trace
+					if(m.getPaths().size == traceIdx + 1) return Interaction.empty()  // this may happen on a peek for next action on the end of the trace
 					return m.getPaths()[traceIdx + 1].first().also {
 						if (!peek) {
 							traceIdx += 1
@@ -93,7 +93,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 
 
 	/** determine if the state is similar enough to execute a back action by computing how many relevant widgets are similar */
-	private fun State.similarity(other: State): Double {
+	private fun State<Widget>.similarity(other: State<Widget>): Double {
 		val otherWidgets = other.widgets
 		val candidates = this.visibleTargets
 		val mappedWidgets = candidates.map { w ->
@@ -106,7 +106,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 	}
 
 	/** checking if we can actually trigger the widget of our recorded trace */
-	private fun Widget?.canExecute(state: State): Pair<Double, Widget?> {
+	private fun Widget?.canExecute(state: State<Widget>): Pair<Double, Widget?> {
 		return when{
 			this == null -> Pair(0.0, null) // no match possible
 			state.widgets.any { it.id == this.id } -> Pair(1.0, this) // we have a perfect match
@@ -150,7 +150,7 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 									}
 								}
 							 == true) {
-						lastSkipped = Interaction.empty  // we execute it now so do not try to do so again
+						lastSkipped = Interaction.empty()  // we execute it now so do not try to do so again
 						if(action.isClick()){
 							logger.info("trigger previously skipped action")
 							prevEquiv.second!!.click()
