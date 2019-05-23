@@ -240,7 +240,14 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 		val device = robustWithReadableLogs(this.deviceFactory.create(cfg.deviceSerialNumber))
 
 		trySetUp(device)
-
+		try {
+			device.removeFile(
+				"",
+				DeviceConstants.imgPath.removeSuffix("/")
+			) // delete the image dir to ensure that consequent runs will not accidentially pull old images
+		} catch (e: Throwable){
+			log.debug("Removing the (old) image directory on device failed",e)
+		}
 		return device
 	}
 
