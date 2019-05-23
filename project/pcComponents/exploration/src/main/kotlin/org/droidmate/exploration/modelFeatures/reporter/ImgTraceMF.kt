@@ -122,6 +122,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 var shapeColor: Color = Color.red
 var textColor: Color = Color.magenta.darker()
 var textSize: Int = 100
+var darken: Boolean = false
 fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>){
 	stateImg.createGraphics().apply{
 		stroke = BasicStroke(10F)
@@ -152,7 +153,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 				drawString(text, leftX + (width / 10), topY + (height / 10))
 			}
 			font = Font("TimesRoman", Font.PLAIN, textSize) // reset font to bigger font
-			if(w.isVisible) shapeColor = shapeColor.darker()
+			if(w.isVisible && darken) shapeColor = shapeColor.darker()
 		}
 	}
 }

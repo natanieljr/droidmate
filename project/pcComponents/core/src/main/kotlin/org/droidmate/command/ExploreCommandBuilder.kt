@@ -148,7 +148,12 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterTime(seconds: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "timeBasedTerminate", StrategySelector.timeBasedTerminate, arrayOf(seconds)))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "timeBasedTerminate",
+            StrategySelector.timeBasedTerminate,
+            bundle = arrayOf(seconds)
+        ))
         return this
     }
 
@@ -157,12 +162,21 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterActions(actionLimit: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "actionBasedTerminate", StrategySelector.actionBasedTerminate, arrayOf(actionLimit)))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "actionBasedTerminate",
+            StrategySelector.actionBasedTerminate,
+            bundle = arrayOf(actionLimit)
+        ))
         return this
     }
 
     fun terminateIfAllExplored(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "explorationExhausted", StrategySelector.explorationExhausted))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "explorationExhausted",
+            StrategySelector.explorationExhausted
+        ))
         return this
     }
 
@@ -181,12 +195,21 @@ open class ExploreCommandBuilder(
     }
 
     fun resetOnIntervals(actionInterval: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "intervalReset", StrategySelector.intervalReset, arrayOf(actionInterval)))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "intervalReset",
+            StrategySelector.intervalReset,
+            bundle = arrayOf(actionInterval)
+        ))
         return this
     }
 
     fun startWithReset(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "startExplorationReset", StrategySelector.startExplorationReset))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "startExplorationReset",
+            StrategySelector.startExplorationReset
+        ))
         return this
     }
 
@@ -210,7 +233,12 @@ open class ExploreCommandBuilder(
     }
 
     fun randomBack(probability: Double, randomSeed: Long): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "randomBack", StrategySelector.randomBack, arrayOf(probability, Random(randomSeed))))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "randomBack",
+            StrategySelector.randomBack,
+            bundle = arrayOf(probability, Random(randomSeed))
+        ))
         return this
     }
 
@@ -340,7 +368,11 @@ open class ExploreCommandBuilder(
     }
 
     fun collectStatementCoverage(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "statementCoverageSync", StrategySelector.statementCoverage))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "statementCoverageSync",
+            StrategySelector.statementCoverage
+        ))
         return this
     }
 
@@ -371,7 +403,7 @@ open class ExploreCommandBuilder(
     ): ExploreCommandBuilder {
         val priority = selectors.maxBy { it.priority }?.priority ?: selectors.size
 
-        selectors.add(StrategySelector(priority + 1, newDescription, newSelector, bundle))
+        selectors.add(StrategySelector(priority + 1, newDescription, newSelector, bundle = bundle))
 
         return this
     }
@@ -386,7 +418,7 @@ open class ExploreCommandBuilder(
         val targetPriority = selectors.firstOrNull { it.selector == oldSelector }?.priority
 
         if (targetPriority != null) {
-            selectors.add(StrategySelector(targetPriority - 1, newDescription, newSelector, bundle))
+            selectors.add(StrategySelector(targetPriority - 1, newDescription, newSelector, bundle = bundle))
         } else {
             append(newDescription, newSelector, bundle)
         }
