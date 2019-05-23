@@ -17,7 +17,6 @@ import org.droidmate.exploration.actions.pressBack
 import org.droidmate.exploration.actions.resetApp
 import org.droidmate.exploration.actions.setText
 import org.droidmate.exploration.strategy.AbstractStrategy
-import org.droidmate.explorationModel.interaction.State
 import org.slf4j.Logger
 import saarland.cispa.exploration.android.strategy.action.SwipeTo
 import org.droidmate.exploration.strategy.manual.action.showTargetsInImg
@@ -38,50 +37,61 @@ open class ManualExploration<T>(private val resetOnStart: Boolean = true) : Abst
 
 	//			(command: ActionOnly, w: Widget?, candidate: Int?, input: List<String>)->ExplorationAction?
 	override val createAction:CandidateCreator<T, ExplorationAction?> 	=
-			{cmd, w, _, input ->
-				val lIdx = if(!cmd.requiresWidget()) labelIdx -1 else labelIdx
-				when(cmd){
-					is DEBUG -> {
-						@Suppress("UNUSED_VARIABLE")
-						val widgets = state.widgets
-						w?.let{
-							println("${w.id}: resId=${w.resourceId}, nlpText=${w.nlpText}")
-						}
-						null
+		{cmd, w, _, input ->
+			val lIdx = if(!cmd.requiresWidget()) labelIdx -1 else labelIdx
+			when(cmd){
+				is DEBUG -> {
+					@Suppress("UNUSED_VARIABLE")
+					val widgets = state.widgets
+					w?.let{
+						println("${w.id}: resId=${w.resourceId}, nlpText=${w.nlpText}")
 					}
-					is CLICK -> w?.triggerTap(delay=eContext.cfg[widgetActionDelay])
-					is TEXT_INPUT ->
-						if(w?.isInputField == false){
-							log.error("target is no input field")
-							nullui
-						} else w?.setText(input[lIdx], sendEnter = false,delay=200)
-					is BACK -> eContext.pressBack()
-					is RESET -> LaunchApp(eContext.apk.packageName, eContext.cfg[launchActivityDelay])
-					is SCROLL_RIGHT -> SwipeTo.right(state.widgets)
-					is SCROLL_LEFT -> SwipeTo.left(state.widgets)
-					is SCROLL_UP -> SwipeTo.bottom(state.widgets)
-					is SCROLL_DOWN -> SwipeTo.top(state.widgets)
-					is FETCH ->  GlobalAction(ActionType.FetchGUI)
-					is TERMINATE -> GlobalAction(ActionType.Terminate)
-					is LIST_INPUTS -> {
-						println( state.actionableWidgets.mapIndexedNotNull { index, it ->  if(it.isInputField) "[$index]:\t $it" else null }
-							.joinToString(separator = "\n"))
-						null
-					}
-					is LIST ->  {
-						var i=0
-						println( state.actionableWidgets.joinToString(separator = "\n") { "[${i++}]:\t "+it }  )
-						null
-					}
-					else -> throw NotImplementedError("missing case")
+					null
 				}
+				is CLICK -> w?.triggerTap(delay=eContext.cfg[widgetActionDelay])
+				is TEXT_INPUT ->
+					if(w?.isInputField == false){
+						log.error("target is no input field")
+						null
+					} else w?.setText(input[lIdx], sendEnter = false,delay=200)
+				is BACK -> eContext.pressBack()
+				is RESET -> LaunchApp(eContext.apk.packageName, eContext.cfg[launchActivityDelay])
+				is SCROLL_RIGHT -> SwipeTo.right(state.widgets)
+				is SCROLL_LEFT -> SwipeTo.left(state.widgets)
+				is SCROLL_UP -> SwipeTo.bottom(state.widgets)
+				is SCROLL_DOWN -> SwipeTo.top(state.widgets)
+				is FETCH ->  GlobalAction(ActionType.FetchGUI)
+				is TERMINATE -> GlobalAction(ActionType.Terminate)
+				is LIST_INPUTS -> {
+					println( state.actionableWidgets.mapIndexedNotNull { index, it ->  if(it.isInputField) "[$index]:\t $it" else null }
+						.joinToString(separator = "\n"))
+					null
+				}
+				is LIST ->  {
+					var i=0
+					println( state.actionableWidgets.joinToString(separator = "\n") { "[${i++}]:\t "+it }  )
+					null
+				}
+				else -> throw NotImplementedError("missing case")
 			}
+		}
 
 	// REMARK has to be lazy since createAction is implemented by child classes
-	override val actionOptions: List<TargetTypeI<T, ExplorationAction?>> by lazy { listOf(CLICK(createAction), TEXT_INPUT(createAction),
-			BACK(createAction), RESET(createAction), SCROLL_RIGHT(createAction), SCROLL_LEFT(createAction),
-			SCROLL_UP(createAction), SCROLL_DOWN(createAction), FETCH(createAction), TERMINATE(createAction),
-			LIST_INPUTS(createAction), LIST(createAction), DEBUG(createAction)) }
+	override val actionOptions: List<TargetTypeI<T, ExplorationAction?>> by lazy { listOf(
+		CLICK(createAction),
+		TEXT_INPUT(createAction),
+		BACK(createAction),
+		RESET(createAction),
+		SCROLL_RIGHT(createAction),
+		SCROLL_LEFT(createAction),
+		SCROLL_UP(createAction),
+		SCROLL_DOWN(createAction),
+		FETCH(createAction),
+		TERMINATE(createAction),
+		LIST_INPUTS(createAction),
+		LIST(createAction),
+		DEBUG(createAction)
+	) }
 
 	override val isValid : (input: List<String>, suggested: T?, numCandidates: Int) -> TargetTypeI<T, ExplorationAction?>
 			= { input: List<String>, suggested: T?, numCandidates: Int ->

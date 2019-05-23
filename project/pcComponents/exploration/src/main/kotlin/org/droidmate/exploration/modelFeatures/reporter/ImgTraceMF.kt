@@ -141,7 +141,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 		targetWidgets.forEach{ w: Widget ->
 			paint = shapeColor// reset color for next shape drawing
 
-			stroke = BasicStroke(1F)
+//			stroke = BasicStroke(1F)
 //			w.visibleAreas.forEach { drawRectangle(it) }
 			stroke = BasicStroke(10F)
 			with(w.visibleBounds) {
@@ -149,7 +149,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 				// draw the label number for the element
 				val text = targetCounter[w.id]!!.joinToString(separator = ", ") { if (it.first != 0) "${it.first}.${it.second}" else "${it.second}" }
 				if (text.length > 20) font = Font("TimesRoman", Font.PLAIN, 20)
-				paint = textColor// for better visibility use a different color then the boarder
+				paint = if(w.isInputField) textColor.brighter() else textColor// for better visibility use a different color then the boarder
 				drawString(text, leftX + (width / 10), topY + (height / 10))
 			}
 			font = Font("TimesRoman", Font.PLAIN, textSize) // reset font to bigger font

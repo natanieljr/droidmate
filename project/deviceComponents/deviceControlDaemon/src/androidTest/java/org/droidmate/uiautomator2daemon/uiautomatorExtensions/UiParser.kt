@@ -126,7 +126,7 @@ abstract class UiParser {
 				className = safeCharSeqToString(className),
 				packageName = safeCharSeqToString(packageName),
 				enabled = isEnabled,
-				isInputField = isEditable,
+				isInputField = isEditable || actionList.contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_TEXT),
 				isPassword = isPassword,
 				clickable = isClickable,
 				longClickable = isLongClickable,
