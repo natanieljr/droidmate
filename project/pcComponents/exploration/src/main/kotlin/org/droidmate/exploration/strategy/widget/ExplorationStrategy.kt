@@ -46,7 +46,7 @@ abstract class ExplorationStrategy : AbstractStrategy() {
 	protected fun updateState(): Boolean {
 		if (!eContext.belongsToApp(eContext.getCurrentState())) {
 			if (!eContext.isEmpty()) {
-//                this.eContext.lastTarget.blackListed = true //TODO blacklist missing in current model
+//                this.eContext.lastTarget.blackListed = true //TODO use blacklist model-feature?
 				logger.debug("Blacklisted ${this.eContext.lastTarget}")
 			}
 		}

@@ -170,7 +170,6 @@ open class Playback constructor(private val modelDir: Path) : ExplorationStrateg
 			action.isTerminate() -> terminateApp()
 			action.isQueueStart() -> {
 				// Currently it supports only the launch app queue
-				// TODO Waiting Jenny's playback fix
 				var nextTrace = getNextTraceAction()
 				while(!nextTrace.actionType.isQueueEnd()){
 					nextTrace = getNextTraceAction()

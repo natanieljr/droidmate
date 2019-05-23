@@ -46,7 +46,6 @@ import java.util.*
 import kotlin.math.min
 import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
 import org.droidmate.explorationModel.factory.AbstractModel
-import org.droidmate.explorationModel.factory.ModelProvider
 import org.droidmate.misc.EnvironmentConstants
 import java.nio.file.Paths
 
@@ -57,15 +56,11 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
                                                       val explorationStartTime: LocalDateTime = LocalDateTime.MIN,
                                                       var explorationEndTime: LocalDateTime = LocalDateTime.MIN,
                                                       private val watcher: MutableList<ModelFeatureI> = mutableListOf(),
-                                                      val modelProvider: ModelProvider<M>
+                                                      val model: M
                                                       )
 		where M: AbstractModel<S, W>, S: State<W>, W: Widget {
 
-	val model get() = modelProvider.get()
-	val explorationTrace: ExplorationTrace<S,W>
-	init{
-		explorationTrace = model.initNewTrace(watcher)
-	}
+	val explorationTrace: ExplorationTrace<S,W> = model.initNewTrace(watcher)
 
 	companion object {
 		@JvmStatic
@@ -211,7 +206,6 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
 	val emptyAction by lazy{ Interaction.empty<W>() }
 	/** @returns the name of the last executed action.
 	 * This method should be preferred to [getLastAction] as it does not have to wait for any other co-routines. */
-	@Deprecated("probably no longer used => going to be deleted")
 	fun getLastActionType(): String = explorationTrace.lastActionType
 
 	/**

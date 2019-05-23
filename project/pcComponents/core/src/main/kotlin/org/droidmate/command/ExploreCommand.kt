@@ -242,7 +242,7 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
 		// initialize the config and clear the 'currentModel' from the provider if any
-		modelProvider.initConfig(ModelConfig(appName = app.packageName, cfg = cfg))
+		modelProvider.init(ModelConfig(appName = app.packageName, cfg = cfg))
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
@@ -251,7 +251,7 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 			app, { device.readStatements() },
 			LocalDateTime.now(),
 			watcher = watcher,
-			modelProvider = modelProvider
+			model = modelProvider.get()
 		)
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)

@@ -13,6 +13,7 @@ import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.misc.FailableExploration
 
+@Suppress("unused") //TODO we should have at least a test calling the API methods
 object JavaAPI {
     @JvmStatic
     fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper =
@@ -32,7 +33,7 @@ object JavaAPI {
     @JvmStatic
     @Deprecated("use the new model-provider mechanism",
         replaceWith= ReplaceWith("DefaultModelProvider()","import org.droidmate.explorationModel.factory.DefaultModelProvider"))
-    fun defaultModelProvider(cfg: ConfigurationWrapper) = DefaultModelProvider()
+    fun defaultModelProvider(@Suppress("UNUSED_PARAMETER") cfg: ConfigurationWrapper) = DefaultModelProvider()
 
     @JvmStatic
     @JvmOverloads

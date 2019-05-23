@@ -220,7 +220,7 @@ abstract class UiParser {
 	private fun safeCharSeqToString(cs: CharSequence?): String {
 		return if (cs == null)	""
 		else
-			stripInvalidXMLChars(cs).replace(";", "<semicolon>").replace(Regex("\\r\\n|\\r|\\n"), "<newline>").trim()
+			stripInvalidXMLChars(cs).trim()
 	}
 
 	private fun stripInvalidXMLChars(cs: CharSequence): String {
