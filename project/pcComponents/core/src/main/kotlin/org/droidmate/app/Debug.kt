@@ -39,7 +39,7 @@ object Debug : Logging {
 	private suspend fun manualExploration(cfg: ConfigurationWrapper){
 		val builder = ExploreCommandBuilder(
 			strategies = defaultStrategies.plus(
-				ManualExploration<Int>()
+				ManualExploration<Int>(resetOnStart = !cfg[org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode])
 			).toMutableList(),
 			watcher = mutableListOf(),
 			selectors = mutableListOf(

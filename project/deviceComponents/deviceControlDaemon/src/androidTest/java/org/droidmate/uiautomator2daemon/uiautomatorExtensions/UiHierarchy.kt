@@ -6,7 +6,6 @@ import android.app.UiAutomation
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
-import android.support.test.uiautomator.UiDevice
 import android.support.test.uiautomator.apply
 import android.support.test.uiautomator.processTopDown
 import android.util.Log
@@ -56,24 +55,38 @@ object UiHierarchy : UiParser() {
 	}
 
 
-	suspend fun getXml(device: UiDevice):String = debugT(" fetching gui Dump ", {
+	suspend fun getXml(env: UiAutomationEnvironment):String = debugT(" fetching gui Dump ", {
+		val device = env.device
 		StringWriter().use { out ->
 			device.waitForIdle()
 
-			val serializer = Xml.newSerializer()
-			serializer.setFeature("http://xmlpull.org/v1/doc/modelFeatures.html#indent-output", true)
-			serializer.setOutput(out)//, "UTF-8")
+			val ser = Xml.newSerializer()
+			ser.setOutput(out)//, "UTF-8")
+			ser.startDocument("UTF-8", true)
+			ser.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
-			serializer.startDocument("UTF-8", true)
-			serializer.startTag("", "hierarchy")
-			serializer.attribute("", "rotation", Integer.toString(device.displayRotation))
+			ser.startTag("", "hierarchy")
+			ser.attribute("", "rotation", Integer.toString(device.displayRotation))
 
-			device.apply(nodeDumper(serializer, device.displayWidth, device.displayHeight)
-			) { serializer.endTag("", "node") }
+			ser.startTag("","windows")
+			env.lastWindows.forEach {
+				ser.startTag("","window")
+				ser.addAttribute("windowId",it.w.windowId)
+				ser.addAttribute("windowLayer",it.layer)
+				ser.addAttribute("isExtracted",it.isExtracted())
+				ser.addAttribute("isKeyboard",it.isKeyboard)
+				ser.addAttribute("windowType",it.windowType)
+				ser.addAttribute("boundaries",it.bounds)
+				ser.endTag("","window")
+			}
+			ser.endTag("","windows")
 
-			serializer.endTag("", "hierarchy")
-			serializer.endDocument()
-			serializer.flush()
+			device.apply(nodeDumper(ser, device.displayWidth, device.displayHeight)
+			) { ser.endTag("","node") } // need to set the anding tag in the post processor to have a proper 'tree' representation
+
+			ser.endTag("", "hierarchy")
+			ser.endDocument()
+			ser.flush()
 			out.toString()
 		}
 	}, inMillis = true)

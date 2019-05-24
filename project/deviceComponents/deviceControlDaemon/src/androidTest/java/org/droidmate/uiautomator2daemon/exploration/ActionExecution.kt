@@ -288,16 +288,17 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 	debugOut("compute img pixels",debugFetch)
 	val imgPixels =	getOrStoreImgPixels(img,env)
 
+	var xml: String = "TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
+			", because (currently) we would have to traverse the tree a second time"
+	if(debugEnabled) xml = UiHierarchy.getXml(env)
+
 	env.lastResponse = DeviceResponse.create( isSuccessful = isSuccessful, uiHierarchy = uiHierarchy,
-			uiDump =
-			"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
-					", because (currently) we would have to traverse the tree a second time"
-//									xmlDump
-			, launchedActivity = env.launchedMainActivity,
-			capturedScreen = img != null,
-			screenshot = imgPixels,
-			appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
-			isHomeScreen = windows.isHomeScreen()
+		uiDump = xml,
+		launchedActivity = env.launchedMainActivity,
+		capturedScreen = img != null,
+		screenshot = imgPixels,
+		appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
+		isHomeScreen = windows.isHomeScreen()
 	)
 
 	env.lastResponse

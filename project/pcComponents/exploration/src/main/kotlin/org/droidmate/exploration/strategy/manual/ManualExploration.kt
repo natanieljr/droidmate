@@ -34,6 +34,13 @@ typealias ActionOnly = TargetTypeI<Int, ExplorationAction?>
  */
 open class ManualExploration<T>(private val resetOnStart: Boolean = true) : AbstractStrategy(), StdinCommandI<T,ExplorationAction> {
 	protected val state get() = eContext.getCurrentState()
+	private val cfg get() = eContext.model.config
+	// these properties have to be lazy since eContext is only initialized after the method initialize was called
+	protected open val decisionImgDir: Path by lazy { Paths.get(eContext.cfg[outputDir].toString()) }
+	private val imgFile by lazy { decisionImgDir.resolve("stateImg.jpg").toFile() }
+	/** temporary state image (fetched via adb) for target highlighting. */
+	private val tmpImg by lazy { Paths.get(decisionImgDir.resolve("deviceImg.png").toString()) }
+	private val debugXmlFile by lazy { decisionImgDir.resolve("state.xml").toFile() }
 
 	//			(command: ActionOnly, w: Widget?, candidate: Int?, input: List<String>)->ExplorationAction?
 	override val createAction:CandidateCreator<T, ExplorationAction?> 	=
@@ -41,6 +48,7 @@ open class ManualExploration<T>(private val resetOnStart: Boolean = true) : Abst
 			val lIdx = if(!cmd.requiresWidget()) labelIdx -1 else labelIdx
 			when(cmd){
 				is DEBUG -> {
+					debugXmlFile.writeText(eContext.lastDump)
 					@Suppress("UNUSED_VARIABLE")
 					val widgets = state.widgets
 					w?.let{
@@ -97,14 +105,6 @@ open class ManualExploration<T>(private val resetOnStart: Boolean = true) : Abst
 			= { input: List<String>, suggested: T?, numCandidates: Int ->
 		ActionOnly.isValid(false,input,suggested, createAction,	actionOptions, numCandidates)
 	}
-
-
-	private val cfg get() = eContext.model.config
-	// these properties have to be lazy since eContext is only initialized after the method initialize was called
-	protected open val decisionImgDir: Path by lazy { Paths.get(eContext.cfg[outputDir].toString()) }
-	private val imgFile by lazy { decisionImgDir.resolve("stateImg.jpg").toFile() }
-	/** temporary state image (fetched via adb) for target highlighting. */
-	private val tmpImg by lazy { Paths.get(decisionImgDir.resolve("deviceImg.png").toString()) }
 
 	override fun initialize(memory: ExplorationContext<*,*,*>) {
 		super.initialize(memory)

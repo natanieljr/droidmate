@@ -81,8 +81,6 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
 	}
 
 	val crashlist: CrashListMF by lazy { getOrCreateWatcher<CrashListMF>() }
-	val exceptionIsPresent: Boolean
-		get() = exceptions.isNotEmpty()
 
 	var exceptions: MutableList<Throwable> = ArrayList(10)  // expected to be very small and according to google guidelines java arraylist is on average more efficient then LinkedList
 	/** for debugging purpose only contains the last UiAutomator dump */
