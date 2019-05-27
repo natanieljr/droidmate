@@ -39,7 +39,7 @@ class WidgetSeenClickedCountMF(reportDir: Path,
 
     override val coroutineContext: CoroutineContext = CoroutineName("WidgetApiTraceMF")
 
-    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path) {
         val dataTable = WidgetSeenClickedTable(context)
 
         val reportPath = apkReportDir.resolve(fileName)

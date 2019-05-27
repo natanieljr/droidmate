@@ -37,9 +37,12 @@ import org.droidmate.configuration.ConfigurationBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
 import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
-import org.droidmate.explorationModel.Model
-import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.ModelFeatureI
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.factory.DefaultModelProvider
+import org.droidmate.explorationModel.factory.ModelProvider
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.misc.FailableExploration
 import org.slf4j.LoggerFactory
 import java.nio.file.FileSystems
@@ -58,13 +61,13 @@ object ExplorationAPI {
 		val cfg = setup(args)
 
 		if (cfg[ConfigProperties.ExecutionMode.coverage])
-            ExplorationAPI.instrument(cfg)
+            instrument(cfg)
 
 		if (cfg[ConfigProperties.ExecutionMode.inline])
-            ExplorationAPI.inline(cfg)
+            inline(cfg)
 
 		if (cfg[ConfigProperties.ExecutionMode.explore])
-            ExplorationAPI.explore(cfg)
+            explore(cfg, modelProvider = DefaultModelProvider())
 
 		if ( !cfg[ConfigProperties.ExecutionMode.explore] &&
 				!cfg[ConfigProperties.ExecutionMode.inline] &&
@@ -89,8 +92,9 @@ object ExplorationAPI {
 	fun buildFromConfig(cfg: ConfigurationWrapper) = ExploreCommandBuilder.fromConfig(cfg)
 
 	@JvmStatic
-	fun defaultModelProvider(cfg: ConfigurationWrapper): ((String) -> Model)
-			= { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))}
+	@Deprecated("use the new model-provider mechanism",
+		replaceWith= ReplaceWith("DefaultModelProvider()","import org.droidmate.explorationModel.factory.DefaultModelProvider"))
+	fun defaultModelProvider(cfg: ConfigurationWrapper) = DefaultModelProvider()
 
 
 	/****************************** Apk-Instrument (Coverage) API methods *****************************/
@@ -98,7 +102,7 @@ object ExplorationAPI {
 	@JvmStatic
 	@JvmOverloads
 	suspend fun instrument(args: Array<String> = emptyArray()) = coroutineScope{
-        ExplorationAPI.instrument(setup(args))
+        instrument(setup(args))
 	}
 
 	@JvmStatic
@@ -110,25 +114,28 @@ object ExplorationAPI {
 	/****************************** Exploration API methods *****************************/
 	@JvmStatic
 	@JvmOverloads
-	suspend fun explore(args: Array<String> = emptyArray(),
+	suspend fun<M:AbstractModel<S,W>,S: State<W>,W: Widget> explore(args: Array<String> = emptyArray(),
 						commandBuilder: ExploreCommandBuilder? = null,
 						watcher: List<ModelFeatureI>? = null,
-                        modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> {
-		return ExplorationAPI.explore(setup(args), commandBuilder, watcher, modelProvider)
-	}
+                        modelProvider: ModelProvider<M>? = null): Map<Apk, FailableExploration> =
+			explore(setup(args), commandBuilder, watcher, modelProvider)
 
 	@JvmStatic
 	@JvmOverloads
-	suspend fun explore(cfg: ConfigurationWrapper,
-						commandBuilder: ExploreCommandBuilder? = null,
-                        watcher: List<ModelFeatureI>? = null,
-                        modelProvider: ((String) -> Model)? = null): Map<Apk, FailableExploration> = coroutineScope {
+	suspend fun<M:AbstractModel<S,W>, S: State<W>,W: Widget> explore(cfg: ConfigurationWrapper,
+	                                                                 commandBuilder: ExploreCommandBuilder? = null,
+	                                                                 watcher: List<ModelFeatureI>? = null,
+	                                                                 modelProvider: ModelProvider<M>? = null): Map<Apk, FailableExploration> = coroutineScope {
 		val runStart = Date()
 
 		val builder = commandBuilder ?: ExploreCommandBuilder.fromConfig(cfg)
-		val exploration = builder.build(cfg,
+		val exploration = modelProvider?.let{
+			builder.build(cfg,
 			watcher = watcher ?: defaultReporter(cfg),
-			modelProvider = modelProvider ?: defaultModelProvider(cfg) )
+			modelProvider = it )
+		} ?: builder.build(cfg,
+			watcher = watcher ?: defaultReporter(cfg),
+			modelProvider = DefaultModelProvider() )
 
 		log.info("EXPLORATION start timestamp: $runStart")
 		log.info("Running in Android $cfg.androidApi compatibility mode (api23+ = version 6.0 or newer).")
@@ -141,7 +148,7 @@ object ExplorationAPI {
 	@JvmOverloads
 	suspend fun inline(args: Array<String> = emptyArray()) {
 		val cfg = setup(args)
-        ExplorationAPI.inline(cfg)
+        inline(cfg)
 	}
 
 	@JvmStatic
@@ -162,6 +169,6 @@ object ExplorationAPI {
 		val cfg = setup(args)
 		Instrumentation.inline(cfg)
 
-		ExplorationAPI.explore(cfg, commandBuilder, watcher)
+		explore(cfg, commandBuilder, watcher, modelProvider = DefaultModelProvider())
 	}
 }

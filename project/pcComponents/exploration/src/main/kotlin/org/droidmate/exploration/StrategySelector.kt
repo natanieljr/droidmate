@@ -35,14 +35,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-typealias SelectorFunction = suspend (context: ExplorationContext, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>) -> ISelectableExplorationStrategy?
-typealias OnSelected = (context: ExplorationContext) -> Unit
+typealias SelectorFunction = suspend (context: ExplorationContext<*,*,*>, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>) -> ISelectableExplorationStrategy?
+typealias OnSelected = (context: ExplorationContext<*,*,*>) -> Unit
 
-class StrategySelector constructor(val priority: Int,
-                                   val description: String,
-                                   val selector: SelectorFunction,
-                                   val bundle: Array<Any> = emptyArray(),
-								   val onSelected: OnSelected? = null){
+class StrategySelector(
+	val priority: Int,
+	val description: String,
+	val selector: SelectorFunction,
+	val onSelected: OnSelected? = null,
+	val bundle: Array<Any> = emptyArray()
+){
 	override fun toString(): String {
 		return "($priority)-$description"
 	}
@@ -59,12 +61,12 @@ class StrategySelector constructor(val priority: Int,
 		@JvmOverloads
 		fun from(priority: Int,
 				 description: String,
-				 function: (context: ExplorationContext, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?,
+				 function: (context: ExplorationContext<*,*,*>, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?,
 				 bundle: Array<Any> = emptyArray()): StrategySelector = StrategySelector(
 			priority,
 			description,
 			{ context, pool, data -> function(context, pool, data) },
-			bundle
+			bundle = bundle
 		)
 
 		/**

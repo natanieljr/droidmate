@@ -35,7 +35,7 @@ class ActionTraceMF(reportDir: Path, resourceDir: Path, private val fileName: St
 
     override val coroutineContext: CoroutineContext = CoroutineName("ActionTraceMF")
 
-    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path) {
         val sb = StringBuilder()
         val header = "actionNr\tType\tdecisionTime\tscreenshot\n"
         sb.append(header)

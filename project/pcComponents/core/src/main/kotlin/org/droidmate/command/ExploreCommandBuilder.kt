@@ -9,23 +9,8 @@ import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.SelectorFunction
 import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.modelFeatures.reporter.ActionTraceMF
-import org.droidmate.exploration.modelFeatures.reporter.ActivitySeenSummaryMF
-import org.droidmate.exploration.modelFeatures.reporter.AggregateStats
-import org.droidmate.exploration.modelFeatures.reporter.ApiActionTraceMF
-import org.droidmate.exploration.modelFeatures.reporter.ApiCountMF
-import org.droidmate.exploration.modelFeatures.reporter.ApkViewsFileMF
-import org.droidmate.exploration.modelFeatures.reporter.ClickFrequencyMF
-import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
-import org.droidmate.exploration.modelFeatures.reporter.Summary
-import org.droidmate.exploration.modelFeatures.reporter.VisualizationGraphMF
-import org.droidmate.exploration.modelFeatures.reporter.WidgetApiTraceMF
-import org.droidmate.exploration.strategy.Back
-import org.droidmate.exploration.strategy.ExplorationStrategyPool
-import org.droidmate.exploration.strategy.IExplorationStrategy
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.Reset
-import org.droidmate.exploration.strategy.Terminate
+import org.droidmate.exploration.modelFeatures.reporter.*
+import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.others.MinimizeMaximize
 import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
@@ -33,9 +18,11 @@ import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.DFS
 import org.droidmate.exploration.strategy.widget.DenyRuntimePermission
 import org.droidmate.exploration.strategy.widget.RandomWidget
-import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.ModelFeatureI
-import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.factory.ModelProvider
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.tools.ApksProvider
 import org.droidmate.tools.DeviceTools
 import org.droidmate.tools.IDeviceTools
@@ -161,7 +148,12 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterTime(seconds: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "timeBasedTerminate", StrategySelector.timeBasedTerminate, arrayOf(seconds)))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "timeBasedTerminate",
+            StrategySelector.timeBasedTerminate,
+            bundle = arrayOf(seconds)
+        ))
         return this
     }
 
@@ -170,12 +162,21 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterActions(actionLimit: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "actionBasedTerminate", StrategySelector.actionBasedTerminate, arrayOf(actionLimit)))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "actionBasedTerminate",
+            StrategySelector.actionBasedTerminate,
+            bundle = arrayOf(actionLimit)
+        ))
         return this
     }
 
     fun terminateIfAllExplored(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "explorationExhausted", StrategySelector.explorationExhausted))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "explorationExhausted",
+            StrategySelector.explorationExhausted
+        ))
         return this
     }
 
@@ -194,12 +195,21 @@ open class ExploreCommandBuilder(
     }
 
     fun resetOnIntervals(actionInterval: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "intervalReset", StrategySelector.intervalReset, arrayOf(actionInterval)))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "intervalReset",
+            StrategySelector.intervalReset,
+            bundle = arrayOf(actionInterval)
+        ))
         return this
     }
 
     fun startWithReset(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "startExplorationReset", StrategySelector.startExplorationReset))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "startExplorationReset",
+            StrategySelector.startExplorationReset
+        ))
         return this
     }
 
@@ -223,7 +233,12 @@ open class ExploreCommandBuilder(
     }
 
     fun randomBack(probability: Double, randomSeed: Long): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "randomBack", StrategySelector.randomBack, arrayOf(probability, Random(randomSeed))))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "randomBack",
+            StrategySelector.randomBack,
+            bundle = arrayOf(probability, Random(randomSeed))
+        ))
         return this
     }
 
@@ -353,7 +368,11 @@ open class ExploreCommandBuilder(
     }
 
     fun collectStatementCoverage(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "statementCoverageSync", StrategySelector.statementCoverage))
+        selectors.add(StrategySelector(
+            getNextSelectorPriority(),
+            "statementCoverageSync",
+            StrategySelector.statementCoverage
+        ))
         return this
     }
 
@@ -384,7 +403,7 @@ open class ExploreCommandBuilder(
     ): ExploreCommandBuilder {
         val priority = selectors.maxBy { it.priority }?.priority ?: selectors.size
 
-        selectors.add(StrategySelector(priority + 1, newDescription, newSelector, bundle))
+        selectors.add(StrategySelector(priority + 1, newDescription, newSelector, bundle = bundle))
 
         return this
     }
@@ -399,7 +418,7 @@ open class ExploreCommandBuilder(
         val targetPriority = selectors.firstOrNull { it.selector == oldSelector }?.priority
 
         if (targetPriority != null) {
-            selectors.add(StrategySelector(targetPriority - 1, newDescription, newSelector, bundle))
+            selectors.add(StrategySelector(targetPriority - 1, newDescription, newSelector, bundle = bundle))
         } else {
             append(newDescription, newSelector, bundle)
         }
@@ -408,18 +427,16 @@ open class ExploreCommandBuilder(
     }
 
     @JvmOverloads
-    fun build(cfg: ConfigurationWrapper,
+    fun<M:AbstractModel<S,W>,S: State<W>,W: Widget> build(cfg: ConfigurationWrapper,
               deviceTools: IDeviceTools = DeviceTools(cfg),
-              strategyProvider: (ExplorationContext) -> IExplorationStrategy = { ExplorationStrategyPool(this.strategies, this.selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
+              strategyProvider: (ExplorationContext<*,*,*>) -> IExplorationStrategy = { ExplorationStrategyPool(this.strategies, this.selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
               watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
-              modelProvider: (String) -> Model = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))} ): ExploreCommand {
+              modelProvider: ModelProvider<M> ): ExploreCommand<M, S, W> {
         val apksProvider = ApksProvider(deviceTools.aapt)
 
         this.watcher.addAll(watcher)
 
-        val command = ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+        return ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
             strategyProvider, modelProvider, this.watcher)
-
-        return command
     }
 }

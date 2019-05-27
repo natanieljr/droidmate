@@ -34,26 +34,10 @@ import org.droidmate.configuration.ConfigProperties.Exploration.deviceIndex
 import org.droidmate.configuration.ConfigProperties.Exploration.deviceSerialNumber
 import org.droidmate.configuration.ConfigProperties.Exploration.runOnNotInlined
 import org.droidmate.configuration.ConfigProperties.Output.reportDir
-import org.droidmate.configuration.ConfigProperties.Report.includePlots
-import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
-import org.droidmate.configuration.ConfigProperties.Selectors
-import org.droidmate.configuration.ConfigProperties.Selectors.playbackModelDir
-import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbability
-import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
-import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
-import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
-import org.droidmate.configuration.ConfigProperties.Strategies.allowRuntimeDialog
-import org.droidmate.configuration.ConfigProperties.Strategies
-import org.droidmate.configuration.ConfigProperties.Strategies.Parameters.uiRotation
-import org.droidmate.configuration.ConfigProperties.Strategies.denyRuntimeDialog
-import org.droidmate.configuration.ConfigProperties.Strategies.explore
-import org.droidmate.configuration.ConfigProperties.Strategies.minimizeMaximize
-import org.droidmate.configuration.ConfigProperties.Strategies.playback
-import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
-import org.droidmate.device.android_sdk.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.IExplorableAndroidDevice
-import org.droidmate.exploration.ExplorationContext
+import org.droidmate.device.android_sdk.Apk
+import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.deviceInterface.IRobustDevice
 import org.droidmate.device.error.DeviceException
 import org.droidmate.device.error.DeviceExceptionMissing
@@ -62,38 +46,41 @@ import org.droidmate.device.execute
 import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
 import org.droidmate.deviceInterface.exploration.*
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.resetApp
 import org.droidmate.exploration.modelFeatures.ModelFeature
-import org.droidmate.exploration.modelFeatures.reporter.*
-import org.droidmate.explorationModel.interaction.ActionResult
-import org.droidmate.explorationModel.Model
-import org.droidmate.explorationModel.config.ModelConfig
-import org.droidmate.exploration.strategy.*
+import org.droidmate.exploration.strategy.IExplorationStrategy
 import org.droidmate.explorationModel.ModelFeatureI
-import org.droidmate.logging.Markers
-import org.droidmate.misc.*
-import org.droidmate.tools.*
-import org.droidmate.explorationModel.interaction.EmptyActionResult
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
+import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.debugT
-import org.droidmate.exploration.modelFeatures.reporter.AggregateStats
-import org.droidmate.exploration.modelFeatures.reporter.Summary
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.factory.ModelProvider
+import org.droidmate.explorationModel.interaction.ActionResult
+import org.droidmate.explorationModel.interaction.EmptyActionResult
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
+import org.droidmate.logging.Markers
+import org.droidmate.misc.EnvironmentConstants
+import org.droidmate.misc.FailableExploration
+import org.droidmate.misc.deleteDir
+import org.droidmate.tools.IAndroidDeviceDeployer
+import org.droidmate.tools.IApkDeployer
+import org.droidmate.tools.IApksProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.lang.RuntimeException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
-import java.util.*
 
-open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
+open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapper,
                                       private val apksProvider: IApksProvider,
                                       private val deviceDeployer: IAndroidDeviceDeployer,
                                       private val apkDeployer: IApkDeployer,
-                                      private val strategyProvider: (ExplorationContext) -> IExplorationStrategy,
-                                      private var modelProvider: (String) -> Model,
-									  val watcher: MutableList<ModelFeatureI> = mutableListOf()) {
+                                      private val strategyProvider: (ExplorationContext<M,S,W>) -> IExplorationStrategy,
+                                      private var modelProvider: ModelProvider<M>,
+									  val watcher: MutableList<ModelFeatureI> = mutableListOf()) where M: AbstractModel<S, W>, S: State<W>, W: Widget {
 	companion object {
 		@JvmStatic
 		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
@@ -202,7 +189,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		return explorationLoop(app, device)
 	}
 
-	private suspend fun ExplorationContext.verify() {
+	private suspend fun ExplorationContext<M,S,W>.verify() {
 		try {
 			assert(this.explorationTrace.size > 0) { "Exploration trace should not be empty" }
 			assert(this.explorationStartTime > LocalDateTime.MIN) { "Start date/time not set for exploration" }
@@ -222,7 +209,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		}
 	}
 
-	private fun ExplorationContext.assertLogsAreSortedByTime() {
+	private fun ExplorationContext<M,S,W>.assertLogsAreSortedByTime() {
 		val apiLogs = explorationTrace.getActions()
 				.mapQueueToSingleElement()
 				.flatMap { deviceLog -> deviceLog.deviceLogs.map { ApiLogcatMessage.from(it) } }
@@ -233,7 +220,7 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 		assert(ret)
 	}
 
-	private suspend fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice, eContext: ExplorationContext) = withTimeoutOrNull(10000){
+	private suspend fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice, eContext: ExplorationContext<M,S,W>) = withTimeoutOrNull(10000){
 		debugT("image transfer should take no time on main thread", {
 			eContext.imgTransfer.launch {
 				// pull the image from device, store it in the image directory defined in ModelConfig and remove it on device
@@ -254,10 +241,18 @@ open class ExploreCommand constructor(private val cfg: ConfigurationWrapper,
 	private suspend fun explorationLoop(app: IApk, device: IRobustDevice): FailableExploration {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
+		// initialize the config and clear the 'currentModel' from the provider if any
+		modelProvider.init(ModelConfig(appName = app.packageName, cfg = cfg))
 		// Use the received exploration eContext (if any) otherwise construct the object that
 		// will hold the exploration output and that will be returned from this method.
 		// Note that a different eContext is created for each exploration if none it provider
-		val explorationContext = ExplorationContext(cfg, app, { device.readStatements() }, LocalDateTime.now(), watcher = watcher, model = modelProvider(app.packageName))
+		val explorationContext = ExplorationContext(
+			cfg,
+			app, { device.readStatements() },
+			LocalDateTime.now(),
+			watcher = watcher,
+			model = modelProvider.get()
+		)
 
 		log.debug("Exploration start time: " + explorationContext.explorationStartTime)
 

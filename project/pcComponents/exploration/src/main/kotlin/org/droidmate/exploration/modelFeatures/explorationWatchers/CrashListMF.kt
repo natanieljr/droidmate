@@ -37,9 +37,9 @@ import kotlin.coroutines.CoroutineContext
 class CrashListMF : WidgetCountingMF() {
 	override val coroutineContext: CoroutineContext = CoroutineName("CrashListMF")+ Job()
 
-	private val crashes: MutableMap<Interaction, String> = mutableMapOf()
+	private val crashes: MutableMap<Interaction<*>, String> = mutableMapOf()
 
-	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
+	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction<*>>, prevState: State<*>, newState: State<*>) {
 		val actionData = interactions.firstEntry()
 
 		if (newState.isAppHasStoppedDialogBox) {
@@ -50,7 +50,7 @@ class CrashListMF : WidgetCountingMF() {
 	}
 
 
-	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+	override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
 		join() // wait that all updates are applied before changing the counter value
 		val out = StringBuffer()
 		out.appendln(header)

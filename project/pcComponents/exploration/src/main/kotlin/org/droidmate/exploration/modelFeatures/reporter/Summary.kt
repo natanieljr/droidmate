@@ -38,14 +38,14 @@ class Summary @JvmOverloads constructor(reportDir: Path, resourceDir: Path, val 
 
 	override val coroutineContext: CoroutineContext = CoroutineName("AggregateStatsMF")
 
-    override fun safeWrite(eContexts: List<ExplorationContext>) {
+    override fun safeWrite(eContexts: List<ExplorationContext<*,*,*>>) {
 		val file = reportDir.resolve(this.fileName)
 
 		val reportData = if (eContexts.isEmpty())
 			"Exploration output was empty (no apks), so this summary is empty."
 		else
 			Resource("apk_exploration_summary_header.txt").getTextFromExtractedResource(resourceDir) +
-					eContexts.joinToString(separator = System.lineSeparator()) { it ->
+					eContexts.joinToString(separator = System.lineSeparator()) {
 						ApkSummary.build(it)
 					}
 

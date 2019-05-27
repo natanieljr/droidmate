@@ -33,4 +33,4 @@ data class Failable<out TResult , out TException> (val result: TResult?, val err
 	}
 }
 
-typealias FailableExploration = Failable<ExplorationContext, List<Throwable>>
+typealias FailableExploration = Failable<ExplorationContext<*,*,*>, List<Throwable>>

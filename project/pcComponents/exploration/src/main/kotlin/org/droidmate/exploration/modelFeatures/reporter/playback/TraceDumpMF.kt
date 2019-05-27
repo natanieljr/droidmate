@@ -11,7 +11,7 @@ class TraceDump @JvmOverloads constructor(reportDir: Path,
                                           resourceDir: Path,
                                           playbackStrategy: Playback,
                                           fileName: String = "dump.txt") : PlaybackReportMF(reportDir, resourceDir, playbackStrategy, fileName) {
-    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path) {
 //		val reportSubDir = getPlaybackReportDir(apkReportDir)
 
         val sb = StringBuilder()

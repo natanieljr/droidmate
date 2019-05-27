@@ -33,7 +33,7 @@ import java.util.*
 
 class ApiCountTable : CountsPartitionedByTimeTable {
 
-	constructor(data: ExplorationContext) : super(
+	constructor(data: ExplorationContext<*,*,*>) : super(
 			data.getExplorationTimeInMs(),
 			listOf(
 					headerTime,
@@ -54,9 +54,9 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 
 		/** the collection of Apis triggered , grouped based on the apis timestamp
 		 * Map<time, List<(action,api)>> is for each timestamp the list of the triggered action with the observed api*/
-		private val ExplorationContext.apisByTime
+		private val ExplorationContext<*,*,*>.apisByTime
 			get() =
-				LinkedList<Pair<Interaction, IApiLogcatMessage>>().apply {
+				LinkedList<Pair<Interaction<*>, IApiLogcatMessage>>().apply {
 					// create a list of (widget.id,IApiLogcatMessage)
 					explorationTrace.getActions().forEach { action ->
 						// collect all apiLogs over the whole trace
@@ -65,12 +65,12 @@ class ApiCountTable : CountsPartitionedByTimeTable {
 				}.groupBy { (_, api) -> Duration.between(explorationStartTime, api.time).toMillis() } // group them by their start time (i.e. how may milli seconds elapsed since exploration start)
 
 		/** map of seconds elapsed during app exploration until the api was called To the set of api calls (their unique string) **/
-		private val ExplorationContext.uniqueApisCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext<*,*,*>.uniqueApisCountByTime: Map<Long, Iterable<String>>
 			get() = apisByTime.mapValues { it.value.map { (_, api) -> api.uniqueString } }   // instead of the whole IApiLogcatMessage only keep the unique string for the Api
 
 
 		/** map of seconds elapsed during app exploration until the api was triggered To  **/
-		private val ExplorationContext.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
+		private val ExplorationContext<*,*,*>.uniqueEventApiPairsCountByTime: Map<Long, Iterable<String>>
 			get() = apisByTime.mapValues { it.value.map { (action, api) -> "${action.actionString()}_${api.uniqueString}" } }
 	}
 }

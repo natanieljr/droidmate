@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import org.droidmate.deviceInterface.exploration.Rectangle
+import org.xmlpull.v1.XmlSerializer
 import java.nio.ByteBuffer
 import java.util.*
 import kotlin.math.abs
@@ -120,4 +121,58 @@ var debugEnabled = true
 fun debugOut(msg: String, enabled: Boolean = true){
 	@Suppress("ConstantConditionIf")
 	if(debugEnabled && enabled) Log.i("droidmate/uiad/DEBUG", msg)
+}
+
+fun XmlSerializer.addAttribute(name: String, value: Any?){
+	val valueString = when (value){
+		null -> "null"
+		is Int -> Integer.toString(value)
+		is Boolean -> java.lang.Boolean.toString(value)
+		else -> safeCharSeqToString(value.toString().replace("<","&lt").replace(">","&gt"))
+	}
+	try {
+		attribute("", name, valueString)
+	} catch (e: Throwable) {
+		throw java.lang.RuntimeException("'$name':'$value' contains illegal characters")
+	}
+}
+
+fun safeCharSeqToString(cs: CharSequence?): String {
+	return if (cs == null)	""
+	else
+		stripInvalidXMLChars(cs).trim()
+}
+
+private fun stripInvalidXMLChars(cs: CharSequence): String {
+	val ret = StringBuffer()
+	var ch: Char
+	/* http://www.w3.org/TR/xml11/#charsets
+			[#x1-#x8], [#xB-#xC], [#xE-#x1F], [#x7F-#x84], [#x86-#x9F], [#xFDD0-#xFDDF],
+			[#x1FFFE-#x1FFFF], [#x2FFFE-#x2FFFF], [#x3FFFE-#x3FFFF],
+			[#x4FFFE-#x4FFFF], [#x5FFFE-#x5FFFF], [#x6FFFE-#x6FFFF],
+			[#x7FFFE-#x7FFFF], [#x8FFFE-#x8FFFF], [#x9FFFE-#x9FFFF],
+			[#xAFFFE-#xAFFFF], [#xBFFFE-#xBFFFF], [#xCFFFE-#xCFFFF],
+			[#xDFFFE-#xDFFFF], [#xEFFFE-#xEFFFF], [#xFFFFE-#xFFFFF],
+			[#x10FFFE-#x10FFFF].
+			 */
+	for (i in 0 until cs.length) {
+		ch = cs[i]
+
+		if (ch.toInt() in 0x1..0x8 || ch.toInt() in 0xB..0xC || ch.toInt() in 0xE..0x1F ||
+			ch.toInt() == 0x14 ||
+			ch.toInt() in 0x7F..0x84 || ch.toInt() in 0x86..0x9f ||
+			ch.toInt() in 0xFDD0..0xFDDF || ch.toInt() in 0x1FFFE..0x1FFFF ||
+			ch.toInt() in 0x2FFFE..0x2FFFF || ch.toInt() in 0x3FFFE..0x3FFFF ||
+			ch.toInt() in 0x4FFFE..0x4FFFF || ch.toInt() in 0x5FFFE..0x5FFFF ||
+			ch.toInt() in 0x6FFFE..0x6FFFF || ch.toInt() in 0x7FFFE..0x7FFFF ||
+			ch.toInt() in 0x8FFFE..0x8FFFF || ch.toInt() in 0x9FFFE..0x9FFFF ||
+			ch.toInt() in 0xAFFFE..0xAFFFF || ch.toInt() in 0xBFFFE..0xBFFFF ||
+			ch.toInt() in 0xCFFFE..0xCFFFF || ch.toInt() in 0xDFFFE..0xDFFFF ||
+			ch.toInt() in 0xEFFFE..0xEFFFF || ch.toInt() in 0xFFFFE..0xFFFFF ||
+			ch.toInt() in 0x10FFFE..0x10FFFF)
+			ret.append(".")
+		else
+			ret.append(ch)
+	}
+	return ret.toString()
 }

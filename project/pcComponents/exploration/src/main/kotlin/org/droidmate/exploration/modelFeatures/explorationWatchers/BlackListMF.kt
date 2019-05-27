@@ -37,10 +37,10 @@ import kotlin.coroutines.CoroutineContext
 class BlackListMF: WidgetCountingMF() {
 	override val coroutineContext: CoroutineContext = CoroutineName("BlackListMF")
 
-	private var lastActionableState: State? = null
+	private var lastActionableState: State<*>? = null
 
 	/** used to keep track of the last state before we got stuck */
-	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
+	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction<*>>, prevState: State<*>, newState: State<*>) {
 		if(prevState.isHomeScreen || !isStuck(interactions.firstEntry().actionType)) this.lastActionableState = prevState
 	}
 
@@ -54,20 +54,20 @@ class BlackListMF: WidgetCountingMF() {
 	 * on each Reset or Press-Back which was not issued from the HomeScreen we can assume, that our Exploration got stuck
 	 * and blacklist the widget of the action before this one to be not/ less likely explored
 	 */
-	override suspend fun onContextUpdate(context: ExplorationContext) {
+	override suspend fun onContextUpdate(context: ExplorationContext<*, *, *>) {
 		if(lastActionableState != null &&
 			!lastActionableState!!.isHomeScreen && context.lastTarget != null && isStuck(context.getLastActionType()))
 			incCnt(context.lastTarget!!.uid, lastActionableState!!.uid)
 	}
 
-	fun decreaseCounter(context: ExplorationContext){
+	fun decreaseCounter(context: ExplorationContext<*,*,*>){
 		context.lastTarget?.let { lastTarget ->
 			decCnt(lastTarget.uid, lastActionableState!!.uid)
 		}
 	}
 
 
-	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+	override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
 		dump(context.model.config.baseDir.resolve("lastBlacklist.txt"))
 	}
 }

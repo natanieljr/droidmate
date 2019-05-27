@@ -37,6 +37,8 @@ import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.misc.unzip
 import org.droidmate.explorationModel.*
 import org.droidmate.explorationModel.ConcreteId.Companion.fromString
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.factory.Model
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
@@ -80,7 +82,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
      * This is needed to get the correct image for the according [interaction], because the
      * screenshot is taken after the interaction is executed.
      */
-    inner class CInteraction(val interaction: Interaction, val prevInteraction: Interaction?)
+    inner class CInteraction(val interaction: Interaction<*>, val prevInteraction: Interaction<*>?)
 
     /**
      * Edge encapsulates an Interaction object, because the frontend cannot have multiple
@@ -90,7 +92,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
      * In this case there are two Interaction objects which are represented as a single Edge
      * object with two entries in the actionIndexWidgetMap map.
      */
-    inner class Edge(val interaction: Interaction) {
+    inner class Edge(val interaction: Interaction<*>) {
         val indices = HashSet<Int>()
         val id = "${interaction.prevState} -> ${interaction.resState}"
         val actionIndexInteractionMap = HashMap<Int, CInteraction>()
@@ -103,7 +105,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     /**
      * Node encapsulates state and corresponding actionId to map screenshots to states.
      */
-    inner class Node(val state: State, val actionId: Int)
+    inner class Node(val state: State<*>, val actionId: Int)
 
     /**
      * Wrapper object to encapsulate nodes and edges, so that when this object is serialized
@@ -111,8 +113,8 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
      * general information.
      */
     @Suppress("unused")
-    inner class Graph(val states: Set<State>,
-                      edges: List<Pair<Int, Interaction>>,
+    inner class Graph(val states: Set<State<*>>,
+                      edges: List<Pair<Int, Interaction<*>>>,
                       val explorationStartTime: String,
                       val explorationEndTime: String,
                       val numberOfActions: Int,
@@ -415,9 +417,9 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
             }
     }
 
-    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path) {
         context.imgTransfer.coroutineContext[Job]?.children?.forEach { it.join() }
-        createVisualizationGraph(context.model, context.apk, apkReportDir)
+        createVisualizationGraph(model = context.model, apk = context.apk, apkReportDir = apkReportDir)
     }
 
     override fun reset() {
@@ -433,7 +435,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
      * It is zipped because, keeping it as directory in the resources folder and copying a folder
      * from a jar (e.g. when DroidMate is imported as an external application) was troublesome.
      */
-    fun createVisualizationGraph(model: Model, apk: IApk, apkReportDir: Path, ignoreConfig: Boolean = false) {
+    fun createVisualizationGraph(model: AbstractModel<*,*>, apk: IApk, apkReportDir: Path, ignoreConfig: Boolean = false) {
         val targetVisFolder = apkReportDir.resolve(topLevelDirName)
         // Copy the folder with the required resources
         val zippedVisDir = Resource("vis.zip").extractTo(apkReportDir)
@@ -483,7 +485,7 @@ class VisualizationGraphMF(reportDir: Path, resourceDir: Path) : ApkReporterMF(r
     // FIXME it would be better to keep the information of original state configId's for the different actions to display this information
     // for this we have to update an option for the Edge class to include/ignore configId's and change the visualization script
     // to display such information properly (if possible with small images of the alternative config states in the selection view of a state)
-    private fun markTargets(model: Model, imgDir: Path): List<Pair<Int, Interaction>> {
+    private fun markTargets(model: AbstractModel<*,*>, imgDir: Path): List<Pair<Int, Interaction<*>>> {
         val uidMap: MutableMap<UUID, ConcreteId> = HashMap()
         var idx = 0
         var isAQ = false

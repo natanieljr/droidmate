@@ -215,7 +215,8 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			// StatementCoverage
 			CommandLineOption(enableCoverage, description = "If true, the statement coverage of the exploration will be measured. This requires the apk to be instrumented with 'coverage' mode."),
 			CommandLineOption(onlyCoverAppPackageName, description = "Only instrument statement coverage for statements belong inside the app package name scope. Libraries with other package names will be ignored. Be aware that this filtering might not be always correct."),
-			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data.")
+			CommandLineOption(coverageDir, description = "Path to the directory that will contain the coverage data."),
+			CommandLineOption(org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode, description = "enable debug output")
 			).first, fs)
 
 	@Throws(ConfigurationException::class)

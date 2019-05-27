@@ -5,13 +5,15 @@ import kotlinx.coroutines.runBlocking
 import org.droidmate.command.ExploreCommandBuilder
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.Apk
-import org.droidmate.exploration.StrategySelector
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.explorationModel.Model
 import org.droidmate.explorationModel.ModelFeatureI
-import org.droidmate.explorationModel.config.ModelConfig
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.factory.DefaultModelProvider
+import org.droidmate.explorationModel.factory.ModelProvider
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.misc.FailableExploration
 
+@Suppress("unused") //TODO we should have at least a test calling the API methods
 object JavaAPI {
     @JvmStatic
     fun config(args: Array<String>, vararg options: CommandLineOption): ConfigurationWrapper =
@@ -29,8 +31,9 @@ object JavaAPI {
     fun buildFromConfig(cfg: ConfigurationWrapper) = ExploreCommandBuilder.fromConfig(cfg)
 
     @JvmStatic
-    fun defaultModelProvider(cfg: ConfigurationWrapper): ((String) -> Model)
-            = { appName -> Model.emptyModel(ModelConfig(appName, cfg = cfg))}
+    @Deprecated("use the new model-provider mechanism",
+        replaceWith= ReplaceWith("DefaultModelProvider()","import org.droidmate.explorationModel.factory.DefaultModelProvider"))
+    fun defaultModelProvider(@Suppress("UNUSED_PARAMETER") cfg: ConfigurationWrapper) = DefaultModelProvider()
 
     @JvmStatic
     @JvmOverloads
@@ -45,11 +48,11 @@ object JavaAPI {
 
     @JvmStatic
     @JvmOverloads
-    fun explore(
+    fun<M: AbstractModel<S, W>, S: State<W>,W: Widget> explore(
         cfg: ConfigurationWrapper,
         commandBuilder: ExploreCommandBuilder? = null,
         watcher: List<ModelFeatureI>? = null,
-        modelProvider: ((String) -> Model)? = null
+        modelProvider: ModelProvider<M>? = null
     ) = runBlocking {
         ExplorationAPI.explore(cfg, commandBuilder, watcher, modelProvider)
     }

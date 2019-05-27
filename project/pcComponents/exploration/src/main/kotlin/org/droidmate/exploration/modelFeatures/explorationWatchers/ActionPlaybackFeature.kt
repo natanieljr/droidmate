@@ -29,7 +29,9 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
-import org.droidmate.explorationModel.Model
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import java.nio.file.Files
 import kotlin.coroutines.CoroutineContext
 
@@ -37,15 +39,15 @@ import kotlin.coroutines.CoroutineContext
  * This model is used by the playback class to identify actions which could not be replayed.
  * This information is the used for dumping/reporting
  */
-class ActionPlaybackFeature(val storedModel: Model,
-							val skippedActions: MutableSet<Pair<Int,Int>> = HashSet()) : ModelFeature() {
+class ActionPlaybackFeature(val storedModel: AbstractModel<State<Widget>,Widget>,
+                            val skippedActions: MutableSet<Pair<Int,Int>> = HashSet()) : ModelFeature() {
 
 	override val coroutineContext: CoroutineContext = CoroutineName("EventProbabilityMF") + Job()
 	fun addNonReplayableActions(traceIdx: Int, actionIdx: Int){
 		skippedActions.add(Pair(traceIdx, actionIdx))
 	}
 
-	override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+	override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
 		this.join()
 
 		val sb = StringBuilder()

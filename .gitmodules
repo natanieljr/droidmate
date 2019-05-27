@@ -1,6 +1,6 @@
-[submodule "project/pcComponents/explorationModel"]
-	path = project/pcComponents/explorationModel
-	url = https://github.com/Hotzkow/ExplorationModel
+#[submodule "project/pcComponents/explorationModel"]
+#	path = project/pcComponents/explorationModel
+#	url = https://github.com/Hotzkow/ExplorationModel
 [submodule "project/deviceCommonLib/deviceDaemonLib"]
 	path = project/deviceCommonLib/deviceDaemonLib
 	url = https://github.com/Hotzkow/PlatformInterfaceLib
