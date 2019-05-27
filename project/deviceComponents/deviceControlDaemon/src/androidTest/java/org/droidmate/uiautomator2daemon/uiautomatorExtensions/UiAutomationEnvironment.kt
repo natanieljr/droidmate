@@ -110,7 +110,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		val p = Point()
 		(InstrumentationRegistry.getInstrumentation().context.getSystemService(Service.WINDOW_SERVICE) as WindowManager)
 				.defaultDisplay.getSize(p)
-		debugOut("dimensions are $p",false)
+		Log.d(logtag,"dimensions are $p")
 		return DisplayDimension(p.x,p.y)
 	}
 
@@ -136,7 +136,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 			val deviceRoots = device.getWindowRootNodes()
 			val root = deviceRoots.find{ it.windowId == w.id}
 			if(root != null){ // this is usually the case for input methods (i.e. the keyboard window)
-				root.getBoundsInParent(outRect)
+				root.getBoundsInScreen(outRect)
 				// this is necessary since newly appearing keyboards may otherwise take the whole screen and thus screw up our visibility analysis
 				if(root.isKeyboard()) {
 					uncoveredC.firstOrNull()?.let { r ->
@@ -199,12 +199,29 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		val displayDim = getDisplayDimension()
 		val processedWindows = HashMap<Int,DisplayedWindow>() // keep track of already processed windowIds to prevent re-processing when we have to re-fetch windows due to missing accessibility roots
 
-		var windows = automation.getWindows() // visible windows in descending layer order
+
+		var windows: MutableList<AccessibilityWindowInfo> = automation.getWindows() // visible windows in descending layer order
+
+		// Start with the active window, which seems to sometimes be missing from the list returned
+		// by the UiAutomation.
+		// this may fix issue where we sometimes cannot extract the state since no valid window is recognized
+		val activeRoot = automation.getRootInActiveWindow()
+		if (activeRoot != null && windows.none { it.id == activeRoot.windowId }) {
+			activeRoot.refresh()
+			if(activeRoot.window != null) windows.add(0,activeRoot.window)
+		}
+
 		var count = 0
 		while(count++<50 && windows.none { it.type == AccessibilityWindowInfo.TYPE_APPLICATION && it.root != null  }){  // wait until app/home window is available
 			delay(10)
 			windows = automation.getWindows()
 		}
+		// keyboards are always in the front
+		windows.find{ it.root?.isKeyboard() == true }?.let{ kw ->
+			windows.remove(kw)
+			windows.add(0,kw)
+		}
+
 		val uncoveredC = LinkedList<Rect>().apply { add(Rect(0,0,displayDim.width,displayDim.height)) }
 
 		if(lastDisplayDimension == displayDim){

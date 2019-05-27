@@ -106,7 +106,7 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
 
 	fun<S: State<*>> belongsToApp(state: S): Boolean {
 		return state.widgets.any { it.packageName == apk.packageName
-				|| it.packageName == "com.google.android.gms" }  // allow googles internal log-in screen
+				|| it.packageName == "com.google.android.gms" }  // allow google's internal log-in screen
 	}
 
 	suspend fun update(action: ExplorationAction, result: ActionResult) {

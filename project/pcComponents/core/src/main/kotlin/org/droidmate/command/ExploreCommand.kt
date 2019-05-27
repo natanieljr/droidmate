@@ -304,7 +304,8 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 						explorationContext.exceptions.add(exception)
 					}
 
-					assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }
+					//FIXME this should be only an assert in the feature requiring this i.e. the specific model features
+//					assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }
 				} catch (e: Throwable) {  // the decide call of a strategy may issue an exception e.g. when trying to interact on non-actable elements
 					log.error("Exception during exploration\n" +
 							" ${e.localizedMessage}",e)
