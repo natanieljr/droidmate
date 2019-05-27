@@ -14,6 +14,11 @@ project.ext {
 	androidTargetSdkVersion = 25
 	androidCompileSdkVersion = 28
 
+<<<<<<< HEAD
+=======
+	model_version = '1.3.2-RC2'
+	modules_version = '1.3.2-RC0'
+>>>>>>> master
 	// ExplorationModel
 	dmExplorationModel = "com.github.hotzkow:explorationModel:$model_version"
 	// ExplorationModel
