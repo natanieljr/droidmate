@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
+import android.support.test.uiautomator.getBounds
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.isActive
@@ -179,7 +180,7 @@ abstract class UiParser {
 	*/
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
-			{ ser: XmlSerializer, _: Int, _: Int ->
+			{ ser: XmlSerializer, width: Int, height: Int ->
 				{ node: AccessibilityNodeInfo, index: Int, _ ->
 					val nodeRect = Rect()
 					node.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
@@ -194,6 +195,8 @@ abstract class UiParser {
 					ser.addAttribute("class", node.className)
 					ser.addAttribute("package", node.packageName)
 					ser.addAttribute("content-desc", node.contentDescription)
+					ser.addAttribute("LabeledBy", node.labeledBy
+						?.let{ "it.text bounds: ${it.getBounds(width,height).toShortString()}" }?:"")
 
 					ser.startTag("","action-types")
 					ser.addAttribute("actionList", node.actionList)

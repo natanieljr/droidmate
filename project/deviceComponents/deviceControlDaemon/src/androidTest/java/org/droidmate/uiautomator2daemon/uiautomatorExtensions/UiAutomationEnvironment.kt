@@ -19,6 +19,7 @@ import android.support.test.uiautomator.UiDevice
 import android.support.test.uiautomator.getBounds
 import android.support.test.uiautomator.getWindowRootNodes
 import android.util.Log
+import android.view.KeyEvent
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
@@ -89,6 +90,8 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		if(!imgDir.exists()) imgDir.mkdirs()
 
 		try {
+			// wake up the device in order to have (non-black) screenshots
+			device.pressKeyCode(KeyEvent.KEYCODE_WAKEUP)
 			// Orientation is set initially to natural, however can be changed by action
 			device.setOrientationNatural()
 			device.freezeRotation()
@@ -109,8 +112,8 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 		debugOut("get display dimension",false)
 		val p = Point()
 		(InstrumentationRegistry.getInstrumentation().context.getSystemService(Service.WINDOW_SERVICE) as WindowManager)
-				.defaultDisplay.getSize(p)
-		Log.d(logtag,"dimensions are $p")
+				.defaultDisplay.getRealSize(p)
+		if(debugEnabled) Log.d(logtag,"dimensions are $p")
 		return DisplayDimension(p.x,p.y)
 	}
 
@@ -173,7 +176,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 			if(!it) 		debugOut("extracted = ${isExtracted()}; newW = ${newW.layer}, $b", debug)
 		}
 	}
-	private var lastDisplayDimension = DisplayDimension(0,0)
+	var lastDisplayDimension = DisplayDimension(0,0)
 
 	private fun List<DisplayedWindow>.invalid() = isEmpty()|| none{it.isLauncher||(it.isApp()&& it.isExtracted())}
 	suspend fun getDisplayedWindows(): List<DisplayedWindow> {
