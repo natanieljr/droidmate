@@ -81,7 +81,7 @@ object UiHierarchy : UiParser() {
 			}
 			ser.endTag("","windows")
 
-			device.apply(nodeDumper(ser, device.displayWidth, device.displayHeight)
+			device.apply(nodeDumper(ser, env.lastDisplayDimension.width, env.lastDisplayDimension.height)
 			) { ser.endTag("","node") } // need to set the anding tag in the post processor to have a proper 'tree' representation
 
 			ser.endTag("", "hierarchy")

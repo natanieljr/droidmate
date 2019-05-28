@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
+import android.support.test.uiautomator.getBounds
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.isActive
@@ -43,10 +44,11 @@ abstract class UiParser {
 		val nChildren = node.getChildCount()
 		val idHash= computeIdHash(xPath,w)
 
+		SiblingNodeComparator.initParentBounds(node)
 		//FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
 		val children: List<UiElementProperties?> = (nChildren-1 downTo 0).map { i -> Pair(i,node.getChild(i)) }
 				//REMARK we use drawing order but sometimes there is a transparent layout in front of the elements, probably used by the apps to determine their app area (e.g. amazon), this has to be considered in the [visibleAxis] call for the window area
-				.sortedByDescending { (i,node) -> if(api>=24) node.drawingOrder else i }
+			.sortedWith(SiblingNodeComparator)
 				.map { (i,childNode) ->		// bottom-up strategy, process children first (in drawingOrder) if they exist
 					if(childNode == null) debugOut("ERROR child nodes should never be null")
 					createBottomUp(w, childNode, i, "$xPath/",nodes, img, parentH = idHash).also {
@@ -64,18 +66,19 @@ abstract class UiParser {
 		val nodeRect = Rect()
 		this.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 		val props = LinkedList<String>()
-		val t = Rect()
-		this.getBoundsInParent(t)
+		val boundsInParent = Rect()
+		this.getBoundsInParent(boundsInParent)
 		if(nodeRect.height()<0 || nodeRect.width()<0) { // no idea why this happens but try to correct the width/height by using the second bounds property
-			nodeRect.right = nodeRect.left+t.width()
-			nodeRect.bottom = nodeRect.top+t.height()
+			nodeRect.right = nodeRect.left+boundsInParent.width()
+			nodeRect.bottom = nodeRect.top+boundsInParent.height()
 		}
 
 		props.add("defBounds (l,t,r,b)= $nodeRect")
-		props.add("boundsInParent= $t")
+		props.add("boundsInParent= $boundsInParent")
 		props.add("actionList = ${this.actionList}")
 		if(api>=24)	props.add("drawingOrder = ${this.drawingOrder}")
 		props.add("labelFor = ${this.labelFor}")
+		props.add("labeledBy = ${this.getLabeledBy()}")
 		props.add("liveRegion = ${this.liveRegion}")
 		props.add("windowId = ${this.windowId}")
 
@@ -177,7 +180,7 @@ abstract class UiParser {
 	*/
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
-			{ ser: XmlSerializer, _: Int, _: Int ->
+			{ ser: XmlSerializer, width: Int, height: Int ->
 				{ node: AccessibilityNodeInfo, index: Int, _ ->
 					val nodeRect = Rect()
 					node.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
@@ -192,6 +195,8 @@ abstract class UiParser {
 					ser.addAttribute("class", node.className)
 					ser.addAttribute("package", node.packageName)
 					ser.addAttribute("content-desc", node.contentDescription)
+					ser.addAttribute("LabeledBy", node.labeledBy
+						?.let{ "it.text bounds: ${it.getBounds(width,height).toShortString()}" }?:"")
 
 					ser.startTag("","action-types")
 					ser.addAttribute("actionList", node.actionList)
@@ -206,6 +211,7 @@ abstract class UiParser {
 					ser.addAttribute("long-clickable", node.isLongClickable)
 					ser.addAttribute("isInputField", node.isEditable) // could be useful for custom widget classes to identify input fields
 					ser.addAttribute("password", node.isPassword)
+					ser.addAttribute("selected", node.isSelected)
 					ser.addAttribute("selected", node.isSelected)
 					ser.endTag("","action-types")
 
