@@ -95,7 +95,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 
 	private fun internalGetAndroidDevicesDescriptors(): List<AndroidDeviceDescriptor> {
 		val commandDescription = String
-				.format("Executing adb (Android Debug Bridge) to get the list of available Android (Virtual) Devices.")
+			.format("Executing adb (Android Debug Bridge) to get the list of available Android (Virtual) Devices.")
 
 		val stdStreams: Array<String>
 		try {
@@ -129,21 +129,28 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 
 	@Throws(AdbWrapperException::class)
 	override fun installApk(deviceSerialNumber: String, apkToInstall: Path) {
-		val commandDescription = "Executing adb (Android Debug Bridge) to install ${apkToInstall.fileName} on Android (Virtual) Device."
+		val commandDescription =
+			"Executing adb (Android Debug Bridge) to install ${apkToInstall.fileName} on Android (Virtual) Device."
 
 		try {
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "install", "-r",
-					apkToInstall.toAbsolutePath().toString())
+			val stdStreams = sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "install", "-r",
+				apkToInstall.toAbsolutePath().toString()
+			)
 
 			if (stdStreams[0].contains("[INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES]"))
-				throw AdbWrapperException("Execution of 'adb -s $deviceSerialNumber install -r ${apkToInstall.toAbsolutePath()}' " +
-						"resulted in [INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES] being output to stdout. Thus, no app was actually " +
-						"installed. Likely reason for the problem: you are trying to install a built in Google app that cannot be uninstalled" +
-						"or reinstalled. DroidMate doesn't support such apps.")
+				throw AdbWrapperException(
+					"Execution of 'adb -s $deviceSerialNumber install -r ${apkToInstall.toAbsolutePath()}' " +
+							"resulted in [INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES] being output to stdout. Thus, no app was actually " +
+							"installed. Likely reason for the problem: you are trying to install a built in Google app that cannot be uninstalled" +
+							"or reinstalled. DroidMate doesn't support such apps."
+				)
 
 			if (stdStreams[0].contains("Failure"))
-				throw AdbWrapperException("Execution of 'adb -s $deviceSerialNumber install -r ${apkToInstall.toAbsolutePath()}' " +
-						"resulted in stdout containing 'Failure'. The full stdout:\n$stdStreams[0]")
+				throw AdbWrapperException(
+					"Execution of 'adb -s $deviceSerialNumber install -r ${apkToInstall.toAbsolutePath()}' " +
+							"resulted in stdout containing 'Failure'. The full stdout:\n$stdStreams[0]"
+				)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb install' failed. Oh my.", e)
@@ -162,10 +169,13 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 	override fun uninstallApk(deviceSerialNumber: String, apkPackageName: String, ignoreFailure: Boolean) {
 		try {
 			if (isApkInstalled(deviceSerialNumber, apkPackageName)) {
-				val commandDescription = "Executing adb (Android Debug Bridge) to uninstall $apkPackageName from Android Device with s/n $deviceSerialNumber."
+				val commandDescription =
+					"Executing adb (Android Debug Bridge) to uninstall $apkPackageName from Android Device with s/n $deviceSerialNumber."
 
-				val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s",
-						deviceSerialNumber, "uninstall", apkPackageName)
+				val stdStreams = sysCmdExecutor.execute(
+					commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s",
+					deviceSerialNumber, "uninstall", apkPackageName
+				)
 				removeAdbStartedMsgIfPresent(stdStreams)
 
 				val stdout = stdStreams[0]
@@ -192,12 +202,15 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 		}
 	}
 
-	override fun forceStop(deviceSerialNumber: String, apk: IApk){
-		try{
-			val commandDescription = "Executing adb (Android Debug Bridge) to forcefully stop ${apk.packageName} on android device with s/n $deviceSerialNumber."
+	override fun forceStop(deviceSerialNumber: String, apk: IApk) {
+		try {
+			val commandDescription =
+				"Executing adb (Android Debug Bridge) to forcefully stop ${apk.packageName} on android device with s/n $deviceSerialNumber."
 
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "shell",
-					"am", "force-stop", apk.packageName)
+			sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "shell",
+				"am", "force-stop", apk.packageName
+			)
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb shell am force-stop ' failed. Oh my.", e)
 		}
@@ -207,11 +220,14 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 //    logcat.trace("forwardPort(deviceSerialNumber:$deviceSerialNumber, port:$port)")
 
 		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to forward port $port to android device with s/n $deviceSerialNumber."
+			val commandDescription =
+				"Executing adb (Android Debug Bridge) to forward port $port to android device with s/n $deviceSerialNumber."
 
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "forward",
-					"tcp:$port",
-					"tcp:$port")
+			sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "forward",
+				"tcp:$port",
+				"tcp:$port"
+			)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb forward' failed. Oh my.", e)
@@ -223,11 +239,14 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 		log.debug("reverseForwardPort($deviceSerialNumber, $port)")
 
 		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to reverse-forward port $port to android device with s/n $deviceSerialNumber."
+			val commandDescription =
+				"Executing adb (Android Debug Bridge) to reverse-forward port $port to android device with s/n $deviceSerialNumber."
 
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "reverse",
-					"tcp:$port",
-					"tcp:$port")
+			sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "reverse",
+				"tcp:$port",
+				"tcp:$port"
+			)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb forward' failed. Oh my.", e)
@@ -237,9 +256,18 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 
 	override fun reboot(deviceSerialNumber: String) {
 		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to reboot android device with s/n $deviceSerialNumber."
+			val commandDescription =
+				"Executing adb (Android Debug Bridge) to reboot android device with s/n $deviceSerialNumber."
 
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "reboot")
+			sysCmdExecutor.execute(
+				commandDescription,
+				cfg.adbCommand,
+				"-H",
+				cfg[adbHost],
+				"-s",
+				deviceSerialNumber,
+				"reboot"
+			)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb reboot' failed. Oh my.", e)
@@ -249,11 +277,13 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 	override fun readMessagesFromLogcat(deviceSerialNumber: String, messageTag: String): List<String> {
 
 		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to read from logcat messages tagged: $messageTag"
+			val commandDescription =
+				"Executing adb (Android Debug Bridge) to read from logcat messages tagged: $messageTag"
 
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					/*
+			val stdStreams = sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				/*
 Command line explanation:
 -d      : Dumps the logcat to the screen and exits.
 -b main : Loads the "main" buffer.
@@ -268,12 +298,13 @@ Logcat reference:
 [2] http://developer.android.com/tools/debugging/debugging-log.html#outputFormat
 
 */
-					"logcat", "-d", "-b", "main", "-v", "time", "*:s", messageTag)
+				"logcat", "-d", "-b", "main", "-v", "time", "*:s", messageTag
+			)
 
 			return stdStreams[0]
-					.split(System.lineSeparator())
-					.map { it.trim() }
-					.filter { it.isNotEmpty() }
+				.split(System.lineSeparator())
+				.map { it.trim() }
+				.filter { it.isNotEmpty() }
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException(e)
@@ -284,9 +315,11 @@ Logcat reference:
 		try {
 			val commandDescription = "Executing adb (Android Debug Bridge) to list packages."
 
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"shell", "pm", "list", "packages")
+			val stdStreams = sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				"shell", "pm", "list", "packages"
+			)
 
 			return stdStreams[0]
 
@@ -300,9 +333,11 @@ Logcat reference:
 		try {
 			val commandDescription = "Executing adb (Android Debug Bridge) to list package $packageName."
 
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"shell", "pm", "list", "packages")
+			val stdStreams = sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				"shell", "pm", "list", "packages"
+			)
 
 			return stdStreams[0]
 
@@ -316,9 +351,11 @@ Logcat reference:
 		try {
 			val commandDescription = "Executing adb (Android Debug Bridge) to list processes (ps)."
 
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"shell", "ps")
+			val stdStreams = sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				"shell", "ps"
+			)
 
 			return stdStreams[0]
 
@@ -331,12 +368,20 @@ Logcat reference:
 
 		val commandDescription = "Executing adb (Android Debug Bridge) to clear logcat output."
 
-		sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+		sysCmdExecutor.execute(
+			commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
 			"-s", deviceSerialNumber,
-			"logcat", "-c")
+			"logcat", "-c"
+		)
 	}
 
-	override fun waitForMessagesOnLogcat(deviceSerialNumber: String, messageTag: String, minMessagesCount: Int, waitTimeout: Int, queryDelay: Int): List<String> {
+	override fun waitForMessagesOnLogcat(
+		deviceSerialNumber: String,
+		messageTag: String,
+		minMessagesCount: Int,
+		waitTimeout: Int,
+		queryDelay: Int
+	): List<String> {
 		var readMessages: List<String> = ArrayList()
 
 		try {
@@ -355,13 +400,15 @@ Logcat reference:
 //    logcat.verbose("waitForMessagesOnLogcat loop finished. readMessages.size()=${readMessages.size()}")
 
 		if (readMessages.size < minMessagesCount) {
-			throw AdbWrapperException("Failed waiting for at least $minMessagesCount messages on logcat. " +
-					"actual messages count before timeout: ${readMessages.size},  " +
-					"s/n: $deviceSerialNumber, " +
-					"messageTag: $messageTag, " +
-					"minMessageCount: $minMessagesCount, " +
-					"waitTimeout: $waitTimeout, " +
-					"queryDelay: $queryDelay")
+			throw AdbWrapperException(
+				"Failed waiting for at least $minMessagesCount messages on logcat. " +
+						"actual messages count before timeout: ${readMessages.size},  " +
+						"s/n: $deviceSerialNumber, " +
+						"messageTag: $messageTag, " +
+						"minMessageCount: $minMessagesCount, " +
+						"waitTimeout: $waitTimeout, " +
+						"queryDelay: $queryDelay"
+			)
 
 		}
 
@@ -373,8 +420,10 @@ Logcat reference:
 		try {
 			val commandDescription = "Executing adb (Android Debug Bridge) to kill adb server."
 
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"kill-server")
+			sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				"kill-server"
+			)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb kill-server' failed. Oh my.", e)
@@ -399,8 +448,10 @@ Logcat reference:
 */
 
 			// .inheritIO() causes the command to write out to stdout if it indeed had to start the server.
-			p = ProcessBuilder(Utils.quoteIfIsPathToExecutable(cfg.adbCommand), "-H", cfg[adbHost],
-					"start-server").inheritIO().start()
+			p = ProcessBuilder(
+				Utils.quoteIfIsPathToExecutable(cfg.adbCommand), "-H", cfg[adbHost],
+				"start-server"
+			).inheritIO().start()
 
 			p.waitFor()
 
@@ -422,14 +473,23 @@ Logcat reference:
 		val path = Paths.get(jarFile.toUri())
 		assert(Files.exists(path) && !Files.isDirectory(path))
 
-		val commandDescription = "Executing adb to push ${jarFile.fileName} on Android Device with s/n $deviceSerialNumber."
+		val commandDescription =
+			"Executing adb to push ${jarFile.fileName} on Android Device with s/n $deviceSerialNumber."
 
 		try {
 			// Executed command based on step 4 from:
 			// http://developer.android.com/tools/testing/testing_ui.html#builddeploy
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"push", jarFile.toAbsolutePath().toString(), EnvironmentConstants.AVD_dir_for_temp_files + targetFileName)
+			sysCmdExecutor.execute(
+				commandDescription,
+				cfg.adbCommand,
+				"-H",
+				cfg[adbHost],
+				"-s",
+				deviceSerialNumber,
+				"push",
+				jarFile.toAbsolutePath().toString(),
+				EnvironmentConstants.AVD_dir_for_temp_files + targetFileName
+			)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb push ...' failed. Oh my.", e)
@@ -437,16 +497,19 @@ Logcat reference:
 	}
 
 	override fun removeJar(deviceSerialNumber: String, jarFile: Path) {
-		val commandDescription = "Executing adb to remove ${jarFile.fileName} from Android Device with s/n deviceSerialNumber>"
+		val commandDescription =
+			"Executing adb to remove ${jarFile.fileName} from Android Device with s/n deviceSerialNumber>"
 
 		try {
 			// Executed command based on:
 			// http://forum.xda-developers.com/showthread.php?t=517874
 			//
 			// Hint: to list files to manually check if the file was deleted, use: adb shell ls
-			sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"shell", "rm", EnvironmentConstants.AVD_dir_for_temp_files + jarFile.fileName.toString())
+			sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				"shell", "rm", EnvironmentConstants.AVD_dir_for_temp_files + jarFile.fileName.toString()
+			)
 
 		} catch (e: SysCmdExecutorException) {
 			throw AdbWrapperException("Executing 'adb shell rm ...' failed. Oh my.", e)
@@ -456,30 +519,36 @@ Logcat reference:
 	override fun launchMainActivity(deviceSerialNumber: String, launchableActivityName: String) {
 
 		try {
-			val commandDescription = "Executing adb (Android Debug Bridge) to start main activity on the Android Device."
+			val commandDescription =
+				"Executing adb (Android Debug Bridge) to start main activity on the Android Device."
 
 			// Reference:
 			// http://developer.android.com/tools/help/adb.html#am
-			val stdStreams = sysCmdExecutor.executeWithTimeout(commandDescription, cfg[launchActivityTimeout], cfg.adbCommand,
-					"-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"shell", "am", "start", // start an activity using Activity Manager (am)
-					"-W", // wait for launch to complete
-					"-S", // force stop before starting activity
-					"-a", "android.intent.action.MAIN", // from package android.content.Intent.ACTION_MAIN
-					"-c", "android.intent.category.LAUNCHER", // from package android.content.Intent.CATEGORY_LAUNCHER
-					"-n", launchableActivityName)
+			val stdStreams = sysCmdExecutor.executeWithTimeout(
+				commandDescription, cfg[launchActivityTimeout], cfg.adbCommand,
+				"-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				"shell", "am", "start", // start an activity using Activity Manager (am)
+				"-W", // wait for launch to complete
+				"-S", // force stop before starting activity
+				"-a", "android.intent.action.MAIN", // from package android.content.Intent.ACTION_MAIN
+				"-c", "android.intent.category.LAUNCHER", // from package android.content.Intent.CATEGORY_LAUNCHER
+				"-n", launchableActivityName
+			)
 
 			val stdout = stdStreams[0]
 			val launchMainActivityFailureString = "Error: "
 
 			if (stdout.contains(launchMainActivityFailureString)) {
-				val failureLine = stdout.reader().readLines().filter { line -> line.contains(launchMainActivityFailureString) }
+				val failureLine =
+					stdout.reader().readLines().filter { line -> line.contains(launchMainActivityFailureString) }
 
-				throw AdbWrapperException("AdbWrapper.launchApp successfully executed the underlying adb shell command, " +
-						"but its stdout contains the failure string of: '$launchMainActivityFailureString'. Full line from the command " +
-						"stdout with the failure string:\n" +
-						"$failureLine")
+				throw AdbWrapperException(
+					"AdbWrapper.launchApp successfully executed the underlying adb shell command, " +
+							"but its stdout contains the failure string of: '$launchMainActivityFailureString'. Full line from the command " +
+							"stdout with the failure string:\n" +
+							"$failureLine"
+				)
 			}
 
 		} catch (e: SysCmdExecutorException) {
@@ -495,10 +564,12 @@ Logcat reference:
 			// WISH what about softer alternative of am force-stop ? See http://stackoverflow.com/questions/3117095/stopping-an-android-app-from-console
 			// Reference:
 			// http://stackoverflow.com/questions/3117095/stopping-an-android-app-from-console/3117310#3117310
-			val stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"shell", "pm", "clear", // clear everything associated with a package
-					apkPackageName)
+			val stdStreams = sysCmdExecutor.execute(
+				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				"shell", "pm", "clear", // clear everything associated with a package
+				apkPackageName
+			)
 
 			val stdout = stdStreams[0].trim()
 			val adbClearPackageFailureStdout = "Failed"
@@ -521,9 +592,10 @@ Logcat reference:
 
 	@Throws(AdbWrapperException::class)
 	private fun startUiautomatorDaemonApi23(deviceSerialNumber: String, port: Int) {
-		val commandDescription = "Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
+		val commandDescription =
+			"Executing adb to start UiAutomatorDaemon service on Android Device with s/n $deviceSerialNumber"
 
-		val uiaDaemonCmdLine = 	"-e ${DeviceConstants.uiaDaemonParam_tcpPort} $port " +
+		val uiaDaemonCmdLine = "-e ${DeviceConstants.uiaDaemonParam_tcpPort} $port " +
 				"-e ${DeviceConstants.uiaDaemonParam_waitForIdleTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForIdleTimeout]} " +
 				"-e ${DeviceConstants.uiaDaemonParam_waitForInteractableTimeout} ${cfg[ConfigProperties.UiAutomatorServer.waitForInteractableTimeout]} " +
 				"-e ${DeviceConstants.uiaDaemonParam_enablePrintOuts} ${cfg[ConfigProperties.UiAutomatorServer.enablePrintOuts]} " +
@@ -531,17 +603,20 @@ Logcat reference:
 				"-e ${DeviceConstants.uiaDaemonParam_imgQuality} ${cfg[ConfigProperties.UiAutomatorServer.imgQuality]}"
 
 		val testRunner = DeviceConstants.uia2Daemon_testPackageName + "/" + DeviceConstants.uia2Daemon_testRunner
-		val failureString = "'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
+		val failureString =
+			"'adb shell -s $deviceSerialNumber instrument --user 0 $uiaDaemonCmdLine -w $testRunner' failed. Oh my. "
 
 		try {
-			val stdStreams = this.sysCmdExecutor.executeWithoutTimeout(commandDescription, cfg.adbCommand,
-					"-H", cfg[adbHost],
-					"-s", deviceSerialNumber,
-					"shell", "am" ,"instrument",
-					"--user", "0",
-					uiaDaemonCmdLine,
-					"-w",
-					testRunner)
+			val stdStreams = this.sysCmdExecutor.executeWithoutTimeout(
+				commandDescription, cfg.adbCommand,
+				"-H", cfg[adbHost],
+				"-s", deviceSerialNumber,
+				"shell", "am", "instrument",
+				"--user", "0",
+				uiaDaemonCmdLine,
+				"-w",
+				testRunner
+			)
 
 			validateInstrumentation(stdStreams, failureString)
 		} catch (e: SysCmdExecutorException) {
@@ -551,34 +626,48 @@ Logcat reference:
 
 	private fun validateInstrumentation(stdStreams: Array<String>, failureString: String) {
 		if (stdStreams[0].contains("INSTRUMENTATION_FAILED")) {
-			throw AdbWrapperException("Executing " +
-					failureString +
-					"Reason: stdout contains 'INSTRUMENTATION_FAILED' line. The full stdout:\n${stdStreams[0]}")
+			throw AdbWrapperException(
+				"Executing " +
+						failureString +
+						"Reason: stdout contains 'INSTRUMENTATION_FAILED' line. The full stdout:\n${stdStreams[0]}"
+			)
 		}
 	}
 
-	override fun pullFileApi23(deviceSerialNumber: String, pulledFilePath: String, destinationFilePath: Path, shellPackageName: String) {
+	override fun pullFileApi23(
+		deviceSerialNumber: String,
+		pulledFilePath: String,
+		destinationFilePath: Path,
+		shellPackageName: String
+	) {
 		assert(pulledFilePath.isNotEmpty())
 		assert(shellPackageName.isNotEmpty())
 
 		if (!Files.isDirectory(destinationFilePath) && Files.exists(destinationFilePath))
 			Files.delete(destinationFilePath)
 
-		if(pulledFilePath.endsWith("logcat.log")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is
-			val stdout = this.executeCommand(deviceSerialNumber, "", "Pull logcat from stdout (API23 compatibility)",
-					"exec-out", "run-as", shellPackageName, "cat", pulledFilePath)
+		if (pulledFilePath.endsWith("logcat.log")) { // for logcat we need to fetch the stdout meanwhile for other files we want the file as is
+			val stdout = this.executeCommand(
+				deviceSerialNumber, "", "Pull logcat from stdout (API23 compatibility)",
+				"exec-out", "run-as", shellPackageName, "cat", pulledFilePath
+			)
 			Files.write(destinationFilePath, stdout.toByteArray())
-		}else{
-			val commandDescription = "Executing adb to pull $pulledFilePath on Android Device with s/n $deviceSerialNumber."
+		} else {
+			val commandDescription =
+				"Executing adb to pull $pulledFilePath on Android Device with s/n $deviceSerialNumber."
 			try {
-				sysCmdExecutor.executeWithTimeout(commandDescription, 2000, cfg.adbCommand, "-H", cfg[adbHost],
-						"-s", deviceSerialNumber,
-						"pull", pulledFilePath, destinationFilePath.toAbsolutePath().toString())
-			}catch (e: SysCmdExecutorException){
-				log.warn("adb pull failed (AdbWrapper) for file $pulledFilePath",e.message) // this is likely to happen if the file does not exist (yet) on device
+				sysCmdExecutor.executeWithTimeout(
+					commandDescription, 2000, cfg.adbCommand, "-H", cfg[adbHost],
+					"-s", deviceSerialNumber,
+					"pull", pulledFilePath, destinationFilePath.toAbsolutePath().toString()
+				)
+			} catch (e: SysCmdExecutorException) {
+				log.warn(
+					"adb pull failed (AdbWrapper) for file $pulledFilePath",
+					e.message
+				) // this is likely to happen if the file does not exist (yet) on device
 			}
 		}
-
 	}
 
 	override fun removeFileApi23(deviceSerialNumber: String, filePath: String, shellPackageName: String) {
@@ -586,8 +675,10 @@ Logcat reference:
 		assert(shellPackageName.isNotEmpty())
 
 		try {
-			this.executeCommand(deviceSerialNumber, "", "Delete file (API23 compatibility).",
-					"shell", "rm", "-r", filePath)
+			this.executeCommand(
+				deviceSerialNumber, "", "Delete file (API23 compatibility).",
+				"shell", "rm", "-r", filePath
+			)
 		} catch (e: Exception) {
 			// Logcat file does not exist on new devices, therefore it crashes on the first attempt
 			if (!filePath.contains("droidmate_logcat"))
@@ -600,9 +691,28 @@ Logcat reference:
 
 		val devicePath = "sdcard/temp_screenshot.png"
 
-		this.executeCommand(deviceSerialNumber, "", "Take screenshot step 1: take screenshot.", "shell screencap -p", devicePath)
-		this.executeCommand(deviceSerialNumber, "", "Take screenshot step 2: pull screenshot.", "pull", devicePath, targetPath)
-		this.executeCommand(deviceSerialNumber, "", "Take screenshot step 3: remove screenshot on device.", "shell rm", devicePath)
+		this.executeCommand(
+			deviceSerialNumber,
+			"",
+			"Take screenshot step 1: take screenshot.",
+			"shell screencap -p",
+			devicePath
+		)
+		this.executeCommand(
+			deviceSerialNumber,
+			"",
+			"Take screenshot step 2: pull screenshot.",
+			"pull",
+			devicePath,
+			targetPath
+		)
+		this.executeCommand(
+			deviceSerialNumber,
+			"",
+			"Take screenshot step 3: remove screenshot on device.",
+			"shell rm",
+			devicePath
+		)
 	}
 
 	override fun reconnect(deviceSerialNumber: String) {
@@ -611,11 +721,28 @@ Logcat reference:
 		this.executeCommand(deviceSerialNumber, "", "wait-for-device", "wait-for-device")
 	}
 
-	override fun executeCommand(deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String {
-		return executeCommand(this.sysCmdExecutor, deviceSerialNumber, successfulOutput, commandDescription, *cmdLineParams)
+	override fun executeCommand(
+		deviceSerialNumber: String,
+		successfulOutput: String,
+		commandDescription: String,
+		vararg cmdLineParams: String
+	): String {
+		return executeCommand(
+			this.sysCmdExecutor,
+			deviceSerialNumber,
+			successfulOutput,
+			commandDescription,
+			*cmdLineParams
+		)
 	}
 
-	override fun executeCommand(sysCmdExecutor: ISysCmdExecutor, deviceSerialNumber: String, successfulOutput: String, commandDescription: String, vararg cmdLineParams: String): String {
+	override fun executeCommand(
+		sysCmdExecutor: ISysCmdExecutor,
+		deviceSerialNumber: String,
+		successfulOutput: String,
+		commandDescription: String,
+		vararg cmdLineParams: String
+	): String {
 		val allCmdLineParams = arrayListOf(cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber)
 		try {
 			allCmdLineParams.addAll(cmdLineParams)
@@ -623,9 +750,11 @@ Logcat reference:
 
 			assert(stdStreams.size == 2)
 			if (!stdStreams[0].startsWith(successfulOutput))
-				throw AdbWrapperException("After executing adb command of '${allCmdLineParams.joinToString(" ")}', " +
-						"expected stdout to have '$successfulOutput'. " +
-						"Instead, stdout had '${stdStreams[0].trim()}' and stderr had '${stdStreams[1].trim()}'.")
+				throw AdbWrapperException(
+					"After executing adb command of '${allCmdLineParams.joinToString(" ")}', " +
+							"expected stdout to have '$successfulOutput'. " +
+							"Instead, stdout had '${stdStreams[0].trim()}' and stderr had '${stdStreams[1].trim()}'."
+				)
 
 			return stdStreams[0]
 		} catch (e: SysCmdExecutorException) {

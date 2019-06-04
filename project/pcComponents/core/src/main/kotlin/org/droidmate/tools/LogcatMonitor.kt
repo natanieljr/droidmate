@@ -2,6 +2,7 @@ package org.droidmate.tools
 
 import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigurationWrapper
+import org.droidmate.device.android_sdk.AdbWrapperException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.logging.LogbackUtils
 import org.droidmate.logging.Markers
@@ -16,72 +17,76 @@ import kotlin.coroutines.CoroutineContext
 class LogcatMonitor(private val cfg: ConfigurationWrapper,
                     private val adbWrapper: IAdbWrapper): CoroutineScope {
 
-        private val log: Logger by lazy { LoggerFactory.getLogger(LogcatMonitor::class.java) }
+    private val log: Logger by lazy { LoggerFactory.getLogger(LogcatMonitor::class.java) }
 
-        override val coroutineContext: CoroutineContext
-		        = CoroutineName("LogcatMonitor") + Job() + Dispatchers.Default
+    override val coroutineContext: CoroutineContext = CoroutineName("LogcatMonitor") + Job() + Dispatchers.Default
 
-        // Coverage monitor variables
-        private val sysCmdExecutor = SysCmdInterruptableExecutor()
-        private var running: AtomicBoolean = AtomicBoolean(true)
+    // Coverage monitor variables
+    private val sysCmdExecutor = SysCmdInterruptableExecutor()
+    private var running: AtomicBoolean = AtomicBoolean(true)
 
-        /**
-        * Starts the monitoring job.
-        */
-        fun start() {
-          launch(start = CoroutineStart.DEFAULT) { run() }
-        }
+    /**
+     * Starts the monitoring job.
+     */
+    fun start() {
+        launch(start = CoroutineStart.DEFAULT) { run() }
+    }
 
-        /**
-         * Starts monitoring logcat.
-         */
-        private suspend fun run() {
-            log.info(Markers.appHealth, "Start monitoring logcat. Output to ${getLogfilePath().toAbsolutePath()}")
+    /**
+     * Starts monitoring logcat.
+     */
+    private suspend fun run() {
+        log.info(Markers.appHealth, "Start monitoring logcat. Output to ${getLogfilePath().toAbsolutePath()}")
 
-            try {
-              withContext(Dispatchers.IO) {
+        try {
+            withContext(Dispatchers.IO) {
                 Files.createDirectories(getLogfilePath().parent)
 
                 while (running.get()) {
-                  monitorLogcat()
-                  delay(5)
+                    monitorLogcat()
+                    delay(5)
                 }
-              }
-            } catch (ex: Exception) {
-                ex.printStackTrace()
             }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
         }
+    }
 
-        /**
-         * Starts executing a command in order to monitor the logcat if the previous command is already terminated.
-         */
-        private fun monitorLogcat() {
+    /**
+     * Starts executing a command in order to monitor the logcat if the previous command is already terminated.
+     */
+    private fun monitorLogcat() {
 
+        try {
             val path = getLogfilePath()
-            val output = adbWrapper.executeCommand(sysCmdExecutor, cfg.deviceSerialNumber, "", "Logcat logfile monitor",
-                    "logcat", "-v", "time")
+            val output = adbWrapper.executeCommand(
+                sysCmdExecutor, cfg.deviceSerialNumber, "", "Logcat logfile monitor",
+                "logcat", "-v", "time"
+            )
 
             // Append the logcat content to the logfile
             log.info("Writing logcat output into $path")
             val file = path.toFile()
             file.appendBytes(output.toByteArray())
+        } catch (e: AdbWrapperException) {
+            log.warn(e.message)
         }
-
-        /**
-         * Returns the logfile name in which the logcat content is written into.
-         */
-        private fun getLogfilePath(): Path {
-            return cfg.getPath(LogbackUtils.getLogFilePath("logcat.log"))
-        }
-
-        /**
-         * Notifies the logcat monitor and [sysCmdExecutor] to finish.
-         */
-        fun terminate() {
-            running.set(false)
-            sysCmdExecutor.stopCurrentExecutionIfExisting()
-            log.info("Logcat monitor thread destroyed")
-          runBlocking { if(!coroutineContext.isActive) coroutineContext[Job]?.cancelAndJoin() }
-        }
-
     }
+
+    /**
+     * Returns the logfile name in which the logcat content is written into.
+     */
+    private fun getLogfilePath(): Path {
+        return cfg.getPath(LogbackUtils.getLogFilePath("logcat.log"))
+    }
+
+    /**
+     * Notifies the logcat monitor and [sysCmdExecutor] to finish.
+     */
+    fun terminate() {
+        running.set(false)
+        sysCmdExecutor.stopCurrentExecutionIfExisting()
+        log.info("Logcat monitor thread destroyed")
+        runBlocking { if (!coroutineContext.isActive) coroutineContext[Job]?.cancelAndJoin() }
+    }
+}
