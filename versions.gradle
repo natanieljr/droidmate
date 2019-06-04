@@ -2,7 +2,7 @@ project.ext {
 	internalTask = null  // use this as .group value of any task to make them invisible from gradle task list
 
 	javaVersion = JavaVersion.VERSION_1_8
-	// requires version 2.2+
+	// requires version 2.4+
 	driverLib_version = "2.4.1"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
 	model_version = "master-SNAPSHOT"
 
