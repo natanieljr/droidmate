@@ -24,17 +24,18 @@ import org.droidmate.explorationModel.interaction.Widget
  */
 @JvmOverloads
 fun Widget.click(delay: Long = 0, isVisible: Boolean = false, ignoreClickable: Boolean = false): ExplorationAction {
-	if (!(definedAsVisible || isVisible) || !enabled || !(clickable||ignoreClickable))
+	if (!(definedAsVisible || isVisible) || !enabled || !(clickable||selected.isActivated()||ignoreClickable))
 		throw RuntimeException("ERROR: tried to click non-actionable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
 }
 
 fun Widget.clickEvent(delay: Long = 0, ignoreClickable: Boolean = false): ExplorationAction {
-	if (!enabled || !(clickable||ignoreClickable))
+	if (!enabled || !(clickable||selected.isActivated()||ignoreClickable))
 		throw RuntimeException("ERROR: tried to click non-actionable Widget $this")
 	widgetTargets.add(this)
-	return ClickEvent(this.idHash, true, delay)
+	return if(!clickable)	clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
+	else ClickEvent(this.idHash, true, delay)
 }
 
 @JvmOverloads
@@ -52,15 +53,6 @@ fun Widget.longClick(delay: Long = 0, isVisible: Boolean = false): ExplorationAc
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> LongClick(x, y, true, delay) }
 }
-
-/** Some apps do not report elements as 'clickable' but long-click will trigger a different behavior, therefore we try to send a click first, if this really has no effect it will simply fail and the long-click is executed instead
- *
- * This function will only execute a 'click' if the widget is reported as !clickable, otherwise only a longClickEvent is triggered.
- * */
-fun Widget.clickOrLongClick(delay: Long=0, isVisible: Boolean = false) =
-	if(!clickable)
-	ActionQueue(listOf(click(ignoreClickable = true, isVisible = isVisible),longClickEvent(delay,isVisible)),delay=0)
-	else longClickEvent(delay,isVisible)
 
 @JvmOverloads
 fun Widget.longClickEvent(delay: Long = 0, ignoreVisibility: Boolean = false): ExplorationAction {
@@ -102,9 +94,9 @@ fun Widget.availableActions(delay: Long, useCoordinateClicks:Boolean): List<Expl
 
 	if (this.longClickable){
 		if(useCoordinateClicks) actionList.add(this.longClick(delay))
-		else actionList.add(clickOrLongClick())
+		else actionList.add(this.longClickEvent(delay))
 	}
-	if (this.clickable){
+	if (this.clickable||this.selected.isActivated()){
 		if(useCoordinateClicks) actionList.add(this.click(delay))
 		else actionList.add(this.clickEvent(delay))
 	}

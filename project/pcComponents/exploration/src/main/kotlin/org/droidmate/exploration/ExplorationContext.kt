@@ -30,24 +30,23 @@ import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.device.android_sdk.IApk
 import org.droidmate.deviceInterface.exploration.*
-import org.droidmate.explorationModel.*
-import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
-import org.droidmate.exploration.modelFeatures.explorationWatchers.CrashListMF
 import org.droidmate.exploration.modelFeatures.ModelFeature
+import org.droidmate.exploration.modelFeatures.explorationWatchers.CrashListMF
+import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.coverageDir
 import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF.Companion.StatementCoverage.enableCoverage
+import org.droidmate.explorationModel.*
+import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
+import org.droidmate.explorationModel.factory.AbstractModel
 import org.droidmate.explorationModel.interaction.*
+import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.TimeDiffWithTolerance
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.nio.file.Paths
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.math.min
-import org.droidmate.explorationModel.config.ConfigProperties.Output.debugMode
-import org.droidmate.explorationModel.factory.AbstractModel
-import org.droidmate.misc.EnvironmentConstants
-import java.nio.file.Paths
 
 @Suppress("MemberVisibilityCanBePrivate")
 class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration,
@@ -353,11 +352,6 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
 				diff.warnIfBeyond(actionTime, firstLogTime, "action time", "first logcat time for action", apkFileName)
 			}
 		}
-	}
-
-	fun assertFirstActionIsLaunchApp() {
-		assert(explorationTrace.getActions().let{ trace -> trace.isEmpty() || trace.subList(0,min(trace.size,4)).any { it.actionType.isLaunchApp() }}// || explorationTrace.first().actionType == PlaybackResetAction::class.simpleName
-		)
 	}
 
 	fun assertLastActionIsTerminateOrResultIsFailure() = runBlocking {

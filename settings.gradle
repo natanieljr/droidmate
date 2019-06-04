@@ -47,7 +47,7 @@ if(!isIncludedBuild) {
 	}
 
 	def eModelDir = 'project/pcComponents/explorationModel'
-	if(file("$eModelDir/build.gradle").exists()){
+	if(file("$eModelDir/build.gradle.kts").exists()){
 		include(":explorationModel")
 		project(':explorationModel').projectDir = new File(eModelDir)
 	}
