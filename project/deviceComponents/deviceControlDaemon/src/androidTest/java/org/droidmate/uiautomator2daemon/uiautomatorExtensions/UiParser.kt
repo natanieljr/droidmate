@@ -12,6 +12,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.isActive
 import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.Rectangle
+import org.droidmate.deviceInterface.exploration.isActivated
 import org.droidmate.deviceInterface.exploration.visibleOuterBounds
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
@@ -56,13 +57,14 @@ abstract class UiParser {
 					}
 				}
 
-		return node.createWidget(w, xPath, children.filterNotNull(), img, idHash = idHash, parentH = parentH).also {
+		return node.createWidget(w, xPath, children.filterNotNull(), img, idHash = idHash, parentH = parentH, processedNodes = nodes).also {
 			nodes.add(it)
 		}
 	}
 
+	private val isClickableDescendant:(UiElementProperties)->Boolean = { it.hasClickableDescendant || it.clickable || it.selected.isActivated() }
 	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementProperties>,
-	                                               img: Bitmap?, idHash: Int, parentH: Int): UiElementProperties {
+	                                               img: Bitmap?, idHash: Int, parentH: Int, processedNodes: List<UiElementProperties>): UiElementProperties {
 		val nodeRect = Rect()
 		this.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 		val props = LinkedList<String>()
@@ -99,6 +101,8 @@ abstract class UiParser {
 //			if(uncoveredArea) addAll(visibleAreas)
 //			addAll(children.flatMap { it.allSubAreas })
 //		}
+
+		props.add("markedAsOccupied = $markedAsOccupied")
 		val visibleBounds: Rectangle = when {
 			visibleAreas.isEmpty() -> Rectangle(0,0,0,0)  // no uncovered area means this node cannot be visible
 			children.isEmpty() -> {
@@ -111,6 +115,7 @@ abstract class UiParser {
 			}
 		}
 
+		val selected = if(actionList.contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_SELECT)&& markedAsOccupied) isSelected else null
 		return UiElementProperties(
 				idHash = idHash,
 				imgId = computeImgId(img,visibleBounds),
@@ -136,7 +141,14 @@ abstract class UiParser {
 				checked = if (isCheckable) isChecked else null,
 				focused = if (isFocusable) isFocused else null,
 				scrollable = isScrollable,
-				selected = isSelected,
+				selected = selected, // ignore 'transparent' layouts
+				hasClickableDescendant = children.any(isClickableDescendant).let { hasClickableDescendant ->
+					// check if there are already 'selectable' items in the visible bounds of it, if so set clickable descendants to true
+					if (!hasClickableDescendant && selected.isActivated()) {
+						// this visible area contains 'selectable/clickable' items therefore we want to mark this as having such descendants even if it is no direct parent but only an 'uncle' to these elements
+						processedNodes.any { visibleBounds.contains(it.visibleBounds) && isClickableDescendant(it) }
+					} else hasClickableDescendant
+				},
 				definedAsVisible = isVisibleToUser,
 				boundaries = nodeRect.toRectangle(),
 				visibleAreas = visibleAreas,

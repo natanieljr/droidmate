@@ -195,7 +195,6 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 			assert(this.explorationStartTime > LocalDateTime.MIN) { "Start date/time not set for exploration" }
 			assert(this.explorationEndTime > LocalDateTime.MIN) { "End date/time not set for exploration" }
 
-			assertFirstActionIsLaunchApp()
 			assertLastActionIsTerminateOrResultIsFailure()
 			assertLastGuiSnapshotIsHomeOrResultIsFailure()
 			assertOnlyLastActionMightHaveDeviceException()

@@ -20,7 +20,7 @@ import org.droidmate.exploration.strategy.AbstractStrategy
 import org.slf4j.Logger
 import saarland.cispa.exploration.android.strategy.action.SwipeTo
 import org.droidmate.exploration.strategy.manual.action.showTargetsInImg
-import saarland.cispa.exploration.android.strategy.action.triggerTap
+import org.droidmate.exploration.strategy.manual.action.triggerTap
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths

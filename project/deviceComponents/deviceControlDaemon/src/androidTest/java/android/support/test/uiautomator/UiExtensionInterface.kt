@@ -3,6 +3,7 @@ package android.support.test.uiautomator
 import android.graphics.Rect
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
+import org.droidmate.uiautomator2daemon.uiautomatorExtensions.SiblingNodeComparator
 
 
 fun AccessibilityNodeInfo.getBounds(width: Int, height: Int): Rect = when{
@@ -17,13 +18,13 @@ typealias PostProcessor<T> = (rootNode: AccessibilityNodeInfo)	-> T
 const val osPkg = "com.android.systemui"
 
 suspend inline fun<reified T> UiDevice.apply(noinline processor: NodeProcessor, noinline postProcessor: PostProcessor<T>): List<T> =
-	getNonSystemRootNodes().mapIndexed { index,root: AccessibilityNodeInfo ->
+	getNonSystemRootNodes().mapIndexed { _,root: AccessibilityNodeInfo ->
 		processTopDown(root,processor = processor,postProcessor = postProcessor)
 	}
 
 suspend fun UiDevice.apply(processor: NodeProcessor){
 	try{
-		getNonSystemRootNodes().mapIndexed { index, root: AccessibilityNodeInfo ->
+		getNonSystemRootNodes().mapIndexed { _, root: AccessibilityNodeInfo ->
 			processTopDown(root, processor = processor, postProcessor = { _ -> Unit })
 		}
 	}catch(e: Exception){
@@ -38,11 +39,11 @@ suspend fun<T> processTopDown(node:AccessibilityNodeInfo, index: Int=0, processo
 
 	try {
 		if(proceed)
-			(0 until nChildren).map { i ->
-				node.getChild(i).let { child ->
+			(0 until nChildren).map { i -> Pair(i,node.getChild(i)) }
+				.sortedWith(SiblingNodeComparator)
+				.map { (i,child) ->
 					processTopDown(child, i, processor, postProcessor, "$xPath/").also {
 						child.recycle()
-					}
 				}
 			}
 	} catch (e: Exception){	// the accessibilityNode service may throw this if the node is no longer up-to-date

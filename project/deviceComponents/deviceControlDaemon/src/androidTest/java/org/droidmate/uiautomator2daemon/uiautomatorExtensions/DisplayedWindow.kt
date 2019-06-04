@@ -54,3 +54,7 @@ data class DisplayedWindow(val w: AppWindow,
 		}
 	}
 }
+
+fun List<DisplayedWindow>.isHomeScreen() = count { it.isApp() }.let { nAppW ->
+	nAppW == 0 || (nAppW==1 && any { it.isLauncher && it.isApp() })
+}

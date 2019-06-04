@@ -211,8 +211,9 @@ object SiblingNodeComparator: Comparator<Pair<Int,AccessibilityNodeInfo>> {
 		val r2 = Rect().apply { n2.getBoundsInScreen(this) }
 		var swapped = false
 		val (c1,c2) = when{
-			r1 == parentBounds && o1.drawOrder()>o2.drawOrder() -> Pair(o1,o2)
-			r2 == parentBounds -> Pair(o2,o1).also { swapped = true }
+			o1.drawOrder() > o2.drawOrder() -> Pair(o1,o2)
+			o1.drawOrder() < o2.drawOrder() -> Pair(o2,o1).also { swapped = true }
+			// do not swap if they have the same drawing order to keep the order by index for equal drawing order
 			else -> Pair(o1,o2)
 		}
 		// in case o1 and o2 were swapped update the rectangle variables
@@ -223,7 +224,7 @@ object SiblingNodeComparator: Comparator<Pair<Int,AccessibilityNodeInfo>> {
 			n2 = c2.second
 		}
 		// check if c1 may be an empty/transparent frame element which is rendered in front of c2 but should not hide its sibling
-		val c1IsTransparent = r1 == parentBounds && r1.contains(r2) &&  // the sibling c2 is completely hidden behind c1
+		val c1IsTransparent = (r1 == parentBounds) && r1.contains(r2) &&  // the sibling c2 is completely hidden behind c1
 			n1.childCount == 0 && n2.childCount>0 &&  // c2 would have child nodes but c1 does not
 				n1.isEnabled && n2.isEnabled && n1.isVisibleToUser && n2.isVisibleToUser && // if one node is not visible it does not matter which one is processed first
 				o1.first < o2.first	// check if the drawing order is different from the order defined via its hierarchy index => TODO check if this condition is too restrictive
