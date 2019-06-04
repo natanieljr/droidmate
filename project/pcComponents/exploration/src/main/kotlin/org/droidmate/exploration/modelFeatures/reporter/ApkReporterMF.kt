@@ -32,12 +32,12 @@ import java.nio.file.Path
 
 abstract class ApkReporterMF(reportDir: Path, resourceDir: Path) : ReporterMF(reportDir, resourceDir) {
 
-    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+    override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
         safeWrite(context)
         reset()
     }
 
-    suspend fun safeWrite(context: ExplorationContext) {
+    suspend fun safeWrite(context: ExplorationContext<*, *, *>) {
         val apkReportDir = reportDir.resolve(context.apkFileNameWithUnderscoresForDots)
 
         Files.createDirectories(apkReportDir)
@@ -46,5 +46,5 @@ abstract class ApkReporterMF(reportDir: Path, resourceDir: Path) : ReporterMF(re
         safeWriteApkReport(context, apkReportDir, resourceDir)
     }
 
-    protected abstract suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path)
+    protected abstract suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path)
 }

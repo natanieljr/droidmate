@@ -31,7 +31,7 @@ import org.droidmate.exploration.modelFeatures.misc.*
 
 class AggregateStatsTable private constructor(val table: Table<Int, String, String>) : Table<Int, String, String> by table {
 
-	constructor(data: List<ExplorationContext>) : this(build(data))
+	constructor(data: List<ExplorationContext<*,*,*>>) : this(build(data))
 
 	companion object {
 		const val headerApkName = "file_name"
@@ -45,7 +45,7 @@ class AggregateStatsTable private constructor(val table: Table<Int, String, Stri
 		const val headerEventApiPairsSeenCount = "unique_event_api_pairs"
 		const val headerException = "exception"
 
-		fun build(data: List<ExplorationContext>): Table<Int, String, String> {
+		fun build(data: List<ExplorationContext<*,*,*>>): Table<Int, String, String> {
 
 			return buildTable(
 					headers = listOf(

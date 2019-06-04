@@ -650,13 +650,13 @@ class RobustDevice : IRobustDevice {
         )
 	}
 
-	override suspend fun pushMonitorJar() {
+	override suspend fun pushAuxiliaryFiles() {
         Utils.retryOnException(
-                { this.device.pushMonitorJar() },
+                { this.device.pushAuxiliaryFiles() },
                 {},
                 deviceOperationAttempts,
                 deviceOperationDelay,
-                "device.pushMonitorJar()"
+                "device.pushAuxiliaryFiles()"
         )
 	}
 

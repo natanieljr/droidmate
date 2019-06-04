@@ -29,7 +29,7 @@ wrapper{
 
 allprojects {
 	group = "org.droidmate"
-	version = "1.3.2-RC0"
+	version = "1.3.4-SNAPSHOT"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
@@ -49,7 +49,7 @@ allprojects {
 		resolutionStrategy{
 			// force certain versions of dependencies (including transitive)
 			//  *append new forced modules as comma separated strings
-			force "com.github.hotzkow:platformInterfaceLib:${driverLib_version}"
+			force dmDriverLib
 			// cache dynamic versions for 10 minutes
 			
 			dependencySubstitution {

@@ -12,7 +12,7 @@ class ExampleModelFeature: ModelFeature(){
 	override val coroutineContext: CoroutineContext = CoroutineName("ExampleModelFeature")
 
 
-	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
+	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction<*>>, prevState: State<*>, newState: State<*>) {
 		super.onNewAction(traceId, interactions, prevState, newState)
 		val firstAction = interactions.first()
 

@@ -39,13 +39,13 @@ class ApkViewsFileMF(reportDir: Path,
 
     override val coroutineContext: CoroutineContext = CoroutineName("ApkViewsFileMF")
 
-    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path) {
         val reportData = getReportData(context)
         val reportFile = apkReportDir.resolve(fileName)
         Files.write(reportFile, reportData.toByteArray())
     }
 
-    private fun getReportData(data: ExplorationContext): String {
+    private fun getReportData(data: ExplorationContext<*,*,*>): String {
         val sb = StringBuilder()
         sb.append("Unique actionable widget\n")
                 .append(data.uniqueActionableWidgets.joinToString(separator = System.lineSeparator()) { it.uid.toString() })

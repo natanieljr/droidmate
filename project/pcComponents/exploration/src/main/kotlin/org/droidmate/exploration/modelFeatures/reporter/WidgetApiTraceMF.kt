@@ -43,7 +43,7 @@ class WidgetApiTraceMF(reportDir: Path,
 
     override val coroutineContext: CoroutineContext = CoroutineName("WidgetApiTraceMF")
 
-    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path) {
         val sb = StringBuilder()
         val header = "actionNr\ttext\tapi\tuniqueStr\taction\n"
         sb.append(header)
@@ -69,7 +69,7 @@ class WidgetApiTraceMF(reportDir: Path,
         // Nothing to reset here
     }
 
-    private fun getActionWidget(actionResult: Interaction, state: State): Widget? {
+    private fun getActionWidget(actionResult: Interaction<*>, state: State<*>): Widget? {
         return if (actionResult.actionType.isClick()) {
 
             getWidgetWithTextFromAction(actionResult.targetWidget!!, state)
@@ -77,7 +77,7 @@ class WidgetApiTraceMF(reportDir: Path,
             null
     }
 
-    private fun getWidgetWithTextFromAction(widget: Widget, state: State): Widget {
+    private fun getWidgetWithTextFromAction(widget: Widget, state: State<*>): Widget {
         // If has Text
         if (widget.text.isNotEmpty())
             return widget

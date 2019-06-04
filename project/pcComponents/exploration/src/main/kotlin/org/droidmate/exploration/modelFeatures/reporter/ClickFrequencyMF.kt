@@ -39,7 +39,7 @@ class ClickFrequencyMF(reportDir: Path,
 
     override val coroutineContext: CoroutineContext = CoroutineName("ClickFrequencyMF")
 
-    override suspend fun safeWriteApkReport(context: ExplorationContext, apkReportDir: Path, resourceDir: Path) {
+    override suspend fun safeWriteApkReport(context: ExplorationContext<*, *, *>, apkReportDir: Path, resourceDir: Path) {
         val dataTable = ClickFrequencyTable(context)
         val reportPath = apkReportDir.resolve(fileName)
         val report = TableDataFile(dataTable, reportPath)

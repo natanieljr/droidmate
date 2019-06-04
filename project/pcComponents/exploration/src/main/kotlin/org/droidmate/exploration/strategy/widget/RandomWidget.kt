@@ -61,14 +61,14 @@ constructor(	private val randomSeed: Long,
 	protected var random = Random(randomSeed)
 		private set
 
-	override fun initialize(memory: ExplorationContext) {
+	override fun initialize(memory: ExplorationContext<*, *, *>) {
 		super.initialize(memory)
 		random = Random(randomSeed)
 	}
 
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>() }
-	private val blackList: BlackListMF by lazy { eContext.getOrCreateWatcher<BlackListMF>() }
+	protected val blackList: BlackListMF by lazy { eContext.getOrCreateWatcher<BlackListMF>() }
 
 	private suspend fun mustRepeatLastAction(): Boolean {
 		if (!this.eContext.isEmpty()) {

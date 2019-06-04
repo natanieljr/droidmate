@@ -9,6 +9,7 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.test.uiautomator.*
 import android.util.Log
+import android.view.KeyEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.DeviceConstants
@@ -64,12 +65,12 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 			}
 		}
 		is Tick -> {
-			var success = UiHierarchy.findAndPerform(env, idMatch(idHash)){
+			var success = UiHierarchy.findAndPerform(env, idMatch(idHash)) {
 				val newStatus = !it.isChecked
 				it.isChecked = newStatus
 				it.isChecked == newStatus
 			}
-			if(!success){
+			if (!success) {
 				env.device.verifyCoordinate(x, y)
 				success = env.device.click(x, y, interactiveTimeout)
 			}
@@ -141,6 +142,7 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 				} }
 		is RotateUI -> env.device.rotate(rotation, env.automation)
 		is LaunchApp -> {
+			env.device.pressKeyCode(KeyEvent.KEYCODE_WAKEUP)
 			env.device.launchApp(packageName, env, launchActivityDelay, timeout)
 		}
 		is Swipe -> env.device.twoPointAction(start,end){
@@ -235,10 +237,6 @@ private fun getOrStoreImgPixels(bm: Bitmap?, env: UiAutomationEnvironment, actio
 	}
 }, inMillis = true, timer = { wt += it / 1000000.0; wc += 1 })
 
-private fun List<DisplayedWindow>.isHomeScreen() = count { it.isApp() }.let { nAppW ->
-	nAppW == 0 || (nAppW==1 && any { it.isLauncher && it.isApp() })
-}
-
 private var time: Long = 0
 private var cnt = 0
 private var wt = 0.0
@@ -288,16 +286,17 @@ suspend fun fetchDeviceData(env: UiAutomationEnvironment, afterAction: Boolean =
 	debugOut("compute img pixels",debugFetch)
 	val imgPixels =	getOrStoreImgPixels(img,env)
 
+	var xml: String = "TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
+			", because (currently) we would have to traverse the tree a second time"
+	if(debugEnabled) xml = UiHierarchy.getXml(env)
+
 	env.lastResponse = DeviceResponse.create( isSuccessful = isSuccessful, uiHierarchy = uiHierarchy,
-			uiDump =
-			"TODO parse widget list on Pc if we need the XML or introduce a debug property to enable parsing" +
-					", because (currently) we would have to traverse the tree a second time"
-//									xmlDump
-			, launchedActivity = env.launchedMainActivity,
-			capturedScreen = img != null,
-			screenshot = imgPixels,
-			appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
-			isHomeScreen = windows.isHomeScreen()
+		uiDump = xml,
+		launchedActivity = env.launchedMainActivity,
+		capturedScreen = img != null,
+		screenshot = imgPixels,
+		appWindows = windows.mapNotNull { if(it.isExtracted()) it.w else null },
+		isHomeScreen = windows.isHomeScreen()
 	)
 
 	env.lastResponse

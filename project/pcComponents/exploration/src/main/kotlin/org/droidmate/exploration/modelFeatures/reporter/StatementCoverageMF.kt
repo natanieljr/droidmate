@@ -38,7 +38,6 @@ import org.droidmate.coverage.INSTRUMENTATION_FILE_SUFFIX
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.ModelFeature
 import org.droidmate.explorationModel.ExplorationTrace
-import org.droidmate.explorationModel.config.ModelConfig
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.misc.deleteDir
@@ -69,21 +68,21 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
     private val instrumentationMap = getInstrumentation(appName)
     private val mutex = Mutex()
 
-    private var trace: ExplorationTrace? = null
+    private var trace: ExplorationTrace<*,*>? = null
 
     init {
         assert(statementsLogOutputDir.deleteDir()) { "Could not delete the directory $statementsLogOutputDir" }
         Files.createDirectories(statementsLogOutputDir)
     }
 
-    override fun onAppExplorationStarted(context: ExplorationContext) {
+    override fun onAppExplorationStarted(context: ExplorationContext<*, *, *>) {
         this.trace = context.explorationTrace
     }
 
     /**
      * Fetch the statement data form the device. Afterwards, it parses the data and updates [executedStatementsMap].
      */
-    override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction>, prevState: State, newState: State) {
+    override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction<*>>, prevState: State<*>, newState: State<*>) {
         // This code must be synchronized, otherwise it may read the
         // same statements multiple times
         mutex.withLock {
@@ -111,7 +110,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
             if (readStatements.isNotEmpty()) {
                 val lastId = trace?.last()?.actionId ?: 0
                 val file = getLogFilename(lastId)
-                launch(IO) { Files.write(file, readStatements.map { "${it[1]};${it[0]}" }) }
+                withContext(Dispatchers.IO){ Files.write(file, readStatements.map { "${it[1]};${it[0]}" }) }
             }
         }
     }
@@ -198,7 +197,7 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
         return statementsLogOutputDir.resolve("$appName-statements-%04d".format(counter))
     }
 
-    override suspend fun onAppExplorationFinished(context: ExplorationContext) {
+    override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
         this.join()
 
         val sb = StringBuilder()

@@ -6,11 +6,13 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.support.test.uiautomator.NodeProcessor
+import android.support.test.uiautomator.getBounds
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.isActive
 import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.Rectangle
+import org.droidmate.deviceInterface.exploration.isActivated
 import org.droidmate.deviceInterface.exploration.visibleOuterBounds
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
@@ -43,10 +45,11 @@ abstract class UiParser {
 		val nChildren = node.getChildCount()
 		val idHash= computeIdHash(xPath,w)
 
+		SiblingNodeComparator.initParentBounds(node)
 		//FIXME sometimes getChild returns a null node, this may be a synchronization issue in this case the fetch should return success=false or retry to fetch
 		val children: List<UiElementProperties?> = (nChildren-1 downTo 0).map { i -> Pair(i,node.getChild(i)) }
 				//REMARK we use drawing order but sometimes there is a transparent layout in front of the elements, probably used by the apps to determine their app area (e.g. amazon), this has to be considered in the [visibleAxis] call for the window area
-				.sortedByDescending { (i,node) -> if(api>=24) node.drawingOrder else i }
+			.sortedWith(SiblingNodeComparator)
 				.map { (i,childNode) ->		// bottom-up strategy, process children first (in drawingOrder) if they exist
 					if(childNode == null) debugOut("ERROR child nodes should never be null")
 					createBottomUp(w, childNode, i, "$xPath/",nodes, img, parentH = idHash).also {
@@ -54,28 +57,30 @@ abstract class UiParser {
 					}
 				}
 
-		return node.createWidget(w, xPath, children.filterNotNull(), img, idHash = idHash, parentH = parentH).also {
+		return node.createWidget(w, xPath, children.filterNotNull(), img, idHash = idHash, parentH = parentH, processedNodes = nodes).also {
 			nodes.add(it)
 		}
 	}
 
+	private val isClickableDescendant:(UiElementProperties)->Boolean = { it.hasClickableDescendant || it.clickable || it.selected.isActivated() }
 	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementProperties>,
-	                                               img: Bitmap?, idHash: Int, parentH: Int): UiElementProperties {
+	                                               img: Bitmap?, idHash: Int, parentH: Int, processedNodes: List<UiElementProperties>): UiElementProperties {
 		val nodeRect = Rect()
 		this.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 		val props = LinkedList<String>()
-		val t = Rect()
-		this.getBoundsInParent(t)
+		val boundsInParent = Rect()
+		this.getBoundsInParent(boundsInParent)
 		if(nodeRect.height()<0 || nodeRect.width()<0) { // no idea why this happens but try to correct the width/height by using the second bounds property
-			nodeRect.right = nodeRect.left+t.width()
-			nodeRect.bottom = nodeRect.top+t.height()
+			nodeRect.right = nodeRect.left+boundsInParent.width()
+			nodeRect.bottom = nodeRect.top+boundsInParent.height()
 		}
 
-		props.add("origBounds (l,t,r,b)= $nodeRect")
-		props.add("boundsInParent= $t")
+		props.add("defBounds (l,t,r,b)= $nodeRect")
+		props.add("boundsInParent= $boundsInParent")
 		props.add("actionList = ${this.actionList}")
 		if(api>=24)	props.add("drawingOrder = ${this.drawingOrder}")
 		props.add("labelFor = ${this.labelFor}")
+		props.add("labeledBy = ${this.getLabeledBy()}")
 		props.add("liveRegion = ${this.liveRegion}")
 		props.add("windowId = ${this.windowId}")
 
@@ -96,6 +101,8 @@ abstract class UiParser {
 //			if(uncoveredArea) addAll(visibleAreas)
 //			addAll(children.flatMap { it.allSubAreas })
 //		}
+
+		props.add("markedAsOccupied = $markedAsOccupied")
 		val visibleBounds: Rectangle = when {
 			visibleAreas.isEmpty() -> Rectangle(0,0,0,0)  // no uncovered area means this node cannot be visible
 			children.isEmpty() -> {
@@ -108,6 +115,7 @@ abstract class UiParser {
 			}
 		}
 
+		val selected = if(actionList.contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_SELECT)&& markedAsOccupied) isSelected else null
 		return UiElementProperties(
 				idHash = idHash,
 				imgId = computeImgId(img,visibleBounds),
@@ -126,14 +134,21 @@ abstract class UiParser {
 				className = safeCharSeqToString(className),
 				packageName = safeCharSeqToString(packageName),
 				enabled = isEnabled,
-				isInputField = isEditable,
+				isInputField = isEditable || actionList.contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_TEXT),
 				isPassword = isPassword,
 				clickable = isClickable,
 				longClickable = isLongClickable,
 				checked = if (isCheckable) isChecked else null,
 				focused = if (isFocusable) isFocused else null,
 				scrollable = isScrollable,
-				selected = isSelected,
+				selected = selected, // ignore 'transparent' layouts
+				hasClickableDescendant = children.any(isClickableDescendant).let { hasClickableDescendant ->
+					// check if there are already 'selectable' items in the visible bounds of it, if so set clickable descendants to true
+					if (!hasClickableDescendant && selected.isActivated()) {
+						// this visible area contains 'selectable/clickable' items therefore we want to mark this as having such descendants even if it is no direct parent but only an 'uncle' to these elements
+						processedNodes.any { visibleBounds.contains(it.visibleBounds) && isClickableDescendant(it) }
+					} else hasClickableDescendant
+				},
 				definedAsVisible = isVisibleToUser,
 				boundaries = nodeRect.toRectangle(),
 				visibleAreas = visibleAreas,
@@ -177,35 +192,50 @@ abstract class UiParser {
 	*/
 
 	protected val nodeDumper:(serializer: XmlSerializer, width: Int, height: Int)-> NodeProcessor =
-			{ serializer: XmlSerializer, _: Int, _: Int ->
+			{ ser: XmlSerializer, width: Int, height: Int ->
 				{ node: AccessibilityNodeInfo, index: Int, _ ->
 					val nodeRect = Rect()
 					node.getBoundsInScreen(nodeRect)  // determine the 'overall' boundaries these may be outside of the app window or even outside of the screen
 
-					serializer.startTag("", "node")
-					if (!nafExcludedClass(node))
-						serializer.attribute("", "NAF", java.lang.Boolean.toString(true))
-					serializer.attribute("", "index", Integer.toString(index))
-					serializer.attribute("", "text", safeCharSeqToString(node.text))
-					serializer.attribute("", "resource-id", safeCharSeqToString(node.viewIdResourceName))
-					serializer.attribute("", "class", safeCharSeqToString(node.className))
-					serializer.attribute("", "package", safeCharSeqToString(node.packageName))
-					serializer.attribute("", "content-desc", safeCharSeqToString(node.contentDescription))
-					serializer.attribute("", "checkable", java.lang.Boolean.toString(node.isCheckable))
-					serializer.attribute("", "checked", java.lang.Boolean.toString(node.isChecked))
-					serializer.attribute("", "clickable", java.lang.Boolean.toString(node.isClickable))
-					serializer.attribute("", "enabled", java.lang.Boolean.toString(node.isEnabled))
-					serializer.attribute("", "focusable", java.lang.Boolean.toString(node.isFocusable))
-					serializer.attribute("", "focused", java.lang.Boolean.toString(node.isFocused))
-					serializer.attribute("", "scrollable", java.lang.Boolean.toString(node.isScrollable))
-					serializer.attribute("", "long-clickable", java.lang.Boolean.toString(node.isLongClickable))
-					serializer.attribute("", "password", java.lang.Boolean.toString(node.isPassword))
-					serializer.attribute("", "selected", java.lang.Boolean.toString(node.isSelected))
-					serializer.attribute("", "definedAsVisible-to-user", java.lang.Boolean.toString(node.isVisibleToUser))
-					serializer.attribute("", "bounds", nodeRect.toShortString())
+					ser.startTag("", "node")
+					ser.addAttribute("index",index)
+					ser.addAttribute("drawingOrder", if(api>=24) node.drawingOrder else "NA")
+					ser.addAttribute("windowId", node.windowId)
+					
+					ser.addAttribute("text", node.text)
+					ser.addAttribute("resource-id", node.viewIdResourceName)
+					ser.addAttribute("class", node.className)
+					ser.addAttribute("package", node.packageName)
+					ser.addAttribute("content-desc", node.contentDescription)
+					ser.addAttribute("LabeledBy", node.labeledBy
+						?.let{ "it.text bounds: ${it.getBounds(width,height).toShortString()}" }?:"")
+
+					ser.startTag("","action-types")
+					ser.addAttribute("actionList", node.actionList)
+					ser.addAttribute("inputType", node.inputType)
+					ser.addAttribute("checkable", node.isCheckable)
+					ser.addAttribute("checked", node.isChecked)
+					ser.addAttribute("clickable", node.isClickable)
+					ser.addAttribute("enabled", node.isEnabled)
+					ser.addAttribute("focusable", node.isFocusable)
+					ser.addAttribute("focused", node.isFocused)
+					ser.addAttribute("scrollable", node.isScrollable)
+					ser.addAttribute("long-clickable", node.isLongClickable)
+					ser.addAttribute("isInputField", node.isEditable) // could be useful for custom widget classes to identify input fields
+					ser.addAttribute("password", node.isPassword)
+					ser.addAttribute("selected", node.isSelected)
+					ser.addAttribute("selected", node.isSelected)
+					ser.endTag("","action-types")
+
+					ser.startTag("","boundaries")
+					ser.addAttribute("definedAsVisible-to-user", node.isVisibleToUser)
+					ser.addAttribute("defBounds", nodeRect.toShortString())
+					val pBounds = Rect().apply { node.getBoundsInParent(this) }
+					ser.addAttribute("boundsInParent", pBounds.toShortString())
+					ser.addAttribute("liveRegion", node.liveRegion)
+					ser.endTag("","boundaries")
 
 					/** custom attributes, usually not definedAsVisible in the device-UiDump */
-					serializer.attribute("", "isInputField", java.lang.Boolean.toString(node.isEditable)) // could be usefull for custom widget classes to identify input fields
 					/** experimental */
 //		serializer.attribute("", "canOpenPopup", java.lang.Boolean.toString(node.canOpenPopup()))
 //		serializer.attribute("", "isDismissable", java.lang.Boolean.toString(node.isDismissable))
@@ -217,62 +247,23 @@ abstract class UiParser {
 				}
 			}
 
-	private fun safeCharSeqToString(cs: CharSequence?): String {
-		return if (cs == null)	""
-		else
-			stripInvalidXMLChars(cs).replace(";", "<semicolon>").replace(Regex("\\r\\n|\\r|\\n"), "<newline>").trim()
-	}
-
-	private fun stripInvalidXMLChars(cs: CharSequence): String {
-		val ret = StringBuffer()
-		var ch: Char
-		/* http://www.w3.org/TR/xml11/#charsets
-				[#x1-#x8], [#xB-#xC], [#xE-#x1F], [#x7F-#x84], [#x86-#x9F], [#xFDD0-#xFDDF],
-				[#x1FFFE-#x1FFFF], [#x2FFFE-#x2FFFF], [#x3FFFE-#x3FFFF],
-				[#x4FFFE-#x4FFFF], [#x5FFFE-#x5FFFF], [#x6FFFE-#x6FFFF],
-				[#x7FFFE-#x7FFFF], [#x8FFFE-#x8FFFF], [#x9FFFE-#x9FFFF],
-				[#xAFFFE-#xAFFFF], [#xBFFFE-#xBFFFF], [#xCFFFE-#xCFFFF],
-				[#xDFFFE-#xDFFFF], [#xEFFFE-#xEFFFF], [#xFFFFE-#xFFFFF],
-				[#x10FFFE-#x10FFFF].
-				 */
-		for (i in 0 until cs.length) {
-			ch = cs[i]
-
-			if (ch.toInt() in 0x1..0x8 || ch.toInt() in 0xB..0xC || ch.toInt() in 0xE..0x1F ||
-					ch.toInt() in 0x7F..0x84 || ch.toInt() in 0x86..0x9f ||
-					ch.toInt() in 0xFDD0..0xFDDF || ch.toInt() in 0x1FFFE..0x1FFFF ||
-					ch.toInt() in 0x2FFFE..0x2FFFF || ch.toInt() in 0x3FFFE..0x3FFFF ||
-					ch.toInt() in 0x4FFFE..0x4FFFF || ch.toInt() in 0x5FFFE..0x5FFFF ||
-					ch.toInt() in 0x6FFFE..0x6FFFF || ch.toInt() in 0x7FFFE..0x7FFFF ||
-					ch.toInt() in 0x8FFFE..0x8FFFF || ch.toInt() in 0x9FFFE..0x9FFFF ||
-					ch.toInt() in 0xAFFFE..0xAFFFF || ch.toInt() in 0xBFFFE..0xBFFFF ||
-					ch.toInt() in 0xCFFFE..0xCFFFF || ch.toInt() in 0xDFFFE..0xDFFFF ||
-					ch.toInt() in 0xEFFFE..0xEFFFF || ch.toInt() in 0xFFFFE..0xFFFFF ||
-					ch.toInt() in 0x10FFFE..0x10FFFF)
-				ret.append(".")
-			else
-				ret.append(ch)
-		}
-		return ret.toString()
-	}
-
-	@Suppress("PrivatePropertyName")
-	private val NAF_EXCLUDED_CLASSES = arrayOf(android.widget.GridView::class.java.name, android.widget.GridLayout::class.java.name, android.widget.ListView::class.java.name, android.widget.TableLayout::class.java.name)
-	/**
-	 * The list of classes to exclude my not be complete. We're attempting to
-	 * only reduce noise from standard layout classes that may be falsely
-	 * configured to accept clicks and are also enabled.
-	 *
-	 * @param node
-	 * @return true if node is excluded.
-	 */
-	private fun nafExcludedClass(node: AccessibilityNodeInfo): Boolean {
-		val className = safeCharSeqToString(node.className)
-		for (excludedClassName in NAF_EXCLUDED_CLASSES) {
-			if (className.endsWith(excludedClassName))
-				return true
-		}
-		return false
-	}
+//	@Suppress("PrivatePropertyName")
+//	private val NAF_EXCLUDED_CLASSES = arrayOf(android.widget.GridView::class.java.name, android.widget.GridLayout::class.java.name, android.widget.ListView::class.java.name, android.widget.TableLayout::class.java.name)
+//	/**
+//	 * The list of classes to exclude my not be complete. We're attempting to
+//	 * only reduce noise from standard layout classes that may be falsely
+//	 * configured to accept clicks and are also enabled.
+//	 *
+//	 * @param node
+//	 * @return true if node is excluded.
+//	 */
+//	private fun nafExcludedClass(node: AccessibilityNodeInfo): Boolean {
+//		val className = safeCharSeqToString(node.className)
+//		for (excludedClassName in NAF_EXCLUDED_CLASSES) {
+//			if (className.endsWith(excludedClassName))
+//				return true
+//		}
+//		return false
+//	}
 
 }

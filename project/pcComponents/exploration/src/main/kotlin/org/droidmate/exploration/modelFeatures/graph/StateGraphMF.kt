@@ -11,23 +11,23 @@ import org.droidmate.explorationModel.interaction.Widget
 import java.time.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
-private fun Interaction.shortString() = "$actionType;$targetWidget;$exception;$successful"
+private fun Interaction<*>.shortString() = "$actionType;$targetWidget;$exception;$successful"
 
-class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State, Interaction> =
+class StateGraphMF @JvmOverloads constructor(private val graph: IGraph<State<*>, Interaction<*>> =
 		                                             Graph(State(emptyList()),
 				                                             stateComparison = { a, b -> a.uid == b.uid },
 				                                             labelComparison = { a, b ->
 					                                             val aData = a.shortString()
 					                                             val bData = b.shortString()
 					                                             aData == bData
-				                                             })) : ModelFeature(), IGraph<State, Interaction> by graph {
-	private fun emptyWithWidget(widget: Widget?): Interaction =
+				                                             })) : ModelFeature(), IGraph<State<*>, Interaction<*>> by graph {
+	private fun emptyWithWidget(widget: Widget?): Interaction<*> =
 			Interaction("EMPTY", widget, LocalDateTime.MIN, LocalDateTime.MIN, true, "root action", emptyId,
 					prevState = emptyId, actionId = -1)
 
 	override val coroutineContext: CoroutineContext = CoroutineName("StateGraphMF")
 
-	override suspend fun onContextUpdate(context: ExplorationContext) {
+	override suspend fun onContextUpdate(context: ExplorationContext<*, *, *>) {
 		val lastAction = context.getLastAction()
 		val newState = context.getCurrentState()
 		// After reset, link to root node.

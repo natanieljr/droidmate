@@ -29,7 +29,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import org.droidmate.configuration.ConfigProperties
 import org.droidmate.configuration.ConfigProperties.Deploy.installAux
-import org.droidmate.configuration.ConfigProperties.Deploy.installMonitor
 import org.droidmate.configuration.ConfigProperties.Deploy.uninstallAux
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
 import org.droidmate.configuration.ConfigurationWrapper
@@ -124,7 +123,7 @@ class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
 
 		if (cfg[installAux]) {
 			device.reinstallUiAutomatorDaemon()
-			if(cfg[installMonitor])	device.pushMonitorJar()
+			device.pushAuxiliaryFiles()
 		}
 		logcatMonitor.start()
 		device.setupConnection()

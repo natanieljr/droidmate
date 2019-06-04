@@ -91,7 +91,7 @@ private suspend fun defaultExecution(action: ExplorationAction, device: IRobustD
 		log.warn("2.1. Failed to perform $action, retry once")
 		device.restartUiaDaemon(e is TcpServerUnreachableException)
 		delay(1000)
-		defaultExecution(action, device, isSecondTry = true)
+		if(!isSecondTry) defaultExecution(action, device, isSecondTry = true)
 	}
 }
 

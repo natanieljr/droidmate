@@ -40,7 +40,7 @@ class ActionCounterMF : ModelFeature() {
 	// we don't want to wait for other modelFeatures (or having them wait for us), therefore create our own (child) job
 	override val coroutineContext: CoroutineContext = CoroutineName("ActionCounter")+Job()
 
-	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State, newState: State): Unit =
+	override suspend fun onNewInteracted(traceId: UUID, targetWidgets: List<Widget>, prevState: State<*>, newState: State<*>): Unit =
 			targetWidgets.forEach { target ->
 				prevState.uid.let { sId ->
 					target.let { w -> pCnt.compute(w.packageName) { _, c -> c?.inc() ?: 1 } }
@@ -59,7 +59,7 @@ class ActionCounterMF : ModelFeature() {
 	private val pCnt = ConcurrentHashMap<String, Int>()
 
 	@Suppress("unused")
-	suspend fun unexplored(s: State): Set<Widget> {
+	suspend fun unexplored(s: State<*>): Set<Widget> {
 		this.join()
 		return numExplored(s).filter { it.value == 0 }.keys  // collect all widgets which are not in our action counter => not interacted with
 	}
@@ -77,7 +77,7 @@ class ActionCounterMF : ModelFeature() {
 	 *
 	 * @return map of the widget.uid to the number of interactions from state-eContext [s]
 	 */
-	suspend fun numExplored(s: State): Map<Widget, Int> {
+	suspend fun numExplored(s: State<*>): Map<Widget, Int> {
 		this.join()
 		return s.actionableWidgets.map {
 			it to it.uid.cntForState(s.uid)//(wCnt[w.uid]?.get(s.uid)?:0)
@@ -87,7 +87,7 @@ class ActionCounterMF : ModelFeature() {
 	/** determine how often any widget was explored in the eContext of the given state [s] for the given subset of widgets [selection]
 	 * @return map of the widget.uid to the number of interactions from state-eContext [s]
 	 */
-	suspend fun numExplored(s: State, selection: Collection<Widget>): Map<Widget, Int> {
+	suspend fun numExplored(s: State<*>, selection: Collection<Widget>): Map<Widget, Int> {
 		this.join()
 		return selection.map {
 			it to it.uid.cntForState(s.uid)//(wCnt[w.uid]?.get(s.uid)?:0)

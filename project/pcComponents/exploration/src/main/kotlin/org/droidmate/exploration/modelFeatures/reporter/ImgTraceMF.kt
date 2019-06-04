@@ -62,10 +62,10 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 
 	var i: AtomicInteger = AtomicInteger(0)
-	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State, newState: State) {
+	override suspend fun onNewInteracted(traceId: UUID, actionIdx: Int, action: ExplorationAction, targetWidgets: List<Widget>, prevState: State<*>, newState: State<*>) {
 		try {
 			val step = i.incrementAndGet() - 1
-			val screenFile = java.io.File(cfg.imgDst.resolve("$lastId.jpg").toString())
+			val screenFile = File(cfg.imgDst.resolve("$lastId.jpg").toString())
 			val targetFile = File("${targetDir.toAbsolutePath()}${File.separator}$step--$lastId-$action.png")
 			lastId = action.id
 
@@ -121,8 +121,9 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 
 var shapeColor: Color = Color.red
 var textColor: Color = Color.magenta.darker()
-var textSize: Int = 100
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>){
+var textSize: Int = 50
+var darken: Boolean = false
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>, cnd: (Widget)->Boolean = {true}){
 	stateImg.createGraphics().apply{
 		stroke = BasicStroke(10F)
 		font = Font("TimesRoman", Font.PLAIN, textSize)
@@ -138,26 +139,28 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 		}
 		// highlight all targets and update text labels
 		targetWidgets.forEach{ w: Widget ->
-			paint = shapeColor// reset color for next shape drawing
+			if(cnd(w)) {
+				paint = shapeColor// reset color for next shape drawing
 
-			stroke = BasicStroke(1F)
+//			stroke = BasicStroke(1F)
 //			w.visibleAreas.forEach { drawRectangle(it) }
-			stroke = BasicStroke(10F)
-			with(w.visibleBounds) {
-				drawRectangle(this)
-				// draw the label number for the element
-				val text = targetCounter[w.id]!!.joinToString(separator = ", ") { if (it.first != 0) "${it.first}.${it.second}" else "${it.second}" }
-				if (text.length > 20) font = Font("TimesRoman", Font.PLAIN, 20)
-				paint = textColor// for better visibility use a different color then the boarder
-				drawString(text, leftX + (width / 10), topY + (height / 10))
+				stroke = BasicStroke(2F)
+				with(w.visibleBounds) {
+					drawRectangle(this)
+					// draw the label number for the element
+					val text = targetCounter[w.id]!!.joinToString(separator = ", ") { if (it.first != 0) "${it.first}.${it.second}" else "${it.second}" }
+					if (text.length > 20) font = Font("TimesRoman", Font.PLAIN, 20)
+					paint = if (w.isInputField) textColor.brighter() else textColor// for better visibility use a different color then the boarder
+					drawString(text, leftX + (width / 10), topY + (height / 10))
+				}
+				font = Font("TimesRoman", Font.PLAIN, textSize) // reset font to bigger font
+				if (w.isVisible && darken) shapeColor = shapeColor.darker()
 			}
-			font = Font("TimesRoman", Font.PLAIN, textSize) // reset font to bigger font
-			if(w.isVisible) shapeColor = shapeColor.darker()
 		}
 	}
 }
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0)
-		= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset })
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0, cnd: (Widget)->Boolean = {true})
+		= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset }, cnd)
 
 private fun Int.resize() = if(this<5) 10 else this
 
