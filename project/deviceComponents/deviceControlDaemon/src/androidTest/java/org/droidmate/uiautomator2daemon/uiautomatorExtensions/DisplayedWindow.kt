@@ -25,31 +25,50 @@ data class DisplayedWindow(val w: AppWindow,
 	fun isApp() = windowType == AccessibilityWindowInfo.TYPE_APPLICATION
 
 	companion object {
-		operator fun invoke(wInfo: AccessibilityWindowInfo, uncoveredCoordinates: MutableList<Rect>, outRect: Rect,
-		                    isKeyboard: Boolean,
-		                    deviceRoot: AccessibilityNodeInfo? = null): DisplayedWindow{
+		operator fun invoke(
+			wInfo: AccessibilityWindowInfo, uncoveredCoordinates: MutableList<Rect>, outRect: Rect,
+			isKeyboard: Boolean,
+			deviceRoot: AccessibilityNodeInfo? = null
+		): DisplayedWindow {
 
-			val root: AccessibilityNodeInfo? = deviceRoot ?: wInfo.root // REMARK: do not recycle root nodes, only instances requested via getChild
+			val root: AccessibilityNodeInfo? =
+				deviceRoot ?: wInfo.root // REMARK: do not recycle root nodes, only instances requested via getChild
 			// compute which points on the screen are occupied by this window (and are not occupied by a higher layer window)
-			debugOut("start window visibility computation for ${root?.packageName} $outRect" +
-					"type=${wInfo.type} " +
-      if(api>=24)"title='${wInfo.title}' " else "" +
-		 "desc='${root?.contentDescription}', accF=${wInfo.isAccessibilityFocused}, isF=${wInfo.isFocused}, ${wInfo.layer}, isActive=${wInfo.isActive}"
-					, debug)
+			debugOut(
+				"start window visibility computation for ${root?.packageName} $outRect" +
+						"type=${wInfo.type} " +
+						if (api >= 24) "title='${wInfo.title}' " else "" +
+								"desc='${root?.contentDescription}', accF=${wInfo.isAccessibilityFocused}, isF=${wInfo.isFocused}, ${wInfo.layer}, isActive=${wInfo.isActive}"
+				, debug
+			)
 			val area = outRect.visibleAxis(uncoveredCoordinates)
 			debugOut("create ${wInfo.id} $area", debug)
 			return DisplayedWindow(
-					AppWindow(wInfo.id, root?.packageName?.toString()?:"systemWindow_WithoutRoot", wInfo.isFocused, wInfo.isAccessibilityFocused, visibleOuterBounds(area)),
-					area,
-					isKeyboard = isKeyboard,  // we cannot use type = INPUT_METHOD as this does not work on all devices e.g. Nexus 5X
-					rootNode = if(wInfo.type == AccessibilityWindowInfo.TYPE_APPLICATION || wInfo.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) root else null,
-					layer = wInfo.layer,
-					bounds = outRect,
-					windowType = wInfo.type,
-					isLauncher = (if(api>=24) wInfo.title?.contains("Launcher") else root?.packageName?.contains("android.launcher"))
-							?:false // REMARK for some devices isKeyboard may be true for the launcher window
+				AppWindow(
+					wInfo.id,
+					root?.packageName?.toString() ?: "systemWindow_WithoutRoot",
+					wInfo.isFocused,
+					wInfo.isAccessibilityFocused,
+					visibleOuterBounds(area)
+				),
+				area,
+				isKeyboard = isKeyboard,  // we cannot use type = INPUT_METHOD as this does not work on all devices e.g. Nexus 5X
+				rootNode = if (wInfo.type == AccessibilityWindowInfo.TYPE_APPLICATION || wInfo.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) {
+					root
+				} else {
+					null
+				},
+				layer = wInfo.layer,
+				bounds = outRect,
+				windowType = wInfo.type,
+				isLauncher = when {
+					wInfo.title?.contains("com.android.systemui") ?: false -> true
+					api >= 24 && (wInfo.title?.contains("Launcher") ?: false) -> true
+					root?.packageName?.contains("android.launcher") ?: false -> true
+					else -> false // REMARK for some devices isKeyboard may be true for the launcher window
+				}
 			).also {
-//				wInfo.recycle()
+				//				wInfo.recycle()
 			}
 		}
 	}
