@@ -3,7 +3,6 @@ package org.droidmate.tools
 import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.logging.LogbackUtils
 import org.droidmate.logging.Markers
 import org.droidmate.misc.SysCmdInterruptableExecutor
 import java.nio.file.Files
@@ -71,7 +70,7 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
          * Returns the logfile name in which the logcat content is written into.
          */
         private fun getLogfilePath(): Path {
-            return cfg.getPath(LogbackUtils.getLogFilePath("logcat.log"))
+            return cfg.droidmateOutputDirPath.resolve("logcat.log")
         }
 
         /**

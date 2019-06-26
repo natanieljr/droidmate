@@ -630,16 +630,6 @@ class RobustDevice : IRobustDevice {
         )
 	}
 
-	override suspend fun pullLogcatLogFile() {
-        Utils.retryOnException(
-                { this.device.pullLogcatLogFile() },
-                {},
-                deviceOperationAttempts,
-                deviceOperationDelay,
-                "device.pullLogcatLogFile()"
-        )
-	}
-
 	override suspend fun reinstallUiAutomatorDaemon() {
         Utils.retryOnException(
                 { this.device.reinstallUiAutomatorDaemon() },

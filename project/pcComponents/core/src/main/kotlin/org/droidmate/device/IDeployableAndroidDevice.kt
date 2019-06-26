@@ -94,9 +94,6 @@ interface IDeployableAndroidDevice {
 	suspend fun removeLogcatLogFile()
 
 	@Throws(DeviceException::class)
-	suspend fun pullLogcatLogFile()
-
-	@Throws(DeviceException::class)
 	suspend fun reinstallUiAutomatorDaemon()
 
 	@Throws(DeviceException::class)

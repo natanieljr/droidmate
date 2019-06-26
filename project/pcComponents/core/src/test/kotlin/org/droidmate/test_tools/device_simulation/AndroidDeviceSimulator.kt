@@ -134,10 +134,6 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
-	override suspend fun pullLogcatLogFile() {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-	}
-
 	override suspend fun reinstallUiAutomatorDaemon() {
 		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
