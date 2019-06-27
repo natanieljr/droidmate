@@ -93,7 +93,7 @@ class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeplo
 	private suspend fun tryUndeployApk(device: IDeployableAndroidDevice, apk: IApk) {
 		if (cfg[uninstallApk]) {
 			if (device.isAvailable()) {
-				log.info("Uninstalling $apk.fileName")
+				log.info("Uninstalling ${apk.fileName}")
 				// This method is called in RunnableTerminateExplorationAction.performDeviceActions
 				// but exploration might throw exception before that call is made, so here we make another attempt at doing it.
 				device.closeMonitorServers()

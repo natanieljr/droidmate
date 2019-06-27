@@ -94,6 +94,7 @@ import org.droidmate.configuration.ConfigProperties.TcpClient.serverAddress
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.delayedImgFetch
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.enablePrintOuts
+import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.imgQuality
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
@@ -212,6 +213,7 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(socketTimeout, description = "Socket timeout to communicate with the UiDaemonServer."),
 			CommandLineOption(basePort, description = "The base port for the communication with the devices. DroidMate communicates over this base port + device index."),
 			CommandLineOption(delayedImgFetch, description = "Option to allow for faster exploration by delaying screen-shot fetch to an asynchronous call."),
+			CommandLineOption(imgQuality, description = "Quality of the image to be stored for fetching."),
 			// StatementCoverage
 			CommandLineOption(enableCoverage, description = "If true, the statement coverage of the exploration will be measured. This requires the apk to be instrumented with 'coverage' mode."),
 			CommandLineOption(onlyCoverAppPackageName, description = "Only instrument statement coverage for statements belong inside the app package name scope. Libraries with other package names will be ignored. Be aware that this filtering might not be always correct."),

@@ -2,9 +2,7 @@ package org.droidmate.tools
 
 import kotlinx.coroutines.*
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.device.android_sdk.AdbWrapperException
 import org.droidmate.device.android_sdk.IAdbWrapper
-import org.droidmate.logging.LogbackUtils
 import org.droidmate.logging.Markers
 import org.droidmate.misc.SysCmdInterruptableExecutor
 import java.nio.file.Files
@@ -19,7 +17,8 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
 
     private val log: Logger by lazy { LoggerFactory.getLogger(LogcatMonitor::class.java) }
 
-    override val coroutineContext: CoroutineContext = CoroutineName("LogcatMonitor") + Job() + Dispatchers.Default
+    override val coroutineContext: CoroutineContext
+            = CoroutineName("LogcatMonitor") + Job() + Dispatchers.Default
 
     // Coverage monitor variables
     private val sysCmdExecutor = SysCmdInterruptableExecutor()
@@ -57,27 +56,21 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
      */
     private fun monitorLogcat() {
 
-        try {
-            val path = getLogfilePath()
-            val output = adbWrapper.executeCommand(
-                sysCmdExecutor, cfg.deviceSerialNumber, "", "Logcat logfile monitor",
-                "logcat", "-v", "time"
-            )
+        val path = getLogfilePath()
+        val output = adbWrapper.executeCommand(sysCmdExecutor, cfg.deviceSerialNumber, "", "Logcat logfile monitor",
+            "logcat", "-v", "time")
 
-            // Append the logcat content to the logfile
-            log.info("Writing logcat output into $path")
-            val file = path.toFile()
-            file.appendBytes(output.toByteArray())
-        } catch (e: AdbWrapperException) {
-            log.warn(e.message)
-        }
+        // Append the logcat content to the logfile
+        log.info("Writing logcat output into $path")
+        val file = path.toFile()
+        file.appendBytes(output.toByteArray())
     }
 
     /**
      * Returns the logfile name in which the logcat content is written into.
      */
     private fun getLogfilePath(): Path {
-        return cfg.getPath(LogbackUtils.getLogFilePath("logcat.log"))
+        return cfg.droidmateOutputDirPath.resolve("logcat.log")
     }
 
     /**
@@ -87,6 +80,7 @@ class LogcatMonitor(private val cfg: ConfigurationWrapper,
         running.set(false)
         sysCmdExecutor.stopCurrentExecutionIfExisting()
         log.info("Logcat monitor thread destroyed")
-        runBlocking { if (!coroutineContext.isActive) coroutineContext[Job]?.cancelAndJoin() }
+        runBlocking { if(!coroutineContext.isActive) coroutineContext[Job]?.cancelAndJoin() }
     }
+
 }

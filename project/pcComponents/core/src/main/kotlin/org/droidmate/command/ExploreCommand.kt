@@ -74,13 +74,15 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
 
-open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapper,
-                                      private val apksProvider: IApksProvider,
-                                      private val deviceDeployer: IAndroidDeviceDeployer,
-                                      private val apkDeployer: IApkDeployer,
-                                      private val strategyProvider: (ExplorationContext<M,S,W>) -> IExplorationStrategy,
-                                      private var modelProvider: ModelProvider<M>,
-									  val watcher: MutableList<ModelFeatureI> = mutableListOf()) where M: AbstractModel<S, W>, S: State<W>, W: Widget {
+open class ExploreCommand<M,S,W>(
+	private val cfg: ConfigurationWrapper,
+    private val apksProvider: IApksProvider,
+    private val deviceDeployer: IAndroidDeviceDeployer,
+    private val apkDeployer: IApkDeployer,
+    private val strategyProvider: (ExplorationContext<M,S,W>) -> IExplorationStrategy,
+    private var modelProvider: ModelProvider<M>,
+	val watcher: MutableList<ModelFeatureI> = mutableListOf()
+) where M: AbstractModel<S, W>, S: State<W>, W: Widget {
 	companion object {
 		@JvmStatic
 		protected val log: Logger by lazy { LoggerFactory.getLogger(ExploreCommand::class.java) }
@@ -158,20 +160,25 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 		}
 
 		Files.walk(outputDir)
-				.filter { it.parent.fileName.toString() != EnvironmentConstants.dir_name_temp_extracted_resources }
-				.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
-				.filter { Files.isRegularFile(it) }
-				.forEach { Files.delete(it) }
+			.filter { it.parent.fileName.toString() != EnvironmentConstants.dir_name_temp_extracted_resources }
+			.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
+			.filter { Files.isRegularFile(it) }
+			.forEach { Files.delete(it) }
 
 		Files.walk(outputDir)
-				.filter { it.parent.fileName.toString() != EnvironmentConstants.dir_name_temp_extracted_resources }
-				.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
-				.forEach { assert(Files.isDirectory(it)) {"Unable to clean the output directory. File remaining ${it.toAbsolutePath()}"} }
+			.filter { it.parent.fileName.toString() != EnvironmentConstants.dir_name_temp_extracted_resources }
+			.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
+			.forEach { assert(Files.isDirectory(it)) { "Unable to clean the output directory. File remaining ${it.toAbsolutePath()}" } }
 	}
 
-	protected open suspend fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Map<Apk,FailableExploration> {
+	protected open suspend fun execute(cfg: ConfigurationWrapper, apks: List<Apk>): Map<Apk, FailableExploration> {
 
-		return deviceDeployer.setupAndExecute(cfg[deviceSerialNumber], cfg[deviceIndex], apkDeployer, apks) { app, device -> runApp(app,device)}
+		return deviceDeployer.setupAndExecute(
+			cfg[deviceSerialNumber],
+			cfg[deviceIndex],
+			apkDeployer,
+			apks
+		) { app, device -> runApp(app, device) }
 	}
 
 	private suspend fun runApp(app: IApk, device: IRobustDevice): FailableExploration {
@@ -189,7 +196,7 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 		return explorationLoop(app, device)
 	}
 
-	private suspend fun ExplorationContext<M,S,W>.verify() {
+	private suspend fun ExplorationContext<M, S, W>.verify() {
 		try {
 			assert(this.explorationTrace.size > 0) { "Exploration trace should not be empty" }
 			assert(this.explorationStartTime > LocalDateTime.MIN) { "Start date/time not set for exploration" }
@@ -208,10 +215,10 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 		}
 	}
 
-	private fun ExplorationContext<M,S,W>.assertLogsAreSortedByTime() {
+	private fun ExplorationContext<M, S, W>.assertLogsAreSortedByTime() {
 		val apiLogs = explorationTrace.getActions()
-				.mapQueueToSingleElement()
-				.flatMap { deviceLog -> deviceLog.deviceLogs.map { ApiLogcatMessage.from(it) } }
+			.mapQueueToSingleElement()
+			.flatMap { deviceLog -> deviceLog.deviceLogs.map { ApiLogcatMessage.from(it) } }
 
 		assert(explorationStartTime <= explorationEndTime)
 
@@ -219,7 +226,12 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 		assert(ret)
 	}
 
-	private suspend fun pullScreenShot(actionId: Int, targetDir: Path, device: IRobustDevice, eContext: ExplorationContext<M,S,W>) = withTimeoutOrNull(10000){
+	private suspend fun pullScreenShot(
+		actionId: Int,
+		targetDir: Path,
+		device: IRobustDevice,
+		eContext: ExplorationContext<M, S, W>
+	) = withTimeoutOrNull(10000) {
 		debugT("image transfer should take no time on main thread", {
 			eContext.imgTransfer.launch {
 				// pull the image from device, store it in the image directory defined in ModelConfig and remove it on device
@@ -231,12 +243,13 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 					device.pullFile(fileName, dstFile)
 				} while (isActive && c++ < 3 && !File(dstFile.toString()).exists())
 
-                if(!File(dstFile.toString()).exists())
-                    log.warn("unable to fetch state image for action $actionId")
+				if (!File(dstFile.toString()).exists())
+					log.warn("unable to fetch state image for action $actionId")
 			}
 		}, inMillis = true)
 
 	}
+
 	private suspend fun explorationLoop(app: IApk, device: IRobustDevice): FailableExploration {
 		log.debug("explorationLoop(app=${app.fileName}, device)")
 
@@ -276,16 +289,23 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 					if (cfg[ConfigProperties.UiAutomatorServer.delayedImgFetch]) {
 						if (capturedPreviously && action is ActionQueue) {
 							action.actions.forEachIndexed { i, a ->
-								log.debug("action queue element {} should have screenshot for ExploreCommand {}",i,a)
+								log.debug("action queue element {} should have screenshot for ExploreCommand {}", i, a)
 								if (i < action.actions.size - 1 &&
-										((a is TextInsert && action.actions[i + 1] is Click)
-												|| a is Swipe))
-									pullScreenShot(a.id, explorationContext.model.config.imgDst, device, explorationContext)
+									((a is TextInsert && action.actions[i + 1] is Click)
+											|| a is Swipe)
+								)
+									pullScreenShot(
+										a.id,
+										explorationContext.model.config.imgDst,
+										device,
+										explorationContext
+									)
 							}
 						}
-						if(result.guiSnapshot.capturedScreen){
-							val id = if(action.isTerminate()) action.id +1 else action.id // terminate is not send to the device instead we terminate the app process and issue Fetch which will have a higher id value
-							log.debug("action {} should have screenshot for ExploreCommand {}",id,action)
+						if (result.guiSnapshot.capturedScreen) {
+							val id =
+								if (action.isTerminate()) action.id + 1 else action.id // terminate is not send to the device instead we terminate the app process and issue Fetch which will have a higher id value
+							log.debug("action {} should have screenshot for ExploreCommand {}", id, action)
 							pullScreenShot(id, explorationContext.model.config.imgDst, device, explorationContext)
 						}
 					}
@@ -299,17 +319,19 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 					}
 
 					// Propagate exception if there was any exception on device
-					if (!result.successful && exception !is DeviceExceptionMissing){
+					if (!result.successful && exception !is DeviceExceptionMissing) {
 						explorationContext.exceptions.add(exception)
 					}
 
 					//FIXME this should be only an assert in the feature requiring this i.e. the specific model features
 //					assert(!explorationContext.apk.launchableMainActivityName.isBlank()) { "launchedMainActivityName was Blank" }
 				} catch (e: Throwable) {  // the decide call of a strategy may issue an exception e.g. when trying to interact on non-actable elements
-					log.error("Exception during exploration\n" +
-							" ${e.localizedMessage}",e)
+					log.error(
+						"Exception during exploration\n" +
+								" ${e.localizedMessage}", e
+					)
 					explorationContext.exceptions.add(e)
-					explorationContext.resetApp().execute(app,device)
+					explorationContext.resetApp().execute(app, device)
 				}
 			} // end loop
 
@@ -317,13 +339,12 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 			explorationContext.verify() // some result validation do this in the end of exploration for this app
 			// but within the catch block to NOT terminate other explorations and to NOT loose the derived context
 
-		} catch (e: Throwable){ // the loop handles internal error if possible, however if the resetApp after exception fails we end in this catch
+		} catch (e: Throwable) { // the loop handles internal error if possible, however if the resetApp after exception fails we end in this catch
 			// this means likely the uiAutomator is dead or we lost device connection
 			log.error("unhandled device exception \n ${e.localizedMessage}", e)
 			explorationContext.exceptions.add(e)
 			strategy?.close()
-		}
-		finally {
+		} finally {
 			explorationContext.close()
 		}
 
@@ -352,8 +373,9 @@ open class ExploreCommand<M,S,W> constructor(private val cfg: ConfigurationWrapp
 							"Continuing the exploration nevertheless, hoping that the first \"reset app\" " +
 							"exploration action will force the device into the home screen."
 				)
-		}catch(e: Throwable){
-			log.warn("initial fetch (warnIfNotHomeScreen) failed",e)
+		} catch (e: Throwable) {
+			log.warn("initial fetch (warnIfNotHomeScreen) failed")
+			log.debug("initial fetch (warnIfNotHomeScreen) failed", e)
 		}
 	}
 }

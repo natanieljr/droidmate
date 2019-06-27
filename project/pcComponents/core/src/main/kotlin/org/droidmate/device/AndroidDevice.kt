@@ -41,7 +41,6 @@ import org.droidmate.device.android_sdk.IApk
 import org.droidmate.device.logcat.TimeFormattedLogcatMessage
 import org.droidmate.deviceInterface.DeviceConstants
 import org.droidmate.errors.UnexpectedIfElseFallthroughError
-import org.droidmate.logging.LogbackUtils
 import org.droidmate.misc.EnvironmentConstants
 import org.droidmate.misc.MonitorConstants
 import org.droidmate.misc.Utils
@@ -228,14 +227,6 @@ class AndroidDevice constructor(private val serialNumber: String,
 		log.debug("removeLogcatLogFile()")
 		if (cfg[apiVersion] == ConfigurationWrapper.api23)
 			this.adbWrapper.removeFileApi23(this.serialNumber, DeviceConstants.deviceLogcatLogDir_api23+logcatLogFileName, uia2Daemon_packageName)
-		else
-			throw UnexpectedIfElseFallthroughError("configured api version does not match ConfigurationWrapper.api23")
-	}
-
-	override suspend fun pullLogcatLogFile() {
-		log.debug("pullLogcatLogFile()")
-		if (cfg[apiVersion] == ConfigurationWrapper.api23)
-			this.adbWrapper.pullFileApi23(this.serialNumber, DeviceConstants.deviceLogcatLogDir_api23+logcatLogFileName, cfg.getPath(LogbackUtils.getLogFilePath("logcat.log")), uia2Daemon_packageName)
 		else
 			throw UnexpectedIfElseFallthroughError("configured api version does not match ConfigurationWrapper.api23")
 	}
