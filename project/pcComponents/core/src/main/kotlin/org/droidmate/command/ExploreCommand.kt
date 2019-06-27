@@ -374,7 +374,8 @@ open class ExploreCommand<M,S,W>(
 							"exploration action will force the device into the home screen."
 				)
 		} catch (e: Throwable) {
-			log.warn("initial fetch (warnIfNotHomeScreen) failed", e)
+			log.warn("initial fetch (warnIfNotHomeScreen) failed")
+			log.debug("initial fetch (warnIfNotHomeScreen) failed", e)
 		}
 	}
 }
