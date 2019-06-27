@@ -62,7 +62,8 @@ data class DisplayedWindow(val w: AppWindow,
 				bounds = outRect,
 				windowType = wInfo.type,
 				isLauncher = when {
-					wInfo.title?.contains("com.android.systemui") ?: false -> true
+					api >= 24 && wInfo.title?.contains("systemui") ?: false -> true
+					root?.packageName?.contains("systemui") ?: false -> true
 					api >= 24 && (wInfo.title?.contains("Launcher") ?: false) -> true
 					root?.packageName?.contains("android.launcher") ?: false -> true
 					else -> false // REMARK for some devices isKeyboard may be true for the launcher window
