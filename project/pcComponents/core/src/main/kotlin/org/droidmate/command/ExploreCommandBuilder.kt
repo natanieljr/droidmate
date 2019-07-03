@@ -29,6 +29,7 @@ import org.droidmate.tools.IDeviceTools
 import java.nio.file.Path
 import java.util.*
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 open class ExploreCommandBuilder(
     val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf(),
     val selectors: MutableList<StrategySelector> = mutableListOf(),
@@ -43,7 +44,8 @@ open class ExploreCommandBuilder(
         fun defaultReportWatcher(cfg: ConfigurationWrapper): LinkedList<ModelFeatureI> {
             val reportDir = cfg.droidmateOutputReportDirPath.toAbsolutePath()
             val resourceDir = cfg.resourceDir.toAbsolutePath()
-            val list = LinkedList<ModelFeatureI>()
+
+            return LinkedList<ModelFeatureI>()
                 .also {
                     it.addAll(
                         listOf(
@@ -60,7 +62,6 @@ open class ExploreCommandBuilder(
                                 resourceDir,
                                 includePlots = cfg[ConfigProperties.Report.includePlots]
                             ),
-//						TODO WidgetSeenClickedCount(cfg.reportIncludePlots),
                             ApiActionTraceMF(reportDir, resourceDir),
                             ActivitySeenSummaryMF(reportDir, resourceDir),
                             ActionTraceMF(reportDir, resourceDir),
@@ -69,8 +70,6 @@ open class ExploreCommandBuilder(
                         )
                     )
                 }
-
-            return list
         }
     }
 
@@ -101,7 +100,10 @@ open class ExploreCommandBuilder(
 
         conditionalEnable(cfg[ConfigProperties.Strategies.explore], cfg) { exploreRandomly(cfg) }
 
-        conditionalEnable(cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage], cfg) { collectStatementCoverage() }
+        conditionalEnable(
+            cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage],
+            cfg
+        ) { collectStatementCoverage() }
 
         conditionalEnable(cfg[ConfigProperties.Strategies.rotateUI], cfg) { addRotateUIStrategy(cfg) }
         conditionalEnable(cfg[ConfigProperties.Strategies.minimizeMaximize]) { addMinimizeMaximizeStrategy() }
@@ -115,7 +117,8 @@ open class ExploreCommandBuilder(
 
     private fun conditionalEnable(
         condition: Boolean,
-        builderFunction: () -> Any) {
+        builderFunction: () -> Any
+    ) {
 
         if (condition) {
             builderFunction()
@@ -125,7 +128,8 @@ open class ExploreCommandBuilder(
     private fun conditionalEnable(
         condition: Boolean,
         cfg: ConfigurationWrapper,
-        builderFunction: (ConfigurationWrapper) -> Any) {
+        builderFunction: (ConfigurationWrapper) -> Any
+    ) {
 
         if (condition) {
             builderFunction(cfg)
@@ -148,12 +152,14 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterTime(seconds: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(
-            getNextSelectorPriority(),
-            "timeBasedTerminate",
-            StrategySelector.timeBasedTerminate,
-            bundle = arrayOf(seconds)
-        ))
+        selectors.add(
+            StrategySelector(
+                getNextSelectorPriority(),
+                "timeBasedTerminate",
+                StrategySelector.timeBasedTerminate,
+                bundle = arrayOf(seconds)
+            )
+        )
         return this
     }
 
@@ -162,21 +168,25 @@ open class ExploreCommandBuilder(
     }
 
     fun terminateAfterActions(actionLimit: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(
-            getNextSelectorPriority(),
-            "actionBasedTerminate",
-            StrategySelector.actionBasedTerminate,
-            bundle = arrayOf(actionLimit)
-        ))
+        selectors.add(
+            StrategySelector(
+                getNextSelectorPriority(),
+                "actionBasedTerminate",
+                StrategySelector.actionBasedTerminate,
+                bundle = arrayOf(actionLimit)
+            )
+        )
         return this
     }
 
     fun terminateIfAllExplored(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(
-            getNextSelectorPriority(),
-            "explorationExhausted",
-            StrategySelector.explorationExhausted
-        ))
+        selectors.add(
+            StrategySelector(
+                getNextSelectorPriority(),
+                "explorationExhausted",
+                StrategySelector.explorationExhausted
+            )
+        )
         return this
     }
 
@@ -190,26 +200,30 @@ open class ExploreCommandBuilder(
         return this
     }
 
-    fun resetOnIntervals(cfg:ConfigurationWrapper): ExploreCommandBuilder {
+    fun resetOnIntervals(cfg: ConfigurationWrapper): ExploreCommandBuilder {
         return resetOnIntervals(cfg[ConfigProperties.Selectors.resetEvery])
     }
 
     fun resetOnIntervals(actionInterval: Int): ExploreCommandBuilder {
-        selectors.add(StrategySelector(
-            getNextSelectorPriority(),
-            "intervalReset",
-            StrategySelector.intervalReset,
-            bundle = arrayOf(actionInterval)
-        ))
+        selectors.add(
+            StrategySelector(
+                getNextSelectorPriority(),
+                "intervalReset",
+                StrategySelector.intervalReset,
+                bundle = arrayOf(actionInterval)
+            )
+        )
         return this
     }
 
     fun startWithReset(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(
-            getNextSelectorPriority(),
-            "startExplorationReset",
-            StrategySelector.startExplorationReset
-        ))
+        selectors.add(
+            StrategySelector(
+                getNextSelectorPriority(),
+                "startExplorationReset",
+                StrategySelector.startExplorationReset
+            )
+        )
         return this
     }
 
@@ -233,12 +247,14 @@ open class ExploreCommandBuilder(
     }
 
     fun randomBack(probability: Double, randomSeed: Long): ExploreCommandBuilder {
-        selectors.add(StrategySelector(
-            getNextSelectorPriority(),
-            "randomBack",
-            StrategySelector.randomBack,
-            bundle = arrayOf(probability, Random(randomSeed))
-        ))
+        selectors.add(
+            StrategySelector(
+                getNextSelectorPriority(),
+                "randomBack",
+                StrategySelector.randomBack,
+                bundle = arrayOf(probability, Random(randomSeed))
+            )
+        )
         return this
     }
 
@@ -253,9 +269,10 @@ open class ExploreCommandBuilder(
 
     fun exploreRandomly(
         randomSeed: Long = 0,
-        delay : Long = 0,
-        enableScroll : Boolean= false,
-        biasedRandom: Boolean = false): ExploreCommandBuilder {
+        delay: Long = 0,
+        enableScroll: Boolean = false,
+        biasedRandom: Boolean = false
+    ): ExploreCommandBuilder {
         return addRandomStrategy(randomSeed, delay, enableScroll, biasedRandom)
             .addRandomExploreSelector()
     }
@@ -272,9 +289,10 @@ open class ExploreCommandBuilder(
     @JvmOverloads
     fun addRandomStrategy(
         randomSeed: Long = 0,
-        delay : Long = 0,
-        enableScroll : Boolean= false,
-        biasedRandom: Boolean = false): ExploreCommandBuilder {
+        delay: Long = 0,
+        enableScroll: Boolean = false,
+        biasedRandom: Boolean = false
+    ): ExploreCommandBuilder {
 
         strategies.add(RandomWidget(randomSeed, biasedRandom, enableScroll, delay = delay))
 
@@ -368,11 +386,13 @@ open class ExploreCommandBuilder(
     }
 
     fun collectStatementCoverage(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(
-            getNextSelectorPriority(),
-            "statementCoverageSync",
-            StrategySelector.statementCoverage
-        ))
+        selectors.add(
+            StrategySelector(
+                getNextSelectorPriority(),
+                "statementCoverageSync",
+                StrategySelector.statementCoverage
+            )
+        )
         return this
     }
 
@@ -427,16 +447,26 @@ open class ExploreCommandBuilder(
     }
 
     @JvmOverloads
-    fun<M:AbstractModel<S,W>,S: State<W>,W: Widget> build(cfg: ConfigurationWrapper,
-              deviceTools: IDeviceTools = DeviceTools(cfg),
-              strategyProvider: (ExplorationContext<*,*,*>) -> IExplorationStrategy = { ExplorationStrategyPool(this.strategies, this.selectors, it) }, //FIXME is it really still useful to overwrite the eContext instead of the model?
-              watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
-              modelProvider: ModelProvider<M> ): ExploreCommand<M, S, W> {
+    open fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> build(
+        cfg: ConfigurationWrapper,
+        deviceTools: IDeviceTools = DeviceTools(cfg),
+        strategyProvider: (ExplorationContext<*, *, *>) -> IExplorationStrategy = {
+            ExplorationStrategyPool(
+                this.strategies,
+                this.selectors,
+                it
+            )
+        }, //FIXME is it really still useful to overwrite the eContext instead of the model?
+        watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
+        modelProvider: ModelProvider<M>
+    ): ExploreCommand<M, S, W> {
         val apksProvider = ApksProvider(deviceTools.aapt)
 
         this.watcher.addAll(watcher)
 
-        return ExploreCommand(cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
-            strategyProvider, modelProvider, this.watcher)
+        return ExploreCommand(
+            cfg, apksProvider, deviceTools.deviceDeployer, deviceTools.apkDeployer,
+            strategyProvider, modelProvider, this.watcher
+        )
     }
 }
