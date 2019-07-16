@@ -28,7 +28,7 @@ package org.droidmate.device.android_sdk
 import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
 import org.droidmate.configuration.ConfigProperties
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.adbHost
+import org.droidmate.configuration.ConfigProperties.Core.hostIp
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForDevice
 import org.droidmate.configuration.ConfigProperties.Exploration.launchActivityTimeout
 import org.droidmate.configuration.ConfigurationWrapper
@@ -99,10 +99,10 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 
 		val stdStreams: Array<String>
 		try {
-			stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "devices")
+			stdStreams = sysCmdExecutor.execute(commandDescription, cfg.adbCommand, "-H", cfg[hostIp], "devices")
 
 		} catch (e: SysCmdExecutorException) {
-			throw AdbWrapperException("Calling '${cfg.adbCommand} -H ${cfg[adbHost]} devices' failed.", e)
+			throw AdbWrapperException("Calling '${cfg.adbCommand} -H ${cfg[hostIp]} devices' failed.", e)
 		}
 
 		removeAdbStartedMsgIfPresent(stdStreams)
@@ -134,7 +134,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 
 		try {
 			val stdStreams = sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "install", "-r",
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp], "-s", deviceSerialNumber, "install", "-r",
 				apkToInstall.toAbsolutePath().toString()
 			)
 
@@ -173,7 +173,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 					"Executing adb (Android Debug Bridge) to uninstall $apkPackageName from Android Device with s/n $deviceSerialNumber."
 
 				val stdStreams = sysCmdExecutor.execute(
-					commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s",
+					commandDescription, cfg.adbCommand, "-H", cfg[hostIp], "-s",
 					deviceSerialNumber, "uninstall", apkPackageName
 				)
 				removeAdbStartedMsgIfPresent(stdStreams)
@@ -208,7 +208,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 				"Executing adb (Android Debug Bridge) to forcefully stop ${apk.packageName} on android device with s/n $deviceSerialNumber."
 
 			sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "shell",
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp], "-s", deviceSerialNumber, "shell",
 				"am", "force-stop", apk.packageName
 			)
 		} catch (e: SysCmdExecutorException) {
@@ -224,7 +224,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 				"Executing adb (Android Debug Bridge) to forward port $port to android device with s/n $deviceSerialNumber."
 
 			sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "forward",
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp], "-s", deviceSerialNumber, "forward",
 				"tcp:$port",
 				"tcp:$port"
 			)
@@ -243,7 +243,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 				"Executing adb (Android Debug Bridge) to reverse-forward port $port to android device with s/n $deviceSerialNumber."
 
 			sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber, "reverse",
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp], "-s", deviceSerialNumber, "reverse",
 				"tcp:$port",
 				"tcp:$port"
 			)
@@ -263,7 +263,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 				commandDescription,
 				cfg.adbCommand,
 				"-H",
-				cfg[adbHost],
+				cfg[hostIp],
 				"-s",
 				deviceSerialNumber,
 				"reboot"
@@ -281,7 +281,7 @@ class AdbWrapper constructor(private val cfg: ConfigurationWrapper,
 				"Executing adb (Android Debug Bridge) to read from logcat messages tagged: $messageTag"
 
 			val stdStreams = sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				/*
 Command line explanation:
@@ -316,7 +316,7 @@ Logcat reference:
 			val commandDescription = "Executing adb (Android Debug Bridge) to list packages."
 
 			val stdStreams = sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				"shell", "pm", "list", "packages"
 			)
@@ -334,7 +334,7 @@ Logcat reference:
 			val commandDescription = "Executing adb (Android Debug Bridge) to list package $packageName."
 
 			val stdStreams = sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				"shell", "pm", "list", "packages"
 			)
@@ -352,7 +352,7 @@ Logcat reference:
 			val commandDescription = "Executing adb (Android Debug Bridge) to list processes (ps)."
 
 			val stdStreams = sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				"shell", "ps"
 			)
@@ -369,7 +369,7 @@ Logcat reference:
 		val commandDescription = "Executing adb (Android Debug Bridge) to clear logcat output."
 
 		sysCmdExecutor.execute(
-			commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+			commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 			"-s", deviceSerialNumber,
 			"logcat", "-c"
 		)
@@ -421,7 +421,7 @@ Logcat reference:
 			val commandDescription = "Executing adb (Android Debug Bridge) to kill adb server."
 
 			sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 				"kill-server"
 			)
 
@@ -449,7 +449,7 @@ Logcat reference:
 
 			// .inheritIO() causes the command to write out to stdout if it indeed had to start the server.
 			p = ProcessBuilder(
-				Utils.quoteIfIsPathToExecutable(cfg.adbCommand), "-H", cfg[adbHost],
+				Utils.quoteIfIsPathToExecutable(cfg.adbCommand), "-H", cfg[hostIp],
 				"start-server"
 			).inheritIO().start()
 
@@ -483,7 +483,7 @@ Logcat reference:
 				commandDescription,
 				cfg.adbCommand,
 				"-H",
-				cfg[adbHost],
+				cfg[hostIp],
 				"-s",
 				deviceSerialNumber,
 				"push",
@@ -506,7 +506,7 @@ Logcat reference:
 			//
 			// Hint: to list files to manually check if the file was deleted, use: adb shell ls
 			sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				"shell", "rm", EnvironmentConstants.AVD_dir_for_temp_files + jarFile.fileName.toString()
 			)
@@ -526,7 +526,7 @@ Logcat reference:
 			// http://developer.android.com/tools/help/adb.html#am
 			val stdStreams = sysCmdExecutor.executeWithTimeout(
 				commandDescription, cfg[launchActivityTimeout], cfg.adbCommand,
-				"-H", cfg[adbHost],
+				"-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				"shell", "am", "start", // start an activity using Activity Manager (am)
 				"-W", // wait for launch to complete
@@ -565,7 +565,7 @@ Logcat reference:
 			// Reference:
 			// http://stackoverflow.com/questions/3117095/stopping-an-android-app-from-console/3117310#3117310
 			val stdStreams = sysCmdExecutor.execute(
-				commandDescription, cfg.adbCommand, "-H", cfg[adbHost],
+				commandDescription, cfg.adbCommand, "-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				"shell", "pm", "clear", // clear everything associated with a package
 				apkPackageName
@@ -609,7 +609,7 @@ Logcat reference:
 		try {
 			val stdStreams = this.sysCmdExecutor.executeWithoutTimeout(
 				commandDescription, cfg.adbCommand,
-				"-H", cfg[adbHost],
+				"-H", cfg[hostIp],
 				"-s", deviceSerialNumber,
 				"shell", "am", "instrument",
 				"--user", "0",
@@ -657,7 +657,7 @@ Logcat reference:
 				"Executing adb to pull $pulledFilePath on Android Device with s/n $deviceSerialNumber."
 			try {
 				sysCmdExecutor.executeWithTimeout(
-					commandDescription, 2000, cfg.adbCommand, "-H", cfg[adbHost],
+					commandDescription, 2000, cfg.adbCommand, "-H", cfg[hostIp],
 					"-s", deviceSerialNumber,
 					"pull", pulledFilePath, destinationFilePath.toAbsolutePath().toString()
 				)
@@ -743,7 +743,7 @@ Logcat reference:
 		commandDescription: String,
 		vararg cmdLineParams: String
 	): String {
-		val allCmdLineParams = arrayListOf(cfg.adbCommand, "-H", cfg[adbHost], "-s", deviceSerialNumber)
+		val allCmdLineParams = arrayListOf(cfg.adbCommand, "-H", cfg[hostIp], "-s", deviceSerialNumber)
 		try {
 			allCmdLineParams.addAll(cmdLineParams)
 			val stdStreams = sysCmdExecutor.execute(commandDescription, *allCmdLineParams.toTypedArray())

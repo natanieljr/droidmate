@@ -31,7 +31,7 @@ import org.droidmate.device.error.DeviceException
 import org.droidmate.device.android_sdk.IAdbWrapper
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.Exploration.apiVersion
-import org.droidmate.configuration.ConfigProperties.TcpClient.serverAddress
+import org.droidmate.configuration.ConfigProperties.Core.hostIp
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.socketTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.waitForInteractableTimeout
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.startTimeout
@@ -116,7 +116,7 @@ class AndroidDevice constructor(private val serialNumber: String,
 			cfg.uiAutomatorPort,
 			cfg[startTimeout],
 			cfg[waitForInteractableTimeout],
-			cfg[serverAddress],
+			cfg[hostIp],
 			cfg.monitorPort,
 			cfg.coverageMonitorPort)
 
