@@ -65,7 +65,7 @@ class ApkFixtures(aapt: IAaptWrapper) {
 			return extractedPath.text
 		}
 
-	init {
+	initialize {
 		gui = Apk.fromFile(Resource("${EnvironmentConstants.apk_fixtures}/GuiApkFixture-debug.apk").extractedPath)
 		monitoredInlined_api23 = Apk.fromFile(Resource("${EnvironmentConstants.apk_fixtures}/${EnvironmentConstants.monitored_inlined_apk_fixture_api23_name}").extractedPath)
 	}

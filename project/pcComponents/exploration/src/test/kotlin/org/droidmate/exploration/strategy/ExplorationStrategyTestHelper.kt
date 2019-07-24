@@ -30,7 +30,7 @@ package org.droidmate.exploration.strategy
 class ExplorationStrategyTestHelper {
 	companion object {
 		/*@JvmStatic
-		fun buildStrategy(explorationLog: ExplorationContext, actionsLimit: Int, resetEveryNthExplorationForward: Int): IExplorationStrategy {
+		fun buildStrategy(explorationLog: ExplorationContext, actionsLimit: Int, resetEveryNthExplorationForward: Int): AExplorationStrategy {
 			val cfg = ConfigurationForTests().apply {
 				setArg(arrayListOf(Configuration.pn_actionsLimit, "$actionsLimit"))
 				setArg(arrayListOf(Configuration.pn_resetEveryNthExplorationForward, "$resetEveryNthExplorationForward"))

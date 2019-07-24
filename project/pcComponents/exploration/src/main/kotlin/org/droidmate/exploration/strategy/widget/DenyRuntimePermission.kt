@@ -25,13 +25,25 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.click
+import org.droidmate.exploration.strategy.AExplorationStrategy
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 
 /**
  * Exploration strategy that always clicks "Deny" on runtime permission dialogs.
  */
-class DenyRuntimePermission : ExplorationStrategy() {
-	override suspend fun chooseAction(): ExplorationAction {
+@Deprecated("to be deleted you should just invke the exploration action directly")
+class DenyRuntimePermission : AExplorationStrategy() {
+	override fun getPriority(): Int {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
+	override suspend fun <M: AbstractModel<S, W>,S: State<W>,W: Widget> computeNextAction(
+		eContext: ExplorationContext<M, S, W>
+	): ExplorationAction {
 		val denyButton = eContext.getCurrentState().widgets.let { widgets ->
 			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_deny_button" }
 					?: widgets.first { it.text.toUpperCase() == "DENY" }

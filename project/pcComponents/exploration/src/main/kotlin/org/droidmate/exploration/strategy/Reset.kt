@@ -26,15 +26,21 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.exploration.actions.resetApp
+import org.droidmate.exploration.ExplorationContext
+import org.droidmate.exploration.actions.launchApp
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 
 /**
  * Base for exploration strategies that reset and exploration.
  *
  * @author Nataniel P. Borges Jr.
  */
-class Reset : AbstractStrategy() {
-	override suspend fun internalDecide(): ExplorationAction {
-		return eContext.resetApp()
+@Deprecated("to be deleted you should just invke the exploration action directly")
+class Reset : AExplorationStrategy() {
+	override fun getPriority(): Int = 0
+	override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> computeNextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
+		return eContext.launchApp()
 	}
 }

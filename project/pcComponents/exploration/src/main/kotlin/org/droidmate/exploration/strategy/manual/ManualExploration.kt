@@ -12,15 +12,17 @@ import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.droidmate.deviceInterface.exploration.LaunchApp
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.actions.pressBack
-import org.droidmate.exploration.actions.resetApp
+import org.droidmate.exploration.actions.launchApp
 import org.droidmate.exploration.actions.setText
-import org.droidmate.exploration.strategy.AbstractStrategy
+import org.droidmate.exploration.strategy.AExplorationStrategy
 import org.slf4j.Logger
 import saarland.cispa.exploration.android.strategy.action.SwipeTo
 import org.droidmate.exploration.strategy.manual.action.showTargetsInImg
 import org.droidmate.exploration.strategy.manual.action.triggerTap
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -32,7 +34,30 @@ typealias ActionOnly = TargetTypeI<Int, ExplorationAction?>
  * This feature may be used for debugging purposes or as base class
  * to manually construct exploration models (i.e. for GroundTruth creation).
  */
-open class ManualExploration<T>(private val resetOnStart: Boolean = true) : AbstractStrategy(), StdinCommandI<T,ExplorationAction> {
+open class ManualExploration<T>(private val resetOnStart: Boolean = true) : AExplorationStrategy(), StdinCommandI<T,ExplorationAction> {
+	override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> computeNextAction(
+		eContext: ExplorationContext<M, S, W>
+	): ExplorationAction =
+		decideBySTDIN()
+
+	override fun getPriority(): Int = 42
+
+	lateinit var eContext: ExplorationContext<*,*,*>
+
+	override fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> initialize(initialContext: ExplorationContext<M, S, W>) {
+		super.initialize(initialContext)
+		eContext = initialContext
+
+		Files.deleteIfExists(tmpImg)
+		imgFile.delete()
+		println("\n-----------------------")
+		println("available command options are:")
+		println(actionOptions.joinToString(separator = "\n"))
+		println("-----------------------")
+		println("\tstart exploration for for ${eContext.model.config.appName}")
+		println("-----------------------\n")
+	}
+
 	protected val state get() = eContext.getCurrentState()
 	private val cfg get() = eContext.model.config
 	// these properties have to be lazy since eContext is only initialized after the method initialize was called
@@ -62,7 +87,7 @@ open class ManualExploration<T>(private val resetOnStart: Boolean = true) : Abst
 						log.error("target is no input field")
 						null
 					} else w?.setText(input[lIdx], sendEnter = false,delay=200)
-				is BACK -> eContext.pressBack()
+				is BACK -> ExplorationAction.pressBack()
 				is RESET -> LaunchApp(eContext.apk.packageName, eContext.cfg[launchActivityDelay])
 				is SCROLL_RIGHT -> SwipeTo.right(state.widgets)
 				is SCROLL_LEFT -> SwipeTo.left(state.widgets)
@@ -106,25 +131,9 @@ open class ManualExploration<T>(private val resetOnStart: Boolean = true) : Abst
 		ActionOnly.isValid(false,input,suggested, createAction,	actionOptions, numCandidates)
 	}
 
-	override fun initialize(memory: ExplorationContext<*,*,*>) {
-		super.initialize(memory)
-
-		Files.deleteIfExists(tmpImg)
-		imgFile.delete()
-		println("\n-----------------------")
-		println("available command options are:")
-		println(actionOptions.joinToString(separator = "\n"))
-		println("-----------------------")
-		println("\tstart exploration for for ${memory.model.config.appName}")
-		println("-----------------------\n")
-
-	}
-
-	override suspend fun internalDecide(): ExplorationAction = decideBySTDIN()
-
 	override suspend fun decideBySTDIN(suggested: T?, candidates: List<T>): ExplorationAction{
 		if(eContext.isEmpty()) {
-			return if (resetOnStart) eContext.resetApp()
+			return if (resetOnStart) eContext.launchApp()
 			else GlobalAction(ActionType.FetchGUI)
 		}
 
@@ -153,11 +162,6 @@ open class ManualExploration<T>(private val resetOnStart: Boolean = true) : Abst
 
 	companion object: Logging {
 		override val log: Logger = getLogger()
-
-		/** to activate the Strategy */
-		val selector:(priority:Int)-> StrategySelector = { priority: Int ->
-			StrategySelector(priority, "manual navigation", { _, pool, _ ->
-				pool.getFirstInstanceOf(ManualExploration::class.java)}) }
 	}
 
 }

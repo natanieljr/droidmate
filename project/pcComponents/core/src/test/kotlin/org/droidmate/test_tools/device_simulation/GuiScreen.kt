@@ -111,7 +111,7 @@ class GuiScreen /*constructor(private val internalId: String,
 	}
 
 
-	init {
+	initialize {
 			this.packageName = if (packageName.isNotEmpty()) packageName else reservedIdsPackageNames[internalId]!!
 
 			assert(this.internalId.isNotEmpty())

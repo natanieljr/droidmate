@@ -71,7 +71,7 @@ class DeviceSimulation /*private constructor(guiScreensBuilder: IGuiScreensBuild
 	constructor(out: ExplorationContext) :
 					this(GuiScreensBuilderFromApkExplorationOutput2(out), out.packageName)
 
-	init {
+	initialize {
 			this.initialScreen = guiScreens.single { it.getId() == GuiScreen.idHome }
 	}
 

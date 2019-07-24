@@ -12,7 +12,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.isActive
 import org.droidmate.deviceInterface.communication.UiElementProperties
 import org.droidmate.deviceInterface.exploration.Rectangle
-import org.droidmate.deviceInterface.exploration.isActivated
+import org.droidmate.deviceInterface.exploration.isEnabled
 import org.droidmate.deviceInterface.exploration.visibleOuterBounds
 import org.xmlpull.v1.XmlSerializer
 import java.util.*
@@ -62,7 +62,7 @@ abstract class UiParser {
 		}
 	}
 
-	private val isClickableDescendant:(UiElementProperties)->Boolean = { it.hasClickableDescendant || it.clickable || it.selected.isActivated() }
+	private val isClickableDescendant:(UiElementProperties)->Boolean = { it.hasClickableDescendant || it.clickable || it.selected.isEnabled() }
 	private fun AccessibilityNodeInfo.createWidget(w: DisplayedWindow, xPath: String, children: List<UiElementProperties>,
 	                                               img: Bitmap?, idHash: Int, parentH: Int, processedNodes: List<UiElementProperties>): UiElementProperties {
 		val nodeRect = Rect()
@@ -144,7 +144,7 @@ abstract class UiParser {
 				selected = selected, // ignore 'transparent' layouts
 				hasClickableDescendant = children.any(isClickableDescendant).let { hasClickableDescendant ->
 					// check if there are already 'selectable' items in the visible bounds of it, if so set clickable descendants to true
-					if (!hasClickableDescendant && selected.isActivated()) {
+					if (!hasClickableDescendant && selected.isEnabled()) {
 						// this visible area contains 'selectable/clickable' items therefore we want to mark this as having such descendants even if it is no direct parent but only an 'uncle' to these elements
 						processedNodes.any { visibleBounds.contains(it.visibleBounds) && isClickableDescendant(it) }
 					} else hasClickableDescendant

@@ -25,15 +25,21 @@
 package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.terminateApp
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 
 /**
  * Determines if exploration shall be terminated based on the terminate criteria
  *
  * @author Nataniel P. Borges Jr.
  */
-object Terminate : AbstractStrategy() {
-	override suspend fun internalDecide(): ExplorationAction {
-		return terminateApp()
+@Deprecated("redundant, instead invoke the action directly", ReplaceWith("ExplorationAction.terminateApp()"))
+object Terminate : AExplorationStrategy() {
+	override fun getPriority(): Int = 0
+	override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> computeNextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
+		return ExplorationAction.terminateApp()
 	}
 }

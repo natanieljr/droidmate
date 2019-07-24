@@ -27,9 +27,12 @@ package org.droidmate.exploration.strategy
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.explorationModel.interaction.Interaction
-import org.droidmate.explorationModel.interaction.State
 import org.droidmate.exploration.ExplorationContext
+import org.droidmate.exploration.strategy.manual.getLogger
 import org.droidmate.exploration.strategy.widget.ExplorationStrategy
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -40,13 +43,10 @@ import org.slf4j.LoggerFactory
 
  * @author Nataniel P. Borges Jr.
  */
-abstract class AbstractStrategy : ISelectableExplorationStrategy {
+@Deprecated("get rid of this class use AExplorationStrategy instead",ReplaceWith("AExplorationStrategy","org.droidmate.exploration.strategy.AExplorationStrategy"))
+abstract class AbstractStrategy : AExplorationStrategy() {
 	override val uniqueStrategyName: String = javaClass.simpleName
-	/**
-	 * if this parameter is true we can invoke a strategy without registering it, this should be only used for internal
-	 * default strategies from our selector functions like Reset,Back etc.
-	 */
-	override val noContext: Boolean = false
+	override val log: Logger = getLogger()
 
 	/**
 	 * Internal context of the strategy. Synchronized with exploration context upon initialization.
@@ -84,11 +84,12 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 		return this.eContext.explorationTrace.P_getActions().dropLast(1).last()
 	}
 
-	override fun initialize(memory: ExplorationContext<*, *, *>) {
-		this.eContext = memory
+	override fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> initialize(initialContext: ExplorationContext<M, S, W>) {
+		this.eContext = initialContext
 	}
 
-	override suspend fun decide(): ExplorationAction {
+	@Deprecated("interface changed",replaceWith = ReplaceWith("computeNextAction(eContext)"))
+	open suspend fun decide(): ExplorationAction {
 		val action = this.internalDecide()
 
 		return action
@@ -106,9 +107,11 @@ abstract class AbstractStrategy : ISelectableExplorationStrategy {
 	/**
 	 * Selects an action to be executed based on the [current widget context][currentState]
 	 */
-	abstract suspend fun internalDecide(): ExplorationAction
+	@Deprecated("interface changed",replaceWith = ReplaceWith("computeNextAction(eContext)"))
+	open suspend fun internalDecide(): ExplorationAction = TODO("DEPRECATED")
 
 	companion object {
+		@Deprecated("instead use the 'log' property",ReplaceWith("log"))
 		val logger: Logger by lazy { LoggerFactory.getLogger(ExplorationStrategy::class.java) }
 
 		val VALID_WIDGETS = ResourceManager.getResourceAsStringList("validWidgets.txt")
