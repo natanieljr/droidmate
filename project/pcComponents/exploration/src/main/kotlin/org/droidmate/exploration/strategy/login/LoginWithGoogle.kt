@@ -25,14 +25,20 @@
 package org.droidmate.exploration.strategy.login
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.actions.click
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
-import org.droidmate.exploration.strategy.widget.ExplorationStrategy
+import org.droidmate.exploration.strategy.AExplorationStrategy
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
 import java.lang.RuntimeException
 
 @Suppress("unused")
-class LoginWithGoogle : ExplorationStrategy() {
+class LoginWithGoogle : AExplorationStrategy() {
+	override fun getPriority(): Int {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
 	private val DEFAULT_ACTION_DELAY = 1000
 	private val RES_ID_PACKAGE = "com.google.android.gms"
 	private val RES_ID_ACCOUNT = "$RES_ID_PACKAGE:uid/account_display_name"
@@ -120,7 +126,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 		}
 	}
 
-	override suspend fun chooseAction(): ExplorationAction {
+	override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> computeNextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
 		return if (eContext.getCurrentState().isRequestRuntimePermissionDialogBox) {
 			val widget = eContext.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
@@ -149,7 +155,7 @@ class LoginWithGoogle : ExplorationStrategy() {
 		/**
 		 * Creates a new exploration strategy instance to login using google
 		 */
-		fun build(): ISelectableExplorationStrategy {
+		fun build(): AExplorationStrategy {
 			return LoginWithGoogle()
 		}
 	}

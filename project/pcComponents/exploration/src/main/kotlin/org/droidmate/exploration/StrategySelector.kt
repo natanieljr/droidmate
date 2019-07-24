@@ -31,13 +31,18 @@ import org.droidmate.exploration.modelFeatures.reporter.StatementCoverageMF
 import org.droidmate.exploration.strategy.*
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.*
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-typealias SelectorFunction = suspend (context: ExplorationContext<*,*,*>, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>) -> ISelectableExplorationStrategy?
+@Deprecated("going to be deleted")
+typealias SelectorFunction = suspend (context: ExplorationContext<*,*,*>, explorationPool: ExplorationStrategyPool, bundle: Array<out Any>) -> IActionSelector?
 typealias OnSelected = (context: ExplorationContext<*,*,*>) -> Unit
 
+@Deprecated("replaced by methods in DefaultStrategies use this object instead")
 class StrategySelector(
 	val priority: Int,
 	val description: String,
@@ -60,9 +65,9 @@ class StrategySelector(
 		@JvmStatic
 		@JvmOverloads
 		fun from(priority: Int,
-				 description: String,
-				 function: (context: ExplorationContext<*,*,*>, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> ISelectableExplorationStrategy?,
-				 bundle: Array<Any> = emptyArray()): StrategySelector = StrategySelector(
+		         description: String,
+		         function: (context: ExplorationContext<*,*,*>, explorationPool:ExplorationStrategyPool, bundle: Array<out Any>?) -> IActionSelector?,
+		         bundle: Array<Any> = emptyArray()): StrategySelector = StrategySelector(
 			priority,
 			description,
 			{ context, pool, data -> function(context, pool, data) },
@@ -87,6 +92,7 @@ class StrategySelector(
 		 * Terminate the exploration after a predefined elapsed time
 		 */
 		@JvmStatic
+		@Deprecated("interface change", ReplaceWith("DefaultStrategies.timeBasedTerminate(priority,timeLimit)"))
 		val timeBasedTerminate : SelectorFunction = { context, _, bundle ->
 			val timeLimit = bundle.first().toString().toInt()
 			if(timeLimit <= 0) null
@@ -183,8 +189,8 @@ class StrategySelector(
 			}
 		}
 
-		object WaitForLaunch:AbstractStrategy() {
-			override val noContext: Boolean = true
+		object WaitForLaunch: AExplorationStrategy() {
+			override fun getPriority(): Int = 0
 			private var cnt = 0
 			var terminate = false
 
@@ -193,7 +199,7 @@ class StrategySelector(
 				terminate = false
 			}
 
-			override suspend fun internalDecide(): ExplorationAction {
+			override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> computeNextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
 				return when{
 					cnt++ < 2 ->{
 						delay(5000)

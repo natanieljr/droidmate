@@ -24,18 +24,23 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.login
 
-import org.droidmate.exploration.actions.setText
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.click
-import org.droidmate.explorationModel.interaction.Widget
-import org.droidmate.exploration.strategy.ISelectableExplorationStrategy
+import org.droidmate.exploration.actions.setText
+import org.droidmate.exploration.strategy.AExplorationStrategy
 import org.droidmate.exploration.strategy.ResourceManager
-import org.droidmate.exploration.strategy.widget.ExplorationStrategy
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import java.io.IOException
-import java.lang.RuntimeException
 
 @Suppress("unused")
-class LoginWithFacebook : ExplorationStrategy() {
+class LoginWithFacebook : AExplorationStrategy() {
+	override fun getPriority(): Int {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
 	private val DEFAULT_ACTION_DELAY = 5000
 	private val emailValue: String
 	private val passwordValue: String
@@ -55,7 +60,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 			}
 		} catch (e: IOException) {
 			// Just logcat
-			logger.error(e.message, e)
+			log.error(e.message, e)
 		}
 
 		if (email.isEmpty() || password.isEmpty()) {
@@ -211,7 +216,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		}
 	}
 
-	override suspend fun chooseAction(): ExplorationAction {
+	override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> computeNextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
 		return if (eContext.getCurrentState().isRequestRuntimePermissionDialogBox) {
 			val widget = eContext.getCurrentState().widgets.let { widgets ->
 				widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
@@ -244,7 +249,7 @@ class LoginWithFacebook : ExplorationStrategy() {
 		 * - Candidate (at.schneider_holding.candidate)
 		 * - TripAdvisor (com.tripadvisor.tripadvisor)
 		 */
-		fun build(): ISelectableExplorationStrategy {
+		fun build(): AExplorationStrategy {
 			return LoginWithFacebook()
 		}
 	}

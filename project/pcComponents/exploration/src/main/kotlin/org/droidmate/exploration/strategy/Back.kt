@@ -29,6 +29,10 @@ import org.droidmate.deviceInterface.exploration.ActionQueue
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
+import org.droidmate.exploration.ExplorationContext
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 
 /**
  * Exploration strategy that presses the back button on the device.
@@ -37,8 +41,11 @@ import org.droidmate.deviceInterface.exploration.GlobalAction
  *
  * @author Nataniel P. Borges Jr.
  */
+@Deprecated("to be removed, thos should not be a strategy any more, instead use ExplorationAction.closeAndReturn() directly")
 object Back : AbstractStrategy() {
-	override suspend fun internalDecide(): ExplorationAction {
+	override fun getPriority(): Int = 0
+
+	override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> computeNextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
 		return ActionQueue(listOf(GlobalAction(ActionType.CloseKeyboard),GlobalAction(ActionType.PressBack)),100)
 	}
 }

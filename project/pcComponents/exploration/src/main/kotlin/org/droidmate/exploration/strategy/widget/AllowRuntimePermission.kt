@@ -25,14 +25,25 @@
 package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.deviceInterface.exploration.ExplorationAction
+import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.click
+import org.droidmate.exploration.strategy.AExplorationStrategy
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 
 /**
  * Exploration strategy that always clicks "Allow" on runtime permission dialogs.
  */
-class AllowRuntimePermission : ExplorationStrategy() {
-	override suspend fun chooseAction(): ExplorationAction {
+@Deprecated("to be deleted you should just invke the exploration action directly")
+class AllowRuntimePermission : AExplorationStrategy() {
+	override fun getPriority(): Int {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
+
+	override suspend fun <M: AbstractModel<S, W>,S: State<W>,W: Widget> computeNextAction(
+		eContext: ExplorationContext<M, S, W>
+	): ExplorationAction {
 		val allowButton: Widget = eContext.getCurrentState().widgets.filter{it.isVisible}.let { widgets ->
 			widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
 					?: widgets.firstOrNull { it.text.toUpperCase() == "ALLOW" } ?: widgets.first { it.text.toUpperCase() == "OK" }

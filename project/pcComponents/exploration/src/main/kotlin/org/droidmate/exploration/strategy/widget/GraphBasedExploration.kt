@@ -2,14 +2,20 @@ package org.droidmate.exploration.strategy.widget
 
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.graph.StateGraphMF
+import org.droidmate.exploration.strategy.AExplorationStrategy
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 
-abstract class GraphBasedExploration : ExplorationStrategy(){
-	protected val graph: StateGraphMF by lazy { eContext.getOrCreateWatcher<StateGraphMF>()	}
+abstract class GraphBasedExploration : AExplorationStrategy(){
+	lateinit var eContext : ExplorationContext<*,*,*>
 
-	override fun initialize(memory: ExplorationContext<*, *, *>) {
-		super.initialize(memory)
-
-		// Forces the graph to be initialized, even before the strategy is first invoked
-		logger.debug("Initializing state graph watcher: $graph")
+	override fun<M: AbstractModel<S, W>,S: State<W>,W: Widget> initialize(initialContext: ExplorationContext<M,S,W>){
+		this.eContext = initialContext
 	}
+	@Suppress("RemoveExplicitTypeArguments")
+	protected val graph: StateGraphMF by lazy {
+		if (!::eContext.isInitialized) throw IllegalStateException("you have to initialize the property 'eContext' before calling 'graph'")
+		eContext.getOrCreateWatcher<StateGraphMF>()	}
+
 }

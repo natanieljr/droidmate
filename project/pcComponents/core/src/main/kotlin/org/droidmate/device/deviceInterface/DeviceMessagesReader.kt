@@ -37,7 +37,7 @@ import org.droidmate.device.logcat.IDeviceMessagesReader
  * monitor TCP server (for the server source code, see {@code org.droidmate.monitor.MonitorJavaTemplate.MonitorTCPServer}).
  *
  * </p><p>
- * The messages read are either monitor init messages coming from logcat, method instrumentation messages coming from logcat, or
+ * The messages read are either monitor initialize messages coming from logcat, method instrumentation messages coming from logcat, or
  * monitored API logs coming from monitor TCP server. In addition, this class maintains the time difference between the device
  * and the host machine, to sync the time logs from the device's clock with the host machine's clock.
  * </p>

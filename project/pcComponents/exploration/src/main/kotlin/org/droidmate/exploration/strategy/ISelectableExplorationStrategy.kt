@@ -32,22 +32,21 @@ import org.droidmate.exploration.ExplorationContext
  *
  * @author Nataniel P. Borges Jr.
  */
-interface ISelectableExplorationStrategy {
-	val uniqueStrategyName: String
-	val noContext: Boolean
-
-	fun initialize(memory: ExplorationContext<*, *, *>)
+@Deprecated("to be removed",replaceWith = ReplaceWith("IActionSelector"))
+interface ISelectableExplorationStrategy: IActionSelector {
 
 	/**
-	 * Selects an exploration action based on the [current GUI](currentState).
+	 * Selects an exploration action based on the [current GUI](exploration context).
 	 *
 	 * When using an exploration pool, this method is only invoked if the current strategy
 	 * had the highest fitness
 	 *
 	 * @return Exploration action to be sent to the device (has to be supported by DroidMate)
 	 */
+	@Deprecated("to be removed", ReplaceWith("nextAction(eContext)"))
 	suspend fun decide(): ExplorationAction
 
+	// TODO do we really need these
 	override fun equals(other: Any?): Boolean
 	override fun hashCode(): Int
 

@@ -25,68 +25,102 @@
 
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.exploration.actions.availableActions
-import org.droidmate.exploration.actions.setText
+import com.natpryce.konfig.Configuration
+import org.droidmate.configuration.ConfigProperties
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.Swipe
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.pressBack
-import org.droidmate.exploration.actions.resetApp
+import org.droidmate.exploration.actions.*
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.exploration.modelFeatures.ActionCounterMF
 import org.droidmate.exploration.modelFeatures.explorationWatchers.BlackListMF
 import org.droidmate.exploration.modelFeatures.listOfSmallest
+import org.droidmate.exploration.strategy.AExplorationStrategy
 import org.droidmate.explorationModel.debugOutput
 import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.emptyId
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
 import java.util.Random
 import kotlin.streams.asSequence
 
 /**
  * Exploration strategy that select a (pseudo-)random widget from the screen.
- *
- * @param randomSeed Random exploration seed
- * @param biased Prioritise UI elements which have not yet been interacted with, instead of plain random
- * @param randomScroll Trigger not only clicks and long clicks, but also scroll actions when the UI element supports it
  */
-open class RandomWidget @JvmOverloads
-constructor(	private val randomSeed: Long,
-              private val biased: Boolean = true,
-              private val randomScroll: Boolean = true,
-              private val dictionary: List<String> = emptyList(),
-              private val delay : Long = 0,
-              private val useCoordinateClicks: Boolean = false
-) : ExplorationStrategy() {
+@Suppress("MemberVisibilityCanBePrivate")
+open class RandomWidget constructor(
+	private val priority: Int,
+	protected val dictionary: List<String> = emptyList(),
+	protected val useCoordinateClicks: Boolean = false
+) : AExplorationStrategy() {
+	/** Random exploration seed */
+	private var randomSeed: Long = -1L
+	/** Prioritise UI elements which have not yet been interacted with, instead of plain random **/
+	private var biased: Boolean = true
+	/** Trigger not only clicks and long clicks, but also scroll actions when the UI element supports it */
+	private var randomScroll: Boolean = true
+	private var delay : Long = 0
+
+
+	@Deprecated("use different constructor", ReplaceWith("RandomWidget(priority,dictionary,useCoordinateClicks)"))
+	@JvmOverloads constructor(
+		priority: Int,
+	              randomSeed: Long,
+	              biased: Boolean = true,
+	              randomScroll: Boolean = true,
+	              dictionary: List<String> = emptyList(),
+	              delay : Long = 0,
+	              useCoordinateClicks: Boolean = false
+	) : this(priority, dictionary, useCoordinateClicks) {
+		this.randomSeed = randomSeed
+		this.biased = biased
+		this.randomScroll = randomScroll
+		this.delay = delay
+	}
+
+	override fun getPriority(): Int = priority
 
 	protected var random = Random(randomSeed)
 		private set
 
-	override fun initialize(memory: ExplorationContext<*, *, *>) {
-		super.initialize(memory)
+	override fun initialize(cfg: Configuration) {
+		delay = cfg[ConfigProperties.Exploration.widgetActionDelay]
+		biased = cfg[ConfigProperties.Strategies.Parameters.biasedRandom]
+		randomScroll = cfg[ConfigProperties.Strategies.Parameters.randomScroll]
+		randomSeed = cfg[ConfigProperties.Selectors.randomSeed].let{
+			if (it == -1L) Random().nextLong()
+			else it
+		}
 		random = Random(randomSeed)
 	}
 
 	@Suppress("MemberVisibilityCanBePrivate")
-	protected val counter: ActionCounterMF by lazy { eContext.getOrCreateWatcher<ActionCounterMF>() }
-	protected val blackList: BlackListMF by lazy { eContext.getOrCreateWatcher<BlackListMF>() }
+	protected lateinit var counter: ActionCounterMF
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected lateinit var blackList: BlackListMF
 
-	private suspend fun mustRepeatLastAction(): Boolean {
-		if (!this.eContext.isEmpty()) {
+	override fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> initialize(initialContext: ExplorationContext<M, S, W>) {
+		super.initialize(initialContext)
+		counter = initialContext.getOrCreateWatcher()
+		blackList = initialContext.getOrCreateWatcher()
+	}
 
-			// Last state was runtime permission
-			return (currentState.isRequestRuntimePermissionDialogBox) &&
-					// Has last action
-					this.eContext.lastTarget != null &&
-					// Has a state that is not a runtime permission
-					eContext.model.getStates()
+	private suspend fun mustRepeatLastAction(eContext: ExplorationContext<*,*,*>): Boolean {
+		return if (!eContext.isEmpty()) {
+			eContext.getCurrentState().let { currentState ->
+				// Last state was runtime permission
+				(currentState.isRequestRuntimePermissionDialogBox) &&
+						// Has last action
+						eContext.lastTarget != null &&
+						// Has a state that is not a runtime permission
+						eContext.model.getStates()
 							.filterNot { it.stateId == emptyId && it.isRequestRuntimePermissionDialogBox }
 							.isNotEmpty() &&
-					// Can re-execute the same action
-					currentState.actionableWidgets
+						// Can re-execute the same action
+						currentState.actionableWidgets
 							.any { p -> eContext.lastTarget?.let { p.id == it.id } ?: false }
-		}
-
-		return false
+			}
+		} else false
 	}
 
 	/** if we trigger any functionality which requires (not yet granted) Android permissions an PermissionDialogue
@@ -103,9 +137,9 @@ constructor(	private val randomSeed: Long,
 				"to avoid penalizing the target")
 	}
 
-	protected open fun getAvailableWidgets(): List<Widget> {
-		return currentState.visibleTargets.filter { w ->	!w.isKeyboard
-				&& (!w.isInputField || !eContext.explorationTrace.insertedTextValues().contains(w.text)) }  // ignore input fields we already filled
+	protected open fun ExplorationContext<*, *, *>.getAvailableWidgets(): List<Widget> {
+		return getCurrentState().visibleTargets.filter { w ->	!w.isKeyboard
+				&& (!w.isInputField || !explorationTrace.insertedTextValues().contains(w.text)) }  // ignore input fields we already filled
 	}
 
 	/** use this function to filter potential candidates against previously blacklisted widgets
@@ -113,21 +147,27 @@ constructor(	private val randomSeed: Long,
 	 * @param tInState the threshold to consider the widget blacklisted within the current state eContext
 	 * @param tOverall the threshold to consider the widget blacklisted over all states
 	 */
-	protected open suspend fun excludeBlacklisted(candidates: List<Widget>, tInState: Int = 1, tOverall: Int = 2, block: (listedInsState: List<Widget>, blacklisted: List<Widget>) -> List<Widget>): List<Widget> =
-			candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, tInState) }.let { noBlacklistedInState ->
-				block(noBlacklistedInState, noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, tOverall) })
-			}
+	protected open suspend fun<S: State<*>> excludeBlacklisted(
+		currentState: S,
+		candidates: List<Widget>,
+		tInState: Int = 1,
+		tOverall: Int = 2,
+		block: (listedInsState: List<Widget>, blacklisted: List<Widget>) -> List<Widget>
+	): List<Widget> =
+		candidates.filterNot { blackList.isBlacklistedInState(it.uid, currentState.uid, tInState) }.let { noBlacklistedInState ->
+			block(noBlacklistedInState, noBlacklistedInState.filterNot { blackList.isBlacklisted(it.uid, tOverall) })
+		}
 
 
-	private fun List<Widget>.chooseRandomly(): ExplorationAction {
+	private fun List<Widget>.chooseRandomly(eContext: ExplorationContext<*, *, *>): ExplorationAction {
 		if (this.isEmpty())
-			return eContext.resetApp()
-		return chooseActionForWidget( this[random.nextInt(this.size)] )
+			return eContext.launchApp()
+		return chooseActionForWidget( this[random.nextInt(this.size)], eContext )
 	}
 
-	open suspend fun computeCandidates(): Collection<Widget> = debugT("blacklist computation", {
-		val nonCrashing = with(eContext){ getAvailableWidgets().nonCrashingWidgets() }
-		excludeBlacklisted(nonCrashing) { noBlacklistedInState, noBlacklisted ->
+	open suspend fun ExplorationContext<*, *, *>.computeCandidates(): Collection<Widget> = debugT("blacklist computation", {
+		val nonCrashing = getAvailableWidgets().nonCrashingWidgets()
+		excludeBlacklisted(getCurrentState(), nonCrashing) { noBlacklistedInState, noBlacklisted ->
 			when {
 				noBlacklisted.isNotEmpty() -> noBlacklisted
 				noBlacklistedInState.isNotEmpty() -> noBlacklistedInState
@@ -138,13 +178,13 @@ constructor(	private val randomSeed: Long,
 			.filter { it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
 
 	@Suppress("MemberVisibilityCanBePrivate")
-	protected suspend fun getCandidates(): List<Widget> {
-		return computeCandidates()
+	protected suspend fun getCandidates(eContext : ExplorationContext<*, *, *>): List<Widget> {
+		return eContext.computeCandidates()
 				.let { filteredCandidates ->
 					// for each widget in this state the number of interactions
-					counter.numExplored(currentState, filteredCandidates).entries
+					counter.numExplored(eContext.getCurrentState(), filteredCandidates).entries
 							.groupBy { it.key.packageName }.flatMap { (pkgName, countEntry) ->
-								if (pkgName != super.eContext.apk.packageName) {
+								if (pkgName != eContext.apk.packageName) {
 									val pkgActions = counter.pkgCount(pkgName)
 									countEntry.map { Pair(it.key, pkgActions) }
 								} else
@@ -163,25 +203,27 @@ constructor(	private val randomSeed: Long,
 				}
 	}
 
-	private suspend fun chooseBiased(): ExplorationAction {
-		val candidates = getCandidates()
+	private suspend fun chooseBiased(eContext: ExplorationContext<*, *, *>): ExplorationAction {
+		val candidates = getCandidates(eContext)
 		// no valid candidates -> go back to previous state
 		return if (candidates.isEmpty()) {
 			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
-			eContext.pressBack()
+			ExplorationAction.closeAndReturn()
 		}
-		else candidates.chooseRandomly()
+		else candidates.chooseRandomly(eContext)
 	}
 
-	private fun chooseRandomly(): ExplorationAction {
-		return currentState.actionableWidgets.chooseRandomly()
+	private fun chooseRandomly(eContext: ExplorationContext<*, *, *>): ExplorationAction {
+		return eContext.getCurrentState().actionableWidgets.chooseRandomly(eContext)
 	}
 
-	protected open suspend fun chooseRandomWidget(): ExplorationAction {
+	protected open suspend fun<M: AbstractModel<S, W>,S: State<W>,W: Widget> chooseRandomWidget(
+		eContext: ExplorationContext<M,S,W>
+	): ExplorationAction {
 		return if (biased)
-			chooseBiased()
+			chooseBiased(eContext)
 		else
-			chooseRandomly()
+			chooseRandomly(eContext)
 	}
 
 	protected open fun randomString(): String{
@@ -194,11 +236,11 @@ constructor(	private val randomSeed: Long,
 				.joinToString("")
 	}
 
-	protected open fun chooseActionForWidget(chosenWidget: Widget): ExplorationAction {
+	protected open fun chooseActionForWidget(chosenWidget: Widget, eContext: ExplorationContext<*, *, *>): ExplorationAction {
 		var widget = chosenWidget
 
 		while (!chosenWidget.isInteractive) {
-			widget = currentState.widgets.first { it.id == chosenWidget.parentId }
+			widget = eContext.getCurrentState().widgets.first { it.id == chosenWidget.parentId }
 		}
 
 		val actionList = when{
@@ -213,19 +255,21 @@ constructor(	private val randomSeed: Long,
 
 		val randomIdx = random.nextInt(maxVal)
 		return actionList[randomIdx].also {
-			if(debugOutput) logger.debug("[A${it.id}] Chosen widget info: $widget: keyboard=${widget.isKeyboard}\t" +
+			if(debugOutput) log.debug("[A${it.id}] Chosen widget info: $widget: keyboard=${widget.isKeyboard}\t" +
 					"clickable=${widget.clickable}\tcheckable=${widget.checked}\tlong-clickable=${widget.longClickable}\t" +
 					"scrollable=${widget.scrollable}")
 		}
 	}
 
-	override suspend fun chooseAction(): ExplorationAction {
+	override suspend fun<M: AbstractModel<S, W>,S: State<W>,W: Widget> computeNextAction(
+		eContext: ExplorationContext<M,S,W>
+	): ExplorationAction {
 		if (eContext.isEmpty())
-			return eContext.resetApp() // very first action -> start the app via reset
+			return eContext.launchApp() // very first action -> start the app via reset
 		// Repeat previous action is last action was to click on a runtime permission dialog
-		if (mustRepeatLastAction())
+		if (mustRepeatLastAction(eContext))
 			return repeatLastAction()
 
-		return chooseRandomWidget()
+		return chooseRandomWidget(eContext)
 	}
 }

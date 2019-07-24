@@ -50,7 +50,7 @@ class FilteredDeviceLogs {
 	}
 
 	/**
-	 * Checks if given stack trace was obtained from a logcat to a call to socket &lt;init> made by Monitor TCP server
+	 * Checks if given stack trace was obtained from a logcat to a call to socket &lt;initialize> made by Monitor TCP server
 	 * ({@code org.droidmate.uiautomator_daemon.MonitorJavaTemplate.MonitorTCPServer}).
 	 *
 	 * This is done by checking if in the stack trace there is a frame with "org.droidmate.monitor.Monitor" prefix that
@@ -61,7 +61,7 @@ class FilteredDeviceLogs {
 	 * 2015-07-31 16:55:17.132 TRACE from monitor - 07-31 16:55:14.782 I/Adapted_Monitored_API_method_call(817):
 	 * TId: 1941
 	 * objCls: java.net.Socket
-	 * mthd: &lt;init>
+	 * mthd: &lt;initialize>
 	 * retCls: void
 	 * params:
 	 *
@@ -72,7 +72,7 @@ class FilteredDeviceLogs {
 	 * org.droidmate.monitor.Monitor.redir_8_java_net_Socket_ctor0(Monitor.java:542)->
 	 * java.lang.reflect.Method.invokeNative(Native Method)->
 	 * java.lang.reflect.Method.invoke(Method.java:515)->
-	 * java.net.Socket.&lt;init>(Socket.java)->
+	 * java.net.Socket.&lt;initialize>(Socket.java)->
 	 * java.net.ServerSocket.accept(ServerSocket.java:126)->
 	 * org.droidmate.monitor.Monitor$SerializableTCPServerBase$MonitorServerRunnable.run(Monitor.java:228)->
 	 * java.lang.Thread.run(Thread.java:841)
@@ -216,7 +216,7 @@ dalvik.system.VMStack.getThreadStackTrace(Native Method)
 java.lang.Thread.getStackTrace(Thread.java:580)
 org.droidmate.monitor.Monitor.getStackTrace(Monitor.java:502)
 --> org.droidmate.monitor.Monitor.redir_java_net_URL_openConnection0(Monitor.java:2027)
-libcore.net.url.JarURLConnectionImpl.<init>(JarURLConnectionImpl.java:73)
+libcore.net.url.JarURLConnectionImpl.<initialize>(JarURLConnectionImpl.java:73)
 libcore.net.url.JarHandler.openConnection(JarHandler.java:42)
 java.net.URL.openConnection(URL.java:479)
 java.lang.reflect.Method.invoke(Native Method)
@@ -235,13 +235,13 @@ dalvik.system.VMStack.getThreadStackTrace(Native Method)
 java.lang.Thread.getStackTrace(Thread.java:580)
 org.droidmate.monitor.Monitor.getStackTrace(Monitor.java:502)
 --> org.droidmate.monitor.Monitor.redir_10_java_net_URL_ctor3(Monitor.java:837)
-java.net.URL.<init>(URL.java:125)
+java.net.URL.<initialize>(URL.java:125)
 libcore.net.url.JarHandler.parseURL(JarHandler.java:82)
-java.net.URL.<init>(URL.java:188)
+java.net.URL.<initialize>(URL.java:188)
 java.lang.reflect.Method.invoke(Native Method)
 de.larma.arthook.OriginalMethod.invoke(OriginalMethod.java:43)
 --> org.droidmate.monitor.Monitor.redir_10_java_net_URL_ctor3(Monitor.java:842)
-java.net.URL.<init>(URL.java:125)
+java.net.URL.<initialize>(URL.java:125)
 */
 			"redir_java_net_URL_ctor_",
 
@@ -261,7 +261,7 @@ calls it. It might not be the case with other implementations of this abstract m
 The relevant stack trace:
 --> org.droidmate.monitor.Monitor.redir_android_content_ContentResolver_registerContentObserver4(Monitor.java:2089)
 android.content.ContentResolver.registerContentObserver(ContentResolver.java:1596)
-com.spotify.mobile.android.provider.ad.<init>(SourceFile:219)
+com.spotify.mobile.android.provider.ad.<initialize>(SourceFile:219)
 com.spotify.music.internal.provider.SpotifyProvider.query(SourceFile:115)
 android.content.ContentProvider.query(ContentProvider.java:1017)
 android.content.ContentProvider$Transport.query(ContentProvider.java:238)

@@ -24,35 +24,13 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy.widget
 
-import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.exploration.strategy.AbstractStrategy
+import org.droidmate.exploration.strategy.AExplorationStrategy
 
 /**
  * Abstract class for implementing widget exploration strategies.
  *
  * @author Nataniel P. Borges Jr.
  */
-abstract class ExplorationStrategy : AbstractStrategy() {
-
-	// region overrides
-
-
-	override suspend fun internalDecide(): ExplorationAction {
-		assert(eContext.explorationCanMoveOn()) {"Selected and explore action, but exploration cannot proceed."}
-
-		return chooseAction()
-	}
-
-	protected fun updateState(): Boolean {
-		if (!eContext.belongsToApp(eContext.getCurrentState())) {
-			if (!eContext.isEmpty()) {
-//                this.eContext.lastTarget.blackListed = true //TODO use blacklist model-feature?
-				logger.debug("Blacklisted ${this.eContext.lastTarget}")
-			}
-		}
-
-		return false //currentState.allWidgetsBlacklisted()
-	}
-
-	abstract suspend fun chooseAction(): ExplorationAction
+@Deprecated("to be removed",ReplaceWith("AExplorationStrategy","org.droidmate.exploration.strategy.AExplorationStrategy"))
+abstract class ExplorationStrategy : AExplorationStrategy() {
 }

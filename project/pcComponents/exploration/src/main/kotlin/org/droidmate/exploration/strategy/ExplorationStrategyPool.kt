@@ -25,12 +25,13 @@
 
 package org.droidmate.exploration.strategy
 
+import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.*
 import org.droidmate.deviceInterface.exploration.ExplorationAction
-import org.droidmate.explorationModel.interaction.ActionResult
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.StrategySelector
-import org.droidmate.explorationModel.debugOutput
+import org.droidmate.explorationModel.factory.AbstractModel
+import org.droidmate.explorationModel.interaction.State
+import org.droidmate.explorationModel.interaction.Widget
 import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
 import java.lang.Math.max
@@ -41,11 +42,10 @@ import java.lang.Math.max
  *
  * @author Nataniel P. Borges Jr.
  */
-class ExplorationStrategyPool(
-	receivedStrategies: List<ISelectableExplorationStrategy>,
-	private val selectors: List<StrategySelector>,
-	private val memory: ExplorationContext<*, *, *>
-) : IExplorationStrategy {
+open class ExplorationStrategyPool(
+	receivedStrategies: List<AExplorationStrategy>,
+	private val selectors: List<AStrategySelector>
+) {
 
 	companion object {
 		@JvmStatic
@@ -57,7 +57,7 @@ class ExplorationStrategyPool(
 	/**
 	 * List of installed strategies
 	 */
-	private val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf()
+	private val strategies = mutableListOf<AExplorationStrategy>()
 
 	val size: Int
 		get() = this.strategies.size
@@ -73,26 +73,24 @@ class ExplorationStrategyPool(
 	 *
 	 * @return Exploration strategy with highest fitness.
 	 */
-	private fun selectStrategy(): ISelectableExplorationStrategy {
+	private suspend fun<M: AbstractModel<S,W>,S: State<W>,W:Widget> computeNextAction(
+		eContext: ExplorationContext<M, S, W>
+	): ExplorationAction {
 		ExplorationStrategyPool.logger.debug("Selecting best strategy.")
-		val mem = this.memory
-		val pool = this
+
 		val bestStrategy =
-			runBlocking(selectorThreadPool){
-				selectors
-						.sortedBy { it.priority }
-						.map { Pair(it, async(coroutineContext+ CoroutineName("select-${it.description}")) { it.selector(mem, pool, it.bundle)
+			withContext(selectorThreadPool){
+				// we check all strategies and selectors (sorted by priority) if they have an action to offer
+				strategies.plus(selectors)
+						.sortedBy { it.getPriority() }
+						.map { Pair(it, async(coroutineContext+ CoroutineName("select-${it.uniqueStrategyName}")) { it.hasNext(eContext)
 							 }) }
-						.first{ it.second.await() != null }
+						.first{ it.second.await() }.first // choose the IActionSelector with the best priority (lowest value) which has a next action
 			}
 
+		ExplorationStrategyPool.logger.info("Best strategy is: ${bestStrategy.uniqueStrategyName}")
 
-		ExplorationStrategyPool.logger.info("Best strategy is (${bestStrategy.first.description}->${bestStrategy.second.getCompleted()?.uniqueStrategyName})")
-
-		// notify
-		bestStrategy.first.onSelected?.invoke(this.memory)
-
-		return bestStrategy.second.getCompleted()!!
+		return bestStrategy.nextAction(eContext)
 	}
 
 	// region initialization
@@ -102,8 +100,22 @@ class ExplorationStrategyPool(
 		receivedStrategies.forEach { this.registerStrategy(it) }
 	}
 
+	fun<M: AbstractModel<S,W>,S: State<W>,W:Widget> init(
+		cfg: Configuration,
+		eContext: ExplorationContext<M, S, W>
+	) {
+		selectors.forEach {
+			it.initialize(cfg)
+			it.initialize(eContext)
+		}
+		strategies.forEach {
+			it.initialize(cfg)
+			it.initialize(eContext)
+		}
+	}
+
 	@Suppress("MemberVisibilityCanBePrivate")
-	fun registerStrategy(strategy: ISelectableExplorationStrategy): Boolean {
+	fun registerStrategy(strategy: AExplorationStrategy): Boolean {
 		ExplorationStrategyPool.logger.info("Registering strategy $strategy.")
 
 		if (this.strategies.contains(strategy)) {
@@ -111,7 +123,6 @@ class ExplorationStrategyPool(
 			return false
 		}
 
-		strategy.initialize(this.memory)
 		this.strategies.add(strategy)
 
 		return true
@@ -119,23 +130,16 @@ class ExplorationStrategyPool(
 
 	//endregion
 
-	override suspend fun decide(result: ActionResult): ExplorationAction {
-		if(debugOutput)
-			logger.debug("ActionResult: ${result.action} => #widgets=${result.guiSnapshot}, exception = ${result.exception}")
+	open suspend fun<M: AbstractModel<S, W>,S: State<W>,W: Widget> nextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
+		assert(this.strategies.isNotEmpty())
 
-		assert(!this.strategies.isEmpty())
-
-		val activeStrategy = this.selectStrategy()
-		logger.debug("Control is currently with strategy $activeStrategy")
-
-		val selectedAction = activeStrategy.decide()
-
-		logger.info("(${this.memory.getSize()}) $selectedAction [id=${selectedAction.id}]")
+		val selectedAction = this.computeNextAction(eContext)
+		logger.info("(${eContext.getSize()}) $selectedAction [id=${selectedAction.id}]")
 
 		return selectedAction
 	}
 
-	override fun close(){
+	open fun close(){
 		selectorThreadPool.close()
 	}
 
@@ -145,15 +149,17 @@ class ExplorationStrategyPool(
 			.firstOrNull()
 	}
 
-	fun getByName(className: String) = strategies.firstOrNull { it.uniqueStrategyName == className } ?: throw IllegalStateException("no strategy $className in the poll, register it first or call 'getOrCreate' instead")
+	fun getByName(className: String) =
+		strategies.firstOrNull { it.uniqueStrategyName == className }
+			?: throw IllegalStateException("no strategy $className in the poll, register it first or call 'getOrCreate' instead")
 
-	fun getOrCreate(className: String, createStrategy: ()->ISelectableExplorationStrategy): ISelectableExplorationStrategy{
+	fun getOrCreate(className: String, createStrategy: ()-> AExplorationStrategy): AExplorationStrategy {
 		val strategy = strategies.firstOrNull { it.uniqueStrategyName == className }
 
 		return strategy ?: createStrategy()
 			.also {
 				check(it.uniqueStrategyName == className) { "ERROR your created strategy does not correspond to the requested name $className" }
-				it.initialize(memory); strategies.add(it)
+				strategies.add(it)
 			}
 	}
 }
