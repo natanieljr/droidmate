@@ -6,12 +6,8 @@ import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbabili
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
 import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.SelectorFunction
-import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.modelFeatures.reporter.*
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.others.MinimizeMaximize
-import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
 import org.droidmate.exploration.strategy.widget.DFS
 import org.droidmate.exploration.strategy.widget.RandomWidget
@@ -91,7 +87,7 @@ open class ExploreCommandBuilder(
 
         conditionalEnable(cfg[ConfigProperties.Strategies.dfs]) { usingDFS() }
 
-        conditionalEnable(cfg[ConfigProperties.Strategies.explore], cfg) { exploreRandomly(cfg) }
+        conditionalEnable(cfg[ConfigProperties.Strategies.explore], cfg) { addRandomStrategy() }
 
         conditionalEnable(
             cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage],
@@ -126,19 +122,6 @@ open class ExploreCommandBuilder(
         }
     }
 
-    @Deprecated("no longer necessary, to be deleted")
-    fun addRequiredStrategies(): ExploreCommandBuilder {
-        return addTerminateStrategy()
-            .addBackStrategy()
-            .addResetStrategy()
-    }
-
-    @Deprecated("no longer necessary, to be deleted")
-    fun addTerminateStrategy(): ExploreCommandBuilder {
-        strategies.add(Terminate)
-        return this
-    }
-
     fun terminateAfterTime(cfg: ConfigurationWrapper): ExploreCommandBuilder {
         return terminateAfterTime(cfg[ConfigProperties.Selectors.timeLimit])
     }
@@ -160,12 +143,6 @@ open class ExploreCommandBuilder(
         return this
     }
 
-		@Deprecated("no longer necessary, should be removed")
-    fun addResetStrategy(): ExploreCommandBuilder {
-        strategies.add(Reset())
-        return this
-    }
-
     fun resetOnInvalidState(): ExploreCommandBuilder {
         strategies.add( DefaultStrategies.handleTargetAbsence(getNextSelectorPriority()) )
         return this
@@ -180,19 +157,8 @@ open class ExploreCommandBuilder(
         return this
     }
 
-		@Deprecated("no longer necessary, to be deleted")
-    fun startWithReset(): ExploreCommandBuilder {
-        TODO("no longer supported")
-    }
-
     fun resetOnCrash(): ExploreCommandBuilder {
         strategies.add( DefaultStrategies.resetOnAppCrash(getNextSelectorPriority()) )
-        return this
-    }
-
-    @Deprecated("no longer necessary, to be deleted")
-    fun addBackStrategy(): ExploreCommandBuilder {
-        strategies.add(Back)
         return this
     }
 
@@ -210,39 +176,8 @@ open class ExploreCommandBuilder(
         return this
     }
 
-    fun exploreRandomly(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return exploreRandomly(
-            cfg.randomSeed,
-            cfg[ConfigProperties.Exploration.widgetActionDelay],
-            cfg[ConfigProperties.Strategies.Parameters.biasedRandom],
-            cfg[ConfigProperties.Strategies.Parameters.randomScroll]
-        )
-    }
-
-    @Deprecated("no longer necessary, you can directly add the random strategy instead", ReplaceWith("addRandomStrategy()"))
-    fun exploreRandomly(
-        randomSeed: Long = 0,
-        delay: Long = 0,
-        enableScroll: Boolean = false,
-        biasedRandom: Boolean = false
-    ): ExploreCommandBuilder {
-        return addRandomStrategy()
-    }
-
-    @Deprecated("no argument required",ReplaceWith("addRandomStrategy()"))
-    fun addRandomStrategy(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return addRandomStrategy()
-    }
-
-    @JvmOverloads
     fun addRandomStrategy(): ExploreCommandBuilder {
         strategies.add(RandomWidget(getNextSelectorPriority()))
-        return this
-    }
-
-    @Deprecated("no longer necessary, you can directly add the random strategy instead", ReplaceWith("addRandomStrategy()"))
-    fun addRandomExploreSelector(): ExploreCommandBuilder {
-        addRandomStrategy()
         return this
     }
 
@@ -256,11 +191,6 @@ open class ExploreCommandBuilder(
         return this
     }
 
-    @Deprecated("redundant")
-    fun addAllowPermissionSelector(): ExploreCommandBuilder {
-        TODO("deprecated")
-    }
-
     fun denyRuntimePermissions(): ExploreCommandBuilder {
         addDenyPermissionStrategy()
         return this
@@ -268,29 +198,6 @@ open class ExploreCommandBuilder(
 
     fun addDenyPermissionStrategy(): ExploreCommandBuilder {
         strategies.add(DefaultStrategies.denyPermission(getNextSelectorPriority()))
-        return this
-    }
-
-    @Deprecated("redundant")
-    fun addDenyPermissionSelector(): ExploreCommandBuilder {
-        TODO("deprecated")
-    }
-
-    @Deprecated("no longer necessary, to be deleted")
-    fun addRotateUIStrategy(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return addRotateUIStrategy(cfg[ConfigProperties.Strategies.Parameters.uiRotation])
-    }
-
-    @Deprecated("no longer necessary, to be deleted")
-    fun addRotateUIStrategy(uiRotation: Int): ExploreCommandBuilder {
-        strategies.add(RotateUI(uiRotation))
-        return this
-    }
-
-    @Deprecated("no longer necessary, to be deleted")
-    fun addMinimizeMaximizeStrategy(): ExploreCommandBuilder {
-        strategies.add(MinimizeMaximize())
-
         return this
     }
 
@@ -307,11 +214,6 @@ open class ExploreCommandBuilder(
         return this
     }
 
-    @Deprecated("no longer used, invoke addStrategy directly instead")
-    fun addPlaybackSelector(): ExploreCommandBuilder {
-        TODO("no longer supported")
-    }
-
     fun usingDFS(): ExploreCommandBuilder {
         return addDFSStrategy()
     }
@@ -320,20 +222,10 @@ open class ExploreCommandBuilder(
         strategies.add(DFS())
         return this
     }
-
-    @Deprecated("no longer used, invoke addStrategy directly instead")
-    fun addDFSSelector(): ExploreCommandBuilder {
-        TODO("no longer supported")
-    }
-
+    
     fun collectStatementCoverage(): ExploreCommandBuilder {
         selectors.add( DefaultSelector.statementCoverage(getNextSelectorPriority()) )
         return this
-    }
-
-    @Deprecated("no longer supported use AExplorationStrategy type instead")
-    fun withStrategy(strategy: ISelectableExplorationStrategy): ExploreCommandBuilder {
-        TODO("deprecated")
     }
 
     fun withStrategy(strategy: AExplorationStrategy): ExploreCommandBuilder {
@@ -341,19 +233,9 @@ open class ExploreCommandBuilder(
         return this
     }
 
-    @Deprecated("no longer supported use AStrategySelector type instead")
-    fun withSelector(selector: StrategySelector): ExploreCommandBuilder {
-        TODO("deprecated")
-    }
-
     fun withSelector(selector: AStrategySelector): ExploreCommandBuilder {
         selectors.add(selector)
         return this
-    }
-
-    @Deprecated("no longer supported use AStrategySelector type instead")
-    fun remove(selector: SelectorFunction): ExploreCommandBuilder {
-        TODO("deprecated")
     }
 
     fun remove(selector: AStrategySelector): ExploreCommandBuilder {
@@ -363,27 +245,6 @@ open class ExploreCommandBuilder(
             selectors.remove(target)
         }
         return this
-    }
-
-    @JvmOverloads
-    @Deprecated("no longer supported use addSelector instead")
-    fun append(
-        newDescription: String,
-        newSelector: SelectorFunction,
-        bundle: Array<Any> = emptyArray()
-    ): ExploreCommandBuilder {
-        TODO("deprecated")
-    }
-
-    @Deprecated("no longer supported use addSelector instead")
-    @JvmOverloads
-    fun insertBefore(
-        oldSelector: SelectorFunction,
-        newDescription: String,
-        newSelector: SelectorFunction,
-        bundle: Array<Any> = emptyArray()
-    ): ExploreCommandBuilder {
-        TODO("deprecated")
     }
 
     @JvmOverloads

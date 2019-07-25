@@ -29,7 +29,7 @@ wrapper{
 
 allprojects {
 	group = "org.droidmate"
-	version = "1.4.0-eap"
+	version = "2.0.0"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing
@@ -49,13 +49,13 @@ allprojects {
 		resolutionStrategy{
 			// force certain versions of dependencies (including transitive)
 			//  *append new forced modules as comma separated strings
-			force dmDriverLib
+//			force dmDriverLib
 			// cache dynamic versions for 10 minutes
 			
 			dependencySubstitution {
 				def targetProject = findProject(":deviceDaemonLib")
 				if (targetProject != null) {
-					def substitution = substitute module("com.github.hotzkow:platformInterfaceLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
+					def substitution = substitute module("com.github.hotzkow:platformInterfaceLib") with project(":deviceDaemonLib")
 					if(substitution != null) {
 //					println "use composite build directory (deviceLib) instead of artifact from server"
 						substitution because "use local git submodule for development instead of external dependency"
@@ -63,7 +63,7 @@ allprojects {
 				}
 				if(findProject(":explorationModel") != null) {
 //				println "use composite build directory (explorationModel) instead of artifact from server"
-					substitute module("com.github.hotzkow:explorationModel:${project.ext.model_version}") with project(":explorationModel")
+					substitute module("com.github.hotzkow:explorationModel") with project(":explorationModel")
 				}
 			}
 

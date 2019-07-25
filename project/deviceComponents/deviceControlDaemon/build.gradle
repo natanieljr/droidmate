@@ -88,7 +88,7 @@ configurations.all {
 	resolutionStrategy.dependencySubstitution {
 		def targetProject = findProject(":deviceDaemonLib")
 		if (targetProject != null) {
-			def substitution = substitute module("com.github.hotzkow:platformInterfaceLib:${project.ext.driverLib_version}") with project(":deviceDaemonLib")
+			def substitution = substitute module("com.github.hotzkow:platformInterfaceLib") with project(":deviceDaemonLib")
 			if(substitution != null)
 				substitution because "use local git submodule for development instead of external dependency"
 		}
@@ -96,7 +96,11 @@ configurations.all {
 }
 dependencies {
 //	implementation group: 'org.droidmate', name: 'deviceDaemonLib', version: project.ext.driverLib_version
-	implementation dmDriverLib
+	implementation(dmDriverLib) {
+		version {
+			strictly driverLib_version
+		}
+	}
 
 	// Testing-only dependencies
 	testImplementation 'junit:junit:4.12'

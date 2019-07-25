@@ -40,7 +40,7 @@ include(
 def isIncludedBuild = gradle.parent != null
 if(!isIncludedBuild) {
 	def libDir = 'project/deviceCommonLib/deviceDaemonLib'
-	if(file("$libDir/build.gradle").exists()){
+	if(file("$libDir/build.gradle").exists() || file("$libDir/build.gradle.kts").exists()){
 		include(":deviceDaemonLib")
 		// we use this instead of includeBuild as android gradle does not yet support nested composite and the highlighting would be screwed up anyway
 		project(':deviceDaemonLib').projectDir = new File(libDir)
