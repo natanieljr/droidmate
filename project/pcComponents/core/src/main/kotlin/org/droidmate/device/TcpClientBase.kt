@@ -37,7 +37,7 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Serializable>
-	constructor(private val serverAddress: String, private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
+	constructor(private val hostIp: String, private val socketTimeout: Int) : ITcpClientBase<InputToServerT, OutputFromServerT> {
 	/*companion object {
 			private val logcat = LoggerFactory.getLogger(TcpClientBase::class.java)
 	}*/
@@ -46,9 +46,9 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
 	@Throws(TcpServerUnreachableException::class, DeviceException::class)
 	override fun queryServer(input: InputToServerT, port: Int): OutputFromServerT {
 		try {
-			//logcat.trace("Socket socket = this.tryGetSocket($serverAddress, $port)")
-			val socket = this.tryGetSocket(serverAddress, port)
-//      logcat.trace("Got socket: $serverAddress:$port timeout: ${this.socketTimeout}")
+			//logcat.trace("Socket socket = this.tryGetSocket($hostIp, $port)")
+			val socket = this.tryGetSocket(hostIp, port)
+//      logcat.trace("Got socket: $hostIp:$port timeout: ${this.socketTimeout}")
 
 			socket.soTimeout = this.socketTimeout
 
@@ -59,7 +59,7 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
 			// 2. search for: "Note - The ObjectInputStream constructor blocks until" in:
 			// http://docs.oracle.com/javase/7/docs/platform/serialization/spec/input.html
 			//
-//        logcat.trace("inputStream = new ObjectInputStream(socket<$serverAddress:$port>.inputStream)")
+//        logcat.trace("inputStream = new ObjectInputStream(socket<$hostIp:$port>.inputStream)")
 			val inputStream = DataInputStream(socket.inputStream)
 //        logcat.trace("Got input stream")
 
@@ -90,9 +90,9 @@ class TcpClientBase<in InputToServerT : Serializable, out OutputFromServerT : Se
 	}
 
 	@Throws(TcpServerUnreachableException::class)
-	private fun tryGetSocket(serverAddress: String, port: Int): Socket {
+	private fun tryGetSocket(hostIp: String, port: Int): Socket {
 		try {
-			val socket = Socket(serverAddress, port)
+			val socket = Socket(hostIp, port)
 			assert(socket.isConnected)
 
 			return socket

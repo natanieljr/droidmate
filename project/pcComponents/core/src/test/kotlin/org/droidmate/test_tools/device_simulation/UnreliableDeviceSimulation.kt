@@ -61,7 +61,7 @@ class UnreliableDeviceSimulation /*(timeGenerator: ITimeGenerator,
 	// TODO Fix tests
 	/*private var unreliableGuiSnapshotProvider: IUnreliableDeviceGuiSnapshotProvider
 
-	init {
+	initialize {
 			this.unreliableGuiSnapshotProvider = UnreliableDeviceGuiSnapshotProvider(this.simulation.getCurrentGuiSnapshot())
 	}
 

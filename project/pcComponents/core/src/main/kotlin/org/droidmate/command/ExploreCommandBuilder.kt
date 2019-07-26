@@ -6,17 +6,10 @@ import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbabili
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
 import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
 import org.droidmate.configuration.ConfigurationWrapper
-import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.SelectorFunction
-import org.droidmate.exploration.StrategySelector
 import org.droidmate.exploration.modelFeatures.reporter.*
 import org.droidmate.exploration.strategy.*
-import org.droidmate.exploration.strategy.others.MinimizeMaximize
-import org.droidmate.exploration.strategy.others.RotateUI
 import org.droidmate.exploration.strategy.playback.Playback
-import org.droidmate.exploration.strategy.widget.AllowRuntimePermission
 import org.droidmate.exploration.strategy.widget.DFS
-import org.droidmate.exploration.strategy.widget.DenyRuntimePermission
 import org.droidmate.exploration.strategy.widget.RandomWidget
 import org.droidmate.explorationModel.ModelFeatureI
 import org.droidmate.explorationModel.factory.AbstractModel
@@ -31,8 +24,8 @@ import java.util.*
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class ExploreCommandBuilder(
-    val strategies: MutableList<ISelectableExplorationStrategy> = mutableListOf(),
-    val selectors: MutableList<StrategySelector> = mutableListOf(),
+    val strategies: MutableList<AExplorationStrategy> = mutableListOf(),
+    val selectors: MutableList<AStrategySelector> = mutableListOf(),
     val watcher: MutableList<ModelFeatureI> = mutableListOf()
 ) {
     companion object {
@@ -74,11 +67,7 @@ open class ExploreCommandBuilder(
     }
 
     private fun fromConfig(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        addRequiredStrategies()
-
         conditionalEnable(cfg[ConfigProperties.Strategies.playback], cfg) { withPlayback(cfg) }
-
-        startWithReset()
 
         conditionalEnable(cfg[actionLimit] > 0, cfg) { terminateAfterActions(cfg) }
         conditionalEnable(cfg[actionLimit] > 0, cfg) { terminateAfterTime(cfg) }
@@ -98,20 +87,17 @@ open class ExploreCommandBuilder(
 
         conditionalEnable(cfg[ConfigProperties.Strategies.dfs]) { usingDFS() }
 
-        conditionalEnable(cfg[ConfigProperties.Strategies.explore], cfg) { exploreRandomly(cfg) }
+        conditionalEnable(cfg[ConfigProperties.Strategies.explore], cfg) { addRandomStrategy() }
 
         conditionalEnable(
             cfg[StatementCoverageMF.Companion.StatementCoverage.enableCoverage],
             cfg
         ) { collectStatementCoverage() }
 
-        conditionalEnable(cfg[ConfigProperties.Strategies.rotateUI], cfg) { addRotateUIStrategy(cfg) }
-        conditionalEnable(cfg[ConfigProperties.Strategies.minimizeMaximize]) { addMinimizeMaximizeStrategy() }
-
         return this
     }
 
-    private fun getNextSelectorPriority(): Int {
+    fun getNextSelectorPriority(): Int {
         return selectors.size * 10
     }
 
@@ -136,218 +122,82 @@ open class ExploreCommandBuilder(
         }
     }
 
-    fun addRequiredStrategies(): ExploreCommandBuilder {
-        return addTerminateStrategy()
-            .addBackStrategy()
-            .addResetStrategy()
-    }
-
-    fun addTerminateStrategy(): ExploreCommandBuilder {
-        strategies.add(Terminate)
-        return this
-    }
-
     fun terminateAfterTime(cfg: ConfigurationWrapper): ExploreCommandBuilder {
         return terminateAfterTime(cfg[ConfigProperties.Selectors.timeLimit])
     }
 
-    fun terminateAfterTime(seconds: Int): ExploreCommandBuilder {
-        selectors.add(
-            StrategySelector(
-                getNextSelectorPriority(),
-                "timeBasedTerminate",
-                StrategySelector.timeBasedTerminate,
-                bundle = arrayOf(seconds)
-            )
-        )
-        return this
+    fun terminateAfterTime(seconds: Int): ExploreCommandBuilder = apply{
+        strategies.add( DefaultStrategies.timeBasedTerminate(getNextSelectorPriority(),seconds) )
     }
 
     fun terminateAfterActions(cfg: ConfigurationWrapper): ExploreCommandBuilder {
         return terminateAfterActions(cfg[actionLimit])
     }
 
-    fun terminateAfterActions(actionLimit: Int): ExploreCommandBuilder {
-        selectors.add(
-            StrategySelector(
-                getNextSelectorPriority(),
-                "actionBasedTerminate",
-                StrategySelector.actionBasedTerminate,
-                bundle = arrayOf(actionLimit)
-            )
-        )
-        return this
+    fun terminateAfterActions(actionLimit: Int): ExploreCommandBuilder = apply{
+        strategies.add( DefaultStrategies.actionBasedTerminate(getNextSelectorPriority(), actionLimit) )
     }
 
     fun terminateIfAllExplored(): ExploreCommandBuilder {
-        selectors.add(
-            StrategySelector(
-                getNextSelectorPriority(),
-                "explorationExhausted",
-                StrategySelector.explorationExhausted
-            )
-        )
-        return this
-    }
-
-    fun addResetStrategy(): ExploreCommandBuilder {
-        strategies.add(Reset())
+        strategies.add( DefaultStrategies.explorationExhausted(getNextSelectorPriority()) )
         return this
     }
 
     fun resetOnInvalidState(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "cannotExplore", StrategySelector.cannotExplore))
+        strategies.add( DefaultStrategies.handleTargetAbsence(getNextSelectorPriority()) )
         return this
     }
 
     fun resetOnIntervals(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return resetOnIntervals(cfg[ConfigProperties.Selectors.resetEvery])
+        return resetOnIntervals(cfg[resetEvery])
     }
 
     fun resetOnIntervals(actionInterval: Int): ExploreCommandBuilder {
-        selectors.add(
-            StrategySelector(
-                getNextSelectorPriority(),
-                "intervalReset",
-                StrategySelector.intervalReset,
-                bundle = arrayOf(actionInterval)
-            )
-        )
-        return this
-    }
-
-    fun startWithReset(): ExploreCommandBuilder {
-        selectors.add(
-            StrategySelector(
-                getNextSelectorPriority(),
-                "startExplorationReset",
-                StrategySelector.startExplorationReset
-            )
-        )
+        strategies.add( DefaultStrategies.intervalReset(getNextSelectorPriority(), actionInterval) )
         return this
     }
 
     fun resetOnCrash(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "appCrashedReset", StrategySelector.appCrashedReset))
-        return this
-    }
-
-    fun addBackStrategy(): ExploreCommandBuilder {
-        strategies.add(Back)
+        strategies.add( DefaultStrategies.resetOnAppCrash(getNextSelectorPriority()) )
         return this
     }
 
     fun pressBackOnAds(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "ads", StrategySelector.ads))
+        strategies.add( DefaultStrategies.handleAdvertisment(getNextSelectorPriority()) )
         return this
     }
 
     fun randomBack(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return randomBack(cfg[ConfigProperties.Selectors.pressBackProbability], cfg.randomSeed)
+        return randomBack(cfg[pressBackProbability], cfg.randomSeed)
     }
 
     fun randomBack(probability: Double, randomSeed: Long): ExploreCommandBuilder {
-        selectors.add(
-            StrategySelector(
-                getNextSelectorPriority(),
-                "randomBack",
-                StrategySelector.randomBack,
-                bundle = arrayOf(probability, Random(randomSeed))
-            )
-        )
+        strategies.add( DefaultStrategies.randomBack(getNextSelectorPriority(), probability, Random(randomSeed)) )
         return this
     }
 
-    fun exploreRandomly(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return exploreRandomly(
-            cfg.randomSeed,
-            cfg[ConfigProperties.Exploration.widgetActionDelay],
-            cfg[ConfigProperties.Strategies.Parameters.biasedRandom],
-            cfg[ConfigProperties.Strategies.Parameters.randomScroll]
-        )
-    }
-
-    fun exploreRandomly(
-        randomSeed: Long = 0,
-        delay: Long = 0,
-        enableScroll: Boolean = false,
-        biasedRandom: Boolean = false
-    ): ExploreCommandBuilder {
-        return addRandomStrategy(randomSeed, delay, enableScroll, biasedRandom)
-            .addRandomExploreSelector()
-    }
-
-    fun addRandomStrategy(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return addRandomStrategy(
-            cfg.randomSeed,
-            cfg[ConfigProperties.Exploration.widgetActionDelay],
-            cfg[ConfigProperties.Strategies.Parameters.biasedRandom],
-            cfg[ConfigProperties.Strategies.Parameters.randomScroll]
-        )
-    }
-
-    @JvmOverloads
-    fun addRandomStrategy(
-        randomSeed: Long = 0,
-        delay: Long = 0,
-        enableScroll: Boolean = false,
-        biasedRandom: Boolean = false
-    ): ExploreCommandBuilder {
-
-        strategies.add(RandomWidget(randomSeed, biasedRandom, enableScroll, delay = delay))
-
-        return this
-    }
-
-    fun addRandomExploreSelector(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "randomWidget", StrategySelector.randomWidget))
+    fun addRandomStrategy(): ExploreCommandBuilder {
+        strategies.add(RandomWidget(getNextSelectorPriority()))
         return this
     }
 
     fun allowRuntimePermissions(): ExploreCommandBuilder {
         addAllowPermissionStrategy()
-        addAllowPermissionSelector()
         return this
     }
 
     fun addAllowPermissionStrategy(): ExploreCommandBuilder {
-        strategies.add(AllowRuntimePermission())
-        return this
-    }
-
-    fun addAllowPermissionSelector(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "allowPermission", StrategySelector.allowPermission))
+        strategies.add(DefaultStrategies.allowPermission(getNextSelectorPriority()))
         return this
     }
 
     fun denyRuntimePermissions(): ExploreCommandBuilder {
         addDenyPermissionStrategy()
-        addDenyPermissionSelector()
         return this
     }
 
     fun addDenyPermissionStrategy(): ExploreCommandBuilder {
-        strategies.add(DenyRuntimePermission())
-        return this
-    }
-
-    fun addDenyPermissionSelector(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "denyPermission", StrategySelector.denyPermission))
-        return this
-    }
-
-    fun addRotateUIStrategy(cfg: ConfigurationWrapper): ExploreCommandBuilder {
-        return addRotateUIStrategy(cfg[ConfigProperties.Strategies.Parameters.uiRotation])
-    }
-
-    fun addRotateUIStrategy(uiRotation: Int): ExploreCommandBuilder {
-        strategies.add(RotateUI(uiRotation))
-        return this
-    }
-
-    fun addMinimizeMaximizeStrategy(): ExploreCommandBuilder {
-        strategies.add(MinimizeMaximize())
-
+        strategies.add(DefaultStrategies.denyPermission(getNextSelectorPriority()))
         return this
     }
 
@@ -357,7 +207,6 @@ open class ExploreCommandBuilder(
 
     fun withPlayback(playbackModelDir: Path): ExploreCommandBuilder {
         return addPlaybackStrategy(playbackModelDir)
-            .addPlaybackSelector()
     }
 
     fun addPlaybackStrategy(playbackModelDir: Path): ExploreCommandBuilder {
@@ -365,49 +214,32 @@ open class ExploreCommandBuilder(
         return this
     }
 
-    fun addPlaybackSelector(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "playback", StrategySelector.playback))
-        return this
-    }
-
     fun usingDFS(): ExploreCommandBuilder {
         return addDFSStrategy()
-            .addDFSSelector()
     }
 
     fun addDFSStrategy(): ExploreCommandBuilder {
         strategies.add(DFS())
         return this
     }
-
-    fun addDFSSelector(): ExploreCommandBuilder {
-        selectors.add(StrategySelector(getNextSelectorPriority(), "dfs", StrategySelector.dfs))
-        return this
-    }
-
+    
     fun collectStatementCoverage(): ExploreCommandBuilder {
-        selectors.add(
-            StrategySelector(
-                getNextSelectorPriority(),
-                "statementCoverageSync",
-                StrategySelector.statementCoverage
-            )
-        )
+        selectors.add( DefaultSelector.statementCoverage(getNextSelectorPriority()) )
         return this
     }
 
-    fun withStrategy(strategy: ISelectableExplorationStrategy): ExploreCommandBuilder {
+    fun withStrategy(strategy: AExplorationStrategy): ExploreCommandBuilder {
         strategies.add(strategy)
         return this
     }
 
-    fun withSelector(selector: StrategySelector): ExploreCommandBuilder {
+    fun withSelector(selector: AStrategySelector): ExploreCommandBuilder {
         selectors.add(selector)
         return this
     }
 
-    fun remove(selector: SelectorFunction): ExploreCommandBuilder {
-        val target = selectors.firstOrNull { it.selector == selector }
+    fun remove(selector: AStrategySelector): ExploreCommandBuilder {
+        val target = selectors.firstOrNull { it.uniqueStrategyName == selector.uniqueStrategyName }
 
         if (target != null) {
             selectors.remove(target)
@@ -416,47 +248,13 @@ open class ExploreCommandBuilder(
     }
 
     @JvmOverloads
-    fun append(
-        newDescription: String,
-        newSelector: SelectorFunction,
-        bundle: Array<Any> = emptyArray()
-    ): ExploreCommandBuilder {
-        val priority = selectors.maxBy { it.priority }?.priority ?: selectors.size
-
-        selectors.add(StrategySelector(priority + 1, newDescription, newSelector, bundle = bundle))
-
-        return this
-    }
-
-    @JvmOverloads
-    fun insertBefore(
-        oldSelector: SelectorFunction,
-        newDescription: String,
-        newSelector: SelectorFunction,
-        bundle: Array<Any> = emptyArray()
-    ): ExploreCommandBuilder {
-        val targetPriority = selectors.firstOrNull { it.selector == oldSelector }?.priority
-
-        if (targetPriority != null) {
-            selectors.add(StrategySelector(targetPriority - 1, newDescription, newSelector, bundle = bundle))
-        } else {
-            append(newDescription, newSelector, bundle)
-        }
-
-        return this
-    }
-
-    @JvmOverloads
     open fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> build(
         cfg: ConfigurationWrapper,
         deviceTools: IDeviceTools = DeviceTools(cfg),
-        strategyProvider: (ExplorationContext<*, *, *>) -> IExplorationStrategy = {
-            ExplorationStrategyPool(
-                this.strategies,
-                this.selectors,
-                it
-            )
-        }, //FIXME is it really still useful to overwrite the eContext instead of the model?
+        strategyProvider: ExplorationStrategyPool = ExplorationStrategyPool(
+            this.strategies,
+            this.selectors
+        ),
         watcher: List<ModelFeatureI> = defaultReportWatcher(cfg),
         modelProvider: ModelProvider<M>
     ): ExploreCommand<M, S, W> {

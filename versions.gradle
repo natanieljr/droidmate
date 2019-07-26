@@ -2,24 +2,33 @@ project.ext {
 	internalTask = null  // use this as .group value of any task to make them invisible from gradle task list
 
 	javaVersion = JavaVersion.VERSION_1_8
-	// requires version 2.4+
-	driverLib_version = "2.4.1"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
-	model_version = "master-SNAPSHOT"
+	/** Semantic versioning: use semantic of MAJOR.MINOR.PATCH where
+	 * MAJOR is increased when breaking API compatibility (only the parts users may depend on)
+	 * 	before releasing this there should at least be one minor version (with deprecations if functionality is removed)
+	 * MINOR when breaking internal compatibility (i.e. relevant for driverLib and model)
+	 * PATCH only for critical bug fixes or when intermediate release is required (for student or reseach milestones)
+	 *
+	 * Note: strings like x.y.z-RCx cannot be used for dynamic version ranges and thus should be avoided for release tags
+	 */
+	// requires version 2.4.2+
+	driverLib_version = "2.4.2"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
+	min_model_version = "1.4.1"
+	max_model_version =	"1.5.0"	// exclusive outer bounds for version
 
-	kotlin_version = "1.3.31"
-	coroutines_version = "1.1.0"
+	kotlin_version = "1.3.41"
+	coroutines_version = "1.1.1"
 	androidGradlePlugin_version = "3.3.2" // version 3.2+ requires build tools 28+
-	androidBuildToolsVersion = "28.0.3" // this is hardcoded in buildSrc/build.kt as well, TODO we should upgrade to 28 to support the newest gradle version
+	androidBuildToolsVersion = "28.0.3" // this is hardcoded in buildSrc/build.kt as well
 	androidMinSdkVersion = 23
 	androidTargetSdkVersion = 28
 	androidCompileSdkVersion = 28
 
 	// ExplorationModel
-	dmExplorationModel = "com.github.hotzkow:explorationModel:$model_version"
+	dmExplorationModel = "com.github.hotzkow:explorationModel"
 	// ExplorationModel
-	dmDriverLib = "com.github.hotzkow:platformInterfaceLib:$driverLib_version"
+	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
 	// Common
-	dmCommon = "com.github.uds-se:droidmate-common:1.3.2-RC1"
+	dmCommon = "com.github.uds-se:droidmate-common:1.4.1-SNAPSHOT"
 	// Coverage
 	dmCoverage = "com.github.uds-se:droidmate-coverage:master-SNAPSHOT"
 	// API Monitor

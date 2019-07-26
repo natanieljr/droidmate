@@ -11,7 +11,7 @@
         </encoder>
     </appender>
 
-    <timestamp key="myTimestamp" datePattern="yyyy-MM-dd'_'HH-mm-ss.SSS"/>
+    <timestamp key="myTimestamp" datePattern="yyyy-MM-dd"/>
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <layout class="ch.qos.logback.classic.html.HTMLLayout">

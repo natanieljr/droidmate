@@ -436,7 +436,7 @@ class AndroidDeviceSimulator/*(timeGenerator: ITimeGenerator,
 			return false
 	}
 
-	init {
+	initialize {
 			this.simulations = pkgNames.map { buildDeviceSimulation(timeGenerator, it, spec, unreliableSimulation) }
 			this.currentSimulation = this.simulations[0]
 	}*/

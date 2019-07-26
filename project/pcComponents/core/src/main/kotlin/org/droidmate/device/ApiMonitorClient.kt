@@ -34,7 +34,7 @@ import java.util.LinkedList
 class ApiMonitorClient(socketTimeout: Int,
                        private val deviceSerialNumber: String,
                        private val adbWrapper: IAdbWrapper,
-                       serverAddress: String,
+                       hostIp: String,
                        private val port: Int) : IApiMonitorClient {
 
 	companion object {
@@ -42,7 +42,7 @@ class ApiMonitorClient(socketTimeout: Int,
 	}
 
 	// remove this.getPorts from all methods
-	private val monitorTcpClient: ITcpClientBase<String, LinkedList<ArrayList<String>>> = TcpClientBase(serverAddress, socketTimeout)
+	private val monitorTcpClient: ITcpClientBase<String, LinkedList<ArrayList<String>>> = TcpClientBase(hostIp, socketTimeout)
 
 	override fun anyMonitorIsReachable(): Boolean {
 		val out = this.isServerReachable(this.getPort())

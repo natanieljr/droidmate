@@ -35,6 +35,7 @@ import org.apache.commons.lang3.builder.StandardToStringStyle
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorSocketTimeout
 import org.droidmate.configuration.ConfigProperties.ApiMonitorServer.monitorUseLogcat
 import org.droidmate.configuration.ConfigProperties.Core.configPath
+import org.droidmate.configuration.ConfigProperties.Core.hostIp
 import org.droidmate.configuration.ConfigProperties.Core.logLevel
 import org.droidmate.configuration.ConfigProperties.Deploy.deployRawApks
 import org.droidmate.configuration.ConfigProperties.Deploy.installApk
@@ -49,7 +50,6 @@ import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkApp
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootFirstDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.checkDeviceAvailableAfterRebootLaterDelays
-import org.droidmate.configuration.ConfigProperties.DeviceCommunication.adbHost
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppRetryAttempts
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.stopAppSuccessCheckDelay
 import org.droidmate.configuration.ConfigProperties.DeviceCommunication.waitForCanRebootDelay
@@ -90,7 +90,6 @@ import org.droidmate.configuration.ConfigProperties.Strategies.playback
 import org.droidmate.configuration.ConfigProperties.Strategies.reset
 import org.droidmate.configuration.ConfigProperties.Strategies.rotateUI
 import org.droidmate.configuration.ConfigProperties.Strategies.terminate
-import org.droidmate.configuration.ConfigProperties.TcpClient.serverAddress
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.basePort
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.delayedImgFetch
 import org.droidmate.configuration.ConfigProperties.UiAutomatorServer.enablePrintOuts
@@ -132,12 +131,11 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			// Core
 			CommandLineOption(logLevel, description = "Logging level of the entirety of application. Possible values, comma separated: info, debug, trace, warn, error."),
 			CommandLineOption(configPath, description = "Path to a custom configuration file, which replaces the default configuration.", short = "config"),
+			CommandLineOption(hostIp, description="allows to specify an adb host different from localhost, i.e. to allow container environments to access host devices"),
 			// ApiMonitorServer
 			CommandLineOption(monitorSocketTimeout, description = "Socket timeout to communicate with the API monitor service."),
 			CommandLineOption(monitorUseLogcat, description = "Use logical for API logging instead of TCPServer (deprecated)."),
 			CommandLineOption(ConfigProperties.ApiMonitorServer.basePort, description = "The base port for the communication with the the API monitor service. DroidMate communicates over this base port + device index."),
-			// TcpClient
-			CommandLineOption(serverAddress, description = "Server address for tcp clients e.g. localhost."),
 			// ExecutionMode
 			CommandLineOption(inline, description = "If present, instead of normal run, DroidMate will inline all non-inlined apks. Before inlining backup copies of the apks will be created and put into a sub-directory of the directory containing the apks. This flag cannot be combined with another execution mode."),
 			CommandLineOption(explore, description = "Run DroidMate in exploration mode."),
@@ -152,7 +150,6 @@ class ConfigurationBuilder : IConfigurationBuilder {
 			CommandLineOption(deployRawApks, description = "Deploys apks to device in 'raw' form, that is, without instrumenting them. Will deploy them raw even if instrumented version is available from last run."),
 			CommandLineOption(installMonitor, description = "Install the API monitor into the device."),
 			// DeviceCommunication
-			CommandLineOption(adbHost, description="allows to specify an adb host different from localhost, i.e. to allow container environments to access host devices"),
 			CommandLineOption(checkAppIsRunningRetryAttempts, description = "Number of attempts to check if an app is running on the device."),
 			CommandLineOption(checkAppIsRunningRetryDelay, description = "Timeout for each attempt to check if an app is running on the device in milliseconds."),
 			CommandLineOption(checkDeviceAvailableAfterRebootAttempts, description = "Determines how often DroidMate checks if a device is available after a reboot."),

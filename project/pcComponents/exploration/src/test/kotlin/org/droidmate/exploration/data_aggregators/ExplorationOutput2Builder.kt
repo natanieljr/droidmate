@@ -112,8 +112,8 @@ class ExplorationOutput2Builder {
 									mutableMapOf("time" to explorationStartPlusMss(mssSinceExplorationStart),
 													"methodName" to methodName,
 													// Minimal stack trace to pass all the validation checks.
-													// In particular, the ->Socket.<init> is enforced by asserts in org.droidmate.report.FilteredDeviceLogs.Companion.isStackTraceOfMonitorTcpServerSocketInit
-													"stackTrace" to "$Api.monitorRedirectionPrefix->Socket.<init>->$currentlyBuiltApkOut2.packageName")
+													// In particular, the ->Socket.<initialize> is enforced by asserts in org.droidmate.report.FilteredDeviceLogs.Companion.isStackTraceOfMonitorTcpServerSocketInit
+													"stackTrace" to "$Api.monitorRedirectionPrefix->Socket.<initialize>->$currentlyBuiltApkOut2.packageName")
 					)
 			}.toMutableList()
 

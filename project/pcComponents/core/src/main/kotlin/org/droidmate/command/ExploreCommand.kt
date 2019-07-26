@@ -47,9 +47,9 @@ import org.droidmate.device.logcat.ApiLogcatMessage
 import org.droidmate.device.logcat.ApiLogcatMessageListExtensions
 import org.droidmate.deviceInterface.exploration.*
 import org.droidmate.exploration.ExplorationContext
-import org.droidmate.exploration.actions.resetApp
+import org.droidmate.exploration.actions.launchApp
 import org.droidmate.exploration.modelFeatures.ModelFeature
-import org.droidmate.exploration.strategy.IExplorationStrategy
+import org.droidmate.exploration.strategy.ExplorationStrategyPool
 import org.droidmate.explorationModel.ModelFeatureI
 import org.droidmate.explorationModel.config.ConfigProperties.ModelProperties.path.cleanDirs
 import org.droidmate.explorationModel.config.ModelConfig
@@ -57,7 +57,6 @@ import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.factory.AbstractModel
 import org.droidmate.explorationModel.factory.ModelProvider
 import org.droidmate.explorationModel.interaction.ActionResult
-import org.droidmate.explorationModel.interaction.EmptyActionResult
 import org.droidmate.explorationModel.interaction.State
 import org.droidmate.explorationModel.interaction.Widget
 import org.droidmate.logging.Markers
@@ -76,12 +75,12 @@ import java.time.LocalDateTime
 
 open class ExploreCommand<M,S,W>(
 	private val cfg: ConfigurationWrapper,
-    private val apksProvider: IApksProvider,
-    private val deviceDeployer: IAndroidDeviceDeployer,
-    private val apkDeployer: IApkDeployer,
-    private val strategyProvider: (ExplorationContext<M,S,W>) -> IExplorationStrategy,
-    private var modelProvider: ModelProvider<M>,
-	val watcher: MutableList<ModelFeatureI> = mutableListOf()
+	private val apksProvider: IApksProvider,
+	private val deviceDeployer: IAndroidDeviceDeployer,
+	private val apkDeployer: IApkDeployer,
+	private val strategyProvider: ExplorationStrategyPool,
+	private var modelProvider: ModelProvider<M>,
+	private val watcher: MutableList<ModelFeatureI> = mutableListOf()
 ) where M: AbstractModel<S, W>, S: State<W>, W: Widget {
 	companion object {
 		@JvmStatic
@@ -270,19 +269,18 @@ open class ExploreCommand<M,S,W>(
 
 		// Construct initial action and execute it on the device to obtain initial result.
 		var action: ExplorationAction = EmptyAction
-		var result: ActionResult = EmptyActionResult
+		var result: ActionResult
 		var capturedPreviously = false
 
 		var isFirst = true
 
-		var strategy: IExplorationStrategy? = null
+		val strategyScheduler = strategyProvider.apply{ init(cfg, explorationContext) }
 		try {
-			strategy = strategyProvider.invoke(explorationContext)
 			// Execute the exploration loop proper, starting with the values of initial reset action and its result.
 			while (isFirst || !action.isTerminate()) {
 				try {
 					// decide for an action
-					action = strategy.decide(result) // check if we need to initialize timeProvider.getNow() here
+					action = strategyScheduler.nextAction(explorationContext) // check if we need to initialize timeProvider.getNow() here
 					// execute action
 					result = action.execute(app, device)
 
@@ -331,7 +329,7 @@ open class ExploreCommand<M,S,W>(
 								" ${e.localizedMessage}", e
 					)
 					explorationContext.exceptions.add(e)
-					explorationContext.resetApp().execute(app, device)
+					explorationContext.launchApp().execute(app, device)
 				}
 			} // end loop
 
@@ -339,11 +337,11 @@ open class ExploreCommand<M,S,W>(
 			explorationContext.verify() // some result validation do this in the end of exploration for this app
 			// but within the catch block to NOT terminate other explorations and to NOT loose the derived context
 
-		} catch (e: Throwable) { // the loop handles internal error if possible, however if the resetApp after exception fails we end in this catch
+		} catch (e: Throwable) { // the loop handles internal error if possible, however if the launchApp after exception fails we end in this catch
 			// this means likely the uiAutomator is dead or we lost device connection
 			log.error("unhandled device exception \n ${e.localizedMessage}", e)
 			explorationContext.exceptions.add(e)
-			strategy?.close()
+			strategyScheduler.close()
 		} finally {
 			explorationContext.close()
 		}

@@ -24,14 +24,14 @@ import org.droidmate.explorationModel.interaction.Widget
  */
 @JvmOverloads
 fun Widget.click(delay: Long = 0, isVisible: Boolean = false, ignoreClickable: Boolean = false): ExplorationAction {
-	if (!(definedAsVisible || isVisible) || !enabled || !(clickable||selected.isActivated()||ignoreClickable))
+	if (!(definedAsVisible || isVisible) || !enabled || !(clickable||selected.isEnabled()||ignoreClickable))
 		throw RuntimeException("ERROR: tried to click non-actionable Widget $this")
 	widgetTargets.add(this)
 	return clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
 }
 
 fun Widget.clickEvent(delay: Long = 0, ignoreClickable: Boolean = false): ExplorationAction {
-	if (!enabled || !(clickable||selected.isActivated()||ignoreClickable))
+	if (!enabled || !(clickable||selected.isEnabled()||ignoreClickable))
 		throw RuntimeException("ERROR: tried to click non-actionable Widget $this")
 	widgetTargets.add(this)
 	return if(!clickable)	clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
@@ -96,7 +96,7 @@ fun Widget.availableActions(delay: Long, useCoordinateClicks:Boolean): List<Expl
 		if(useCoordinateClicks) actionList.add(this.longClick(delay))
 		else actionList.add(this.longClickEvent(delay))
 	}
-	if (this.clickable||this.selected.isActivated()){
+	if (this.clickable||this.selected.isEnabled()){
 		if(useCoordinateClicks) actionList.add(this.click(delay))
 		else actionList.add(this.clickEvent(delay))
 	}

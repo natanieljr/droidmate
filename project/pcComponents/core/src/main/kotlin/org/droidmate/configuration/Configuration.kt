@@ -30,7 +30,6 @@ import org.droidmate.misc.EnvironmentConstants
 import java.net.URI
 import java.nio.file.*
 import java.util.*
-import javax.naming.ConfigurationException
 
 class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configuration,
 													 private val fileSystem: FileSystem = FileSystems.getDefault()) : Configuration by cfg {

@@ -21,8 +21,15 @@ import kotlin.math.min
  * + a LaunchApp action + ActionQue to handle a set of actions which is executed on the device before fetching a new state
  */
 
+@Deprecated("no context required", replaceWith = ReplaceWith("ExplorationAction.minimizeMaximize()"))
 fun ExplorationContext<*,*,*>.minimizeMaximize(): ExplorationAction = GlobalAction(ActionType.MinimizeMaximize)
+@Deprecated("no context required", replaceWith = ReplaceWith("ExplorationAction.pressBack()"))
 fun ExplorationContext<*,*,*>.pressBack(): ExplorationAction = GlobalAction(ActionType.PressBack)
+
+fun ExplorationAction.Companion.minimizeMaximize() = GlobalAction(ActionType.MinimizeMaximize)
+fun ExplorationAction.Companion.pressBack() =	GlobalAction(ActionType.PressBack)
+fun ExplorationAction.Companion.closeAndReturn() =
+	ActionQueue(listOf(GlobalAction(ActionType.CloseKeyboard),GlobalAction(ActionType.PressBack)),100)
 
 /**
  * Sets the device rotation. (rotating the device changes its rotation state).
@@ -30,7 +37,9 @@ fun ExplorationContext<*,*,*>.pressBack(): ExplorationAction = GlobalAction(Acti
  * @param rotation The value on how much the screen is supposed to be rotated based on its current orientation.
  *  This value should be dividable by 90. *
  */
+@Deprecated("no context required", replaceWith = ReplaceWith("ExplorationAction.rotate()"))
 fun ExplorationContext<*,*,*>.rotate(rotation: Int): ExplorationAction = RotateUI(rotation)
+fun ExplorationAction.rotate(rotation: Int) = RotateUI(rotation)
 
 /**
  * Performs a swipe from one coordinate to another using the number of steps
@@ -39,7 +48,9 @@ fun ExplorationContext<*,*,*>.rotate(rotation: Int): ExplorationAction = RotateU
  *
  * @param steps is the number of move steps sent to the system
  */
+@Deprecated("interface improvement", replaceWith = ReplaceWith("ExplorationAction.swipe(start,end,steps)"))
 fun ExplorationContext<*,*,*>.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int=35): ExplorationAction = Swipe(start, end, steps)
+fun ExplorationAction.Companion.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps:Int=35): ExplorationAction = Swipe(start, end, steps)
 
 /**
  * Create a list of actions which is sequentially executed on the device without any fetch in-between.
@@ -48,16 +59,22 @@ fun ExplorationContext<*,*,*>.swipe(start: Pair<Int,Int>,end:Pair<Int,Int>,steps
  * Therefore you should only use it as the very first action of the queue or in combination with
  * non-app-specific actions like enable-WiFi.
  */
+@Deprecated("interface improvement", replaceWith = ReplaceWith("ExplorationAction.queue(actions,delay)"))
 @JvmOverloads fun ExplorationContext<*,*,*>.queue(actions: List<ExplorationAction>, delay:Long=0) = ActionQueue(actions, delay)
+fun ExplorationAction.Companion.queue(actions: List<ExplorationAction>, delay:Long=0) = ActionQueue(actions, delay)
 
 //TODO enableWifi takes ~11s therefore we may consider to only do it once on exploration start instead
-fun ExplorationContext<*,*,*>.resetApp(): ExplorationAction {
-    // Using ActionQue to issue multiple actions
-    return queue(listOf(LaunchApp(apk.packageName, cfg[ConfigProperties.Exploration.launchActivityDelay]),
-			GlobalAction(ActionType.EnableWifi),
-			GlobalAction(ActionType.CloseKeyboard)))
-}
+fun ExplorationContext<*,*,*>.launchApp(): ExplorationAction = ExplorationAction.launchApp(apk.packageName, cfg[ConfigProperties.Exploration.launchActivityDelay])
+fun ExplorationAction.Companion.launchApp(packageName: String, launchDelay: Long) = queue(listOf(LaunchApp(packageName, launchDelay),
+	GlobalAction(ActionType.EnableWifi),
+	GlobalAction(ActionType.CloseKeyboard)))
+
+fun ExplorationContext<*,*,*>.resetApp(): ExplorationAction = ExplorationAction.resetApp(apk.packageName, cfg[ConfigProperties.Exploration.launchActivityDelay])
+fun ExplorationAction.Companion.resetApp(packageName: String, launchDelay: Long) = LaunchApp(packageName, launchDelay)
+
+@Deprecated("interface improvement", replaceWith = ReplaceWith("ExplorationAction.terminateApp()"))
 fun terminateApp(): ExplorationAction = GlobalAction(ActionType.Terminate)
+fun ExplorationAction.Companion.terminateApp() = GlobalAction(ActionType.Terminate)
 
 /** navigate to widget [w] (which may be currently out of screen) and act upon it by calling [action].
  * This may not work for all apps when the element is located above the current snapshot, i.e. some web-view apps
@@ -171,7 +188,7 @@ private fun ExplorationContext<*,*,*>.swipe(distX:Int, distY:Int, area:Rectangle
 		dx += mx
 		val my = (distY-dy).let{ distToy -> if(abs(distToy) < abs(mDistY)) distToy else mDistY}
 		dy += my
-		actions.add(this.swipe(Pair(sx,sy), Pair(sx-mx,sy-my), steps = 10))
+		actions.add(ExplorationAction.swipe(Pair(sx,sy), Pair(sx-mx,sy-my), steps = 10))
 	}
 
 	return actions
