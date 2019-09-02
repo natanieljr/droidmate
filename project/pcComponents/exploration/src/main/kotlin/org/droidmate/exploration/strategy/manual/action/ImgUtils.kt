@@ -15,17 +15,23 @@ import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics
 import java.io.File
+import java.nio.file.Path
 import javax.imageio.ImageIO
 
 val log: Logger = getLogger("ImageUtils")
-suspend fun showTargetsInImg(eContext: ExplorationContext<*,*,*>, toBeHighlighted: List<Widget>, imgFile: File, autoGenScreen: Boolean = true) {
+suspend fun showTargetsInImg(
+	eContext: ExplorationContext<*,*,*>,
+	toBeHighlighted: List<Widget>,
+	imgFile: File, autoGenScreen: Boolean = true,
+	imgSrcDir: Path = eContext.model.config.imgDst
+) {
 	withContext(Dispatchers.IO) {
 		val trace = eContext.explorationTrace
 		// wait until file was pulled from device (done in ExploreCommand)
 		eContext.imgTransfer.coroutineContext[Job]?.children?.forEach { it.join() }
 
 		val filePath = if(autoGenScreen)
-			eContext.model.config.imgDst.resolve("${trace.last()?.actionId}.jpg").toString()
+			imgSrcDir.resolve("${trace.last()?.actionId}.jpg").toString()
 		// the ExtendedTrace did not yet finish to move/ copy the file to the new location
 		//trace.dstImgDir.resolve("${trace.interactions}.jpg").toString()
 		else ""

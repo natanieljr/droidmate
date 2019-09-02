@@ -90,6 +90,7 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
 	init {
 		debugOutput = model.config[debugMode] // disable debug outputs if not in debug mode
 		measurePerformance = model.config[debugMode]
+		watcher.forEach { w -> if(w is ModelFeature) w.onAppExplorationStarted(this) }
 		if (model.config[enableCoverage]){
 			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[coverageDir]).toAbsolutePath()
 			val resourceDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(EnvironmentConstants.dir_name_temp_extracted_resources).toAbsolutePath()

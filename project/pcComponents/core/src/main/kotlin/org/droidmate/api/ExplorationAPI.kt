@@ -189,7 +189,7 @@ object ExplorationAPI {
 	 * Consequently the list of selectors is empty by default and if no watcher is specified the features listed in
 	 * [defaultReporter] are going to be used.
 	 */
-	suspend fun<M:AbstractModel<S,W>, S: State<W>,W: Widget> explore(
+	@JvmOverloads suspend fun<M:AbstractModel<S,W>, S: State<W>,W: Widget> explore(
 		cfg: ConfigurationWrapper,
 		strategies: List<AExplorationStrategy>,
 		selectors: List<AStrategySelector> = emptyList(),
