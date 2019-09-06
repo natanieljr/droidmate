@@ -105,38 +105,6 @@ open class RandomWidget constructor(
 		blackList = initialContext.getOrCreateWatcher()
 	}
 
-	private suspend fun mustRepeatLastAction(eContext: ExplorationContext<*,*,*>): Boolean {
-		return if (!eContext.isEmpty()) {
-			eContext.getCurrentState().let { currentState ->
-				// Last state was runtime permission
-				(currentState.isRequestRuntimePermissionDialogBox) &&
-						// Has last action
-						eContext.lastTarget != null &&
-						// Has a state that is not a runtime permission
-						eContext.model.getStates()
-							.filterNot { it.stateId == emptyId && it.isRequestRuntimePermissionDialogBox }
-							.isNotEmpty() &&
-						// Can re-execute the same action
-						currentState.actionableWidgets
-							.any { p -> eContext.lastTarget?.let { p.id == it.id } ?: false }
-			}
-		} else false
-	}
-
-	/** if we trigger any functionality which requires (not yet granted) Android permissions an PermissionDialogue
-	 * will appear, but the functionality may not be triggered yet.
-	 * Now we do not want to penalize this target just because it required a permission and the functionality was not yet triggered
-	 */
-	private fun repeatLastAction(): ExplorationAction {
-//		val lastActionBeforePermission = currentState.let {
-//			!(it.isRequestRuntimePermissionDialogBox || it.stateId == emptyId)
-//		}
-
-//        return lastActionBeforePermission.action
-		TODO("instead PermissionStrategy should decrease the widgetCounter again, if the prev state is the same like after handling permission " +
-				"to avoid penalizing the target")
-	}
-
 	protected open fun ExplorationContext<*, *, *>.getAvailableWidgets(): List<Widget> {
 		return getCurrentState().visibleTargets.filter { w ->	!w.isKeyboard
 				&& (!w.isInputField || !explorationTrace.insertedTextValues().contains(w.text)) }  // ignore input fields we already filled
@@ -179,28 +147,30 @@ open class RandomWidget constructor(
 
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected suspend fun getCandidates(eContext : ExplorationContext<*, *, *>): List<Widget> {
-		return eContext.computeCandidates()
-				.let { filteredCandidates ->
-					// for each widget in this state the number of interactions
-					counter.numExplored(eContext.getCurrentState(), filteredCandidates).entries
-							.groupBy { it.key.packageName }.flatMap { (pkgName, countEntry) ->
-								if (pkgName != eContext.apk.packageName) {
-									val pkgActions = counter.pkgCount(pkgName)
-									countEntry.map { Pair(it.key, pkgActions) }
-								} else
-									countEntry.map { Pair(it.key, it.value) }
-							}// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
-							.groupBy { (_, countVal) -> countVal }.let { map ->
-								map.listOfSmallest()?.map { (w, _) -> w }?.let { leastInState: List<Widget> ->
-									// determine the subset of widgets which were least interacted with
-									// if multiple widgets clicked with same frequency, choose the one least clicked over all states
-									if (leastInState.size > 1) {
-										leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
-									} else leastInState
-								}
-							}
-							?: emptyList()
-				}
+		val filteredCandidates = eContext.computeCandidates()
+
+		// for each widget in this state the number of interactions
+		// we sum up all counters of widgets which do not belong to the app package to prioritize app targets
+		val groupedPerPackage = counter.numExplored(eContext.getCurrentState(), filteredCandidates).entries
+			.groupBy { it.key.packageName }.flatMap { (pkgName, countEntry) ->
+				if (pkgName != eContext.apk.packageName) {
+					val pkgActions = counter.pkgCount(pkgName)
+					countEntry.map { Pair(it.key, pkgActions) }
+				} else
+					countEntry.map { Pair(it.key, it.value) }
+			}
+
+		val groupedPerCount = groupedPerPackage.groupBy { (_, countVal) -> countVal }
+
+		return groupedPerCount.listOfSmallest()?.map { (w, _) -> w }?.let { leastInState: List<Widget> ->
+			// determine the subset of widgets which were least interacted with
+			// if multiple widgets clicked with same frequency, choose the one least clicked over all states
+			if (leastInState.size > 1) {
+				leastInState.groupBy { counter.widgetCnt(it.uid) }.listOfSmallest()
+			} else {
+				leastInState
+			}
+		} ?: emptyList()
 	}
 
 	private suspend fun chooseBiased(eContext: ExplorationContext<*, *, *>): ExplorationAction {
@@ -266,9 +236,6 @@ open class RandomWidget constructor(
 	): ExplorationAction {
 		if (eContext.isEmpty())
 			return eContext.launchApp() // very first action -> start the app via reset
-		// Repeat previous action is last action was to click on a runtime permission dialog
-		if (mustRepeatLastAction(eContext))
-			return repeatLastAction()
 
 		return chooseRandomWidget(eContext)
 	}
