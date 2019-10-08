@@ -172,6 +172,8 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 								delay(delay)
 							}
 							getOrStoreImgPixels(env.captureScreen(), env, action.id)
+						} else if(i < actions.size - 1 && screenshotForEach){
+							getOrStoreImgPixels(env.captureScreen(), env, action.id)
 						}
 					}.let{ if(it is Boolean) it else true } }.apply{
 				delay(delay)

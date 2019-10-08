@@ -29,7 +29,7 @@ wrapper{
 
 allprojects {
 	group = "org.droidmate"
-	version = "2.0.0"
+	version = "2.0.1"
 
 	/* Merge all the build directories into one. */
 //	buildDir = rootProject.file('build')  //TODO that means the apk/class paths are changing

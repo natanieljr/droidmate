@@ -297,7 +297,14 @@ open class ExploreCommand<M,S,W>(
 										explorationContext.model.config.imgDst,
 										device,
 										explorationContext
+									) else if(i < action.actions.size - 1 && action.screenshotForEach) {
+									pullScreenShot(
+										a.id,
+										explorationContext.model.config.imgDst,
+										device,
+										explorationContext
 									)
+								}
 							}
 						}
 						if (result.guiSnapshot.capturedScreen) {

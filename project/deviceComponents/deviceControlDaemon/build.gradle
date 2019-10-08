@@ -81,7 +81,7 @@ repositories {
 	}
 	google()
 	maven { url 'https://jitpack.io' }
-//	mavenLocal()
+	mavenLocal()
 }
 
 configurations.all {
