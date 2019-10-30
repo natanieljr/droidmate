@@ -92,8 +92,8 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
 		measurePerformance = model.config[debugMode]
 		watcher.forEach { w -> if(w is ModelFeature) w.onAppExplorationStarted(this) }
 		if (model.config[enableCoverage]){
-			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[coverageDir]).toAbsolutePath()
-			val resourceDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(EnvironmentConstants.dir_name_temp_extracted_resources).toAbsolutePath()
+			val coverageDir = Paths.get(cfg[ConfigProperties.Output.outputDir].path).toAbsolutePath().resolve(cfg[coverageDir])
+			val resourceDir = Paths.get(cfg[ConfigProperties.Exploration.apksDir].path).toAbsolutePath()
 			addWatcher(StatementCoverageMF(coverageDir, readDeviceStatements, model.config.appName, resourceDir))
 		}
 	}
