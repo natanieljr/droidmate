@@ -14,7 +14,7 @@ git:
 jdk:
 
   # Most of DroidMate is compiled with Java 8.
-  - oraclejdk8
+  - oraclejdk11
 
 android:
   components:
@@ -39,9 +39,6 @@ android:
 
 env:
   global:
-
-    # Required to obtain reference to jarsigner.
-    - JAVA_HOME=/usr/lib/jvm/java-8-oracle
 
     # Required to obtain handles to aapt and adb.
     - ANDROID_HOME=/usr/local/android-sdk
