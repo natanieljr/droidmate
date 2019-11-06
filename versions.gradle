@@ -28,11 +28,11 @@ project.ext {
 	// ExplorationModel
 	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
 	// Common
-	dmCommon = "com.github.uds-se:droidmate-common:1.4.1-SNAPSHOT"
+	dmCommon = "com.github.uds-se:droidmate-common:1.4.2-SNAPSHOT"
 	// Coverage
-	dmCoverage = "com.github.uds-se:droidmate-coverage:1.4.1-SNAPSHOT"
+	dmCoverage = "com.github.uds-se:droidmate-coverage:1.4.2-SNAPSHOT"
 	// API Monitor
-	dmAPIMonitor = "com.github.uds-se:droidmate-monitor:1.4.1-SNAPSHOT"
+	dmAPIMonitor = "com.github.uds-se:droidmate-monitor:1.4.2-SNAPSHOT"
 	
 	// for some strange konrad.utilities used within misc for configuration??
 	utilities_version = "v0.2.4"
