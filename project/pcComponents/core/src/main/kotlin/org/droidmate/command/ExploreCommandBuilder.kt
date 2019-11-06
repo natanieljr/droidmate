@@ -5,6 +5,7 @@ import org.droidmate.configuration.ConfigProperties.Selectors.actionLimit
 import org.droidmate.configuration.ConfigProperties.Selectors.pressBackProbability
 import org.droidmate.configuration.ConfigProperties.Selectors.resetEvery
 import org.droidmate.configuration.ConfigProperties.Selectors.stopOnExhaustion
+import org.droidmate.configuration.ConfigProperties.Selectors.timeLimit
 import org.droidmate.configuration.ConfigurationWrapper
 import org.droidmate.exploration.modelFeatures.reporter.*
 import org.droidmate.exploration.strategy.*
@@ -70,7 +71,7 @@ open class ExploreCommandBuilder(
         conditionalEnable(cfg[ConfigProperties.Strategies.playback], cfg) { withPlayback(cfg) }
 
         conditionalEnable(cfg[actionLimit] > 0, cfg) { terminateAfterActions(cfg) }
-        conditionalEnable(cfg[actionLimit] > 0, cfg) { terminateAfterTime(cfg) }
+        conditionalEnable(cfg[timeLimit] > 0, cfg) { terminateAfterTime(cfg) }
 
         resetOnCrash()
 
