@@ -1,26 +1,41 @@
 import java.nio.file.Files
 import java.nio.file.Paths
 
-// Copyright (c) 2012-2016 Saarland University
-// All rights reserved.
+// DroidMate, an automated execution generator for Android apps.
+// Copyright (C) 2012-2018. Saarland University
 //
-// Author: Konrad Jamrozik, jamrozik@st.cs.uni-saarland.de
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// This file is part of the "DroidMate" project.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// www.droidmate.org
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Current Maintainers:
+// Nataniel Borges Jr. <nataniel dot borges at cispa dot saarland>
+// Jenny Hotzkow <jenny dot hotzkow at cispa dot saarland>
+//
 
 buildscript {
 	repositories {
 		mavenCentral()
+		jcenter()
 	}
 	apply from: file("${rootProject.projectDir}/versions.gradle") // contains kotlin_version
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${project.ext.kotlin_version}"
 		classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1' // for jitpack gradle support?
+		classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
 	}
 }
 
+apply plugin: 'com.github.johnrengelman.shadow'
 apply from: file("${rootProject.projectDir}/versions.gradle")
 
 wrapper{
