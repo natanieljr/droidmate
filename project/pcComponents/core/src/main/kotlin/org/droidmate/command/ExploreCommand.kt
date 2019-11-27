@@ -159,12 +159,14 @@ open class ExploreCommand<M,S,W>(
 		}
 
 		Files.walk(outputDir)
+			.filter { it.parent != null && it.parent.fileName != null }
 			.filter { it.parent.fileName.toString() != EnvironmentConstants.dir_name_temp_extracted_resources }
 			.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
 			.filter { Files.isRegularFile(it) }
 			.forEach { Files.delete(it) }
 
 		Files.walk(outputDir)
+			.filter { it.parent != null && it.parent.fileName != null }
 			.filter { it.parent.fileName.toString() != EnvironmentConstants.dir_name_temp_extracted_resources }
 			.filter { it.parent.fileName.toString() != ConfigurationWrapper.log_dir_name }
 			.forEach { assert(Files.isDirectory(it)) { "Unable to clean the output directory. File remaining ${it.toAbsolutePath()}" } }
