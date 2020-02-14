@@ -59,6 +59,7 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
                                                       )
 		where M: AbstractModel<S, W>, S: State<W>, W: Widget {
 
+	// FixMe this does not allow to retrieve the generic type if ExplorationTrace was overwritten
 	val explorationTrace: ExplorationTrace<S,W> = model.initNewTrace(watcher)
 
 	companion object {

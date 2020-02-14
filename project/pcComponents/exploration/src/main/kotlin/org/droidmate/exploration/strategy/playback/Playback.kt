@@ -47,7 +47,7 @@ open class Playback constructor(private val modelDir: Path, private val priority
 
 	private var traceIdx = 0
 	private var actionIdx = 0
-	protected lateinit var model : DefaultModel<State<Widget>,Widget>
+	protected lateinit var model : DefaultModel<State<Widget>,Widget> //FIXME this should use the custom model instead (if any was used)
 	private var lastSkipped: Interaction<Widget> = Interaction.empty()
 	protected var toExecute: Interaction<Widget> = Interaction.empty()
 	lateinit var eContext: ExplorationContext<*,*,*>

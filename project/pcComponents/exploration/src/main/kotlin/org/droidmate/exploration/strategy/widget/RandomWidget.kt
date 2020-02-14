@@ -36,12 +36,13 @@ import org.droidmate.exploration.modelFeatures.ActionCounterMF
 import org.droidmate.exploration.modelFeatures.explorationWatchers.BlackListMF
 import org.droidmate.exploration.modelFeatures.listOfSmallest
 import org.droidmate.exploration.strategy.AExplorationStrategy
+import org.droidmate.explorationModel.ExplorationTrace
 import org.droidmate.explorationModel.debugOutput
 import org.droidmate.explorationModel.debugT
 import org.droidmate.explorationModel.emptyId
 import org.droidmate.explorationModel.factory.AbstractModel
 import org.droidmate.explorationModel.interaction.State
-import java.util.Random
+import java.util.*
 import kotlin.streams.asSequence
 
 /**
@@ -174,8 +175,8 @@ open class RandomWidget constructor(
 				else -> nonCrashing
 			}
 		}
-	}, inMillis = true)
-			.filter { it.clickable || it.longClickable || it.checked != null } // the other actions are currently not supported
+	}, inMillis = true) // Fix this filter was missing text-insert actions
+			.filter { it.clickable || it.longClickable || it.checked != null || it.isInputField } // the other actions are currently not supported
 
 	@Suppress("MemberVisibilityCanBePrivate")
 	protected suspend fun getCandidates(eContext : ExplorationContext<*, *, *>): List<Widget> {
@@ -207,7 +208,7 @@ open class RandomWidget constructor(
 		val candidates = getCandidates(eContext)
 		// no valid candidates -> go back to previous state
 		return if (candidates.isEmpty()) {
-			println("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
+			log.warn("RANDOM: Back, reason - nothing (non-blacklisted) interactable to click")
 			ExplorationAction.closeAndReturn()
 		}
 		else candidates.chooseRandomly(eContext)
@@ -242,6 +243,9 @@ open class RandomWidget constructor(
 		while (!chosenWidget.isInteractive) {
 			widget = eContext.getCurrentState().widgets.first { it.id == chosenWidget.parentId }
 		}
+		val targetQueue = LinkedList<Widget>().apply {
+			addAll(ExplorationTrace.widgetTargets)
+		}
 
 		val actionList = when{
 			widget.isInputField ->	listOf(widget.setText(randomString(),delay = delay, sendEnter = true))
@@ -255,6 +259,11 @@ open class RandomWidget constructor(
 
 		val randomIdx = random.nextInt(maxVal)
 		return actionList[randomIdx].also {
+			// computing all widget actions may have affected the list of widgetTargets, thus we have to restore the correct state
+			ExplorationTrace.widgetTargets.clear()
+			ExplorationTrace.widgetTargets.addAll(targetQueue)
+			ExplorationTrace.widgetTargets.add(widget)
+
 			if(debugOutput) log.debug("[A${it.id}] Chosen widget info: $widget: keyboard=${widget.isKeyboard}\t" +
 					"clickable=${widget.clickable}\tcheckable=${widget.checked}\tlong-clickable=${widget.longClickable}\t" +
 					"scrollable=${widget.scrollable}")
