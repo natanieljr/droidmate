@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory
 /**
  * @see IApkDeployer#withDeployedApk(IDeployableAndroidDevice, org.droidmate.exploration.IApk, (IApk) -> Any)
  */
-class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeployer {
+open class ApkDeployer constructor(private val cfg: ConfigurationWrapper) : IApkDeployer {
 	companion object {
 		private val log by lazy { LoggerFactory.getLogger(ApkDeployer::class.java) }
 	}

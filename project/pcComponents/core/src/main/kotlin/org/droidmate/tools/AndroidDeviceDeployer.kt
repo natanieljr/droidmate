@@ -47,7 +47,7 @@ import org.droidmate.misc.FailableExploration
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
+open class AndroidDeviceDeployer constructor(private val cfg: ConfigurationWrapper,
                                         private val adbWrapper: IAdbWrapper,
                                         private val deviceFactory: IAndroidDeviceFactory) : IAndroidDeviceDeployer {
 
