@@ -57,7 +57,7 @@ object DefaultStrategies : Logging {
      * Terminate the exploration after a predefined elapsed time
      */
     fun timeBasedTerminate(priority: Int, maxSeconds: Int) = object : AExplorationStrategy() {
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "timeBasedTerminate"
 
         override fun getPriority(): Int = priority
 
@@ -76,7 +76,7 @@ object DefaultStrategies : Logging {
      * Terminate the exploration after a predefined number of actions
      */
     fun actionBasedTerminate(priority: Int, maxActions: Int) = object : AExplorationStrategy() {
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "actionBasedTerminate"
 
         override fun getPriority(): Int = priority
 
@@ -93,7 +93,7 @@ object DefaultStrategies : Logging {
      * Restarts the exploration when the current state is an "app not responding" dialog
      */
     fun resetOnAppCrash(priority: Int) = object : AExplorationStrategy() {
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "resetOnAppCrash"
 
         override fun getPriority(): Int = priority
 
@@ -110,7 +110,7 @@ object DefaultStrategies : Logging {
      * Resets the exploration once a predetermined number of non-reset actions has been executed
      */
     fun intervalReset(priority: Int, interval: Int) = object : AExplorationStrategy() {
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "intervalReset"
 
         override fun getPriority(): Int = priority
 
@@ -137,7 +137,7 @@ object DefaultStrategies : Logging {
      * Passing a different bundle will crash the execution.
      */
     fun randomBack(priority: Int, probability: Double, rnd: Random) = object : AExplorationStrategy() {
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "randomBack"
 
         override fun getPriority() = priority
 
@@ -172,7 +172,7 @@ object DefaultStrategies : Logging {
         // may be used to terminate if there are no targets after waiting for maxWaitTime
         private var terminate = false
 
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "handleTargetAbsence"
 
         override fun getPriority(): Int = priority
 
@@ -248,7 +248,7 @@ object DefaultStrategies : Logging {
         private var numPermissions =
             HashMap<UUID, Int>()  // avoid some options which are misinterpreted as permission request to be infinitely triggered
 
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "allowPermission"
 
         override fun getPriority(): Int = priority
 
@@ -273,7 +273,7 @@ object DefaultStrategies : Logging {
     fun denyPermission(priority: Int) = object : AExplorationStrategy() {
         var denyButton: Widget? = null
 
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "denyPermission"
 
         override fun getPriority(): Int = priority
 
@@ -295,7 +295,7 @@ object DefaultStrategies : Logging {
      * FIXME this strategy is insanely inefficient right now and should be avoided
      */
     fun explorationExhausted(priority: Int) = object : AExplorationStrategy() {
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "explorationExhausted"
 
         override fun getPriority(): Int = priority
 
@@ -308,7 +308,7 @@ object DefaultStrategies : Logging {
 
     /** press back if advertisement is detected */
     fun handleAdvertisement(priority: Int) = object : AExplorationStrategy() {
-        override val uniqueStrategyName: String = this::class.java.simpleName
+        override val uniqueStrategyName: String = "handleAdvertisement"
 
         override fun getPriority(): Int = priority
 
