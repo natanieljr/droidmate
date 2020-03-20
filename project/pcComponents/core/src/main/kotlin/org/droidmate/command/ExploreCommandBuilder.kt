@@ -188,7 +188,7 @@ open class ExploreCommandBuilder(
     }
 
     fun pressBackOnAds(): ExploreCommandBuilder {
-        strategies.add( DefaultStrategies.handleAdvertisment(getNextSelectorPriority()) )
+        strategies.add( DefaultStrategies.handleAdvertisement(getNextSelectorPriority()) )
         return this
     }
 
