@@ -55,13 +55,11 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 		cfg[ConfigProperties.UiAutomatorServer.basePort] + deviceSerialNumber.hashCode() % 999
 	}
 
-	init {
-		///
-	}
-
-	// Running DroidMate only requires Exploration.deviceIndex or Exploration.deviceSerialNumber to be set.
-	// During execution deviceSerialNumber is needed, therefore the deviceSerialNumber is calculated and
-	// set by AndroidDeviceDeployer.
+	/**
+	 * Running DroidMate only requires Exploration.deviceIndex or Exploration.deviceSerialNumber to be set.
+	 * During execution deviceSerialNumber is needed, therefore the deviceSerialNumber is calculated and
+	 * set by AndroidDeviceDeployer.
+	 */
 	lateinit var deviceSerialNumber: String
 
 	//region Values set by ConfigurationBuilder
@@ -77,8 +75,8 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 
 	lateinit var resourceDir: Path
 
-	val aaptCommand = EnvironmentConstants.aapt_command
-	val adbCommand = EnvironmentConstants.adb_command
+	val aaptCommand by lazy { EnvironmentConstants.aapt_command }
+	val adbCommand by lazy { EnvironmentConstants.adb_command }
 
 	/**
 	 * Apk with uiautomator-daemon. This is a dummy package required only by instrumentation command (instrumentation target property)
