@@ -262,7 +262,9 @@ object DefaultStrategies : Logging {
             // that is why we restricted this strategy to be executed at most [maxTries] from the same state
             val allowButton: Widget = eContext.getCurrentState().widgets.filter { it.isVisible }.let { widgets ->
                 widgets.firstOrNull { it.resourceId == "com.android.packageinstaller:id/permission_allow_button" }
+                    ?: widgets.firstOrNull { it.resourceId == "com.android.permissioncontroller:id/permission_allow_always_button" }
                     ?: widgets.firstOrNull { it.text.toUpperCase() == "ALLOW" }
+                    ?: widgets.firstOrNull { it.text.toUpperCase() == "ALLOW ALL THE TIME" }
                     ?: widgets.first { it.text.toUpperCase() == "OK" }
             }
 
@@ -280,6 +282,7 @@ object DefaultStrategies : Logging {
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> hasNext(eContext: ExplorationContext<M, S, W>): Boolean {
             denyButton = eContext.getCurrentState().widgets.let { widgets ->
                 widgets.find { it.resourceId == "com.android.packageinstaller:id/permission_deny_button" }
+                    ?: widgets.find { it.resourceId == "com.android.permissioncontroller:id/permission_deny_button" }
                     ?: widgets.find { it.text.toUpperCase() == "DENY" }
             }
             return denyButton != null
