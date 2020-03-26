@@ -198,7 +198,12 @@ object DefaultStrategies : Logging {
         }
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> nextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
-            val lastActionType = eContext.getLastActionType()
+            val lastAction =eContext.getLastAction()
+            val lastActionType = if (lastAction.actionType.isQueueEnd()) {
+                eContext.explorationTrace.getActions().dropLast(1).last().actionType
+            } else {
+                eContext.getLastActionType()
+            }
             val (lastLaunchDistance, secondLast) = with(
                 eContext.explorationTrace.getActions().filterNot {
                     it.actionType.isQueueStart() || it.actionType.isQueueEnd()
@@ -209,24 +214,27 @@ object DefaultStrategies : Logging {
                     Pair(size - launchIdx, beforeLaunch)
                 }
             }
-            val s = eContext.getCurrentState()
+            val currState = eContext.getCurrentState()
             return when {
-                lastActionType.isPressBack() -> { // if previous action was back, terminate
+                // if previous action was back, terminate
+                lastActionType.isPressBack() -> {
                     log.debug("Cannot explore. Last action was back. Returning 'Reset'")
                     eContext.resetApp()
                 }
-                lastLaunchDistance <= 3 || eContext.getLastActionType()
-                    .isFetch() -> { // since app reset is an ActionQueue of (Launch+EnableWifi), or we had a WaitForLaunch action
+                // since app reset is an ActionQueue of (Launch+EnableWifi), or we had a WaitForLaunch action
+                lastLaunchDistance <= 3 || eContext.getLastActionType().isFetch() -> {
                     when {  // last action was reset
-                        s.isAppHasStoppedDialogBox -> {
+                        currState.isAppHasStoppedDialogBox -> {
                             log.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
                             ExplorationAction.terminateApp()
                         }
+                        // try to wait for launch but terminate if we still have nothing to explore afterwards
                         secondLast?.actionType?.isPressBack() ?: false -> {
-                            //terminate = true  // try to wait for launch but terminate if we still have nothing to explore afterwards
+                            //terminate = true
                             waitForLaunch()
                         }
-                        else -> { // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed re-fetch for now
+                        // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed re-fetch for now
+                        else -> {
                             log.debug("Cannot explore. Returning 'Wait'")
                             waitForLaunch()
                         }
