@@ -178,7 +178,10 @@ object DefaultStrategies : Logging {
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> hasNext(eContext: ExplorationContext<M, S, W>): Boolean {
             return !eContext.explorationCanMoveOn().also {
-                if (!it) cnt = 0  // reset the counter if we can proceed
+                // reset the counter if we can proceed
+                if (it) {
+                    cnt = 0
+                }
                 terminate = false
             }
         }
