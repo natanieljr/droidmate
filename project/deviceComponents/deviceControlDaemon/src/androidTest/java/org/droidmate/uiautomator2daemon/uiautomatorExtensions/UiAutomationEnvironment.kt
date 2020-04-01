@@ -163,15 +163,13 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 				root.getBoundsInScreen(outRect)
 				// this is necessary since newly appearing keyboards may otherwise take the whole screen and thus screw up our visibility analysis
 				if (root.isKeyboard()) {
-					uncoveredC.firstOrNull()?.let { r ->
-						outRect.intersect(r)
-						if (outRect == r) {  // wrong keyboard boundaries reported
-							Log.d(logtag, "try to handle soft keyboard in front with $outRect")
-							UiHierarchy.findAndPerform(listOf(root),
-								selectKeyboardRoot(r.top + 1, r.width(), r.height()),
-								retry = false,
-								action = { node -> outRect = node.getBounds(r.width(), r.height()); true })
-						}
+					val dim = getDisplayDimension()
+					if (outRect.top<=dim.height/3) {  // wrong keyboard boundaries reported
+						Log.d(logtag, "try to handle soft keyboard in front with $outRect")
+						UiHierarchy.findAndPerform(listOf(root),
+							selectKeyboardRoot(dim.height/3, dim.width, dim.height),  // keyboard should never cover more then 2/3 of the screen height
+							retry = false,
+							action = { node -> outRect = node.getBounds(dim.width, dim.height); true })
 					}
 				}
 				Log.d(
