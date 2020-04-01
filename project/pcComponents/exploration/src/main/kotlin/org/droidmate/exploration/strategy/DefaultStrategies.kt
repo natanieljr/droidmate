@@ -24,6 +24,7 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
+import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.delay
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
@@ -167,7 +168,25 @@ object DefaultStrategies : Logging {
      *  - if the app has crashed we terminate
      */
     fun handleTargetAbsence(priority: Int, maxWaitTime: Long = 5000) = object : AExplorationStrategy() {
-        private var cnt = 0
+        private fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> defaultAbsenceBehavior(
+            eContext: ExplorationContext<M, S, W>
+        ): List<ExplorationAction> {
+            return listOf(
+                GlobalAction(ActionType.FetchGUI),
+                GlobalAction(ActionType.FetchGUI),
+                GlobalAction(ActionType.FetchGUI),
+                ExplorationAction.pressBack(),
+                GlobalAction(ActionType.FetchGUI),
+                GlobalAction(ActionType.FetchGUI),
+                GlobalAction(ActionType.FetchGUI),
+                eContext.resetApp(),
+                GlobalAction(ActionType.FetchGUI),
+                GlobalAction(ActionType.FetchGUI),
+                GlobalAction(ActionType.FetchGUI)
+            )
+        }
+
+        private var pendingActions: MutableList<ExplorationAction> = mutableListOf()
 
         // may be used to terminate if there are no targets after waiting for maxWaitTime
         private var terminate = false
@@ -177,79 +196,41 @@ object DefaultStrategies : Logging {
         override fun getPriority(): Int = priority
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> hasNext(eContext: ExplorationContext<M, S, W>): Boolean {
-            return !eContext.explorationCanMoveOn().also {
-                // reset the counter if we can proceed
-                if (it) {
-                    cnt = 0
-                }
-                terminate = false
-            }
-        }
+            val canExplore = eContext.explorationCanMoveOn()
 
-        suspend fun waitForLaunch(): ExplorationAction {
-            return when {
-                cnt++ < 2 -> {
-                    delay(maxWaitTime)
-                    GlobalAction(ActionType.FetchGUI) // try to refetch after waiting for some time
-                }
-                terminate -> {
-                    log.debug("Cannot explore. Last action was reset. Previous action was to press back. Returning 'Terminate'")
-                    ExplorationAction.terminateApp()
-                }
-                else -> ExplorationAction.closeAndReturn()
+            // reset the counter if we can proceed
+            if (canExplore) {
+                // if can continue, reset list of actions
+                pendingActions = defaultAbsenceBehavior(eContext).toMutableList()
             }
+
+            return !canExplore
         }
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> nextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
-            val lastAction =eContext.getLastAction()
-            val lastActionType = if (lastAction.actionType.isQueueEnd()) {
-                eContext.explorationTrace.getActions().dropLast(1).last().actionType
+            return if (pendingActions.isNotEmpty()) {
+                // has action to execute
+                log.debug("Cannot explore. Following predefined action queue. Remaining actions: ${pendingActions.size}")
+                val nextAction = pendingActions.first()
+                pendingActions = pendingActions.drop(1).toMutableList()
+
+                if (nextAction.isFetch()) {
+                    delay(maxWaitTime)
+                }
+
+                nextAction
             } else {
-                eContext.getLastActionType()
-            }
-            val (lastLaunchDistance, secondLast) = with(
-                eContext.explorationTrace.getActions().filterNot {
-                    it.actionType.isQueueStart() || it.actionType.isQueueEnd()
-                }
-            ) {
-                lastIndexOf(findLast { it.actionType.isLaunchApp() }).let { launchIdx ->
-                    val beforeLaunch = this.getOrNull(launchIdx - 1)
-                    Pair(size - launchIdx, beforeLaunch)
-                }
-            }
-            val currState = eContext.getCurrentState()
-            return when {
-                // if previous action was back, terminate
-                lastActionType.isPressBack() -> {
-                    log.debug("Cannot explore. Last action was back. Returning 'Reset'")
+                // has no other action. if the app crashed, terminate, otherwise reset
+                val currState = eContext.getCurrentState()
+                if (currState.isAppHasStoppedDialogBox) {
+                    log.debug("Cannot explore. Already tried to reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
+                    ExplorationAction.terminateApp()
+                } else {
+                    log.debug("Cannot explore. Out of options. Try restarting the app again")
                     eContext.resetApp()
-                }
-                // since app reset is an ActionQueue of (Launch+EnableWifi), or we had a WaitForLaunch action
-                lastLaunchDistance <= 3 || eContext.getLastActionType().isFetch() -> {
-                    when {  // last action was reset
-                        currState.isAppHasStoppedDialogBox -> {
-                            log.debug("Cannot explore. Last action was reset. Currently on an 'App has stopped' dialog. Returning 'Terminate'")
-                            ExplorationAction.terminateApp()
-                        }
-                        // try to wait for launch but terminate if we still have nothing to explore afterwards
-                        secondLast?.actionType?.isPressBack() ?: false -> {
-                            //terminate = true
-                            waitForLaunch()
-                        }
-                        // the app may simply need more time to start (synchronization for app-launch not yet perfectly working) -> do delayed re-fetch for now
-                        else -> {
-                            log.debug("Cannot explore. Returning 'Wait'")
-                            waitForLaunch()
-                        }
-                    }
-                }
-                // by default, if it cannot explore, presses back
-                else -> {
-                    ExplorationAction.closeAndReturn()
                 }
             }
         }
-
     }
 
     /**
