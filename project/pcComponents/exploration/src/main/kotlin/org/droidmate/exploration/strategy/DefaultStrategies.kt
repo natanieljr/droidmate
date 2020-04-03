@@ -157,6 +157,11 @@ object DefaultStrategies : Logging {
         }
     }
 
+    private operator fun GlobalAction.times(multiplier: Int) =
+        (0..multiplier)
+            .map { GlobalAction(this.actionType) }
+            .toTypedArray()
+
     /**
      * Check the current state for interactive UI elements to interact with,
      * if none are available we try to
@@ -167,22 +172,16 @@ object DefaultStrategies : Logging {
      *  - we try to wait for up to ${maxWaittime}s (default 5s) if any interactive element appears
      *  - if the app has crashed we terminate
      */
-    fun handleTargetAbsence(priority: Int, maxWaitTime: Long = 5000) = object : AExplorationStrategy() {
+    fun handleTargetAbsence(priority: Int, maxWaitTime: Long = 1000, numFetches: Int = 10) = object : AExplorationStrategy() {
         private fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> defaultAbsenceBehavior(
             eContext: ExplorationContext<M, S, W>
         ): List<ExplorationAction> {
             return listOf(
-                GlobalAction(ActionType.FetchGUI),
-                GlobalAction(ActionType.FetchGUI),
-                GlobalAction(ActionType.FetchGUI),
+                *(GlobalAction(ActionType.FetchGUI) * numFetches),
                 ExplorationAction.pressBack(),
-                GlobalAction(ActionType.FetchGUI),
-                GlobalAction(ActionType.FetchGUI),
-                GlobalAction(ActionType.FetchGUI),
+                *(GlobalAction(ActionType.FetchGUI) * numFetches),
                 eContext.resetApp(),
-                GlobalAction(ActionType.FetchGUI),
-                GlobalAction(ActionType.FetchGUI),
-                GlobalAction(ActionType.FetchGUI)
+                *(GlobalAction(ActionType.FetchGUI) * numFetches)
             )
         }
 
@@ -309,6 +308,19 @@ object DefaultStrategies : Logging {
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> hasNext(eContext: ExplorationContext<M, S, W>): Boolean =
             eContext.getCurrentState().widgets.any { it.packageName == "com.android.vending" }
+
+        override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> nextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction =
+            ExplorationAction.pressBack()
+    }
+
+    /** press back if the app is in google chrome */
+    fun handleChrome(priority: Int) = object : AExplorationStrategy() {
+        override val uniqueStrategyName: String = "handleChrome"
+
+        override fun getPriority(): Int = priority
+
+        override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> hasNext(eContext: ExplorationContext<M, S, W>): Boolean =
+            eContext.getCurrentState().widgets.any { it.packageName == "com.android.chrome" }
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> nextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction =
             ExplorationAction.pressBack()
