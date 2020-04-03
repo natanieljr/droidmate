@@ -103,6 +103,7 @@ open class ExploreCommandBuilder(
         conditionalEnable(cfg[ConfigProperties.Strategies.denyRuntimeDialog]) { denyRuntimePermissions() }
 
         pressBackOnAds()
+        pressBackOnChrome()
         resetOnInvalidState()
 
         conditionalEnable(cfg[resetEvery] > 0, cfg) { resetOnIntervals(cfg) }
@@ -189,6 +190,11 @@ open class ExploreCommandBuilder(
 
     fun pressBackOnAds(): ExploreCommandBuilder {
         strategies.add( DefaultStrategies.handleAdvertisement(getNextSelectorPriority()) )
+        return this
+    }
+
+    fun pressBackOnChrome(): ExploreCommandBuilder {
+        strategies.add( DefaultStrategies.handleChrome(getNextSelectorPriority()) )
         return this
     }
 
