@@ -25,47 +25,28 @@
 
 package org.droidmate.exploration.modelFeatures.explorationWatchers
 
+import java.util.UUID
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineName
-import org.droidmate.deviceInterface.exploration.ActionType
-import org.droidmate.deviceInterface.exploration.LaunchApp
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.explorationModel.interaction.Interaction
 import org.droidmate.explorationModel.interaction.State
-import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 class BlackListMF: WidgetCountingMF() {
 	override val coroutineContext: CoroutineContext = CoroutineName("BlackListMF")
 
-	private var lastActionableState: State<*>? = null
-
-	/** used to keep track of the last state before we got stuck */
-	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction<*>>, prevState: State<*>, newState: State<*>) {
-		if(prevState.isHomeScreen || !isStuck(interactions.firstEntry().actionType)) this.lastActionableState = prevState
-	}
-
-	@Suppress("DEPRECATION")
-	private fun isStuck(actionType: String): Boolean =	when(actionType){  // ignore initial reset
-		LaunchApp.name, ActionType.PressBack.name -> true
-		else -> false
-	}
-
 	/**
-	 * on each Reset or Press-Back which was not issued from the HomeScreen we can assume, that our Exploration got stuck
-	 * and blacklist the widget of the action before this one to be not/ less likely explored
+	 * Blacklist items which lead to a crash.
+	 * Items that lead outside of the app or let the exploration stuck on a screen are not a problem.
 	 */
-	override suspend fun onContextUpdate(context: ExplorationContext<*, *, *>) {
-		if(lastActionableState != null &&
-			!lastActionableState!!.isHomeScreen && context.lastTarget != null && isStuck(context.getLastActionType()))
-			incCnt(context.lastTarget!!.uid, lastActionableState!!.uid)
-	}
-
-	fun decreaseCounter(context: ExplorationContext<*,*,*>){
-		context.lastTarget?.let { lastTarget ->
-			decCnt(lastTarget.uid, lastActionableState!!.uid)
+	override suspend fun onNewAction(traceId: UUID, interactions: List<Interaction<*>>, prevState: State<*>, newState: State<*>) {
+		val target = interactions
+			.firstOrNull { it.targetWidget != null }
+			?.targetWidget
+		if (target != null && newState.isAppHasStoppedDialogBox) {
+			incCnt(target.uid, prevState.uid)
 		}
 	}
-
 
 	override suspend fun onAppExplorationFinished(context: ExplorationContext<*, *, *>) {
 		dump(context.model.config.baseDir.resolve("lastBlacklist.txt"))
