@@ -177,7 +177,7 @@ class ExplorationContext<M,S,W> @JvmOverloads constructor(val cfg: Configuration
 	fun isEmpty(): Boolean = explorationTrace.size == 0
 	fun explorationCanMoveOn() = isEmpty() || // we are starting the app -> no terminate yet
 			getCurrentState().isRequestRuntimePermissionDialogBox ||  // FIXME what if we currently have isHomeScreen?
-			(!getCurrentState().isHomeScreen && belongsToApp(getCurrentState()) && getCurrentState().actionableWidgets.isNotEmpty())
+			(!getCurrentState().isHomeScreen && belongsToApp(getCurrentState()) && getCurrentState().visibleTargets.isNotEmpty())
 
 
 
