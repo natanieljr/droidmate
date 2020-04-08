@@ -110,7 +110,13 @@ class StatementCoverageMF(private val statementsLogOutputDir: Path,
             if (readStatements.isNotEmpty()) {
                 val lastId = trace?.last()?.actionId ?: 0
                 val file = getLogFilename(lastId)
-                withContext(Dispatchers.IO){ Files.write(file, readStatements.map { "${it[1]};${it[0]}" }) }
+                withContext(IO){
+                    try {
+                        Files.write(file, readStatements.map { "${it[1]};${it[0]}" })
+                    } catch (e: IOException) {
+                        log.error("Failed to write log file $file", e)
+                    }
+                }
             }
         }
     }
