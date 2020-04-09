@@ -24,20 +24,16 @@
 // web: www.droidmate.org
 package org.droidmate.exploration.strategy
 
-import com.natpryce.konfig.Configuration
 import kotlinx.coroutines.delay
 import org.droidmate.deviceInterface.exploration.ActionType
 import org.droidmate.deviceInterface.exploration.ExplorationAction
 import org.droidmate.deviceInterface.exploration.GlobalAction
 import org.droidmate.deviceInterface.exploration.LaunchApp
-import org.droidmate.deviceInterface.exploration.isFetch
-import org.droidmate.deviceInterface.exploration.isLaunchApp
-import org.droidmate.deviceInterface.exploration.isPressBack
 import org.droidmate.deviceInterface.exploration.isQueueEnd
-import org.droidmate.deviceInterface.exploration.isQueueStart
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.actions.click
 import org.droidmate.exploration.actions.closeAndReturn
+import org.droidmate.exploration.actions.launchApp
 import org.droidmate.exploration.actions.pressBack
 import org.droidmate.exploration.actions.resetApp
 import org.droidmate.exploration.actions.terminateApp
@@ -173,14 +169,19 @@ object DefaultStrategies : Logging {
      *  - if the app has crashed we terminate
      */
     fun handleTargetAbsence(priority: Int, maxWaitTime: Long = 1000, numFetches: Int = 10) = object : AExplorationStrategy() {
-        private fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> defaultAbsenceBehavior(
-            eContext: ExplorationContext<M, S, W>
-        ): List<ExplorationAction> {
-            return listOf(
+        private lateinit var launchInstruction: ExplorationAction
+
+        override fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> initialize(initialContext: ExplorationContext<M, S, W>) {
+            super.initialize(initialContext)
+            launchInstruction = initialContext.launchApp()
+        }
+
+        val defaultAbsenceBehavior: List<ExplorationAction> by lazy {
+            listOf(
                 *(GlobalAction(ActionType.FetchGUI) * numFetches),
                 ExplorationAction.pressBack(),
                 *(GlobalAction(ActionType.FetchGUI) * numFetches),
-                eContext.resetApp(),
+                launchInstruction,
                 *(GlobalAction(ActionType.FetchGUI) * numFetches)
             )
         }
@@ -200,18 +201,21 @@ object DefaultStrategies : Logging {
             // reset the counter if we can proceed
             if (canExplore) {
                 // if can continue, reset list of actions
-                pendingActions = defaultAbsenceBehavior(eContext).toMutableList()
+                pendingActions = defaultAbsenceBehavior.toMutableList()
             }
 
             return !canExplore
         }
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> nextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
-            return if (pendingActions.isNotEmpty()) {
+            return if (eContext.getCurrentState().isHomeScreen && pendingActions.size == defaultAbsenceBehavior.size) {
+                // if we ended in the homeScreen speedup the process by directly resetting the app
+                pendingActions.removeAt(0)
+                eContext.resetApp()
+            } else if (pendingActions.isNotEmpty()) {
                 // has action to execute
                 log.debug("Cannot explore. Following predefined action queue. Remaining actions: ${pendingActions.size}")
-                val nextAction = pendingActions.first()
-                pendingActions = pendingActions.drop(1).toMutableList()
+                val nextAction = pendingActions.removeAt(0)
 
                 if (nextAction.isFetch()) {
                     delay(maxWaitTime)
