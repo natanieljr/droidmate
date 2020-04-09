@@ -39,13 +39,6 @@ import org.slf4j.Logger
 abstract class AExplorationStrategy: IActionSelector {
 	override val log: Logger = getLogger()
 
-	@Suppress("RedundantSuspendModifier")
-	@Deprecated("to be removed", replaceWith = ReplaceWith("computeNextAction(eContext)"))
-	suspend fun decide(result: ActionResult): ExplorationAction = TODO("Depricated")
-
-	@Deprecated("to be removed",replaceWith = ReplaceWith("tearDown()"))
-	fun close() = runBlocking{ tearDown() }
-
 	override suspend fun<M: AbstractModel<S, W>,S: State<W>,W: Widget> hasNext(
 		eContext: ExplorationContext<M, S, W>
 	): Boolean =
