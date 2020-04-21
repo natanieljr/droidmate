@@ -42,8 +42,9 @@ class ConfigurationWrapper @JvmOverloads constructor(private val cfg: Configurat
 	}
 
 	val monitorPort by lazy {
-		assert(deviceSerialNumber.isNotEmpty()) {"deviceSerialNumber should not be empty."}
-		cfg[ConfigProperties.ApiMonitorServer.basePort] + deviceSerialNumber.hashCode() % 999
+		// assert(deviceSerialNumber.isNotEmpty()) {"deviceSerialNumber should not be empty."}
+		// cfg[ConfigProperties.ApiMonitorServer.basePort] + deviceSerialNumber.hashCode() % 999
+		59700
 	}
 
 	val coverageMonitorPort by lazy {
