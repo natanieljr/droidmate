@@ -26,9 +26,14 @@
 package org.droidmate.device
 
 import org.droidmate.device.android_sdk.IAdbWrapper
+import org.droidmate.explorationModel.debugT
 import org.droidmate.misc.MonitorConstants
+import org.droidmate.misc.MonitorConstants.Companion.monitor_time_formatter_locale
+import org.droidmate.misc.MonitorConstants.Companion.monitor_time_formatter_pattern
 import org.slf4j.LoggerFactory
-import java.util.LinkedList
+import java.text.SimpleDateFormat
+import java.util.BitSet
+import java.util.Date
 
 class CoverageMonitorClient(socketTimeout: Int,
                             private val deviceSerialNumber: String,
@@ -41,7 +46,7 @@ class CoverageMonitorClient(socketTimeout: Int,
     }
 
     // remove this.getPorts from all methods
-    private val monitorTcpClient: ITcpClientBase<String, LinkedList<ArrayList<String>>> = TcpClientBase(hostIp, socketTimeout)
+    private val monitorTcpClient: ITcpClientBase<String, BitSet> = TcpClientBase(hostIp, socketTimeout)
 
 
     override fun anyMonitorIsReachable(): Boolean {
@@ -55,26 +60,47 @@ class CoverageMonitorClient(socketTimeout: Int,
 
     private fun isServerReachable(port: Int): Boolean {
         return try {
-            val out = this.monitorTcpClient.queryServer(MonitorConstants.srvCmd_connCheck, port)
-            val diagnostics = out.single()
-
-            assert(diagnostics.size >= 2)
-            val pid = diagnostics[0]
-            val packageName = diagnostics[1]
-            log.trace("Reached server at port $port. PID: $pid package: $packageName")
+            this.monitorTcpClient.queryServer(MonitorConstants.srvCmd_connCheck, port)
             true
         } catch (ignored: TcpServerUnreachableException) {
             false
         }
     }
 
+    private val monitorTimeFormatter = SimpleDateFormat(
+        monitor_time_formatter_pattern,
+        monitor_time_formatter_locale
+    )
+    private fun getNowDate(): String {
+        val nowDate = Date()
+        return monitorTimeFormatter.format(nowDate)
+    }
+
     override fun getStatements(): List<List<String>> {
         return try {
-            monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_statements, this.getPort())
+            val data = debugT(
+                "readStatements", {
+                    monitorTcpClient.queryServer(MonitorConstants.srvCmd_get_statements, this.getPort())
+                },
+                inMillis = true
+            )
+            val result = mutableListOf<List<String>>()
+            val nowDate = getNowDate()
+            var i = data.nextSetBit(0)
+            while (i >= 0) {
+
+                // operate on index i here
+                if (i == Int.MAX_VALUE) {
+                    break // or (i+1) would overflow
+                }
+                result.add(listOf(nowDate, i.toString()))
+                i = data.nextSetBit(i + 1)
+            }
+            return result
         } catch (ignored: TcpServerUnreachableException) {
             // log.trace("Did not reach monitor TCP server at port $it when sending out ${MonitorConstants.srvCmd_get_logs} request.")
             log.trace("None of the monitor TCP servers were available while obtaining API logs.")
-            ArrayList()
+            emptyList()
         }
     }
 
