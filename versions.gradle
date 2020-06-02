@@ -30,7 +30,7 @@ project.ext {
 	// Common
 	dmCommon = "com.github.uds-se:droidmate-common:1.4.2-SNAPSHOT"
 	// Coverage
-	dmCoverage = "com.github.uds-se:droidmate-coverage:1.4.2-SNAPSHOT"
+	dmCoverage = "com.github.uds-se:droidmate-coverage:master-SNAPSHOT"
 	// API Monitor
 	dmAPIMonitor = "com.github.uds-se:droidmate-monitor:1.4.2-SNAPSHOT"
 	
