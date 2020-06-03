@@ -88,7 +88,10 @@ fun UiElementPropertiesI.click(): ExplorationAction = (visibleAreas.firstCenter(
 
 fun Widget.clickCoordinate(): Pair<Int, Int> = visibleAreas.firstCenter() ?: visibleBounds.center
 
-
+/**
+ * computing all widget actions may affecte the list of widgetTargets,
+ * it is the callers responsibility to restore the correct state for ExplorationTrace.widgets
+ */
 fun Widget.availableActions(delay: Long, useCoordinateClicks:Boolean): List<ExplorationAction> {
 	val actionList: MutableList<ExplorationAction> = mutableListOf()
 
@@ -111,7 +114,5 @@ fun Widget.availableActions(delay: Long, useCoordinateClicks:Boolean): List<Expl
 		actionList.add(this.swipeLeft())
 	}
 
-	widgetTargets.clear() // ensure the target is only once in the list and not multiple times
-	widgetTargets.add(this)
 	return actionList
 }
