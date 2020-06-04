@@ -24,11 +24,11 @@ project.ext {
 	androidCompileSdkVersion = 28
 
 	// ExplorationModel
-//	dmExplorationModel = "com.github.hotzkow:explorationModel"
-	dmExplorationModel = "org.droidmate:explorationModel"
+	dmExplorationModel = "com.github.hotzkow:explorationModel"
+//	dmExplorationModel = "org.droidmate:explorationModel"
 	// DeviceInterfaceLib
-	dmDriverLib = "org.droidmate:deviceDaemonLib"
-//	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
+//	dmDriverLib = "org.droidmate:deviceDaemonLib"
+	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
 	// Common
 	dmCommon = "com.github.uds-se:droidmate-common:1.4.2-SNAPSHOT"
 	// Coverage

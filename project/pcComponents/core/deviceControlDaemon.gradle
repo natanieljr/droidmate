@@ -22,7 +22,6 @@
 // Konrad Jamrozik <jamrozik at st dot cs dot uni-saarland dot de>
 //
 // web: www.droidmate.org
-import org.droidmate.buildsrc.BuildKt
 
 // DroidMate, an automated execution generator for Android apps.
 // Copyright (C) 2012-2018. Saarland University
@@ -51,14 +50,17 @@ import org.droidmate.buildsrc.BuildKt
 
 // Ensure BuildKt.monitored_apis_txt is available at runtime as a resource.
 
+
 ext.coreResDir = sourceSets.main.resources.srcDirs.findAll { it.path.contains(project.name) }.first()
 
+String uia2DaemonName = "deviceControlDaemon"
+File uia2_daemon_relative_project_dir = new File("project${File.separator}deviceComponents", uia2DaemonName)
+
 //FIXME we should use the native gradle composite build dependencies/tasks instead of these strange hacks
-File uia2DaemonProjectDir = new File(rootProject.projectDir, BuildKt.uia2_daemon_relative_project_dir.path)
+File uia2DaemonProjectDir = new File(rootProject.projectDir, uia2_daemon_relative_project_dir.path)
 assert uia2DaemonProjectDir.isDirectory()
 
 File uia2DaemonBuildDir = new File("$uia2DaemonProjectDir/build")
-String uia2DaemonName = BuildKt.uia2_daemon_project_name
 
 String uia2DaemonApkOriginalName = "${uia2DaemonName}-debug.apk"
 task pullUiautomator2DaemonApk(type: Copy, dependsOn: "assembleUiautomator2Daemon") {
