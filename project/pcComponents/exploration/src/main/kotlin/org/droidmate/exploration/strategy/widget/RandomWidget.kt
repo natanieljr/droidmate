@@ -54,6 +54,7 @@ open class RandomWidget constructor(
 	protected val dictionary: List<String> = emptyList(),
 	protected val useCoordinateClicks: Boolean = false
 ) : AExplorationStrategy() {
+	override val uniqueStrategyName: String = "RandomExploration"
 	/** Random exploration seed */
 	private var randomSeed: Long = -1L
 	/** Prioritise UI elements which have not yet been interacted with, instead of plain random **/

@@ -146,7 +146,7 @@ abstract class UiParser {
 					// check if there are already 'selectable' items in the visible bounds of it, if so set clickable descendants to true
 					if (!hasClickableDescendant && selected.isEnabled()) {
 						// this visible area contains 'selectable/clickable' items therefore we want to mark this as having such descendants even if it is no direct parent but only an 'uncle' to these elements
-						processedNodes.any { visibleBounds.contains(it.visibleBounds) && isClickableDescendant(it) }
+						processedNodes.any { visibleBounds.surrounds(it.visibleBounds) && isClickableDescendant(it) }
 					} else hasClickableDescendant
 				},
 				definedAsVisible = isVisibleToUser,

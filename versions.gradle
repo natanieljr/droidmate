@@ -11,7 +11,7 @@ project.ext {
 	 * Note: strings like x.y.z-RCx cannot be used for dynamic version ranges and thus should be avoided for release tags
 	 */
 	// requires version 2.4.2+
-	driverLib_version = "2.4.3"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
+	driverLib_version = "2.4.4"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
 	min_model_version = "1.4.3"
 	max_model_version =	"1.5.0"	// exclusive outer bounds for version
 
