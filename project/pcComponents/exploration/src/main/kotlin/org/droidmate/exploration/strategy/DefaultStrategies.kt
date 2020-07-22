@@ -260,7 +260,8 @@ object DefaultStrategies : Logging {
                     ?: widgets.firstOrNull { it.resourceId == "com.android.permissioncontroller:id/permission_allow_always_button" }
                     ?: widgets.firstOrNull { it.text.toUpperCase() == "ALLOW" }
                     ?: widgets.firstOrNull { it.text.toUpperCase() == "ALLOW ALL THE TIME" }
-                    ?: widgets.first { it.text.toUpperCase() == "OK" }
+                    ?: widgets.firstOrNull { it.text.toUpperCase() == "OK" }
+                    ?: widgets.first{ it.text.toUpperCase() == "CONTINUE" }
             }
 
             return allowButton.click(ignoreClickable = true)
