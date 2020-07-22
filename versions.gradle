@@ -11,24 +11,24 @@ project.ext {
 	 * Note: strings like x.y.z-RCx cannot be used for dynamic version ranges and thus should be avoided for release tags
 	 */
 	// requires version 2.4.2+
-	driverLib_version = "2.4.4"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
-	min_model_version = "1.4.3"
-	max_model_version =	"1.5.0"	// exclusive outer bounds for version
+	driverLib_version = "2.5.1"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
+	min_model_version = "1.5.0"
+	max_model_version =	"1.6.0"	// exclusive outer bounds for version
 
 	kotlin_version = "1.3.41"
 	coroutines_version = "1.1.1"
-	androidGradlePlugin_version = "3.3.2" // version 3.2+ requires build tools 28+
-	androidBuildToolsVersion = "28.0.3" // this is hardcoded in buildSrc/build.kt as well
+	androidGradlePlugin_version = "3.6.2" // version 3.6.2+ requires build tools 29+
+	androidBuildToolsVersion = "28.0.3" // in buildSrc/build.kt we use the highest version installed on the system
 	androidMinSdkVersion = 23
-	androidTargetSdkVersion = 28
+	androidTargetSdkVersion = 29
 	androidCompileSdkVersion = 28
 
 	// ExplorationModel
 	dmExplorationModel = "com.github.hotzkow:explorationModel"
 //	dmExplorationModel = "org.droidmate:explorationModel"
 	// DeviceInterfaceLib
-//	dmDriverLib = "org.droidmate:deviceDaemonLib"
 	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
+//	dmDriverLib = "org.droidmate:deviceDaemonLib"
 	// Common
 	dmCommon = "com.github.uds-se:droidmate-common:1.4.2-SNAPSHOT"
 	// Coverage

@@ -28,6 +28,7 @@ data class DisplayedWindow(val w: AppWindow,
 		operator fun invoke(
 			wInfo: AccessibilityWindowInfo, uncoveredCoordinates: MutableList<Rect>, outRect: Rect,
 			isKeyboard: Boolean,
+			displayDimension: DisplayDimension,
 			deviceRoot: AccessibilityNodeInfo? = null
 		): DisplayedWindow {
 
@@ -49,7 +50,8 @@ data class DisplayedWindow(val w: AppWindow,
 					root?.packageName?.toString() ?: "systemWindow_WithoutRoot",
 					wInfo.isFocused,
 					wInfo.isAccessibilityFocused,
-					visibleOuterBounds(area)
+					visibleOuterBounds(area),
+					Pair(displayDimension.width, displayDimension.height)
 				),
 				area,
 				isKeyboard = isKeyboard,  // we cannot use type = INPUT_METHOD as this does not work on all devices e.g. Nexus 5X

@@ -153,6 +153,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 	private suspend fun processWindows(w: AccessibilityWindowInfo, uncoveredC: MutableList<Rect>): DisplayedWindow? {
 		debugOut("process ${w.id}", false)
 		var outRect = Rect()
+		val dim = getDisplayDimension()
 		// REMARK we wait that the app AND keyboard root nodes are available for synchronization reasons
 		// otherwise we may extract an app widget as definedAsVisible which would have been hidden behind the input window
 		if (w.root == null && w.type == AccessibilityWindowInfo.TYPE_APPLICATION || w.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD) {
@@ -163,7 +164,6 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 				root.getBoundsInScreen(outRect)
 				// this is necessary since newly appearing keyboards may otherwise take the whole screen and thus screw up our visibility analysis
 				if (root.isKeyboard()) {
-					val dim = getDisplayDimension()
 					if (outRect.top<=dim.height/3) {  // wrong keyboard boundaries reported
 						Log.d(logtag, "try to handle soft keyboard in front with $outRect")
 						UiHierarchy.findAndPerform(listOf(root),
@@ -176,7 +176,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 					logtag,
 					"use device root for ${w.id} ${root.packageName}[$outRect] uncovered = $uncoveredC ${w.type}"
 				)
-				return DisplayedWindow(w, uncoveredC, outRect, root.isKeyboard(), root)
+				return DisplayedWindow(w, uncoveredC, outRect, root.isKeyboard(), dim, root)
 			}
 			Log.w(
 				logtag,
@@ -190,7 +190,7 @@ data class UiAutomationEnvironment(val idleTimeout: Long = 100, val interactiveT
 			return null
 		}
 		debugOut("process window ${w.id} ${w.root?.packageName ?: "no ROOT!! type=${w.type}"}", debug)
-		return DisplayedWindow(w, uncoveredC, outRect, w.root?.isKeyboard() ?: false)
+		return DisplayedWindow(w, uncoveredC, outRect, w.root?.isKeyboard() ?: false, dim)
 	}
 
 	private fun DisplayedWindow.canReuseFor(newW: AccessibilityWindowInfo): Boolean {

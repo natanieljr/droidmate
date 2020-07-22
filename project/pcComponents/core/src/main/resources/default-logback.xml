@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+<!--    use this file via commandline argument "-Dlogback.configurationFile=/pathToThisDir/default-logback.xml" -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <!-- reduce the produced standard output in console for clarity, but all debug out is still in the produced log file -->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">

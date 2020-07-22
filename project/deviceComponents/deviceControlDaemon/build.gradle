@@ -43,7 +43,7 @@ buildscript {
 }
 
 wrapper{
-	gradleVersion = '5.3'  //define what gradle wrapper version is to be used on wrapper initialization (only if there is no wrapper yet or 'gradlew wrapper' is called)
+	gradleVersion = '5.6.4'  //define what gradle wrapper version is to be used on wrapper initialization (only if there is no wrapper yet or 'gradlew wrapper' is called)
 }
 
 android {
