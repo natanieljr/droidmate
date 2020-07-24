@@ -199,7 +199,10 @@ open class RandomWidget constructor(
 	}
 
 	protected open fun randomString(): String{
-		if(dictionary.isNotEmpty()) return dictionary[random.nextInt(dictionary.size-1)]
+		if(dictionary.isNotEmpty()){
+			if(dictionary.size == 1) return dictionary[0]
+			return dictionary[random.nextInt(dictionary.size-1)]
+		}
 
 		@Suppress("SpellCheckingInspection") val source = "abcdefghijklmnopqrstuvwxyz"
 		return random.ints( random.nextInt(20).toLong()+3, 0, source.length)
