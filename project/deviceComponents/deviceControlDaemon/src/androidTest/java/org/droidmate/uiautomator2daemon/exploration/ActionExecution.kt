@@ -79,10 +79,13 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 		}
 		is ClickEvent ->
 			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
-//				Log.d(logTag, "looking for click target, windows are ${env.getDisplayedWindows()}")
+				if(nodeInfo.isFocusable){
+					nodeInfo.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+					Log.d(logTag, "focus target element to ensure click event is registered")
+				}
 				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)}.also {
 					if(it) { delay(delay) } // wait for display update
-					Log.d(logTag, "perform successful=$it")
+					Log.d(logTag, "perform ClickEvent on $idHash successful=$it")
 				}
 		is LongClickEvent -> UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
 			nodeInfo.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)}.also {
