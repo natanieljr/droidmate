@@ -64,11 +64,12 @@ fun Widget.longClickEvent(delay: Long = 0, ignoreVisibility: Boolean = false): E
 
 @JvmOverloads
 fun Widget.setText(newContent: String, ignoreVisibility: Boolean = false,
-                   enableValidation: Boolean = true, delay: Long =0, sendEnter: Boolean = true): ExplorationAction {
+                   enableValidation: Boolean = true, delay: Long =0, sendEnter: Boolean = true,
+                   closeKeyboard: Boolean = false): ExplorationAction {
 	if (enableValidation && (!(definedAsVisible || ignoreVisibility) || !enabled || !isInputField))
 		throw RuntimeException("ERROR: tried to enter text on non-actionable Widget $this")
 	widgetTargets.add(this)
-	return TextInsert(this.idHash, newContent, true, delay, sendEnter)
+	return TextInsert(this.idHash, newContent, true, delay, sendEnter, closeKeyboard)
 }
 
 fun Widget.dragTo(x: Int, y: Int, stepSize: Int): ExplorationAction = TODO()

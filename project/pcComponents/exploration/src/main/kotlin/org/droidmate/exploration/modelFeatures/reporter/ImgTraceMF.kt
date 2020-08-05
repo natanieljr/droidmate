@@ -119,6 +119,7 @@ class ImgTraceMF(val cfg: ModelConfig) : ModelFeature() {
 	}
 }
 
+var shapeStroke = BasicStroke(5F)
 var shapeColor: Color = Color.red
 var textColor: Color = Color.magenta.darker()
 var textSize: Int = 50
@@ -144,14 +145,15 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 
 //			stroke = BasicStroke(1F)
 //			w.visibleAreas.forEach { drawRectangle(it) }
-				stroke = BasicStroke(2F)
+				stroke = shapeStroke
 				with(w.visibleBounds) {
 					drawRectangle(this)
 					// draw the label number for the element
 					val text = targetCounter[w.id]!!.joinToString(separator = ", ") { if (it.first != 0) "${it.first}.${it.second}" else "${it.second}" }
 					if (text.length > 20) font = Font("TimesRoman", Font.PLAIN, 20)
 					paint = if (w.isInputField) textColor.brighter() else textColor// for better visibility use a different color then the boarder
-					drawString(text, leftX + (width / 10), topY + (height / 10))
+//					drawString(text, leftX + (width / 10), topY + (height / 10))
+					drawString(text, leftX + 10, bottomY-8)
 				}
 				font = Font("TimesRoman", Font.PLAIN, textSize) // reset font to bigger font
 				if (w.isVisible && darken) shapeColor = shapeColor.darker()
@@ -165,5 +167,5 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 private fun Int.resize() = if(this<5) 10 else this
 
 fun Graphics.drawRectangle(bounds: Rectangle){
-	this.drawRect(bounds.leftX,bounds.topY,bounds.width,bounds.height)
+	this.drawRoundRect(bounds.leftX+2,bounds.topY+2,bounds.width-2,bounds.height-2,30,30)
 }

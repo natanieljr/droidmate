@@ -7,6 +7,7 @@ import org.droidmate.deviceInterface.exploration.Rectangle
 import org.droidmate.exploration.ExplorationContext
 import org.droidmate.exploration.modelFeatures.reporter.highlightWidget
 import org.droidmate.exploration.modelFeatures.reporter.shapeColor
+import org.droidmate.exploration.modelFeatures.reporter.shapeStroke
 import org.droidmate.explorationModel.interaction.Widget
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
@@ -23,7 +24,8 @@ suspend fun showTargetsInImg(
 	eContext: ExplorationContext<*,*,*>,
 	toBeHighlighted: List<Widget>,
 	imgFile: File, autoGenScreen: Boolean = true,
-	imgSrcDir: Path = eContext.model.config.imgDst
+	imgSrcDir: Path = eContext.model.config.imgDst,
+	drawOval: Boolean = false
 ) {
 	withContext(Dispatchers.IO) {
 		val trace = eContext.explorationTrace
@@ -59,8 +61,8 @@ suspend fun showTargetsInImg(
 		}
 		shapeColor = Color.cyan
 		highlightWidget(stateImg, toBeHighlighted)
-		stateImg.createGraphics().apply { // highlight the boundaries if layout problems prevent us from detecting underlying elements
-			stroke = BasicStroke(5F)
+		if(drawOval) stateImg.createGraphics().apply { // highlight the boundaries if layout problems prevent us from detecting underlying elements
+			stroke = shapeStroke
 			toBeHighlighted.forEachIndexed { i,w ->
 				font = Font("TimesRoman", Font.PLAIN, 40)
 				paint = Color.CYAN.darker()

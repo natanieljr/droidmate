@@ -141,6 +141,11 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 					if(nodeInfo.isFocusable){
 						nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLEAR_FOCUS)
 					}
+					// close the keyboard if it is open after the text insert
+					if(closeKeyboard && env.isKeyboardOpen()){
+							Log.i(logTag, "open keyboard detected after text insert, try to close it")
+							env.device.pressBack()
+					}
 					delay(delay)
 				} }
 		is RotateUI -> env.device.rotate(rotation, env.automation)
