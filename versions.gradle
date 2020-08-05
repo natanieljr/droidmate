@@ -30,7 +30,8 @@ project.ext {
 	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
 //	dmDriverLib = "org.droidmate:deviceDaemonLib"
 	// Common
-	dmCommon = "com.github.uds-se:droidmate-common:1.4.2-SNAPSHOT"
+	dmCommon = "com.github.uds-se:droidmate-common:master-SNAPSHOT"
+//	dmCommon = "org.droidmate:droidmate-common:1.4.3-SNAPSHOT"
 	// Coverage
 	dmCoverage = "com.github.uds-se:droidmate-coverage:master-SNAPSHOT"
 	// API Monitor

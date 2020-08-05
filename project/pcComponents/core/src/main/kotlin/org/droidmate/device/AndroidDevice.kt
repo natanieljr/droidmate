@@ -95,17 +95,19 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	init {
 		// Port files can only be generated here because they depend on the device index
-		val monitorPortFile = File.createTempFile(EnvironmentConstants.monitor_port_file_name, ".tmp")
-		monitorPortFile.writeText(Integer.toString(cfg.monitorPort))
-		monitorPortFile.deleteOnExit()
-		cfg.monitorPortFile = monitorPortFile.toPath().toAbsolutePath()
-		log.info("Using ${EnvironmentConstants.monitor_port_file_name} located at ${cfg.monitorPortFile}")
+		if(cfg[ConfigProperties.ApiMonitorServer.enable]) {
+			val monitorPortFile = File.createTempFile(EnvironmentConstants.monitor_port_file_name, ".tmp")
+			monitorPortFile.writeText(Integer.toString(cfg.monitorPort))
+			monitorPortFile.deleteOnExit()
+			cfg.monitorPortFile = monitorPortFile.toPath().toAbsolutePath()
+			log.info("Using ${EnvironmentConstants.monitor_port_file_name} located at ${cfg.monitorPortFile}")
 
-		val coveragePortFile = File.createTempFile(EnvironmentConstants.coverage_port_file_name, ".tmp")
-		coveragePortFile.writeText(Integer.toString(cfg.coverageMonitorPort))
-		coveragePortFile.deleteOnExit()
-		cfg.coveragePortFile = coveragePortFile.toPath().toAbsolutePath()
-		log.info("Using ${EnvironmentConstants.coverage_port_file_name} located at ${cfg.coveragePortFile}")
+			val coveragePortFile = File.createTempFile(EnvironmentConstants.coverage_port_file_name, ".tmp")
+			coveragePortFile.writeText(Integer.toString(cfg.coverageMonitorPort))
+			coveragePortFile.deleteOnExit()
+			cfg.coveragePortFile = coveragePortFile.toPath().toAbsolutePath()
+			log.info("Using ${EnvironmentConstants.coverage_port_file_name} located at ${cfg.coveragePortFile}")
+		}
 	}
 
 	private val tcpClients: ITcpClients = TcpClients(
@@ -197,7 +199,11 @@ class AndroidDevice constructor(private val serialNumber: String,
 
 	override suspend fun setupConnection() {
 		log.trace("setupConnection($serialNumber) / this.tcpClients.forwardPorts()")
-		this.tcpClients.forwardPorts()
+		if(cfg[ConfigProperties.ApiMonitorServer.enable]) {
+			this.tcpClients.forwardPorts()
+		}	else {
+			this.tcpClients.forwardPort()
+		}
 		log.trace("setupConnection($serialNumber) / this.restartUiaDaemon()")
 		restartUiaDaemon(true)
 		log.trace("setupConnection($serialNumber) / DONE")
