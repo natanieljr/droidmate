@@ -146,7 +146,17 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 //			stroke = BasicStroke(1F)
 //			w.visibleAreas.forEach { drawRectangle(it) }
 				stroke = shapeStroke
-				with(w.visibleBounds) {
+				val bounds: Rectangle = if(w.visibleAreas.size < 5) w.visibleBounds else {
+					// elements with multiple visible aras are usually in the background, for better visibility only draw the biggest visible area
+					with(w.visibleAreas.filter { it.isNotEmpty() && it.width>69 && it.height>69 }){
+						val pl = minBy { it.leftX }
+						val pt = minBy { it.topY }
+						val pr = maxBy { it.rightX }
+						val pb = maxBy { it.bottomY }
+						Rectangle.create(pl?.leftX ?: 0, pt?.topY ?: 0, right = pr?.rightX ?: 0, bottom = pb?.bottomY ?: 0)
+					}
+				}
+				with(bounds) {
 					drawRectangle(this)
 					// draw the label number for the element
 					val text = targetCounter[w.id]!!.joinToString(separator = ", ") { if (it.first != 0) "${it.first}.${it.second}" else "${it.second}" }
