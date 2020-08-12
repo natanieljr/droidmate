@@ -11,7 +11,7 @@ project.ext {
 	 * Note: strings like x.y.z-RCx cannot be used for dynamic version ranges and thus should be avoided for release tags
 	 */
 	// requires version 2.4.2+
-	driverLib_version = "2.5.2"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
+	driverLib_version = "2.5.3"  // our device interface (right now subject to change, but after refactoring it should not require further updates)
 	min_model_version = "1.5.1"
 	max_model_version =	"1.6.0"	// exclusive outer bounds for version
 
@@ -27,8 +27,8 @@ project.ext {
 	dmExplorationModel = "com.github.hotzkow:explorationModel"
 //	dmExplorationModel = "org.droidmate:explorationModel"
 	// DeviceInterfaceLib
-	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
-//	dmDriverLib = "org.droidmate:deviceDaemonLib"
+//	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
+	dmDriverLib = "org.droidmate:deviceDaemonLib"
 	// Common
 	dmCommon = "com.github.uds-se:droidmate-common:master-SNAPSHOT"
 //	dmCommon = "org.droidmate:droidmate-common:1.4.3-SNAPSHOT"
