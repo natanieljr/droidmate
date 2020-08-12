@@ -25,7 +25,8 @@ suspend fun showTargetsInImg(
 	toBeHighlighted: List<Widget>,
 	imgFile: File, autoGenScreen: Boolean = true,
 	imgSrcDir: Path = eContext.model.config.imgDst,
-	drawOval: Boolean = false
+	drawOval: Boolean = false,
+	unique: Boolean = false // for strongly fragmented elements only draw the biggest area
 ) {
 	withContext(Dispatchers.IO) {
 		val trace = eContext.explorationTrace
@@ -60,7 +61,7 @@ suspend fun showTargetsInImg(
 			println("error on image load"); return@withContext
 		}
 		shapeColor = Color.cyan
-		highlightWidget(stateImg, toBeHighlighted)
+		highlightWidget(stateImg, toBeHighlighted, unique = unique)
 		if(drawOval) stateImg.createGraphics().apply { // highlight the boundaries if layout problems prevent us from detecting underlying elements
 			stroke = shapeStroke
 			toBeHighlighted.forEachIndexed { i,w ->

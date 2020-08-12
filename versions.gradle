@@ -27,8 +27,8 @@ project.ext {
 	dmExplorationModel = "com.github.hotzkow:explorationModel"
 //	dmExplorationModel = "org.droidmate:explorationModel"
 	// DeviceInterfaceLib
-//	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
-	dmDriverLib = "org.droidmate:deviceDaemonLib"
+	dmDriverLib = "com.github.hotzkow:platformInterfaceLib"
+//	dmDriverLib = "org.droidmate:deviceDaemonLib"
 	// Common
 	dmCommon = "com.github.uds-se:droidmate-common:master-SNAPSHOT"
 //	dmCommon = "org.droidmate:droidmate-common:1.4.3-SNAPSHOT"

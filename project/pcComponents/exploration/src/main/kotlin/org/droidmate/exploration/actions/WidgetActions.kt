@@ -35,7 +35,7 @@ fun Widget.clickEvent(delay: Long = 0, ignoreClickable: Boolean = false): Explor
 		throw RuntimeException("ERROR: tried to click non-actionable Widget $this")
 	widgetTargets.add(this)
 	return if(!clickable)	clickCoordinate().let { (x, y) -> Click(x, y, true, delay) }
-	else ClickEvent(this.idHash, true, delay)
+	else clickCoordinate().let { (x, y) -> ClickEvent(this.idHash, x, y,true, delay) }
 }
 
 @JvmOverloads
@@ -59,7 +59,7 @@ fun Widget.longClickEvent(delay: Long = 0, ignoreVisibility: Boolean = false): E
 	if (!(definedAsVisible || ignoreVisibility) || !enabled || !longClickable)
 		throw RuntimeException("ERROR: tried to long-click non-actionable Widget $this")
 	widgetTargets.add(this)
-	return LongClickEvent(this.idHash, true, delay)
+	return clickCoordinate().let { (x, y) -> LongClickEvent(this.idHash, x, y, true, delay) }
 }
 
 @JvmOverloads

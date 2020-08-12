@@ -77,20 +77,44 @@ suspend fun ExplorationAction.execute(env: UiAutomationEnvironment): Any {
 			delay(delay)
 			success
 		}
-		is ClickEvent ->
-			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
-				if(nodeInfo.isFocusable){
+		is ClickEvent -> {
+			var node: AccessibilityNodeInfo? = null
+			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->        // do this for API Level above 19 (exclusive)
+				node = nodeInfo
+				if (nodeInfo.isFocusable) {
 					nodeInfo.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
 					Log.d(logTag, "focus target element to ensure click event is registered")
 				}
-				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)}.also {
-					if(it) { delay(delay) } // wait for display update
-					Log.d(logTag, "perform ClickEvent on $idHash successful=$it")
+				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+			}.also {
+				Log.d(logTag, "perform ClickEvent on $idHash successful=$it")
+				if (it) {
+					delay(delay)
+				} // wait for display update
+				else {
+					val res = env.device.click(x, y, interactiveTimeout).apply {
+						if(this) delay(delay)
+					}
+					Log.d(logTag, "event click failed, fallback to coordinate click; success = $res")
 				}
-		is LongClickEvent -> UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
-			nodeInfo.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)}.also {
-			if(it) { delay(delay) } // wait for display update
-			Log.d(logTag, "perform successful=$it")
+			}
+		}
+		is LongClickEvent -> {
+			UiHierarchy.findAndPerform(env, idMatch(idHash)) { nodeInfo ->				// do this for API Level above 19 (exclusive)
+				if(nodeInfo.isFocusable){
+					nodeInfo.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+					Log.d(logTag, "focus target element to ensure long-click event is registered")
+				}
+				nodeInfo.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)}.also {
+				Log.d(logTag, "perform LongClickEvent on $idHash successful=$it")
+				if(it) { delay(delay) } // wait for display update
+				else {
+					val res = env.device.longClick(x, y, interactiveTimeout).apply {
+						if(this) delay(delay)
+					}
+					Log.d(logTag, "event long click failed, fallback to coordinate long click; success = $res")
+				}
+			}
 		}
 		is LongClick -> {
 			env.device.verifyCoordinate(x, y)

@@ -124,7 +124,8 @@ var shapeColor: Color = Color.red
 var textColor: Color = Color.magenta.darker()
 var textSize: Int = 50
 var darken: Boolean = false
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>, cnd: (Widget)->Boolean = {true}){
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>,
+                    cnd: (Widget)->Boolean = {true}, unique: Boolean = false){
 	stateImg.createGraphics().apply{
 		stroke = BasicStroke(10F)
 		font = Font("TimesRoman", Font.PLAIN, textSize)
@@ -146,14 +147,15 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 //			stroke = BasicStroke(1F)
 //			w.visibleAreas.forEach { drawRectangle(it) }
 				stroke = shapeStroke
-				val bounds: Rectangle = if(w.visibleAreas.size < 5) w.visibleBounds else {
+				val bounds: Rectangle = if(!unique || w.visibleAreas.size < 5) w.visibleBounds else {
 					// elements with multiple visible aras are usually in the background, for better visibility only draw the biggest visible area
-					with(w.visibleAreas.filter { it.isNotEmpty() && it.width>69 && it.height>69 }){
+					with(w.visibleAreas.filter { it.isNotEmpty() && it.width>59 && it.height>59 }){
 						val pl = minBy { it.leftX }
 						val pt = minBy { it.topY }
 						val pr = maxBy { it.rightX }
 						val pb = maxBy { it.bottomY }
-						Rectangle.create(pl?.leftX ?: 0, pt?.topY ?: 0, right = pr?.rightX ?: 0, bottom = pb?.bottomY ?: 0)
+						val r = Rectangle.create(pl?.leftX ?: 0, pt?.topY ?: 0, right = pr?.rightX ?: 0, bottom = pb?.bottomY ?: 0)
+						if(r.isEmpty()){ w.visibleAreas.maxBy { it.width*it.height }!! } else r
 					}
 				}
 				with(bounds) {
@@ -171,8 +173,9 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 		}
 	}
 }
-fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0, cnd: (Widget)->Boolean = {true})
-		= highlightWidget(stateImg, targetWidgets, (0 until targetWidgets.size).map { idxOffset }, cnd)
+fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0,
+                    cnd: (Widget)->Boolean = {true}, unique: Boolean = false)
+		= highlightWidget(stateImg, targetWidgets, (targetWidgets.indices).map { idxOffset }, cnd, unique)
 
 private fun Int.resize() = if(this<5) 10 else this
 
