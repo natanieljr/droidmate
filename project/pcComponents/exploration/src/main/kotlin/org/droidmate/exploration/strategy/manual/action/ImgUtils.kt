@@ -25,6 +25,7 @@ suspend fun showTargetsInImg(
 	toBeHighlighted: List<Widget>,
 	imgFile: File, autoGenScreen: Boolean = true,
 	imgSrcDir: Path = eContext.model.config.imgDst,
+	drawNumbers: Boolean = true,
 	drawOval: Boolean = false,
 	unique: Boolean = false // for strongly fragmented elements only draw the biggest area
 ) {
@@ -61,7 +62,7 @@ suspend fun showTargetsInImg(
 			println("error on image load"); return@withContext
 		}
 		shapeColor = Color.cyan
-		highlightWidget(stateImg, toBeHighlighted, unique = unique)
+		highlightWidget(stateImg, toBeHighlighted, drawNumbers = drawNumbers, unique = unique)
 		if(drawOval) stateImg.createGraphics().apply { // highlight the boundaries if layout problems prevent us from detecting underlying elements
 			stroke = shapeStroke
 			toBeHighlighted.forEachIndexed { i,w ->
@@ -74,7 +75,7 @@ suspend fun showTargetsInImg(
 					if (text.length > 20)
 						font = Font("TimesRoman", Font.PLAIN, 30)
 					paint = Color.red // text in different color for better visibility
-					drawString(text, leftX + 10, bottomY-8)
+					if(drawNumbers) drawString(text, leftX + 10, bottomY-8)
 				}
 			}
 		}

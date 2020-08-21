@@ -125,7 +125,7 @@ var textColor: Color = Color.magenta.darker()
 var textSize: Int = 50
 var darken: Boolean = false
 fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: List<Int>,
-                    cnd: (Widget)->Boolean = {true}, unique: Boolean = false){
+                    cnd: (Widget)->Boolean = {true}, drawNumbers: Boolean = true, unique: Boolean = false){
 	stateImg.createGraphics().apply{
 		stroke = BasicStroke(10F)
 		font = Font("TimesRoman", Font.PLAIN, textSize)
@@ -147,7 +147,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 //			stroke = BasicStroke(1F)
 //			w.visibleAreas.forEach { drawRectangle(it) }
 				stroke = shapeStroke
-				val bounds: Rectangle = if(!unique || w.visibleAreas.size < 5) w.visibleBounds else {
+				val bounds: Rectangle = if(!unique || w.visibleAreas.size < 5 || (w.visibleBounds.width*w.visibleBounds.height < 40000)) w.visibleBounds else {
 					// elements with multiple visible aras are usually in the background, for better visibility only draw the biggest visible area
 					with(w.visibleAreas.filter { it.isNotEmpty() && it.width>59 && it.height>59 }){
 						val pl = minBy { it.leftX }
@@ -165,7 +165,7 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 					if (text.length > 20) font = Font("TimesRoman", Font.PLAIN, 20)
 					paint = if (w.isInputField) textColor.brighter() else textColor// for better visibility use a different color then the boarder
 //					drawString(text, leftX + (width / 10), topY + (height / 10))
-					drawString(text, leftX + 10, bottomY-8)
+					if(drawNumbers) drawString(text, leftX + 10, bottomY-8)
 				}
 				font = Font("TimesRoman", Font.PLAIN, textSize) // reset font to bigger font
 				if (w.isVisible && darken) shapeColor = shapeColor.darker()
@@ -174,8 +174,8 @@ fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOff
 	}
 }
 fun highlightWidget(stateImg: BufferedImage, targetWidgets: List<Widget>, idxOffset: Int = 0,
-                    cnd: (Widget)->Boolean = {true}, unique: Boolean = false)
-		= highlightWidget(stateImg, targetWidgets, (targetWidgets.indices).map { idxOffset }, cnd, unique)
+                    cnd: (Widget)->Boolean = {true}, drawNumbers: Boolean =false, unique: Boolean = false)
+		= highlightWidget(stateImg, targetWidgets, (targetWidgets.indices).map { idxOffset }, cnd, drawNumbers, unique)
 
 private fun Int.resize() = if(this<5) 10 else this
 
