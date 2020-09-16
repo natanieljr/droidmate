@@ -51,17 +51,17 @@ object DefaultStrategies : Logging {
     override val log = getLogger()
 
     /**
-     * Terminate the exploration after a predefined elapsed time
+     * Terminate the exploration after a predefined elapsed time (in ms)
      */
-    fun timeBasedTerminate(priority: Int, maxSeconds: Int) = object : AExplorationStrategy() {
+    fun timeBasedTerminate(priority: Int, maxMilliSeconds: Int) = object : AExplorationStrategy() {
         override val uniqueStrategyName: String = "timeBasedTerminate"
 
         override fun getPriority(): Int = priority
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> hasNext(eContext: ExplorationContext<M, S, W>): Boolean {
             val diff = eContext.getExplorationTimeInMs()
-            log.info("remaining exploration time: ${"%.1f".format((maxSeconds - diff) / 1000.0)}s")
-            return maxSeconds in 1..diff
+            log.info("remaining exploration time: ${"%.1f".format((maxMilliSeconds - diff) / 1000.0)}s")
+            return maxMilliSeconds in 1..diff
         }
 
         override suspend fun <M : AbstractModel<S, W>, S : State<W>, W : Widget> nextAction(eContext: ExplorationContext<M, S, W>): ExplorationAction {
