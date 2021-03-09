@@ -353,6 +353,7 @@ open class ExploreCommand<M,S,W>(
 			strategyScheduler.close()
 		} finally {
 			explorationContext.close()
+			strategyScheduler.close()
 		}
 
 		return FailableExploration(explorationContext, explorationContext.exceptions)

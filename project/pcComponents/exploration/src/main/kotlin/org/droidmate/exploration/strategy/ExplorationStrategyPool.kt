@@ -139,7 +139,10 @@ open class ExplorationStrategyPool(
 		return selectedAction
 	}
 
-	open fun close(){
+	open suspend fun close(){
+		this.strategies.forEach{
+			it.tearDown()
+		}
 		selectorThreadPool.close()
 	}
 
